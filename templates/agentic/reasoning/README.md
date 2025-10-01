@@ -43,8 +43,7 @@ Copy your project payload into [`lamatic-config.json`](./lamatic-config.json) in
 
 ### 3. Install & Run
 ```bash
-npm install
-npm run dev
+npm run deploy
 # Open http://localhost:3000
 ```
 
