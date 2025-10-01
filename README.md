@@ -99,6 +99,39 @@ AgentKit Types
 | Embed           | Embedded agent in apps/sites | `/templates/embed`    |
 | Agentic         | Reasoning, planning, exec    | `/templates/agentic`  |
 
+
+### 📦 Available Kits
+
+Explore ready-to-deploy agent templates built on Lamatic’s AgentKit framework.  
+Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
+
+#### 🧠 Agentic Kits
+
+> Self-directed agents designed for advanced reasoning, planning, and goal-oriented execution.
+
+| Kit Name | Description | Live Deploy | Path |
+|-----------|--------------|--------------|------|
+| **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_API_KEY&envDescription=Your%20Lamatic%20API%20key%20is%20required.&envLink=https://github.com/Lamatic/agent-kit-reasoning#required-api-keys) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
+
+> 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
+
+<!--
+### ⚙️ Automation Kits
+(Coming soon)
+| Kit Name | Description | Path |
+|-----------|--------------|------|
+
+### 💬 Assistant Kits
+(Coming soon)
+| Kit Name | Description | Path |
+|-----------|--------------|------|
+
+### 🌐 Embed Kits
+(Coming soon)
+| Kit Name | Description | Path |
+|-----------|--------------|------|
+-->
+
 ***
 
 ## 📚 Documentation & Resources
