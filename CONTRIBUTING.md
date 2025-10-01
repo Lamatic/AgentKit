@@ -56,7 +56,7 @@ To contribute improvements, new AgentKits, or fixes, please follow these guideli
 
 2. **Create your changes** inside a uniquely named folder within the `/templates/` directory. For example:
    ```
-   /templates/<unique-agentkit-name>/
+   /templates/<category>/<unique-agentkit-name>/
    ```
    This ensures your AgentKit or feature stays organized and easy to review.
 
@@ -75,8 +75,48 @@ To contribute improvements, new AgentKits, or fixes, please follow these guideli
 
 8. The maintainers will review your PR, provide feedback if necessary, and merge when approved.
 
-***
 
+## Building Your Own AgentKit
+
+Want to create a custom AgentKit from scratch? We've provided a starter template to help you get started quickly!
+
+1. **Use the sample template** located at `/templates/sample/` as your starting point. This is a Next.js project skeleton pre-configured with the essential structure for building AgentKits.
+
+2. **Copy the template** to create your new AgentKit:
+   ```bash
+   cp -r templates/sample/<your-agentkit-name>
+   ```
+
+3. **Customize your kit** by:
+   - Adding your orchestrator logic in the `/actions` directory
+   - Building your UI components in the `/app` directory
+   - Integrating Lamatic API wrappers in the `/lib` directory
+   - Configuring your flow in `lamatic-config.json`
+
+4. **Set up your environment** by creating a `.env` file with required API keys:
+   ```bash
+   LAMATIC_API_KEY=your_key_here
+   ```
+
+5. **Install dependencies and run locally**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+6. **Test thoroughly** to ensure all features work as expected before submitting.
+
+7. **Document your kit** by updating the README with:
+   - Clear description of what your AgentKit does
+   - Setup instructions and prerequisites
+   - Usage examples and screenshots
+   - Any special configuration or dependencies
+
+8. **Submit your AgentKit** by following the Pull Request guidelines above.
+
+We're excited to see what you build! If you have questions or need help, feel free to open an issue or reach out to the maintainers.
+
+***
 ## Coding Guidelines
 
 - Write clear, maintainable, and well-documented code.
