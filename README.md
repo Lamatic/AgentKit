@@ -72,18 +72,16 @@ AgentKit Types
    - Browse `/templates` for available kits.
    - Example:
      ```sh
-     cp templates/agentic ./deploy
+     cd templates/agentic/reasoning
      ```
 
 3. **Configure Integrations**
-   - Enter API keys, endpoints, and credentials in `.env` or `/config`.
+   - Enter API keys, endpoints, and credentials in `.env` or `/config`. The setup and configurations for the integration will be defined in that repo itself in it's ReadME.
 
 4. **Deploy**
-   - Run the agent locally or on your preferred cloud platform:
+   - Run the agent locally with : 
      ```sh
      npm run deploy
-     # or
-     lamatic deploy agentic
      ```
 
 5. **Monitor & Scale**
