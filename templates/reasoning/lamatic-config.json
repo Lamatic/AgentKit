@@ -1,0 +1,52 @@
+{
+  "flows": {
+    "step1": {
+      "name": "Generate Steps",
+      "workflowId": "38*********************************6",
+      "description": "Generates high-level reasoning steps for the query",
+      "mode": "sync",
+      "expectedOutput": "steps",
+      "inputSchema": {
+        "query": "string",
+        "history": "array"
+      },
+      "outputSchema": {
+        "steps": "string"
+      }
+    },
+    "step2": {
+      "name": "Process Steps",
+      "workflowId": "f1*********************************9",
+      "description": "Processes the generated steps into research queries + links",
+      "mode": "sync",
+      "dependsOn": ["step1"],
+      "expectedOutput": ["result", "links"],
+      "inputSchema": {
+        "steps": "string"
+      },
+      "outputSchema": {
+        "result": "string",
+        "links": "array"
+      }
+    },
+    "step3": {
+      "name": "Final Writer",
+      "workflowId": "50*********************************b",
+      "description": "Takes query and research results and generates the final markdown answer",
+      "mode": "sync",
+      "dependsOn": ["step2"],
+      "expectedOutput": "answer",
+      "inputSchema": {
+        "query": "string",
+        "research": "array"
+      },
+      "outputSchema": {
+        "answer": "string"
+      }
+    }
+  },
+  "api": {
+    "endpoint": "https://****************************/graphql",
+    "projectId": "338****************************d6c"
+  }
+}  
