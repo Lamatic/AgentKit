@@ -1,0 +1,16 @@
+{
+    "name": "template-kit",
+    "version": "0.0.1",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "deploy": "bash ../scripts/deploy.sh template-kit"
+    },
+    "dependencies": {
+      "next": "^14.0.0",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "lamatic": "^0.3.2"
+    }
+  }
+  
