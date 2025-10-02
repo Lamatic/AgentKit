@@ -109,9 +109,9 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 
 > Self-directed agents designed for advanced reasoning, planning, and goal-oriented execution.
 
-| Kit Name | Description | Live Deploy | Path |
-|-----------|--------------|--------------|------|
-| **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_API_KEY&envDescription=Your%20Lamatic%20API%20key%20is%20required.&envLink=https://github.com/Lamatic/agent-kit-reasoning#required-api-keys) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
+| Kit Name | Description | Live Demo | Deploy | Path |
+|-----------|--------------|--------------|--------------|------|
+| **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_API_KEY&envDescription=Your%20Lamatic%20API%20key%20is%20required.&envLink=https://github.com/Lamatic/agent-kit-reasoning#required-api-keys) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
 
 > 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
 
