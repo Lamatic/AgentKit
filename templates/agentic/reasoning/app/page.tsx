@@ -252,7 +252,7 @@ export default function LamaticThinkMode() {
               Docs
             </Link>
             <Link
-              href="https://github.com/Lamatic/agent-kit-reasoning"
+              href="https://github.com/Lamatic/AgentKit/tree/main/templates/agentic/reasoning"
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors flex items-center gap-2"
