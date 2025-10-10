@@ -1,0 +1,65 @@
+{
+  "type": "method-group",
+  "flows": {
+    "indexation": {
+      "method1": {
+        "name": "PDF Indexation",
+        "type": "graphQL",
+        "workflowId": "71a72da4-f4e2-44e0-97ed-bd3de144785f",
+        "description": "This indexes any mannual PDF upload via URL",
+        "mode": "sync",
+        "expectedOutput": "status",
+        "inputSchema": {
+          "title": "string",
+          "url": "string"
+        },
+        "outputSchema": {
+          "status": "object"
+        },
+        "mode": "sync"
+      },
+      "method2": {
+        "name": "Websites Indexation",
+        "type": "graphQL",
+        "workflowId": "7cc1504a-c4e3-4623-960f-560debe1417e",
+        "description": "This indexes the given links to the database",
+        "expectedOutput": "output",
+        "inputSchema": {
+          "urls": "array"
+        },
+        "outputSchema": {
+          "output": "string"
+        },
+        "mode": "async",
+        "polling": "true",
+        "pollInterval": "30",
+        "pollTimeout": "300"
+      },
+      "rollback": {
+          "name": "Resource Deletion",
+          "workflowId": "bcae6e9b-c4bc-4ac0-8bf5-d3ada424d27e",
+          "description": "This deletes the given resource uploaded above",
+          "mode": "sync",
+          "expectedOutput": "status",
+          "inputSchema": {
+            "title": "string",
+            "urls": "array",
+            "type": "string"
+          },
+          "outputSchema": {
+            "status": "object"
+          }
+        }
+    },
+    "chatbot": {
+      "name": "Chatbot",
+      "workflowId": "3b4e8e33-d5a7-4035-a92c-82feb1315e92",
+      "description": "Takes query and research results and generates the final markdown answer",
+      "type": "widget"
+    }
+  },
+  "api": {
+    "endpoint": "https://lamaticshowcase-firecrawl310.lamatic.dev",
+    "projectId": "3387843c-b9c7-47ee-a96e-d6708e28ad6c"
+  }
+}
