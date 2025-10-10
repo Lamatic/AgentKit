@@ -4,7 +4,7 @@
     "analysis" : {
         "name": "Hiring Analysis",
         "type" : "graphQL",
-        "workflowId": "ccb9a999-5bba-452e-8f83-92144aaa7d25",
+        "workflowId": "cc****************25",
         "description": "Analyses the current candidate's suitability for the job selected",
         "expectedOutput": ["score", "strength", "weakness", "recommendation"],
         "inputSchema": {
@@ -24,7 +24,7 @@
     }
   },
   "api": {
-    "endpoint": "https://lamaticshowcase-firecrawl310.lamatic.dev",
-    "projectId": "3387843c-b9c7-47ee-a96e-d6708e28ad6c"
+    "endpoint": "https://******************310.lamatic.dev",
+    "projectId": "33*****************d6c"
   }
 }
