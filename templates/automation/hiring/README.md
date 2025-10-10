@@ -8,7 +8,7 @@
 
 **Agent Kit Hiring Automation** is an AI-powered candidate evaluation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/automation/hiring&env=LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Lamatic%20API%20key%20and%20Vercel%20Blob%20token%20are%20required.&envLink=https://github.com/Lamatic/agent-kit-hiring#required-api-keys)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/automation/hiring&env=LAMATIC_API_KEY&envDescription=Lamatic%20API%20key%20is%20required.&envLink=https://github.com/Lamatic/agent-kit-hiring#required-api-keys)
 
 ---
 
