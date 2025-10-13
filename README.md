@@ -135,13 +135,14 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 
 > 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
 
-### 💬 Embed Kits
+#### 💬 Embed Kits
 
 > Seamlessly integrate AI agents into apps, websites, and workflows.
 
 | Kit Name | Description | Live Demo | Deploy | Path |
 |-----------|--------------|--------------|--------------|------|
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/chat&env=LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Lamatic%20API%20key%20and%20Vercel%20Blob%20token%20are%20required.&envLink=https://github.com/Lamatic/agent-kit-embedded-chat#required-api-keys) | [`/templates/embed/chat`](./templates/embed/chat) |
+| **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/sheets&env=LAMATIC_API_KEY&envDescription=Lamatic%20API%20key%20is%20required.&envLink=https://github.com/Lamatic/agent-kit-sheets#required-api-keys) | [`/templates/embed/sheets`](./templates/embed/sheets) |
 
 > 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
 
