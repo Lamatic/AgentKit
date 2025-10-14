@@ -1,4 +1,7 @@
 # Agent Kit Embedded Chat by Lamatic.ai
+<p align="center">
+  <img src="https://jumpshare.com/share/feHqCqI8mD2DlJ8wmF4r"/>
+</p>
 
 <p align="center">
   <a href="https://agent-kit-embedded-chat.vercel.app" target="_blank">
