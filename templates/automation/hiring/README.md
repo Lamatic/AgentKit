@@ -1,6 +1,10 @@
 # Agent Kit Hiring Automation by Lamatic.ai
 
 <p align="center">
+  <img src="https://jumpshare.com/share/cgsRHdLeZLrRDR8vHN26" alt="Demo" />
+</p>
+
+<p align="center">
   <a href="https://agent-kit-hiring.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
   </a>

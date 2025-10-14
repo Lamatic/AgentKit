@@ -1,10 +1,15 @@
 # Agent Kit Sheets by Lamatic.ai
 
 <p align="center">
+  <img src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcmc5NmFnd2NuNDEzcmRiMmltcjFqdGdtbmRiYWUzdTI3NmRuNXZiZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/iTvwJK5Tema4GtJXwt/giphy.gif" alt="Demo" />
+</p>
+
+<p align="center">
   <a href="https://agent-kit-sheets.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
   </a>
 </p>
+
 
 **Agent Kit Sheets** is an AI-powered spreadsheet application built with [Lamatic.ai](https://lamatic.ai). It combines the familiar spreadsheet interface with intelligent AI workflows to transform, analyze, categorize, and summarize your data through a modern Next.js interface.
 
