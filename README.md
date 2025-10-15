@@ -122,13 +122,13 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 
 | Kit Name | Description | Status | Live Demo | Path |
 |-----------|--------------|--------|--------------|------|
-| **🧠 Agentic Kits** |  |  |  |  |
+| **🧠 Agentic Kits**   |
 | **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
 |---|---|---|---|---|
-| **🤖 Automation Kits** |  |  |  |  |
+| **🤖 Automation Kits**   |
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
 |---|---|---|---|---|
-| **💬 Embed Kits** |  |  |  |  |
+| **💬 Embed Kits**   |
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/templates/embed/chat`](./templates/embed/chat) |
 | **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/templates/embed/sheets`](./templates/embed/sheets) |
 
