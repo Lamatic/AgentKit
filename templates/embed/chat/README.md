@@ -1,6 +1,6 @@
 # Agent Kit Embedded Chat by Lamatic.ai
 <p align="center">
-  <img src="https://jumpshare.com/share/feHqCqI8mD2DlJ8wmF4r"/>
+  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmFmdXh4aHB3bXZidmg1dDM1azhtY2xheTl6ZnUzbHdsYXo1OXVvcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6hnrR2Vk2PLByiWKbL/giphy.gif"/>
 </p>
 
 <p align="center">
