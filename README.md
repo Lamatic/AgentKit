@@ -81,7 +81,6 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 | **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/templates/agentic`](./templates/agentic) |
 | **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
 ||
-| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
 | **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/templates/automation`](./templates/automation) |
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
 ||
