@@ -47,22 +47,22 @@ Deploy intelligent AI agents in minutes with enterprise-grade security, scalable
 <div align="center" style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;">
   <div style="width: 240px; min-width: 200px; max-width: 260px; display: inline-block; vertical-align: top; margin: 12px; padding: 24px 16px; border: 1px solid #eee; border-radius: 24px; background: #fff;">
     <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/agentic.png" alt="Agentic Icon" width="64" style="margin-bottom: 12px;" />
-    <h3>Agentic</h3>
+  <h3 style="color:#111;">Agentic</h3>
     <p style="color: #444; font-size: 15px;">Intelligent agents that can reason, plan, and execute complex tasks autonomously</p>
   </div>
   <div style="width: 240px; min-width: 200px; max-width: 260px; display: inline-block; vertical-align: top; margin: 12px; padding: 24px 16px; border: 1px solid #eee; border-radius: 24px; background: #fff;">
     <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/embed.png" alt="Embed Icon" width="64" style="margin-bottom: 12px;" />
-    <h3>Embed</h3>
+  <h3 style="color:#111;">Embed</h3>
     <p style="color: #444; font-size: 15px;">Seamlessly integrate AI capabilities into your existing applications and workflows</p>
   </div>
   <div style="width: 240px; min-width: 200px; max-width: 260px; display: inline-block; vertical-align: top; margin: 12px; padding: 24px 16px; border: 1px solid #eee; border-radius: 24px; background: #fff;">
     <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/assistant.png" alt="Assistant Icon" width="64" style="margin-bottom: 12px;" />
-    <h3>Assistant</h3>
+  <h3 style="color:#111;">Assistant</h3>
     <p style="color: #444; font-size: 15px;">Smart assistants that help users with tasks, answer questions, and provide support</p>
   </div>
   <div style="width: 240px; min-width: 200px; max-width: 260px; display: inline-block; vertical-align: top; margin: 12px; padding: 24px 16px; border: 1px solid #eee; border-radius: 24px; background: #fff;">
     <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/automation.png" alt="Automation Icon" width="64" style="margin-bottom: 12px;" />
-    <h3>Automation</h3>
+  <h3 style="color:#111;">Automation</h3>
     <p style="color: #444; font-size: 15px;">Automate repetitive tasks and streamline business processes with AI-powered workflows</p>
   </div>
 </div>
