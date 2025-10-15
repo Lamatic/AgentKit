@@ -1,7 +1,7 @@
 # Agent Kit Hiring Automation by Lamatic.ai
 
 <p align="center">
-  <img src="https://jumpshare.com/share/cgsRHdLeZLrRDR8vHN26" alt="Demo" />
+  <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGFzbnM2YjV0c2c4OTJtMmhtYjZmYWNyNWZkaG91Y2x6OTR1dzRiYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3aM9X2uZyHXrXVWgDI/giphy.gif" alt="Demo" />
 </p>
 
 <p align="center">
