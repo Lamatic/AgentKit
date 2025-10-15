@@ -54,6 +54,28 @@ AgentKit Types
 
 ***
 
+### 📦 Available Kits
+
+Explore ready-to-deploy agent templates built on Lamatic’s AgentKit framework.  
+Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
+
+| Kit Name | Description | Status | Live Demo | Path |
+|-----------|--------------|--------|--------------|------|
+| **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/templates/agentic`](./templates/agentic) |
+| **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
+||
+| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
+| **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/templates/automation`](./templates/automation) |
+| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
+||
+| **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/templates/assistant`](./templates/assistant) |
+||
+| **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/templates/embed`](./templates/embed) |
+| **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/templates/embed/chat`](./templates/embed/chat) |
+| **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/templates/embed/sheets`](./templates/embed/sheets) |
+
+> 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
+
 ## 🏛️ Architecture Overview
 
 - **Agent Engine**: Multi-agent system enabling advanced reasoning and planning
@@ -105,24 +127,7 @@ AgentKit Types
 
 
 
-### 📦 Available Kits
 
-Explore ready-to-deploy agent templates built on Lamatic’s AgentKit framework.  
-Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
-
-| Kit Name | Description | Status | Live Demo | Path |
-|-----------|--------------|--------|--------------|------|
-| **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/templates/agentic`](./templates/agentic) |
-| **Reasoning Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/templates/agentic/reasoning`](./templates/agentic/reasoning) |
-||
-| **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/templates/automation`](./templates/automation) |
-| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
-||
-| **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/templates/embed`](./templates/embed) |
-| **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/templates/embed/chat`](./templates/embed/chat) |
-| **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/templates/embed/sheets`](./templates/embed/sheets) |
-
-> 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
 
 ***
 
