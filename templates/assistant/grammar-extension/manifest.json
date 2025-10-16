@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Lamatic Grammar Assistant",
+  "version": "1.0",
+  "description": "Check and improve your grammar instantly",
+  "permissions": [
+    "activeTab",
+    "sidePanel",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Open Grammar Assistant"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["sidepanel.js","lamatic-config.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
