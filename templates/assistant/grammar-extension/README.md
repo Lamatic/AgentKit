@@ -23,7 +23,6 @@ You'll need two things to run this extension:
 ### 1. Config File
 
 Copy your project payload into [`lamatic-config.json`](./lamatic-config.json) in the extension root directory.
-```
 
 ### 2. Load Extension in Chrome
 
