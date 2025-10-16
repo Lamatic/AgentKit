@@ -88,6 +88,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 ||
 | **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/templates/embed`](./templates/embed) |
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/templates/embed/chat`](./templates/embed/chat) |
+| **Search** | A Next.js starter kit for searchbot Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/templates/embed/search`](./templates/embed/search) |
 | **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/templates/embed/sheets`](./templates/embed/sheets) |
 
 > 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
