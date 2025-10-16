@@ -1,0 +1,65 @@
+{
+    "type": "method-group",
+    "flows": {
+      "indexation": {
+        "method1": {
+          "name": "PDF Indexation",
+          "type": "graphQL",
+          "workflowId": "49****************************16",
+          "description": "This indexes any mannual PDF upload via URL",
+          "mode": "sync",
+          "expectedOutput": "status",
+          "inputSchema": {
+            "title": "string",
+            "url": "string"
+          },
+          "outputSchema": {
+            "status": "object"
+          },
+          "mode": "sync"
+        },
+        "method2": {
+          "name": "Websites Indexation",
+          "type": "graphQL",
+          "workflowId": "c43****************************5b9",
+          "description": "This indexes the given links to the database",
+          "expectedOutput": "output",
+          "inputSchema": {
+            "urls": "array"
+          },
+          "outputSchema": {
+            "output": "string"
+          },
+          "mode": "async",
+          "polling": "true",
+          "pollInterval": "30",
+          "pollTimeout": "300"
+        },
+        "rollback": {
+            "name": "Resource Deletion",
+            "workflowId": "5****************************2",
+            "description": "This deletes the given resource uploaded above",
+            "mode": "sync",
+            "expectedOutput": "status",
+            "inputSchema": {
+              "title": "string",
+              "urls": "array",
+              "type": "string"
+            },
+            "outputSchema": {
+              "status": "object"
+            }
+          }
+      },
+      "search": {
+        "name": "SearchWidget",
+        "workflowId": "7d****************************34",
+        "description": "Takes search query and display the final results",
+        "type": "widget"
+      }
+    },
+    "api": {
+      "endpoint": "https://****************************.lamatic.dev",
+      "projectId": "3****************************6c"
+    }
+  }
