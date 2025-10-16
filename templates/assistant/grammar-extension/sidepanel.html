@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lamatic Grammar Assistant</title>
+    <link rel="icon" type="image/png" href="images/lamatic-logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="manifest" href="images/site.webmanifest">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <img
+            src="images/lamatic-logo.png"
+            alt="Lamatic Logo"
+            class="logo"
+          />
+          <h1 class="header-title">
+            Lamatic <span class="highlight">Grammar Assistant</span>
+          </h1>
+        </div>
+      </header>
+
+      <!-- Subtitle -->
+      <p class="subtitle">
+        ✍️ Select text to check grammar and improve writing
+      </p>
+
+      <!-- Input -->
+      <div class="text-input-section">
+        <label for="selectedText">Your Text:</label>
+        <textarea
+          id="selectedText"
+          placeholder="Paste your text here..."
+        ></textarea>
+      </div>
+
+      <!-- Send Button -->
+      <button id="sendBtn" class="btn btn-send" disabled>
+        <span class="btn-text">Check Grammar</span>
+        <span class="loader" style="display: none;"></span>
+      </button>
+
+      <!-- Result Section -->
+      <div id="resultSection" class="result-section" style="display: none;">
+        <h3>✨ Improved Text:</h3>
+        <div id="resultText" class="result-text"></div>
+        <button id="copyBtn" class="btn btn-copy">Copy Corrected Text</button>
+
+        <div
+          id="correctionsList"
+          class="corrections-list"
+          style="margin-top: 1rem;"
+        >
+          <h4>🔍 Detailed Corrections:</h4>
+          <div
+            id="correctionsContainer"
+            class="corrections-container"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Error Section -->
+      <div id="errorSection" class="error-section" style="display: none;">
+        <h3>❌ Error:</h3>
+        <div id="errorText" class="error-text"></div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <a
+          href="https://lamatic.ai/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="footer-btn docs-btn"
+        >
+          📄 Docs
+        </a>
+        <a
+          href="https://github.com/Lamatic/AgentKit"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="footer-btn github-btn"
+        >
+          💻 GitHub
+        </a>
+      </footer>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

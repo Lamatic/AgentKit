@@ -1,0 +1,27 @@
+{
+    "type": "atomic",
+    "flows": {
+      "grammar_check" : {
+          "name": "Grammar Correction",
+          "type" : "graphQL",
+          "workflowId": "af2e7407-31d6-4056-afe4-cd8554f93f15",
+          "description": "Correct the grammar of the selected text and return back with corrected text and recommendations",
+          "expectedOutput": ["corrected_text", "corrections"],
+          "inputSchema": {
+              "text": "string"
+          },
+          "outputSchema": {
+              "corrected_text": "string",
+              "corrections": "array"
+          },
+          "mode": "sync",
+          "polling" : "false"
+      }
+    },
+    "api": {
+      "endpoint": "https://lamaticshowcase-firecrawl310.lamatic.dev",
+      "projectId": "3387843c-b9c7-47ee-a96e-d6708e28ad6c",
+      "key" : "lt-990812c891c97abba35b2f6c78547ccd"
+    }
+  }
+  
