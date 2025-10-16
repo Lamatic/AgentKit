@@ -85,7 +85,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/templates/automation/hiring`](./templates/automation/hiring) |
 ||
 | **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/templates/assistant`](./templates/assistant) |
-| **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/templates/embed/chat`](./templates/embed/chat) |
+| **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/templates/embed/chat`](./templates/assistant/grammar-extension) |
 ||
 | **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/templates/embed`](./templates/embed) |
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/templates/embed/chat`](./templates/embed/chat) |
