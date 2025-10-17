@@ -56,6 +56,21 @@ npm install
 npm run dev
 # Open http://localhost:3000
 ```
+### 4. Deploy Instructions (Vercel)
+
+Click the “Deploy with Vercel” button.
+
+Fill in LAMATIC_API_KEY (required).
+
+For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
+
+After deployment, generate your own Blob token:
+
+```bash
+vercel storage blob token create
+```
+
+Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE_TOKEN and redeploy.
 
 ---
 

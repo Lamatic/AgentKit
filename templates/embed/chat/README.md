@@ -22,16 +22,16 @@
 You'll need three things to run this project locally:  
 
 1. **Lamatic API Key** → get it from your [Lamatic account](https://lamatic.ai).  
-2. **Vercel Blob Token** → for document file storage (auto-configured when deployed to Vercel).  
-3. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines the indexation and chat flows).  
+2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
+3. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines the hiring analysis flow).  
    ⚠️ Note: The `lamatic-config.json` in this repo is just a **dummy example**.  
    Replace it with your own exported config from Lamatic Studio.
 
 | Item                    | Purpose                                      | Where to Get It                                 |
 | ----------------------- | -------------------------------------------- | ----------------------------------------------- |
 | Lamatic API Key         | Authentication for Lamatic AI APIs           | [lamatic.ai](https://lamatic.ai)                |
-| Blob Read/Write Token   | Document file storage                        | Auto-configured on Vercel                       |
-| Lamatic Config          | Defines your indexation and chat workflows   | From your Lamatic Studio Agent Kit Project      |
+| Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
+| Lamatic Config          | Defines your hiring analysis workflow        | From your Lamatic Studio Agent Kit Project      |
 
 ### 1. Environment Variables
 
@@ -57,6 +57,21 @@ npm install
 npm run dev
 # Open http://localhost:3000
 ```
+### 4. Deploy Instructions (Vercel)
+
+Click the “Deploy with Vercel” button.
+
+Fill in LAMATIC_API_KEY (required).
+
+For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
+
+After deployment, generate your own Blob token:
+
+```bash
+vercel storage blob token create
+```
+
+Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE_TOKEN and redeploy.
 
 ---
 
