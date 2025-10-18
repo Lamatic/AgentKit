@@ -15,6 +15,39 @@
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_API_KEY&envDescription=Your%20Lamatic%20API%20key%20is%20required.&envLink=https://lamatic.ai/docs/keys#required-api-keys)
 
 ---
+
+## Lamatic Setup (Pre and Post)
+
+Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
+
+Pre: Build in Lamatic
+1. Sign in or sign up at https://app.lamatic.ai  
+2. Create a project (if you don’t have one yet)  
+3. Click “+ New Flow”  
+4. Choose “Build from Use Cases” and select the kit closest to your needs  
+5. Configure providers/tools/inputs as prompted  
+6. Deploy the flow in Lamatic and verify it runs  
+7. Export the lamatic-config.json from your deployed flow
+
+Post: Wire into this repo
+1. Place lamatic-config.json in the path this repo expects (commonly ./lamatic-config.json; if different, follow this README’s instructions)  
+2. Create a .env file and set:
+   - LAMATIC_API_KEY=your_lamatic_key
+   - Any other provider keys your flow requires (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY)
+3. Install and run locally:
+   - npm install
+   - npm run dev
+4. Deploy (Vercel recommended):
+   - Import your repo, set the project’s Root Directory (if applicable)
+   - Add env vars in Vercel (same as your .env)
+   - Deploy and test your live URL
+
+Notes
+- If this repo contains a lamatic-config.json, it’s a placeholder. Replace it with your exported config.  
+- Coming soon: single-click export and “Connect Git” in Lamatic to push config directly to your repo.
+
+---
+
 ## 🔑 Setup
 ## Required Keys and Config
 
