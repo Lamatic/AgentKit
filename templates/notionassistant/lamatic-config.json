@@ -1,0 +1,6 @@
+{
+  "name": "notionassistant",
+  "description": "A Notion Assistant AgentKit to query and manage your Notion workspace.",
+  "api_keys_required": ["NOTION_API_KEY"],
+  "author": "Meghana-2124"
+}

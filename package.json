@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@notionhq/client": "^5.3.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.1"
+  }
+}
