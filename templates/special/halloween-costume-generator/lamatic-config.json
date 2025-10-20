@@ -6,7 +6,7 @@
       "type": "graphQL",
       "workflowId": "42dafbda-3b5e-421f-aeac-29f3156febeb",
       "description": "Generate costume images based on input image",
-      "expectedOutput": ["image", "img1", "img2", "img3", "img4", "img5", "img6", "img7"],
+      "expectedOutput": ["image", "img1", "img2"],
       "inputSchema": {
         "image": "string",
         "theme": "string"
