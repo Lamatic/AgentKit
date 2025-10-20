@@ -16,8 +16,10 @@ type SchemaToType<T> = {
 }
 
 type AIProcessingInput = SchemaToType<typeof config.flows.image_generation.inputSchema>
+type CostumeDesignerInput = SchemaToType<typeof config.flows.costume_designer.inputSchema>
 
 const aiFlow = config.flows.image_generation
+const costumeDesignerFlow = config.flows.costume_designer
 
 export async function executeAIProcessing(input: AIProcessingInput): Promise<{
   success: boolean
@@ -55,6 +57,63 @@ export async function executeAIProcessing(input: AIProcessingInput): Promise<{
     }
   } catch (error) {
     console.error("Error executing AI processing:", error)
+
+    let errorMessage = "Unknown error occurred"
+    if (error instanceof Error) {
+      errorMessage = error.message
+      if (error.message.includes("fetch failed")) {
+        errorMessage =
+          "Network error: Unable to connect to Lamatic service. Please check your internet connection and try again."
+      } else if (error.message.includes("API key")) {
+        errorMessage = "Authentication error: Please check your LAMATIC_API_KEY configuration."
+      } else if (error.message.includes("timeout")) {
+        errorMessage = "Request timeout: The AI processing is taking longer than expected. Please try again."
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    }
+  }
+}
+
+export async function executeCostumeDesigner(input: CostumeDesignerInput): Promise<{
+  success: boolean
+  data?: any
+  error?: string
+}> {
+  try {
+    console.log("Executing Costume Designer with Lamatic SDK")
+    console.log("Input:", input)
+
+    const workflowInput = Object.keys(config.flows.costume_designer.inputSchema).reduce(
+      (acc, key) => {
+        acc[key] = input[key as keyof CostumeDesignerInput]
+        return acc
+      },
+      {} as Record<string, unknown>,
+    )
+
+    console.log("Workflow input:", workflowInput)
+
+    // Execute the workflow using Lamatic SDK
+    const response = await lamaticClient.executeFlow(costumeDesignerFlow.workflowId, workflowInput)
+
+    console.log("Lamatic SDK response:", response)
+
+    if (!response) {
+      throw new Error("No response returned from workflow")
+    }
+
+    console.log("Costume Designer processing completed successfully")
+
+    return {
+      success: true,
+      data: response,
+    }
+  } catch (error) {
+    console.error("Error executing Costume Designer:", error)
 
     let errorMessage = "Unknown error occurred"
     if (error instanceof Error) {
