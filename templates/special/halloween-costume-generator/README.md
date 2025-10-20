@@ -1,6 +1,10 @@
 # Agent-Kit-Halloween-Costume-Generator by Lamatic.ai
 
 <p align="center">
+   <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDM0bjQ5aW1xNHplYTJrZ3BwMWs3Z2wxNWJub2xmbmdnaGltZ2FkYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tF2OS6dTUfSrvGPqEO/giphy.gif" alt="Demo" />
+</p>
+
+<p align="center">
   <a href="https://agent-kit-halloween-costume-generator.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
   </a>
