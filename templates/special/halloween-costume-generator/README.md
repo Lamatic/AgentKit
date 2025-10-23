@@ -33,7 +33,6 @@ Post: Wire into this repo
 1. Place lamatic-config.json in the path this repo expects (commonly ./lamatic-config.json; if different, follow this README’s instructions)  
 2. Create a .env file and set:
    - LAMATIC_API_KEY=your_lamatic_key
-   - Any other provider keys your flow requires (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY)
 3. Install and run locally:
    - npm install
    - npm run dev
@@ -55,14 +54,12 @@ Notes
 You'll need the following to run this project locally:
 
 1. **Lamatic API Key** → get it from your [Lamatic account](https://lamatic.ai)
-2. **Blob Token** → automatically provided when deploying to Vercel, or create one in your Vercel dashboard or locally
-3. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines the image generation flow)
+2. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines the image generation flow)
    ⚠️ Note: The `lamatic-config.json` in this repo contains the Halloween costume generation workflow.
 
 | Item                    | Purpose                                      | Where to Get It                                 |
 | ----------------------- | -------------------------------------------- | ----------------------------------------------- |
 | Lamatic API Key         | Authentication for Lamatic AI APIs           | [lamatic.ai](https://lamatic.ai)                |
-| Blob Token       | Image storage and retrieval                  | Blob Token   |
 | Lamatic Config          | Defines your costume generation flow         | From your Lamatic Studio Agent Kit Project      |
 
 ### 1. Environment Variables
@@ -73,8 +70,6 @@ Create `.env` with:
 # Lamatic
 LAMATIC_API_KEY=your_lamatic_key
 
-# Vercel Blob (for image storage)
-BLOB_READ_WRITE_TOKEN=your_blob_token
 ```
 
 ### 2. Config File
@@ -99,16 +94,6 @@ Click the “Deploy with Vercel” button.
 
 Fill in LAMATIC_API_KEY (required).
 
-For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
-
-After deployment, generate your own Blob token:
-
-```bash
-vercel storage blob token create
-```
-
-Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE_TOKEN and redeploy.
-
 ---
 
 ## 📂 Repo Structure
@@ -118,6 +103,9 @@ Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE
  └── orchestrate.ts        # Lamatic workflow orchestration
  └── upload-images.ts      # Blob storage upload handler
 /app
+ ├── api                   # API Folder
+  ├── upload-image/route.ts             # Upload User Image
+  ├── upload-to-catbox/route.ts         # Upload Lamatic Images
  ├── page.tsx              # Home page with hero section
  ├── upload/page.tsx       # Image upload interface
  ├── themes/page.tsx       # Theme selection page

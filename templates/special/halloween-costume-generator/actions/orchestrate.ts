@@ -27,8 +27,11 @@ export async function executeAIProcessing(input: AIProcessingInput): Promise<{
   error?: string
 }> {
   try {
-    console.log("Executing AI processing with Lamatic SDK")
-    console.log("Input:", input)
+    if (!input.image || !input.theme) {
+      throw new Error("Missing required input: image and theme are required")
+    }
+
+    console.log("[v0] Executing AI processing with Lamatic SDK")
 
     const workflowInput = Object.keys(config.flows.image_generation.inputSchema).reduce(
       (acc, key) => {
@@ -38,36 +41,34 @@ export async function executeAIProcessing(input: AIProcessingInput): Promise<{
       {} as Record<string, unknown>,
     )
 
-    console.log("Workflow input:", workflowInput)
-
     // Execute the workflow using Lamatic SDK
     const response = await lamaticClient.executeFlow(aiFlow.workflowId, workflowInput)
-
-    console.log("Lamatic SDK response:", response)
 
     if (!response) {
       throw new Error("No response returned from workflow")
     }
 
-    console.log("AI processing completed successfully")
+    console.log("[v0] AI processing completed successfully")
 
     return {
       success: true,
       data: response,
     }
   } catch (error) {
-    console.error("Error executing AI processing:", error)
+    console.error("[v0] Error executing AI processing:", error)
 
     let errorMessage = "Unknown error occurred"
     if (error instanceof Error) {
       errorMessage = error.message
-      if (error.message.includes("fetch failed")) {
+      if (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED")) {
         errorMessage =
           "Network error: Unable to connect to Lamatic service. Please check your internet connection and try again."
-      } else if (error.message.includes("API key")) {
+      } else if (error.message.includes("API key") || error.message.includes("401") || error.message.includes("403")) {
         errorMessage = "Authentication error: Please check your LAMATIC_API_KEY configuration."
-      } else if (error.message.includes("timeout")) {
+      } else if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
         errorMessage = "Request timeout: The AI processing is taking longer than expected. Please try again."
+      } else if (error.message.includes("500") || error.message.includes("502") || error.message.includes("503")) {
+        errorMessage = "Server error: The Lamatic service is temporarily unavailable. Please try again in a moment."
       }
     }
 
@@ -84,8 +85,11 @@ export async function executeCostumeDesigner(input: CostumeDesignerInput): Promi
   error?: string
 }> {
   try {
-    console.log("Executing Costume Designer with Lamatic SDK")
-    console.log("Input:", input)
+    if (!input.image || !input.page) {
+      throw new Error("Missing required input: image and page are required")
+    }
+
+    console.log("[v0] Executing Costume Designer with Lamatic SDK")
 
     const workflowInput = Object.keys(config.flows.costume_designer.inputSchema).reduce(
       (acc, key) => {
@@ -95,36 +99,34 @@ export async function executeCostumeDesigner(input: CostumeDesignerInput): Promi
       {} as Record<string, unknown>,
     )
 
-    console.log("Workflow input:", workflowInput)
-
     // Execute the workflow using Lamatic SDK
     const response = await lamaticClient.executeFlow(costumeDesignerFlow.workflowId, workflowInput)
-
-    console.log("Lamatic SDK response:", response)
 
     if (!response) {
       throw new Error("No response returned from workflow")
     }
 
-    console.log("Costume Designer processing completed successfully")
+    console.log("[v0] Costume Designer processing completed successfully")
 
     return {
       success: true,
       data: response,
     }
   } catch (error) {
-    console.error("Error executing Costume Designer:", error)
+    console.error("[v0] Error executing Costume Designer:", error)
 
     let errorMessage = "Unknown error occurred"
     if (error instanceof Error) {
       errorMessage = error.message
-      if (error.message.includes("fetch failed")) {
+      if (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED")) {
         errorMessage =
           "Network error: Unable to connect to Lamatic service. Please check your internet connection and try again."
-      } else if (error.message.includes("API key")) {
+      } else if (error.message.includes("API key") || error.message.includes("401") || error.message.includes("403")) {
         errorMessage = "Authentication error: Please check your LAMATIC_API_KEY configuration."
-      } else if (error.message.includes("timeout")) {
+      } else if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
         errorMessage = "Request timeout: The AI processing is taking longer than expected. Please try again."
+      } else if (error.message.includes("500") || error.message.includes("502") || error.message.includes("503")) {
+        errorMessage = "Server error: The Lamatic service is temporarily unavailable. Please try again in a moment."
       }
     }
 
