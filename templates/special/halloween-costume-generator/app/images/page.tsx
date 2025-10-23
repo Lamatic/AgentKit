@@ -13,19 +13,15 @@ function extractImagesFromLamaticResponse(result: any): string[] {
 
   if (!result || typeof result !== "object") return images
 
-  // Extract from known keys: image, img1, img2, ..., img7
-  const knownKeys = ["image", "img1", "img2"]
+  const knownKeys = ["image", "img1", "img2", "img3", "img4", "img5", "img6", "img7"]
 
   for (const key of knownKeys) {
     const value = result[key]
 
-    // Check if it's an array and has at least one element
     if (Array.isArray(value) && value.length > 0) {
       const firstElement = value[0]
 
-      // If it's a string (base64), add it
       if (typeof firstElement === "string" && firstElement.trim()) {
-        // Ensure it has the data URL prefix
         const imageData = firstElement.startsWith("data:image/")
           ? firstElement
           : `data:image/png;base64,${firstElement}`
@@ -44,7 +40,7 @@ export default function ImagesPage() {
   const sharedImageUrl = searchParams.get("img") || searchParams.get("shared")
   const sharedTheme = searchParams.get("theme")
 
-  let {
+  const {
     image,
     theme,
     generatedImages: cachedImages,
@@ -53,12 +49,15 @@ export default function ImagesPage() {
     setSelectedImage,
   } = useApp()
 
-  // Check if image is a URL or base64
-  const isImageUrl = image && (image.startsWith("http://") || image.startsWith("https://"))
+  const isImageUrl = image && (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("blob:"))
 
-  // Only extract base64 if it's not already a URL
+  // Only process base64 if it's not a URL
+  let processedImage = image
   if (!isImageUrl && image) {
-    image = image?.split(",")[1] ?? null
+    // If it's a data URL, extract the base64 part
+    if (image.startsWith("data:")) {
+      processedImage = image.split(",")[1] || image
+    }
   }
 
   const [generatedImages, setGeneratedImages] = useState<string[]>(cachedImages)
@@ -74,6 +73,9 @@ export default function ImagesPage() {
   const [designResults, setDesignResults] = useState<any>(null)
   const [designMode, setDesignMode] = useState<"make" | "buy" | null>(null)
   const [loadingMessage, setLoadingMessage] = useState("Generating images...")
+  const [imageLoading, setImageLoading] = useState(true)
+  const [imageError, setImageError] = useState(false)
+  const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (sharedImageUrl && !effectRan.current) {
@@ -121,13 +123,14 @@ export default function ImagesPage() {
     }
   }, [image, theme, isViewingShared])
 
-  async function compressBase64Jpeg(base64NoPrefix: string, maxW = 1024, quality = 0.75): Promise<string> {
+  async function compressBase64Jpeg(base64NoPrefix: string, maxW = 800, quality = 0.6): Promise<string> {
     try {
       const dataUrl = `data:image/jpeg;base64,${base64NoPrefix}`
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const el = new Image()
         el.onload = () => resolve(el)
         el.onerror = reject
+        el.crossOrigin = "anonymous"
         el.src = dataUrl
       })
       const scale = img.width > maxW ? maxW / img.width : 1
@@ -141,7 +144,8 @@ export default function ImagesPage() {
       ctx.drawImage(img, 0, 0, w, h)
       const outUrl = canvas.toDataURL("image/jpeg", quality)
       return outUrl.split(",")[1] || base64NoPrefix
-    } catch {
+    } catch (err) {
+      console.error("[v0] Compression failed:", err)
       return base64NoPrefix
     }
   }
@@ -151,16 +155,16 @@ export default function ImagesPage() {
       setIsLoading(true)
       setLoadingMessage("Generating images...")
 
-      let imageToSend = image
+      let imageToSend = isImageUrl ? image : processedImage
 
       console.log("[v0] === IMAGE TO LAMATIC ===")
       console.log("[v0] Image type:", isImageUrl ? "URL" : "Base64")
       console.log("[v0] Image value:", isImageUrl ? imageToSend : `${imageToSend?.substring(0, 50)}...`)
       console.log("[v0] ========================")
 
-      if (!isImageUrl && imageToSend && imageToSend.length > 2_000_000) {
-        console.log("[v0] Input image large (>2MB), compressing before upload…")
-        imageToSend = await compressBase64Jpeg(imageToSend, 1024, 0.7)
+      if (!isImageUrl && imageToSend && imageToSend.length > 500_000) {
+        console.log("[v0] Input image large (>500KB), compressing before upload…")
+        imageToSend = await compressBase64Jpeg(imageToSend, 800, 0.6)
         console.log("[v0] Compressed image size:", imageToSend.length, "characters")
       }
 
@@ -181,30 +185,90 @@ export default function ImagesPage() {
         throw new Error("No images were generated")
       }
 
-      console.log("[v0] Extracted", extractedImages.length, "images, uploading to Blob...")
+      // **NEW: Compress all generated images before upload**
+      console.log("[v0] Compressing", extractedImages.length, "generated images before upload...")
+      setLoadingMessage("Compressing images...")
+      
+      const compressedImages = await Promise.all(
+        extractedImages.map(async (img) => {
+          try {
+            // Extract base64 data
+            const base64Data = img.startsWith("data:image/") ? img.split(",")[1] : img
+            // Compress it
+            const compressed = await compressBase64Jpeg(base64Data, 1024, 0.7)
+            // Return as data URL
+            return `data:image/jpeg;base64,${compressed}`
+          } catch (err) {
+            console.error("[v0] Failed to compress image, using original:", err)
+            return img
+          }
+        })
+      )
+      
+      console.log("[v0] Compression complete, uploading images one by one...")
 
-      const uploadResult = await uploadMultipleImagesToBlob(extractedImages)
+      // Upload images one at a time to avoid 413 errors
+      const uploadedUrls: string[] = []
+      
+      for (let i = 0; i < compressedImages.length; i++) {
+        try {
+          setLoadingMessage(`Uploading images...`)
+          
+          const response = await fetch("/api/upload-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ base64Data: compressedImages[i] }),
+          })
+          
+          if (response.ok) {
+            const { url } = await response.json()
+            uploadedUrls.push(url)
+            console.log(`[v0] Uploaded image ${i + 1}/${compressedImages.length}`)
+          } else {
+            console.error(`[v0] Failed to upload image ${i + 1}`)
+          }
+        } catch (err) {
+          console.error(`[v0] Error uploading image ${i + 1}:`, err)
+        }
+      }
 
-      if (!uploadResult.success) {
-        console.warn("[v0] Blob upload failed, using data URLs as fallback")
-        // Fallback: use the base64 data URLs directly
-        setGeneratedImages(extractedImages)
-        setCachedImages(extractedImages)
+      if (uploadedUrls.length > 0) {
+        console.log("[v0] Successfully uploaded", uploadedUrls.length, "images")
+        
+        setLoadingMessage("Loading images...")
+        console.log("[v0] Preloading", uploadedUrls.length, "images before display...")
+
+        const preloadPromises = uploadedUrls.map((url, index) => {
+          return new Promise<void>((resolve) => {
+            const img = new Image()
+            img.crossOrigin = "anonymous"
+            img.onload = () => {
+              console.log("[v0] Preloaded image", index + 1, "of", uploadedUrls.length)
+              resolve()
+            }
+            img.onerror = () => {
+              console.error("[v0] Failed to preload image", index + 1, "- continuing anyway")
+              resolve()
+            }
+            img.src = url
+          })
+        })
+
+        await Promise.all(preloadPromises)
+        console.log("[v0] All images preloaded successfully")
+
+        setGeneratedImages(uploadedUrls)
+        setCachedImages(uploadedUrls)
         setCurrentImageIndex(0)
-        console.log("[v0] Using", extractedImages.length, "data URLs as fallback")
-        return
+        console.log("[v0] Saved to context cache:", uploadedUrls.length, "images")
+      } else {
+        // Fallback to compressed data URLs if upload completely fails
+        console.warn("[v0] All uploads failed, using compressed data URLs as fallback")
+        setGeneratedImages(compressedImages)
+        setCachedImages(compressedImages)
+        setCurrentImageIndex(0)
+        console.log("[v0] Using", compressedImages.length, "compressed data URLs as fallback")
       }
-
-      if (!uploadResult.urls || uploadResult.urls.length === 0) {
-        throw new Error("No images were successfully uploaded")
-      }
-
-      console.log("[v0] Successfully uploaded", uploadResult.urls.length, "images to Blob")
-
-      setGeneratedImages(uploadResult.urls)
-      setCachedImages(uploadResult.urls)
-      setCurrentImageIndex(0)
-      console.log("[v0] Saved to context cache:", uploadResult.urls.length, "images")
     } catch (err) {
       console.error("[v0] Lamatic error:", err)
       alert(`Failed to generate images: ${err instanceof Error ? err.message : "Unknown error"}`)
@@ -229,8 +293,8 @@ export default function ImagesPage() {
         ? generatedImages[currentImageIndex]
         : isImageUrl
           ? image
-          : image
-            ? `data:image/png;base64,${image}`
+          : processedImage
+            ? `data:image/png;base64,${processedImage}`
             : null
 
     if (selectedImage) {
@@ -247,13 +311,22 @@ export default function ImagesPage() {
       setIsSharing(true)
       const currentImage = generatedImages[currentImageIndex]
 
-      if (currentImage.startsWith("https://") && currentImage.includes("blob.vercel-storage.com")) {
+      if (
+        currentImage.startsWith("https://files.catbox.moe/") ||
+        (currentImage.startsWith("https://") && currentImage.includes("blob.vercel-storage.com"))
+      ) {
+        console.log("[v0] Image already hosted, using URL directly:", currentImage)
         setShareUrl(currentImage)
         setIsSharing(false)
         return
       }
 
-      // Otherwise, upload to catbox (for base64 images)
+      if (!currentImage.startsWith("data:image/")) {
+        console.error("[v0] Invalid image format for sharing:", currentImage.substring(0, 50))
+        throw new Error("Invalid image format")
+      }
+
+      console.log("[v0] Uploading base64 image to Catbox for sharing...")
       const response = await fetch("/api/upload-image", {
         method: "POST",
         headers: {
@@ -270,10 +343,11 @@ export default function ImagesPage() {
       }
 
       const { url: imageUrl } = await response.json()
+      console.log("[v0] Share URL created:", imageUrl)
 
       setShareUrl(imageUrl)
     } catch (error) {
-      console.error("Share error:", error)
+      console.error("[v0] Share error:", error)
       alert(
         `Failed to create share link: ${error instanceof Error ? error.message : "Unknown error"}. Please try again.`,
       )
@@ -309,9 +383,11 @@ export default function ImagesPage() {
   }
 
   const handleSelectImage = () => {
-    const currentImage = generatedImages[currentImageIndex]
-    setSelectedImageForDesign(currentImage)
-    setShowDesignButtons(true)
+    const currentImage = generatedImages.length > 0 ? generatedImages[currentImageIndex] : null
+    if (currentImage) {
+      setSelectedImageForDesign(currentImage)
+      setShowDesignButtons(true)
+    }
   }
 
   const handleMake = async () => {
@@ -374,6 +450,40 @@ export default function ImagesPage() {
     setDesignResults(null)
     setDesignMode(null)
   }
+
+  useEffect(() => {
+    if (generatedImages.length === 0) return
+
+    console.log("[v0] Tracking preloaded images for carousel...")
+    const loadPromises = generatedImages.map((url, index) => {
+      return new Promise<number>((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = "anonymous"
+        img.onload = () => {
+          resolve(index)
+        }
+        img.onerror = () => {
+          reject(index)
+        }
+        img.src = url
+      })
+    })
+
+    Promise.allSettled(loadPromises).then((results) => {
+      const loaded = new Set<number>()
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          loaded.add(result.value)
+        }
+      })
+      setPreloadedImages(loaded)
+    })
+  }, [generatedImages])
+
+  useEffect(() => {
+    setImageLoading(true)
+    setImageError(false)
+  }, [currentImageIndex])
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -500,12 +610,35 @@ export default function ImagesPage() {
 
               {generatedImages.length > 0 && (
                 <div className="relative">
-                  <div className="flex justify-center">
+                  <div className="flex justify-center relative">
+                    {imageLoading && !preloadedImages.has(currentImageIndex) && !imageError && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                      </div>
+                    )}
+                    {imageError && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-red-400">Failed to load image</p>
+                      </div>
+                    )}
                     <img
                       src={generatedImages[currentImageIndex] || "/placeholder.svg"}
                       alt="Generated transformed image"
-                      className="w-full max-w-2xl h-auto rounded-lg"
+                      className={`w-full max-w-2xl h-auto rounded-lg transition-opacity duration-300 ${
+                        imageLoading && !preloadedImages.has(currentImageIndex) ? "opacity-0" : "opacity-100"
+                      }`}
                       style={{ filter: "drop-shadow(0 0 30px rgba(255, 165, 0, 0.5))" }}
+                      crossOrigin="anonymous"
+                      onLoad={() => {
+                        console.log("[v0] Image", currentImageIndex + 1, "displayed successfully")
+                        setImageLoading(false)
+                        setImageError(false)
+                      }}
+                      onError={(e) => {
+                        console.error("[v0] Image failed to display:", generatedImages[currentImageIndex])
+                        setImageLoading(false)
+                        setImageError(true)
+                      }}
                     />
                   </div>
 
@@ -610,7 +743,7 @@ export default function ImagesPage() {
               {image && !isLoading && generatedImages.length === 0 && (
                 <div className="flex justify-center">
                   <img
-                    src={isImageUrl ? image : `data:image/png;base64,${image}`}
+                    src={isImageUrl ? image : `data:image/png;base64,${processedImage}`}
                     alt="Uploaded Image"
                     className="w-full max-w-md h-auto"
                     style={{ filter: "drop-shadow(0 0 30px rgba(255, 165, 0, 0.5))" }}
