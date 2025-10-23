@@ -4,7 +4,7 @@
     "image_generation": {
       "name": "AI Halloween Costumes",
       "type": "graphQL",
-      "workflowId": "42dafbda-3b5e-421f-aeac-29f3156febeb",
+      "workflowId": "42d******************************ebeb",
       "description": "Generate costume images based on input image",
       "expectedOutput": ["image", "img1", "img2"],
       "inputSchema": {
@@ -22,9 +22,9 @@
     "costume_designer": {
       "name": "AI Costume Designer",
       "type": "graphQL",
-      "workflowId": "30cc6ddc-2575-4f1b-b941-645d1ca27d91",
+      "workflowId": "30c**************************91",
       "description": "Design costume steps/products based on selected image",
-      "expectedOutput": ["image", "page"],
+      "expectedOutput": ["answer"],
       "inputSchema": {
         "image": "string",
         "page": "string"
@@ -37,7 +37,7 @@
     }
   },
   "api": {
-    "endpoint": "https://lamaticshowcase-firecrawl310.lamatic.dev/graphql",
-    "projectId": "3387843c-b9c7-47ee-a96e-d6708e28ad6c"
+    "endpoint": "https://*******************************/graphql",
+    "projectId": "33***************************d6c"
   }
 }

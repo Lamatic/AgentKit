@@ -1,7 +1,5 @@
 "use server"
 
-import { put } from "@vercel/blob"
-
 async function retryWithBackoff<T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 1000): Promise<T> {
   let lastError: Error | undefined
 
@@ -31,7 +29,7 @@ function isValidBase64(str: string): boolean {
   }
 }
 
-export async function uploadBase64ToBlob(base64Data: string, filename: string) {
+export async function uploadBase64ToCatbox(base64Data: string) {
   try {
     if (!isValidBase64(base64Data)) {
       console.error("[v0] Invalid base64 string detected")
@@ -44,38 +42,35 @@ export async function uploadBase64ToBlob(base64Data: string, filename: string) {
     // Remove data URL prefix if present
     const base64String = base64Data.replace(/^data:image\/\w+;base64,/, "")
 
-    // Detect image type from data URL
-    const imageTypeMatch = base64Data.match(/^data:image\/(\w+);base64,/)
-    const imageType = imageTypeMatch ? imageTypeMatch[1] : "png"
-    const contentType = `image/${imageType}`
-
     const estimatedSize = (base64String.length * 3) / 4
-    console.log(`[v0] Uploading image ${filename}, estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`)
+    console.log(`[v0] Uploading image to Catbox, estimated size: ${(estimatedSize / 1024 / 1024).toFixed(2)}MB`)
 
-    // Convert base64 to Uint8Array
-    const binaryString = atob(base64String)
-    const bytes = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i)
-    }
+    const uploadedUrl = await retryWithBackoff(
+      async () => {
+        const response = await fetch("/api/upload-to-catbox", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ base64Data }),
+        })
 
-    // Create a Blob from the Uint8Array
-    const blob = new Blob([bytes], { type: contentType })
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Upload failed")
+        }
 
-    const uploadedBlob = await retryWithBackoff(
-      () =>
-        put(filename, blob, {
-          access: "public",
-          contentType,
-        }),
+        const { url } = await response.json()
+        return url
+      },
       3,
       1000,
     )
 
-    console.log(`[v0] Successfully uploaded ${filename} to ${uploadedBlob.url}`)
-    return { success: true, url: uploadedBlob.url }
+    console.log(`[v0] Successfully uploaded to Catbox: ${uploadedUrl}`)
+    return { success: true, url: uploadedUrl }
   } catch (error) {
-    console.error(`[v0] Error uploading ${filename} to blob:`, error)
+    console.error(`[v0] Error uploading to Catbox:`, error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to upload image",
@@ -85,12 +80,9 @@ export async function uploadBase64ToBlob(base64Data: string, filename: string) {
 
 export async function uploadMultipleImagesToBlob(images: string[]) {
   try {
-    console.log(`[v0] Starting upload of ${images.length} images to Blob...`)
+    console.log(`[v0] Starting upload of ${images.length} images to Catbox...`)
 
-    const uploadPromises = images.map((image, index) => {
-      const filename = `halloween-costume-${Date.now()}-${index}.png`
-      return uploadBase64ToBlob(image, filename)
-    })
+    const uploadPromises = images.map((image) => uploadBase64ToCatbox(image))
 
     const results = await Promise.allSettled(uploadPromises)
 
@@ -114,7 +106,7 @@ export async function uploadMultipleImagesToBlob(images: string[]) {
       }
     }
 
-    console.log(`[v0] Successfully uploaded ${successfulUploads.length} out of ${images.length} images`)
+    console.log(`[v0] Successfully uploaded ${successfulUploads.length} out of ${images.length} images to Catbox`)
     return { success: true, urls: successfulUploads }
   } catch (error) {
     console.error("[v0] Error uploading multiple images:", error)
