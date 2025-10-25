@@ -9,7 +9,6 @@ This is a starter AgentKit template. Use this as a reference when creating new a
 /app                     # Next.js UI
 /lib                     # Lamatic API client wrappers
 /public/assets           # Optional static assets
-/lamatic-config.json     # Sample Lamatic flow configuration
 /package.json            # Scripts & dependencies
 ```
 
@@ -24,7 +23,7 @@ Copy this folder to `/templates/<your-kit-name>`
 Create a `.env` file and add your configuration:
 
 ```bash
-LAMATIC_API_KEY=your_key_here
+LAMATIC_CONFIG_AGENT_KIT="your_lamatic_config_agent_kit_key"
 ```
 
 ### 3. Configure Lamatic Flow
@@ -58,11 +57,10 @@ cp -r templates/template-kit templates/my-new-kit
 
 2. **Rename files** if needed and update `package.json` name.
 
-3. **Replace configuration** - Replace `lamatic-config.json` with your exported Lamatic Studio flow.
 
-4. **Configure environment** - Follow the README in the kit to configure `.env` and run locally.
+3. **Configure environment** - Follow the README in the kit to configure `.env` and run locally.
 
-5. **Commit and push** your new kit to the repository.
+4. **Commit and push** your new kit to the repository.
 
 ---
 
