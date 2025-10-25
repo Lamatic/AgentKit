@@ -12,23 +12,13 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://app.lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow”  
-4. Choose “Build from Use Cases” and select the kit closest to your needs  
+4. Choose “Build from Kits and select the 'Grammar Assistant' kit
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the flow in Lamatic and verify it runs  
-7. Export the lamatic-config.json from your deployed flow
+6. Copy/Export the lamatic-config.json from your deployed flow
 
 Post: Wire into this repo
 1. Place lamatic-config.json in the path this repo expects (commonly ./lamatic-config.json; if different, follow this README’s instructions)  
-2. Create a .env file and set:
-   - LAMATIC_API_KEY=your_lamatic_key
-   - Any other provider keys your flow requires (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY)
-3. Install and run locally:
-   - npm install
-   - npm run dev
-4. Deploy (Vercel recommended):
-   - Import your repo, set the project’s Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
+2. Zip and upload to your chrome browser
 
 Notes
 - If this repo contains a lamatic-config.json, it’s a placeholder. Replace it with your exported config.  
@@ -42,14 +32,12 @@ Notes
 
 You'll need two things to run this extension:
 
-1. **Lamatic API Key** → get it from your [Lamatic account](https://lamatic.ai).
-2. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines your grammar check workflow).  
+1. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines your grammar check workflow).  
    ⚠️ Note: The `lamatic-config.json` in this repo is just a **dummy example**.  
    Replace it with your own exported config from Lamatic Studio.
 
 | Item                    | Purpose                                      | Where to Get It                                 |
 | ----------------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic API Key         | Authentication for Lamatic AI APIs           | [lamatic.ai](https://lamatic.ai)                |
 | Lamatic Config          | Defines your grammar check workflow          | From your Lamatic Studio Agent Kit Project      |
 
 ### 1. Config File
