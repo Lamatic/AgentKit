@@ -1,4 +1,4 @@
-# Agent Kit Embedded Chat by Lamatic.ai
+# Agent Kit Embedded search by Lamatic.ai
 <p align="center">
   <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmFmdXh4aHB3bXZidmg1dDM1azhtY2xheTl6ZnUzbHdsYXo1OXVvcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6hnrR2Vk2PLByiWKbL/giphy.gif"/>
 </p>
@@ -11,7 +11,7 @@
 
 **Agent Kit Embedded Search** is an AI-powered document/website search system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to index PDFs and webpages, then provides an interactive search widget where users can search across their data in seconds.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/search&env=LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Lamatic%20API%20key%20and%20Vercel%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/docs/keys#required-api-keys)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/search&env=LAMATIC_CONFIG_EMBEDDED_SEARCH&envDescription=Your%20Lamatic%20Config%Embedded%20Search%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
 
 ---
 
@@ -48,23 +48,48 @@ Notes
 
 ---
 
+## Lamatic Setup (Pre and Post)
+
+Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
+
+Pre: Build in Lamatic
+1. Sign in or sign up at https://app.lamatic.ai  
+2. Create a project (if you don’t have one yet)  
+3. Click “+ New Flow”  
+4. Choose “Build from Kits" and select the 'Embedded Chat' agent kit.  
+5. Configure providers/tools/inputs as prompted  
+6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_EMBEDDED_CHAT key
+7. Copy the LAMATIC_CONFIG_EMBEDDED_CHAT from your studio
+
+Post: Wire into this repo
+1. Create a .env file and set:
+   - LAMATIC_CONFIG_EMBEDDED_CHAT=your_lamatic_config_embedded_chat_key
+3. Install and run locally:
+   - npm install
+   - npm run dev
+4. Deploy (Vercel recommended):
+   - Import your repo, set the project’s Root Directory (if applicable)
+   - Add env vars in Vercel (same as your .env)
+   - Deploy and test your live URL
+
+Notes
+- Coming soon: single-click export and “Connect Git” in Lamatic to push config directly to your repo.
+
+---
+
 ## 🔑 Setup
+## Required Keys and Config
 
-### Required Keys and Config
+You’ll need two things to run this project locally:  
 
-You'll need three things to run this project locally:  
-
-1. **Lamatic API Key** → get it from your [Lamatic account](https://lamatic.ai).  
+1. **LAMATIC_CONFIG_HIRING** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
-3. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines the hiring analysis flow).  
-   ⚠️ Note: The `lamatic-config.json` in this repo is just a **dummy example**.  
-   Replace it with your own exported config from Lamatic Studio.
 
-| Item                    | Purpose                                      | Where to Get It                                 |
-| ----------------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic API Key         | Authentication for Lamatic AI APIs           | [lamatic.ai](https://lamatic.ai)                |
+
+| Item              | Purpose                                      | Where to Get It                                 |
+| ----------------- | -------------------------------------------- | ----------------------------------------------- |
+| Lamatic Config Embedded Chat Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 | Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
-| Lamatic Config          | Defines your hiring analysis workflow        | From your Lamatic Studio Agent Kit Project      |
 
 ### 1. Environment Variables
 
@@ -72,29 +97,25 @@ Create `.env.local` with:
 
 ```bash
 # Lamatic
-LAMATIC_API_KEY=your_lamatic_key
+LAMATIC_CONFIG_EMBEDDED_CHAT=your_lamatic_config_embedded_chat
 
-# Vercel Blob (auto-configured on Vercel)
+# Vercel Blob (configured on Vercel)
 BLOB_READ_WRITE_TOKEN=your_blob_token
 ```
 
-### 2. Config File
-
-Copy your project payload into [`lamatic-config.json`](./lamatic-config.json) in the repo root.  
-(Export this directly from your Lamatic Studio project and paste it into the file.)
-
-### 3. Install & Run
+### 2. Install & Run
 
 ```bash
 npm install
 npm run dev
 # Open http://localhost:3000
 ```
+
 ### 3. Deploy Instructions (Vercel)
 
 Click the “Deploy with Vercel” button.
 
-Fill in LAMATIC_API_KEY (required).
+Fill in LAMATIC_CONFIG_EMBEDDED_CHAT (required).
 
 For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
 
@@ -105,7 +126,6 @@ vercel storage blob token create
 ```
 
 Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE_TOKEN and redeploy.
-
 ---
 
 ## 📂 Repo Structure
@@ -129,7 +149,6 @@ Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE
  └── images
      ├── lamatic-logo.png  # Lamatic branding
      └── *.png             # Data source icons
-/lamatic-config.json       # Lamatic flow configuration
 /package.json              # Dependencies & scripts
 ```
 
