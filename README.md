@@ -142,13 +142,6 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 
 ***
 
-
-
-
-
-
-***
-
 ## 📚 Documentation & Resources
 
 - [AgentKit Overview](https://lamatic.ai/templates/agentkits)
