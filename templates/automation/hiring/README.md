@@ -12,7 +12,7 @@
 
 **Agent Kit Hiring Automation** is an AI-powered candidate evaluation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/automation/hiring&env=LAMATIC_API_KEY&envDescription=Lamatic%20API%20key%20is%20required.&envLink=https://lamatic.ai/docs/keys#required-api-keys)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/automation/hiring&env=LAMATIC_CONFIG_HIRING,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%20Hiring%20key%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring)
 
 ---
 
@@ -24,16 +24,14 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://app.lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow”  
-4. Choose “Build from Use Cases” and select the kit closest to your needs  
+4. Choose “Build from Kits" and select the 'Hiring' agent kit.  
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the flow in Lamatic and verify it runs  
-7. Export the lamatic-config.json from your deployed flow
+6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_HIRING key
+7. Copy the LAMATIC_CONFIG_HIRING from your studio
 
 Post: Wire into this repo
-1. Place lamatic-config.json in the path this repo expects (commonly ./lamatic-config.json; if different, follow this README’s instructions)  
-2. Create a .env file and set:
-   - LAMATIC_API_KEY=your_lamatic_key
-   - Any other provider keys your flow requires (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY)
+1. Create a .env file and set:
+   - LAMATIC_CONFIG_HIRING=your_lamatic_config_hiring_key
 3. Install and run locally:
    - npm install
    - npm run dev
@@ -43,28 +41,23 @@ Post: Wire into this repo
    - Deploy and test your live URL
 
 Notes
-- If this repo contains a lamatic-config.json, it’s a placeholder. Replace it with your exported config.  
 - Coming soon: single-click export and “Connect Git” in Lamatic to push config directly to your repo.
 
 ---
 
 ## 🔑 Setup
+## Required Keys and Config
 
-### Required Keys and Config
+You’ll need two things to run this project locally:  
 
-You'll need three things to run this project locally:  
-
-1. **Lamatic API Key** → get it from your [Lamatic account](https://lamatic.ai).  
+1. **LAMATIC_CONFIG_HIRING** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
-3. **lamatic-config.json payload** → copy it from your Lamatic Studio project (this defines the hiring analysis flow).  
-   ⚠️ Note: The `lamatic-config.json` in this repo is just a **dummy example**.  
-   Replace it with your own exported config from Lamatic Studio.
 
-| Item                    | Purpose                                      | Where to Get It                                 |
-| ----------------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic API Key         | Authentication for Lamatic AI APIs           | [lamatic.ai](https://lamatic.ai)                |
+
+| Item              | Purpose                                      | Where to Get It                                 |
+| ----------------- | -------------------------------------------- | ----------------------------------------------- |
+| Lamatic Config Hiring Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 | Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
-| Lamatic Config          | Defines your hiring analysis workflow        | From your Lamatic Studio Agent Kit Project      |
 
 ### 1. Environment Variables
 
@@ -72,18 +65,13 @@ Create `.env.local` with:
 
 ```bash
 # Lamatic
-LAMATIC_API_KEY=your_lamatic_key
+LAMATIC_CONFIG_HIRING=your_lamatic_config_hiring
 
 # Vercel Blob (configured on Vercel)
 BLOB_READ_WRITE_TOKEN=your_blob_token
 ```
 
-### 2. Config File
-
-Copy your project payload into [`lamatic-config.json`](./lamatic-config.json) in the repo root.  
-(Export this directly from your Lamatic Studio project and paste it into the file.)
-
-### 3. Install & Run
+### 2. Install & Run
 
 ```bash
 npm install
@@ -91,11 +79,11 @@ npm run dev
 # Open http://localhost:3000
 ```
 
-### 4. Deploy Instructions (Vercel)
+### 3. Deploy Instructions (Vercel)
 
 Click the “Deploy with Vercel” button.
 
-Fill in LAMATIC_API_KEY (required).
+Fill in LAMATIC_CONFIG_HIRING (required).
 
 For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
 
@@ -123,7 +111,6 @@ Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE
 /public
  └── images
      └── lamatic-logo.png  # Lamatic branding
-/lamatic-config.json       # Lamatic flow configuration
 /package.json              # Dependencies & scripts
 ```
 

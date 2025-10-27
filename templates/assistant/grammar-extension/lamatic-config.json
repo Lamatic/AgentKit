@@ -4,7 +4,7 @@
       "grammar_check" : {
           "name": "Grammar Correction",
           "type" : "graphQL",
-          "workflowId": "af****************************f15",
+          "workflowId": "a******************************5",
           "description": "Correct the grammar of the selected text and return back with corrected text and recommendations",
           "expectedOutput": ["corrected_text", "corrections"],
           "inputSchema": {
@@ -19,9 +19,8 @@
       }
     },
     "api": {
-      "endpoint": "https://**********************ic.dev",
-      "projectId": "33************************ad6c",
-      "key" : "lt-************************ccd"
+      "endpoint": "https://******************************/graphql",
+      "projectId": "******************************",
+      "apiKey" : "******************************"
     }
-  }
-  
+}

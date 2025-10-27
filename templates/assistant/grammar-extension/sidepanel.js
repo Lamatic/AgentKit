@@ -23,7 +23,7 @@ fetch(chrome.runtime.getURL("lamatic-config.json"))
   .catch(error => {
     console.error('Failed to load config:', error);
     showError('Failed to load configuration. Please reload the extension.');
-  });
+});
 
 function initializeSidePanel() {
   // Listen for messages from content script
