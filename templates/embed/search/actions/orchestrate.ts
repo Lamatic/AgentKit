@@ -3,7 +3,7 @@
 import { lamaticClient } from "@/lib/lamatic-client"
 import fs from "fs";
 
-const config = JSON.parse(Buffer.from(process.env.LAMATIC_CONFIG_EMBEDDED_CHAT, "base64").toString("utf8"));
+const config = JSON.parse(Buffer.from(process.env.LAMATIC_CONFIG_EMBEDDED_SEARCH, "base64").toString("utf8"));
 
 type FlowConfig = {
   name: string
