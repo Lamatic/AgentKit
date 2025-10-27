@@ -9,15 +9,14 @@ Thank you for your interest in improving AgentKit! This guide explains exactly h
   - [1) Sign in or Sign up](#1-sign-in-or-sign-up)
   - [2) Create a Project](#2-create-a-project)
   - [3) Create a New Flow](#3-create-a-new-flow)
-  - [4) Build from Use Cases (Find Our Kits)](#4-build-from-use-cases-find-our-kits)
-  - [5) Configure and Deploy](#5-configure-and-deploy)
-  - [6) Export lamatic-config.json](#6-export-lamatic-configjson)
-  - [7) Future: Single-Click Export / Connect Git](#7-future-single-click-export--connect-git)
+  - [4) Build from Kits (Find Our Kits)](#4-build-from-kits-find-our-kits)
+  - [5) Export your key or lamatic-config.json](#5-export-your-key-or-lamatic-configjson)
+  - [6) Future: Single-Click Export / Connect Git](#6-future-single-click-export--connect-git)
 - [Prepare Your Contribution in This Repo](#prepare-your-contribution-in-this-repo)
   - [Fork and Clone](#fork-and-clone)
   - [Template Folder Structure](#template-folder-structure)
   - [Scaffold from Sample](#scaffold-from-sample)
-  - [Add lamatic-config.json](#add-lamatic-configjson)
+  - [Add key to environment or lamatic-config.json to project](#add-key-to-environment-or-lamatic-configjson-to-project)
   - [Environment Variables](#environment-variables)
   - [Document Your Kit](#document-your-kit)
   - [Minimum Files Checklist](#minimum-files-checklist)
@@ -91,7 +90,7 @@ All contributions start by building and deploying the flow in Lamatic. This ensu
 - At the end of your setup, you would receive a `LAMATIC_CONFIG_<KIT>` key or `lamatic-config.json`, which you have to download/copy.
 - You will add this key/file into your template folder in your forked repo.
 
-### 7) Future: Single-Click Export / Connect Git
+### 6) Future: Single-Click Export / Connect Git
 - Coming soon: a single-click export that downloads all files, or “Connect Git” to export directly to your repository/path.
 - We will update this document once those features are available.
 
@@ -128,7 +127,7 @@ Then update `package.json` name/description and any metadata as needed.
    ```
    templates/<category>/<unique-agentkit-name>/lamatic-config.json
    ```
-
+- Most kits use LAMATIC_CONFIG_; browser-like assistants or certain kits require lamatic-config.json. Each kit’s README will specify which one to use
 Make sure this config corresponds to the deployed version of your flow.
 
 ### Environment Variables
@@ -189,7 +188,7 @@ Visit http://localhost:3000 and verify your AgentKit works end-to-end against yo
    templates/<category>/<unique-agentkit-name>
    ```
 4) Add environment variables in the Vercel dashboard (the same keys as in your `.env`), e.g.:
-   - `  LAMATIC_CONFIG_<KIT>`
+   - `LAMATIC_CONFIG_<KIT>`
    - Any additional provider keys your kit requires
 5) Deploy and confirm your live URL works.
 
