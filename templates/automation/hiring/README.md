@@ -24,7 +24,7 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://app.lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow”  
-4. Choose “Build from Kits" and select the 'Reasoning' agent kit.  
+4. Choose “Build from Kits" and select the 'Hiring' agent kit.  
 5. Configure providers/tools/inputs as prompted  
 6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_HIRING key
 7. Copy the LAMATIC_CONFIG_HIRING from your studio
