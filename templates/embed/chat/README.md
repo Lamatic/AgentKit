@@ -50,7 +50,7 @@ Notes
 
 You’ll need two things to run this project locally:  
 
-1. **LAMATIC_CONFIG_HIRING** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+1. **LAMATIC_CONFIG_EMBEDDED_CHAT** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
 
 
