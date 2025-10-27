@@ -15,7 +15,6 @@
 
 ---
 
-
 ## Lamatic Setup (Pre and Post)
 
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
@@ -24,46 +23,14 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://app.lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow”  
-4. Choose “Build from Use Cases” and select the kit closest to your needs  
+4. Choose “Build from Kits" and select the 'Embedded Search' agent kit.  
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the flow in Lamatic and verify it runs  
-7. Export the lamatic-config.json from your deployed flow
-
-Post: Wire into this repo
-1. Place lamatic-config.json in the path this repo expects (commonly ./lamatic-config.json; if different, follow this README’s instructions)  
-2. Create a .env file and set:
-   - LAMATIC_API_KEY=your_lamatic_key
-   - Any other provider keys your flow requires (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY)
-3. Install and run locally:
-   - npm install
-   - npm run dev
-4. Deploy (Vercel recommended):
-   - Import your repo, set the project’s Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
-
-Notes
-- If this repo contains a lamatic-config.json, it’s a placeholder. Replace it with your exported config.  
-- Coming soon: single-click export and “Connect Git” in Lamatic to push config directly to your repo.
-
----
-
-## Lamatic Setup (Pre and Post)
-
-Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
-
-Pre: Build in Lamatic
-1. Sign in or sign up at https://app.lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow”  
-4. Choose “Build from Kits" and select the 'Embedded Chat' agent kit.  
-5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_EMBEDDED_CHAT key
-7. Copy the LAMATIC_CONFIG_EMBEDDED_CHAT from your studio
+6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_EMBEDDED_SEARCH key
+7. Copy the LAMATIC_CONFIG_EMBEDDED_SEARCH from your studio
 
 Post: Wire into this repo
 1. Create a .env file and set:
-   - LAMATIC_CONFIG_EMBEDDED_CHAT=your_lamatic_config_embedded_chat_key
+   - LAMATIC_CONFIG_EMBEDDED_SEARCH=your_lamatic_config_embedded_search_key
 3. Install and run locally:
    - npm install
    - npm run dev
@@ -82,13 +49,13 @@ Notes
 
 You’ll need two things to run this project locally:  
 
-1. **LAMATIC_CONFIG_HIRING** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+1. **LAMATIC_CONFIG_EMBEDDED_SEARCH** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
 
 
 | Item              | Purpose                                      | Where to Get It                                 |
 | ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic Config Embedded Chat Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+| Lamatic Config Embedded Search Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 | Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
 
 ### 1. Environment Variables
@@ -97,7 +64,7 @@ Create `.env.local` with:
 
 ```bash
 # Lamatic
-LAMATIC_CONFIG_EMBEDDED_CHAT=your_lamatic_config_embedded_chat
+LAMATIC_CONFIG_EMBEDDED_SEARCH=your_lamatic_config_embedded_search
 
 # Vercel Blob (configured on Vercel)
 BLOB_READ_WRITE_TOKEN=your_blob_token
@@ -115,7 +82,7 @@ npm run dev
 
 Click the “Deploy with Vercel” button.
 
-Fill in LAMATIC_CONFIG_EMBEDDED_CHAT (required).
+Fill in LAMATIC_CONFIG_EMBEDDED_SEARCH (required).
 
 For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
 
