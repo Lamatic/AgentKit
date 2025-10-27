@@ -11,7 +11,7 @@
 
 **Agent Kit Embedded Chat** is an AI-powered document chat system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/chat&env=LAMATIC_CONFIG_EMBEDDED_CHAT&envDescription=Your%20Lamatic%20Config%Embedded%20Chat%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/chat&env=LAMATIC_CONFIG_EMBEDDED_CHAT,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20Chat%20key%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat)
 
 ---
 
