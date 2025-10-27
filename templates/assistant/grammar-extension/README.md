@@ -12,7 +12,7 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://app.lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow”  
-4. Choose “Build from Kits and select the 'Grammar Assistant' kit
+4. Choose “Build from Kits" and select the 'Grammar Assistant' kit
 5. Configure providers/tools/inputs as prompted  
 6. Copy/Export the lamatic-config.json from your deployed flow
 
