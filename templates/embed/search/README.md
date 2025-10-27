@@ -11,7 +11,7 @@
 
 **Agent Kit Embedded Search** is an AI-powered document/website search system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to index PDFs and webpages, then provides an interactive search widget where users can search across their data in seconds.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/search&env=LAMATIC_CONFIG_EMBEDDED_SEARCH&envDescription=Your%20Lamatic%20Config%Embedded%20Search%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/search&env=LAMATIC_CONFIG_EMBEDDED_SEARCH,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20Search%20key%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
 
 ---
 
