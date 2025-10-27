@@ -39,13 +39,15 @@ Thank you for your interest in improving AgentKit! This guide explains exactly h
 ## Overview (TL;DR)
 
 1) Build and deploy your flow in Lamatic:
-   - Sign in → Create Project → + New Flow → Build from Use Cases → select a kit → configure → Deploy.
-   - Export the lamatic-config.json from your deployed flow.
+   - Sign in → Create Project → + New Flow → Build from Kits → select a kit → configure → Deploy.
+   - Export/Copy the LAMATIC_CONFIG_<kit> key
+   - In some cases, you would export the lamatic-config.json from your deployed flow (will be defined in the kit)
 
 2) Prepare your repo contribution:
    - Fork this repo.
    - Create a new template under `templates/<category>/<unique-agentkit-name>/`.
-   - Place `lamatic-config.json` in your template folder.
+   - Add LAMATIC_CONFIG_<kit> key key as an env variable
+   - For specified kits (such as browser assistants), place `lamatic-config.json` in your root folder.
    - Add `.env.example` (no secrets) and a README with setup instructions.
 
 3) Run and deploy:
@@ -67,7 +69,7 @@ Thank you for your interest in improving AgentKit! This guide explains exactly h
 
 ## Lamatic-First Workflow (Required)
 
-All contributions start by building and deploying the flow in Lamatic. This ensures your kit is reproducible and provides a valid `lamatic-config.json`.
+All contributions start by building and deploying the flow in Lamatic. This ensures your kit is reproducible and provides a valid `LAMATIC_CONFIG_<KIT>` key or `lamatic-config.json`.
 
 ### 1) Sign in or Sign up
 - Go to https://lamatic.ai and sign in or create an account.
@@ -79,18 +81,15 @@ All contributions start by building and deploying the flow in Lamatic. This ensu
 ### 3) Create a New Flow
 - Click “New Flow” on the left sidebar
 
-### 4) Build from Use Cases (Find Our Kits)
-- Choose “Build from Use Cases”.
+### 4) Build from Kits (Find Our Kits)
+- Choose “Build from Kits”.
 - Browse and select the kit that matches your use case (our curated kits are listed here).
 - Follow the on-screen steps to set up inputs, tools, providers, etc.
+- Complete the setup to deploy the kit on Lamatic Studio
 
-### 5) Configure and Deploy
-- Click “Deploy” inside Lamatic.
-- Verify it runs as expected in Lamatic.
-
-### 6) Export lamatic-config.json
-- From your deployed flow, download or copy the `lamatic-config.json`.
-- You will add this file into your template folder in your forked repo.
+### 5) Export your key or lamatic-config.json
+- At the end of your setup, you would receive a `LAMATIC_CONFIG_<KIT>` key or `lamatic-config.json`, which you have to download/copy.
+- You will add this key/file into your template folder in your forked repo.
 
 ### 7) Future: Single-Click Export / Connect Git
 - Coming soon: a single-click export that downloads all files, or “Connect Git” to export directly to your repository/path.
@@ -114,7 +113,7 @@ Create your contribution under `templates/` to keep kits organized:
 templates/<category>/<unique-agentkit-name>/
 ```
 
-Examples for `<category>`: customer-support, data-analysis, internal-tools, ecommerce, etc.
+Examples for `<category>`: agentic,assistant,automation,embed
 
 ### Scaffold from Sample
 Copy the sample Next.js template as a starting point:
@@ -123,18 +122,20 @@ cp -R templates/sample templates/<category>/<unique-agentkit-name>
 ```
 Then update `package.json` name/description and any metadata as needed.
 
-### Add lamatic-config.json
-Place the exported file from Lamatic here:
-```
-templates/<category>/<unique-agentkit-name>/lamatic-config.json
-```
+### Add key to environment or `lamatic-config.json` to project
+- Add your `LAMATIC_CONFIG_<KIT>` key to the `.env` file
+- If it is an lamatic-config.json based kit, place the exported file from Lamatic here:
+   ```
+   templates/<category>/<unique-agentkit-name>/lamatic-config.json
+   ```
 
 Make sure this config corresponds to the deployed version of your flow.
 
 ### Environment Variables
 - In your template folder, add an `.env.example` file containing all required variables:
   ```
-  LAMATIC_API_KEY=your_lamatic_api_key
+  # Example Keys
+  LAMATIC_CONFIG_<KIT>=your_lamatic_config_kit_key
   BLOB_READ_WRITE_TOKEN=your_blob_token
   # ...
   ```
@@ -150,16 +151,16 @@ Create or update `README.md` in your template folder with:
 
 ### Minimum Files Checklist
 Inside `templates/<category>/<unique-agentkit-name>/` you should have:
-- `lamatic-config.json` (exported from Lamatic)
-- `.env.example` (no secrets)
 - `README.md`
 - `package.json`
+- `.env.example` (no secrets)
 - Source files as applicable:
   - `app/` (UI routes/pages)
   - `actions/` (orchestrations, server/client actions)
   - `lib/` (Lamatic wrappers/helpers)
   - `public/` (assets if needed)
   - `next.config.js`, `tsconfig.json`, etc.
+- OPTIONAL : `lamatic-config.json` (if required, exported from Lamatic)
 
 ---
 
@@ -171,8 +172,7 @@ cd templates/<category>/<unique-agentkit-name>
 npm install
 cp .env.example .env
 # Edit .env to include your real keys, e.g.:
-# LAMATIC_API_KEY=...
-# lamatic-config.json
+#   LAMATIC_CONFIG_<KIT>=...
 npm run dev
 ```
 
@@ -189,8 +189,8 @@ Visit http://localhost:3000 and verify your AgentKit works end-to-end against yo
    templates/<category>/<unique-agentkit-name>
    ```
 4) Add environment variables in the Vercel dashboard (the same keys as in your `.env`), e.g.:
-   - `LAMATIC_API_KEY`
-   - Any additional provider keys your flow requires
+   - `  LAMATIC_CONFIG_<KIT>`
+   - Any additional provider keys your kit requires
 5) Deploy and confirm your live URL works.
 
 ---
@@ -215,8 +215,8 @@ Include in your PR description:
 
 ### PR Checklist
 Copy this checklist into your PR and check items off:
-- [ ] `lamatic-config.json` included and valid for the deployed flow
 - [ ] `.env` includes all required keys (no secrets committed)
+- [ ] OPTIONAL : `lamatic-config.json` included and valid for the deployed kit
 - [ ] Template `README.md` documents setup, env vars, and usage
 - [ ] Runs locally with `npm run dev`
 - [ ] Deployed preview (Vercel) with env vars set
@@ -263,6 +263,7 @@ When reporting a bug, include:
 - Describe the use case and expected impact clearly.
 - Provide example workflows or interface ideas if possible.
 - If available, link to a Lamatic prototype or draft `lamatic-config.json`.
+- If possible, an example of how it should work or your inspiration for this request
 
 ---
 
