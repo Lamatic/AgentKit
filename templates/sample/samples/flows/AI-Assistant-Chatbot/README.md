@@ -1,0 +1,2 @@
+### About
+This flow powers an interactive Chat Widget that lets users converse directly with your AI assistant. When a visitor sends a message, it’s processed by an LLM Node for intelligent response generation, and the result is instantly displayed in the chat — creating a seamless, on-site conversational experience.

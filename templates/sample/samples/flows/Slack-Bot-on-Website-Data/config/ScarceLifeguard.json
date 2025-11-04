@@ -1,0 +1,6 @@
+{
+    "name" : "Slack Bot",
+    "tags" : ["support","startup"],
+    "icon" : "bot",
+    "nodeIcons" : ["slackNode", "RAGNode"]
+}

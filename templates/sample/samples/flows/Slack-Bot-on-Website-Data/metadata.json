@@ -1,0 +1,5 @@
+{
+    "name" : "AI Slack Bot By Scraping Your Website",
+    "integrations" : ["firecrawl","slack"],
+    "flows" : ["Scrapping Websites Indexation","Slack Bot"]
+}
