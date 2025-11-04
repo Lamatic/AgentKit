@@ -1,0 +1,6 @@
+{
+    "name" : "Scrapping Websites Indexation",
+    "tags" : ["document","database"],
+    "icon" : "database",
+    "nodeIcons" : ["firecrawlNode", "chunkNode","vectorizeNode","vectorNode"]
+}
