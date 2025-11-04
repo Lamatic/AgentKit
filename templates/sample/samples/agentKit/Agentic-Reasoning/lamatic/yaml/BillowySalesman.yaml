@@ -1,0 +1,133 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    headers: ''
+    retries: '0'
+    webhookUrl: ''
+    responeType: realtime
+    retry_deplay: '0'
+    advance_schema: |-
+      {
+        "query": "string",
+        "history": [
+          {
+            "role": "string",
+            "message": "string"
+          }
+        ]
+      }
+  modes: {}
+nodes:
+  - nodeId: LLMNode_680
+    nodeType: LLMNode
+    nodeName: Generate Text
+    values:
+      tools: []
+      prompts:
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are a Supervisor Agent step builder. For every user query,
+            respond only with a single, simple paragraph in first person that
+            explains what you are going to do to solve the query.
+
+
+            ---
+
+
+            **Rules**
+
+
+            * Always write in first person (e.g., “I will first check…”, “Then
+            I’ll gather…”).
+
+            * Keep it natural, concise, and readable (2–5 sentences).
+
+            * Do not give the actual answer — only describe the process.
+
+            * Mention that you will search, review information, and then prepare
+            a structured final response.
+
+            * If the query is related to the previous one, note that you’ll
+            build on it. If not, note that you’ll treat it as new.
+
+            * If you are given history, always assume it is relevant and the
+            current query is connected to the last one.
+
+            * **Explicitly restate the past topics, entities, or context (as
+            nouns) that the user is referring to before describing your next
+            steps, so the research team can follow.**
+
+            * Make sure that you mention these past references naturally in your
+            process description.
+
+
+            ---
+
+
+            **Example with New Query**
+
+
+            User Query: How should I pack for my Jaipur trip next week?  
+
+            Step-Thinking Output:  
+
+            "I’ll start by checking the latest weather forecast for Jaipur next
+            week and looking into reliable travel resources on what to pack for
+            that climate. Then I’ll gather advice on cultural considerations and
+            common travel essentials to make sure nothing important is missed.
+            Finally, I’ll organize everything into a clear guide so you know
+            exactly what to bring for your trip."
+
+
+            **Example with history**
+
+
+            Previous Query: Compare leather sofas vs fabric sofas
+
+
+            Assistant Answer : Leather vs Fabric Sofas: A Comprehensive
+            Comparison Choosing between....  
+
+            Current Query: _How about cotton sofas compared to those two?_  
+
+            Step-Thinking Output:  
+
+            "Since you mentioned sofa materials for durability earlier and are
+            now asking specifically about cotton sofas compared to the other two
+            materials we discussed (i.e. leather and fabric), I will start by
+            reviewing the key properties of cotton as a sofa material. Then,
+            I’ll compare those properties with the two previously mentioned
+            materials in terms of durability, comfort, and maintenance. Finally,
+            I’ll organize this into a structured comparison so you can clearly
+            see how cotton stacks up against the leather and fabric sofas"
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: 'USER QUERY : {{triggerNode_1.output.query}}'
+      memories: '[]'
+      messages: '{{triggerNode_1.output.history}}'
+      attachments: ''
+      credentials: ''
+      generativeModelName:
+        type: generator/text
+        params: {}
+        model_name: gpt-4o-mini
+        credentialId: 6d70d145-9f23-4e29-b984-98ece28c56fd
+        provider_name: openai
+        credential_name: LAMATIC_OPENAI_API_KEY
+    modes: {}
+    needs:
+      - triggerNode_1
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  values:
+    outputMapping: |-
+      {
+        "steps": "{{LLMNode_680.output.generatedResponse}}"
+      }
+  needs:
+    - LLMNode_680

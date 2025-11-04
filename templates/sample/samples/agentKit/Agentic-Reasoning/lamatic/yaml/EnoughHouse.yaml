@@ -1,0 +1,569 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    responeType: realtime
+    advance_schema: |-
+      {
+        "query": "string",
+        "research": [
+          [
+            {
+              "title": "string",
+              "link": "string",
+              "snippet": "string",
+              "date": "string",
+              "position": "string"
+            }
+          ]
+        ]
+      }
+  modes: {}
+  allConfigs:
+    Config A:
+      id: triggerNode_1
+      nodeName: API Request
+      responeType: realtime
+      advance_schema: |-
+        {
+          "query": "string",
+          "research": [
+            [
+              {
+                "title": "string",
+                "link": "string",
+                "snippet": "string",
+                "date": "string",
+                "position": "string"
+              }
+            ]
+          ]
+        }
+  schema:
+    sampleOutput: string
+nodes:
+  - nodeId: sticky-note-609
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        # **⚡️ Flow Trigger**
+
+
+        ---
+
+
+        _A trigger initiates the flow. It can be a built-in tool or an
+        integration with an external application._
+
+
+        Trigger Types:
+
+
+        1. **📱App** \- Initiate flow from an external application integration
+
+        2. **🔌 Interface** \- API / Webhook
+
+        3. **💬 Widget** \- Prebuilt UI component ( Chat, Search )
+
+
+        ---
+
+
+        📖 Read Docs - [Flows](https://lamatic.ai/docs/flows)
+      color: purple
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-note-609
+        text: >-
+          # **⚡️ Flow Trigger**
+
+
+          ---
+
+
+          _A trigger initiates the flow. It can be a built-in tool or an
+          integration with an external application._
+
+
+          Trigger Types:
+
+
+          1. **📱App** \- Initiate flow from an external application integration
+
+          2. **🔌 Interface** \- API / Webhook
+
+          3. **💬 Widget** \- Prebuilt UI component ( Chat, Search )
+
+
+          ---
+
+
+          📖 Read Docs - [Flows](https://lamatic.ai/docs/flows)
+        color: purple
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -574.2262904319621
+      'y': -12.52704447087089
+    measured:
+      width: 470
+      height: 160
+  - nodeId: sticky-qnyx8cr1s
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **▶️ Try it out**
+
+
+        ---
+
+
+        1. **🔌 Trigger via GraphQL API**  
+
+        ### This flow begins when you send a **POST** request to Lamatic’s
+        GraphQL endpoint with a **query** and its corresponding **research**
+        array.  
+
+        ### **Example Input:**  
+
+        ### {  
+         "query": "What are the key provisions of the EU AI Act?",  
+         "research": \[  
+         \[  
+         {  
+         "title": "EU AI Act Overview",  
+         "link": "https://ec.europa.eu/ai-act",  
+         "snippet": "The AI Act establishes harmonized rules for artificial intelligence...",  
+         "date": "2024-03-10",  
+         "position": "1"  
+         },  
+         {  
+         "title": "Key Provisions of EU AI Act",  
+         "link": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0206",  
+         "snippet": "Defines AI system categories, compliance obligations, and prohibited practices...",  
+         "date": "2024-03-15",  
+         "position": "2"  
+         }  
+         \]  
+         \]  
+        }
+
+
+        ---
+
+
+        1. **🧠 Step: Generate Final Markdown**  
+           * The **AI Node (Generate Text)** takes your `query` and `research` inputs.  
+           * It produces a **well-structured, markdown-formatted article** based entirely on the provided research.  
+           * The output includes:  
+                 * Clean section titles  
+                 * Inline `[Title](URL)` references  
+                 * Even spacing and paragraph formatting
+
+        ---
+
+
+        1. **💬 Flow Response**  
+
+        ### The **GraphQL Response Node** returns:  
+
+        ### {  
+         "answer": "# EU AI Act Overview\\n\\n## Introduction\\nThe European Union AI Act..."  
+        }  
+
+        ### The `answer` field contains the **final article** ready to render
+        directly in markdown.
+
+
+        ---
+
+
+        1. **▶️ Test it 👇🏻**  
+
+        ### Run the flow manually with a sample payload  
+
+        **or** use cURL / Postman to call your Lamatic endpoint:  
+
+        ### curl -X POST https://api.lamatic.ai/graphql \\  
+
+        \-H "Content-Type: application/json" \\  
+
+        \-d '{  
+         "query": "Summarize the GDPR key principles",  
+         "research": \[\[{ "title": "GDPR Overview", "link": "https://gdpr.eu/", "snippet": "The GDPR is the EU’s data protection law...", "date": "2024-02-10", "position": "1" }\]\]  
+        }'
+
+
+        ---
+
+
+        ### 🧭 _Inspect_ `LLMNode_168.output.generatedResponse` _in your run
+        preview to view the formatted markdown article._
+      color: yellow
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-qnyx8cr1s
+        text: >-
+          ### **▶️ Try it out**
+
+
+          ---
+
+
+          1. **🔌 Trigger via GraphQL API**  
+
+          ### This flow begins when you send a **POST** request to Lamatic’s
+          GraphQL endpoint with a **query** and its corresponding **research**
+          array.  
+
+          ### **Example Input:**  
+
+          ### {  
+           "query": "What are the key provisions of the EU AI Act?",  
+           "research": \[  
+           \[  
+           {  
+           "title": "EU AI Act Overview",  
+           "link": "https://ec.europa.eu/ai-act",  
+           "snippet": "The AI Act establishes harmonized rules for artificial intelligence...",  
+           "date": "2024-03-10",  
+           "position": "1"  
+           },  
+           {  
+           "title": "Key Provisions of EU AI Act",  
+           "link": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0206",  
+           "snippet": "Defines AI system categories, compliance obligations, and prohibited practices...",  
+           "date": "2024-03-15",  
+           "position": "2"  
+           }  
+           \]  
+           \]  
+          }
+
+
+          ---
+
+
+          1. **🧠 Step: Generate Final Markdown**  
+             * The **AI Node (Generate Text)** takes your `query` and `research` inputs.  
+             * It produces a **well-structured, markdown-formatted article** based entirely on the provided research.  
+             * The output includes:  
+                   * Clean section titles  
+                   * Inline `[Title](URL)` references  
+                   * Even spacing and paragraph formatting
+
+          ---
+
+
+          1. **💬 Flow Response**  
+
+          ### The **GraphQL Response Node** returns:  
+
+          ### {  
+           "answer": "# EU AI Act Overview\\n\\n## Introduction\\nThe European Union AI Act..."  
+          }  
+
+          ### The `answer` field contains the **final article** ready to render
+          directly in markdown.
+
+
+          ---
+
+
+          1. **▶️ Test it 👇🏻**  
+
+          ### Run the flow manually with a sample payload  
+
+          **or** use cURL / Postman to call your Lamatic endpoint:  
+
+          ### curl -X POST https://api.lamatic.ai/graphql \\  
+
+          \-H "Content-Type: application/json" \\  
+
+          \-d '{  
+           "query": "Summarize the GDPR key principles",  
+           "research": \[\[{ "title": "GDPR Overview", "link": "https://gdpr.eu/", "snippet": "The GDPR is the EU’s data protection law...", "date": "2024-02-10", "position": "1" }\]\]  
+          }'
+
+
+          ---
+
+
+          ### 🧭 _Inspect_ `LLMNode_168.output.generatedResponse` _in your run
+          preview to view the formatted markdown article._
+        color: yellow
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -941.3354092710149
+      'y': -12.806964036752447
+    measured:
+      width: 354
+      height: 478
+  - nodeId: sticky-kzv63mb30
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        # **💬 Flow response**
+
+
+        ---
+
+
+        ## _The final step of your flow can send output to an external system,
+        which is particularly useful for flows initiated by triggers like Chat
+        or GraphQL API integrations._
+      color: green
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-kzv63mb30
+        text: >-
+          # **💬 Flow response**
+
+
+          ---
+
+
+          ## _The final step of your flow can send output to an external system,
+          which is particularly useful for flows initiated by triggers like Chat
+          or GraphQL API integrations._
+        color: green
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -572.2235275182811
+      'y': 328.3629397026828
+    measured:
+      width: 469
+      height: 135
+  - nodeId: sticky-gm21yx26f
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        # **➕ Nodes**
+
+
+        ---
+
+
+        _Nodes are the fundamental building blocks of a flow. Each node serves a
+        specific purpose, acting as a self-contained unit that processes input
+        and produces output. This modular approach allows users to create
+        complex flows by interconnecting various nodes._
+
+
+        Node Types :
+
+
+        1. **📱 Apps** \- Integrate third-party applications into your flow.
+
+        2. **🤖 AI** \- Perform AI operations within your flow.
+
+        3. **🛢️ Data** \- Manipulate and transform data within your flow.
+
+        4. **♾️ Logic** \- Control the flow of execution in your flow.
+      color: blue
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-gm21yx26f
+        text: >-
+          # **➕ Nodes**
+
+
+          ---
+
+
+          _Nodes are the fundamental building blocks of a flow. Each node serves
+          a specific purpose, acting as a self-contained unit that processes
+          input and produces output. This modular approach allows users to
+          create complex flows by interconnecting various nodes._
+
+
+          Node Types :
+
+
+          1. **📱 Apps** \- Integrate third-party applications into your flow.
+
+          2. **🤖 AI** \- Perform AI operations within your flow.
+
+          3. **🛢️ Data** \- Manipulate and transform data within your flow.
+
+          4. **♾️ Logic** \- Control the flow of execution in your flow.
+        color: blue
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -572.6894543200675
+      'y': 153.35810090274606
+    measured:
+      width: 469
+      height: 162
+  - nodeId: LLMNode_168
+    nodeType: LLMNode
+    nodeName: Generate Text
+    values:
+      tools: &ref_0 []
+      prompts: &ref_1
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are an **AI Expert Editor**.  
+
+            You will be given:
+
+
+            1. A **user query**
+
+            2. A collection of **search results (research contexts)**
+
+
+            Your job is to produce a **final markdown-formatted answer**.
+
+
+            ### Strict Formatting Rules:
+
+
+            * Use **Markdown heading syntax only**:  
+               * `#` for the main title (Overview or the main subject).  
+               * `##` for section headings (e.g., Early Life, Career, etc.).  
+               * `###` for sub-sections if needed.
+            * Do **not** use underlines (`---` or `===`) for headings.
+
+            * Structure the answer like a clean, well-written article or blog
+            post.
+
+            * Leave blank lines or space by adding `\n` and making sure it's
+            formatted well and evenly spaced.
+
+            * Embed links inline using `[Title](URL)` — never raw links.
+
+            * Base the **main content ONLY on search results**.
+
+            * Make sure your final answer is a proper well edited blog with
+            proper spacing in markdown format which can be displayed as it is.
+
+            * Make sure you have referenced each link you use in your answer
+            properly.
+
+
+            ### Example Skeleton (must follow this structure)
+
+
+            ```
+
+            # Main Topic Title
+
+
+            ## Section 1 Title
+
+            Content with inline references like
+            [Wikipedia](https://wikipedia.org).
+
+
+            ## Section 2 Title
+
+            Content here with more references.
+
+
+            ...
+
+            ```
+
+
+            ### Output Rules:
+
+
+            * The output must always be in **valid markdown** (not JSON).
+
+            * The supervisor will wrap your answer in JSON later, so you only
+            need to output markdown
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: |-
+            QUERY : {{triggerNode_1.output.query}}
+
+            RESEARCH : {{triggerNode_1.output.research}}
+      memories: '[]'
+      messages: '[]'
+      attachments: ''
+      credentials: ''
+      generativeModelName: &ref_2
+        type: generator/text
+        params: {}
+        model_name: gpt-4o-2024-08-06
+        credentialId: 6d70d145-9f23-4e29-b984-98ece28c56fd
+        provider_name: openai
+        credential_name: LAMATIC_OPENAI_API_KEY
+    modes: {}
+    needs:
+      - triggerNode_1
+    allConfigs:
+      Config A:
+        id: LLMNode_168
+        tools: *ref_0
+        prompts: *ref_1
+        memories: '[]'
+        messages: '[]'
+        nodeName: Generate Text
+        attachments: ''
+        credentials: ''
+        generativeModelName: *ref_2
+    schema:
+      _meta: object
+      images: array
+      tool_calls: object
+      generatedResponse: string
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  values:
+    headers: '{"content-type":"application/json"}'
+    retries: '0'
+    webhookUrl: ''
+    retry_delay: '0'
+    outputMapping: |-
+      {
+        "answer": "{{LLMNode_168.output.generatedResponse}}"
+      }
+  needs:
+    - LLMNode_168
+  modes: {}
+  allConfigs:
+    Config A:
+      id: responseNode_triggerNode_1
+      headers: '{"content-type":"application/json"}'
+      retries: '0'
+      nodeName: API Response
+      webhookUrl: ''
+      retry_delay: '0'
+      outputMapping: |-
+        {
+          "answer": "{{LLMNode_168.output.generatedResponse}}"
+        }
+  schema: {}
