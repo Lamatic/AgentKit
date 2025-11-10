@@ -17,7 +17,7 @@
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
 
 Pre: Build in Lamatic
-1. Sign in or sign up at https://app.lamatic.ai  
+1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don't have one yet)  
 3. Click "+ New Flow"  
 4. Choose "Build from Kits" and select the 'Generation' agent kit.  
