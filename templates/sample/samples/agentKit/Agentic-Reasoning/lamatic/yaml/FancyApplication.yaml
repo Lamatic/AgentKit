@@ -1,0 +1,650 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    responeType: realtime
+    advance_schema: |-
+      {
+        "steps": "string"
+      }
+  modes: {}
+  allConfigs:
+    Config A:
+      id: triggerNode_1
+      nodeName: API Request
+      responeType: realtime
+      advance_schema: |-
+        {
+          "steps": "string"
+        }
+  schema:
+    sampleOutput: string
+nodes:
+  - nodeId: sticky-gm21yx26f
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **➕ Nodes**
+
+
+        ---
+
+
+        ### _Nodes are the fundamental building blocks of a flow. Each node
+        serves a specific purpose, acting as a self-contained unit that
+        processes input and produces output. This modular approach allows users
+        to create complex flows by interconnecting various nodes._
+
+
+        ### Node Types :
+
+
+        ### **📱 Apps** \- Integrate third-party applications into your flow.
+
+
+        ### **🤖 AI** \- Perform AI operations within your flow.
+
+
+        ### **🛢️ Data** \- Manipulate and transform data within your flow.
+
+
+        ### **♾️ Logic** \- Control the flow of execution in your flow.
+      color: blue
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-gm21yx26f
+        text: >-
+          ### **➕ Nodes**
+
+
+          ---
+
+
+          ### _Nodes are the fundamental building blocks of a flow. Each node
+          serves a specific purpose, acting as a self-contained unit that
+          processes input and produces output. This modular approach allows
+          users to create complex flows by interconnecting various nodes._
+
+
+          ### Node Types :
+
+
+          ### **📱 Apps** \- Integrate third-party applications into your flow.
+
+
+          ### **🤖 AI** \- Perform AI operations within your flow.
+
+
+          ### **🛢️ Data** \- Manipulate and transform data within your flow.
+
+
+          ### **♾️ Logic** \- Control the flow of execution in your flow.
+        color: blue
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -550.5597417245873
+      'y': 197.44255403182262
+    measured:
+      width: 454
+      height: 528
+  - nodeId: sticky-kzv63mb30
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **💬 Flow response**
+
+
+        ---
+
+
+        ### _The final step of your flow can send output to an external system,
+        which is particularly useful for flows initiated by triggers like Chat
+        or GraphQL API integrations._
+      color: green
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-kzv63mb30
+        text: >-
+          ### **💬 Flow response**
+
+
+          ---
+
+
+          ### _The final step of your flow can send output to an external
+          system, which is particularly useful for flows initiated by triggers
+          like Chat or GraphQL API integrations._
+        color: green
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -554.3936656690696
+      'y': 737.0658295318717
+    measured:
+      width: 462
+      height: 145
+  - nodeId: sticky-qnyx8cr1s
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **▶️ Try it out**
+
+
+        ---
+
+
+        1. **🔌 Trigger via GraphQL API**  
+
+        ### _This flow starts when an external service sends a POST request to
+        your Lamatic GraphQL endpoint._  
+
+        ### Example payload:  
+
+        ### {  
+         "steps": "I'll begin by exploring how AI systems generate structured research queries and then perform real-time searches to gather relevant data."  
+        }
+
+        2. **🧠 Step 1: Generate Search Queries**  
+           * The **Instructor LLM Node** (`Generate JSON`) reads your `steps` paragraph.  
+           * It generates **3 unique, focused search queries** that will guide the research phase.
+        3. **🔁 Step 2: Web Search Loop**  
+           * Each generated query is looped through using the **For Loop Node**.  
+           * The **Web Search Node** (`Serper API`) fetches the top results (5 per query).
+        4. **🧩 Step 3: Collate Research**  
+           * The **Code Node** merges and flattens all search results.  
+           * Produces two arrays:  
+                 * `research`: full organic search result objects  
+                 * `links`: a simple list of URLs
+        5. **💬 Step 4: API Response**  
+           * The GraphQL Response Node returns:  
+           ### {  
+           "research": \[...\],  
+           "links": \[...\]  
+           }  
+           * This can be consumed directly by your frontend, notebook, or another flow.
+
+        ---
+
+
+        ### **▶️ Test it 👇🏻**
+
+
+        ### **Option A:** Use the **Run Flow** button with a sample `steps`
+        value.  
+
+        **Option B:** Send a POST request to Lamatic’s GraphQL endpoint using
+        **Postman** or **curl**.
+
+
+        ### curl -X POST https://api.lamatic.ai/graphql \\  
+
+        \-H "Content-Type: application/json" \\  
+
+        \-d '{  
+         "steps": "I’ll start by exploring how supervisors delegate sub-agents for research and evidence gathering."  
+        }'
+      color: yellow
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-qnyx8cr1s
+        text: >-
+          ### **▶️ Try it out**
+
+
+          ---
+
+
+          1. **🔌 Trigger via GraphQL API**  
+
+          ### _This flow starts when an external service sends a POST request to
+          your Lamatic GraphQL endpoint._  
+
+          ### Example payload:  
+
+          ### {  
+           "steps": "I'll begin by exploring how AI systems generate structured research queries and then perform real-time searches to gather relevant data."  
+          }
+
+          2. **🧠 Step 1: Generate Search Queries**  
+             * The **Instructor LLM Node** (`Generate JSON`) reads your `steps` paragraph.  
+             * It generates **3 unique, focused search queries** that will guide the research phase.
+          3. **🔁 Step 2: Web Search Loop**  
+             * Each generated query is looped through using the **For Loop Node**.  
+             * The **Web Search Node** (`Serper API`) fetches the top results (5 per query).
+          4. **🧩 Step 3: Collate Research**  
+             * The **Code Node** merges and flattens all search results.  
+             * Produces two arrays:  
+                   * `research`: full organic search result objects  
+                   * `links`: a simple list of URLs
+          5. **💬 Step 4: API Response**  
+             * The GraphQL Response Node returns:  
+             ### {  
+             "research": \[...\],  
+             "links": \[...\]  
+             }  
+             * This can be consumed directly by your frontend, notebook, or another flow.
+
+          ---
+
+
+          ### **▶️ Test it 👇🏻**
+
+
+          ### **Option A:** Use the **Run Flow** button with a sample `steps`
+          value.  
+
+          **Option B:** Send a POST request to Lamatic’s GraphQL endpoint using
+          **Postman** or **curl**.
+
+
+          ### curl -X POST https://api.lamatic.ai/graphql \\  
+
+          \-H "Content-Type: application/json" \\  
+
+          \-d '{  
+           "steps": "I’ll start by exploring how supervisors delegate sub-agents for research and evidence gathering."  
+          }'
+        color: yellow
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -893.0343540441895
+      'y': -14.254590736808552
+    measured:
+      width: 322
+      height: 893
+  - nodeId: sticky-note-609
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **⚡️ Flow Trigger**
+
+
+        ---
+
+
+        ### _A trigger initiates the flow. It can be a built-in tool or an
+        integration with an external application._
+
+
+        ### Trigger Types:
+
+
+        ### **📱App** \- Initiate flow from an external application integration
+
+
+        ### **🔌 Interface** \- API / Webhook
+
+
+        ### **💬 Widget** \- Prebuilt UI component ( Chat, Search )
+
+
+        ---
+
+
+        📖 Read Docs - [Flows](https://lamatic.ai/docs/flows)
+      color: purple
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-note-609
+        text: >-
+          ### **⚡️ Flow Trigger**
+
+
+          ---
+
+
+          ### _A trigger initiates the flow. It can be a built-in tool or an
+          integration with an external application._
+
+
+          ### Trigger Types:
+
+
+          ### **📱App** \- Initiate flow from an external application
+          integration
+
+
+          ### **🔌 Interface** \- API / Webhook
+
+
+          ### **💬 Widget** \- Prebuilt UI component ( Chat, Search )
+
+
+          ---
+
+
+          📖 Read Docs - [Flows](https://lamatic.ai/docs/flows)
+        color: purple
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -552.9859671753022
+      'y': -11.90733425595539
+    measured:
+      width: 453
+      height: 197
+  - nodeId: InstructorLLMNode_445
+    nodeType: InstructorLLMNode
+    nodeName: Generate JSON
+    values:
+      tools: &ref_0 []
+      schema: |-
+        {
+          "type": "object",
+          "properties": {
+            "queries": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "required": true
+              },
+              "description": "This is the collection of queries based on which the research will be prepared"
+            }
+          }
+        }
+      prompts: &ref_1
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are a **Search Query Generator Agent**.  
+
+            Your task is to carefully read the reasoning steps provided (a
+            single paragraph in first person that explains how the Supervisor
+            Agent will approach the query). From that paragraph, you must
+            generate exactly **3 unique, high-quality search queries** that
+            would help gather the most relevant information.
+
+
+            ### Rules
+
+
+            1. **Output only 3 search queries** — no more, no less.
+
+            2. Each query should be **concise, specific, and directly tied** to
+            the reasoning steps.
+
+            3. The queries should cover **different aspects** of the problem,
+            not duplicates.
+
+            4. Phrase them as **natural web searches** that a user might type
+            into Google or Bing.
+
+            5. Do not repeat wording unnecessarily; prioritize variety to
+            maximize coverage.
+
+            6. Return them as a **JSON object** in this format:
+
+
+            ```
+
+            {
+              "queries": [
+                "string",
+                "string",
+                "string"
+              ]
+            }
+
+
+            ```
+
+
+            ### Example
+
+
+            **Reasoning Input:**  
+
+            "I’ll treat this as a new query and start by searching reputable
+            furniture guides, consumer reports, and expert reviews comparing
+            leather and cotton sofas across durability, comfort, maintenance,
+            stain resistance, pet/kid suitability, climate, sustainability, and
+            cost of ownership. Then I’ll review care guides, warranty terms, and
+            current price ranges, plus look into ethical/sustainability
+            certifications for both materials. I’ll also check for common
+            pitfalls (like cracking, pilling, fading, allergies) and real-world
+            user feedback to validate trade-offs. Finally, I’ll prepare a
+            structured side-by-side comparison with pros/cons, lifespan and
+            maintenance expectations, and tailored recommendations based on
+            different household needs and budgets."
+
+
+            **Expected Output:**
+
+
+            ```
+
+            {
+              "queries": [
+                "leather vs cotton sofa durability comfort maintenance comparison",
+                "ethical sustainable upholstery certifications and eco-friendly sofa materials",
+                "real-world user reviews and common issues with leather and cotton sofas"
+              ]
+            }
+
+            ```
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: 'STEPS : {{triggerNode_1.output.steps}}'
+      memories: '[]'
+      messages: '[]'
+      attachments: ''
+      generativeModelName: &ref_2
+        type: generator/text
+        params: {}
+        model_name: gpt-4o-mini
+        credentialId: 6d70d145-9f23-4e29-b984-98ece28c56fd
+        provider_name: openai
+        credential_name: LAMATIC_OPENAI_API_KEY
+    modes: {}
+    needs:
+      - triggerNode_1
+    allConfigs:
+      Config A:
+        id: InstructorLLMNode_445
+        tools: *ref_0
+        schema: |-
+          {
+            "type": "object",
+            "properties": {
+              "queries": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "required": true
+                },
+                "description": "This is the collection of queries based on which the research will be prepared"
+              }
+            }
+          }
+        prompts: *ref_1
+        memories: '[]'
+        messages: '[]'
+        nodeName: Generate JSON
+        attachments: ''
+        generativeModelName: *ref_2
+    schema: {}
+  - nodeId: forLoopNode_626
+    nodeType: forLoopNode
+    nodeName: Loop
+    values:
+      wait: 0
+      endValue: '10'
+      increment: '1'
+      connectedTo: forLoopEndNode_366
+      iterateOver: list
+      initialValue: '0'
+      iteratorValue: '{{InstructorLLMNode_445.output.queries}}'
+    modes: {}
+    needs:
+      - InstructorLLMNode_445
+      - forLoopEndNode_366
+    allConfigs:
+      Config A:
+        id: forLoopNode_626
+        wait: 0
+        endValue: '10'
+        nodeName: Loop
+        increment: '1'
+        connectedTo: forLoopEndNode_366
+        iterateOver: list
+        initialValue: '0'
+        iteratorValue: '{{InstructorLLMNode_445.output.queries}}'
+    schema:
+      currentValue: object
+    connections:
+      - condition: Loop Start
+        value: webSearchNode_441
+        type: conditionEdge
+        invisible: true
+      - condition: Loop
+        value: forLoopEndNode_366
+        type: loopEdge
+        invisible: false
+  - nodeId: webSearchNode_441
+    nodeType: webSearchNode
+    nodeName: Web Search
+    values:
+      page: 1
+      type: https://google.serper.dev/search
+      query: '{{forLoopNode_626.output.currentValue}}'
+      country: ''
+      results: '5'
+      language: ''
+      location: ''
+      dateRange: ''
+      credentials: Serper Basic Auth
+    modes: {}
+    needs:
+      - forLoopNode_626
+    allConfigs:
+      Config A:
+        id: webSearchNode_441
+        page: 1
+        type: https://google.serper.dev/search
+        query: '{{forLoopNode_626.output.currentValue}}'
+        country: ''
+        results: '5'
+        language: ''
+        location: ''
+        nodeName: Web Search
+        dateRange: ''
+        credentials: Serper Basic Auth
+    schema:
+      output: object
+  - nodeId: forLoopEndNode_366
+    nodeType: forLoopEndNode
+    nodeName: Loop End
+    values:
+      connectedTo: forLoopNode_626
+    modes: {}
+    needs:
+      - webSearchNode_441
+      - forLoopNode_626
+    allConfigs:
+      Config A:
+        id: forLoopEndNode_366
+        nodeName: Loop End
+        connectedTo: forLoopNode_626
+    schema:
+      loopOutput: object
+    connections:
+      - condition: Loop
+        value: forLoopNode_626
+        type: loopEdge
+        invisible: true
+  - nodeId: codeNode_201
+    nodeType: codeNode
+    nodeName: Collate Research
+    values:
+      code: |-
+        const researchArray = {{forLoopEndNode_366.output.loopOutput}};
+
+        const research = researchArray.flatMap((searchEntry) => {
+          return searchEntry.webSearchNode_441.output.output.organic;
+        });
+
+        const links = research.map((item) => item.link);
+
+        output = {
+          research: research,
+          links: links
+        };
+    modes: {}
+    needs:
+      - forLoopEndNode_366
+    allConfigs:
+      Config A:
+        id: codeNode_201
+        code: |-
+          const researchArray = {{forLoopEndNode_366.output.loopOutput}};
+
+          const research = researchArray.flatMap((searchEntry) => {
+            return searchEntry.webSearchNode_441.output.output.organic;
+          });
+
+          const links = research.map((item) => item.link);
+
+          output = {
+            research: research,
+            links: links
+          };
+        nodeName: Collate Research
+    schema: {}
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  values:
+    headers: '{"content-type":"application/json"}'
+    retries: '0'
+    webhookUrl: ''
+    retry_delay: '0'
+    outputMapping: |-
+      {
+        "research": "{{codeNode_201.output.research}}",
+        "links": "{{codeNode_201.output.links}}"
+      }
+  needs:
+    - codeNode_201
+  modes: {}
+  allConfigs:
+    Config A:
+      id: responseNode_triggerNode_1
+      headers: '{"content-type":"application/json"}'
+      retries: '0'
+      nodeName: API Response
+      webhookUrl: ''
+      retry_delay: '0'
+      outputMapping: |-
+        {
+          "research": "{{codeNode_201.output.research}}",
+          "links": "{{codeNode_201.output.links}}"
+        }
+  schema: {}
