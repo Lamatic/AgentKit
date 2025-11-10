@@ -1,0 +1,462 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: slackNode
+  nodeName: Slack Trigger
+  values:
+    command: ask
+    channelName: C08E8M9KWDV
+    credentials: Slack OAuth
+    immediateResponseData: Loading...
+  modes:
+    channelName: list
+  allConfigs:
+    Config A:
+      id: triggerNode_1
+      command: ask
+      nodeName: Slack Trigger
+      channelName: C08E8M9KWDV
+      credentials: Slack OAuth
+      immediateResponseData: Loading...
+  schema:
+    ok: string
+    ts: string
+    error: string
+    channel: string
+    message: string
+    warning: string
+    response_metadata: string
+nodes:
+  - nodeId: sticky-gm21yx26f
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **➕ Nodes**
+
+
+        ---
+
+
+        ### _Nodes are the fundamental building blocks of a flow. Each node
+        serves a specific purpose, acting as a self-contained unit that
+        processes input and produces output. This modular approach allows users
+        to create complex flows by interconnecting various nodes._
+
+
+        ### Node Types :
+
+
+        ### **📱 Apps** \- Integrate third-party applications into your flow.
+
+
+        ### **🤖 AI** \- Perform AI operations within your flow.
+
+
+        ### **🛢️ Data** \- Manipulate and transform data within your flow.
+
+
+        ### **♾️ Logic** \- Control the flow of execution in your flow.
+      color: blue
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-gm21yx26f
+        text: >-
+          ### **➕ Nodes**
+
+
+          ---
+
+
+          ### _Nodes are the fundamental building blocks of a flow. Each node
+          serves a specific purpose, acting as a self-contained unit that
+          processes input and produces output. This modular approach allows
+          users to create complex flows by interconnecting various nodes._
+
+
+          ### Node Types :
+
+
+          ### **📱 Apps** \- Integrate third-party applications into your flow.
+
+
+          ### **🤖 AI** \- Perform AI operations within your flow.
+
+
+          ### **🛢️ Data** \- Manipulate and transform data within your flow.
+
+
+          ### **♾️ Logic** \- Control the flow of execution in your flow.
+        color: blue
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -624.4752297482132
+      'y': 90.03433994003484
+    measured:
+      width: 542
+      height: 211
+  - nodeId: sticky-kzv63mb30
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **💬 Flow response**
+
+
+        ---
+
+
+        ### _The final step of your flow can send output to an external system,
+        which is particularly useful for flows initiated by triggers like Chat
+        or GraphQL API integrations._
+      color: green
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-kzv63mb30
+        text: >-
+          ### **💬 Flow response**
+
+
+          ---
+
+
+          ### _The final step of your flow can send output to an external
+          system, which is particularly useful for flows initiated by triggers
+          like Chat or GraphQL API integrations._
+        color: green
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -626.7369160490516
+      'y': 326.7055300017479
+    measured:
+      width: 552
+      height: 111
+  - nodeId: sticky-qnyx8cr1s
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **▶️ Try it out**
+
+
+        1. **💬 Trigger via Slack Command**  
+
+        ### _This flow starts when a user sends a message in Slack using the
+        defined command (e.g.,_ `/ask`_)._  
+
+        The trigger node captures the user's query and sends it into the flow.  
+
+        ### Example:
+
+
+        ### /ask What are the key points from our sales handbook?  
+
+
+        1. **🧠 RAG Node**  
+
+        ### _Your query is processed through the RAG pipeline._
+
+
+        ### The text from Slack (`{{triggerNode_1.output.text}}`) becomes the
+        **query**.
+
+
+        ### The system searches your connected **Vector DB (TestDB)** for
+        relevant context documents.
+
+
+        ### The retrieved content is passed to the **LLM (GPT-4o-mini)** for a
+        context-aware response.
+
+
+        1. **💌 Slack Response Node**
+
+
+        ### _The generated answer is automatically posted back to the same Slack
+        channel_  
+
+        → Using `{{RAGNode_555.output.modelResponse}}` as the message text.
+
+
+        ---
+
+
+        ### **▶️ Test it 👇🏻**
+
+
+        ### **Option A:** Type `/ask <your query>` directly in the configured
+        Slack channel  
+
+        **Option B:** Use the “Run Flow” button to simulate a manual trigger
+
+
+        ---
+
+
+        ### 🧭 \_Once it runs, check the Slack channel to see the model’s
+        response posted in real-time.
+      color: yellow
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-qnyx8cr1s
+        text: >-
+          ### **▶️ Try it out**
+
+
+          1. **💬 Trigger via Slack Command**  
+
+          ### _This flow starts when a user sends a message in Slack using the
+          defined command (e.g.,_ `/ask`_)._  
+
+          The trigger node captures the user's query and sends it into the
+          flow.  
+
+          ### Example:
+
+
+          ### /ask What are the key points from our sales handbook?  
+
+
+          1. **🧠 RAG Node**  
+
+          ### _Your query is processed through the RAG pipeline._
+
+
+          ### The text from Slack (`{{triggerNode_1.output.text}}`) becomes the
+          **query**.
+
+
+          ### The system searches your connected **Vector DB (TestDB)** for
+          relevant context documents.
+
+
+          ### The retrieved content is passed to the **LLM (GPT-4o-mini)** for a
+          context-aware response.
+
+
+          1. **💌 Slack Response Node**
+
+
+          ### _The generated answer is automatically posted back to the same
+          Slack channel_  
+
+          → Using `{{RAGNode_555.output.modelResponse}}` as the message text.
+
+
+          ---
+
+
+          ### **▶️ Test it 👇🏻**
+
+
+          ### **Option A:** Type `/ask <your query>` directly in the configured
+          Slack channel  
+
+          **Option B:** Use the “Run Flow” button to simulate a manual trigger
+
+
+          ---
+
+
+          ### 🧭 \_Once it runs, check the Slack channel to see the model’s
+          response posted in real-time.
+        color: yellow
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -1014.8422059300116
+      'y': -96.96605785668953
+    measured:
+      width: 381
+      height: 533
+  - nodeId: sticky-note-609
+    nodeType: stickyNoteNode
+    nodeName: Sticky Note
+    values:
+      text: >-
+        ### **⚡️ Flow Trigger**
+
+
+        ---
+
+
+        ### _A trigger initiates the flow. It can be a built-in tool or an
+        integration with an external application._
+
+
+        ### Trigger Types:
+
+
+        ### **📱App** \- Initiate flow from an external application integration
+
+
+        ### **🔌 Interface** \- API / Webhook
+
+
+        ### **💬 Widget** \- Prebuilt UI component ( Chat, Search )
+
+
+        ---
+
+
+        ### 📖 Read Docs - [Flows](https://lamatic.ai/docs/flows)
+      color: purple
+      nodeId: stickyNoteNode
+      nodeType: stickyNoteNode
+    modes: {}
+    needs: []
+    allConfigs:
+      Config A:
+        id: sticky-note-609
+        text: >-
+          ### **⚡️ Flow Trigger**
+
+
+          ---
+
+
+          ### _A trigger initiates the flow. It can be a built-in tool or an
+          integration with an external application._
+
+
+          ### Trigger Types:
+
+
+          ### **📱App** \- Initiate flow from an external application
+          integration
+
+
+          ### **🔌 Interface** \- API / Webhook
+
+
+          ### **💬 Widget** \- Prebuilt UI component ( Chat, Search )
+
+
+          ---
+
+
+          ### 📖 Read Docs - [Flows](https://lamatic.ai/docs/flows)
+        color: purple
+        nodeId: stickyNoteNode
+        nodeName: Sticky Note
+        nodeType: stickyNoteNode
+    position:
+      x: -625.1984516940639
+      'y': -97.95725752075595
+    measured:
+      width: 539
+      height: 179
+  - nodeId: RAGNode_555
+    nodeType: RAGNode
+    nodeName: RAG
+    values:
+      limit: 10
+      filters: ''
+      prompts: &ref_0
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are a slack bot trained on documents. You are suppose to answer
+            based on the user's current query and context documents given to you
+            only. 
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: 'CURRENT QUERY : {{triggerNode_1.output.text}}'
+      memories: '[]'
+      messages: '[]'
+      vectorDB: &ref_1
+        - TestDB
+      certainty: '0.5'
+      queryField: '{{triggerNode_1.output.text}}'
+      embeddingModelName: &ref_2
+        type: embedder/text
+        params: {}
+        model_name: text-embedding-ada-002
+        credentialId: 0fc2f9ae-4a22-41e3-b63a-3e7db8902a9e
+        provider_name: openai
+        credential_name: OPENAI_KEY
+      generativeModelName: &ref_3
+        - type: generator/text
+          params: {}
+          configName: default
+          model_name: gpt-4o-mini
+          credentialId: 0fc2f9ae-4a22-41e3-b63a-3e7db8902a9e
+          provider_name: openai
+          credential_name: OPENAI_KEY
+    modes: {}
+    needs:
+      - triggerNode_1
+    allConfigs:
+      Config A:
+        id: RAGNode_555
+        limit: 10
+        filters: ''
+        prompts: *ref_0
+        memories: '[]'
+        messages: '[]'
+        nodeName: RAG
+        vectorDB: *ref_1
+        certainty: '0.5'
+        queryField: '{{triggerNode_1.output.text}}'
+        embeddingModelName: *ref_2
+        generativeModelName: *ref_3
+    schema:
+      _meta: object
+      references: string
+      modelResponse: string
+    logic: []
+  - nodeId: slackNode_103
+    nodeType: slackNode
+    nodeName: Slack
+    values:
+      text: '{{RAGNode_555.output.modelResponse}}'
+      action: postMessage
+      channelName: C08E8M9KWDV
+      credentials: Slack OAuth
+    modes:
+      channelName: list
+    needs:
+      - RAGNode_555
+    allConfigs:
+      Config A:
+        id: slackNode_103
+        text: '{{RAGNode_555.output.modelResponse}}'
+        action: postMessage
+        nodeName: Slack
+        channelName: C08E8M9KWDV
+        credentials: Slack OAuth
+    schema:
+      ok: string
+      ts: string
+      error: string
+      channel: string
+      message: string
+      warning: string
+      response_metadata: string
+    logic: []
+  - nodeId: plus-node-addNode_683384
+    nodeType: addNode
+    nodeName: ''
+    values: {}
+    modes: {}
+    needs:
+      - slackNode_103
+    allConfigs:
+      Config A:
+        nodeName: ''
