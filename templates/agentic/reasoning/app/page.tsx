@@ -11,6 +11,14 @@ import ReactMarkdown from "react-markdown"
 import Link from "next/link"
 import { orchestratePipelineStep } from "@/actions/orchestrate"
 import { Typewriter } from "react-simple-typewriter"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 interface Message {
   role: "user" | "assistant"
@@ -47,6 +55,11 @@ export default function LamaticThinkMode() {
   const [searchLinks, setSearchLinks] = useState<string[]>([])
   const [isTypewriterDone, setIsTypewriterDone] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [pendingQuery, setPendingQuery] = useState<string>("")
+  const hasTrackedRef = useRef(false) // ensure we insert only once per session
+
+  const KIT_ID = "reasoning"
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -63,8 +76,67 @@ export default function LamaticThinkMode() {
     scrollToBottom()
   }, [messages, isLoading])
 
+  // resume action after login if redirected back with params
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const url = new URL(window.location.href)
+    const autostart = url.searchParams.get("autostart")
+    const q = url.searchParams.get("query")
+    if (autostart === "1" && q && !isLoading && messages.length === 0) {
+      // run once, then clean URL
+      handleSubmit(q)
+      url.searchParams.delete("autostart")
+      url.searchParams.delete("query")
+      window.history.replaceState({}, "", url.toString())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // check if user logged in via API (server-side supabase), otherwise show modal
+  const ensureAuthenticated = async (query: string) => {
+    try {
+      const res = await fetch("/api/auth/user", { cache: "no-store" })
+      const userData = await res.json()
+
+      if (res.ok) {
+        if (!hasTrackedRef.current) {
+          try {
+            const trackRes = await fetch("/api/track-user", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                kit: KIT_ID,
+                email: userData.email,
+              }),
+            })
+            if (!trackRes.ok) {
+              const err = await trackRes.json().catch(() => ({}))
+              console.log("[v0] track-user failed:", err?.error || trackRes.statusText)
+            } else {
+              hasTrackedRef.current = true
+              console.log("[v0] track-user inserted")
+            }
+          } catch (e) {
+            console.log("[v0] track-user network error")
+          }
+        }
+        return true
+      }
+      setPendingQuery(query)
+      setShowAuthModal(true)
+      return false
+    } catch {
+      setPendingQuery(query)
+      setShowAuthModal(true)
+      return false
+    }
+  }
+
   const handleSubmit = async (query: string) => {
     if (!query.trim() || isLoading) return
+
+    const authed = await ensureAuthenticated(query)
+    if (!authed) return
 
     setInput("")
     setCurrentQuery(query)
@@ -125,36 +197,59 @@ export default function LamaticThinkMode() {
         }, 500)
       }
 
-      console.log("[v0] Executing step2...")
-      const step2Result = await orchestratePipelineStep(query, history, "step2", results)
+      const allLinks: string[] = []
 
-      if (!step2Result.success) {
-        throw new Error(step2Result.error || "Failed to execute step2")
+      console.log("[v0] Executing step2A...")
+      const step2AResult = await orchestratePipelineStep(query, history, "step2A", results)
+      if (step2AResult.success && step2AResult.data && Object.keys(step2AResult.data).length > 0) {
+        results.step2A = step2AResult.data
+        console.log("[v0] Stored step2A results:", results.step2A)
+        if (step2AResult.data?.links) {
+          allLinks.push(...step2AResult.data.links)
+        }
       }
 
-      if (step2Result.data?.links) {
-        results.step2 = step2Result.data
-        const links = Array.isArray(step2Result.data.links) ? step2Result.data.links : []
-        setSearchLinks(links)
-        setCurrentStep("write")
+      console.log("[v0] Executing step2B...")
+      const step2BResult = await orchestratePipelineStep(query, history, "step2B", results)
+      if (step2BResult.success && step2BResult.data && Object.keys(step2BResult.data).length > 0) {
+        results.step2B = step2BResult.data
+        console.log("[v0] Stored step2B results:", results.step2B)
+        if (step2BResult.data?.links) {
+          allLinks.push(...step2BResult.data.links)
+        }
+      }
 
-        setMessages((prev) => {
-          const updated = [...prev]
-          const lastIndex = updated.length - 1
-          if (updated[lastIndex]?.role === "assistant") {
-            updated[lastIndex] = {
-              ...updated[lastIndex],
-              links: links,
-              isProcessing: true,
-            }
+      console.log("[v0] Executing step2C...")
+      const step2CResult = await orchestratePipelineStep(query, history, "step2C", results)
+      if (step2CResult.success && step2CResult.data && Object.keys(step2CResult.data).length > 0) {
+        results.step2C = step2CResult.data
+        console.log("[v0] Stored step2C results:", results.step2C)
+        if (step2CResult.data?.links) {
+          allLinks.push(...step2CResult.data.links)
+        }
+      }
+
+      console.log("[v0] All results before step3:", JSON.stringify(results, null, 2))
+
+      setSearchLinks(allLinks)
+      setCurrentStep("write")
+
+      setMessages((prev) => {
+        const updated = [...prev]
+        const lastIndex = updated.length - 1
+        if (updated[lastIndex]?.role === "assistant") {
+          updated[lastIndex] = {
+            ...updated[lastIndex],
+            links: allLinks,
+            isProcessing: true,
           }
-          return updated
-        })
+        }
+        return updated
+      })
 
-        setTimeout(() => {
-          setIsSearching(false)
-        }, 1000)
-      }
+      setTimeout(() => {
+        setIsSearching(false)
+      }, 1000)
 
       console.log("[v0] Executing step3...")
       const step3Result = await orchestratePipelineStep(query, history, "step3", results)
@@ -171,7 +266,7 @@ export default function LamaticThinkMode() {
             updated[lastIndex] = {
               role: "assistant",
               message: step3Result.data.answer,
-              references: updated[lastIndex].links || searchLinks,
+              references: updated[lastIndex].links || allLinks,
               steps: undefined,
               isTyping: false,
               isProcessing: false,
@@ -252,7 +347,7 @@ export default function LamaticThinkMode() {
               Docs
             </Link>
             <Link
-              href="https://github.com/Lamatic/AgentKit/tree/main/templates/agentic/reasoning"
+              href="https://github.com/Lamatic/AgentKit"
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors flex items-center gap-2"
