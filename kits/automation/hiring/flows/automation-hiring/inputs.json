@@ -44,12 +44,7 @@
       "isCredential": true,
       "required": true,
       "defaultValue": "",
-      "isPrivate": true,
-      "fillFromStep": {
-        "name": "credentials",
-        "step": 0,
-        "nodeId": "gmailNode_506"
-      },
+      "isPrivate": true
     }
   ],
   "gmailNode_194": [
@@ -61,12 +56,7 @@
       "isCredential": true,
       "required": true,
       "defaultValue": "",
-      "isPrivate": true,
-      "fillFromStep": {
-        "name": "credentials",
-        "step": 0,
-        "nodeId": "gmailNode_506"
-      },
+      "isPrivate": true
     }
   ]
 }
