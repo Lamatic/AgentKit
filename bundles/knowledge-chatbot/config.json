@@ -1,7 +1,7 @@
 {
-    "name": "Chat Bundle",
+    "name": "Knowledge Chatbot",
     "description": "A chat bundle that combines data source indexing with a knowledge chatbot interface.",
-    "tags": ["chat", "rag", "knowledge-base"],
+    "tags": ["support"],
     "author": {
         "name": "Naitik Kapadia",
         "email": "naitikk@lamatic.ai"
