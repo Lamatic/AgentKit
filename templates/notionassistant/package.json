@@ -1,0 +1,25 @@
+{
+  "name": "notionassistant",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A Notion Assistant AgentKit to query and manage your Notion workspace.",
+  "scripts": {
+    "dev": "ts-node actions/orchestrate.ts",
+    "build": "next build",
+    "deploy": "bash ../scripts/deploy.sh notionassistant"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.14",
+    "dotenv": "^16.4.5",
+    "lamatic": "^0.3.2",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "author": "Meghana-2124",
+  "license": "MIT"
+}
