@@ -1,0 +1,23 @@
+{
+    "name":"Agent Kit Hiring",
+    "description":"It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.",
+    "tags":["automation","apps","startup"],
+    "author":{
+        "name":"Lamatic AI",
+        "email":"info@lamatic.ai"
+    },
+        "steps": [
+            {
+                "id": "automation-hiring",
+                "type": "mandatory",
+                "envKey": "AUTOMATION_HIRING"
+            }
+        ]
+    ,
+    "integrations":[],
+    "features":[],
+    "demoUrl":"https://agent-kit-hiring.vercel.app",
+    "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/templates/agentic/generation",
+    "deployUrl":"https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_CONFIG_REASONING&envDescription=Your%20Lamatic%20Config%20Reasoning%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-reasoning",
+    "documentationUrl":"https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+}

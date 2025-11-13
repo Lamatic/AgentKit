@@ -1,0 +1,80 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "Caption SS Trigger",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"photo\": {},\n  \"timestamp\": \"string\",\n  \"location\": \"string\",\n  \"people\": \"[string]\"\n}"
+        }
+      }
+    },
+    {
+      "id": "multiModalLLMNode_435",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "multiModalLLMNode",
+        "values": {
+          "nodeName": "Multi Modal",
+          "messages": "[]",
+          "attachments": "{{triggerNode_1.output.photo}}",
+          "systemPrompt": "You are a Photographer who captions photographs.",
+          "promptTemplate": "\r\nYou are a photo editor. Your job is to produce a concise, descriptive and compelling\r\ncaption that helps someone understand what is in this attached photo without viewing it: {{triggerNode_1.output.photo}}\r\nPlease use the following contextual elements to produce the best possible caption:\r\n1) Timestamp which contains the date and time the photo was taken: {{triggerNode_1.output.timestamp}}\r\n2) The location where the photo was taken: {{triggerNode_1.output.location}}\r\n3) The people shown in the photograph: {{triggerNode_1.output.people}}{{triggerNode_1.output.people}}\r\nThe caption you produce should:\r\n1) Reflect the mood depicted in the photograph.\r\n2) It should be different than other photographs that you've captioned.\r\n3) For photographs that are extremely similar, attempt to select the best photo and \r\nadd \"duplicate\" at the end of the name of the others.\r\n4) It should not exceed 50 characters.",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_185",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "outputMapping": "{\n  \"Caption\": \"{{multiModalLLMNode_435.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-multiModalLLMNode_435",
+      "source": "triggerNode_1",
+      "target": "multiModalLLMNode_435",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "multiModalLLMNode_435-graphqlResponseNode_185",
+      "source": "multiModalLLMNode_435",
+      "target": "graphqlResponseNode_185",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_185",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_185",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

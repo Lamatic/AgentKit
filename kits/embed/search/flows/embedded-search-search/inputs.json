@@ -1,0 +1,62 @@
+{
+  "triggerNode_1": [
+    {
+      "name": "domains",
+      "label": "Allowed Domains",
+      "type": "searchDomain",
+      "required": true,
+      "defaultValue": [
+        "*"
+      ],
+      "isPrivate": true
+    }
+  ],
+  "searchNode_842": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": ""
+    },
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model",
+      "mode": "embedding",
+      "modelType": "embedder/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "searchNode_145": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": ""
+    },
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model",
+      "mode": "embedding",
+      "modelType": "embedder/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ]
+}

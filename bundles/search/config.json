@@ -1,0 +1,54 @@
+{
+    "name": "Search Bundle",
+    "description": "A semantic search bundle that indexes data sources and enables advanced search over your knowledge base.",
+    "tags": ["search", "semantic", "rag", "knowledge-base"],
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "data_source",
+            "type": "any-of",
+            "options": [
+                {
+                    "id": "gdrive"
+                },
+                {
+                    "id": "gsheet"
+                },
+                {
+                    "id": "onedrive"
+                },
+                {
+                    "id": "postgres"
+                },
+                {
+                    "id": "s3"
+                },
+                {
+                    "id": "scraping-indexation"
+                },
+                {
+                    "id": "sharepoint"
+                },
+                {
+                    "id": "crawling-indexation"
+                }
+            ],
+            "minSelection": 1,
+            "maxSelection": 1
+        },
+        {
+            "id": "semantic-search",
+            "type": "mandatory",
+            "prerequisiteSteps": ["data_source"]
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/bundles/chat",
+    "deployUrl": "",
+    "documentationUrl": ""
+}

@@ -1,0 +1,152 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "googleSheetsNode",
+        "modes": {
+          "sheetName": "list"
+        },
+        "trigger": true,
+        "values": {
+          "nodeName": "Google Sheets",
+          "credentials": "",
+          "syncMode": "incremental_append",
+          "cronExpression": "0 0 00 1/1 * ? * UTC",
+          "batchSize": "200",
+          "namesConversion": "false"
+        }
+      }
+    },
+    {
+      "id": "vectorizeNode_177",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "vectorizeNode",
+        "values": {
+          "nodeName": "Get Vectors",
+          "inputText": "{{codeNode_331.output}}",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_443",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Transform Metadata",
+          "code": "let vectors = {{vectorizeNode_177.output.vectors}};\nlet metadataProps = [];\n\nlet metadata = {}\nmetadata[\"content\"] = {{ codeNode_331.output }}[0]\n\nconst row = {{ triggerNode_1.output }}\nmetadata['employee_id'] = row['Employee ID']\nmetadata['name'] = row['Name']\nmetadata['designation'] = row['Designation']\nmetadata['cost_INR'] = row['CTC per month (INR)']\nmetadata['cost_CAD'] = row['CTC per month (CND)']\nmetadata['billing_CAD'] = row['Billing to Dua PC (CND)']\nmetadata['billing_rate'] = row['Billing price per hour (assuming 160 hours)']\nmetadata['remarks'] = row['Remarks']\nmetadata[\"file_name\"] = 'Employee Costing Table'\nmetadataProps.push(metadata)\n\nconsole.log(\"finaldata:\", {\"metadata\": metadataProps, \"vectors\": vectors});\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        }
+      }
+    },
+    {
+      "id": "IndexNode_824",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "IndexNode",
+        "values": {
+          "nodeName": "Index to DB",
+          "vectorDB": "",
+          "webhookURL": "https://webhook.site/685a66e7-b4d3-40a4-9801-99e3460414f9",
+          "primaryKeys": "",
+          "vectorsField": "{{codeNode_443.output.vectors}}",
+          "metadataField": "{{codeNode_443.output.metadata}}",
+          "duplicateOperation": "overwrite",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "addNode_894",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "codeNode_331",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Row Chunking",
+          "code": "function objectToString(obj) {\n  return Object.entries(obj)\n    .map(([key, value]) => `${key}: ${value}`)\n    .join(\", \");\n}\n\noutput = [objectToString({{ triggerNode_1.output }})]"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "codeNode_331-vectorizeNode_177",
+      "source": "codeNode_331",
+      "target": "vectorizeNode_177",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "vectorizeNode_177-codeNode_443",
+      "source": "vectorizeNode_177",
+      "target": "codeNode_443",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_443-IndexNode_824",
+      "source": "codeNode_443",
+      "target": "IndexNode_824",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "IndexNode_824-addNode_894",
+      "source": "IndexNode_824",
+      "target": "addNode_894",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "triggerNode_1-codeNode_331",
+      "source": "triggerNode_1",
+      "target": "codeNode_331",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    }
+  ]
+}

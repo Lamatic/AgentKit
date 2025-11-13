@@ -1,0 +1,16 @@
+{
+  "name": "Review Responder",
+  "description": "This AI-powered review analysis and response system automatically classifies customer reviews, analyzes sentiment, and generates personalized email responses tailored to your needs.",
+  "tags": [
+    "Content",
+    "Support"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=review-responder",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

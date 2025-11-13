@@ -1,0 +1,95 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchTriggerNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "Search Widget",
+          "search": "",
+          "domains": []
+        }
+      }
+    },
+    {
+      "id": "RAGNode_793",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "RAGNode",
+        "values": {
+          "nodeName": "RAG",
+          "limit": 5,
+          "filters": "",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are suppose to answer the relevant search query given the context. Make sure you answer the query given the context only.\n\nQUERY : {{triggerNode_1.output.searchQuery}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "vectorDB": "",
+          "certainty": "0.5",
+          "queryField": "{{triggerNode_1.output.searchQuery}}",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "searchResponseNode_898",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchResponseNode",
+        "values": {
+          "nodeName": "Search Response",
+          "link": "",
+          "title": "{{RAGNode_793.output.references[:].filename}}",
+          "content": "{{RAGNode_793.output.references[:].content}}",
+          "breadcrumpsField": ""
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-RAGNode_793",
+      "source": "triggerNode_1",
+      "target": "RAGNode_793",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "RAGNode_793-searchResponseNode_898",
+      "source": "RAGNode_793",
+      "target": "searchResponseNode_898",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-searchResponseNode_898",
+      "source": "triggerNode_1",
+      "target": "searchResponseNode_898",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

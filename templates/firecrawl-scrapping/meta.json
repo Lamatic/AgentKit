@@ -1,0 +1,15 @@
+{
+  "name": "Firecrawl Scrapping",
+  "description": "This flow allows the user to start the crawling process of a webpage and send its pages to a webhook flow to commence indexing the document.",
+  "tags": [
+    "Support"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=firecrawl-scrapping",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

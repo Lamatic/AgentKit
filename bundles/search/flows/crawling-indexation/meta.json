@@ -1,0 +1,17 @@
+{
+  "name": "Crawling Indexation",
+  "description": "Crawling Indexation",
+  "tags": [],
+  "testInput": {
+    "urls": [
+      "https://lamatic.ai/docs"
+    ]
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

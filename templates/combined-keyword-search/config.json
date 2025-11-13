@@ -1,0 +1,369 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchTriggerNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "SearchBar",
+          "domains": []
+        }
+      }
+    },
+    {
+      "id": "codeNode_621",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Combine Results",
+          "code": "\nconst passageresults = {{fullTextSearchNode_296.output.searchResults}}\nconst introresults = {{fullTextSearchNode_874.output.searchResults}}\nconst titlesresults = {{fullTextSearchNode_458.output.searchResults}}\n\nconst updatedTitlesresults = titlesresults.map(doc => ({\n  title: doc.title,       \n  content: doc.title,\n  toh: doc.toh,\n  type: \"titles\",\n}));\n\nconst finalresults= [...passageresults, ...introresults, ...updatedTitlesresults]\n\noutput = {\"results\":finalresults}"
+        }
+      }
+    },
+    {
+      "id": "branchNode_769",
+      "type": "branchNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "branchNode",
+        "values": {
+          "nodeName": "Branching",
+          "branches": [
+            {
+              "label": "Branch 1",
+              "value": "branch-searchTriggerNode_don2yzs3tj-plus-node-branch-searchTriggerNode_don2yzs3tj653"
+            },
+            {
+              "label": "Branch 2",
+              "value": "branch-searchTriggerNode_don2yzs3tj-plus-node-branch-searchTriggerNode_don2yzs3tj192"
+            },
+            {
+              "label": "Branch 3",
+              "value": "branch-searchTriggerNode_don2yzs3tj-plus-node-branch-searchTriggerNode_don2yzs3tj651"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "addNode_262",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_688",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_420",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_222",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_475",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_165",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_135",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "fullTextSearchNode_296",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "fullTextSearchNode",
+        "values": {
+          "nodeName": "Keyword Search",
+          "limit": 10,
+          "vectorDB": "TranslationVector",
+          "searchQuery": "{{triggerNode_1.output.searchQuery}}"
+        }
+      }
+    },
+    {
+      "id": "fullTextSearchNode_874",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "fullTextSearchNode",
+        "values": {
+          "nodeName": "",
+          "limit": 10,
+          "vectorDB": "IntroVector",
+          "searchQuery": "{{triggerNode_1.output.searchQuery}}"
+        }
+      }
+    },
+    {
+      "id": "fullTextSearchNode_458",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "fullTextSearchNode",
+        "values": {
+          "nodeName": "Keyword Search",
+          "limit": 10,
+          "vectorDB": "TitlesVector",
+          "searchQuery": "{{triggerNode_1.output.searchQuery}}"
+        }
+      }
+    },
+    {
+      "id": "searchResponseNode_380",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchResponseNode",
+        "values": {
+          "nodeName": "Search Response",
+          "link": "",
+          "title": "{{codeNode_621.output.results[:].title}}",
+          "content": "{{codeNode_621.output.results[:].content}}",
+          "breadcrumpsField": ""
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "addNode_262-codeNode_621",
+      "source": "addNode_262",
+      "target": "codeNode_621",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "triggerNode_1-branchNode_769",
+      "source": "triggerNode_1",
+      "target": "branchNode_769",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "branch-searchTriggerNode_don2yzs3tj-plus-node-branch-searchTriggerNode_don2yzs3tj653",
+      "source": "branchNode_769",
+      "target": "addNode_475",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "branchName": "Branch 1"
+      },
+      "type": "branchEdge"
+    },
+    {
+      "id": "branch-searchTriggerNode_don2yzs3tj-plus-node-branch-searchTriggerNode_don2yzs3tj192",
+      "source": "branchNode_769",
+      "target": "addNode_165",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "branchName": "Branch 2"
+      },
+      "type": "branchEdge"
+    },
+    {
+      "id": "branch-searchTriggerNode_don2yzs3tj-plus-node-branch-searchTriggerNode_don2yzs3tj651",
+      "source": "branchNode_769",
+      "target": "addNode_135",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "branchName": "Branch 3"
+      },
+      "type": "branchEdge"
+    },
+    {
+      "id": "addNode_688-addNode_262",
+      "source": "addNode_688",
+      "target": "addNode_262",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "addNode_420-addNode_262",
+      "source": "addNode_420",
+      "target": "addNode_262",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "addNode_222-addNode_262",
+      "source": "addNode_222",
+      "target": "addNode_262",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "fullTextSearchNode_296-addNode_688",
+      "source": "fullTextSearchNode_296",
+      "target": "addNode_688",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "fullTextSearchNode_874-addNode_420",
+      "source": "fullTextSearchNode_874",
+      "target": "addNode_420",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "fullTextSearchNode_458-addNode_222",
+      "source": "fullTextSearchNode_458",
+      "target": "addNode_222",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "addNode_165-fullTextSearchNode_296",
+      "source": "addNode_165",
+      "target": "fullTextSearchNode_296",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "addNode_475-fullTextSearchNode_874",
+      "source": "addNode_475",
+      "target": "fullTextSearchNode_874",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "addNode_135-fullTextSearchNode_458",
+      "source": "addNode_135",
+      "target": "fullTextSearchNode_458",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_621-searchResponseNode_380",
+      "source": "codeNode_621",
+      "target": "searchResponseNode_380",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-searchResponseNode_380",
+      "source": "triggerNode_1",
+      "target": "searchResponseNode_380",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

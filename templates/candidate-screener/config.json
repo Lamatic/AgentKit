@@ -1,0 +1,260 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\",\n  \"aboutYou\": \"string\",\n  \"email\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "scraperNode_352",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "scraperNode",
+        "values": {
+          "nodeName": "Scraper",
+          "url": "{{triggerNode_1.output.url}}",
+          "mobile": false,
+          "waitFor": 123,
+          "credentials": "FIRECRAWL_API_KEY",
+          "excludeTags": [],
+          "includeTags": [],
+          "onlyMainContent": true,
+          "skipTLsVerification": false
+        }
+      }
+    },
+    {
+      "id": "agentClassifierNode_511",
+      "type": "agentClassifierNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "agentClassifierNode",
+        "values": {
+          "nodeName": "Classifier",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "The candidate has filled the about you and why you section for a job recruitment with job description as follows To recruit the best candidates for the Next.js developer’s role, it is vital to adequately list the required experience and duties. The expectations for the given position may vary, as they may be expanded depending on the role, in other words, entry\\-level, mid\\-level, or senior Next.js developer’s position. Thus, a precise enumeration of job responsibilities and qualifications will help ensure that the applicants meet the job requirements for the Next.js developer role to a greater extent.\n\nAs a Next.JS developer, your responsibilities will be:\n\n1. Creating high\\-performance web applications and maintaining them.\n2. Designing server\\-side rendered React applications and implementing optimized client\\-side rendering.\n3. Effective integration with APIs and various databases.\n4. Write clean and efficient code.\n5. Coordinate activities with cross\\-functional teams for efficient user experiences.\n6. Possesses problem\\-solving skills and a deep understanding of JavaScript and React framework.\n\nScraping the github of candidate we got : {{scraperNode_669.output.markdown}}\n\nThe candidate has also filled following details about himself : {{triggerNode_1.output.aboutYou}}\n\nBased on the above, classify whether the candidate is potential candidate or not at the moment."
+            }
+          ],
+          "classifier": [
+            {
+              "label": "Selected",
+              "value": "agentClassifierNode_818-addNode_161"
+            },
+            {
+              "label": "Rejected",
+              "value": "agentClassifierNode_818-addNode_164"
+            }
+          ],
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_366",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Generate a personalzied email for {{triggerNode_1.output.email}} telling him that he alligs with our jd and we liked his github Profile.\n\nWe need to tell them that as a Next.JS developer, your responsibilities will be:\n\n1. Creating high\\-performance web applications and maintaining them.\n2. Designing server\\-side rendered React applications and implementing optimized client\\-side rendering.\n3. Effective integration with APIs and various databases.\n4. Write clean and efficient code.\n5. Coordinate activities with cross\\-functional teams for efficient user experiences.\n6. Possesses problem\\-solving skills and a deep understanding of JavaScript and React framework.\n\nJust write the email without any subject and just write the body on the email."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_490",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Generate an email for candidate sharing him insights where he lacks based on our job description.\n\nThe candidate has filled the about you and why you section for a job recruitment with job description as follows To recruit the best candidates for the Next.js developer’s role, it is vital to adequately list the required experience and duties. The expectations for the given position may vary, as they may be expanded depending on the role, in other words, entry\\-level, mid\\-level, or senior Next.js developer’s position. Thus, a precise enumeration of job responsibilities and qualifications will help ensure that the applicants meet the job requirements for the Next.js developer role to a greater extent.\n\nThe job description states that as a Next.JS developer, your responsibilities will be:\n\n1. Creating high\\-performance web applications and maintaining them.\n2. Designing server\\-side rendered React applications and implementing optimized client\\-side rendering.\n3. Effective integration with APIs and various databases.\n4. Write clean and efficient code.\n5. Coordinate activities with cross\\-functional teams for efficient user experiences.\n6. Possesses problem\\-solving skills and a deep understanding of JavaScript and React framework.\n\nJust write the email without any subject and just write the body on the email.\n\nHis github: {{scraperNode_669.output.markdown}} and {{scraperNode_669.output.html}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "apiNode_413",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "apiNode",
+        "values": {
+          "nodeName": "API",
+          "url": "https://dhruvlamatic.app.n8n.cloud/webhook/9ed5e934-205e-4383-b783-60049c112985",
+          "body": "{\n    \"email\" : {{triggerNode_1.output.email}},\n    \"content\" : {{LLMNode_366.output.generatedResponse}}\n}",
+          "method": "POST",
+          "headers": "",
+          "retries": "0",
+          "retry_deplay": "0"
+        }
+      }
+    },
+    {
+      "id": "apiNode_443",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "apiNode",
+        "values": {
+          "nodeName": "API",
+          "url": "https://dhruvlamatic.app.n8n.cloud/webhook/9ed5e934-205e-4383-b783-60049c112985",
+          "body": "{\n    \"email\" : {{triggerNode_1.output.email}},\n    \"content\" : {{LLMNode_490.output.generatedResponse}}\n}",
+          "method": "POST",
+          "headers": "",
+          "retries": "0",
+          "retry_deplay": "0"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_921",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"email\": \"{{triggerNode_1.output.email}}\",\n  \"status\": \"{{agentClassifierNode_511.output.class}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-scraperNode_352",
+      "source": "triggerNode_1",
+      "target": "scraperNode_352",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "scraperNode_352-agentClassifierNode_511",
+      "source": "scraperNode_352",
+      "target": "agentClassifierNode_511",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentClassifierNode_818-addNode_161",
+      "source": "agentClassifierNode_511",
+      "target": "LLMNode_366",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Selected"
+      },
+      "type": "agentClassifierEdge"
+    },
+    {
+      "id": "agentClassifierNode_818-addNode_164",
+      "source": "agentClassifierNode_511",
+      "target": "LLMNode_490",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Rejected"
+      },
+      "type": "agentClassifierEdge"
+    },
+    {
+      "id": "LLMNode_366-apiNode_413",
+      "source": "LLMNode_366",
+      "target": "apiNode_413",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_490-apiNode_443",
+      "source": "LLMNode_490",
+      "target": "apiNode_443",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "apiNode_413-graphqlResponseNode_921",
+      "source": "apiNode_413",
+      "target": "graphqlResponseNode_921",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "apiNode_443-graphqlResponseNode_921",
+      "source": "apiNode_443",
+      "target": "graphqlResponseNode_921",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_921",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_921",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

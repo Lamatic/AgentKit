@@ -1,0 +1,15 @@
+{
+  "name": "Agentic Reasoning - Search Web",
+  "description": "This flow searches the internet as part of Agentic Reasoning",
+  "tags": [],
+  "testInput": {
+    "steps": "I’ll start by searching the latest weather forecast for Jaipur next week and reviewing reliable travel and cultural resources to understand seasonal needs and local norms. I’ll also look up any events, safety advisories, and airline baggage rules to tailor packing to your itinerary and constraints. Then I’ll synthesize everything and prepare a structured packing list with essentials, optional items, and smart tips for comfort and safety. Since this is a new request, I’ll treat it as new."
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

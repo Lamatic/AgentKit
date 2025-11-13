@@ -1,0 +1,244 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "s3Node",
+        "trigger": true,
+        "values": {
+          "nodeName": "S3",
+          "globs": [
+            "**"
+          ],
+          "bucket": "",
+          "strategy": "auto",
+          "syncMode": "incremental_append",
+          "start_date": "",
+          "credentials": "",
+          "cronExpression": "0 0 */3 ? * * UTC",
+          "days_to_sync_if_history_is_full": "3"
+        }
+      }
+    },
+    {
+      "id": "addNode_290",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "extractFromFileNode_944",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "extractFromFileNode",
+        "values": {
+          "nodeName": "Extract from File",
+          "trim": false,
+          "ltrim": false,
+          "quote": "\"",
+          "rtrim": false,
+          "format": "pdf",
+          "comment": "null",
+          "fileUrl": "{{triggerNode_1.output.document_url}}",
+          "headers": true,
+          "maxRows": "0",
+          "encoding": "utf8",
+          "password": "",
+          "skipRows": "0",
+          "delimiter": ",",
+          "joinPages": true,
+          "ignoreEmpty": false,
+          "returnRawText": false,
+          "encodeAsBase64": false,
+          "discardUnmappedColumns": false
+        }
+      }
+    },
+    {
+      "id": "codeNode_315",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Extract Text",
+          "code": "output = {{ extractFromFileNode_937.output.files }}[0]['data'][0]"
+        }
+      }
+    },
+    {
+      "id": "chunkNode_318",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "chunkNode",
+        "values": {
+          "nodeName": "Chunking",
+          "chunkField": "{{codeNode_315.output}}",
+          "numOfChars": 500,
+          "separators": [
+            "\n\n",
+            "\n",
+            " "
+          ],
+          "chunkingType": "recursiveCharacterTextSplitter",
+          "overlapChars": 50
+        }
+      }
+    },
+    {
+      "id": "codeNode_254",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Get Chunks",
+          "code": "let docs =  {{chunkNode_318.output.chunks}}\n\nlet outputDocs = docs.map(doc => doc.pageContent);\nconsole.log(outputDocs)\noutput = outputDocs;"
+        }
+      }
+    },
+    {
+      "id": "vectorizeNode_639",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "vectorizeNode",
+        "values": {
+          "nodeName": "Vectorize",
+          "inputText": "{{codeNode_254.output}}",
+          "embeddingModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_507",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Transform Metadata",
+          "code": "let vectors = {{vectorizeNode_639.output.vectors}}\nlet metadataProps = [];\nlet texts = {{ codeNode_620.output }};\n\nfor (const idx in vectors) {\n    let metadata = {}\n    metadata[\"content\"] = texts[idx];\n    metadata[\"file_name\"] = {{triggerNode_1.output.document_key}}\n    metadataProps.push(metadata)\n}\nconsole.log(\"finaldata:\", {\"metadata\": metadataProps, \"vectors\": vectors});\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        }
+      }
+    },
+    {
+      "id": "IndexNode_622",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "IndexNode",
+        "values": {
+          "nodeName": "Index",
+          "vectorDB": "",
+          "primaryKeys": "",
+          "vectorsField": "{{codeNode_507.output.vectors}}",
+          "metadataField": "{{codeNode_507.output.metadata}}",
+          "duplicateOperation": "overwrite"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "IndexNode_622-addNode_290",
+      "source": "IndexNode_622",
+      "target": "addNode_290",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "triggerNode_1-extractFromFileNode_944",
+      "source": "triggerNode_1",
+      "target": "extractFromFileNode_944",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "extractFromFileNode_944-codeNode_315",
+      "source": "extractFromFileNode_944",
+      "target": "codeNode_315",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_315-chunkNode_318",
+      "source": "codeNode_315",
+      "target": "chunkNode_318",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "chunkNode_318-codeNode_254",
+      "source": "chunkNode_318",
+      "target": "codeNode_254",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_254-vectorizeNode_639",
+      "source": "codeNode_254",
+      "target": "vectorizeNode_639",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "vectorizeNode_639-codeNode_507",
+      "source": "vectorizeNode_639",
+      "target": "codeNode_507",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_507-IndexNode_622",
+      "source": "codeNode_507",
+      "target": "IndexNode_622",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "LLMNode_570": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
+      "required": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "isPrivate": true
+    }
+  ],
+  "vectorizeNode_697": [
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model",
+      "mode": "embedding",
+      "description": "Select the model to convert the texts into vector representations.",
+      "modelType": "embedder/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "InstructorLLMNode_664": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "mode": "instructor",
+      "description": "Select the model to generate text based on the prompt.",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "vectorNode_384": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "description": "Select the vector database where the action will be performed."
+    }
+  ]
+}

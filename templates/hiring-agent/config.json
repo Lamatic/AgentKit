@@ -1,0 +1,452 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "modes": {},
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "headers": "",
+          "retries": "0",
+          "webhookUrl": "",
+          "responeType": "realtime",
+          "retry_deplay": "0",
+          "advance_schema": "{\n  \"resume_url\": \"string\",\n  \"job_description\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "agentNode_852",
+      "type": "agentNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "agentNode",
+        "values": {
+          "nodeName": "Supervisor",
+          "tools": [],
+          "agents": [
+            {
+              "name": "Parser",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"resume_url\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"This is the resume url, from which the contents and links can be extracted\"\n    },\n    \"job_description\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"This is the job description for which the applicant has applied with the current resume\"\n    }\n  }\n}",
+              "description": "This path has to parse through the resume of the applicant and see for necessary skills and projects on their Github"
+            },
+            {
+              "name": "Evaluator",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"project_insights\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"This implies the project insights based on the resume of the user\"\n    },\n    \"job_description\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"This is the job description for which the applicant has applied with the current resume\"\n    }\n  }\n}",
+              "description": "This path would give a score based on the insights found from the projects and give reasoning for the same"
+            }
+          ],
+          "prompts": [
+            {
+              "id": "7a2cf6d8-1d6d-4e69-a71c-0a4111ad4814",
+              "role": "user",
+              "content": "RESUME URL : {{triggerNode_1.output.resume_url}}\n\nJOB DESCRIPTION : {{triggerNode_1.output.job_description}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are the HR team manager at a tech company, where you will be given the job description by your company, and the link to the resume of a new applicant. You have to pass on the resume url to the parser agent, which will give you the content and more insights on the projects of the applicant. After that, your job is to pass the insights of the project to the evaluator team, which would give back the final score and reasoning. In the end, you have to return the final output to the user in the format :\n\n```\n{\n \"score\" : Number ranging from 1 to 10, with 1 being the lowest and 10 the highest. this is as per the evaluator agent\n \"reasoning\" : String with the reasoning so as to why the above score is given, which will be given by the agent\n \"insights\" : String with the insights on the projects and technical adaptability of the user for the given job description\n}\n\n```\n\nNow, make sure the ideal order of using the agents is :\n\nPROJECTPARSER -> EVALUATOR\n\nMake sure the values for 'score' and 'reasoning' are the same as the evaluator agent gives you, and the value for 'insights' is the same as given by parser agent. They are your subordinate teams and the answers they give you are ideal.\n\nIn the end, you final answer should have no leading statements, backticks or JSON written, just the finalised JSON which you can attain with the help of all the sub-agents."
+            }
+          ],
+          "messages": "[]",
+          "stopWord": "",
+          "connectedTo": "agentLoopEndNode_558",
+          "maxIterations": 5,
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "agentLoopEndNode_558",
+      "type": "agentLoopEndNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "agentLoopEndNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Agent Loop End",
+          "connectedTo": "agentNode_852"
+        }
+      }
+    },
+    {
+      "id": "extractFromFileNode_920",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "extractFromFileNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Extract from File",
+          "trim": false,
+          "ltrim": false,
+          "quote": "\"",
+          "rtrim": false,
+          "format": "pdf",
+          "comment": "null",
+          "fileUrl": "{{agentNode_852.output.resume_url}}",
+          "headers": true,
+          "maxRows": "0",
+          "encoding": "utf8",
+          "password": "",
+          "skipRows": "0",
+          "delimiter": ",",
+          "joinPages": true,
+          "ignoreEmpty": false,
+          "returnRawText": false,
+          "encodeAsBase64": false,
+          "discardUnmappedColumns": false
+        }
+      }
+    },
+    {
+      "id": "LLMNode_728",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Github Username Finder",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "68482e18-8ce4-41d4-94b9-f24508922db1",
+              "role": "user",
+              "content": "RESUME CONTENTS : {{extractFromFileNode_197.output.files}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You have to search the contents of this applicant's resume and find if it has a github link in their resume contents, if yes then you have to give their github username straight away and if not, just give the answer \"Github ID Not Found\". There would be a github link which would haver their ID ideally, from which you can fetch the ID.\n\nMake sure you give no leading statements or backticks or any other unwanted items, just the github username extracted from the url in their resume or the \"Github ID Not Found\" string."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "conditionNode_160",
+      "type": "conditionNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "conditionNode",
+        "modes": [],
+        "values": {
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_727-addNode_373",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_571.output.generatedResponse}}\",\n      \"operator\": \"!=\",\n      \"value\": \"Github ID Not Found\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_727-addNode_369",
+              "condition": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "LLMNode_741",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Github Projects Analyser",
+          "tools": [
+            "2ee8a92d-e6d4-442c-9334-61bdf0e7d311"
+          ],
+          "prompts": [
+            {
+              "id": "6c9c3e7c-bb64-4047-9cac-3089ff468d62",
+              "role": "user",
+              "content": "GITHUB USERNAME : {{LLMNode_571.output.generatedResponse}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You will be given a the username of a github user, of which you need to gain insights of all their projects and whether those suit the required job description or not. The job description is as follows :\n\n{{agentNode_620.output.job_description}}\n\nNow, you will be given a tool called 'AllGithubRepos' to which you MUST USE AND will have to pass the github username as a parameter which will be given to you by the user, from which you will get information of all their public repositories and the languages used in those. From this, you can gain insight on all their projects and how well they suit the job description. Now, your job is to prepare a 500 character writeup so as to how ideal they are for this job description i.e. how relevant their projects are to the job description. Make sure you are throughly analytical as you are part of the hiring process of a tech company, your job is to analyse their practical skills and their potential adaptability to the job.\n\nYour answer should have no leading statements, just your analysis as a continuous paragraph of your findings."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_629",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Code",
+          "code": "if ({{ LLMNode_167.output.generatedResponse }} != \"\") {\n  output = {{LLMNode_741.output.generatedResponse}}\n}\nelse if ({{LLMNode_867.output.generatedResponse}} != \"\") {\n  output = {{LLMNode_867.output.generatedResponse}}\n}"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_867",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Resume Projects Analyser",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "de7faf55-c2f6-43dd-bb31-f6c35e7399ae",
+              "role": "user",
+              "content": "RESUME CONTENTS : {{extractFromFileNode_197.output.files}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a analyser of resumes you receive of all applicants, and check how relevant they are to the given job description, which is :\n\n{{agentNode_620.output.job_description}}\n\nNow, your job is to understand how relevant their resume is for the job description, with giving first priority to their projects and practical contents. Now, your job is to prepare a 500 character writeup so as to how ideal they are for this job description i.e. how relevant their projects are to the job description. Make sure you are throughly analytical as you are part of the hiring process of a tech company, your job is to analyse their practical skills and their potential adaptability to the job, your writeup can act as an introductory overview for the management of the company.\n\nYour answer should have no leading statements, just your analysis as a continuous paragraph of your findings."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "InstructorLLMNode_593",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Insight Evaluator",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"score\": {\n      \"type\": \"number\",\n      \"required\": true,\n      \"description\": \"This defines the score of how ideal the candidate is to take further for the given job description\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"This defines the reasoning and logic for the score given to this candidate\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "9cf0d810-74c5-4b9c-aa00-96d706180916",
+              "role": "user",
+              "content": "PROJECT INSIGHTS : {{agentNode_620.output.project_insights}}\n\nJOB DESCRIPTION : {{agentNode_620.output.job_description}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an evaluator agent whose job is to read the project insights, social insights and a given job description, and evaluate the score so as to how ideal the candidate would be for being selected for further rounds of interview or even hiring in the company. The projects insights represent their practical and potential to learn, and you have to give it a quantitative value. \n\nHere, 1 implies the lowest score and 10 implies the highest. Along with each score, you should ideally also give the reasoning so as to why you have given this score. Make sure that as you are an analytical agent, keep your reasoning professional and around 300 characters so that your seniors get a concise reasoning. You should return the answer in the format :\n\n```\n{\n \"score\" : integer,\n \"reasoning\" : string\n}\n\n```\n\nMake sure your answer has no backticks, no leading statements or JSON written over in the starting, just the final JSON with your answers."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_677",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"output\": \"{{agentLoopEndNode_558.output.finalResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-agentNode_852",
+      "source": "triggerNode_1",
+      "target": "agentNode_852",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentNode_852-extractFromFileNode_920",
+      "source": "agentNode_852",
+      "target": "extractFromFileNode_920",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Parser",
+        "invisible": false
+      }
+    },
+    {
+      "id": "agentNode_852-InstructorLLMNode_593",
+      "source": "agentNode_852",
+      "target": "InstructorLLMNode_593",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Evaluator",
+        "invisible": false
+      }
+    },
+    {
+      "id": "agentNode_852-agentLoopEndNode_558",
+      "source": "agentNode_852",
+      "target": "agentLoopEndNode_558",
+      "type": "agentLoopEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Agent Loop End",
+        "invisible": true
+      }
+    },
+    {
+      "id": "codeNode_629-agentLoopEndNode_558",
+      "source": "codeNode_629",
+      "target": "agentLoopEndNode_558",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_593-agentLoopEndNode_558",
+      "source": "InstructorLLMNode_593",
+      "target": "agentLoopEndNode_558",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentLoopEndNode_558-agentNode_852",
+      "source": "agentLoopEndNode_558",
+      "target": "agentNode_852",
+      "type": "agentLoopEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Agent Loop End",
+        "invisible": false
+      }
+    },
+    {
+      "id": "extractFromFileNode_920-LLMNode_728",
+      "source": "extractFromFileNode_920",
+      "target": "LLMNode_728",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_728-conditionNode_160",
+      "source": "LLMNode_728",
+      "target": "conditionNode_160",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_727-addNode_373",
+      "source": "conditionNode_160",
+      "target": "LLMNode_741",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge"
+    },
+    {
+      "id": "conditionNode_727-addNode_369",
+      "source": "conditionNode_160",
+      "target": "LLMNode_867",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge"
+    },
+    {
+      "id": "LLMNode_741-codeNode_629",
+      "source": "LLMNode_741",
+      "target": "codeNode_629",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_867-codeNode_629",
+      "source": "LLMNode_867",
+      "target": "codeNode_629",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "agentLoopEndNode_558-graphqlResponseNode_677",
+      "source": "agentLoopEndNode_558",
+      "target": "graphqlResponseNode_677",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_677",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_677",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

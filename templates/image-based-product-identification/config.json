@@ -1,0 +1,110 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_918",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "ac649ac6-3c1c-4a20-a7fe-a583d11519ae",
+              "role": "system",
+              "content": "This is the image url: {{triggerNode_1.output.url}}\n\nIdentify multiple objects in the image and provide information about each object, including its name, company, description, and similar products based on product details and ignore the object such as human, man, woman and child.\n\nExample\n\nGiven the image, identify the products and their respective companies. For each product detected:\n\n1\\. Name of the product:\n\n2\\. Product description \\(in 100 words max\\):\n\n3\\. 4 Similar products \\(if any\\):\n\nReturn the data in the following JSON template:\n\n\\[\n\n{\n\n“name”: “Name of the product”,\n\n“description”: “This product is used for ABC and its use cases are XYZ.“,\n\n“similar_products”: \\[“Similar Product 1\", “Similar Product 2”, “Similar Product 3\", “Similar Product 4”, ...\\]\n\n},\n\n{\n\n“product_name”: “Name of another product”,\n\n“description”: “This product is used for DEF and its use cases are UVW.“,\n\n“similar_products”: \\[“Similar Product A”, “Similar Product B”, “Similar Product C”, “Similar Product D”, ...\\]\n\n},\n\n...\n\n\\]\n\nThe above given is an example JSON, make sure you give just the JSON output without any leading statements or backticks, as it has to be used further in a function."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_743",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Code",
+          "code": "const responseString = {{ LLMNode_888.output.generatedResponse }}\n\ndata = JSON.parse(responseString);\nlet prod_d = [];\nfor (let i = 0; i < data.length; i++) {\n  prod_d[i] = {\n    \"Product name\": data[i].name,\n    \"Product description\": data[i].description,\n    \"Product link\": `https://www.google.com/search?q=${encodeURI(data[i].name)}&tbm=shop`\n  }\n}\noutput = prod_d"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_410",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"image_data\": \"{{codeNode_743.output}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_918",
+      "source": "triggerNode_1",
+      "target": "LLMNode_918",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_918-codeNode_743",
+      "source": "LLMNode_918",
+      "target": "codeNode_743",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_743-graphqlResponseNode_410",
+      "source": "codeNode_743",
+      "target": "graphqlResponseNode_410",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_410",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_410",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

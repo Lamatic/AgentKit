@@ -1,0 +1,15 @@
+{
+  "name": "Webpage QA",
+  "description": "This AI-powered system scrapes data from a website, processes it using AI, and enables users to ask questions based on the extracted information.",
+  "tags": [
+    "Support"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=webpage-qa",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

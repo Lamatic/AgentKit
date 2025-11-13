@@ -1,0 +1,127 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "extractFromFileNode_525",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "extractFromFileNode",
+        "values": {
+          "nodeName": "Extract from File",
+          "trim": false,
+          "ltrim": false,
+          "quote": "\"",
+          "rtrim": false,
+          "format": "pdf",
+          "comment": "null",
+          "fileUrl": "{{triggerNode_1.output.url}}",
+          "headers": true,
+          "maxRows": "0",
+          "encoding": "utf8",
+          "password": "",
+          "skipRows": "0",
+          "delimiter": ",",
+          "joinPages": true,
+          "ignoreEmpty": false,
+          "returnRawText": false,
+          "encodeAsBase64": false,
+          "discardUnmappedColumns": false
+        }
+      }
+    },
+    {
+      "id": "LLMNode_103",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Extract structured JSON data from this invoice data from a pdf.\n\nInstructions:\n\n1. Convert the provided invoice PDF into a structured JSON format.\n2. Ensure the JSON output captures all relevant details, including company, customer, metadata, services, totals, payment, and transaction details. These are just examples, you can make the relevant keys and their respective values\n3. Include validation warnings if there are missing or inconsistent details.\n4. Do not return any output except the JSON.\n5. No leading statements or backticks with json written, just give the JSON object directly as it will be processed later.\n\nInput : {{extractFromFileNode_764.output.files}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_866",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"output\": \"{{LLMNode_103.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-extractFromFileNode_525",
+      "source": "triggerNode_1",
+      "target": "extractFromFileNode_525",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "extractFromFileNode_525-LLMNode_103",
+      "source": "extractFromFileNode_525",
+      "target": "LLMNode_103",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_103-graphqlResponseNode_866",
+      "source": "LLMNode_103",
+      "target": "graphqlResponseNode_866",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_866",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_866",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

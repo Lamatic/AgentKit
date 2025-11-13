@@ -1,6 +1,0 @@
-{
-    "name" : "AI Assistant Chatbot",
-    "tags" : ["generative","support"],
-    "icon" : "chat",
-    "nodeIcons" : ["chatTriggerNode", "LLMNode"]
-}

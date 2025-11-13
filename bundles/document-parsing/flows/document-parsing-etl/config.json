@@ -1,0 +1,588 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"instructions\": \"string\",\n  \"document_url\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "branchNode_788",
+      "data": {
+        "label": "Branch",
+        "modes": [],
+        "nodeId": "branchNode",
+        "values": {
+          "branches": [
+            {
+              "label": "Branch 1",
+              "value": "branchNode_788-addNode_215"
+            },
+            {
+              "label": "Branch 2",
+              "value": "branchNode_788-addNode_760"
+            }
+          ],
+          "nodeName": "Branching"
+        }
+      },
+      "type": "branchNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 150
+      }
+    },
+    {
+      "id": "extractFromFileNode_736",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "extractFromFileNode",
+        "values": {
+          "trim": false,
+          "ltrim": false,
+          "quote": "\"",
+          "rtrim": false,
+          "format": "pdf",
+          "comment": "null",
+          "fileUrl": "{{triggerNode_1.output.document_url}}",
+          "headers": true,
+          "maxRows": "0",
+          "encoding": "utf8",
+          "nodeName": "Extract from File",
+          "password": "",
+          "skipRows": "0",
+          "delimiter": ",",
+          "joinPages": false,
+          "ignoreEmpty": false,
+          "returnRawText": false,
+          "encodeAsBase64": false,
+          "discardUnmappedColumns": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 300
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_179",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "output = {{extractFromFileNode_736.output.files}}[0]['data'];",
+          "nodeName": "Collate Document Pages"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 450
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_570",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a JSON Schema Generation Assistant. Generate high-quality, well-structured JSON ZOD Schema format as the user has requested.DO NOT add any leading statements, preambles, trailing commentary. or backticks or JSON string in the start. Return ONLY the generated JSON as it will be displayed directly to the end user. They will be parsing the output you give via code hence make sure you always give the output in JSON, with the schema they are asking for. Just simply make the same which will be parsed and then go to a JSON Generator Expert, who will make values based on your schema. In each of them, you also need to add a description and for each of them, add required as well. Below given is just an example so make sure you treat that as reference :\n\n```\n{\n  \"description\": {\n    \"type\": \"string\",\n    \"required\": true,\n    \"description\": \"This is the description of this given chunk\"\n  },\n  \"summary\": {\n    \"type\": \"string\",\n    \"required\": true,\n    \"description\": \"An overall summary of the chunk in a line or two\"\n  },\n  \"keywords\": {\n    \"type\": \"array\",\n    \"items\": {\n      \"type\": \"string\"\n    },\n    \"description\": \"The keywords in this text passage\"\n  }\n}\n```"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "USER INSTRUCTIONS : {{triggerNode_1.output.instructions}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Requirements",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_109",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "let answer = {};\nanswer = JSON.parse({{LLMNode_570.output.generatedResponse}});\noutput = answer;",
+          "nodeName": "Parse JSON"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 450
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopNode_180",
+      "data": {
+        "label": "forLoopNode node",
+        "modes": {},
+        "nodeId": "forLoopNode",
+        "values": {
+          "wait": 0,
+          "endValue": "10",
+          "nodeName": "Loop",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_937",
+          "iterateOver": "list",
+          "initialValue": "0",
+          "iteratorValue": "{{codeNode_179.output}}"
+        }
+      },
+      "type": "forLoopNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 600
+      },
+      "selected": false
+    },
+    {
+      "id": "chunkNode_399",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "chunkNode",
+        "values": {
+          "nodeName": "Chunking",
+          "chunkField": "{{forLoopNode_180.output.currentValue}}",
+          "numOfChars": 500,
+          "separators": [
+            "\n\n",
+            "\n",
+            " "
+          ],
+          "chunkingType": "recursiveCharacterTextSplitter",
+          "overlapChars": 50
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 750
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_602",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "let docs = {{chunkNode_399.output.chunks}};\nlet outputDocs = docs.map((doc) => doc.pageContent);\noutput = outputDocs;",
+          "nodeName": "Extract Chunks"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 900
+      },
+      "selected": false
+    },
+    {
+      "id": "vectorizeNode_697",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "vectorizeNode",
+        "values": {
+          "nodeName": "Vectorize",
+          "inputText": "{{codeNode_602.output}}",
+          "embeddingModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1050
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_664",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "tools": [],
+          "schema": "{{codeNode_109.output}}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an AI Asssitant, and your job is to generate the answer based on the user given JSON, which is the output in which they need the answer. You will be given text of each page, and based on this you need to extract this information from the page given.The output which you need to give is :\n\n{{codeNode_109.output}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "TEXT : {{forLoopNode_180.output.currentValue}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1200
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_126",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "let vectors = {{vectorizeNode_697.output.vectors}};\nlet metadataProps = [];\nlet texts = {{codeNode_602.output}};\nconst filename = {{extractFromFileNode_736.output.files}}[0]['metadata']['filename'];\n\nfor (const idx in vectors) {\n  let metadata = {}\n  metadata[\"content\"] = texts[idx];\n  metadata[\"uuid\"] = Math.random().toString(36).slice(2, 18);\n  metadata[\"url\"] = {{triggerNode_1.output.document_url}};\n\n  let data = {{InstructorLLMNode_664.output}};\n  if (data._meta) {\n    delete data._meta;\n  }\n  metadata[\"metadata\"] = JSON.stringify(data); // Change based on user output.\n  metadataProps.push(metadata)\n};\n\noutput = { \"metadata\": metadataProps, \"vectors\": vectors }",
+          "nodeName": "Transform Metadata"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1350
+      },
+      "selected": true
+    },
+    {
+      "id": "vectorNode_384",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "vectorNode",
+        "values": {
+          "limit": 20,
+          "action": "index",
+          "filters": "",
+          "nodeName": "Index",
+          "vectorDB": "",
+          "primaryKeys": [
+            "uuid"
+          ],
+          "vectorsField": "{{vectorizeNode_697.output.vectors}}",
+          "metadataField": "{{codeNode_126.output.metadata}}",
+          "duplicateOperation": "overwrite"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1500
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopEndNode_937",
+      "data": {
+        "label": "forLoopEndNode node",
+        "modes": {},
+        "nodeId": "forLoopEndNode",
+        "values": {
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_180"
+        }
+      },
+      "type": "forLoopEndNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1650
+      }
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"answer\": \"Document Parsed as per Instructions\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1800
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-branchNode_788",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "branchNode_788",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "branchNode_788-extractFromFileNode_736-377",
+      "data": {
+        "condition": "Branch 1",
+        "branchName": "Branch 1"
+      },
+      "type": "branchEdge",
+      "source": "branchNode_788",
+      "target": "extractFromFileNode_736",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "branchNode_788-LLMNode_570-973",
+      "data": {
+        "condition": "Branch 2",
+        "branchName": "Branch 2"
+      },
+      "type": "branchEdge",
+      "source": "branchNode_788",
+      "target": "LLMNode_570",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_570-codeNode_109",
+      "type": "defaultEdge",
+      "source": "LLMNode_570",
+      "target": "codeNode_109",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "extractFromFileNode_736-codeNode_179",
+      "type": "defaultEdge",
+      "source": "extractFromFileNode_736",
+      "target": "codeNode_179",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_109-forLoopNode_180-800",
+      "data": {},
+      "type": "defaultEdge",
+      "source": "codeNode_109",
+      "target": "forLoopNode_180",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_179-forLoopNode_180-524",
+      "data": {},
+      "type": "defaultEdge",
+      "source": "codeNode_179",
+      "target": "forLoopNode_180",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_937-responseNode_triggerNode_1-471",
+      "type": "defaultEdge",
+      "source": "forLoopEndNode_937",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_180-chunkNode_399-338",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "forLoopNode_180",
+      "target": "chunkNode_399",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "chunkNode_399-codeNode_602",
+      "type": "defaultEdge",
+      "source": "chunkNode_399",
+      "target": "codeNode_602",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_602-vectorizeNode_697",
+      "type": "defaultEdge",
+      "source": "codeNode_602",
+      "target": "vectorizeNode_697",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_126-vectorNode_384",
+      "type": "defaultEdge",
+      "source": "codeNode_126",
+      "target": "vectorNode_384",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "vectorNode_384-forLoopEndNode_937",
+      "type": "defaultEdge",
+      "source": "vectorNode_384",
+      "target": "forLoopEndNode_937",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "vectorizeNode_697-InstructorLLMNode_664",
+      "type": "defaultEdge",
+      "source": "vectorizeNode_697",
+      "target": "InstructorLLMNode_664",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_664-codeNode_126",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_664",
+      "target": "codeNode_126",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    },
+    {
+      "id": "forLoopNode_180-forLoopEndNode_937-756",
+      "data": {
+        "condition": "Loop"
+      },
+      "type": "loopEdge",
+      "source": "forLoopNode_180",
+      "target": "forLoopEndNode_937",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_937-forLoopNode_180-551",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_937",
+      "target": "forLoopNode_180",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    }
+  ]
+}

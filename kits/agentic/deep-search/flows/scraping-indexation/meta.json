@@ -1,0 +1,17 @@
+{
+  "name": "Scraping Indexation",
+  "description": "Scraping Indexation",
+  "tags": [],
+  "testInput": {
+    "urls": [
+      "https://thelabmiami.com"
+    ]
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

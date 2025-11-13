@@ -1,0 +1,38 @@
+{
+    "name":"Agent Kit Embedded Chat",
+    "description":"It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface.",
+    "tags":["embed","support"],
+    "author":{
+        "name":"Lamatic AI",
+        "email":"info@lamatic.ai"
+    },
+        "steps": [
+            {
+                "id": "embedded-chatbot-pdf-indexation",
+                "type": "mandatory",
+                "envKey" : "EMBEDDED_CHATBOT_PDF_INDEXATION"
+            },
+            {
+                "id": "embedded-chatbot-websites-indexation",
+                "type": "mandatory",
+                "envKey" : "EMBEDDED_CHATBOT_WEBSITES_INDEXATION"
+            },
+            {
+                "id": "embedded-chatbot-chatbot",
+                "type": "mandatory",
+                "envKey" : "EMBEDDED_CHATBOT_CHATBOT"
+            },
+            {
+                "id": "embedded-chatbot-resource-deletion",
+                "type": "mandatory",
+                "envKey" : "EMBEDDED_CHATBOT_RESOURCE_DELETION"
+            }
+        ]
+    ,
+    "integrations":[],
+    "features":[],
+    "demoUrl":"https://agent-kit-generation.vercel.app/",
+    "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/templates/agentic/generation",
+    "deployUrl":"https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_CONFIG_REASONING&envDescription=Your%20Lamatic%20Config%20Reasoning%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-reasoning",
+    "documentationUrl":"https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+}

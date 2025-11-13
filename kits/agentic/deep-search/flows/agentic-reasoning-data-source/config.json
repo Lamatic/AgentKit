@@ -1,0 +1,276 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"steps\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_445",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"queries\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\",\n        \"required\": true\n      },\n      \"description\": \"This is the collection of queries based on which the research will be prepared\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a **Search Query Generator Agent**.  \nYour task is to carefully read the reasoning steps provided (a single paragraph in first person that explains how the Supervisor Agent will approach the query). From that paragraph, you must generate exactly **3 unique, high-quality search queries** that would help gather the most relevant information from the knowledge database.\n\n### **Rules**\n\n1. **Output only 3 search queries** — no more, no less.\n2. Each query should be **concise, specific, and directly tied** to the reasoning steps.\n3. The queries should cover **different aspects** of the problem, not duplicates.\n4. Phrase them as **queries** that a user might get high value vectors from their indexed DB\n5. Do not repeat wording unnecessarily; prioritize variety to maximize coverage.\n6. Just keep the 'keywords' you fetch as high priority in your output for each of them, as you queries will be directly searched into the vector database.\n7. Return them as a **JSON object** in this format:\n\n```\n{\n  \"queries\": [\n    \"string\",\n    \"string\",\n    \"string\"\n  ]\n}\n\n```\n\n### **Example**\n\n**Reasoning Input:**  \n\"I’ll treat this as a new query and start by searching reputable furniture guides, consumer reports, and expert reviews comparing leather and cotton sofas across durability, comfort, maintenance, stain resistance, pet/kid suitability, climate, sustainability, and cost of ownership. Then I’ll review care guides, warranty terms, and current price ranges, plus look into ethical/sustainability certifications for both materials. I’ll also check for common pitfalls (like cracking, pilling, fading, allergies) and real-world user feedback to validate trade-offs. Finally, I’ll prepare a structured side-by-side comparison with pros/cons, lifespan and maintenance expectations, and tailored recommendations based on different household needs and budgets.\"\n\n**Expected Output:**\n\n```\n{\n  \"queries\": [\n    \"leather vs cotton sofa durability comfort maintenance comparison\",\n    \"ethical sustainable upholstery certifications and eco-friendly sofa materials\",\n    \"real-world user reviews and common issues with leather and cotton sofas\"\n  ]\n}\n\n```"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "STEPS : {{triggerNode_1.output.steps}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopNode_351",
+      "data": {
+        "label": "forLoopNode node",
+        "modes": {},
+        "nodeId": "forLoopNode",
+        "values": {
+          "wait": 0,
+          "endValue": "10",
+          "nodeName": "Loop",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_384",
+          "iterateOver": "list",
+          "initialValue": "0",
+          "iteratorValue": "{{InstructorLLMNode_445.output.queries}}"
+        }
+      },
+      "type": "forLoopNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "searchNode_278",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "searchNode",
+        "values": {
+          "limit": "3",
+          "filters": "[]",
+          "nodeName": "Vector Search",
+          "vectorDB": "",
+          "certainty": "0.6",
+          "searchQuery": "{{forLoopNode_351.output.currentValue}}",
+          "embeddingModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopEndNode_384",
+      "data": {
+        "label": "forLoopEndNode node",
+        "modes": {},
+        "nodeId": "forLoopEndNode",
+        "values": {
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_351"
+        }
+      },
+      "type": "forLoopEndNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_909",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "const researchArray = {{forLoopEndNode_384.output.loopOutput}};\n\nconst research = researchArray.flatMap((searchEntry) => {\n  const searchResults = searchEntry.searchNode_278.output.searchResults;\n  return searchResults.map((result)=>{\n    return result.content;\n  })\n});\n\nconst links = researchArray.flatMap((searchEntry) => {\n  const searchResults = searchEntry.searchNode_278.output.searchResults;\n  return searchResults.map((result)=>{\n    return result.source;\n  })\n});\n\noutput = {\n  research: research,\n  links: links\n};",
+          "nodeName": "Collate Results"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "headers": "",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"research\": \"{{codeNode_909.output.research}}\",\n  \"links\": \"{{codeNode_909.output.links}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_445",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_445",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_445-forLoopNode_351-649",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_445",
+      "target": "forLoopNode_351",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_351-searchNode_278-841",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "forLoopNode_351",
+      "target": "searchNode_278",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "searchNode_278-forLoopEndNode_384-659",
+      "type": "defaultEdge",
+      "source": "searchNode_278",
+      "target": "forLoopEndNode_384",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_384-codeNode_909",
+      "type": "defaultEdge",
+      "source": "forLoopEndNode_384",
+      "target": "codeNode_909",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_909-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "codeNode_909",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    },
+    {
+      "id": "forLoopNode_351-forLoopEndNode_384-454",
+      "data": {
+        "condition": "Loop"
+      },
+      "type": "loopEdge",
+      "source": "forLoopNode_351",
+      "target": "forLoopEndNode_384",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_384-forLoopNode_351-433",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_384",
+      "target": "forLoopNode_351",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    }
+  ]
+}

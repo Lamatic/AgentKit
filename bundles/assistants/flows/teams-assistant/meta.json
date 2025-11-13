@@ -1,0 +1,13 @@
+{
+  "name": "Teams Assistant",
+  "description": "Contextual Microsoft teams bot with knowledge from Content",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

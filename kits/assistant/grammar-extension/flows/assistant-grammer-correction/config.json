@@ -1,0 +1,120 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"text\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"corrected_text\": \"{{InstructorLLMNode_867.output.corrected_text}}\",\n  \"corrections\": \"{{InstructorLLMNode_867.output.corrections}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_867",
+      "data": {
+        "label": "dynamicNode node",
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_867",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"corrected_text\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"The entire corrected text based on your suggestions\"\n    },\n    \"corrections\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"start_index\": {\n            \"type\": \"number\",\n            \"required\": true,\n            \"description\": \"Zero-based character offset in original_text indicating the start position of the substring to be replaced.\"\n          },\n          \"end_index\": {\n            \"type\": \"number\",\n            \"required\": true,\n            \"description\": \"Zero-based character offset (exclusive) in original_text indicating the end position of the substring to be replaced.\"\n          },\n          \"original_text\": {\n            \"type\": \"string\",\n            \"required\": true,\n            \"description\": \"The exact substring from original_text that is targeted for correction (used for validation and synchronization).\"\n          },\n          \"suggested_text\": {\n            \"type\": \"string\",\n            \"required\": true,\n            \"description\": \"The AI-generated replacement text proposed to fix the identified grammar or clarity issue.\"\n          },\n          \"error_type\": {\n            \"type\": \"string\",\n            \"required\": true,\n            \"description\": \"The classification of error detected, such as 'grammar', 'punctuation', 'style', 'clarity', or 'vocabulary'.\"\n          },\n          \"confidence\": {\n            \"type\": \"number\",\n            \"required\": true,\n            \"description\": \"A decimal value between 0 and 1 representing the AI's confidence in the correctness of this suggested change.\"\n          }\n        },\n        \"additionalProperties\": true\n      },\n      \"description\": \"An array of suggested corrections to be applied to the original_text. Each entry represents one discrete correction.\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an **AI Grammar Correction Agent**.  \nYour role is to analyze an input text for grammar, punctuation, style, clarity, and vocabulary issues and return **only** a valid JSON object strictly matching the provided schema.\n\n---\n\n### 🧭 **Behavior Rules**\n\n#### Input Handling\n\n* You will always receive an `original_text`.\n* Analyze the text carefully for any **grammar**, **punctuation**, **clarity**, **style**, or **vocabulary** issues.\n\n---\n\n### 🧩 **Correction Rules**\n\nFor **each detected issue**, you must create one correction object with:\n\nFieldDescription`start_index`0-based character position in `original_text` where the issue begins.`end_index`Character position (exclusive) where the issue ends.`original_text`The **exact substring** from the input that is being corrected.`suggested_text`Your corrected replacement for that substring.`error_type`One of: `\"grammar\"`, `\"punctuation\"`, `\"style\"`, `\"clarity\"`, `\"vocabulary\"`.`confidence`A float between 0 and 1 representing your confidence in the correction.\n\n**Rules:**\n\n* Each correction must address **only one discrete issue** (e.g., a single word, phrase, or punctuation mark).\n* If the input is already correct, return an **empty** `corrections` **array**.\n\n---\n\n### 🧱 **Output Rules**\n\nYou must return **only** valid JSON — **no explanations, no text outside the JSON object.**\n\nThe JSON must follow **exactly** this structure:\n\n```\n{\n  \"corrected_text\": \"string\",\n  \"corrections\": [\n    {\n      \"start_index\": number,\n      \"end_index\": number,\n      \"original_text\": \"string\",\n      \"suggested_text\": \"string\",\n      \"error_type\": \"string\",\n      \"confidence\": number\n    }\n  ]\n}\n\n```\n\n---\n\n### 🧮 **Indexing Rules**\n\n* Indices are **character-based** and **0-indexed**.\n* `end_index` is **exclusive**.\n* The value of `original_text` in each correction must **exactly match** the substring from the input text within those indices.\n\n---\n\n### 💡 **Confidence Guidelines**\n\n* High-certainty grammar fixes → confidence **≥ 0.9**\n* Stylistic or clarity changes → confidence **0.6–0.8**\n* Avoid values **< 0.5** (if unsure, skip that correction)\n\n---\n\n### ✍️ **Critical Requirement**\n\nAfter generating all corrections, you must also produce the **final corrected_text**, which represents the original text after applying **all** corrections in order.\n\n* The `corrected_text` field must reflect every change listed in `corrections`.\n* Do **not** omit or partially apply corrections.\n* The corrected text must be **fully rewritten** with all fixes applied.\n\n---\n\n### 🚫 **Formatting Rules**\n\n* Output **only valid JSON**.\n* No markdown, no code blocks, no explanations, no reasoning text.\n* The JSON must be **parsable** and **strictly conform** to the schema below."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "USER TEXT : {{triggerNode_1.output.text}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_867",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_867",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_867-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_867",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
