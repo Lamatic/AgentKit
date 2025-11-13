@@ -1,0 +1,26 @@
+{
+  "vectorNode_537": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "description": "Select the vector database where the action will be performed."
+    }
+  ],
+  "vectorNode_493": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "description": "Select the vector database where the action will be performed."
+    }
+  ]
+}

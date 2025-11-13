@@ -1,0 +1,26 @@
+{
+    "type": "atomic",
+    "flows": {
+      "grammar_check" : {
+          "name": "Grammar Correction",
+          "type" : "graphQL",
+          "workflowId": "a******************15",
+          "description": "Correct the grammar of the selected text and return back with corrected text and recommendations",
+          "expectedOutput": ["corrected_text", "corrections"],
+          "inputSchema": {
+              "text": "string"
+          },
+          "outputSchema": {
+              "corrected_text": "string",
+              "corrections": "array"
+          },
+          "mode": "sync",
+          "polling" : "false"
+      }
+    },
+    "api": {
+      "endpoint": "https://***************/graphql",
+      "projectId": "33**********************6c",
+      "apiKey" : "l*************************7ccd"
+    }
+}

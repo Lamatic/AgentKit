@@ -1,0 +1,224 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"review\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_773",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Analyze the following review and determine whether it is \"product\" based or \"service\" based.\n\nReview: {{triggerNode_1.output.review}}\n\nInstructions:\n\n1. Read the review carefully.\n2. Identify whether the review focuses on a physical item or a provided service.\n3. Categorize the review as either \"product\" or \"service\" based on your analysis.\n\nOutput\n\n1. Reply only in one word, without any leading statements"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "conditionNode_550",
+      "type": "conditionNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "conditionNode",
+        "values": {
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_625-addNode_150",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \" {{LLMNode_312.output.generatedResponse}}\",\n      \"operator\": \"==\",\n      \"value\": \"product\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_625-addNode_466",
+              "condition": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "LLMNode_263",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Analyze the following feedback and determine whether the sentiment behind it is \"happy\" or \"sad\": {{triggerNode_1.output.review}}\n\nInstructions\n\n1. If the sentiment is \"happy\", craft an email that expresses gratitude and appreciation for the positive feedback.\n2. If the sentiment is \"sad\", craft an email that acknowledges the issue, expresses empathy, and offers a resolution or next steps.\n\nOutput\n\n1. A JSON which has these keys and values  \n   * subject: \\[Subject of the email\\]  \n   * body: \\[Content of the email\\]\n2. Make sure it has no leading statements or backticks with 'json' written, as your response has to be processed ahead"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_704",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Analyze the following feedback and determine whether the sentiment behind it is \"happy\" or \"sad\": {{triggerNode_1.output.review}}\n\nInstructions\n\n1. If the sentiment is \"happy\", craft an email that expresses gratitude and appreciation for the positive feedback.\n2. If the sentiment is \"sad\", craft an email that acknowledges the issue, expresses empathy, and offers a resolution or next steps.\n\nOutput\n\n1. A JSON which has these keys and values  \n   * subject: \\[Subject of the email\\]  \n   * body: \\[Content of the email\\]\n2. Make sure it has no leading statements or backticks with 'json' written, as your response has to be processed ahead"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_252",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Code",
+          "code": "if ({{LLMNode_263.output.generatedResponse}}) {\n  output = {{LLMNode_263.output.generatedResponse}}\n}\nelse {\n  output = {{LLMNode_704.output.generatedResponse}}\n}"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_617",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"email\": \"{{codeNode_252.output}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_773",
+      "source": "triggerNode_1",
+      "target": "LLMNode_773",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_773-conditionNode_550",
+      "source": "LLMNode_773",
+      "target": "conditionNode_550",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_625-addNode_150",
+      "source": "conditionNode_550",
+      "target": "LLMNode_263",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge"
+    },
+    {
+      "id": "conditionNode_625-addNode_466",
+      "source": "conditionNode_550",
+      "target": "LLMNode_704",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge"
+    },
+    {
+      "id": "LLMNode_263-codeNode_252",
+      "source": "LLMNode_263",
+      "target": "codeNode_252",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_704-codeNode_252",
+      "source": "LLMNode_704",
+      "target": "codeNode_252",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_252-graphqlResponseNode_617",
+      "source": "codeNode_252",
+      "target": "graphqlResponseNode_617",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_617",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_617",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

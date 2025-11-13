@@ -1,0 +1,124 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "postgresNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "Postgres",
+          "tables": "",
+          "syncMode": "incremental_append",
+          "credentials": "",
+          "cronExpression": "0 0 00 1/1 * ? * UTC"
+        }
+      }
+    },
+    {
+      "id": "codeNode_858",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Make MetaData and VectorData",
+          "code": "// Creating vectorData\nlet vectorData = \"title: \" + {{triggerNode_1.output.title}} + \" \\n toh: \" + {{triggerNode_1.output.toh}} + \" \\n content: \" + {{triggerNode_1.output.passage_content}}  + \" \\n type: \" + {{triggerNode_1.output.passage_type}}\n\n// for Multiple Toh id use one eg. toh312,toh628,toh1093 => toh312\n\nlet firstId = {{triggerNode_1.output.toh}}.split(',')[0];\n\nlet content = {{triggerNode_1.output.passage_content}}\nif({{triggerNode_1.output.restriction}}){\n  content = \"⚠ Restricted - \\n\\n \" + {{triggerNode_1.output.passage_content}}\n}\n\n// Creating MetaData\n\nlet MetaData = {\n  title: {{triggerNode_1.output.title}},       \n  content: content,\n  toh: firstId, \n  workxmlID: {{triggerNode_1.output.work_xmlid}},\n  passagexmlID: {{triggerNode_1.output.passage_xmlid}}, // Use as primary ?\n  date: {{triggerNode_1.output.publication_date}}, // Not Present\n  label: {{triggerNode_1.output.passage_label}},\n  type: {{triggerNode_1.output.passage_type}},\n  sort: {{triggerNode_1.output.sort}},\n  restriction: {{triggerNode_1.output.restriction}},\n  parent: {{triggerNode_1.output.passage_parent}}\n}\noutput = {\"vectorData\":[vectorData],\"MetaData\":[MetaData]};"
+        }
+      }
+    },
+    {
+      "id": "vectorizeNode_738",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "vectorizeNode",
+        "values": {
+          "nodeName": "Vectorize",
+          "inputText": "{{codeNode_858.output.vectorData}}",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "IndexNode_451",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "IndexNode",
+        "values": {
+          "nodeName": "Index Translation",
+          "vectorDB": "",
+          "primaryKeys": "",
+          "vectorsField": "{{vectorizeNode_738.output.vectors}}",
+          "metadataField": "{{codeNode_858.output.MetaData}}",
+          "duplicateOperation": "overwrite",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "addNode_565",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-codeNode_858",
+      "source": "triggerNode_1",
+      "target": "codeNode_858",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_858-vectorizeNode_738",
+      "source": "codeNode_858",
+      "target": "vectorizeNode_738",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "vectorizeNode_738-IndexNode_451",
+      "source": "vectorizeNode_738",
+      "target": "IndexNode_451",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "IndexNode_451-addNode_565",
+      "source": "IndexNode_451",
+      "target": "addNode_565",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    }
+  ]
+}

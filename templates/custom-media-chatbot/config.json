@@ -1,0 +1,155 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "chatTriggerNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "Chat Widget",
+          "chat": "",
+          "domains": []
+        }
+      }
+    },
+    {
+      "id": "extractFromFileNode_126",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "extractFromFileNode",
+        "values": {
+          "nodeName": "Extract from File",
+          "trim": false,
+          "ltrim": false,
+          "quote": "\"",
+          "rtrim": false,
+          "format": "pdf",
+          "comment": "null",
+          "fileUrl": "https://www.nielit.gov.in/sites/default/files/ccc_syllabus_0.pdf",
+          "headers": true,
+          "maxRows": "0",
+          "encoding": "utf8",
+          "password": "",
+          "skipRows": "0",
+          "delimiter": ",",
+          "joinPages": true,
+          "ignoreEmpty": false,
+          "returnRawText": false,
+          "encodeAsBase64": false,
+          "discardUnmappedColumns": false
+        }
+      }
+    },
+    {
+      "id": "codeNode_140",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Text Extraction",
+          "code": "output = {{extractFromFileNode_126.output.files}}[0][\"data\"][0]"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_919",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "9cd25ecf-58ad-45b0-8ca3-4412bd0f0f54",
+              "role": "user",
+              "content": "QUESTION : {{triggerNode_1.output.chatMessage}}\n\nCONTEXT : {{codeNode_543.output}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a document chatbot, who is suppose to answer the questions asked in chat given the context documents. Make sure you give answers based only on the documents you are given."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "chatResponseNode_414",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "chatResponseNode",
+        "values": {
+          "nodeName": "Chat Response",
+          "content": "{{LLMNode_919.output.generatedResponse}}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-extractFromFileNode_126",
+      "source": "triggerNode_1",
+      "target": "extractFromFileNode_126",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "extractFromFileNode_126-codeNode_140",
+      "source": "extractFromFileNode_126",
+      "target": "codeNode_140",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_140-LLMNode_919",
+      "source": "codeNode_140",
+      "target": "LLMNode_919",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_919-chatResponseNode_414",
+      "source": "LLMNode_919",
+      "target": "chatResponseNode_414",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-chatResponseNode_414",
+      "source": "triggerNode_1",
+      "target": "chatResponseNode_414",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

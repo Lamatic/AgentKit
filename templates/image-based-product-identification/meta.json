@@ -1,0 +1,16 @@
+{
+  "name": "Image-Based Product Identification",
+  "description": "This flow builds an AI-powered product identification system that processes image links, identifies products, and generates a structured JSON output with product name, description, and shopping link, enabling seamless analysis and data extraction from images.",
+  "tags": [
+    "Support",
+    "Operations"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=image-based-product-identification",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

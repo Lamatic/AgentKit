@@ -1,0 +1,15 @@
+{
+  "name": "Plant Care",
+  "description": "This AI-powered plant identification system processes user-provided image links, identifies plants, and generates structured output, enabling seamless analysis and data extraction from images.",
+  "tags": [
+    "Content"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=plant-care",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

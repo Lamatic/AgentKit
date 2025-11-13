@@ -1,0 +1,15 @@
+{
+  "name": "Hiring Agent",
+  "description": "",
+  "tags": [
+    "⚡️ Automation"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=hiring-agent",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

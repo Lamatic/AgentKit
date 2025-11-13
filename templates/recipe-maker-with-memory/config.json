@@ -1,0 +1,148 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"query\": \"string\",\n  \"id\": \"int\"\n}"
+        }
+      }
+    },
+    {
+      "id": "memoryNode_396",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "memoryNode",
+        "values": {
+          "nodeName": "Memory Add",
+          "uniqueId": "{{triggerNode_1.output.id}}",
+          "sessionId": "",
+          "memoryValue": [
+            {
+              "role": "user",
+              "content": "{{triggerNode_1.output.query}}"
+            }
+          ],
+          "memoryCollection": "receipeTest",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "memoryRetrieveNode_711",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "memoryRetrieveNode",
+        "values": {
+          "nodeName": "Memory Retrieve",
+          "limit": 10,
+          "filters": "[]",
+          "searchQuery": "What are the user preferences and what all have they told about their needs?",
+          "memoryCollection": "receipeTest",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_730",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a recipe expert who aids the user solve their meal requirements given the past memories you have of the user. Make sure it has no leading statements, just the final receipe.\n\nQUERY : {{triggerNode_1.output.query}}"
+            }
+          ],
+          "memories": "{{memoryRetrieveNode_711.output.memories}}",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_127",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"recipe\": \"{{LLMNode_730.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-memoryNode_396",
+      "source": "triggerNode_1",
+      "target": "memoryNode_396",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "memoryNode_396-memoryRetrieveNode_711",
+      "source": "memoryNode_396",
+      "target": "memoryRetrieveNode_711",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "memoryRetrieveNode_711-LLMNode_730",
+      "source": "memoryRetrieveNode_711",
+      "target": "LLMNode_730",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_730-graphqlResponseNode_127",
+      "source": "LLMNode_730",
+      "target": "graphqlResponseNode_127",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_127",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_127",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

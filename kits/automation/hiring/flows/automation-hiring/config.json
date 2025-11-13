@@ -1,0 +1,463 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"name\": \"string\",\n  \"email\": \"string\",\n  \"job_description\": \"string\",\n  \"resume_url\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "gmailNode_506",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "gmailNode",
+        "values": {
+          "cc": "",
+          "bcc": "",
+          "body": "{{codeNode_218.output}}",
+          "action": "GMAIL_SEND_EMAIL",
+          "is_html": true,
+          "subject": "Application Received – Lamatic.ai",
+          "to_user": "",
+          "nodeName": "Send Acknowledgement",
+          "from_user": "",
+          "credentials": "",
+          "max_results": 10,
+          "recipient_email": "{{triggerNode_1.output.email}}"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 300
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_218",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "const username = {{triggerNode_1.output.name}};\nconst template = `\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Application Received – Lamatic.ai</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f9fafb;\n      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      color: #111827;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n      overflow: hidden;\n    }\n    .header {\n      background-color: black;\n      padding: 20px 28px;\n      border-bottom: 1px solid #f1f5f9;\n    }\n    .header h2 {\n      color: #ffffff;\n      margin: 0;\n      font-size: 24px;\n      font-weight: 600;\n    }\n    .header img {\n      height: 28px;\n      display: block;\n    }\n    .content {\n      padding: 32px 28px;\n    }\n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 20px;\n      color: #111827;\n    }\n    p {\n      font-size: 15px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 18px;\n    }\n    .button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 10px 18px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n    }\n    .button:hover {\n      background-color: #dc2626;\n    }\na.button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    a.button:hover {\n      background-color: #dc2626;\n      color: #ffffff !important;\n    }\n    .footer {\n      background-color: #f9fafb;\n      text-align: center;\n      padding: 20px;\n      font-size: 13px;\n      color: #6b7280;\n      border-top: 1px solid #f1f5f9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Header -->\n    <div class=\"header\">\n      <h2>Lamatic.AI</h2>\n    </div>\n\n    <!-- Body -->\n    <div class=\"content\">\n      <h1>Dear ${username},</h1>\n\n      <p>Thank you for applying to <strong>Lamatic.ai</strong>! We've successfully received your application.</p>\n\n      <p>Our team will carefully review your profile, and if we find a strong match for the role, we'll reach out to schedule an interview. Please keep an eye on your inbox for any updates from us.</p>\n\n      <p>In the meantime, you can learn more about Lamatic.ai and our open roles here:</p>\n\n      <a href=\"https://lamatic.ai/docs/career\" class=\"button\" target=\"_blank\">View Open Roles</a>\n\n      <p>We appreciate your interest in joining our team and wish you the best of luck in your application process</p>\n\n      <p>Warm regards,<br><strong>Team Lamatic.ai</strong></p>\n    </div>\n\n    <!-- Footer -->\n    <div class=\"footer\">\n      © 2025 Lamatic.ai\n    </div>\n  </div>\n</body>\n</html>\n`;\n\noutput = template;",
+          "nodeName": "Prepare Receipt Email"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 150
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"output\": \"{{InstructorLLMNode_145.output}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1350
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_861",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "output = {{extractFromFileNode_376.output.files}}[0].data[0]",
+          "nodeName": "Collate Resume Contents"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 600
+      },
+      "selected": false
+    },
+    {
+      "id": "extractFromFileNode_376",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "extractFromFileNode",
+        "values": {
+          "trim": false,
+          "ltrim": false,
+          "quote": "\"",
+          "rtrim": false,
+          "format": "pdf",
+          "comment": "null",
+          "fileUrl": "{{triggerNode_1.output.resume_url}}",
+          "headers": true,
+          "maxRows": "0",
+          "encoding": "utf8",
+          "nodeName": "Extract Resume",
+          "password": "",
+          "skipRows": "0",
+          "delimiter": ",",
+          "joinPages": true,
+          "ignoreEmpty": false,
+          "returnRawText": false,
+          "encodeAsBase64": false,
+          "discardUnmappedColumns": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 450
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_145",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"score\": {\n      \"type\": \"number\",\n      \"required\": true,\n      \"description\": \"score between 1 to 10 upto two decimal places\"\n    },\n    \"strength\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"list of strengths of candidate\"\n    },\n    \"weakness\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"list of weaknesses of candidate\"\n    },\n    \"recommendation\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"final verdict of being 'Selected' or 'Rejected'\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Your task is to evaluate the candidate by synthesizing a comprehensive profile based on all provided information, adhering strictly to the data given. You will be given the candidate information from their resume.\n\n---\n\n### 🧠 **Crucial Rules for Evaluation**\n\n**Synthesize All Information:**  \nCreate a complete picture of the candidate by cross-referencing details from all provided info in the resume. Ensure the analysis is cohesive and draws logical connections between all provided data.\n\n**No Hallucination:**  \nBase your evaluation solely on the explicitly provided information. Do **not** assume, infer, or invent any details that are not present in the candidate’s profile.\n\n---\n\n### 🧾 Output Format Rules\n\nYou must output the result strictly following the schema below.\n\nEach field must exactly match its required format and type.\n\n---\n\n#### 🎯 Output Schema\n\n```json\n{\n  \"score\": \"number — Final Weighted Overall Score (1–10, rounded to two decimal places)\",\n  \"strength\": \"string — HTML-formatted list of 2–4 bullet points highlighting candidate's key strengths\",\n  \"weakness\": \"string — HTML-formatted list of 2–4 bullet points highlighting candidate's key weaknesses\",\n  \"recommendation\": \"string — either 'Selected' or 'Rejected'\"\n}\n\n```\n\n---\n\n### 🧩 Output Details\n\n**1\\. score**\n\n* Calculate the **Final Weighted Overall Score** as the arithmetic mean of the five criteria scores.\n* Round the final score to **two decimal places** (e.g., `7.98`).\n\n**2\\. strength**\n\n* Return a **string** containing HTML list tags (`<ul><li>...</li></ul>`).\n* Include **2–4 concise bullet points** summarizing the candidate’s **key strengths**.\n* The entire list should be wrapped in `<ul>...</ul>` and returned as a **single string**.\n\n**3\\. weakness**\n\n* Return a **string** containing HTML list tags (`<ul><li>...</li></ul>`).\n* Include **2–4 concise bullet points** summarizing the candidate’s **key weaknesses**.\n* The entire list should be wrapped in `<ul>...</ul>` and returned as a **single string**.\n\n**4\\. recommendation**\n\n* Based on the evaluation and score, output either `\"Selected\"` or `\"Rejected\"`.\n* This must be a plain string — **no extra text or formatting**.\n\n---\n\n### 🧱 Example Output\n\n```json\n{\n  \"score\": 7.85,\n  \"strength\": \"<ul><li>Extensive senior-level marketing experience in tech and startups.</li><li>Strong foundational skills in B2B and Product Marketing.</li><li>Combined educational background in Computer Science and MBA adds versatility.</li></ul>\",\n  \"weakness\": \"<ul><li>No demonstrated experience in the AI/ML industry.</li><li>Lack of quantifiable achievements to assess past performance.</li></ul>\",\n  \"recommendation\": \"Selected\"\n}\n\n```\n\n---\n\n### 📄 1\\. Context\n\n**Job Description:** {{triggerNode_1.output.job_description}}\n\n---\n\n### 🧮 2\\. Evaluation Criteria\n\nProvide internal reasoning to determine the **Final Weighted Overall Score** by evaluating these dimensions (you don’t need to output individual scores, just the final average):\n\n1. **Projects/Portfolio/Resume:**  \nEvaluate the quality, relevance, and completeness of the candidate’s portfolio, resume, and any project-related information for the applied role.\n2. **Experience:**  \nAssess the candidate’s professional experience, focusing on its relevance and duration relative to the job description.\n3. **Achievements:**  \nAnalyze the specificity, impact, and relevance of the candidate’s listed achievements.\n4. **Skill Match:**  \nDetermine how well the candidate’s skills align with the requirements of the applied role.\n5. **Overall Fit:**  \nJudge the candidate’s overall suitability and readiness for the role based on the above factors."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "CANDIDATE RESUME : {{codeNode_861.output}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Evaluate Candidate",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 750
+      },
+      "selected": false
+    },
+    {
+      "id": "conditionNode_463",
+      "data": {
+        "label": "Condition",
+        "modes": [],
+        "nodeId": "conditionNode",
+        "values": {
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_463-addNode_438",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{InstructorLLMNode_145.output.recommendation}}\",\n      \"operator\": \"==\",\n      \"value\": \"Selected\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_463-addNode_598",
+              "condition": {}
+            }
+          ]
+        }
+      },
+      "type": "conditionNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 900
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_362",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "const username = {{triggerNode_1.output.name}};\n\nconst template = `\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Congratulations – Round 1 Cleared | Lamatic.ai</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f9fafb;\n      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      color: #111827;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n      overflow: hidden;\n    }\n    .header {\n      background-color: black;\n      padding: 20px 28px;\n      border-bottom: 1px solid #f1f5f9;\n    }\n    .header h2 {\n      color: #ffffff;\n      margin: 0;\n      font-size: 24px;\n      font-weight: 600;\n    }\n    .header img {\n      height: 28px;\n      display: block;\n    }\n    .content {\n      padding: 32px 28px;\n    }\n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 20px;\n      color: #111827;\n    }\n    p {\n      font-size: 15px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 18px;\n    }\n    .button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    .button:hover {\n      background-color: #dc2626;\n    }\n    a.button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    a.button:hover {\n      background-color: #dc2626;\n      color: #ffffff !important;\n    }\n    a {\n      color: #ef4444;\n      text-decoration: none;\n    }\n    a:hover {\n      text-decoration: underline;\n    }\n    .footer {\n      background-color: #f9fafb;\n      text-align: center;\n      padding: 20px;\n      font-size: 13px;\n      color: #6b7280;\n      border-top: 1px solid #f1f5f9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Header -->\n    <div class=\"header\">\n      <h2>Lamatic.AI</h2>\n    </div>\n\n    <!-- Body -->\n    <div class=\"content\">\n      <h1>Congratulations, ${username}! 🎉</h1>\n\n      <p>We're excited to inform you that you've successfully cleared <strong>Round 1</strong> of our interview process at <strong>Lamatic.ai</strong>!</p>\n\n      <p>Your profile and skills have impressed our team, and we'd love to move forward with <strong>Round 2</strong> – a 30-minute conversation to dive deeper into your experience and discuss how you can contribute to our mission.</p>\n\n      <p>Please use the link below to schedule a convenient time for our call:</p>\n\n      <a href=\"https://calendly.com/dhruvp-lamatic/30min\" class=\"button\" target=\"_blank\">Schedule Your Round 2 Call</a>\n\n      <p>We're looking forward to speaking with you soon and learning more about your journey!</p>\n\n      <p>Warm regards,<br><strong>Team Lamatic.ai</strong></p>\n    </div>\n\n    <!-- Footer -->\n    <div class=\"footer\">\n      © 2025 Lamatic.ai\n    </div>\n  </div>\n</body>\n</html>\n`;\n\noutput = template;",
+          "nodeName": "Prepare Selection Mail"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 1050
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_803",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "const username = {{triggerNode_1.output.name}};\nconst strengths = {{InstructorLLMNode_145.output.strength}};\nconst weaknesses = {{InstructorLLMNode_145.output.weakness}};\n\nconst template = `\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Application Update – Lamatic.ai</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f9fafb;\n      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      color: #111827;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n      overflow: hidden;\n    }\n    .header {\n      background-color: black;\n      padding: 20px 28px;\n      border-bottom: 1px solid #f1f5f9;\n    }\n    .header h2 {\n      color: #ffffff;\n      margin: 0;\n      font-size: 24px;\n      font-weight: 600;\n    }\n    .content {\n      padding: 32px 28px;\n    }\n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 20px;\n      color: #111827;\n    }\n    h3 {\n      font-size: 16px;\n      font-weight: 600;\n      margin-top: 24px;\n      margin-bottom: 12px;\n      color: #111827;\n    }\n    p {\n      font-size: 15px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 18px;\n    }\n    a.button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    a.button:hover {\n      background-color: #dc2626;\n      color: #ffffff !important;\n    }\n    .feedback-section {\n      background-color: #f9fafb;\n      border-left: 4px solid #ef4444;\n      padding: 20px;\n      margin: 24px 0;\n      border-radius: 6px;\n    }\n    .feedback-section h3 {\n      margin-top: 0;\n      color: #111827;\n    }\n    .feedback-section ul {\n      margin: 8px 0;\n      padding-left: 20px;\n    }\n    .feedback-section li {\n      font-size: 14px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 8px;\n    }\n    .button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    .button:hover {\n      background-color: #dc2626;\n    }\n    a {\n      color: #ef4444;\n      text-decoration: none;\n    }\n    a:hover {\n      text-decoration: underline;\n    }\n    .footer {\n      background-color: #f9fafb;\n      text-align: center;\n      padding: 20px;\n      font-size: 13px;\n      color: #6b7280;\n      border-top: 1px solid #f1f5f9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h2>Lamatic.AI</h2>\n    </div>\n\n    <div class=\"content\">\n      <h1>Dear ` + username + `,</h1>\n\n      <p>Thank you for taking the time to apply for a position at <strong>Lamatic.ai</strong> and for your interest in joining our team.</p>\n\n      <p>After careful consideration, we have decided to move forward with other candidates whose experience more closely aligns with the current requirements of this role.</p>\n\n      <p>We want to provide you with constructive feedback from our review. We hope this insight helps you in your continued professional growth:</p>\n\n      <div class=\"feedback-section\">\n        ` + strengths + `\n        ` + weaknesses + `\n      </div>\n\n      <p>Your skills and experience are impressive, and we encourage you to keep an eye on our careers page for future opportunities that may be a better fit.</p>\n\n      <a href=\"https://lamatic.ai/docs/career\" class=\"button\" target=\"_blank\">View Future Openings</a>\n\n      <p>We wish you the very best in your job search and future endeavors.</p>\n\n      <p>Warm regards,<br><strong>Team Lamatic.ai</strong></p>\n    </div>\n\n    <div class=\"footer\">\n      © 2025 Lamatic.ai\n    </div>\n  </div>\n</body>\n</html>\n`;\n\noutput = template;",
+          "nodeName": "Prepare Rejection Mail"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 1050
+      },
+      "selected": false
+    },
+    {
+      "id": "gmailNode_995",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "gmailNode",
+        "values": {
+          "cc": "",
+          "bcc": "",
+          "body": "{{codeNode_362.output}}",
+          "action": "GMAIL_SEND_EMAIL",
+          "is_html": true,
+          "subject": "Congratulations - Lamatic.ai",
+          "to_user": "",
+          "nodeName": "Send Interview Mail",
+          "from_user": "",
+          "credentials": "",
+          "max_results": 10,
+          "recipient_email": "{{triggerNode_1.output.email}}"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 1200
+      },
+      "selected": false
+    },
+    {
+      "id": "gmailNode_194",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "gmailNode",
+        "values": {
+          "cc": "",
+          "bcc": "",
+          "body": "{{codeNode_803.output}}",
+          "action": "GMAIL_SEND_EMAIL",
+          "is_html": true,
+          "subject": "Application Update – Lamatic.ai",
+          "to_user": "",
+          "nodeName": "Send Rejection Mail",
+          "from_user": "",
+          "credentials": "",
+          "max_results": 10,
+          "recipient_email": "{{triggerNode_1.output.email}}"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 1200
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-codeNode_218",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "codeNode_218",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_218-gmailNode_506",
+      "type": "defaultEdge",
+      "source": "codeNode_218",
+      "target": "gmailNode_506",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "gmailNode_506-extractFromFileNode_376",
+      "data": {},
+      "type": "defaultEdge",
+      "source": "gmailNode_506",
+      "target": "extractFromFileNode_376",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "extractFromFileNode_376-codeNode_861",
+      "type": "defaultEdge",
+      "source": "extractFromFileNode_376",
+      "target": "codeNode_861",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_861-InstructorLLMNode_145",
+      "type": "defaultEdge",
+      "source": "codeNode_861",
+      "target": "InstructorLLMNode_145",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_145-conditionNode_463",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_145",
+      "target": "conditionNode_463",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_463-codeNode_362-429",
+      "data": {
+        "condition": "Condition 1",
+        "branchName": "Condition 1"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_463",
+      "target": "codeNode_362",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_463-codeNode_803-862",
+      "data": {
+        "condition": "Else",
+        "branchName": "Else"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_463",
+      "target": "codeNode_803",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_362-gmailNode_995",
+      "type": "defaultEdge",
+      "source": "codeNode_362",
+      "target": "gmailNode_995",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "gmailNode_995-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "gmailNode_995",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_803-gmailNode_194",
+      "type": "defaultEdge",
+      "source": "codeNode_803",
+      "target": "gmailNode_194",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "gmailNode_194-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "gmailNode_194",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

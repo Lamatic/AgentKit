@@ -1,0 +1,15 @@
+{
+  "name": "Execute Flow",
+  "description": "This flow introduces the execute flow function, which allows executing another flow and passing required variables.",
+  "tags": [
+    "Product"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=execute-flow",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

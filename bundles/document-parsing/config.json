@@ -1,0 +1,26 @@
+{
+    "name": "Document Parsing Bundle",
+    "description": "A document parsing bundle which allows to index information from documents and enables advanced RAG over your knowledge base.",
+    "tags": ["document","generative"],
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "document-parsing-etl",
+            "type": "mandatory"
+        },
+        {
+            "id": "chatbot-widget",
+            "type": "mandatory",
+            "prerequisiteSteps": ["data_source"]
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/bundles/document_parsing",
+    "deployUrl": "",
+    "documentationUrl": ""
+}

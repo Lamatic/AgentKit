@@ -1,0 +1,122 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchTriggerNode",
+        "modes": {},
+        "trigger": true,
+        "values": {
+          "nodeName": "Search Widget",
+          "search": "",
+          "searchConfig": {
+            "linkTarget": "_blank",
+            "showAllTab": true,
+            "staticTabs": [],
+            "hideBranding": false,
+            "primaryColor": "#007bff",
+            "enableGrouping": false,
+            "searchDebounce": 200,
+            "secondaryColor": "#666",
+            "showNavHelperText": true,
+            "showEscapeHelperText": true,
+            "searchPlaceholderText": "Search our knowledge base..."
+          }
+        }
+      }
+    },
+    {
+      "id": "searchNode_443",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Vector Search",
+          "limit": 10,
+          "filters": "[]",
+          "certainty": "0.5",
+          "searchQuery": "{{triggerNode_1.output.searchQuery}}",
+          "embeddingModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_913",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Collate Results",
+          "code": "function truncateContent(content) {\n  if (content.length <= 100) {\n    return content;\n  }\n  return content.substring(0, 100) + \"...\";\n}\n\nconst searchResults = {{ searchNode_443.output.searchResults }};\n\nconst updatedResults = searchResults.map(doc => ({\n  title: doc.title,       \n  content: truncateContent(doc.content),\n  source: doc.source,\n  type: \"Document\"\n}));\n\noutput = {\"results\": updatedResults};"
+        }
+      }
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "searchResponseNode",
+        "values": {
+          "nodeName": "Search Response",
+          "tab": "{{codeNode_913.output.results[:].type}}",
+          "group": "",
+          "title": "{{codeNode_913.output.results[:].title}}",
+          "content": "{{codeNode_913.output.results[:].content}}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-searchNode_443",
+      "source": "triggerNode_1",
+      "target": "searchNode_443",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "searchNode_443-codeNode_913",
+      "source": "searchNode_443",
+      "target": "codeNode_913",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_913-responseNode_triggerNode_1",
+      "source": "codeNode_913",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

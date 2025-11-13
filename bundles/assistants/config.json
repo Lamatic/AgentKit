@@ -1,0 +1,67 @@
+{
+    "name": "Assistants Bundle",
+    "description": "A modular assistant bundle that allows connecting multiple data sources to diverse assistant interfaces for advanced RAG and knowledge workflows.",
+    "tags": ["assistant", "multi-source", "rag", "knowledge", "integration"],
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "data_source",
+            "type": "any-of",
+            "options": [
+                {
+                    "id": "gdrive"
+                },
+                {
+                    "id": "gsheet"
+                },
+                {
+                    "id": "onedrive"
+                },
+                {
+                    "id": "postgres"
+                },
+                {
+                    "id": "s3"
+                },
+                {
+                    "id": "scraping-indexation"
+                },
+                {
+                    "id": "sharepoint"
+                },
+                {
+                    "id": "crawling-indexation"
+                }
+            ],
+            "minSelection": 1,
+            "maxSelection": 1
+        },
+        {
+            "id": "assistant",
+            "type": "any-of",
+            "options": [
+                {
+                    "id": "knowledge-chatbot"
+                },
+                {
+                    "id": "slack-assistant"
+                },
+                {
+                    "id": "teams-assistant"
+                }
+            ],
+            "prerequisiteSteps": ["data_source"],
+            "minSelection": 1,
+            "maxSelection": 1
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/bundles/chat",
+    "deployUrl": "",
+    "documentationUrl": ""
+}

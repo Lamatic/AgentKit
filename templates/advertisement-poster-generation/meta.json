@@ -1,0 +1,15 @@
+{
+  "name": "Advertisement Poster Generation",
+  "description": "",
+  "tags": [
+    "Content"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=advertisement-poster-generation",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

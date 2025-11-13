@@ -1,0 +1,13 @@
+{
+  "name": "Semantic Search",
+  "description": "Add Natural Language Search powered by your content across data sources",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

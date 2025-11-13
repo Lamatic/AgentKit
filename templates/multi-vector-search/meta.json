@@ -1,0 +1,17 @@
+{
+  "name": "Multi Vector Search",
+  "description": "This flow integrates vector search into your website, allowing you to combine results from multiple vector databases and run parallel searches. It then consolidates the results and returns them to users.",
+  "tags": [
+    "SAAS",
+    "Product",
+    "Content"
+  ],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=multi-vector-search",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}
