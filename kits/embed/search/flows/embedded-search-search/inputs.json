@@ -1,16 +1,4 @@
 {
-  "triggerNode_1": [
-    {
-      "name": "domains",
-      "label": "Allowed Domains",
-      "type": "searchDomain",
-      "required": true,
-      "defaultValue": [
-        "*"
-      ],
-      "isPrivate": true
-    }
-  ],
   "searchNode_842": [
     {
       "name": "vectorDB",
