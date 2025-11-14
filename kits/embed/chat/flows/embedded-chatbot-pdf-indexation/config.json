@@ -121,7 +121,7 @@
           "id": "vectorizeNode_639",
           "nodeName": "Vectorize",
           "inputText": "{{codeNode_254.output}}",
-          "embeddingModelName": "",
+          "embeddingModelName": ""
         }
       },
       "type": "dynamicNode",
