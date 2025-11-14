@@ -71,8 +71,7 @@
         "values": {
           "nodeName": "Get Vectors",
           "inputText": "{{codeNode_539.output}}",
-          "embeddingModelName": {},
-          "generativeModelName": {}
+          "embeddingModelName": {}
         }
       }
     },

@@ -46,8 +46,7 @@
         "values": {
           "nodeName": "Vectorize",
           "inputText": "{{codeNode_858.output.vectorData}}",
-          "embeddingModelName": {},
-          "generativeModelName": {}
+          "embeddingModelName": {}
         }
       }
     },

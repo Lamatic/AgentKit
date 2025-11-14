@@ -35,9 +35,8 @@
         "values": {
           "nodeName": "Get Vectors",
           "inputText": "{{codeNode_331.output}}",
-          "embeddingModelName": {},
-          "generativeModelName": {}
-        }
+          "embeddingModelName": {}
+          }
       }
     },
     {
