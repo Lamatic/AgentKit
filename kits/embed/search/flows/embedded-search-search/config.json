@@ -7,7 +7,7 @@
         "nodeId": "searchTriggerNode",
         "values": {
           "search": "",
-          "domains": "",
+          "domains": ["*"],
           "nodeName": "Search Widget",
           "searchConfig": {
             "linkTarget": "_blank",
