@@ -12,7 +12,7 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Generation' agent kit
+4. Select the 'Grammar Assistant' agent kit
 5. Configure providers/tools/inputs as prompted  
 6. Deploy the kit in Lamatic and obtain your .env keys
 7. Copy the keys from your studio
