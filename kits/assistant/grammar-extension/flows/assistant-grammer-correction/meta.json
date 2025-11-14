@@ -2,7 +2,9 @@
   "name": "1. Assistant - Grammer Correction",
   "description": "",
   "tags": [],
-  "testInput": "",
+  "testInput": {
+    "text": "Naitik iss a high valeu enginr wking in Lamatic AI"
+  },
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": ""

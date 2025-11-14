@@ -2,7 +2,10 @@
   "name": "1A. Embedded Search - PDF Indexation",
   "description": "",
   "tags": [],
-  "testInput": "",
+  "testInput": {
+    "title": "Sample Resume",
+    "url": "https://aseskssykbhhiborrwws.supabase.co/storage/v1/object/public/alpha/DhruvP_Resume.pdf"
+  },
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": ""

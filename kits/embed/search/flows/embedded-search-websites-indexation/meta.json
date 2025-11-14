@@ -2,7 +2,11 @@
   "name": "1B. Embedded Search - Websites Indexation",
   "description": "",
   "tags": [],
-  "testInput": "",
+  "testInput": {
+    "urls": [
+      "https://lamatic.ai/docs"
+    ]
+  },
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": ""
