@@ -1,7 +1,7 @@
 {
     "name": "Semantic Search",
     "description": "A semantic search bundle that indexes data sources and enables advanced search over your knowledge base.",
-    "tags": ["search", "startup"],
+    "tags": ["document", "support"],
     "author": {
         "name": "Naitik Kapadia",
         "email": "naitikk@lamatic.ai"
