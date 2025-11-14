@@ -2,7 +2,10 @@
   "name": "Document Parsing - Agent Kit",
   "description": "",
   "tags": [],
-  "testInput": "",
+  "testInput": {
+    "instructions": "summary and description as strings, and keywords as a collection of strings",
+    "document_url": "https://aseskssykbhhiborrwws.supabase.co/storage/v1/object/public/alpha/DhruvP_Resume.pdf"
+  },
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": ""
