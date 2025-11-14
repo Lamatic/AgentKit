@@ -1,17 +1,5 @@
 {
-  "triggerNode_1": [
-    {
-      "name": "domains",
-      "type": "searchDomain",
-      "label": "Allowed Domains",
-      "required": true,
-      "isPrivate": true,
-      "defaultValue": [
-        "*"
-      ]
-    }
-  ],
-  "searchNode_443": [
+   "searchNode_443": [
     {
       "isDB": true,
       "name": "vectorDB",
