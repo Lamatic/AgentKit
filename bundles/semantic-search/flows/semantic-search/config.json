@@ -12,7 +12,7 @@
         "modes": {},
         "trigger": true,
         "values": {
-          "domains":['*'],
+          "domains":["*"],
           "nodeName": "Search Widget",
           "search": "",
           "searchConfig": {
