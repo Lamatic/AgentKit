@@ -12,7 +12,7 @@
 
 **Agent Kit Hiring Automation** is an AI-powered candidate evaluation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/automation/hiring&env=LAMATIC_CONFIG_HIRING,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%20Hiring%20key%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/automation/hiring&env=AUTOMATION_HIRING,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%20Hiring%20key%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring)
 
 ---
 
@@ -21,21 +21,20 @@
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
 
 Pre: Build in Lamatic
-1. Sign in or sign up at https://app.lamatic.ai  
+1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow”  
-4. Choose “Build from Kits" and select the 'Hiring' agent kit.  
+3. Click “+ New Flow” and select "Templates" 
+4. Select the 'Hiring' agent kit
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_HIRING key
-7. Copy the LAMATIC_CONFIG_HIRING from your studio
+6. Deploy the kit in Lamatic and obtain your .env keys
+7. Copy the keys from your studio
 
 Post: Wire into this repo
-1. Create a .env file and set:
-   - LAMATIC_CONFIG_HIRING=your_lamatic_config_hiring_key
-3. Install and run locally:
+1. Create a .env file and set the keys
+2. Install and run locally:
    - npm install
    - npm run dev
-4. Deploy (Vercel recommended):
+3. Deploy (Vercel recommended):
    - Import your repo, set the project’s Root Directory (if applicable)
    - Add env vars in Vercel (same as your .env)
    - Deploy and test your live URL
@@ -50,13 +49,13 @@ Notes
 
 You’ll need two things to run this project locally:  
 
-1. **LAMATIC_CONFIG_HIRING** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
 
 
 | Item              | Purpose                                      | Where to Get It                                 |
 | ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic Config Hiring Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 | Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
 
 ### 1. Environment Variables
@@ -65,7 +64,10 @@ Create `.env.local` with:
 
 ```bash
 # Lamatic
-LAMATIC_CONFIG_HIRING=your_lamatic_config_hiring
+AUTOMATION_HIRING = "AUTOMATION_HIRING Flow ID"
+LAMATIC_API_URL = "LAMATIC_API_URL"
+LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
+LAMATIC_API_KEY = "LAMATIC_API_KEY"
 
 # Vercel Blob (configured on Vercel)
 BLOB_READ_WRITE_TOKEN=your_blob_token
@@ -83,7 +85,7 @@ npm run dev
 
 Click the “Deploy with Vercel” button.
 
-Fill in LAMATIC_CONFIG_HIRING (required).
+Fill in .env Keys from lamatic (required).
 
 For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
 
@@ -111,6 +113,8 @@ Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE
 /public
  └── images
      └── lamatic-logo.png  # Lamatic branding
+/flows
+  └── ...                  # Lamatic Flows
 /package.json              # Dependencies & scripts
 ```
 

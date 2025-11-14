@@ -9,12 +9,13 @@
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
 
 Pre: Build in Lamatic
-1. Sign in or sign up at https://app.lamatic.ai  
+1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow”  
-4. Choose “Build from Kits" and select the 'Grammar Assistant' kit
+3. Click “+ New Flow” and select "Templates" 
+4. Select the 'Generation' agent kit
 5. Configure providers/tools/inputs as prompted  
-6. Copy/Export the lamatic-config.json from your deployed flow
+6. Deploy the kit in Lamatic and obtain your .env keys
+7. Copy the keys from your studio
 
 Post: Wire into this repo
 1. Place lamatic-config.json in the path this repo expects (commonly ./lamatic-config.json; if different, follow this README’s instructions)  

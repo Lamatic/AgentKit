@@ -8,7 +8,7 @@
 
 **Agent Kit Generation** is an AI-powered content generation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/generation&env=LAMATIC_CONFIG_GENERATION&envDescription=Your%20Lamatic%20Config%20Generation%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/generation)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation)
 
 ---
 
@@ -18,16 +18,15 @@ Before running this project, you must build and deploy the flow in Lamatic, then
 
 Pre: Build in Lamatic
 1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don't have one yet)  
-3. Click "+ New Flow"  
-4. Choose "Build from Kits" and select the 'Generation' agent kit.  
+2. Create a project (if you don’t have one yet)  
+3. Click “+ New Flow” and select "Templates" 
+4. Select the 'Generation' agent kit
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_GENERATION key
-7. Copy the LAMATIC_CONFIG_GENERATION from your studio
+6. Deploy the kit in Lamatic and obtain your .env keys
+7. Copy the keys from your studio
 
 Post: Wire into this repo
-1. Create a .env file and set:
-   - LAMATIC_CONFIG_GENERATION=your_lamatic_config_generation_key
+1. Create a .env file and set the keys
 2. Install and run locally:
    - npm install
    - npm run dev
@@ -44,13 +43,14 @@ Notes
 ## 🔑 Setup
 ## Required Keys and Config
 
-You'll need one thing to run this project locally:  
+You’ll need these things to run this project locally:  
 
-1. **LAMATIC_CONFIG_GENERATION** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+
 
 | Item              | Purpose                                      | Where to Get It                                 |
 | ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic Config Generation Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 
 ### 1. Environment Variables
 
@@ -58,7 +58,10 @@ Create `.env.local` with:
 
 ```bash
 # Lamatic
-LAMATIC_CONFIG_GENERATION=your_lamatic_config_generation
+AGENTIC_GENERATE_CONTENT = "AGENTIC_GENERATE_CONTENT Flow ID"
+LAMATIC_API_URL = "LAMATIC_API_URL"
+LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
+LAMATIC_API_KEY = "LAMATIC_API_KEY"
 ```
 
 ### 2. Install & Run
@@ -68,15 +71,6 @@ npm install
 npm run dev
 # Open http://localhost:3000
 ```
-
-### 3. Deploy Instructions (Vercel)
-
-Click the "Deploy with Vercel" button.
-
-Fill in LAMATIC_CONFIG_GENERATION (required).
-
-Deploy and access your live URL.
-
 ---
 
 ## 📂 Repo Structure
@@ -93,6 +87,8 @@ Deploy and access your live URL.
  └── lamatic-client.ts     # Lamatic SDK client
 /public
  └── lamatic-logo.png      # Lamatic branding
+/flows
+  └── ...                  # Lamatic Flows
 /package.json              # Dependencies & scripts
 ```
 

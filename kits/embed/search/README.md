@@ -11,7 +11,7 @@
 
 **Agent Kit Embedded Search** is an AI-powered document/website search system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to index PDFs and webpages, then provides an interactive search widget where users can search across their data in seconds.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/search&env=LAMATIC_CONFIG_EMBEDDED_SEARCH,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20Search%20key%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/search&env=EMBEDDED_SEARCH_PDF_INDEXATION,EMBEDDED_SEARCH_WEBSITES_INDEXATION,EMBEDDED_SEARCH_RESOURCE_DELETION,EMBEDDED_SEARCH_SEARCH,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20search%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
 
 ---
 
@@ -20,21 +20,20 @@
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
 
 Pre: Build in Lamatic
-1. Sign in or sign up at https://app.lamatic.ai  
+1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow”  
-4. Choose “Build from Kits" and select the 'Embedded Search' agent kit.  
+3. Click “+ New Flow” and select "Templates" 
+4. Select the 'Embed Search' agent kit
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_EMBEDDED_SEARCH key
-7. Copy the LAMATIC_CONFIG_EMBEDDED_SEARCH from your studio
+6. Deploy the kit in Lamatic and obtain your .env keys
+7. Copy the keys from your studio
 
 Post: Wire into this repo
-1. Create a .env file and set:
-   - LAMATIC_CONFIG_EMBEDDED_SEARCH=your_lamatic_config_embedded_search_key
-3. Install and run locally:
+1. Create a .env file and set the keys
+2. Install and run locally:
    - npm install
    - npm run dev
-4. Deploy (Vercel recommended):
+3. Deploy (Vercel recommended):
    - Import your repo, set the project’s Root Directory (if applicable)
    - Add env vars in Vercel (same as your .env)
    - Deploy and test your live URL
@@ -49,13 +48,13 @@ Notes
 
 You’ll need two things to run this project locally:  
 
-1. **LAMATIC_CONFIG_EMBEDDED_SEARCH** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
 
 
 | Item              | Purpose                                      | Where to Get It                                 |
 | ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic Config Embedded Search Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 | Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
 
 ### 1. Environment Variables
@@ -64,7 +63,13 @@ Create `.env.local` with:
 
 ```bash
 # Lamatic
-LAMATIC_CONFIG_EMBEDDED_SEARCH=your_lamatic_config_embedded_search
+EMBEDDED_SEARCH_PDF_INDEXATION = "EMBEDDED_SEARCH_PDF_INDEXATION Flow ID"
+EMBEDDED_SEARCH_WEBSITES_INDEXATION = "EMBEDDED_SEARCH_WEBSITES_INDEXATION Flow ID"
+EMBEDDED_SEARCH_RESOURCE_DELETION = "EMBEDDED_SEARCH_RESOURCE_DELETION Flow ID"
+EMBEDDED_SEARCH_SEARCH = "EMBEDDED_SEARCH_SEARCH Flow ID"
+LAMATIC_API_URL = "LAMATIC_API_URL"
+LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
+LAMATIC_API_KEY = "LAMATIC_API_KEY"
 
 # Vercel Blob (configured on Vercel)
 BLOB_READ_WRITE_TOKEN=your_blob_token
@@ -82,7 +87,7 @@ npm run dev
 
 Click the “Deploy with Vercel” button.
 
-Fill in LAMATIC_CONFIG_EMBEDDED_SEARCH (required).
+Fill in .env Keys from lamatic (required).
 
 For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
 
@@ -116,6 +121,8 @@ Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE
  └── images
      ├── lamatic-logo.png  # Lamatic branding
      └── *.png             # Data source icons
+/flows
+  └── ...                  # Lamatic Flows
 /package.json              # Dependencies & scripts
 ```
 
