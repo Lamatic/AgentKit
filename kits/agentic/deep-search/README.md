@@ -1,4 +1,4 @@
-# Agent Kit Reasoning by Lamatic.ai
+# Agent Kit Deep Search by Lamatic.ai
 
 <p align="center">
   <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGhrdHE0Ymh1OXJ3YjR6aHZ1Z2locG9oOXRzam94MDRsbnZyM3o3ZSZlcD12MV9faW50ZXJuYWxfZ2lmX2J5X2lkJmN0PWc/gleoRKw65bDoBOAv6S/giphy.gif" alt="Demo" />
@@ -10,9 +10,9 @@
   </a>
 </p>
 
-**Agent Kit Reasoning** is an AI-powered reasoning system built with [Lamatic.ai](https://lamatic.ai). It uses a multi-agent flow defined in Lamatic Config JSON to orchestrate **search, reasoning, and structured answering**, and exposes it through a modern Next.js frontend.
+**Agent Kit Deep Search** is an AI-powered reasoning system built with [Lamatic.ai](https://lamatic.ai). It uses a multi-agent flow defined in Lamatic Config JSON to orchestrate **search, reasoning, and structured answering**, and exposes it through a modern Next.js frontend.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/reasoning&env=LAMATIC_CONFIG_REASONING&envDescription=Your%20Lamatic%20Config%20Reasoning%20key%20is%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-reasoning)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/agentic/deep-search&env=AGENTIC_REASONING_GENERATE_STEPS,AGENTIC_REASONING_SEARCH_WEB,AGENTIC_REASONING_DATA_SOURCE,AGENTIC_REASONING_FINAL,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-reasoning)
 
 ---
 
@@ -21,17 +21,16 @@
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
 
 Pre: Build in Lamatic
-1. Sign in or sign up at https://app.lamatic.ai  
+1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow”  
-4. Choose “Build from Kits" and select the 'Reasoning' agent kit
+3. Click “+ New Flow” and select "Templates" 
+4. Select the 'Deep Search' agent kit
 5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain LAMATIC_CONFIG_REASONING key
-7. Copy the LAMATIC_CONFIG_REASONING from your studio
+6. Deploy the kit in Lamatic and obtain your .env keys
+7. Copy the keys from your studio
 
 Post: Wire into this repo
-1. Create a .env file and set:
-   - LAMATIC_CONFIG_REASONING=your_lamatic_config_reasoning_key
+1. Create a .env file and set the keys
 3. Install and run locally:
    - npm install
    - npm run dev
@@ -48,21 +47,27 @@ Notes
 ## 🔑 Setup
 ## Required Keys and Config
 
-You’ll need two things to run this project locally:  
+You’ll need these things to run this project locally:  
 
-1. **LAMATIC_CONFIG_REASONING** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 
 
 | Item              | Purpose                                      | Where to Get It                                 |
 | ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| Lamatic Config Reasoning Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
 
 
 ### 1. Environment Variables
 Create `.env` with:
 ```bash
 # Lamatic
-LAMATIC_CONFIG_REASONING=your_lamatic_config_reasoning
+AGENTIC_REASONING_GENERATE_STEPS="AGENTIC_REASONING_GENERATE_STEPS Flow ID"
+AGENTIC_REASONING_SEARCH_WEB = "AGENTIC_REASONING_SEARCH_WEB Flow ID"
+AGENTIC_REASONING_DATA_SOURCE = "AGENTIC_REASONING_DATA_SOURCE Flow ID"
+AGENTIC_REASONING_FINAL = "AGENTIC_REASONING_FINAL Flow ID"
+LAMATIC_API_URL = "LAMATIC_API_URL"
+LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
+LAMATIC_API_KEY = "LAMATIC_API_KEY"
 ```
 
 ### 3. Install & Run
@@ -81,6 +86,8 @@ npm run deploy
  └── page.tsx              # Main chat UI
 /lib
  └── lamatic-client.ts     # Lamatic API client
+/flows
+  └── ...                  # Lamatic Flows
 /package.json              # Dependencies & scripts
 ```
 
