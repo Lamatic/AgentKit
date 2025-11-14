@@ -160,7 +160,7 @@
         "modes": {},
         "nodeId": "codeNode",
         "values": {
-          "code": "let answer = {};\nanswer = JSON.parse({{LLMNode_570.output.generatedResponse}});\noutput = answer;",
+          "code": "let answer = {};\nanswer = JSON.parse({{LLMNode_570.output.generatedResponse}});\noutput = {\n\"type\": \"object\",\n\"properties\":answer\n};",
           "nodeName": "Parse JSON"
         }
       },
