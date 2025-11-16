@@ -8,7 +8,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=review-responder",
+  "deployUrl": "https://studio.lamatic.ai/template/review-responder",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"

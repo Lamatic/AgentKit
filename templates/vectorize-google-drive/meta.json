@@ -9,7 +9,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=vectorize-google-drive",
+  "deployUrl": "https://studio.lamatic.ai/template/vectorize-google-drive",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"

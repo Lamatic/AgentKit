@@ -9,7 +9,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=index-github-actions",
+  "deployUrl": "https://studio.lamatic.ai/template/index-github-actions",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"

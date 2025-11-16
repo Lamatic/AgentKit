@@ -8,7 +8,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=resume-parser",
+  "deployUrl": "https://studio.lamatic.ai/template/resume-parser",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"

@@ -7,7 +7,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=recipe-generation",
+  "deployUrl": "https://studio.lamatic.ai/template/recipe-generation",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"

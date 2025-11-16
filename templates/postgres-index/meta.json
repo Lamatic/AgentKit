@@ -9,7 +9,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=postgres-index",
+  "deployUrl": "https://studio.lamatic.ai/template/postgres-index",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"
