@@ -7,7 +7,7 @@
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/_?templateSlug=candidate-screener",
+  "deployUrl": "https://studio.lamatic.ai/template/candidate-screener",
   "author": {
     "name": "Naitik Kapadia",
     "email": "naitikk@lamatic.ai"
