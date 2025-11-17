@@ -1,5 +1,5 @@
 {
-  "name": "Postgres Index",
+  "name": "🛢 Postgres Index",
   "description": "This template indexes data from a PostgresDB, periodically running a cron job to check for new files. It helps teams set up automatic data pipelines from Postgres, vectorizing and indexing data to Lamatic.",
   "tags": [
     "🚀 Startup",

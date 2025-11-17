@@ -1,5 +1,5 @@
 {
-  "name": "Slack Ask Bot",
+  "name": "💬 Slack Ask Bot",
   "description": "Delivers instant answers through Slack using the /Ask command by running a RAG retrieval on vectorized data. Provides quick answers to audiences already using Slack.",
   "tags": [
     "📞 Support",
