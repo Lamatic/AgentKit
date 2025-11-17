@@ -1,7 +1,7 @@
 {
     "name":"Agent Kit Embedded Search",
     "description":"It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface.",
-    "tags":["embed","support"],
+    "tags":["🔌 Embedded","📞 Support"],
     "author":{
         "name":"Lamatic AI",
         "email":"info@lamatic.ai"

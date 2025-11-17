@@ -2,9 +2,9 @@
   "name": "Slack Ask Bot",
   "description": "Delivers instant answers through Slack using the /Ask command by running a RAG retrieval on vectorized data. Provides quick answers to audiences already using Slack.",
   "tags": [
-    "Product",
-    "Support",
-    "Operations"
+    "📞 Support",
+    "🚀 Startup",
+    "📱 Apps"
   ],
   "testInput": null,
   "githubUrl": "",

@@ -2,9 +2,7 @@
   "name": "Multi Vector Search",
   "description": "This flow integrates vector search into your website, allowing you to combine results from multiple vector databases and run parallel searches. It then consolidates the results and returns them to users.",
   "tags": [
-    "SAAS",
-    "Product",
-    "Content"
+    "🚀 Startup"
   ],
   "testInput": null,
   "githubUrl": "",

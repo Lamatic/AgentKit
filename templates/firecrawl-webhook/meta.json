@@ -2,7 +2,8 @@
   "name": "Firecrawl Webhook",
   "description": "This flow fetches pages from a crawler API, extracts only the page contents, and prepares to index them in a vector database, effectively indexing all the pages.",
   "tags": [
-    "Support"
+    "📱 Apps",
+    "🚀 Startup"
   ],
   "testInput": null,
   "githubUrl": "",
