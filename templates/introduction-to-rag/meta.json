@@ -2,7 +2,8 @@
   "name": "Introduction to RAG",
   "description": "This flow acts as an introduction to RAG, where you can ask a query based on a given text and get your answers from that specific knowledge base.",
   "tags": [
-    "Support"
+    "📞 Support",
+    "🚀 Startup"
   ],
   "testInput": null,
   "githubUrl": "",

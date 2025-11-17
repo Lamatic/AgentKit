@@ -2,7 +2,7 @@
   "name": "Recipe Generation",
   "description": "This AI-powered recipe generation system processes user-provided image links, identifies food items, and generates structured output, enabling seamless analysis and recipe ideation from food images.",
   "tags": [
-    "Content"
+    "✨ Generative"
   ],
   "testInput": null,
   "githubUrl": "",

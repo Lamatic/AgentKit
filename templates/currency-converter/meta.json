@@ -2,8 +2,7 @@
   "name": "Currency Converter",
   "description": "This flow builds a currency converter that fetches real-time exchange rates, enabling users to accurately convert between any currencies.",
   "tags": [
-    "Support",
-    "Operations"
+    "🛠️ Tools"
   ],
   "testInput": null,
   "githubUrl": "",

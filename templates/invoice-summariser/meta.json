@@ -2,8 +2,7 @@
   "name": "Invoice Summariser",
   "description": "This AI-powered invoice summarization workflow processes invoices, extracts key details like total amounts, due dates, and vendor information, and generates structured JSON output.",
   "tags": [
-    "Support",
-    "Operations"
+    "📞 Support"
   ],
   "testInput": null,
   "githubUrl": "",

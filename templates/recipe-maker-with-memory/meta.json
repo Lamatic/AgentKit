@@ -2,7 +2,8 @@
   "name": "Recipe Maker with Memory",
   "description": "This AI-powered recipe generation system retains user preferences, dietary restrictions, and past interactions to generate personalised recipes with customised cooking instructions tailored to individual needs.",
   "tags": [
-    "Content"
+    "✨ Generative",
+    "🛠️ Tools"
   ],
   "testInput": null,
   "githubUrl": "",

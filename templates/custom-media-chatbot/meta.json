@@ -2,7 +2,8 @@
   "name": "Custom Media Chatbot",
   "description": "This flow builds a custom media-based chatbot that can answer questions based on your media file content in a ready-made chat interface, supporting text, JSON, HTML, and/or PDF files.",
   "tags": [
-    "Support"
+    "📞 Support",
+    "🏷️ Sales"
   ],
   "testInput": null,
   "githubUrl": "",
