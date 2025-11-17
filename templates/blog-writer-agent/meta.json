@@ -1,5 +1,5 @@
 {
-  "name": "Blog Writer Agent",
+  "name": "✍️ Blog Writer Agent",
   "description": "This automation generates a blog on any given topic by searching the internet for the most relevant source, then writing the blog in the user's desired tone.",
   "tags": [
     "✨ Generative"

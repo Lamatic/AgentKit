@@ -1,5 +1,5 @@
 {
-  "name": "Index GitHub Actions",
+  "name": "💻 Index GitHub Actions",
   "description": "Vectorizes GitHub Actions data and loads it into a vector database. Enables fast, accurate search and RAG Flows using the contextual data.",
   "tags": [
     "🚀 Startup"

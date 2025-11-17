@@ -1,5 +1,5 @@
 {
-  "name": "Linkedin Post Generator",
+  "name": "💼 Linkedin Post Generator",
   "description": "This flow builds an AI-powered LinkedIn post automation system. It fetches newsletter emails via API, extracts key content, and generates engaging LinkedIn posts.",
   "tags": [
     "🌱 Growth",
