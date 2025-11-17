@@ -32,7 +32,7 @@
     "integrations":[],
     "features":[],
     "demoUrl":"https://agent-kit-embedded-chat.vercel.app",
-    "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/templates/embed/chat",
-    "deployUrl":"https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=templates/embed/chat&env=EMBEDDED_CHATBOT_PDF_INDEXATION,EMBEDDED_CHATBOT_WEBSITES_INDEXATION,EMBEDDED_CHATBOT_RESOURCE_DELETION,EMBEDDED_CHATBOT_CHATBOT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20Chat%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat",
+    "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/kits/embed/chat",
+    "deployUrl":"https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/embed/chat&env=EMBEDDED_CHATBOT_PDF_INDEXATION,EMBEDDED_CHATBOT_WEBSITES_INDEXATION,EMBEDDED_CHATBOT_RESOURCE_DELETION,EMBEDDED_CHATBOT_CHATBOT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20Chat%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat",
     "documentationUrl":"https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat"
 }
