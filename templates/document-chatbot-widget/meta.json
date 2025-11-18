@@ -1,16 +1,13 @@
 {
-  "name": "📄 Document Chatbot (Widget)",
-  "description": "A conversational AI chat widget that engages users with interactive discussions about content from a connected vector database. Easily deployable to applications and websites, ideal for user documentation, release notes, and more.",
-  "tags": [
-    "📞 Support",
-    "🏷️ Sales"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/document-chatbot-widget",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Document Chatbot (Widget)",
+    "description": "A conversational AI chat widget that engages users with interactive discussions about content from a connected vector database. Easily deployable to applications and websites, ideal for user documentation, release notes, and more.",
+    "tags": ["📞 Support", "🏷️ Sales"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/document-chatbot-widget",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

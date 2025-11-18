@@ -1,15 +1,13 @@
 {
-  "name": "🔎 Search Widget",
-  "description": "This flow builds a search widget that retrieves data from a vector database and a RAG Node, presenting the information in the ideal widget format.",
-  "tags": [
-    "📞 Support"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/search-widget",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Search Widget",
+    "description": "This flow builds a search widget that retrieves data from a vector database and a RAG Node, presenting the information in the ideal widget format.",
+    "tags": ["📞 Support"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/search-widget",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

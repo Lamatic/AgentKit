@@ -1,23 +1,22 @@
 {
-    "name":"🧠 Agent Kit Hiring",
-    "description":"It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.",
-    "tags":["⚡️ Automation","📱 Apps","🚀 Startup"],
-    "author":{
-        "name":"Lamatic AI",
-        "email":"info@lamatic.ai"
+    "name": "Agent Kit Hiring",
+    "description": "It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.",
+    "tags": ["⚡ Automation", "📱 Apps", "🚀 Startup"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
     },
-        "steps": [
-            {
-                "id": "automation-hiring",
-                "type": "mandatory",
-                "envKey": "AUTOMATION_HIRING"
-            }
-        ]
-    ,
-    "integrations":[],
-    "features":[],
-    "demoUrl":"https://agent-kit-hiring.vercel.app",
-    "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/kits/automation/hiring",
-    "deployUrl":"https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/automation/hiring&env=AUTOMATION_HIRING,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%20Hiring%20key%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring",
-    "documentationUrl":"https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring"
+    "steps": [
+        {
+            "id": "automation-hiring",
+            "type": "mandatory",
+            "envKey": "AUTOMATION_HIRING"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "https://agent-kit-hiring.vercel.app",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/hiring",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/automation/hiring&env=AUTOMATION_HIRING,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%20Hiring%20key%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring",
+    "documentationUrl": "https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring"
 }

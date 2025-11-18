@@ -1,15 +1,13 @@
 {
-  "name": "💱 Currency Converter",
-  "description": "This flow builds a currency converter that fetches real-time exchange rates, enabling users to accurately convert between any currencies.",
-  "tags": [
-    "🛠️ Tools"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/currency-converter",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Currency Converter",
+    "description": "This flow builds a currency converter that fetches real-time exchange rates, enabling users to accurately convert between any currencies.",
+    "tags": ["🛠️ Tools"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/currency-converter",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

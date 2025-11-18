@@ -1,15 +1,13 @@
 {
-  "name": "🔎 Combined keyword Search",
-  "description": "This flow adds keyword search (BM25 Search) to your website. It combines results from different vector databases, runs parallel searches, and returns the combined results to users.",
-  "tags": [
-    "🚀 Startup"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/combined-keyword-search",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Combined Keyword Search",
+    "description": "This flow adds keyword search (BM25 Search) to your website. It combines results from different vector databases, runs parallel searches, and returns the combined results to users.",
+    "tags": ["🚀 Startup"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/combined-keyword-search",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }
