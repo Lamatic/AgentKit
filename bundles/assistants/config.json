@@ -1,7 +1,7 @@
 {
-    "name": "🤖 Assistants Bundle",
+    "name": "Assistants Bundle",
     "description": "A modular assistant bundle that allows connecting multiple data sources to diverse assistant interfaces for advanced RAG and knowledge workflows.",
-    "tags": ["🚀 Startup","📄 Document"],
+    "tags": ["🚀 Startup", "📄 Document"],
     "author": {
         "name": "Naitik Kapadia",
         "email": "naitikk@lamatic.ai"
@@ -53,7 +53,9 @@
                     "id": "teams-assistant"
                 }
             ],
-            "prerequisiteSteps": ["data_source"],
+            "prerequisiteSteps": [
+                "data_source"
+            ],
             "minSelection": 1,
             "maxSelection": 1
         }

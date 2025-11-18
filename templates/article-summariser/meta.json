@@ -1,16 +1,13 @@
 {
-  "name": "📰 Article Summariser",
-  "description": "This workflow automates summarizing articles. It takes URLs, extracts content using Firecrawl, and generates concise summaries using an LLM, making it easier to quickly understand key points of long articles.",
-  "tags": [
-    "✨ Generative",
-    "📞 Support"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/article-summariser",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Article Summariser",
+    "description": "This workflow automates summarizing articles. It takes URLs, extracts content using Firecrawl, and generates concise summaries using an LLM, making it easier to quickly understand key points of long articles.",
+    "tags": ["✨ Generative", "📞 Support"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/article-summariser",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

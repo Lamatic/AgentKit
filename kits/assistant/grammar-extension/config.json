@@ -1,23 +1,22 @@
 {
-  "name":"✍️ Agent Kit Grammar Assistant",
-  "description":"It allows you to select any text on any webpage and get real-time grammar corrections and suggestions through an elegant side panel interface.",
-  "tags":["💬 Assistant","✨ Generative","🛠️ Tools"],
-  "author":{
-      "name":"Lamatic AI",
-      "email":"info@lamatic.ai"
-  },
-      "steps": [
-          {
-              "id": "assistant-grammer-correction",
-              "type": "mandatory",
-              "envKey": "ASSISTANT_GRAMMAR_CORRECTION"
-          }
-      ]
-  ,
-  "integrations":[],
-  "features":[],
-  "demoUrl":"",
-  "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/grammar",
-  "deployUrl":"",
-  "documentationUrl":"https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+    "name": "Agent Kit Grammar Assistant",
+    "description": "It allows you to select any text on any webpage and get real-time grammar corrections and suggestions through an elegant side panel interface.",
+    "tags": ["💬 Assistant", "✨ Generative", "🛠️ Tools"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "assistant-grammer-correction",
+            "type": "mandatory",
+            "envKey": "ASSISTANT_GRAMMAR_CORRECTION"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/grammar",
+    "deployUrl": "",
+    "documentationUrl": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
 }

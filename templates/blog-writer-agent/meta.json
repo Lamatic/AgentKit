@@ -1,15 +1,13 @@
 {
-  "name": "✍️ Blog Writer Agent",
-  "description": "This automation generates a blog on any given topic by searching the internet for the most relevant source, then writing the blog in the user's desired tone.",
-  "tags": [
-    "✨ Generative"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/blog-writer-agent",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Blog Writer Agent",
+    "description": "This automation generates a blog on any given topic by searching the internet for the most relevant source, then writing the blog in the user's desired tone.",
+    "tags": ["✨ Generative"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/blog-writer-agent",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

@@ -1,10 +1,7 @@
 {
-  "name": "📘 RAG Chatbot",
+  "name": "RAG Chatbot",
   "description": "This flow builds a chatbot that answers questions based on a context database containing all relevant information. User queries are answered using the existing documentation.",
-  "tags": [
-    "📞 Support",
-    ""🚀 Startup""
-  ],
+  "tags": ["📞 Support", "🚀 Startup"],
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",

@@ -1,15 +1,13 @@
 {
-  "name": "🚀 Get Started",
-  "description": "This flow introduces Lamatic AI and demonstrates how to fetch output from an LLM node. It provides a basic example of integrating an LLM into an automation workflow.",
-  "tags": [
-    "🚀 Startup"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/get-started",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Get Started",
+    "description": "This flow introduces Lamatic AI and demonstrates how to fetch output from an LLM node. It provides a basic example of integrating an LLM into an automation workflow.",
+    "tags": ["🚀 Startup"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/get-started",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

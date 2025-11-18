@@ -1,15 +1,13 @@
 {
-  "name": "👨‍💻 Candidate Screener",
-  "description": "This AI-powered GitHub profile screening system automatically analyzes candidates' repositories, matches their experience and skills to job requirements, and generates personalized email responses - congratulating qualified candidates or providing feedback to those who don't meet the criteria.",
-  "tags": [
-    "🚀 Startup"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/candidate-screener",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Candidate Screener",
+    "description": "This AI-powered GitHub profile screening system automatically analyzes candidates' repositories, matches their experience and skills to job requirements, and generates personalized email responses - congratulating qualified candidates or providing feedback to those who don't meet the criteria.",
+    "tags": ["🚀 Startup"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/candidate-screener",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }
