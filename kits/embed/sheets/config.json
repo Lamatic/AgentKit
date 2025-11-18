@@ -1,23 +1,22 @@
 {
-    "name":"📊 Agent Kit Embedded Sheets",
-    "description":"It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.",
-    "tags":["🔌 Embedded","🚀 Startup"],
-    "author":{
-        "name":"Lamatic AI",
-        "email":"info@lamatic.ai"
+    "name": "Agent Kit Embedded Sheets",
+    "description": "It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.",
+    "tags": ["🔌 Embedded", "🚀 Startup"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
     },
-        "steps": [
-            {
-                "id": "embedded-sheets",
-                "type": "mandatory",
-                "envKey": "EMBEDDED_SHEETS"
-            }
-        ]
-    ,
-    "integrations":[],
-    "features":[],
-    "demoUrl":"https://agent-kit-sheets.vercel.app",
-    "githubUrl":"https://github.com/Lamatic/AgentKit/tree/main/kits/embed/sheets",
-    "deployUrl":"https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/embed/sheets&env=EMBEDDED_SHEETS,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Sheets%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-sheets",
-    "documentationUrl":"https://lamatic.ai/templates/agentkits/embed/sheets"
+    "steps": [
+        {
+            "id": "embedded-sheets",
+            "type": "mandatory",
+            "envKey": "EMBEDDED_SHEETS"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "https://agent-kit-sheets.vercel.app",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/embed/sheets",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/embed/sheets&env=EMBEDDED_SHEETS,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Sheets%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-sheets",
+    "documentationUrl": "https://lamatic.ai/templates/agentkits/embed/sheets"
 }

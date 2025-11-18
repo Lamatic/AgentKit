@@ -1,7 +1,7 @@
 {
-    "name": "💬 Knowledge Chatbot",
+    "name": "Knowledge Chatbot",
     "description": "A chat bundle that combines data source indexing with a knowledge chatbot interface.",
-    "tags": ["📞 Support","📄 Document"],
+    "tags": ["📞 Support", "📄 Document"],
     "author": {
         "name": "Naitik Kapadia",
         "email": "naitikk@lamatic.ai"
@@ -42,7 +42,9 @@
         {
             "id": "knowledge-chatbot",
             "type": "mandatory",
-            "prerequisiteSteps": ["data_source"]
+            "prerequisiteSteps": [
+                "data_source"
+            ]
         }
     ],
     "integrations": [],

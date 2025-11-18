@@ -1,15 +1,13 @@
 {
-  "name": "🧠 Hiring Agent",
-  "description": "",
-  "tags": [
-    "🌱 Growth"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/hiring-agent",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Hiring Agent",
+    "description": "",
+    "tags": ["🌱 Growth"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/hiring-agent",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }
