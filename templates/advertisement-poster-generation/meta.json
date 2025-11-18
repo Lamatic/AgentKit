@@ -1,15 +1,13 @@
 {
-  "name": "🖼️ Advertisement Poster Generation",
-  "description": "",
-  "tags": [
-    "✨ Generative"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/advertisement-poster-generation",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Advertisement Poster Generation",
+    "description": "",
+    "tags": ["✨ Generative"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/advertisement-poster-generation",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

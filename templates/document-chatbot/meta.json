@@ -1,16 +1,13 @@
 {
-  "name": "📄 Document Chatbot",
-  "description": "This flow integrates a chatbot widget into your local application, enabling users to get answers based on provided documents or media.",
-  "tags": [
-    "📞 Support",
-    "🏷️ Sales"
-  ],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "https://studio.lamatic.ai/template/document-chatbot",
-  "author": {
-    "name": "Naitik Kapadia",
-    "email": "naitikk@lamatic.ai"
-  }
+    "name": "Document Chatbot",
+    "description": "This flow integrates a chatbot widget into your local application, enabling users to get answers based on provided documents or media.",
+    "tags": ["📞 Support", "🏷️ Sales"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/document-chatbot",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
 }

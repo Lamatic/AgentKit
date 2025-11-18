@@ -1,5 +1,5 @@
 {
-    "name": "🔎 Semantic Search",
+    "name": "Semantic Search",
     "description": "A semantic search bundle that indexes data sources and enables advanced search over your knowledge base.",
     "tags": ["📄 Document", "📞 Support"],
     "author": {
@@ -42,7 +42,9 @@
         {
             "id": "semantic-search",
             "type": "mandatory",
-            "prerequisiteSteps": ["data_source"]
+            "prerequisiteSteps": [
+                "data_source"
+            ]
         }
     ],
     "integrations": [],
