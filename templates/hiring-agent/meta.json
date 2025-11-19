@@ -1,6 +1,6 @@
 {
     "name": "Hiring Agent",
-    "description": "",
+    "description": "This template allows you to analyse an input resume and gives detailed analysis of selection/rejection",
     "tags": ["🌱 Growth"],
     "testInput": null,
     "githubUrl": "",
