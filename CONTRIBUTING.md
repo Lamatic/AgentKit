@@ -1,295 +1,353 @@
 # Contributing to Lamatic AgentKit
 
-Thank you for your interest in improving AgentKit! This guide explains exactly how to build a Lamatic project, export it, integrate it into the repo, and submit a high‑quality PR. It includes the Lamatic “pre” flow (build in Lamatic) and the repo “post” flow (template, run, deploy, PR).
+Thank you for your interest in improving AgentKit! This guide walks you through building a kit in Lamatic, exporting it, and contributing it to the repository with a high-quality PR.
 
 ## Table of Contents
-- [Overview (TL;DR)](#overview-tldr)
+- [Quick Start (TL;DR)](#quick-start-tldr)
 - [Prerequisites](#prerequisites)
-- [Lamatic-First Workflow (Required)](#lamatic-first-workflow-required)
-  - [1) Sign in or Sign up](#1-sign-in-or-sign-up)
-  - [2) Create a Project](#2-create-a-project)
-  - [3) Create a New Flow](#3-create-a-new-flow)
-  - [4) Build from Kits (Find Our Kits)](#4-build-from-kits-find-our-kits)
-  - [5) Export your key or lamatic-config.json](#5-export-your-key-or-lamatic-configjson)
-  - [6) Future: Single-Click Export / Connect Git](#6-future-single-click-export--connect-git)
-- [Prepare Your Contribution in This Repo](#prepare-your-contribution-in-this-repo)
-  - [Fork and Clone](#fork-and-clone)
-  - [Template Folder Structure](#template-folder-structure)
-  - [Scaffold from Sample](#scaffold-from-sample)
-  - [Add key to environment or lamatic-config.json to project](#add-key-to-environment-or-lamatic-configjson-to-project)
-  - [Environment Variables](#environment-variables)
-  - [Document Your Kit](#document-your-kit)
-  - [Minimum Files Checklist](#minimum-files-checklist)
-- [Run Locally](#run-locally)
-- [Deploy to Vercel](#deploy-to-vercel)
-- [Open a Pull Request](#open-a-pull-request)
-  - [PR Checklist](#pr-checklist)
-- [How to Contribute (General)](#how-to-contribute-general)
-- [Coding Guidelines](#coding-guidelines)
-- [Reporting Bugs](#reporting-bugs)
-- [Suggesting Features & Improvements](#suggesting-features--improvements)
-- [Documentation Updates](#documentation-updates)
-- [Code of Conduct](#code-of-conduct)
+- [Step 1: Build Your Kit in Lamatic](#step-1-build-your-kit-in-lamatic)
+- [Step 2: Export Your Kit](#step-2-export-your-kit)
+- [Step 3: Prepare Your Repository Contribution](#step-3-prepare-your-repository-contribution)
+- [Step 4: Run and Test Locally](#step-4-run-and-test-locally)
+- [Step 5: Deploy to Vercel](#step-5-deploy-to-vercel)
+- [Step 6: Open a Pull Request](#step-6-open-a-pull-request)
+- [General Contribution Guidelines](#general-contribution-guidelines)
 - [Community & Support](#community--support)
-- [Attribution](#attribution)
 
 ---
 
-## Overview (TL;DR)
+## Quick Start (TL;DR)
 
-1) Build and deploy your flow in Lamatic:
-   - Sign in → Create Project → + New Flow → Build from Kits → select a kit → configure → Deploy.
-   - Export/Copy the LAMATIC_CONFIG_<kit> key
-   - In some cases, you would export the lamatic-config.json from your deployed flow (will be defined in the kit)
+**In Lamatic:**
+1. Sign in → Create Project → New Flow → Build from Kit (or from Scratch)
+2. Configure your flow and Deploy
+3. Export API keys/`lamatic-config.json` and all flows
 
-2) Prepare your repo contribution:
-   - Fork this repo.
-   - Create a new template under `templates/<category>/<unique-agentkit-name>/`.
-   - Add LAMATIC_CONFIG_<kit> key key as an env variable
-   - For specified kits (such as browser assistants), place `lamatic-config.json` in your root folder.
-   - Add `.env.example` (no secrets) and a README with setup instructions.
-
-3) Run and deploy:
-   - `npm install` and `npm run dev` inside your template folder.
-   - Deploy to Vercel (set root directory to your template folder and add env vars).
-
-4) Open a PR with a clear description and the checklist below.
+**In Your Repository:**
+1. Fork the repo and create a template folder: `templates/<category>/<kit-name>/`
+2. Add `.env.example`, `README.md`, `config.json`, `orchestrate.js`, and `flows/` folder
+3. Copy your exported keys to `.env` (locally only)
+4. Run `npm install && npm run dev` to test
+5. Deploy to Vercel with environment variables
+6. Submit a PR with checklist
 
 ---
 
 ## Prerequisites
 
-- Lamatic account: https://lamatic.ai
-- Node.js 18+ and npm
-- Git and GitHub account
-- Optional: Vercel account (for previews and easy deploys)
+- **Lamatic account:** https://lamatic.ai
+- **Node.js 18+** and npm
+- **Git and GitHub account**
+- **Optional:** Vercel account (for easy previews and deployment)
 
 ---
 
-## Lamatic-First Workflow (Required)
+## Step 1: Build Your Kit in Lamatic
 
-All contributions start by building and deploying the flow in Lamatic. This ensures your kit is reproducible and provides a valid `LAMATIC_CONFIG_<KIT>` key or `lamatic-config.json`.
+### 1.1 Sign In or Create Account
+Go to https://lamatic.ai and sign in or create a free account.
 
-### 1) Sign in or Sign up
-- Go to https://lamatic.ai and sign in or create an account.
+### 1.2 Create a Project
+Create a new project from your dashboard. You'll use this project to build and deploy your flows.
 
-### 2) Create a Project
-- If you don’t have one, create a new project.
-- You’ll land in your user dashboard for that project.
+### 1.3 Create a New Flow
+Click "New Flow" in the sidebar or select from Templates.
 
-### 3) Create a New Flow
-- Click “New Flow” on the left sidebar
+### 1.4 Choose Your Starting Point
+- **Build from a Kit:** Select a curated kit as your foundation and customize it for your use case
+- **Build from Scratch:** Create a new flow from blank canvas for a unique implementation
 
-### 4) Build from Kits (Find Our Kits)
-- Choose “Build from Kits”.
-- Browse and select the kit that matches your use case (our curated kits are listed here).
-- Follow the on-screen steps to set up inputs, tools, providers, etc.
-- Complete the setup to deploy the kit on Lamatic Studio
+Configure inputs, tools, providers, and any integrations your flow needs.
 
-### 5) Export your key or lamatic-config.json
-- At the end of your setup, you would receive a `LAMATIC_CONFIG_<KIT>` key or `lamatic-config.json`, which you have to download/copy.
-- You will add this key/file into your template folder in your forked repo.
-
-### 6) Future: Single-Click Export / Connect Git
-- Coming soon: a single-click export that downloads all files, or “Connect Git” to export directly to your repository/path.
-- We will update this document once those features are available.
+### 1.5 Deploy Your Flow
+Complete the setup and deploy your flow in Lamatic Studio. Test it to ensure it works as expected.
 
 ---
 
-## Prepare Your Contribution in This Repo
+## Step 2: Export Your Kit
 
-### Fork and Clone
-1) Fork the repository on GitHub.
-2) Clone your fork locally:
-   ```bash
-   git clone <your-fork-url>
-   cd AgentKit
-   ```
+### 2.1 Export API Keys or Configuration
+After deployment, export your credentials:
+- **Standard kits:** Export `LAMATIC_API_KEY`,`LAMATIC_PROJECT_ID` and `LAMATIC_ENDPOINT` from Studio
 
-### Template Folder Structure
-Create your contribution under `templates/` to keep kits organized:
-```
-templates/<category>/<unique-agentkit-name>/
-```
+### 2.2 Export Your Flows
+Select all flows used in your kit and export them. You'll place these in your repo's `flows/` folder.
 
-Examples for `<category>`: agentic,assistant,automation,embed
+### 2.3 Document Your Flow IDs
+Note the flow IDs from Lamatic—you'll reference them in your `config.json` and/or in `lamatic-config.json` (for special asssitant kits)
 
-### Scaffold from Sample
-Copy the sample Next.js template as a starting point:
+---
+
+## Step 3: Prepare Your Repository Contribution
+
+### 3.1 Fork and Clone
 ```bash
-cp -R templates/sample templates/<category>/<unique-agentkit-name>
+git clone <your-fork-url>
+cd AgentKit
 ```
-Then update `package.json` name/description and any metadata as needed.
 
-### Add key to environment or `lamatic-config.json` to project
-- Add your `LAMATIC_CONFIG_<KIT>` key to the `.env` file
-- If it is an lamatic-config.json based kit, place the exported file from Lamatic here:
-   ```
-   templates/<category>/<unique-agentkit-name>/lamatic-config.json
-   ```
-- Most kits use LAMATIC_CONFIG_; browser-like assistants or certain kits require lamatic-config.json. Each kit’s README will specify which one to use
-Make sure this config corresponds to the deployed version of your flow.
+### 3.2 Create Your Template Folder Structure
+```bash
+mkdir -p templates/<category>/<kit-name>
+```
 
-### Environment Variables
-- In your template folder, add an `.env.example` file containing all required variables:
-  ```
-  # Example Keys
-  LAMATIC_CONFIG_<KIT>=your_lamatic_config_kit_key
-  BLOB_READ_WRITE_TOKEN=your_blob_token
-  # ...
-  ```
-- Do not commit real secrets. Contributors will copy this to `.env` locally and set values in Vercel for deployments.
+Replace `<category>` with: `agentic`, `assistant`, `automation`, `embed`, or another relevant category.
 
-### Document Your Kit
-Create or update `README.md` in your template folder with:
-- What this AgentKit does and the use case it solves
-- Required environment variables
-- Setup instructions (local + deploy)
+Example: `templates/agentic/customer-support-agent/`
+
+### 3.3 Use the Sample Template as Your Starting Point
+```bash
+cp -R templates/sample/* templates/<category>/<kit-name>/
+```
+
+Update `package.json` with your kit name and description.
+
+### 3.4 Add Required Files
+
+Create or update these files in your template folder:
+
+**`.env.example`** (no secrets—this is committed)
+```
+AGENTIC_GENERATE_CONTENT = "AGENTIC_GENERATE_CONTENT FLOW ID"
+LAMATIC_API_URL = "LAMATIC_API_URL"
+LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
+LAMATIC_API_KEY = "LAMATIC_API_KEY"
+```
+
+**`README.md`** (commit this—provide setup instructions)
+- What your kit does and the problem it solves
+- Prerequisites and required providers
+- Environment variables needed
+- Setup and run instructions (local + Vercel deployment)
 - Usage examples
-- Screenshots/GIFs (optional but helpful)
+- Screenshots or GIFs (optional but helpful)
 
-### Minimum Files Checklist
-Inside `templates/<category>/<unique-agentkit-name>/` you should have:
-- `README.md`
-- `package.json`
-- `.env.example` (no secrets)
-- Source files as applicable:
-  - `app/` (UI routes/pages)
-  - `actions/` (orchestrations, server/client actions)
-  - `lib/` (Lamatic wrappers/helpers)
-  - `public/` (assets if needed)
-  - `next.config.js`, `tsconfig.json`, etc.
-- OPTIONAL : `lamatic-config.json` (if required, exported from Lamatic)
+**`config.json`** (defines your kit for the platform)
+- Below given is an example of how your config.json should look like.
+```json
+{
+    "name": "Agent Kit Generation",
+    "description": "It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.",
+    "tags": ["🤖 Agentic", "✨ Generative"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "agentic-generate-content",
+            "type": "mandatory",
+            "envKey": "AGENTIC_GENERATE_CONTENT"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "https://agent-kit-generation.vercel.app/",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/generation",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation",
+    "documentationUrl": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+}
+- For documentation URL, fork our documentation repo and add your kit docs there. Most of the content will be pulled from your github README.md so make sure to make that well.
+```
+
+**`orchestrate.js`** (defines how flows work together)
+```javascript
+export const config = {
+    "type": "atomic",
+    "flows": {
+      "generation" : {
+          "name": "Generation",
+          "type" : "graphQL",
+          "workflowId": process.env.AGENTIC_GENERATE_CONTENT,
+          "description": "Generate the output based on the user input type and instructions",
+          "expectedOutput": ["answer"],
+          "inputSchema": {
+              "type": "string",
+              "instructions": "string"
+          },
+          "outputSchema": {
+              "answer": "string"
+          },
+          "mode": "sync",
+          "polling" : "false"
+      }
+    },
+    "api": {
+      "endpoint": process.env.LAMATIC_API_URL,
+      "projectId": process.env.LAMATIC_PROJECT_ID,
+      "apiKey" : process.env.LAMATIC_API_KEY
+    }
+}
+```
+
+**`flows/` folder** (exported from Lamatic)
+Place all exported flows from Lamatic here. The folder structure and files should match what you exported.
+
+### 3.5 Keep Secrets Out of Version Control
+Add this to your `.gitignore` (if not already present):
+```
+.env
+.env.local
+.env.*.local
+```
+
+Never commit `.env` or `lamatic-config.json` with real secrets. Only commit `.env.example` and template files.
 
 ---
 
-## Run Locally
+## Step 4: Run and Test Locally
 
 From your template folder:
+
 ```bash
-cd templates/<category>/<unique-agentkit-name>
+cd templates/<category>/<kit-name>
+
+# Install dependencies
 npm install
+
+# Copy the example env file
 cp .env.example .env
-# Edit .env to include your real keys, e.g.:
-#   LAMATIC_CONFIG_<KIT>=...
+
+# Edit .env with your real keys from Lamatic
+# Use your text editor or:
+# nano .env  (or similar)
+
+# Start the development server
 npm run dev
 ```
 
-Visit http://localhost:3000 and verify your AgentKit works end-to-end against your deployed Lamatic flow.
+Visit http://localhost:3000 and verify your kit works end-to-end with your deployed Lamatic flow.
+
+**Common issues?**
+- Ensure your `.env` keys match your deployed flow in Lamatic
+- Check that all required flows are exported in the `flows/` folder
+- Verify Node.js version is 18 or higher: `node --version`
 
 ---
 
-## Deploy to Vercel
+## Step 5: Deploy to Vercel
 
-1) Push your branch to your fork on GitHub.
-2) In Vercel, create a new project from your GitHub repo.
-3) Set the “Root Directory” to:
-   ```
-   templates/<category>/<unique-agentkit-name>
-   ```
-4) Add environment variables in the Vercel dashboard (the same keys as in your `.env`), e.g.:
-   - `LAMATIC_CONFIG_<KIT>`
-   - Any additional provider keys your kit requires
-5) Deploy and confirm your live URL works.
+### 5.1 Push Your Branch
+```bash
+git checkout -b feat/<kit-name>
+git add .
+git commit -m "Add <kit-name> AgentKit"
+git push origin feat/<kit-name>
+```
+
+### 5.2 Create a Vercel Project
+1. Go to https://vercel.com and sign in with GitHub
+2. Click "Add New..." → "Project"
+3. Import your forked repository
+
+### 5.3 Configure Root Directory
+In the Vercel dashboard:
+- Set **Root Directory** to: `templates/<category>/<kit-name>/`
+
+### 5.4 Add Environment Variables
+In the Vercel project settings, add each variable from your `.env.example`:
+- `LAMATIC_API_KEY`
+- `LAMATIC_PROJECT_ID`
+- Any other provider keys your kit requires
+
+Do not include `.env` or `lamatic-config.json` files in Vercel—only set environment variables.
+
+### 5.5 Deploy
+Vercel will automatically deploy. Visit your preview URL and confirm it works.
 
 ---
 
-## Open a Pull Request
+## Step 6: Open a Pull Request
 
-Once your template runs locally and deploys successfully:
+Once your kit runs locally and deploys successfully on Vercel:
 
-1) Create a feature branch:
-   ```bash
-   git checkout -b feat/<kit-name>
-   ```
-2) Commit your changes with clear messages.
-3) Open a PR against the main repository.
+### 6.1 Create Your PR
+1. Go to the main AgentKit repository
+2. Click "New Pull Request"
+3. Select your fork and branch
+4. Add a clear title: `feat: Add <kit-name> AgentKit`
 
-Include in your PR description:
-- What the kit does and the problem it solves
-- Any prerequisites/providers required
-- Steps to run locally
-- Optional: link to a live Vercel preview
-- Optional: link or ID to your Lamatic flow (if appropriate)
+### 6.2 PR Description Template
+```markdown
+## What This Kit Does
+Brief description of the kit's purpose and the problem it solves.
 
+## Providers & Prerequisites
+- List any external providers (e.g., OpenAI, Stripe, etc.)
+- Note any special setup required
+
+## How to Run Locally
+Quick summary (details in README)
+
+## Live Preview
+Link to Vercel deployment: https://your-deployment-url.vercel.app
+
+## Lamatic Flow
+Flow ID or link (if applicable)
+```
+
+### 6.3 PR Checklist
+Copy this checklist into your PR description and check items as you complete them:
+
+```markdown
 ### PR Checklist
-Copy this checklist into your PR and check items off:
-- [ ] `.env` includes all required keys (no secrets committed)
-- [ ] OPTIONAL : `lamatic-config.json` included and valid for the deployed kit
-- [ ] Template `README.md` documents setup, env vars, and usage
-- [ ] Runs locally with `npm run dev`
-- [ ] Deployed preview (Vercel) with env vars set
-- [ ] Follows template structure and coding guidelines
+- [ ] Kit runs locally with `npm run dev`
+- [ ] `.env` contains all required keys (no secrets in commits)
+- [ ] `lamatic-config.json` included if required (exported from Lamatic)
+- [ ] `README.md` documents setup, environment variables, and usage
+- [ ] Vercel deployment works with environment variables set
+- [ ] Template follows folder structure: `templates/<category>/<kit-name>/`
+- [ ] `config.json` and `orchestrate.js` match the kit's flows
+- [ ] `.env.example` has no secrets, only placeholders
+- [ ] All flows are exported in `flows/` folder
+```
 
 ---
 
-## How to Contribute (General)
+## General Contribution Guidelines
 
-- Star the repo to support the project.
-- Open issues for bugs, suggestions, or questions.
-- Fork the repo and submit a pull request to propose changes.
-- Improve documentation, write tutorials, or share use cases.
+### Coding Standards
+- Write clear, maintainable, well-documented code
+- Use TypeScript where possible
+- Follow patterns from `templates/sample/`
+- Keep external dependencies minimal; document any additions
+- Add comments for complex logic
 
----
+### Before You Contribute
+- Search open and closed issues to avoid duplicates
+- Check if a similar kit already exists
+- Review this guide completely
 
-## Coding Guidelines
-
-- Write clear, maintainable, and well-documented code.
-- Follow style and patterns used in `templates/sample`.
-- Prefer TypeScript where possible.
-- Keep external dependencies minimal and document them.
-- Add or update tests where relevant.
-- Keep pull requests focused and minimal.
-- Never commit secrets; use `.env` and `.env.example`.
-
----
-
-## Reporting Bugs
-
-Before filing an issue, search open and closed issues to avoid duplicates.
-
-When reporting a bug, include:
+### Reporting Bugs
+Include:
 - Steps to reproduce
 - Expected vs. actual behavior
-- Environment info (Node.js version, OS)
-- Relevant logs or screenshots (if available)
+- Environment (Node.js version, OS)
+- Relevant logs or screenshots
 
----
+### Suggesting Features
+- Describe the use case and expected impact
+- Provide example workflows or ideas
+- Link to a Lamatic prototype if available
 
-## Suggesting Features & Improvements
+### Documentation Improvements
+- Update examples, configuration details, or architecture notes as needed
+- Write tutorials or case studies to help other contributors
 
-- Ensure similar requests don’t already exist.
-- Describe the use case and expected impact clearly.
-- Provide example workflows or interface ideas if possible.
-- If available, link to a Lamatic prototype or draft `lamatic-config.json`.
-- If possible, an example of how it should work or your inspiration for this request
-
----
-
-## Documentation Updates
-
-- Help us keep docs up to date.
-- Update usage examples, configuration details, or architecture notes as needed.
-- Contributions to guides, tutorials, and case studies are welcome.
-
----
-
-## Code of Conduct
-
-Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) to keep this community welcoming and inclusive.
+### Pull Request Best Practices
+- Keep PRs focused and minimal
+- Provide clear commit messages
+- Link related issues with "Fixes #123" if applicable
+- Respond to reviews promptly and constructively
 
 ---
 
 ## Community & Support
 
-- GitHub Discussions: https://github.com/Lamatic/AgentKit/discussions
+- **GitHub Discussions:** https://github.com/Lamatic/AgentKit/discussions
+- **Issues:** https://github.com/Lamatic/AgentKit/issues
+- **Lamatic Docs:** https://lamatic.ai/docs
 
 ---
 
-## Attribution
-
-Adapted from best practices recommended by the open-source community. See awesome lists at [github.com/mntnr/awesome-contributing](https://github.com/mntnr/awesome-contributing).
-
----
-
-We appreciate your efforts to improve Lamatic AgentKit!
+We appreciate your contributions to Lamatic AgentKit! 🚀
