@@ -1,6 +1,6 @@
 {
     "name": "Advertisement Poster Generation",
-    "description": "",
+    "description": "This intakes an image to provide analysis and advertisement poster as the output using multimodal and image generation models",
     "tags": ["✨ Generative"],
     "testInput": null,
     "githubUrl": "",
