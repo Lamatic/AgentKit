@@ -1,6 +1,6 @@
 {
-    "name": "Knowledge Chatbot",
-    "description": "A chat bundle that combines data source indexing with a knowledge chatbot interface.",
+    "name": "RAG (Retrieval-Augmented Generation)",
+    "description": "Generate accurate responses using large volumes of structured and unstructured data",
     "tags": ["📞 Support", "📄 Document"],
     "author": {
         "name": "Naitik Kapadia",

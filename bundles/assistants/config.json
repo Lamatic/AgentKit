@@ -1,6 +1,6 @@
 {
-    "name": "Assistants Bundle",
-    "description": "A modular assistant bundle that allows connecting multiple data sources to diverse assistant interfaces for advanced RAG and knowledge workflows.",
+    "name": "Internal Assistant",
+    "description": "Build an internal chatbot that finds precise answers within your company’s knowledge base.",
     "tags": ["🚀 Startup", "📄 Document"],
     "author": {
         "name": "Naitik Kapadia",
