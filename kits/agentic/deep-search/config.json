@@ -1,6 +1,6 @@
 {
-    "name": "Agent Kit Deep Search",
-    "description": "A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows.",
+    "name": "Deep Research",
+    "description": "Customized agentic deep research across both internal and external data sources.",
     "tags": ["🤖 Agentic", "🧠 Reasoning", "🌱 Growth"],
     "author": {
         "name": "Lamatic AI",
