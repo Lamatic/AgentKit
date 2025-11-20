@@ -1,5 +1,5 @@
 {
-    "name": "Agent Kit Embedded Chat",
+    "name": "Embedded Chat",
     "description": "It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface.",
     "tags": ["🔌 Embedded", "📞 Support"],
     "author": {
