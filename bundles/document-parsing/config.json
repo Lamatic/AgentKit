@@ -1,6 +1,6 @@
 {
-    "name": "Document Parsing Bundle",
-    "description": "A document parsing bundle that allows to index information from documents and enables advanced RAG over your knowledge base.",
+    "name": "Document Parsing",
+    "description": "Extract valuable insights from documents and unstructured information at scale.",
     "tags": ["📄 Document", "✨ Generative"],
     "author": {
         "name": "Naitik Kapadia",

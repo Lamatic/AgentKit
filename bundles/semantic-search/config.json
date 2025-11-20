@@ -1,6 +1,6 @@
 {
     "name": "Semantic Search",
-    "description": "A semantic search bundle that indexes data sources and enables advanced search over your knowledge base.",
+    "description": "Perform natural language search ( aka vector search ) across structured and unstructured data effortlessly.",
     "tags": ["📄 Document", "📞 Support"],
     "author": {
         "name": "Naitik Kapadia",
