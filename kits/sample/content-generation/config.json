@@ -1,5 +1,5 @@
 {
-    "name": "Agent Kit Generation",
+    "name": "Generative AI",
     "description": "It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.",
     "tags": ["🤖 Agentic", "✨ Generative"],
     "author": {
