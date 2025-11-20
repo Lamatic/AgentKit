@@ -11,7 +11,7 @@
 
 **Agent Kit Embedded Search** is an AI-powered document/website search system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to index PDFs and webpages, then provides an interactive search widget where users can search across their data in seconds.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/embed/search&env=EMBEDDED_SEARCH_PDF_INDEXATION,EMBEDDED_SEARCH_WEBSITES_INDEXATION,EMBEDDED_SEARCH_RESOURCE_DELETION,EMBEDDED_SEARCH_SEARCH,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,BLOB_READ_WRITE_TOKEN&envDescription=Your%20Lamatic%20Config%Embedded%20search%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/embed/search&env=EMBEDDED_SEARCH_PDF_INDEXATION,EMBEDDED_SEARCH_WEBSITES_INDEXATION,EMBEDDED_SEARCH_RESOURCE_DELETION,EMBEDDED_SEARCH_SEARCH,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Config%Embedded%20search%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-search)
 
 ---
 
@@ -88,8 +88,6 @@ npm run dev
 Click the “Deploy with Vercel” button.
 
 Fill in .env Keys from lamatic (required).
-
-For BLOB_READ_WRITE_TOKEN, you can use a placeholder to let the first deploy succeed.
 
 After deployment, generate your own Blob token:
 

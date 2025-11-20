@@ -1,6 +1,6 @@
 {
-  "name": "2B. Agentic Reasoning - Data Source Search",
-  "description": "",
+  "name": "Agentic Reasoning - Data Source Search",
+  "description": "This flow searches the indexed data source and returns the most relevant references",
   "tags": "",
   "testInput": {
     "steps": "I want to search the documents of how lamatic works, it's deployment process, infrastructure, and how projects are deployed and with this, design the final answer for user query"
