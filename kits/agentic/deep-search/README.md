@@ -12,7 +12,7 @@
 
 **Agent Kit Deep Search** is an AI-powered reasoning system built with [Lamatic.ai](https://lamatic.ai). It uses a multi-agent flow defined in Lamatic Config JSON to orchestrate **search, reasoning, and structured answering**, and exposes it through a modern Next.js frontend.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/deep-search&env=AGENTIC_REASONING_GENERATE_STEPS,AGENTIC_REASONING_SEARCH_WEB,AGENTIC_REASONING_DATA_SOURCE,AGENTIC_REASONING_FINAL,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-reasoning)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/deep-search)
 
 ---
 
