@@ -1,6 +1,6 @@
 # Agent Kit Embedded search by Lamatic.ai
 <p align="center">
-  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmFmdXh4aHB3bXZidmg1dDM1azhtY2xheTl6ZnUzbHdsYXo1OXVvcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6hnrR2Vk2PLByiWKbL/giphy.gif"/>
+  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3M1bXVqcnZnNzZlZGs3ZXJtZmNjbzU2aG9mdWJ1bXdidGUzMjR3MyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/wdhRwR9oPGyCFxi7aZ/giphy.gif"/>
 </p>
 
 <p align="center">

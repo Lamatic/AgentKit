@@ -1,5 +1,9 @@
 # Lamatic Grammar Assistant Chrome Extension
 
+<p align="center">
+  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExanloejVyMDhnOXV3cWxsbjRpczRxbzFsdG43bnBucW9yc3k5dTJyMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nSErxnM2ua4hZYwwKJ/giphy.gif"/>
+</p>
+
 **Lamatic Grammar Assistant** is an AI-powered Chrome extension that helps you check and improve your grammar instantly. Built with [Lamatic.ai](https://lamatic.ai), it allows you to select any text on any webpage and get real-time grammar corrections and suggestions through an elegant side panel interface.
 
 ---
