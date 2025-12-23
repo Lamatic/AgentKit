@@ -1,5 +1,111 @@
 {
-    "name": "Blog Drafting Flow",
-    "description": "Placeholder for the Lamatic Drafting Flow. Export your actual flow from Lamatic Studio to replace this.",
-    "version": "1.0.0"
+    "nodes": [
+        {
+            "id": "triggerNode_3",
+            "data": {
+                "modes": {},
+                "nodeId": "graphqlNode",
+                "values": {
+                    "nodeName": "API Request",
+                    "responeType": "realtime",
+                    "advance_schema": "{\n  \"title\": \"string\",\n  \"content\": \"string\"\n}"
+                },
+                "trigger": true
+            },
+            "type": "triggerNode",
+            "measured": {
+                "width": 218,
+                "height": 95
+            },
+            "position": {
+                "x": 225,
+                "y": 0
+            },
+            "selected": false
+        },
+        {
+            "id": "apiNode_publish",
+            "data": {
+                "label": "dynamicNode node",
+                "modes": {},
+                "nodeId": "apiNode",
+                "values": {
+                    "url": "https://public-api.wordpress.com/wp/v2/sites/YOUR_SITE/posts",
+                    "body": {
+                        "title": "{{triggerNode_3.output.title}}",
+                        "content": "{{triggerNode_3.output.content}}",
+                        "status": "publish"
+                    },
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer YOUR_WORDPRESS_TOKEN"
+                    },
+                    "nodeName": "Publish to WordPress"
+                }
+            },
+            "type": "dynamicNode",
+            "measured": {
+                "width": 218,
+                "height": 95
+            },
+            "position": {
+                "x": 225,
+                "y": 150
+            },
+            "selected": false
+        },
+        {
+            "id": "responseNode_triggerNode_3",
+            "data": {
+                "label": "Response",
+                "nodeId": "graphqlResponseNode",
+                "values": {
+                    "headers": "{\"content-type\":\"application/json\"}",
+                    "retries": "0",
+                    "nodeName": "API Response",
+                    "webhookUrl": "",
+                    "retry_delay": "0",
+                    "outputMapping": "{\n  \"url\": \"{{apiNode_publish.output.link}}\",\n  \"status\": \"{{apiNode_publish.output.status}}\",\n  \"id\": \"{{apiNode_publish.output.id}}\"\n}"
+                },
+                "isResponseNode": true
+            },
+            "type": "responseNode",
+            "measured": {
+                "width": 218,
+                "height": 95
+            },
+            "position": {
+                "x": 225,
+                "y": 300
+            },
+            "selected": false
+        }
+    ],
+    "edges": [
+        {
+            "id": "triggerNode_3-apiNode_publish",
+            "type": "defaultEdge",
+            "source": "triggerNode_3",
+            "target": "apiNode_publish",
+            "sourceHandle": "bottom",
+            "targetHandle": "top"
+        },
+        {
+            "id": "apiNode_publish-responseNode_triggerNode_3",
+            "type": "defaultEdge",
+            "source": "apiNode_publish",
+            "target": "responseNode_triggerNode_3",
+            "sourceHandle": "bottom",
+            "targetHandle": "top"
+        },
+        {
+            "id": "response-trigger_triggerNode_3",
+            "type": "responseEdge",
+            "source": "triggerNode_3",
+            "target": "responseNode_triggerNode_3",
+            "sourceHandle": "to-response",
+            "targetHandle": "from-trigger"
+        }
+    ]
 }

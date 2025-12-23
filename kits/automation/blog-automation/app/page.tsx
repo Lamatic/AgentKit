@@ -292,16 +292,23 @@ export default function BlogAutomationPage() {
                     <RefreshCw className="w-5 h-5" />
                     Run Another Task
                   </Button>
-                  <Button
-                    asChild
-                    className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-2xl text-base font-black shadow-xl transition-all duration-300 active:scale-[0.98] group"
-                    disabled={!result.url}
-                  >
-                    <a href={result.url || "#"} target="_blank" rel="noreferrer">
-                      View Live Post
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </a>
-                  </Button>
+
+                  {result.url ? (
+                    <Button
+                      asChild
+                      className="w-full h-14 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-base font-black shadow-xl transition-all duration-300 active:scale-[0.98] group"
+                    >
+                      <a href={result.url} target="_blank" rel="noreferrer">
+                        View Live Post
+                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 text-center">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Live Link Notification</p>
+                      <p className="text-sm text-slate-500 font-medium">Post was published successfully, but no live URL was returned by the platform.</p>
+                    </div>
+                  )}
                 </div>
               </Card>
 
