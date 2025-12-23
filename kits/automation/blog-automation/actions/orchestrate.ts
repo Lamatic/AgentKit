@@ -36,28 +36,48 @@ export async function runBlogAutomation(
     const draftingFlow = flows.drafting
     if (!draftingFlow.workflowId) throw new Error("Drafting Flow ID missing")
 
-    const draftingRes = await lamaticClient.executeFlow(draftingFlow.workflowId, {
+    const payload = {
       topic,
       keywords,
-      instructions
-    })
+      instructions,
+      // Common variations to ensure mapping
+      Topic: topic,
+      Keywords: keywords,
+      Instructions: instructions
+    }
+    console.log("[Blog Automation] Sending Payload to Drafting:", JSON.stringify(payload, null, 2))
+
+    const draftingRes = await lamaticClient.executeFlow(draftingFlow.workflowId, payload)
+    console.log("[Blog Automation] Drafting Response:", JSON.stringify(draftingRes, null, 2))
+
     if (draftingRes?.status === "error") {
       throw new Error(`Lamatic Error: ${draftingRes.message || "Unknown error"}`)
     }
 
-    const draft = draftingRes?.result?.draft
+    const draft = draftingRes?.result?.generatedResponse || draftingRes?.result?.content || draftingRes?.result?.draft
     if (!draft) throw new Error("Drafting failed: No content generated")
 
     // 2. SEO Optimization Phase
-    console.log("[Blog Automation] Starting SEO Optimization...")
     const seoFlow = flows.seo
     if (!seoFlow.workflowId) throw new Error("SEO Flow ID missing")
 
-    const seoRes = await lamaticClient.executeFlow(seoFlow.workflowId, {
+    const seoPayload = {
       draft,
-      keywords
-    })
-    const optimizedContent = seoRes?.result?.optimized_content
+      keywords,
+      // Common variations to ensure mapping
+      content: draft,
+      text: draft,
+      Keywords: keywords
+    }
+    console.log("[Blog Automation] Sending Payload to SEO:", JSON.stringify(seoPayload, null, 2))
+
+    const seoRes = await lamaticClient.executeFlow(seoFlow.workflowId, seoPayload)
+    console.log("[Blog Automation] SEO Response:", JSON.stringify(seoRes, null, 2))
+
+    if (seoRes?.status === "error") {
+      throw new Error(`Lamatic SEO Error: ${seoRes.message || "Unknown error"}`)
+    }
+    const optimizedContent = seoRes?.result?.generatedResponse || seoRes?.result?.optimized_content || seoRes?.result?.content || seoRes?.result?.text
     if (!optimizedContent) throw new Error("SEO Optimization failed")
 
     // 3. Publishing Phase
@@ -65,23 +85,42 @@ export async function runBlogAutomation(
     const publishFlow = flows.publish
     if (!publishFlow.workflowId) throw new Error("Publish Flow ID missing")
 
-    const publishRes = await lamaticClient.executeFlow(publishFlow.workflowId, {
+    const publishPayload = {
       content: optimizedContent,
-      title: topic // Using topic as title for now
-    })
+      title: topic,
+      // Common variations to ensure mapping
+      text: optimizedContent,
+      Topic: topic,
+      Title: topic
+    }
+    console.log("[Blog Automation] Sending Payload to Publish:", JSON.stringify(publishPayload, null, 2))
 
-    const url = publishRes?.result?.url
-    const status = publishRes?.result?.publish_status
+    const publishRes = await lamaticClient.executeFlow(publishFlow.workflowId, publishPayload)
+    console.log("[Blog Automation] Publish Response:", JSON.stringify(publishRes, null, 2))
+
+    if (publishRes?.status === "error") {
+      throw new Error(`Lamatic Publish Error: ${publishRes.message || "Unknown error"}`)
+    }
+
+    const url = publishRes?.result?.url || publishRes?.result?.post_url || publishRes?.result?.link || ""
+    const rawStatus = publishRes?.result?.publish_status || publishRes?.result?.status || publishRes?.status
+    const status = (rawStatus === "success" || rawStatus === "publish") ? "success" : rawStatus
+    const message = publishRes?.result?.message || ""
+
+    // Detect if the response is an HTML error page (common with WordPress 404s)
+    if (typeof message === "string" && (message.includes("<!DOCTYPE html>") || message.includes("Page not found"))) {
+      throw new Error("Publishing failed: The CMS returned a 'Page Not Found' (404) error. Please check your CMS endpoint in Lamatic Studio.")
+    }
 
     if (status !== "success" && !url) {
-      throw new Error("Publishing failed")
+      throw new Error(`Publishing failed: Response status was '${rawStatus}' and no URL was found.`)
     }
 
     return {
       success: true,
       draft,
       optimizedContent,
-      url
+      url: typeof url === "string" ? url : ""
     }
 
   } catch (error) {

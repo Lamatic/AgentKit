@@ -1,0 +1,33 @@
+{
+    "inputs": [
+        {
+            "name": "title",
+            "type": "string",
+            "required": true,
+            "description": "The title of the blog post"
+        },
+        {
+            "name": "content",
+            "type": "string",
+            "required": true,
+            "description": "The blog post content to publish"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "url",
+            "type": "string",
+            "description": "The URL of the published blog post"
+        },
+        {
+            "name": "status",
+            "type": "string",
+            "description": "The publish status (publish, draft, etc.)"
+        },
+        {
+            "name": "id",
+            "type": "number",
+            "description": "The ID of the published post"
+        }
+    ]
+}

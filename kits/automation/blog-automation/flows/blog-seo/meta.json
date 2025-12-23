@@ -1,0 +1,17 @@
+{
+    "name": "2. SEO Optimization",
+    "description": "Optimizes a blog post draft for SEO using target keywords.",
+    "tags": [
+        "seo",
+        "optimization",
+        "content",
+        "ai"
+    ],
+    "testInput": {
+        "draft": "This is a sample blog post about AI in content creation...",
+        "keywords": "AI, content, automation, blogging"
+    },
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": ""
+}
