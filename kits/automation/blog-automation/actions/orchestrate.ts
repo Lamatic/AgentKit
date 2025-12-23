@@ -41,6 +41,10 @@ export async function runBlogAutomation(
       keywords,
       instructions
     })
+    if (draftingRes?.status === "error") {
+      throw new Error(`Lamatic Error: ${draftingRes.message || "Unknown error"}`)
+    }
+
     const draft = draftingRes?.result?.draft
     if (!draft) throw new Error("Drafting failed: No content generated")
 
