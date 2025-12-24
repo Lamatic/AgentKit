@@ -1,7 +1,7 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import { config } from "../orchestrate.js"
+import { config } from "../orchestrate"
 
 export type BlogAutomationResult = {
   success: boolean

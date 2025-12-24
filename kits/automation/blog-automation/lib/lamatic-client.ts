@@ -1,22 +1,14 @@
 import { Lamatic } from "lamatic";
-import { config } from '../orchestrate.js'
+import { config } from '../orchestrate'
 
-interface LamaticConfig {
-  api: {
-    endpoint?: string;
-    projectId?: string | null;
-    apiKey?: string;
-  }
-}
-
-const lamaticConfig = config as LamaticConfig;
-
-if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
-  console.warn("Lamatic API Credentials are not fully set in environment variables. Set them in .env for production usage.");
+if (!config.api.endpoint || !config.api.projectId || !config.api.apiKey) {
+  throw new Error(
+    "Lamatic API Credentials are not fully set. Please ensure LAMATIC_API_URL, LAMATIC_PROJECT_ID, and LAMATIC_API_KEY are configured in your .env file."
+  );
 }
 
 export const lamaticClient = new Lamatic({
-  endpoint: lamaticConfig?.api?.endpoint ?? "",
-  projectId: lamaticConfig?.api?.projectId ?? null,
-  apiKey: lamaticConfig?.api?.apiKey ?? ""
+  endpoint: config.api.endpoint,
+  projectId: config.api.projectId,
+  apiKey: config.api.apiKey
 });

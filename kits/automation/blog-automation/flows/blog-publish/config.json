@@ -30,7 +30,7 @@
                 "modes": {},
                 "nodeId": "apiNode",
                 "values": {
-                    "url": "https://public-api.wordpress.com/wp/v2/sites/YOUR_SITE/posts",
+                    "url": "https://public-api.wordpress.com/wp/v2/sites/{{env.WORDPRESS_SITE_ID}}/posts",
                     "body": {
                         "title": "{{triggerNode_3.output.title}}",
                         "content": "{{triggerNode_3.output.content}}",
@@ -39,7 +39,7 @@
                     "method": "POST",
                     "headers": {
                         "Content-Type": "application/json",
-                        "Authorization": "Bearer YOUR_WORDPRESS_TOKEN"
+                        "Authorization": "Bearer {{env.WORDPRESS_TOKEN}}"
                     },
                     "nodeName": "Publish to WordPress"
                 }
