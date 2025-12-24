@@ -20,7 +20,7 @@ export async function runBlogAutomation(
     const { flows } = config
 
     // MOCK MODE: For testing without live Lamatic keys
-    if (process.env.NEXT_PUBLIC_MOCK_MODE === "true" || !process.env.LAMATIC_API_KEY) {
+    if (process.env.NEXT_PUBLIC_MOCK_MODE === "true") {
       console.log("[Blog Automation] Running in MOCK MODE")
       await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate network lag
       return {
