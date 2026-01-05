@@ -1,0 +1,29 @@
+{
+    "inputs": [
+        {
+            "name": "topic",
+            "type": "string",
+            "required": true,
+            "description": "The topic or title for the blog post"
+        },
+        {
+            "name": "keywords",
+            "type": "string",
+            "required": true,
+            "description": "Comma-separated keywords to include in the blog post"
+        },
+        {
+            "name": "instructions",
+            "type": "string",
+            "required": false,
+            "description": "Additional instructions for the AI (tone, length, style, etc.)"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "generatedResponse",
+            "type": "string",
+            "description": "The generated blog post draft"
+        }
+    ]
+}
