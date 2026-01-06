@@ -1,0 +1,29 @@
+{
+  "flows": {
+    "travelPlanner": {
+      "name": "Multi-Agent Travel Planner",
+      "workflowId": "3cc791a2-ca33-4e27-8791-ff386cef14b2",
+      "description": "Coordinates research, visualization, and booking agents for travel planning.",
+      "mode": "sync",
+      "expectedOutput": "result",
+      "inputSchema": {
+        "origin": "string",
+        "destination": "string",
+        "start_date": "string",
+        "end_date": "string",
+        "budget": "number",
+        "interests": "array",
+        "travelers": "number",
+        "flight_class": "string"
+      },
+      "outputSchema": {
+        "status": "string",
+        "result": "object"
+      }
+    }
+  },
+  "api": {
+    "endpoint": "https://agentkit198-travelplanner916.lamatic.dev/graphql",
+    "projectId": "bee05145-3d20-4d4b-a965-75ec69cc4a65"
+  }
+}
