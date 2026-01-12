@@ -1,0 +1,15 @@
+{
+  "name": "3. Embedded Chatbot - Resource Deletion",
+  "description": "",
+  "tags": [],
+  "testInput": {
+    "title": "test",
+    "type": "website",
+    "urls": [
+      "https://lamatic.ai/docs"
+    ]
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

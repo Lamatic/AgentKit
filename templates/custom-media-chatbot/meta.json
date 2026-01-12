@@ -1,0 +1,13 @@
+{
+    "name": "Custom Media Chatbot",
+    "description": "This flow builds a custom media-based chatbot that can answer questions based on your media file content in a ready-made chat interface, supporting text, JSON, HTML, and/or PDF files.",
+    "tags": ["📞 Support", "🏷️ Sales"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/custom-media-chatbot",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "Email Summariser",
+    "description": "This N8N workflow builds an AI-powered email summarization tool that automatically processes incoming emails, extracts key insights, and generates concise summaries, enabling users to quickly understand important information.",
+    "tags": ["📞 Support", "🚀 Startup"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/email-summariser",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

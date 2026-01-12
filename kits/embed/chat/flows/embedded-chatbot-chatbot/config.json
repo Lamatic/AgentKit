@@ -1,0 +1,142 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "nodeId": "chatTriggerNode",
+        "values": {
+          "id": "triggerNode_1",
+          "chat": "",
+          "domains": [
+            "*"
+          ],
+          "nodeName": "Chat Widget",
+          "chatConfig": {
+            "botName": "Lamatic Bot",
+            "imageUrl": "https://api.lamatic.ai/storage/v1/object/public/widget-avatar/LamaticShowcase/UrlScraperChatbot866/2bf0df6e-04b0-4392-8100-4c8a4d5eeb09/1749111185167.png",
+            "position": "right",
+            "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
+            "displayMode": "dialog",
+            "placeholder": "Compose your message",
+            "suggestions": [],
+            "errorMessage": "Oops! Something went wrong. Please try again.",
+            "hideBranding": false,
+            "primaryColor": "#4b65d9",
+            "headerBgColor": "#000000",
+            "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+            "headerTextColor": "#FFFFFF",
+            "showEmojiButton": true,
+            "suggestionBgColor": "#f1f5f9",
+            "showAdvancedColors": true,
+            "userMessageBgColor": "#faf5ff",
+            "agentMessageBgColor": "#f1f5f9",
+            "suggestionTextColor": "#334155",
+            "userMessageTextColor": "#092395",
+            "agentMessageTextColor": "#334155"
+          }
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "chatResponseNode_988",
+      "data": {
+        "nodeId": "chatResponseNode",
+        "values": {
+          "id": "chatResponseNode_988",
+          "content": "{{RAGNode_711.output.modelResponse}}",
+          "nodeName": "Chat Response",
+          "references": ""
+        }
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "selected": false
+    },
+    {
+      "id": "RAGNode_711",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "RAGNode",
+        "values": {
+          "limit": 20,
+          "filters": "",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a helpful chat assistant who is trained on the data as defined by the builder. In the context, you will be given the most relevant contents from the database from which you have to reference and answer. These will be context documents, from which you will answer. In the end, you will be giving reference(s) as well and a small CTA to the user to check them out for further refinement of their answer. Note that never give any hyperlink attached as the current schema does not have any link, just mention them to check the documentation. In case of no relevant answers, do not make the answer yourself and let them know that no relevant reference/document can be found in the context database.\n\nIf the source of references is coming from a website, only then give a hyperlink. If it is coming from the PDF database, consider it a source of truth they already have access to and do not give any hyperlink in that case. In case you do get a source link (in the website DB) do add that link to your answer for sure."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "USER QUERY : {{triggerNode_1.output.chatMessage}} \n\nCURRENT CHAT HISTORY FOR CONTEXT : {{triggerNode_1.output.chatHistory}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "",
+          "nodeName": "RAG",
+          "vectorDB": "",
+          "certainty": "0.5",
+          "queryField": "{{triggerNode_1.output.chatMessage}}",
+          "embeddingModelName": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-RAGNode_711",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "RAGNode_711",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "RAGNode_711-chatResponseNode_988-221",
+      "type": "defaultEdge",
+      "source": "RAGNode_711",
+      "target": "chatResponseNode_988",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-chatResponseNode_988",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "chatResponseNode_988",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

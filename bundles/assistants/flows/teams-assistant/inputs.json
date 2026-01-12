@@ -1,0 +1,71 @@
+{
+  "RAGNode_233": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Database",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database to be queried.",
+      "defaultValue": ""
+    },
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "This field allows the user to select the embedding model used to embed the query into vector space. It loads available embedding models through the listModels method.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    },
+    {
+      "mode": "chat",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model to generate responses from the query results.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ],
+  "teamsNode_784": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Teams authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    }
+  ],
+  "triggerNode_1": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Teams authentication.",
+      "defaultValue": "",
+      "fillFromStep": {
+        "name": "credentials",
+        "step": 0,
+        "nodeId": "teamsNode_784"
+      },
+      "isCredential": true
+    }
+  ]
+}

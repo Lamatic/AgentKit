@@ -1,0 +1,50 @@
+{
+  "InstructorLLMNode_445": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "mode": "instructor",
+      "description": "Select the model to generate text based on the prompt.",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "searchNode_278": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": ""
+    },
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model",
+      "mode": "embedding",
+      "modelType": "embedder/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ]
+}

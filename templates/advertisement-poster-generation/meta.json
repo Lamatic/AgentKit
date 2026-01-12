@@ -1,0 +1,13 @@
+{
+    "name": "Advertisement Poster Generation",
+    "description": "This intakes an image to provide analysis and advertisement poster as the output using multimodal and image generation models",
+    "tags": ["✨ Generative"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/advertisement-poster-generation",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

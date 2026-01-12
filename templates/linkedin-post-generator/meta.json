@@ -1,0 +1,13 @@
+{
+    "name": "Linkedin Post Generator",
+    "description": "This flow builds an AI-powered LinkedIn post automation system. It fetches newsletter emails via API, extracts key content, and generates engaging LinkedIn posts.",
+    "tags": ["🌱 Growth", "✨ Generative"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/linkedin-post-generator",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

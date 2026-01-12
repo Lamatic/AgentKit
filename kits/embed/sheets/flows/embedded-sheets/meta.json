@@ -1,0 +1,18 @@
+{
+  "name": "1. Embedded AI Sheets",
+  "description": "",
+  "tags": [],
+  "testInput": {
+    "sheetId": "d0062c86b2494d83",
+    "columnId": "8c5e89f9b7c74f27",
+    "rowId": "2e94ccdfa59540c2",
+    "instruction": "summarise in funny tone based on context",
+    "aiType": "summarize",
+    "data": "words: 50; blog: ### Lamatic AI vs. Vellum: Choosing the Right Tool for Your Words  In the evolving landscape of digital writing and publishing, two platforms stand out for their innovative approaches: Lamatic AI and Vellum. Both offer powerful solutions for writers, but they cater to distinctly different stages of the creative process. Lamatic AI excels in content generation and writing assistance, while Vellum is the gold standard for professional book formatting. Understanding their unique strengths is key to choosing the right tool for your specific project.  Lamatic AI is a creator's powerhouse, designed to streamline the writing process from idea to first draft. Its core strength lies in its advanced AI, which can generate articles, brainstorm ideas, and help overcome writer's block. For bloggers, marketers, and content creators, Lamatic AI is an invaluable partner. The user-friendly interface makes it simple to produce dynamic, SEO-friendly content quickly. It acts as an intelligent assistant, focusing on the \"what\" and \"how\" of your writing, ensuring your message is crafted effectively.  On the other hand, Vellum is the artisan's tool for the final presentation. It specializes in one thing and does it flawlessly: creating beautifully formatted books. Primarily for authors preparing to publish, Vellum offers a suite of elegant templates that produce professional-grade ebooks and print-ready PDFs with minimal effort. Its focus is purely on aesthetics and formatting, transforming a finished manuscript into a polished product ready for platforms like Amazon KDP or Apple Books. It handles everything from chapter headings to drop caps with grace.  So, which should you choose? The decision comes down to your primary need. If you're focused on content creation, generating drafts, and need AI-powered writing assistance, Lamatic AI is your ideal companion. If you have a completed manuscript and your goal is to produce a visually stunning, professionally formatted book for publication, Vellum is the undisputed choice.  Have you used either of these platforms? Share your experiences and which tool best fits your workflow in the comments below",
+    "outputFormat": "text",
+    "webhookUrl": "https://v0-agent-kit-sheets.vercel.app/api/webhook/ai-result"
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

@@ -1,0 +1,122 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "scraperNode_252",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "scraperNode",
+        "values": {
+          "nodeName": "Scraper",
+          "url": "{{triggerNode_1.output.url}}",
+          "mobile": false,
+          "waitFor": 123,
+          "credentials": null,
+          "excludeTags": [],
+          "includeTags": [],
+          "onlyMainContent": true,
+          "skipTLsVerification": false
+        }
+      }
+    },
+    {
+      "id": "LLMNode_160",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "201de7d9-b31f-4065-bbae-3363983ce3bf",
+              "role": "user",
+              "content": "Markdown Content: {{scraperNode_247.output.markdown}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "I will provide you with a markdown file containing an article. Extract the key points and generate a detailed yet concise summary, capturing the main ideas, arguments, and insights presented in the article. Ensure the summary is well\\-structured and easy to understand."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_651",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"summary\": \"{{LLMNode_160.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-scraperNode_252",
+      "source": "triggerNode_1",
+      "target": "scraperNode_252",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "scraperNode_252-LLMNode_160",
+      "source": "scraperNode_252",
+      "target": "LLMNode_160",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_160-graphqlResponseNode_651",
+      "source": "LLMNode_160",
+      "target": "graphqlResponseNode_651",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_651",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_651",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

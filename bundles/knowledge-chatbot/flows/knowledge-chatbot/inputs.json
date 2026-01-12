@@ -1,0 +1,42 @@
+{
+  "RAGNode_711": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Database",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database to be queried.",
+      "defaultValue": ""
+    },
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "This field allows the user to select the embedding model used to embed the query into vector space. It loads available embedding models through the listModels method.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    },
+    {
+      "mode": "chat",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model to generate responses from the query results.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+}

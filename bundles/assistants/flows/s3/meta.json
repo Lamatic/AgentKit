@@ -1,0 +1,13 @@
+{
+  "name": "S3",
+  "description": "S3 Indexation",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

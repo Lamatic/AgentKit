@@ -1,0 +1,13 @@
+{
+  "name": "1B. Embedded Chatbot - Websites Indexation",
+  "description": "",
+  "tags": [],
+  "testInput": {
+    "urls": [
+      "https://lamatic.ai/docs"
+    ]
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

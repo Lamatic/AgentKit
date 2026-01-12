@@ -1,0 +1,186 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "webhookTriggerNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "Webhook"
+        }
+      }
+    },
+    {
+      "id": "conditionNode_199",
+      "type": "conditionNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "conditionNode",
+        "values": {
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_673-addNode_460",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.type}}\",\n      \"operator\": \"==\",\n      \"value\": \"crawl.page\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_673-addNode_179",
+              "condition": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "addNode_728",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "addNode_817",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    },
+    {
+      "id": "codeNode_474",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Code",
+          "code": "let vectorData = \"title: \" + {{ triggerNode_1.output.data }}[0].metadata.title + \" \\n description: \" + {{ triggerNode_1.output.data }}[0].metadata.description + \" \\n url: \" + {{ triggerNode_1.output.data }}[0].metadata.url + \" \\n sourceURL: \" + {{ triggerNode_1.output.data }}[0].metadata.sourceURL + \" \\n markdown: \" + {{ triggerNode_1.output.data }}[0].markdown\n\nlet MetaData = {\n  rawHtml: {{ triggerNode_1.output.data }}[0].rawHtml,  \n  markdown: {{ triggerNode_1.output.data }}[0].markdown,\n  title: {{ triggerNode_1.output.data }} [0].metadata.title,\n  description: {{ triggerNode_1.output.data }} [0].metadata.description,\n  url: {{ triggerNode_1.output.data }}[0].metadata.url,\n  sourceURL:{{ triggerNode_1.output.data }} [0].metadata.sourceURL,\n}\n\noutput = {\"vectorData\":[vectorData],\"MetaData\":[MetaData]};"
+        }
+      }
+    },
+    {
+      "id": "vectorizeNode_657",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "vectorizeNode",
+        "values": {
+          "nodeName": "Vectorize",
+          "inputText": "{{codeNode_474.output.vectorData}}",
+          "embeddingModelName": {}
+        }
+      }
+    },
+    {
+      "id": "IndexNode_117",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "IndexNode",
+        "values": {
+          "nodeName": "Index",
+          "primaryKeys": "",
+          "vectorsField": "{{vectorizeNode_657.output.vectors}}",
+          "metadataField": "{{codeNode_474.output.MetaData}}",
+          "duplicateOperation": "overwrite"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-conditionNode_199",
+      "source": "triggerNode_1",
+      "target": "conditionNode_199",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_673-addNode_460",
+      "source": "conditionNode_199",
+      "target": "addNode_728",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge"
+    },
+    {
+      "id": "conditionNode_673-addNode_179",
+      "source": "conditionNode_199",
+      "target": "codeNode_474",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge"
+    },
+    {
+      "id": "addNode_728-addNode_817",
+      "source": "addNode_728",
+      "target": "addNode_817",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "IndexNode_117-addNode_817",
+      "source": "IndexNode_117",
+      "target": "addNode_817",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_474-vectorizeNode_657",
+      "source": "codeNode_474",
+      "target": "vectorizeNode_657",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "vectorizeNode_657-IndexNode_117",
+      "source": "vectorizeNode_657",
+      "target": "IndexNode_117",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    }
+  ]
+}

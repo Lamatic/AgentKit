@@ -1,0 +1,17 @@
+{
+    "name": "3. CMS Publishing",
+    "description": "Publishes the optimized blog post to WordPress or another CMS.",
+    "tags": [
+        "publish",
+        "wordpress",
+        "cms",
+        "api"
+    ],
+    "testInput": {
+        "title": "Test Blog Post Title",
+        "content": "This is the test content for the blog post."
+    },
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": ""
+}

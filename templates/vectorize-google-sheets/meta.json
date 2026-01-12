@@ -1,0 +1,13 @@
+{
+    "name": "Vectorize Google Sheets",
+    "description": "This flow vectorizes Google Sheets data and loads it into a vector database, enabling fast, accurate search and RAG flows grounded in the context of your data.",
+    "tags": ["🚀 Startup", "📱 Apps"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/vectorize-google-sheets",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

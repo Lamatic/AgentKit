@@ -1,0 +1,109 @@
+{
+    "nodes": [
+        {
+            "id": "triggerNode_1",
+            "data": {
+                "modes": {},
+                "nodeId": "graphqlNode",
+                "values": {
+                    "nodeName": "API Request",
+                    "responeType": "realtime",
+                    "advance_schema": "{\n  \"topic\": \"string\",\n  \"keywords\": \"string\",\n  \"instructions\": \"string\"\n}"
+                },
+                "trigger": true
+            },
+            "type": "triggerNode",
+            "measured": {
+                "width": 218,
+                "height": 95
+            },
+            "position": {
+                "x": 225,
+                "y": 0
+            },
+            "selected": false
+        },
+        {
+            "id": "LLMNode_drafting",
+            "data": {
+                "label": "dynamicNode node",
+                "modes": {},
+                "nodeId": "LLMNode",
+                "values": {
+                    "tools": [],
+                    "prompts": [
+                        {
+                            "id": "draft_prompt_1",
+                            "role": "user",
+                            "content": "Write a professional blog post about {{triggerNode_1.output.topic}}.\nUse these keywords naturally: {{triggerNode_1.output.keywords}}.\nFollow these instructions carefully: {{triggerNode_1.output.instructions}}."
+                        }
+                    ],
+                    "nodeName": "Generate Blog Draft",
+                    "generativeModelName": ""
+                }
+            },
+            "type": "dynamicNode",
+            "measured": {
+                "width": 218,
+                "height": 95
+            },
+            "position": {
+                "x": 225,
+                "y": 150
+            },
+            "selected": false
+        },
+        {
+            "id": "responseNode_triggerNode_1",
+            "data": {
+                "label": "Response",
+                "nodeId": "graphqlResponseNode",
+                "values": {
+                    "headers": "{\"content-type\":\"application/json\"}",
+                    "retries": "0",
+                    "nodeName": "API Response",
+                    "webhookUrl": "",
+                    "retry_delay": "0",
+                    "outputMapping": "{\n  \"generatedResponse\": \"{{LLMNode_drafting.output}}\"\n}"
+                },
+                "isResponseNode": true
+            },
+            "type": "responseNode",
+            "measured": {
+                "width": 218,
+                "height": 95
+            },
+            "position": {
+                "x": 225,
+                "y": 300
+            },
+            "selected": false
+        }
+    ],
+    "edges": [
+        {
+            "id": "triggerNode_1-LLMNode_drafting",
+            "type": "defaultEdge",
+            "source": "triggerNode_1",
+            "target": "LLMNode_drafting",
+            "sourceHandle": "bottom",
+            "targetHandle": "top"
+        },
+        {
+            "id": "LLMNode_drafting-responseNode_triggerNode_1",
+            "type": "defaultEdge",
+            "source": "LLMNode_drafting",
+            "target": "responseNode_triggerNode_1",
+            "sourceHandle": "bottom",
+            "targetHandle": "top"
+        },
+        {
+            "id": "response-trigger_triggerNode_1",
+            "type": "responseEdge",
+            "source": "triggerNode_1",
+            "target": "responseNode_triggerNode_1",
+            "sourceHandle": "to-response",
+            "targetHandle": "from-trigger"
+        }
+    ]
+}
