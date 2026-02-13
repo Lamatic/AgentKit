@@ -3,8 +3,8 @@
         [
             {
                 "id": "dd99b629-f089-4859-b0d6-539bb5d368bd",
-                "name": "Advertisement Poster Generation",
-                "description": "This flow allows to generate an advertisement poster based on user prompt",
+                "name": "Advertisement Poster Generation ",
+                "description": "This flow allows to generate an advertisement poster based on user prompts",
                 "deployUrl": "https://studio.lamatic.ai/_?templateSlug=advertisement-poster-generation",
                 "rawNodes": [
                     {
