@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - './templates/indexation/templates.json'
+      - 'templates/indexation/templates.json'
   pull_request:
     types: [closed]
     branches: [main]
     paths:
-      - './templates/indexation/templates.json'
+      - 'templates/indexation/templates.json'
 
 jobs:
   reindex:
