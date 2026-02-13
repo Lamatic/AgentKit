@@ -1,0 +1,68 @@
+name: Reindex Templates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - './templates/indexation/templates.json'
+  pull_request:
+    types: [closed]
+    branches: [main]
+    paths:
+      - './templates/indexation/templates.json'
+
+jobs:
+  reindex:
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload to Supabase Storage
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          BUCKET_NAME: assets
+        run: |
+          curl -X PUT \
+            "${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/templates/templates.json" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "x-upsert: true" \
+            --data-binary @templates/indexation/templates.json
+      
+      - name: Trigger Lamatic Reindex (sync)
+        env:
+          LAMATIC_API_KEY: ${{ secrets.LAMATIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          BUCKET_NAME: assets
+        run: |
+          DOCUMENT_URL="${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/templates/templates.json"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 120 -X POST \
+            https://sandbox566-aiassistants101.lamatic.dev/graphql \
+            -H "Authorization: Bearer ${LAMATIC_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            -H 'x-project-id: c80727fc-add3-4e71-a306-11b632c4f1d6' \
+            -d "{
+              \"query\": \"query ExecuteWorkflow(\$workflowId: String!, \$document_url: String) { executeWorkflow(workflowId: \$workflowId, payload: { document_url: \$document_url }) { status result } }\",
+              \"variables\": {
+                \"workflowId\": \"7ec0a0d0-8deb-43c4-9939-6e0ed1c34f1f\",
+                \"document_url\": \"${DOCUMENT_URL}\"
+              }
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "::error::Reindex failed with status $HTTP_CODE"
+            exit 1
+          fi
+          
+          echo "✅ Templates reindexed successfully"
