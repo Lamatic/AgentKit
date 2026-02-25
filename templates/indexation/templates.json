@@ -3357,7 +3357,7 @@
     {
         "id": "42b36c31-de1d-44d1-a8bd-f715cb2ea395",
         "name": "Hiring Agent",
-        "description": "",
+        "description": "This template allows you to analyse an input resume and gives detailed analysis of selection/rejection",
         "deployUrl": "https://studio.lamatic.ai/_?templateSlug=hiring-agent",
         "rawNodes": [
             {
