@@ -16,7 +16,7 @@
     "integrations": [],
     "features": [],
     "demoUrl": "",
-    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/grammar",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/grammar-extension",
     "deployUrl": "",
-    "documentationUrl": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+    "documentationUrl": ""
 }
