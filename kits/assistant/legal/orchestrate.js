@@ -20,7 +20,7 @@ export const config = {
         disclaimer: "string"
       },
       mode: "sync",
-      polling: "false"
+      polling: false
     }
   },
   api: {

@@ -22,10 +22,11 @@ It is designed to:
 
 This project is for informational and educational use only.
 It is not legal advice, does not create an attorney-client relationship, and should not replace consultation with a licensed attorney.
+Do not submit confidential, privileged, or personally identifying information unless you have reviewed and accepted the data retention and logging policies of Lamatic and your configured model provider.
 
 ## Prerequisites and Required Providers
 
-- Node.js 18+
+- Node.js 20.9+
 - npm 9+
 - Lamatic account and deployed flow
 - Lamatic API key, project ID, and API URL
@@ -53,10 +54,10 @@ Post: Wire into this repo
 Create `.env.local`:
 
 ```bash
-ASSISTANT_LEGAL_ADVISOR = "ASSISTANT_LEGAL_ADVISOR Flow ID"
-LAMATIC_API_URL = "LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
-LAMATIC_API_KEY = "LAMATIC_API_KEY"
+ASSISTANT_LEGAL_ADVISOR="your-flow-id-here"
+LAMATIC_API_URL="https://your-lamatic-api-url"
+LAMATIC_PROJECT_ID="your-project-id"
+LAMATIC_API_KEY="your-api-key"
 ```
 
 ## Setup and Run Instructions

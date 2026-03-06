@@ -50,7 +50,7 @@ function EmptyMedia({
 }: React.ComponentProps<'div'> & VariantProps<typeof emptyMediaVariants>) {
   return (
     <div
-      data-slot="empty-icon"
+      data-slot="empty-media"
       data-variant={variant}
       className={cn(emptyMediaVariants({ variant, className }))}
       {...props}
@@ -70,7 +70,7 @@ function EmptyTitle({ className, ...props }: React.ComponentProps<'div'>) {
 
 function EmptyDescription({ className, ...props }: React.ComponentProps<'p'>) {
   return (
-    <div
+    <p
       data-slot="empty-description"
       className={cn(
         'text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4',

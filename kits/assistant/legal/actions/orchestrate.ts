@@ -1,8 +1,8 @@
 "use server"
 
-import { lamaticClient } from "@/lib/lamatic-client"
+import { getLamaticClient } from "@/lib/lamatic-client"
 import { config } from "../orchestrate.js"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 const DEFAULT_DISCLAIMER =
@@ -38,7 +38,7 @@ function toStringArray(value: unknown): string[] {
   return []
 }
 
-function extractAnswer(result: Record<string, any>): string {
+function extractAnswer(result: Record<string, unknown>): string {
   const candidates = [
     result.answer,
     result.response,
@@ -53,16 +53,19 @@ function extractAnswer(result: Record<string, any>): string {
     }
   }
 
-  if (typeof result === "string" && result.trim()) {
-    return result.trim()
-  }
-
   return ""
 }
 
 function usesChatTriggerExport(): boolean {
   try {
-    const flowConfigPath = join(process.cwd(), "flows", "assistant-legal-advisor", "config.json")
+    const candidates = [
+      join(process.cwd(), "flows", "assistant-legal-advisor", "config.json"),
+      join(process.cwd(), "kits", "assistant", "legal", "flows", "assistant-legal-advisor", "config.json"),
+    ]
+    const flowConfigPath = candidates.find((path) => existsSync(path))
+    if (!flowConfigPath) {
+      return false
+    }
     const raw = readFileSync(flowConfigPath, "utf-8")
     const parsed = JSON.parse(raw) as { nodes?: FlowNode[] }
     const nodes = Array.isArray(parsed.nodes) ? parsed.nodes : []
@@ -140,13 +143,14 @@ export async function getLegalGuidance(
       }
     }
 
+    const lamaticClient = getLamaticClient()
     const response = await lamaticClient.executeFlow(flow.workflowId, workflowInput)
 
     if (response?.status === "error") {
       throw new Error(response?.message || "Lamatic flow returned an error")
     }
 
-    const result = (response?.result ?? {}) as Record<string, any>
+    const result = (response?.result ?? {}) as Record<string, unknown>
 
     const answer = extractAnswer(result)
     if (!answer) {

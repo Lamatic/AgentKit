@@ -13,15 +13,17 @@ type LegalAskWidgetProps = {
 export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: LegalAskWidgetProps) {
   const [ready, setReady] = useState(false)
   const [error, setError] = useState("")
+  const configError =
+    !flowId || !apiUrl || !projectId
+      ? "Missing Flow ID, API URL, or Project ID for Ask Widget initialization."
+      : triggerType === "unknown"
+        ? "Unable to detect flow trigger type from exported flow config."
+        : ""
+  const resolvedError = configError || error
+  const isReady = configError ? false : ready
 
   useEffect(() => {
-    if (!flowId || !apiUrl || !projectId) {
-      setError("Missing Flow ID, API URL, or Project ID for Ask Widget initialization.")
-      return
-    }
-
-    if (triggerType === "unknown") {
-      setError("Unable to detect flow trigger type from exported flow config.")
+    if (configError) {
       return
     }
 
@@ -33,8 +35,10 @@ export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: Legal
     const scriptMarker = isAsk ? "ask" : "chat"
     const configPath = isAsk ? "askConfig" : "chatConfig"
 
+    const controller = new AbortController()
     let script: HTMLScriptElement | null = null
     let cancelled = false
+    let disposeScriptListeners = () => {}
 
     const init = async () => {
       const headers: Record<string, string> = {
@@ -48,12 +52,17 @@ export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: Legal
       const configResponse = await fetch(`${apiUrl}/${configPath}?workflowId=${flowId}`, {
         method: "GET",
         headers,
+        signal: controller.signal,
       })
 
       if (!configResponse.ok) {
         throw new Error(
           `Lamatic ${configPath} returned ${configResponse.status}. Verify flow ID, deployment status, and trigger type.`,
         )
+      }
+
+      if (cancelled) {
+        return
       }
 
       let root = document.getElementById(rootId) as HTMLDivElement | null
@@ -96,21 +105,20 @@ export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: Legal
 
       if (script.getAttribute("data-loaded") === "true" && !cancelled) {
         setReady(true)
+        setError("")
       }
 
-      return () => {
+      disposeScriptListeners = () => {
         script?.removeEventListener("load", handleLoad)
         script?.removeEventListener("error", handleError)
       }
     }
 
-    let cleanup: (() => void) | undefined
-
     init()
-      .then((fn) => {
-        cleanup = fn
-      })
       .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return
+        }
         if (!cancelled) {
           setReady(false)
           setError(err instanceof Error ? err.message : "Failed to initialize Lamatic widget.")
@@ -119,16 +127,19 @@ export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: Legal
 
     return () => {
       cancelled = true
-      cleanup?.()
+      controller.abort()
+      disposeScriptListeners()
     }
-  }, [flowId, apiUrl, projectId, triggerType])
+  }, [flowId, apiUrl, projectId, triggerType, configError])
 
   return (
     <Card className="p-8 bg-white/95 border-stone-200 shadow-xl space-y-4">
       <p className="text-sm text-muted-foreground">
         {triggerType === "askTriggerNode"
           ? "Ask trigger detected. Click the Ask button to open Lamatic Ask Widget."
-          : "Chat trigger detected. The Lamatic Chat Widget should appear automatically."}
+          : triggerType === "chatTriggerNode"
+            ? "Chat trigger detected. The Lamatic Chat Widget should appear automatically."
+            : "Unable to detect the exported flow trigger type."}
       </p>
 
       {triggerType === "askTriggerNode" && (
@@ -141,13 +152,13 @@ export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: Legal
         </button>
       )}
 
-      {ready ? (
+      {isReady ? (
         <p className="text-sm text-green-700">Lamatic Widget loaded successfully.</p>
       ) : (
         <p className="text-sm text-muted-foreground">Loading Lamatic Widget...</p>
       )}
 
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {resolvedError && <p className="text-sm text-red-700">{resolvedError}</p>}
     </Card>
   )
 }

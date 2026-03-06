@@ -1,14 +1,21 @@
 import { Header } from "@/components/header"
 import { LegalAskWidget } from "@/components/legal-ask-widget"
 import { Card } from "@/components/ui/card"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 type TriggerNodeId = "askTriggerNode" | "chatTriggerNode" | "unknown"
 
 function getTriggerType(): TriggerNodeId {
   try {
-    const flowPath = join(process.cwd(), "flows", "assistant-legal-advisor", "config.json")
+    const candidates = [
+      join(process.cwd(), "flows", "assistant-legal-advisor", "config.json"),
+      join(process.cwd(), "kits", "assistant", "legal", "flows", "assistant-legal-advisor", "config.json"),
+    ]
+    const flowPath = candidates.find((path) => existsSync(path))
+    if (!flowPath) {
+      return "unknown"
+    }
     const parsed = JSON.parse(readFileSync(flowPath, "utf-8")) as {
       nodes?: Array<{ data?: { nodeId?: string } }>
     }

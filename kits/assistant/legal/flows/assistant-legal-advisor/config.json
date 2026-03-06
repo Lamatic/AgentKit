@@ -8,7 +8,8 @@
         "values": {
           "chat": "",
           "domains": [
-            "*"
+            "http://localhost:3000",
+            "https://your-domain.vercel.app"
           ],
           "nodeName": "Chat Widget",
           "chatConfig": {

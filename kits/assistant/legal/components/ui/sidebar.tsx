@@ -182,18 +182,22 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
         <SheetContent
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className={cn(
+            "bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden",
+            className,
+          )}
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
             } as React.CSSProperties
           }
           side={side}
+          {...props}
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
@@ -279,11 +283,16 @@ function SidebarTrigger({
   )
 }
 
-function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
+function SidebarRail({
+  className,
+  type,
+  ...props
+}: React.ComponentProps<'button'>) {
   const { toggleSidebar } = useSidebar()
 
   return (
     <button
+      type={type ?? 'button'}
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label="Toggle Sidebar"
@@ -417,12 +426,14 @@ function SidebarGroupLabel({
 function SidebarGroupAction({
   className,
   asChild = false,
+  type,
   ...props
 }: React.ComponentProps<'button'> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : 'button'
 
   return (
     <Comp
+      type={asChild ? undefined : type ?? 'button'}
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
       className={cn(
@@ -497,6 +508,7 @@ const sidebarMenuButtonVariants = cva(
 
 function SidebarMenuButton({
   asChild = false,
+  type,
   isActive = false,
   variant = 'default',
   size = 'default',
@@ -513,6 +525,7 @@ function SidebarMenuButton({
 
   const button = (
     <Comp
+      type={asChild ? undefined : type ?? 'button'}
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
@@ -549,6 +562,7 @@ function SidebarMenuAction({
   className,
   asChild = false,
   showOnHover = false,
+  type,
   ...props
 }: React.ComponentProps<'button'> & {
   asChild?: boolean
@@ -558,6 +572,7 @@ function SidebarMenuAction({
 
   return (
     <Comp
+      type={asChild ? undefined : type ?? 'button'}
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
       className={cn(
@@ -606,10 +621,15 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<'div'> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
+  const skeletonId = React.useId()
+  // Derive a deterministic width to avoid hydration mismatch.
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+    const seed = Array.from(skeletonId).reduce(
+      (total, char) => total + char.charCodeAt(0),
+      0,
+    )
+    return `${50 + (seed % 5) * 10}%`
+  }, [skeletonId])
 
   return (
     <div
