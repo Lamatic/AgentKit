@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
-type CarouselOptions = UseCarouselParameters[0]
+type CarouselOptions = NonNullable<UseCarouselParameters[0]>
 type CarouselPlugin = UseCarouselParameters[1]
 
 type CarouselProps = {
@@ -51,10 +51,12 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<'div'> & CarouselProps) {
+  const axis = opts?.axis ?? (orientation === 'horizontal' ? 'x' : 'y')
+  const resolvedOrientation = axis === 'y' ? 'vertical' : 'horizontal'
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
-      axis: orientation === 'horizontal' ? 'x' : 'y',
+      axis,
     },
     plugins,
   )
@@ -77,15 +79,32 @@ function Carousel({
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === 'ArrowLeft') {
+      const target = event.target as HTMLElement | null
+      const isEditable =
+        !!target &&
+        (target.isContentEditable ||
+          target.getAttribute('role') === 'textbox' ||
+          target.closest('input, textarea, select, [contenteditable="true"]') !==
+            null)
+
+      if (isEditable) {
+        return
+      }
+
+      const previousKey =
+        resolvedOrientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp'
+      const nextKey =
+        resolvedOrientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown'
+
+      if (event.key === previousKey) {
         event.preventDefault()
         scrollPrev()
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.key === nextKey) {
         event.preventDefault()
         scrollNext()
       }
     },
-    [scrollPrev, scrollNext],
+    [resolvedOrientation, scrollPrev, scrollNext],
   )
 
   React.useEffect(() => {
@@ -111,8 +130,7 @@ function Carousel({
         carouselRef,
         api: api,
         opts,
-        orientation:
-          orientation || (opts?.axis === 'y' ? 'vertical' : 'horizontal'),
+        orientation: resolvedOrientation,
         scrollPrev,
         scrollNext,
         canScrollPrev,
@@ -120,7 +138,7 @@ function Carousel({
       }}
     >
       <div
-        onKeyDownCapture={handleKeyDown}
+        onKeyDown={handleKeyDown}
         className={cn('relative', className)}
         role="region"
         aria-roledescription="carousel"
@@ -176,6 +194,8 @@ function CarouselPrevious({
   className,
   variant = 'outline',
   size = 'icon',
+  onClick,
+  disabled,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
@@ -192,8 +212,13 @@ function CarouselPrevious({
           : '-top-12 left-1/2 -translate-x-1/2 rotate-90',
         className,
       )}
-      disabled={!canScrollPrev}
-      onClick={scrollPrev}
+      disabled={disabled || !canScrollPrev}
+      onClick={(event) => {
+        onClick?.(event)
+        if (!event.defaultPrevented) {
+          scrollPrev()
+        }
+      }}
       {...props}
     >
       <ArrowLeft />
@@ -206,6 +231,8 @@ function CarouselNext({
   className,
   variant = 'outline',
   size = 'icon',
+  onClick,
+  disabled,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollNext, canScrollNext } = useCarousel()
@@ -222,8 +249,13 @@ function CarouselNext({
           : '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
         className,
       )}
-      disabled={!canScrollNext}
-      onClick={scrollNext}
+      disabled={disabled || !canScrollNext}
+      onClick={(event) => {
+        onClick?.(event)
+        if (!event.defaultPrevented) {
+          scrollNext()
+        }
+      }}
       {...props}
     >
       <ArrowRight />

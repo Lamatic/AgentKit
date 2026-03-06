@@ -2,8 +2,8 @@
 
 import { getLamaticClient } from "@/lib/lamatic-client"
 import { config } from "../orchestrate.js"
-import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { access, readFile } from "node:fs/promises"
 
 const DEFAULT_DISCLAIMER =
   "This response is for informational purposes only and is not legal advice. Consult a licensed attorney for advice specific to your situation."
@@ -56,17 +56,28 @@ function extractAnswer(result: Record<string, unknown>): string {
   return ""
 }
 
-function usesChatTriggerExport(): boolean {
+async function usesChatTriggerExport(): Promise<boolean> {
   try {
     const candidates = [
       join(process.cwd(), "flows", "assistant-legal-advisor", "config.json"),
       join(process.cwd(), "kits", "assistant", "legal", "flows", "assistant-legal-advisor", "config.json"),
     ]
-    const flowConfigPath = candidates.find((path) => existsSync(path))
+
+    let flowConfigPath: string | undefined
+    for (const path of candidates) {
+      try {
+        await access(path)
+        flowConfigPath = path
+        break
+      } catch {
+        // Try the next candidate path.
+      }
+    }
+
     if (!flowConfigPath) {
       return false
     }
-    const raw = readFileSync(flowConfigPath, "utf-8")
+    const raw = await readFile(flowConfigPath, "utf-8")
     const parsed = JSON.parse(raw) as { nodes?: FlowNode[] }
     const nodes = Array.isArray(parsed.nodes) ? parsed.nodes : []
     return nodes.some((node) => node?.data?.nodeId === "chatTriggerNode")
@@ -85,7 +96,7 @@ export async function getLegalGuidance(
   error?: string
 }> {
   try {
-    if (usesChatTriggerExport()) {
+    if (await usesChatTriggerExport()) {
       throw new Error(
         "This flow export uses Chat Widget trigger and is not compatible with executeFlow API calls in this kit. Deploy an API Request trigger flow and update ASSISTANT_LEGAL_ADVISOR.",
       )

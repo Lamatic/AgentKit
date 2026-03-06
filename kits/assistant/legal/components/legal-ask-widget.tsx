@@ -146,6 +146,7 @@ export function LegalAskWidget({ flowId, apiUrl, projectId, triggerType }: Legal
         <button
           id="lamatic-ask-widget-button"
           type="button"
+          aria-label="Ask a legal question"
           className="inline-flex h-12 items-center justify-center rounded-md bg-black px-6 text-sm font-medium text-white hover:bg-black/90"
         >
           Ask

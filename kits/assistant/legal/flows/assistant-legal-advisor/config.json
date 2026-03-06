@@ -8,13 +8,12 @@
         "values": {
           "chat": "",
           "domains": [
-            "http://localhost:3000",
-            "https://your-domain.vercel.app"
+            "http://localhost:3000"
           ],
           "nodeName": "Chat Widget",
           "chatConfig": {
             "botName": "Legal Assistant Bot",
-            "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
+            "imageUrl": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/kits/assistant/legal/public/icon-light-32x32.png",
             "position": "right",
             "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
             "displayMode": "popup",

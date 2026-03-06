@@ -73,11 +73,29 @@ const addToRemoveQueue = (toastId: string) => {
 
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case actionTypes.ADD_TOAST:
+    case actionTypes.ADD_TOAST: {
+      const nextToasts = [action.toast, ...state.toasts]
+      if (nextToasts.length <= TOAST_LIMIT) {
+        return {
+          ...state,
+          toasts: nextToasts,
+        }
+      }
+
+      const keptToasts = nextToasts.slice(0, TOAST_LIMIT)
+      const overflowToasts = nextToasts.slice(TOAST_LIMIT).map((toast) => {
+        addToRemoveQueue(toast.id)
+        return {
+          ...toast,
+          open: false,
+        }
+      })
+
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+        toasts: [...keptToasts, ...overflowToasts],
       }
+    }
 
     case actionTypes.UPDATE_TOAST:
       return {

@@ -114,6 +114,7 @@ function InputGroupButton({
   ...props
 }: Omit<React.ComponentProps<typeof Button>, 'size'> &
   VariantProps<typeof inputGroupButtonVariants>) {
+  // Size is intentionally driven by inputGroupButtonVariants so grouped controls stay consistent.
   return (
     <Button
       type={type}

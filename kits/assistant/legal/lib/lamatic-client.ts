@@ -16,7 +16,7 @@ export function getLamaticClient() {
 
   return new Lamatic({
     endpoint: config.api.endpoint ?? "",
-    projectId: config.api.projectId ?? null,
+    projectId: config.api.projectId ?? "",
     apiKey: config.api.apiKey ?? "",
   })
 }

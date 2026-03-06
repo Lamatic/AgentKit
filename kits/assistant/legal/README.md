@@ -93,6 +93,8 @@ Place your Lamatic export in:
 kits/assistant/legal/flows/assistant-legal-advisor/
 ```
 
+If you use a chat-trigger flow, update the flow `domains` allowlist to your actual local and production origins before deployment.
+
 Expected files:
 - `config.json`
 - `inputs.json`
