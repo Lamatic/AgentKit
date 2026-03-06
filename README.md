@@ -122,7 +122,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
    ```
 
 2. **Select Your AgentKit**
-   - Browse `/kits` for runnable starters and `/templates` for single-flow exports.
+   - Browse `/kits` for runnable starters, `/bundles` for multi-flow packs, and `/templates` for single-flow exports.
    - Example:
      ```sh
      cd kits/agentic/deep-search
