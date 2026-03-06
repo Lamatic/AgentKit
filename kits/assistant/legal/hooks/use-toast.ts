@@ -71,6 +71,14 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
+const clearToastTimeout = (toastId: string) => {
+  const timeout = toastTimeouts.get(toastId)
+  if (timeout) {
+    clearTimeout(timeout)
+    toastTimeouts.delete(toastId)
+  }
+}
+
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case actionTypes.ADD_TOAST: {
@@ -132,11 +140,13 @@ export const reducer = (state: State, action: Action): State => {
     }
     case actionTypes.REMOVE_TOAST:
       if (action.toastId === undefined) {
+        state.toasts.forEach((toast) => clearToastTimeout(toast.id))
         return {
           ...state,
           toasts: [],
         }
       }
+      clearToastTimeout(action.toastId)
       return {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
@@ -161,7 +171,7 @@ function toast({ ...props }: Toast) {
   const id = genId()
   const onOpenChange = props.onOpenChange
 
-  const update = (props: ToasterToast) =>
+  const update = (props: Partial<Omit<ToasterToast, 'id'>>) =>
     dispatch({
       type: 'UPDATE_TOAST',
       toast: { ...props, id },

@@ -104,16 +104,23 @@ function FormLabel({
   )
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+function FormControl({
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+  ...props
+}: React.ComponentProps<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  const describedBy = [formDescriptionId, formMessageId, ariaDescribedBy]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <Slot
+      {...props}
       data-slot="form-control"
       id={formItemId}
-      aria-describedby={`${formDescriptionId} ${formMessageId}`}
-      aria-invalid={!!error}
-      {...props}
+      aria-describedby={describedBy}
+      aria-invalid={ariaInvalid ?? !!error}
     />
   )
 }
@@ -143,7 +150,11 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="form-message"
       id={formMessageId}
-      className={cn('text-destructive text-sm', className)}
+      className={cn(
+        'text-sm',
+        error ? 'text-destructive' : 'text-muted-foreground',
+        className,
+      )}
       {...props}
     >
       {body}

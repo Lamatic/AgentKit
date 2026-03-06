@@ -49,6 +49,7 @@ function Carousel({
   plugins,
   className,
   children,
+  onKeyDown,
   ...props
 }: React.ComponentProps<'div'> & CarouselProps) {
   const axis = opts?.axis ?? (orientation === 'horizontal' ? 'x' : 'y')
@@ -138,7 +139,12 @@ function Carousel({
       }}
     >
       <div
-        onKeyDown={handleKeyDown}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          if (!event.defaultPrevented) {
+            handleKeyDown(event)
+          }
+        }}
         className={cn('relative', className)}
         role="region"
         aria-roledescription="carousel"

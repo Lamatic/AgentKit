@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
+const SAFE_COLOR_PATTERN = /^[-#(),.%\s\w]+$/
 
 export type ChartConfig = {
   [k in string]: {
@@ -78,28 +79,38 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join('\n')}
-}
-`,
-          )
-          .join('\n'),
-      }}
-    />
-  )
+  const safeChartId = id.replace(/[^a-zA-Z0-9_-]/g, '')
+  const cssText = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const declarations = colorConfig
+        .map(([key, itemConfig]) => {
+          const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, '')
+          if (!safeKey) {
+            return null
+          }
+
+          const rawColor =
+            itemConfig.theme?.[theme as keyof typeof THEMES] ??
+            itemConfig.color
+          const safeColor =
+            typeof rawColor === 'string' && SAFE_COLOR_PATTERN.test(rawColor)
+              ? rawColor
+              : null
+
+          return safeColor ? `  --color-${safeKey}: ${safeColor};` : null
+        })
+        .filter(Boolean)
+        .join('\n')
+
+      if (!declarations) {
+        return null
+      }
+      return `${prefix} [data-chart="${safeChartId}"] {\n${declarations}\n}`
+    })
+    .filter(Boolean)
+    .join('\n')
+
+  return cssText ? <style>{cssText}</style> : null
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
@@ -275,13 +286,17 @@ function ChartLegendContent({
         className,
       )}
     >
-      {payload.map((item) => {
+      {payload.map((item, index) => {
         const key = `${nameKey || item.dataKey || 'value'}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
+        const fallbackLabel =
+          typeof item.value === 'string' || typeof item.value === 'number'
+            ? String(item.value)
+            : key
 
         return (
           <div
-            key={item.value}
+            key={`${item.dataKey ?? item.value ?? ''}-${index}`}
             className={
               '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
             }
@@ -296,7 +311,7 @@ function ChartLegendContent({
                 }}
               />
             )}
-            {itemConfig?.label}
+            {itemConfig?.label || fallbackLabel}
           </div>
         )
       })}
@@ -324,13 +339,13 @@ function getPayloadConfigFromPayload(
   let configLabelKey: string = key
 
   if (
-    key in payload &&
+    Object.prototype.hasOwnProperty.call(payload, key) &&
     typeof payload[key as keyof typeof payload] === 'string'
   ) {
     configLabelKey = payload[key as keyof typeof payload] as string
   } else if (
     payloadPayload &&
-    key in payloadPayload &&
+    Object.prototype.hasOwnProperty.call(payloadPayload, key) &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
   ) {
     configLabelKey = payloadPayload[
@@ -338,9 +353,13 @@ function getPayloadConfigFromPayload(
     ] as string
   }
 
-  return configLabelKey in config
-    ? config[configLabelKey]
-    : config[key as keyof typeof config]
+  if (Object.prototype.hasOwnProperty.call(config, configLabelKey)) {
+    return config[configLabelKey]
+  }
+  if (Object.prototype.hasOwnProperty.call(config, key)) {
+    return config[key]
+  }
+  return undefined
 }
 
 export {

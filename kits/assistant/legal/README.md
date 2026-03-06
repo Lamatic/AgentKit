@@ -69,6 +69,11 @@ npm run dev
 # Open http://localhost:3000
 ```
 
+## Execution Paths
+
+- Client widget path: the bundled `flows/assistant-legal-advisor/config.json` uses a Chat Widget trigger and works with `components/legal-ask-widget.tsx`.
+- Server orchestration path: `actions/orchestrate.ts#getLegalGuidance` expects an API Request trigger flow. Replace the bundled flow export with an API trigger flow if you want server-side `executeFlow` calls.
+
 ## Usage Examples
 
 Try prompts like:

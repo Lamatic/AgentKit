@@ -86,6 +86,12 @@ async function usesChatTriggerExport(): Promise<boolean> {
   }
 }
 
+/**
+ * Server-side legal guidance orchestration.
+ * This path requires an API Request trigger flow.
+ * The bundled flows/assistant-legal-advisor export uses Chat Widget trigger
+ * and is intended for client-side widget usage.
+ */
 export async function getLegalGuidance(
   question: string,
   jurisdiction: string,
