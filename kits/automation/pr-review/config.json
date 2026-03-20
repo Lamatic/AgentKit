@@ -23,6 +23,6 @@
   ],
   "demoUrl": "",
   "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/pr-review",
-  "deployUrl": "",
+  "deployUrl": "https://judgethepr.vercel.app/",
   "documentationUrl": ""
 }
