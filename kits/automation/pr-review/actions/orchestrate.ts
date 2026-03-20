@@ -31,10 +31,10 @@ export async function reviewPR(prUrl: string): Promise<PRReviewResult> {
 
   // Response shape: { pr_url: "...", review: { summary, issues, suggestions, verdict } }
   // Try every possible nesting level to find the review object
-  const data = response?.result ?? response?.output ?? response;
+  const data = (response as any)?.result ?? (response as any)?.output ?? response;
 
   // Check if review is nested under a "review" key
-  const review = data?.review ?? data;
+  const review = (data as any)?.review ?? data;
 
   if (typeof review === "string") {
     try {
