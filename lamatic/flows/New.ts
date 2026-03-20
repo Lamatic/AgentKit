@@ -1,6 +1,6 @@
 const flowConfig = {
   "id": "b29ba3fc-3367-4c60-8e5c-8dfee11b168d",
-  "name": "New",
+  "name": "First",
   "nodes": [
     {
       "id": "triggerNode_1",
@@ -55,13 +55,63 @@ const flowConfig = {
       "selected": false
     },
     {
+      "id": "LLMNode_333",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_333",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "4fc7e7b5-563d-4013-9774-1f0e5adbc70f",
+              "role": "system",
+              "content": "You are a helpful assistant"
+            },
+            {
+              "id": "bb6c62f4-61a0-40af-88e5-f6a5a46aac35",
+              "role": "user",
+              "content": "{{triggerNode_1.output.chatMessage}}"
+            }
+          ],
+          "memories": "",
+          "messages": "{{triggerNode_1.output.chatHistory}}",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "gpt-4o-mini",
+              "credentialId": "58e84b53-2d11-48b5-bc8d-928d1f241c59",
+              "provider_name": "openai",
+              "credential_name": "API"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
       "id": "responseNode_triggerNode_1",
       "data": {
         "label": "Response",
         "nodeId": "chatResponseNode",
         "values": {
           "id": "responseNode_triggerNode_1",
-          "content": "Respond to the question",
+          "content": "{{LLMNode_333.output.generatedResponse}}",
           "nodeName": "Chat Response",
           "references": "",
           "webhookUrl": "",
@@ -77,16 +127,24 @@ const flowConfig = {
       },
       "position": {
         "x": 0,
-        "y": 130
+        "y": 260
       },
-      "selected": true
+      "selected": false
     }
   ],
   "edges": [
     {
-      "id": "triggerNode_1-responseNode_triggerNode_1",
+      "id": "triggerNode_1-LLMNode_333",
       "type": "defaultEdge",
       "source": "triggerNode_1",
+      "target": "LLMNode_333",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_333-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_333",
       "target": "responseNode_triggerNode_1",
       "sourceHandle": "bottom",
       "targetHandle": "top"
