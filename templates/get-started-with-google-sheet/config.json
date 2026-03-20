@@ -1,0 +1,85 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "googleSheetsNode",
+        "modes": {
+          "sheetName": "list"
+        },
+        "trigger": true,
+        "values": {
+          "nodeName": "Google Sheets",
+          "syncMode": "incremental_append",
+          "batchSize": "200",
+          "credentials": "",
+          "cronExpression": "0 0 00 1/1 * ? * UTC",
+          "namesConversion": "false",
+          "spreadSheetLink": "https://docs.google.com/spreadsheets/d/1wCDFdkWMvHtOqiGt6P2Dc1Br5MSnd03-dZL7QannzDM/edit?usp=sharing"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_420",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "summarise this user data i got from the google sheet in form of a json. Make sure you give it without any JSON tag or backtick, or any leading statement.\n\nOUTPUT : {{triggerNode_1.output}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "addNode_105",
+      "type": "addNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "addNode",
+        "values": {
+          "nodeName": ""
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_420",
+      "source": "triggerNode_1",
+      "target": "LLMNode_420",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_420-addNode_105",
+      "source": "LLMNode_420",
+      "target": "addNode_105",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"execute\": \"bool\"\n}"
+        }
+      }
+    },
+    {
+      "id": "apiNode_485",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "apiNode",
+        "values": {
+          "nodeName": "API",
+          "url": "https://dhruvlamatic.app.n8n.cloud/webhook/8cfe684a-6b95-495f-b29d-afb7a2c012e2",
+          "body": "",
+          "method": "GET",
+          "headers": "",
+          "retries": "0",
+          "retry_deplay": "0"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_985",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You will receive a newsletter text containing multiple sections. Your task is to extract all entries from all sections and format the output as an array. Each element in the array should be a JSON object with two keys:\n\n\"title\": The complete article title\n\n\"summary\": The full article summary text\n\nRequirements:\n\nInclude all articles from all sections\n\nPreserve exact original wording\n\nReturn only the array\n\nProperly escape quotes and special characters\n\nDo not add markdown, code blocks, or a JSON wrapper\n\nEXPECTED STRUCTURE:\n\n'\\[\n\n {\n\n \"title\": \"Hugging Face Replicating OpenAI's Deep Research\",\n\n \"summary\": \"Hugging Face attempted to replicate OpenAI's Deep Research, an agentic web\\-search framework that significantly improved performance on the GAIA benchmark, by running a 24\\-hour\\-long experiment aimed at open\\-sourcing an equivalent system.\"\n\n },\n\n {\n\n \"title\": \"Google CEO on DeepSeek vs. Gemini\",\n\n \"summary\": \"Sundar Pichai has downplayed the efficiency of DeepSeek's AI models, arguing that Google's Gemini models, particularly Gemini 2.0 Flash, outperform them despite DeepSeek's disruptive impact on the AI market.\"\n\n },\n\n {\n\n \"title\": \"US Copyright Office rules out copyright for AI created content without human input\",\n\n \"summary\": \"The US Copyright Office states that AI\\-generated works without human intervention cannot be copyrighted. AI tools assisting with creativity, like de\\-aging actors, won't limit copyright protection, but purely generative AI outputs require further analysis.\"\n\n },\n\n {\n\n \"title\": \"Harmonic Loss Trains Interpretable AI Models\",\n\n \"summary\": \"Harmonic loss is an alternative to cross\\-entropy loss for training neural networks that offers better interpretability and faster convergence through scale invariance and finite convergence points. Experiments across algorithmic, vision, and language datasets, demonstrate that models trained with harmonic loss show superior performance in interpretability, data efficiency, and reduced grokking compared to standard models. Harmonic loss could be particularly valuable for applications with limited data or where interpretability is crucial.\"\n\n },\n\n\\]'\n\ninput: {{apiNode_531.output}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "forLoopNode_555",
+      "type": "forLoopNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "forLoopNode",
+        "values": {
+          "nodeName": "Loop",
+          "wait": 0,
+          "endValue": "10",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_724",
+          "iterateOver": "list",
+          "initialValue": "0",
+          "iteratorValue": "{{codeNode_706.output}}"
+        }
+      }
+    },
+    {
+      "id": "forLoopEndNode_724",
+      "type": "forLoopEndNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "forLoopEndNode",
+        "values": {
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_555"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_522",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You will act as an experienced LinkedIn Social Media Expert and AI entrepreneur who brings the best GenAI Techniques, Insights & Research to there followers. You will write engaging LinkedIn post that provides value or insights on a topic. Write the post in English, without including the system message.\n\n\\- You approach serious topics related to SAAS, and AI development in a professional way to make them more accessible to the general public.\n\n\\- In formatting your texts, you use bullet points to organize your ideas and facilitate reading. Use either of these \\#1\\. , ☑, ↳, → or relevant emoji as bullet style.\n\n\\- You try to distill powerful ai capabilities into elegant simplicity so that an any business can apply that.\n\n\\- You also use short and simple sentences to convey your message clearly and concisely.\n\n\\- Overall, your tone is optimistic and encouraging, with a touch of humor but keep it personal in first person.\n\n\\- Use a conclusion at the end of your text to engage your audience and elicit their reaction. You consistently encourage interaction by inviting your audience to comment and share this with there peers using one of these ♻️♺🔁 or sometimes asking them to follow for more content like this'\n\n\\- Keep the points really short and whole post readable within 3 mins.\n\n\\- Always start with a personal tone that is short hook in the audience in first 2 lines and encourages users to keep reading\n\n\\- Now, I would like you to write a LinkedIn post in my style on after thorough articulation of following topic:\n\n\\-\\-\\-\n\n{{forLoopNode_927.output.currentValue}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "codeNode_706",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Code",
+          "code": "output = JSON.parse({{LLMNode_985.output.generatedResponse}})"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_676",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"posts\": \"{{forLoopEndNode_724.output.loopOutput}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-apiNode_485",
+      "source": "triggerNode_1",
+      "target": "apiNode_485",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "apiNode_485-LLMNode_985",
+      "source": "apiNode_485",
+      "target": "LLMNode_985",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_706-forLoopNode_555",
+      "source": "codeNode_706",
+      "target": "forLoopNode_555",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_555-LLMNode_522",
+      "source": "forLoopNode_555",
+      "target": "LLMNode_522",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      }
+    },
+    {
+      "id": "forLoopNode_555-forLoopEndNode_724",
+      "source": "forLoopNode_555",
+      "target": "forLoopEndNode_724",
+      "type": "loopEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Loop",
+        "invisible": false
+      }
+    },
+    {
+      "id": "LLMNode_522-forLoopEndNode_724",
+      "source": "LLMNode_522",
+      "target": "forLoopEndNode_724",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_724-forLoopNode_555",
+      "source": "forLoopEndNode_724",
+      "target": "forLoopNode_555",
+      "type": "loopEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      }
+    },
+    {
+      "id": "LLMNode_985-codeNode_706",
+      "source": "LLMNode_985",
+      "target": "codeNode_706",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "forLoopEndNode_724-graphqlResponseNode_676",
+      "source": "forLoopEndNode_724",
+      "target": "graphqlResponseNode_676",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_676",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_676",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

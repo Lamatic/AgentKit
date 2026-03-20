@@ -1,0 +1,13 @@
+{
+    "name": "Topic Insights",
+    "description": "This flow provides a concise topic overview and demonstrates generic text generation capabilities. Users can gain insights on any chosen subject through a succinct 150-character description.",
+    "tags": ["✨ Generative"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/topic-insights",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

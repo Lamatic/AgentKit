@@ -1,0 +1,354 @@
+{
+  "nodes": [
+    {
+      "id": "conditionNode_907",
+      "data": {
+        "nodeId": "conditionNode",
+        "values": {
+          "id": "conditionNode_907",
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_907-addNode_245",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"pdf\",\n      \"operator\": \"==\",\n      \"value\": \"{{triggerNode_1.output.type}}\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_907-addNode_157",
+              "condition": {}
+            }
+          ]
+        }
+      },
+      "type": "conditionNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 150
+      },
+      "draggable": false
+    },
+    {
+      "id": "vectorNode_537",
+      "data": {
+        "nodeId": "vectorNode",
+        "values": {
+          "id": "vectorNode_537",
+          "limit": 20,
+          "action": "delete",
+          "filters": "{\n  \"operator\": \"And\",\n  \"operands\": [\n    {\n      \"path\": [\n        \"title\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.title}}\"\n    }\n  ]\n}",
+          "nodeName": "VectorDB",
+          "vectorDB": "",
+          "primaryKeys": "",
+          "vectorsField": "",
+          "metadataField": "",
+          "duplicateOperation": "overwrite"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 0,
+        "y": 750
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_690",
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "id": "codeNode_690",
+          "code": "let check = {}\n\nconst pdfSkipCheck = {\n  \"executionMsg\": \"Skipped the node execution\"\n}\n\nconst vectorOutput = typeof {{vectorNode_537.output}} === 'string' \n  ? JSON.parse({{vectorNode_537.output}}) \n  : {{vectorNode_537.output}};\n\nif(vectorOutput.executionMsg !== \"Skipped the node execution\"){\n  check = {\n    \"status\": vectorOutput\n  }\n}\nelse if({{codeNode_571.output}}){\n  check = {\n    \"status\": {{codeNode_571.output}}\n  }\n}\n\noutput = check;",
+          "nodeName": "Finalise Output"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 900
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "forLoopNode_399",
+      "data": {
+        "nodeId": "forLoopNode",
+        "values": {
+          "id": "forLoopNode_399",
+          "wait": 0,
+          "endValue": "10",
+          "nodeName": "Loop",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_451",
+          "iterateOver": "list",
+          "initialValue": "0",
+          "iteratorValue": "{{triggerNode_1.output.urls}}"
+        }
+      },
+      "type": "forLoopNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 300
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "forLoopEndNode_451",
+      "data": {
+        "nodeId": "forLoopEndNode",
+        "values": {
+          "id": "forLoopEndNode_451",
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_399"
+        }
+      },
+      "type": "forLoopEndNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 600
+      },
+      "draggable": false
+    },
+    {
+      "id": "vectorNode_493",
+      "data": {
+        "nodeId": "vectorNode",
+        "values": {
+          "id": "vectorNode_493",
+          "limit": 20,
+          "action": "delete",
+          "filters": "{\n  \"operator\": \"And\",\n  \"operands\": [\n    {\n      \"path\": [\n        \"source\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{forLoopNode_399.output.currentValue}}\"\n    }\n  ]\n}",
+          "nodeName": "VectorDB",
+          "vectorDB": "",
+          "primaryKeys": "",
+          "vectorsField": "",
+          "metadataField": "",
+          "duplicateOperation": "overwrite"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 450
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"title\": \"string\",\n  \"urls\": \"[string]\",\n  \"type\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"status\": \"{{codeNode_690.output}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 225,
+        "y": 1050
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_571",
+      "data": {
+        "label": "New",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "code": "output = \"Deleted All Records\";",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 218,
+        "height": 95
+      },
+      "position": {
+        "x": 450,
+        "y": 750
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-conditionNode_907",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "conditionNode_907",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_907-vectorNode_537",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_907",
+      "target": "vectorNode_537",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_907-forLoopNode_399",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_907",
+      "target": "forLoopNode_399",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "vectorNode_537-codeNode_690",
+      "type": "defaultEdge",
+      "source": "vectorNode_537",
+      "target": "codeNode_690",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_399-vectorNode_493",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "forLoopNode_399",
+      "target": "vectorNode_493",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "vectorNode_493-forLoopEndNode_451",
+      "type": "defaultEdge",
+      "source": "vectorNode_493",
+      "target": "forLoopEndNode_451",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_690-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "codeNode_690",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_451-codeNode_571-446",
+      "type": "defaultEdge",
+      "source": "forLoopEndNode_451",
+      "target": "codeNode_571",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_571-codeNode_690-418",
+      "type": "defaultEdge",
+      "source": "codeNode_571",
+      "target": "codeNode_690",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_399-forLoopEndNode_451",
+      "data": {
+        "condition": "Loop",
+        "invisible": false
+      },
+      "type": "loopEdge",
+      "source": "forLoopNode_399",
+      "target": "forLoopEndNode_451",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_451-forLoopNode_399",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_451",
+      "target": "forLoopNode_399",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

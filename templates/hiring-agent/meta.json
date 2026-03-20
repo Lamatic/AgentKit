@@ -1,0 +1,13 @@
+{
+    "name": "Hiring Agent",
+    "description": "This template allows you to analyse an input resume and gives detailed analysis of selection/rejection",
+    "tags": ["🌱 Growth"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/hiring-agent",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

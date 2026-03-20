@@ -1,0 +1,13 @@
+{
+    "name": "Recipe Maker with Memory",
+    "description": "This AI-powered recipe generation system retains user preferences, dietary restrictions, and past interactions to generate personalised recipes with customised cooking instructions tailored to individual needs.",
+    "tags": ["✨ Generative", "🛠️ Tools"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/recipe-maker-with-memory",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "GDrive ",
+  "description": "Google Drive Indexation",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

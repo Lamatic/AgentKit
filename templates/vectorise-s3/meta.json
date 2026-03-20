@@ -1,0 +1,13 @@
+{
+    "name": "Vectorise S3",
+    "description": "This flow vectorizes S3 data and loads it into a vector database, enabling fast, accurate search and RAG flows grounded in the context of your data.",
+    "tags": ["🚀 Startup", "📱 Apps"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/vectorise-s3",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

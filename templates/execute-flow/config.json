@@ -1,0 +1,78 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"topic\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "flowNode_390",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "flowNode",
+        "values": {
+          "nodeName": "Execute Flow",
+          "flowId": "3f94aedc-9887-4977-a8d4-9676aaf8bbf7",
+          "requestInput": "{\n  \"topic\": \"{{triggerNode_1.output.topic}}\"\n}"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_611",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"flowOutput\": \"{{flowNode_390.output.flowOutput}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-flowNode_390",
+      "source": "triggerNode_1",
+      "target": "flowNode_390",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "flowNode_390-graphqlResponseNode_611",
+      "source": "flowNode_390",
+      "target": "graphqlResponseNode_611",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_611",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_611",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

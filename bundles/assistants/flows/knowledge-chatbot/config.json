@@ -1,0 +1,123 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "chatTriggerNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "Chat Widget",
+          "chat": "",
+          "domains": [
+            "*"
+          ],
+          "chatConfig": {
+            "botName": "Lamatic Bot",
+            "imageUrl": "https://api.lamatic.ai/storage/v1/object/public/widget-avatar/LamaticShowcase/UrlScraperChatbot866/2bf0df6e-04b0-4392-8100-4c8a4d5eeb09/1749111185167.png",
+            "position": "right",
+            "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
+            "displayMode": "popup",
+            "placeholder": "Compose your message",
+            "suggestions": [],
+            "errorMessage": "Oops! Something went wrong. Please try again.",
+            "hideBranding": false,
+            "primaryColor": "#ef4444",
+            "headerBgColor": "#000000",
+            "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+            "headerTextColor": "#FFFFFF",
+            "showEmojiButton": true,
+            "suggestionBgColor": "#f1f5f9",
+            "showAdvancedColors": true,
+            "userMessageBgColor": "#FEF2F2",
+            "agentMessageBgColor": "#f1f5f9",
+            "suggestionTextColor": "#334155",
+            "userMessageTextColor": "#d12323",
+            "agentMessageTextColor": "#334155"
+          }
+        }
+      }
+    },
+    {
+      "id": "RAGNode_711",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "RAGNode",
+        "modes": {},
+        "values": {
+          "nodeName": "RAG",
+          "limit": 20,
+          "filters": "",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a helpful chat assistant who is trained on the data as defined by the builder. In the context, you will be given the most relevant contents from the database from which you have to reference and answer. These will be context documents, from which you will answer. In the end, you will be giving reference(s) as well and a small CTA to the user to check them out for further refinement of their answer. In case of no relevant answers, do not make the answer yourself and let them know that no relevant reference/document can be found in the context database. In case the source is of a database or S3 bucket (protected sources), you can just claim it to be from the official database without revealing it's details since you would have no URL to refer to."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "USER QUERY : {{triggerNode_1.output.chatMessage}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{triggerNode_1.output.chatHistory}}",
+          "certainty": "0.5",
+          "queryField": "{{triggerNode_1.output.chatMessage}}",
+          "embeddingModelName": {},
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "chatResponseNode_988",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "chatResponseNode",
+        "values": {
+          "nodeName": "Chat Response",
+          "content": "{{RAGNode_711.output.modelResponse}}",
+          "references": ""
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-RAGNode_711",
+      "source": "triggerNode_1",
+      "target": "RAGNode_711",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "RAGNode_711-chatResponseNode_988",
+      "source": "RAGNode_711",
+      "target": "chatResponseNode_988",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-chatResponseNode_988",
+      "source": "triggerNode_1",
+      "target": "chatResponseNode_988",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "name": "Agentic Reasoning",
+  "description": "This flow generates the final answer based on previous two steps",
+  "tags": [],
+  "testInput": {
+    "query": "Help me pack for my trip to Jaipur next week",
+    "research": [
+      {
+        "link": "https://weather.com/en-TT/weather/tenday/l/Jaipur+Rajasthan+India?canonicalCityId=12747bac0e2fedce60691a1bcbbb0c1a",
+        "title": "10-day weather forecast for Jaipur, Rajasthan, India",
+        "snippet": "10-Day Weather-Jaipur, Rajasthan, India. As of 22:47 IST. Tonight. --/24°. 5%. Night. 24°. 5%. WNW 10 km/h. Partly cloudy. Hazy. Low 24°C. Winds light and ...",
+        "position": 1
+      },
+      {
+        "link": "https://www.timeanddate.com/weather/india/jaipur/ext",
+        "title": "Jaipur, Rajasthan, India 14 day weather forecast - Time and Date",
+        "snippet": "2 Week Extended Forecast in Jaipur, Rajasthan, India ; Sep 18, 93 / 76 °F · Showers late. Overcast. 97 °F · 3 mph ; Sep 19, 94 / 75 °F · Showers late. Broken clouds.",
+        "position": 2,
+        "sitelinks": [
+          {
+            "link": "https://www.timeanddate.com/weather/india/jaipur/hourly",
+            "title": "Hour-by-Hour Forecast"
+          },
+          {
+            "link": "https://www.timeanddate.com/weather/india/jaipur/historic",
+            "title": "Yesterday/Past Weather"
+          },
+          {
+            "link": "https://www.timeanddate.com/weather/india/jaipur/climate",
+            "title": "Climate (Averages)"
+          },
+          {
+            "link": "https://www.timeanddate.com/astronomy/india/jaipur",
+            "title": "Sun & Moon"
+          }
+        ]
+      },
+      {
+        "link": "https://weather.com/en-TT/weather/tenday/l/Jaipur+Rajasthan+India?canonicalCityId=ca31043a3bdd21b58bf82a149a2eff6c919e9b3017e52e314ec279efa4a0d2c6",
+        "title": "10-Day Weather-Jaipur, Rajasthan, India",
+        "snippet": "10-Day Weather-Jaipur, Rajasthan, India ; Tonight · 2% · 2% · 8 · Partly cloudy. Low 25°C. Winds light and variable. ; Wed 17 · 7% · 6% · 9 · Partly cloudy. Low 25°C.",
+        "position": 3
+      },
+      {
+        "link": "https://www.wunderground.com/forecast/in/jaipur",
+        "title": "Jaipur, India 10-Day Weather Forecast",
+        "snippet": "Jaipur, Rajasthan, India 10-Day Weather Forecaststar_ratehome ; Sep 21. New Moon ; Sep 29. Waxing Gibbous ; Oct 7. Full Moon ; Oct 13. Waning Half Last Qtr.",
+        "position": 4
+      },
+      {
+        "link": "https://www.bbc.com/weather/1269515",
+        "title": "Jaipur - BBC Weather",
+        "snippet": "A clear sky and light windsSunny and a gentle breezeSunny and a gentle breezeSunny and a gentle breezeSunny and a gentle breezeSunny and a gentle ...",
+        "position": 5
+      },
+      {
+        "link": "https://jaipurculture.com/what-to-wear-jaipur/pack-jaipur-month-season/",
+        "title": "Essential packing guide for Jaipur by season and month",
+        "snippet": "✨ Warm Clothing: Pack items such as jackets, sweaters, and scarves to keep warm during evenings. · Light, Breathable Clothing: Opt for cotton shirts, pants, ...",
+        "position": 1
+      },
+      {
+        "date": "Apr 10, 2025",
+        "link": "https://awaywiththesteiners.com/what-to-wear-in-india-and-clothes-to-pack/",
+        "title": "What To Wear In India As A Respectful Traveller What To Pack.",
+        "snippet": "There isn't officially a dress code for what to wear in India as a tourist. However, modest clothing is appreciated. It's physically comfortable for travel.",
+        "position": 2
+      },
+      {
+        "link": "https://jaipurculture.com/what-to-wear-jaipur/jaipur-packing-guide/",
+        "title": "What to pack in Jaipur: a month-by-month guide - Jaipur Culture",
+        "snippet": "Opt for loose-fitting clothes such as flowy dresses, skirts, and shorts. Remember, even though it's hot, Jaipur's cultural etiquette recommends modest attire— ...",
+        "position": 3,
+        "sitelinks": [
+          {
+            "link": "https://jaipurculture.com/what-to-wear-jaipur/jaipur-packing-guide/#:~:text=Packing%20for%20Jaipur%3A%20Navigating%20January%20Weather",
+            "title": "Packing For Jaipur..."
+          },
+          {
+            "link": "https://jaipurculture.com/what-to-wear-jaipur/jaipur-packing-guide/#:~:text=Monsoon%20Months%20in%20Jaipur%3A%20Packing%20for%20a%20Rainy%20Visit",
+            "title": "Monsoon Months In Jaipur..."
+          },
+          {
+            "link": "https://jaipurculture.com/what-to-wear-jaipur/jaipur-packing-guide/#:~:text=Essential%20Packing%20List%20for%20December%20in%20Jaipur",
+            "title": "Essential Packing List For..."
+          }
+        ],
+        "attributes": {
+          "Missing": "code | Show results with:code"
+        }
+      },
+      {
+        "date": "Jul 2, 2025",
+        "link": "https://www.gadventures.com/blog/india-packing-list/",
+        "title": "India packing list: adventure essentials",
+        "snippet": "Go for loose pants or maxi skirts paired with short- or long-sleeved tops. Dressing modestly is key, so leave any revealing outfits at home. A ...",
+        "position": 4,
+        "sitelinks": [
+          {
+            "link": "https://www.gadventures.com/blog/india-packing-list/#:~:text=India%20packing%20list%3A%20adventure%20essentials",
+            "title": "India Packing List..."
+          },
+          {
+            "link": "https://www.gadventures.com/blog/india-packing-list/#:~:text=What%20to%20wear%20in%20India",
+            "title": "What To Wear In India"
+          },
+          {
+            "link": "https://www.gadventures.com/blog/india-packing-list/#:~:text=Indian%20cultural%20wear",
+            "title": "Indian Cultural Wear"
+          }
+        ]
+      },
+      {
+        "link": "https://hippie-inheels.com/how-to-dress-in-india/",
+        "title": "How to Dress in India: the Ultimate Dos and Donts - Hippie In Heels",
+        "snippet": "I' d like to give some advice as an Indian :) If you're in doubt as to what to wear, a loose kurta or long top and jeans is perfectly fine. You can wear a shawl ...",
+        "position": 5,
+        "sitelinks": [
+          {
+            "link": "https://hippie-inheels.com/how-to-dress-in-india/#:~:text=Wear%20your%20yoga%20pants%20out%20in%20public%20unless%20you%20are%20wearing%20a%20long%20shirt%20to%20cover%20your%20bum.",
+            "title": "Wear Your Yoga Pants Out In..."
+          },
+          {
+            "link": "https://hippie-inheels.com/how-to-dress-in-india/#:~:text=Wear%20jeans.",
+            "title": "Wear Jeans"
+          },
+          {
+            "link": "https://hippie-inheels.com/how-to-dress-in-india/#:~:text=Pin%20%60%60How%20to%20Dress%20in%20India%27%27%20for%20Later%21",
+            "title": "Pin ``how To Dress In..."
+          }
+        ]
+      },
+      {
+        "link": "https://travel.state.gov/en/international-travel/travel-advisories/india.html",
+        "title": "India Travel Advisory | Travel.State.gov",
+        "snippet": "Reconsider travel to this area due to terrorism and violence. Ethnic insurgent groups occasionally commit acts of violence in parts of the northeast. These ...",
+        "position": 1
+      },
+      {
+        "link": "https://in.usembassy.gov/u-s-citizen-services/security-and-travel-information/",
+        "title": "Alerts and Messages - U.S. Embassy & Consulates in India",
+        "snippet": "Travel Advisory: India – Level 2: Exercise Increased Caution (18 June, 2025) ... Visit the State Department's Office of American Citizens Services and Crisis ...",
+        "position": 2
+      },
+      {
+        "link": "https://www.topindianholidays.com/india-travel-advisory-safety-guide",
+        "title": "India Travel Advisory 2025 – Is It Safe to Visit India Now?",
+        "snippet": "No restrictions on visiting Delhi, Agra, Jaipur, Kerala, Goa, or other popular destinations; The advisory mentions Northeast India and Kashmir as areas where ...",
+        "position": 3
+      },
+      {
+        "link": "https://in.usembassy.gov/news-events/",
+        "title": "News & Events - U.S. Embassy & Consulates in India",
+        "snippet": "Travel Advisory: Level 2 - Exercise Increased Caution...Read More. Custom AQI ... Citizens in India. Event: U.S. citizens who reside or travel in India ...",
+        "position": 4,
+        "attributes": {
+          "Missing": "safety | Show results with:safety"
+        }
+      },
+      {
+        "link": "https://www.eventbrite.com/d/india--jaipur/events/",
+        "title": "Jaipur, India Events, Calendar & Tickets | Eventbrite",
+        "snippet": "Events near Jaipur ; An Action-Packed Scavenger Hunt! - Jaipur Jamboree Journey. Tomorrow • 8:00 AM + 214 more. 4502, Malve Nagar, J.D.A. Market, Kanwar Nagar, ...",
+        "position": 5
+      }
+    ]
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}

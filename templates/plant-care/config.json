@@ -1,0 +1,87 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_507",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Analyze the plant image provided and generate a strictly formatted JSON response for its care guide.\n\nURL : {{triggerNode_1.output.url}}\n\nInstructions\n\n1. Precision: Use exact keys from the structure above. Replace placeholder strings \\(e.g., \"symptom1\"\\) with actual data.\n2. Completeness: Include all sections even if some fields are \"N/A\".\n3. Validation: Ensure valid JSON syntax \\(escape quotes, avoid trailing commas\\).\n4. Clarity: Prioritize concise, actionable advice for beginners.\n5. Ambiguity Handling: If species is unclear, populate the \"error\" field with a request for more details \\(e.g., leaf shape, flower color\\).\n\nOutput\n\nMake sure the output is only a JSON object, no leading statements or backticks, as the answer you give will be used later as a JSON object."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_710",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"output\": \"{{LLMNode_507.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_507",
+      "source": "triggerNode_1",
+      "target": "LLMNode_507",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_507-graphqlResponseNode_710",
+      "source": "LLMNode_507",
+      "target": "graphqlResponseNode_710",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_710",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_710",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

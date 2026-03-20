@@ -1,0 +1,69 @@
+{
+    "name": "Internal Assistant",
+    "description": "Build an internal chatbot that finds precise answers within your company’s knowledge base.",
+    "tags": ["🚀 Startup", "📄 Document"],
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "data_source",
+            "type": "any-of",
+            "options": [
+                {
+                    "id": "gdrive"
+                },
+                {
+                    "id": "gsheet"
+                },
+                {
+                    "id": "onedrive"
+                },
+                {
+                    "id": "postgres"
+                },
+                {
+                    "id": "s3"
+                },
+                {
+                    "id": "scraping-indexation"
+                },
+                {
+                    "id": "sharepoint"
+                },
+                {
+                    "id": "crawling-indexation"
+                }
+            ],
+            "minSelection": 1,
+            "maxSelection": 1
+        },
+        {
+            "id": "assistant",
+            "type": "any-of",
+            "options": [
+                {
+                    "id": "knowledge-chatbot"
+                },
+                {
+                    "id": "slack-assistant"
+                },
+                {
+                    "id": "teams-assistant"
+                }
+            ],
+            "prerequisiteSteps": [
+                "data_source"
+            ],
+            "minSelection": 1,
+            "maxSelection": 1
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/bundles/chat",
+    "deployUrl": "",
+    "documentationUrl": ""
+}

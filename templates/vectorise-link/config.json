@@ -1,0 +1,212 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\",\n  \"filename\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "scraperNode_823",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "scraperNode",
+        "values": {
+          "nodeName": "Scraper",
+          "url": "{{triggerNode_1.output.url}}",
+          "mobile": false,
+          "waitFor": "1000",
+          "credentials": "FIRECRAWL_API_KEY",
+          "excludeTags": [],
+          "includeTags": [],
+          "onlyMainContent": true,
+          "skipTLsVerification": false
+        }
+      }
+    },
+    {
+      "id": "chunkNode_770",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "chunkNode",
+        "values": {
+          "nodeName": "Chunking",
+          "chunkField": "{{scraperNode_823.output.markdown}}",
+          "numOfChars": 500,
+          "separators": [
+            "\n\n",
+            "\n",
+            " "
+          ],
+          "chunkingType": "recursiveCharacterTextSplitter",
+          "overlapChars": 50
+        }
+      }
+    },
+    {
+      "id": "codeNode_158",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Extract Chunks",
+          "code": "let docs = {{ chunkNode_967.output.chunks }}\n\nlet outputDocs = docs.map((doc) => doc.pageContent)\n\nreturn outputDocs"
+        }
+      }
+    },
+    {
+      "id": "vectorizeNode_295",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "vectorizeNode",
+        "values": {
+          "nodeName": "Vectorize",
+          "inputText": "{{codeNode_158.output}}",
+          "embeddingModelName": {}
+        }
+      }
+    },
+    {
+      "id": "IndexNode_824",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "IndexNode",
+        "values": {
+          "nodeName": "Index",
+          "vectorDB": "",
+          "primaryKeys": "",
+          "vectorsField": "{{codeNode_512.output.vectors}}",
+          "metadataField": "{{codeNode_512.output.metadata}}",
+          "duplicateOperation": "overwrite"
+        }
+      }
+    },
+    {
+      "id": "codeNode_512",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Transform MetaData",
+          "code": "let vectors = {{vectorizeNode_295.output.vectors}}\nlet metadataProps = [];\nlet texts = {{codeNode_158.output}}\n\nfor (const idx in vectors) {\n  let metadata = {}\n  metadata[\"content\"] = texts[idx];\n  metadata[\"filename\"] = {{triggerNode_1.output.filename}}\n  metadataProps.push(metadata)\n};\n\noutput = { \"metadata\": metadataProps, \"vectors\": vectors }"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_532",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"message\": \"{{IndexNode_824.output.message}}\",\n  \"records\": \"{{IndexNode_824.output.recordsIndexed}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-scraperNode_823",
+      "source": "triggerNode_1",
+      "target": "scraperNode_823",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "scraperNode_823-chunkNode_770",
+      "source": "scraperNode_823",
+      "target": "chunkNode_770",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "chunkNode_770-codeNode_158",
+      "source": "chunkNode_770",
+      "target": "codeNode_158",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_158-vectorizeNode_295",
+      "source": "codeNode_158",
+      "target": "vectorizeNode_295",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "codeNode_512-IndexNode_824",
+      "source": "codeNode_512",
+      "target": "IndexNode_824",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "vectorizeNode_295-codeNode_512",
+      "source": "vectorizeNode_295",
+      "target": "codeNode_512",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "IndexNode_824-graphqlResponseNode_532",
+      "source": "IndexNode_824",
+      "target": "graphqlResponseNode_532",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_532",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_532",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

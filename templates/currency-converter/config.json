@@ -1,0 +1,89 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"amount\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_424",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [
+            "882ec676-1b99-4a6b-ac2a-29e282bd4e72"
+          ],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Convert {{triggerNode_1.output.amount}} INR to USD.\n\nJust give the final output in decimals upto two places, no leading statements."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_737",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"answer\": \"{{LLMNode_424.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_424",
+      "source": "triggerNode_1",
+      "target": "LLMNode_424",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_424-graphqlResponseNode_737",
+      "source": "LLMNode_424",
+      "target": "graphqlResponseNode_737",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_737",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_737",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

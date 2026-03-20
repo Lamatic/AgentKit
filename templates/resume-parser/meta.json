@@ -1,0 +1,13 @@
+{
+    "name": "Resume Parser",
+    "description": "This AI-powered resume parsing system takes a resume as input, extracts key details like name, experience, skills, and education, and converts the information into structured JSON format, enabling efficient candidate profiling and integration into hiring workflows.",
+    "tags": ["🚀 Startup", "🌱 Growth"],
+    "testInput": null,
+    "githubUrl": "",
+    "documentationUrl": "",
+    "deployUrl": "https://studio.lamatic.ai/template/resume-parser",
+    "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+    }
+}

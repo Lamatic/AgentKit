@@ -1,0 +1,30 @@
+{
+  "webSearchNode_441": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Serper authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    }
+  ],
+  "InstructorLLMNode_445": [
+    {
+      "mode": "instructor",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model to generate text based on the prompt.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+}

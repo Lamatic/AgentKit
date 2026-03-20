@@ -1,0 +1,125 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "modes": {},
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "headers": "",
+          "retries": "0",
+          "webhookUrl": "",
+          "responeType": "realtime",
+          "retry_deplay": "0",
+          "advance_schema": "{\n  \"imageURL\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "multiModalLLMNode_392",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "multiModalLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Multi Modal",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Flesh out as many concepts as possible from this whiteboard/notes session that could be used within a display ad. (In addition to hooks, please also come up with CTA text/design, promotional copy, and key selling points.)\n\nRemember that a display ad should use only a minimal amount of text. You are given the file as an attachment. Let there be no leading statements, just your final answer."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "{{triggerNode_1.output.imageURL}}",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "ImageGenNode_223",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "ImageGenNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Generate Image",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "user",
+              "content": "You will be given these notes and understanding from which you have to create a display an advertisement, using the classic problem-solution. Clearly show the pain point and our product as the ideal solution, incorporating as many elements from these notes. Make an attractive and CTA advertisements.\n\n{{multiModalLLMNode_910.output.generatedResponse}}"
+            }
+          ],
+          "imageGenModelName": ""
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_868",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"insights\": \"{{multiModalLLMNode_392.output.generatedResponse}}\",\n  \"image\": \"{{ImageGenNode_223.output.imageUrl}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-multiModalLLMNode_392",
+      "source": "triggerNode_1",
+      "target": "multiModalLLMNode_392",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "multiModalLLMNode_392-ImageGenNode_223",
+      "source": "multiModalLLMNode_392",
+      "target": "ImageGenNode_223",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "ImageGenNode_223-graphqlResponseNode_868",
+      "source": "ImageGenNode_223",
+      "target": "graphqlResponseNode_868",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_868",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_868",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

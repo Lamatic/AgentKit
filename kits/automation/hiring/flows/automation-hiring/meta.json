@@ -1,0 +1,14 @@
+{
+  "name": "1. Hiring Automation",
+  "description": "",
+  "tags": [],
+  "testInput": {
+    "name": "Dhruv Pamneja",
+    "email": "dhruvp@lamatic.ai",
+    "job_description": "Frontend Engineer",
+    "resume_url": "https://aseskssykbhhiborrwws.supabase.co/storage/v1/object/public/alpha/DhruvP_Resume.pdf"
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

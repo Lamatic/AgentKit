@@ -1,0 +1,56 @@
+{
+  "firecrawlNode_785": [
+    {
+      "name": "credentials",
+      "label": "Credentials",
+      "type": "select",
+      "description": "Select the credentials for crawler authentication.",
+      "isCredential": true,
+      "required": true,
+      "defaultValue": "",
+      "isPrivate": true
+    },
+    {
+      "name": "urls",
+      "label": "URLs",
+      "type": "monacoText",
+      "required": true,
+      "isPrivate": true,
+      "description": "Configure the URLs array to be scraped. Can be array of URLs or a string of URLs separated comma",
+      "defaultValue": "",
+      "actionField": "mode",
+      "actionValue": [
+        "asyncBatchScrape",
+        "syncBatchScrape"
+      ]
+    }
+  ],
+  "vectorizeNode_314": [
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model",
+      "mode": "embedding",
+      "description": "Select the model to convert the texts into vector representations.",
+      "modelType": "embedder/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "vectorNode_157": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "description": "Select the vector database where the action will be performed."
+    }
+  ]
+}

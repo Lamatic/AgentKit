@@ -1,0 +1,87 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"url\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_254",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Analyze the image at the given URL : {{triggerNode_1.output.url}}\n\nTask Objectives\n\n1. Identify the dish shown in the image \\(e.g. sushi, biryani, etc.\\).\n2. Provide a detailed recipe for the identified dish.\n3. Recipe Details which includes :  \n   1. Dish name.  \n   2. Description.  \n   3. Serving size \\(e.g., \"Yields: 2 servings\"\\).  \n   4. Prep time and cook time.\n4. Ingredients Section  \n   1. Group ingredients logically \\(e.g., \"noodles,\" \"sauce,\" \"stir\\-fry\"\\).\n5. Instructions Section  \n   1. Provide step\\-by\\-step preparation and cooking directions."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_393",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"receipe\": \"{{LLMNode_254.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_254",
+      "source": "triggerNode_1",
+      "target": "LLMNode_254",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_254-graphqlResponseNode_393",
+      "source": "LLMNode_254",
+      "target": "graphqlResponseNode_393",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_393",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_393",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}

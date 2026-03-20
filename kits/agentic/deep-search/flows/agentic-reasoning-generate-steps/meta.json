@@ -1,0 +1,16 @@
+{
+  "name": "Agentic Reasoning - Generate Steps",
+  "description": "This flow generates steps / actions to be performed as part of Agentic Reasoning",
+  "tags": [],
+  "testInput": {
+    "query": "Help me pack for my trip to Jaipur next week",
+    "history": []
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+}
