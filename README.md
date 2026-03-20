@@ -1,169 +1,253 @@
-<div id="top"></div>
+# Security Threat Intelligence Agent
 
-<p align="center">
-  <img width="100%" alt="lamatic cover" src="https://github.com/Lamatic/.github/raw/main/linkein-cover.jpg" />
-</p>
+A powerful security analytics agent that performs comprehensive IP address threat analysis by querying multiple threat intelligence sources in parallel and synthesizing results using LLM-powered analysis.
 
-<p align="center">
-  <a href="https://lamatic.ai">
-    <picture>
-      <!-- Dark mode: keep existing white SVG -->
-      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
-      <!-- Light mode: use the black PNG you found -->
-      <source media="(prefers-color-scheme: light)" srcset="https://github.com/Lamatic/AgentKit/raw/main/templates/agentic/reasoning/public/lamatic-logo.png">
-      <!-- Fallback -->
-      <img width="300" alt="Lamatic.ai" src="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
-    </picture>
-  </a>
-</p>
+## Overview
 
-<h2 align="center">Stack to Build Agentic SaaS → 10x faster</h2>
-  <br/>
-  <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
-<p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
-</p>
-</p>
+The Security Threat Intelligence Agent provides real-time threat assessment for IP addresses by aggregating data from three industry-leading threat intelligence platforms:
 
-<p align="center">
-<a href="https://lamatic.ai/docs/slack"><img src="https://img.shields.io/badge/Slack-Join%20Us-4A154B?logo=slack&logoColor=white" alt="Join lamatic.ai Slack"></a>
-<a href="https://github.com/Lamatic/AgentKit/stargazers">
-  <img src="https://img.shields.io/github/stars/Lamatic/AgentKit?logo=github" alt="GitHub Stars" />
-</a>
-<a href="https://github.com/Lamatic/AgentKit/network/members">
-  <img src="https://img.shields.io/github/forks/Lamatic/AgentKit?logo=github" alt="GitHub Forks" />
-</a>
-<a href="https://github.com/Lamatic/AgentKit/actions">
-  <img src="https://img.shields.io/github/actions/workflow/status/Lamatic/AgentKit/ci.yml?branch=main" alt="CI/CD Status" />
-</a>
+- **VirusTotal** - Malware and URL scanning
+- **AbuseIPDB** - IP abuse and spam reporting
+- **Shodan** - Internet-connected device discovery
 
-<br/>
+The agent orchestrates parallel API calls to all three services, then leverages an LLM to synthesize the raw data into a structured, actionable threat report with risk scoring and recommended actions.
 
-## ✨ About AgentKit
-
-Deploy intelligent AI agents in minutes with enterprise-grade security, scalable architecture, and seamless integrations. Power everything from customer support to workflow automation with the future of agent-powered business.
-
-***
-
-<table>
-  <tr>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/agentic.png" alt="Agentic Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Agentic</h3>
-  <p style="font-size: 15px;">Intelligent agents that can reason, plan, and execute complex tasks autonomously</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/embed.png" alt="Embed Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Embed</h3>
-  <p style="font-size: 15px;">Seamlessly integrate AI capabilities into your existing applications and workflows</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/assistant.png" alt="Assistant Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Assistant</h3>
-  <p style="font-size: 15px;">Smart assistants that help users with tasks, answer questions, and provide support</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/automation.png" alt="Automation Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Automation</h3>
-  <p style="font-size: 15px;">Automate repetitive tasks and streamline business processes with AI-powered workflows</p>
-    </td>
-  </tr>
-</table>
-
-***
-
-### 📦 Available Kits
-
-Explore ready-to-deploy agent kits and templates built on Lamatic’s AgentKit framework.  
-Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
-
-| Kit Name | Description | Status | Live Demo | Path |
-|-----------|--------------|--------|--------------|------|
-| **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
-| **Deep Search Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/agentic/deep-search`](./kits/agentic/deep-search) |
-| **Generation Agent** | A Next.js starter kit for generating text/json/image content using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app) | [`/kits/agentic/generation`](./kits/agentic/generation) |
-||
-| **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
-| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
-||
-| **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
-| **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
-||
-| **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/kits/embed`](./kits/embed) |
-| **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/chat`](./kits/embed/chat) |
-| **Search** | A Next.js starter kit for searchbot Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/search`](./kits/embed/search) |
-| **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/kits/embed/sheets`](./kits/embed/sheets) |
-
-> 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
-
-## 🏛️ Architecture Overview
-
-- **Agent Engine**: Multi-agent system enabling advanced reasoning and planning
-- **Templates & Kits**: Pre-designed packs for popular use-cases and enterprise workflows
-- **Lamatic Core**: Central orchestration of all agentic, automation, and integration flows
-- **Security Layer**: End-to-end bank-grade encryption, compliance-ready
-- **Integrations Hub**: 1-click integrations with your stack (REST, Zapier, Webhooks, etc.)
+## Architecture
 
 ```
-+------------------+             +------------------+          +-------------------+
-|  Web/API Client  | - GraphQL-> |     Lamatic      |  <-----> | Integrations/Apps |
-+------------------+             +------------------+          +-------------------+
-        ^                                 ^       
-    Frontend                      Agent Microservice
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           Next.js Frontend (UI Layer)                           │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │  Threat Intelligence Dashboard                                          │    │
+│  │  - IP Address Input                                                     │    │
+│  │  - Real-time Scan Status                                                │    │
+│  │  - Color-coded Risk Visualization                                       │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ POST /graphql
+                                      │ Query: executeWorkflow
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         Lamatic GraphQL Gateway                                 │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │  Workflow Orchestrator                                                  │    │
+│  │  - Authentication & Authorization                                       │    │
+│  │  - Request Validation                                                   │    │
+│  │  - Workflow Execution Engine                                            │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ Fan-out (Parallel Execution)
+                                      │
+              ┌───────────────────────┼───────────────────────┐
+              │                       │                       │
+              ▼                       ▼                       ▼
+┌─────────────────────────┐ ┌─────────────────────┐ ┌─────────────────────────┐
+│     VirusTotal API      │ │    AbuseIPDB API    │ │      Shodan API         │
+│  - Malware detections   │ │  - Abuse reports    │ │  - Open ports           │
+│  - URL relationships    │ │  - Confidence score │ │  - Service banners      │
+│  - Community votes      │ │  - Category tags    │ │  - Vulnerability data   │
+└─────────────────────────┘ └─────────────────────┘ └─────────────────────────┘
+              │                       │                       │
+              └───────────────────────┼───────────────────────┘
+                                      │
+                                      │ Fan-in (Aggregation)
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         LLM Synthesis Layer                                     │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │  Threat Analysis Prompt                                                 │    │
+│  │  - Aggregate all scan results                                           │    │
+│  │  - Calculate composite risk score (0-100)                               │    │
+│  │  - Determine risk level (CRITICAL/HIGH/MEDIUM/LOW)                      │    │
+│  │  - Generate executive summary                                           │    │
+│  │  - Provide recommended actions                                          │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ JSON Response
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           Response Schema                                       │
+│  {                                                                              │
+│    "indicator": "8.8.8.8",                                                      │
+│    "risk_score": 0,                                                             │
+│    "risk_level": "LOW",                                                         │
+│    "summary": "...",                                                            │
+│    "recommended_action": "SAFE"                                                 │
+│  }                                                                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-***
+## Prerequisites
 
-## 🚀 Steps to Deploy
+Before deploying this agent, ensure you have the following:
 
-1. **Clone the Repo**
-   ```sh
-   git clone https://github.com/Lamatic/AgentKit.git
-   cd AgentKit
-   ```
+- **Node.js** v18.17 or later
+- **npm** or **yarn** package manager
+- **Lamatic Account** with API access
+- **API Keys** for the following services (configured in your Lamatic workflow):
+  - VirusTotal API key
+  - AbuseIPDB API key
+  - Shodan API key
 
-2. **Select Your AgentKit**
-   - Browse `/templates` for available kits.
-   - Example:
-     ```sh
-     cd templates/agentic/reasoning
-     ```
+## Setup & Installation
 
-3. **Configure Integrations**
-   - Enter API keys, endpoints, and credentials in `.env` or `/config`. The setup and configurations for the integration will be defined in that repo itself in it's ReadME.
+### 1. Clone the AgentKit Repository
 
-4. **Deploy**
-   - Run the agent locally with : 
-     ```sh
-     npm run deploy
-     ```
+```bash
+git clone https://github.com/Lamatic/AgentKit.git
+cd AgentKit/kits/agentic/security-threat-intel
+```
 
-5. **Monitor & Scale**
-   - Dashboard live at `studio.lamatic.ai`
-   - Scale or update agents with a single Click.
+### 2. Install Dependencies
 
-***
+```bash
+npm install
+```
 
-## 📚 Documentation & Resources
+### 3. Configure Environment Variables
 
-- [AgentKit Overview](https://lamatic.ai/templates/agentkits)
-- [Lamatic Guides](https://lamatic.ai/guides)
-- [API Reference](https://lamatic.ai/api)
-- [Community Support](https://github.com/Lamatic/AgentKit/discussions)
+Copy the example environment file and add your Lamatic API key:
 
-***
+```bash
+cp .env.example .env.local
+```
 
-## 🤝 Contributing
+Edit `.env.local` and add your credentials:
 
-We welcome your ideas and improvements! See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get started.
+```env
+NEXT_PUBLIC_LAMATIC_API_KEY=lt-your-api-key-here
+```
 
-***
+### 4. Import the Workflow Configuration
 
-## ⭐ Related Links
+1. Log in to your [Lamatic Dashboard](https://app.lamatic.ai)
+2. Navigate to **Workflows** → **Import**
+3. Upload the `lamatic-config.json` file included in this kit
+4. Note the generated **Workflow ID** after import
 
-- [Lamatic.ai](https://lamatic.ai)
-- [Lamatic University](https://lamatic.ai/university)
-- [Case Studies](https://lamatic.ai/case-studies)
+### 5. Update Workflow ID
 
-***
+Open `app/page.tsx` and update the workflow ID:
 
-Powerful, scalable agentic automations for the modern enterprise — with security, speed, and service at the core.
+```typescript
+variables: {
+  workflowId: "your-workflow-id-here", // Replace with your imported workflow ID
+  payload: { sampleInput: ipAddress },
+}
+```
+
+### 6. Run the Development Server
+
+```bash
+npm run dev
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000)
+
+### 7. Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+## Usage
+
+1. Navigate to the Threat Intelligence Dashboard
+2. Enter an IP address in the search field (e.g., `8.8.8.8`)
+3. Click **Scan IP** to initiate the threat analysis
+4. Review the generated threat report including:
+   - **Risk Score** (0-100)
+   - **Risk Level** (CRITICAL/HIGH/MEDIUM/LOW)
+   - **Summary** of findings across all sources
+   - **Recommended Action** based on threat assessment
+
+## Project Structure
+
+```
+security-threat-intel/
+├── app/
+│   ├── page.tsx              # Main dashboard component
+│   ├── layout.tsx            # Root layout
+│   └── globals.css           # Global styles
+├── public/                   # Static assets
+├── .env.example              # Environment template
+├── .env.local                # Local environment (gitignored)
+├── lamatic-config.json       # Lamatic workflow definition
+├── next.config.js            # Next.js configuration
+├── package.json              # Dependencies
+├── postcss.config.js         # PostCSS configuration
+├── tailwind.config.ts        # Tailwind CSS configuration
+├── tsconfig.json             # TypeScript configuration
+└── README.md                 # This file
+```
+
+## API Response Format
+
+The agent returns a standardized JSON threat report:
+
+```json
+{
+  "indicator": "8.8.8.8",
+  "risk_score": 0,
+  "risk_level": "LOW",
+  "summary": "The IP address 8.8.8.8 is Google's public DNS resolver...",
+  "recommended_action": "SAFE"
+}
+```
+
+### Risk Level Thresholds
+
+| Risk Level | Score Range | Color Code |
+|------------|-------------|------------|
+| CRITICAL   | 75-100      | Red        |
+| HIGH       | 50-74       | Orange     |
+| MEDIUM     | 25-49       | Yellow     |
+| LOW        | 0-24        | Green      |
+
+## Customization
+
+### Adding New Threat Sources
+
+To integrate additional threat intelligence APIs:
+
+1. Add a new node in `lamatic-config.json`
+2. Configure the API endpoint and authentication
+3. Update the LLM synthesis prompt to include the new data source
+4. Re-import the workflow to Lamatic
+
+### Modifying Risk Scoring
+
+Adjust the risk scoring logic by editing the LLM synthesis prompt in `lamatic-config.json`. The prompt defines how raw API responses are weighted and combined.
+
+## Troubleshooting
+
+### "No threat report returned from API"
+
+- Verify your Lamatic API key is correct in `.env.local`
+- Ensure the workflow ID matches your imported workflow
+- Check that all external API keys are configured in the Lamatic dashboard
+
+### GraphQL Errors
+
+- Confirm the endpoint URL is correct
+- Verify the `x-project-id` header matches your Lamatic project
+
+## Contributing
+
+Contributions are welcome! Please read the [Contributing Guidelines](../../../CONTRIBUTING.md) before submitting a pull request.
+
+## License
+
+This kit is licensed under the MIT License. See the [LICENSE](../../../LICENSE) file for details.
+
+## Support
+
+For issues, questions, or feature requests, please open an issue in the main [AgentKit repository](https://github.com/Lamatic/AgentKit/issues).
+
+---
+
+**Built with ❤️ for the Lamatic Community**
