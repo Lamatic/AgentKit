@@ -1,0 +1,47 @@
+{
+  "name": "job-apply-agent",
+  "version": "1.0.0",
+  "displayName": "ApplyBud — Job Apply Agent",
+  "description": "An AI agent that evaluates job postings against a candidate resume, scores the match, and auto-generates tailored cover letters for qualified roles.",
+  "category": "agentic",
+  "tags": ["ai-agent", "job-search", "cover-letter", "resume-matching", "automation", "hr-tech"],
+  "author": "ApplyBud",
+  "license": "MIT",
+  "flows": ["job-apply-flow"],
+  "requiredEnvVars": [
+    "LAMATIC_API_KEY",
+    "LAMATIC_PROJECT_ID",
+    "LAMATIC_FLOW_ID"
+  ],
+  "inputs": {
+    "resume": {
+      "type": "string",
+      "description": "Candidate resume as plain text"
+    },
+    "job_urls": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of direct job posting URLs to evaluate"
+    }
+  },
+  "outputs": {
+    "candidate": { "type": "string" },
+    "total_jobs_evaluated": { "type": "number" },
+    "qualified_jobs": { "type": "number" },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "job_title": { "type": "string" },
+          "company": { "type": "string" },
+          "match_score": { "type": "number" },
+          "qualified": { "type": "boolean" },
+          "matched_skills": { "type": "string" },
+          "cover_letter": { "type": "string" }
+        }
+      }
+    }
+  }
+}
