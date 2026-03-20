@@ -1,0 +1,568 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
+        "values": {
+          "id": "triggerNode_1",
+          "headers": "",
+          "retries": "0",
+          "nodeName": "API Request",
+          "webhookUrl": "",
+          "responeType": "realtime",
+          "retry_deplay": "0",
+          "advance_schema": "{\n  \"resume\": \"string\",\n  \"job_urls\": \"[string]\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_426",
+      "data": {
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "schema": {},
+        "values": {
+          "id": "InstructorLLMNode_426",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"email\": {\n      \"type\": \"string\"\n    },\n    \"target_role\": {\n      \"type\": \"string\"\n    },\n    \"years_of_experience\": {\n      \"type\": \"number\"\n    },\n    \"skills\": {\n      \"type\": \"string\"\n    },\n    \"recent_title\": {\n      \"type\": \"string\"\n    },\n    \"recent_company\": {\n      \"type\": \"string\"\n    },\n    \"recent_summary\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a resume parser. Extract structured data and return valid JSON only. No markdown, no commentary, no code fences."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Extract information from this resume. Return name, email, target_role, years_of_experience as a number, skills as a comma separated string, recent_title, recent_company, and recent_summary.\nResume:\n{{triggerNode_1.output.resume}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Resume Parser",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 130
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_487",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "job_pages": "array"
+        },
+        "values": {
+          "id": "codeNode_487",
+          "code": "var urls = {{triggerNode_1.output.job_urls}};\nvar out = [];\nvar i = 0;\nwhile (i < urls.length) {\n  var url = urls[i];\n  var text = \"\";\n  var status = \"ok\";\n  try {\n    var response = await fetch(url);\n    var html = await response.text();\n    var clean = html;\n    var s1 = clean.indexOf('<script');\n    while (s1 > -1) {\n      var e1 = clean.indexOf('<' + '/script>', s1);\n      if (e1 === -1) { break; }\n      clean = clean.substring(0, s1) + ' ' + clean.substring(e1 + 9);\n      s1 = clean.indexOf('<script');\n    }\n    var s2 = clean.indexOf('<style');\n    while (s2 > -1) {\n      var e2 = clean.indexOf('<' + '/style>', s2);\n      if (e2 === -1) { break; }\n      clean = clean.substring(0, s2) + ' ' + clean.substring(e2 + 8);\n      s2 = clean.indexOf('<style');\n    }\n    var t1 = clean.indexOf('<');\n    while (t1 > -1) {\n      var t2 = clean.indexOf('>', t1);\n      if (t2 === -1) { break; }\n      clean = clean.substring(0, t1) + ' ' + clean.substring(t2 + 1);\n      t1 = clean.indexOf('<');\n    }\n    var words = clean.split(' ');\n    var filtered = [];\n    var w = 0;\n    while (w < words.length) {\n      var word = words[w].trim();\n      if (word.length > 0) { filtered.push(word); }\n      w = w + 1;\n    }\n    text = filtered.join(' ');\n    if (text.length > 6000) { text = text.substring(0, 6000); }\n  } catch (e) {\n    status = \"error\";\n    text = \"\";\n  }\n  out.push({ url: url, jd_text: text, status: status });\n  i = i + 1;\n}\nreturn { job_pages: out };",
+          "nodeName": "Fetch Job Pages"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 260
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "forLoopNode_787",
+      "data": {
+        "modes": {},
+        "nodeId": "forLoopNode",
+        "schema": {
+          "currentValue": "object",
+          "intermediateOutput": "object",
+          "previousIterationOutput": "object"
+        },
+        "values": {
+          "id": "forLoopNode_787",
+          "wait": 0,
+          "endValue": "10",
+          "nodeName": "Loop",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_530",
+          "iterateOver": "list",
+          "iteratorValue": "{{codeNode_487.output.job_pages}}"
+        }
+      },
+      "type": "forLoopNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "InstructorLLMNode_219",
+      "data": {
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "schema": {},
+        "values": {
+          "id": "InstructorLLMNode_219",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"job_title\": {\n      \"type\": \"string\"\n    },\n    \"company\": {\n      \"type\": \"string\"\n    },\n    \"location\": {\n      \"type\": \"string\"\n    },\n    \"seniority\": {\n      \"type\": \"string\"\n    },\n    \"required_skills\": {\n      \"type\": \"string\"\n    },\n    \"preferred_skills\": {\n      \"type\": \"string\"\n    },\n    \"responsibilities\": {\n      \"type\": \"string\"\n    },\n    \"qualifications\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a job description analyst. Extract structured data and return valid JSON only. No markdown, no commentary."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Extract information from this job posting. Return job_title, company, location, seniority, required_skills as a comma separated string, preferred_skills as a comma separated string, responsibilities as a comma separated string, qualifications as a comma separated string.\nJob posting:\n{{forLoopNode_787.currentValue.jd_text}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Job Analyser",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_575",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {},
+        "values": {
+          "id": "codeNode_575",
+          "code": "var candidateSkills = {{InstructorLLMNode_426.output.skills}};\nvar jobRequiredRaw = {{InstructorLLMNode_219.output.required_skills}};\nvar jobPreferredRaw = {{InstructorLLMNode_219.output.preferred_skills}};\nvar jobTitle = {{InstructorLLMNode_219.output.job_title}};\nvar jobCompany = {{InstructorLLMNode_219.output.company}};\nvar jobSeniority = {{InstructorLLMNode_219.output.seniority}};\n\nvar jobRequired = jobRequiredRaw.split(',');\nvar jobPreferred = jobPreferredRaw.split(',');\nvar candidateList = candidateSkills.split(',');\n\nvar reqMatches = 0;\nvar prefMatches = 0;\nvar matchedSkills = [];\nvar i = 0;\n\nwhile (i < jobRequired.length) {\n  var req = jobRequired[i].toLowerCase().trim();\n  var j = 0;\n  while (j < candidateList.length) {\n    var cs = candidateList[j].toLowerCase().trim();\n    if (cs === req || cs.indexOf(req) > -1 || req.indexOf(cs) > -1) {\n      reqMatches = reqMatches + 1;\n      matchedSkills.push(candidateList[j].trim());\n      break;\n    }\n    j = j + 1;\n  }\n  i = i + 1;\n}\n\ni = 0;\nwhile (i < jobPreferred.length) {\n  var pref = jobPreferred[i].toLowerCase().trim();\n  var k = 0;\n  while (k < candidateList.length) {\n    var cs2 = candidateList[k].toLowerCase().trim();\n    if (cs2 === pref || cs2.indexOf(pref) > -1 || pref.indexOf(cs2) > -1) {\n      prefMatches = prefMatches + 1;\n      matchedSkills.push(candidateList[k].trim());\n      break;\n    }\n    k = k + 1;\n  }\n  i = i + 1;\n}\n\nvar reqScore = jobRequired.length > 0 ? (reqMatches / jobRequired.length) * 70 : 35;\nvar prefScore = jobPreferred.length > 0 ? (prefMatches / jobPreferred.length) * 30 : 15;\nvar score = Math.round(reqScore + prefScore);\n\nreturn {\n  job_title: jobTitle,\n  company: jobCompany,\n  seniority: jobSeniority,\n  score: score,\n  qualified: score >= 70,\n  matched_skills: matchedSkills.join(', ')\n};",
+          "nodeName": "Match Scorer"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 650
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "conditionNode_878",
+      "data": {
+        "modes": [],
+        "nodeId": "conditionNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
+        "values": {
+          "nodeName": "Condition score 70",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_878-LLMNode_122",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{codeNode_575.output.score}}\",\n      \"operator\": \">=\",\n      \"value\": \"70\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_878-addNode_703",
+              "condition": {}
+            },
+            {
+              "label": "Condition 2",
+              "value": "conditionNode_878-plus-node-addNode_182828-112",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \" {{codeNode_575.output.score}}\",\n      \"operator\": \">=\",\n      \"value\": \"70\"\n    }\n  ]\n}"
+            }
+          ],
+          "allowMultipleConditionExecution": false
+        }
+      },
+      "type": "conditionNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 780
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "plus-node-addNode_182828",
+      "data": {
+        "label": "+",
+        "nodeId": "addNode",
+        "values": {}
+      },
+      "type": "addNode",
+      "measured": {
+        "width": 216,
+        "height": 100
+      },
+      "position": {
+        "x": 900,
+        "y": 910
+      }
+    },
+    {
+      "id": "addNode_703",
+      "data": {
+        "modes": {},
+        "nodeId": "addNode",
+        "values": {}
+      },
+      "type": "addNode",
+      "measured": {
+        "width": 216,
+        "height": 100
+      },
+      "position": {
+        "x": 0,
+        "y": 910
+      },
+      "draggable": false
+    },
+    {
+      "id": "LLMNode_122",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "schema": {
+          "_meta": "object",
+          "images": "array",
+          "tool_calls": "object",
+          "generatedResponse": "string"
+        },
+        "values": {
+          "id": "LLMNode_122",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert career consultant. Write professional, formal, tailored cover letters. Be direct and evidence-driven. Output only the cover letter body. No labels, no subject line, no commentary."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Write a professional formal cover letter for this candidate applying to this role.\nCANDIDATE:\nName: {{InstructorLLMNode_426.output.name}}\nTarget Role: {{InstructorLLMNode_426.output.target_role}}\nYears of Experience: {{InstructorLLMNode_426.output.years_of_experience}}\nSkills: {{InstructorLLMNode_426.output.skills}}\nMost Recent Role: {{InstructorLLMNode_426.output.recent_title}} at {{InstructorLLMNode_426.output.recent_company}}\nSummary: {{InstructorLLMNode_426.output.recent_summary}}\nJOB:\nTitle: {{codeNode_575.output.job_title}}\nCompany: {{codeNode_575.output.company}}\nSeniority: {{codeNode_575.output.seniority}}\nMatched Skills: {{codeNode_575.output.matched_skills}}\nRequired Skills: {{InstructorLLMNode_219.output.required_skills}}\nResponsibilities: {{InstructorLLMNode_219.output.responsibilities}}\nRULES:\n- Strong specific opening referencing role and company\n- Reference 2-3 matched skills with evidence from experience\n- Confident professional closing with call to action\n- 3 paragraphs, max 280 words\n- Tone: Professional and formal"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Cover Letter Generator",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 910
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "forLoopEndNode_530",
+      "data": {
+        "modes": {},
+        "nodeId": "forLoopEndNode",
+        "schema": {
+          "loopOutput": "object"
+        },
+        "values": {
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_787"
+        }
+      },
+      "type": "forLoopEndNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 1040
+      },
+      "draggable": false
+    },
+    {
+      "id": "codeNode_621",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "total": "number",
+          "results": "array",
+          "candidate": "string",
+          "qualified_count": "number"
+        },
+        "values": {
+          "id": "codeNode_621",
+          "code": "var loopData = {{forLoopNode_787.output}};\nvar loopResults = loopData.loopOutput;\nvar out = [];\nvar i = 0;\n\nwhile (i < loopResults.length) {\n  var iter = loopResults[i];\n  var scorer = iter.codeNode_575;\n  var coverNode = iter.LLMNode_122;\n\n  var scorerOutput = {};\n  if (scorer && scorer.output && scorer.status === 'success') {\n    scorerOutput = scorer.output;\n  }\n\n  var coverLetter = null;\n  if (coverNode && coverNode.output && coverNode.output.generatedResponse) {\n    coverLetter = coverNode.output.generatedResponse;\n  }\n\n  var jobUrl = '';\n  if (loopData.currentValue && loopData.currentValue.url) {\n    jobUrl = loopData.currentValue.url;\n  }\n\n  var item = {\n    url: jobUrl,\n    job_title: scorerOutput.job_title,\n    company: scorerOutput.company,\n    seniority: scorerOutput.seniority,\n    match_score: scorerOutput.score,\n    qualified: scorerOutput.qualified,\n    matched_skills: scorerOutput.matched_skills,\n    cover_letter: coverLetter\n  };\n  out.push(item);\n  i = i + 1;\n}\n\nvar sorted = out.sort(function(a, b) {\n  if (a.qualified !== b.qualified) { return a.qualified ? -1 : 1; }\n  return b.match_score - a.match_score;\n});\n\nvar qualCount = 0;\nvar q = 0;\nwhile (q < sorted.length) {\n  if (sorted[q].qualified === true) { qualCount = qualCount + 1; }\n  q = q + 1;\n}\n\nreturn {\n  results: sorted,\n  total: sorted.length,\n  qualified_count: qualCount,\n  candidate: {{InstructorLLMNode_426.output.name}}\n};",
+          "nodeName": "Bundle Results"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 900,
+        "y": 0
+      },
+      "selected": true,
+      "draggable": false
+    },
+    {
+      "id": "graphqlResponseNode_1",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "graphqlResponseNode",
+        "schema": {},
+        "values": {
+          "id": "graphqlResponseNode_1",
+          "nodeName": "API Response",
+          "response": "{\n  \"candidate\": \"{{codeNode_621.output.candidate}}\",\n  \"total_jobs_evaluated\": \"{{codeNode_621.output.total}}\",\n  \"qualified_jobs\": \"{{codeNode_621.output.qualified_count}}\",\n  \"results\": \"{{codeNode_621.output.results}}\"\n}",
+          "outputMapping": "{\n  \"candidate\": \"{{codeNode_621.output.candidate}}\",\n  \"total_jobs_evaluated\": \"{{codeNode_621.output.total}}\",\n  \"qualified_jobs\": \"{{codeNode_621.output.qualified_count}}\",\n  \"results\": \"{{codeNode_621.output.results}}\"\n}"
+        }
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 900,
+        "y": 130
+      },
+      "selected": false,
+      "draggable": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_426",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_426",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_426-codeNode_487",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_426",
+      "target": "codeNode_487",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_487-forLoopNode_787",
+      "type": "defaultEdge",
+      "source": "codeNode_487",
+      "target": "forLoopNode_787",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_787-InstructorLLMNode_219",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "forLoopNode_787",
+      "target": "InstructorLLMNode_219",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_219-codeNode_575",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_219",
+      "target": "codeNode_575",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_575-conditionNode_878",
+      "type": "defaultEdge",
+      "source": "codeNode_575",
+      "target": "conditionNode_878",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_878-addNode_703",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_878",
+      "target": "addNode_703",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_878-LLMNode_122",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_878",
+      "target": "LLMNode_122",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "addNode_703-forLoopEndNode_530",
+      "type": "defaultEdge",
+      "source": "addNode_703",
+      "target": "forLoopEndNode_530",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_122-forLoopEndNode_530",
+      "type": "defaultEdge",
+      "source": "LLMNode_122",
+      "target": "forLoopEndNode_530",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_621-graphqlResponseNode_1",
+      "type": "defaultEdge",
+      "source": "codeNode_621",
+      "target": "graphqlResponseNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_878-plus-node-addNode_182828-112",
+      "data": {
+        "condition": "Condition 2"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_878",
+      "target": "plus-node-addNode_182828",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "plus-node-addNode_182828-forLoopEndNode_530-221",
+      "type": "defaultEdge",
+      "source": "plus-node-addNode_182828",
+      "target": "forLoopEndNode_530",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_530-codeNode_621",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_530",
+      "target": "codeNode_621",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_787-forLoopEndNode_530",
+      "data": {
+        "condition": "Loop",
+        "invisible": false
+      },
+      "type": "loopEdge",
+      "source": "forLoopNode_787",
+      "target": "forLoopEndNode_530",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_530-codeNode_621",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_530",
+      "target": "codeNode_621",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-graphqlResponseNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
