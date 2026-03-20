@@ -1,0 +1,38 @@
+{
+  "nodes": [
+    {
+      "id": "APITrigger_1",
+      "type": "APITrigger",
+      "data": {
+        "name": "API Trigger",
+        "inputSchema": {
+          "query": {
+            "type": "string",
+            "description": "The user's medical question or symptom description"
+          }
+        }
+      }
+    },
+    {
+      "id": "LLMNode_1",
+      "type": "LLMNode",
+      "data": {
+        "name": "Medical Assistant LLM",
+        "systemPrompt": "You are a helpful medical information assistant. You provide general health information, symptom descriptions, and wellness guidance based on widely accepted medical knowledge.\n\nIMPORTANT GUIDELINES:\n1. Always clarify that you are an AI assistant, NOT a doctor.\n2. Never diagnose conditions — only describe possible associations.\n3. Always recommend consulting a healthcare professional for specific medical concerns.\n4. Provide evidence-based information when possible.\n5. If a query suggests a medical emergency, immediately advise calling emergency services.\n6. Be empathetic and clear in your responses.\n7. Structure your responses with headers and bullet points for readability.\n8. Include relevant general health tips when appropriate.",
+        "userPrompt": "{{query}}",
+        "outputSchema": {
+          "answer": {
+            "type": "string",
+            "description": "The medical information response"
+          }
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "APITrigger_1",
+      "target": "LLMNode_1"
+    }
+  ]
+}
