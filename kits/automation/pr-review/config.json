@@ -1,0 +1,28 @@
+{
+  "name": "PR Review Agent",
+  "description": "AI-powered GitHub pull request reviewer. Paste any public PR URL and get an instant summary, list of potential issues, and actionable suggestions — powered by a Lamatic flow.",
+  "tags": ["🤖 Agentic", "⚙️ Automation", "👨‍💻 Developer Tools"],
+  "author": {
+    "name": "Supriyo Mal",
+    "email": "iamsupriyomal@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "pr-review-flow",
+      "type": "mandatory",
+      "envKey": "PR_REVIEW_FLOW_ID"
+    }
+  ],
+  "integrations": ["GitHub API", "OpenAI / LLM provider of choice"],
+  "features": [
+    "Fetches PR diff via GitHub API (no auth needed for public repos)",
+    "Summarises changes in plain English",
+    "Flags potential bugs, security issues, and edge cases",
+    "Returns structured JSON: summary, issues[], suggestions[], verdict",
+    "Verdict badge: Approve / Needs Changes / Discuss"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/pr-review",
+  "deployUrl": "",
+  "documentationUrl": ""
+}
