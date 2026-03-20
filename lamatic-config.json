@@ -1,0 +1,62 @@
+{
+  "$schema": "https://agentkit.lamatic.ai/schemas/workflow-config-v1.json",
+  "name": "Security Threat Intelligence Agent",
+  "description": "Performs comprehensive IP address threat analysis by querying VirusTotal, AbuseIPDB, and Shodan in parallel, then synthesizes results using LLM-powered analysis.",
+  "version": "1.0.0",
+  "author": "",
+  "license": "MIT",
+  "workflow": {
+    "trigger": {
+      "type": "api",
+      "input": {
+        "sampleInput": {
+          "type": "string",
+          "description": "IP address to analyze for threat intelligence"
+        }
+      }
+    },
+    "nodes": [],
+    "edges": []
+  },
+  "llmPrompt": {
+    "system": "You are a cybersecurity threat intelligence analyst. Analyze the provided data from multiple threat intelligence sources and produce a structured JSON report.",
+    "user": "Analyze the IP address {{sampleInput}} using the following threat intelligence data:\n\nVirusTotal Results: {{virustotal_result}}\n\nAbuseIPDB Results: {{abuseipdb_result}}\n\nShodan Results: {{shodan_result}}\n\nBased on this data, generate a JSON threat report with the following structure:\n{\n  \"indicator\": \"<IP address>\",\n  \"risk_score\": <number 0-100>,\n  \"risk_level\": \"CRITICAL|HIGH|MEDIUM|LOW\",\n  \"summary\": \"<executive summary of findings>\",\n  \"recommended_action\": \"<action recommendation>\"\n}\n\nRisk scoring guidelines:\n- CRITICAL (75-100): Known malware C2, active attacks, multiple malicious detections\n- HIGH (50-74): Suspicious activity, some malicious detections, high abuse score\n- MEDIUM (25-49): Minor concerns, few reports, low confidence malicious\n- LOW (0-24): Clean reputation, legitimate service, no malicious indicators"
+  },
+  "externalApis": {
+    "virustotal": {
+      "name": "VirusTotal",
+      "description": "Malware and URL scanning service",
+      "authType": "apiKey",
+      "envVar": "VIRUSTOTAL_API_KEY"
+    },
+    "abuseipdb": {
+      "name": "AbuseIPDB",
+      "description": "IP abuse and spam reporting database",
+      "authType": "apiKey",
+      "envVar": "ABUSEIPDB_API_KEY"
+    },
+    "shodan": {
+      "name": "Shodan",
+      "description": "Internet-connected device discovery",
+      "authType": "apiKey",
+      "envVar": "SHODAN_API_KEY"
+    }
+  },
+  "envVariables": [
+    {
+      "name": "VIRUSTOTAL_API_KEY",
+      "description": "VirusTotal API key for malware scanning",
+      "required": true
+    },
+    {
+      "name": "ABUSEIPDB_API_KEY",
+      "description": "AbuseIPDB API key for IP abuse data",
+      "required": true
+    },
+    {
+      "name": "SHODAN_API_KEY",
+      "description": "Shodan API key for device discovery",
+      "required": true
+    }
+  ]
+}
