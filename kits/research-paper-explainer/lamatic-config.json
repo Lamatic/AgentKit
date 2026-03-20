@@ -1,0 +1,68 @@
+{
+  "name": "Research Paper Explainer & Quiz Agent",
+  "description": "An AI agent that takes any research paper (URL or abstract), explains it in plain language at multiple levels, and generates an interactive quiz to test understanding.",
+  "version": "1.0.0",
+  "author": "Aman Kumar",
+  "flows": [
+    {
+      "id": "explain-flow",
+      "name": "Paper Explainer Flow",
+      "trigger": "graphql",
+      "endpoint": "/api/explain",
+      "nodes": [
+        {
+          "id": "input",
+          "type": "input",
+          "config": {
+            "fields": ["paperContent", "level"]
+          }
+        },
+        {
+          "id": "llm-explainer",
+          "type": "llm",
+          "config": {
+            "model": "gpt-4o-mini",
+            "systemPrompt": "You are an expert academic communicator. Explain research papers clearly and accurately at the requested comprehension level. Always structure your explanation with: 1) Core Problem, 2) Methodology, 3) Key Findings, 4) Real-world Impact.",
+            "userPrompt": "Explain this research paper at {{level}} level:\n\n{{paperContent}}"
+          }
+        },
+        {
+          "id": "output",
+          "type": "output"
+        }
+      ]
+    },
+    {
+      "id": "quiz-flow",
+      "name": "Quiz Generator Flow",
+      "trigger": "graphql",
+      "endpoint": "/api/quiz",
+      "nodes": [
+        {
+          "id": "input",
+          "type": "input",
+          "config": {
+            "fields": ["paperContent", "numQuestions"]
+          }
+        },
+        {
+          "id": "llm-quiz",
+          "type": "llm",
+          "config": {
+            "model": "gpt-4o-mini",
+            "systemPrompt": "You are a professor creating comprehension quizzes. Generate multiple-choice questions that test genuine understanding (not just memorization). Return ONLY valid JSON in this exact shape: {\"questions\": [{\"question\": \"...\", \"options\": [\"A) ...\",\"B) ...\",\"C) ...\",\"D) ...\"], \"correct\": 0, \"explanation\": \"...\"}]}",
+            "userPrompt": "Generate {{numQuestions}} multiple choice questions from this research paper:\n\n{{paperContent}}"
+          }
+        },
+        {
+          "id": "output",
+          "type": "output"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "required": ["LAMATIC_API_KEY", "LAMATIC_PROJECT_ID"],
+    "optional": ["NEXT_PUBLIC_APP_TITLE"]
+  }
+}
