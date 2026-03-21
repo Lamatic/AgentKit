@@ -1,0 +1,19 @@
+{
+  "name": "Code Review Agent",
+  "description": "Analyzes GitHub PRs for bugs, security vulnerabilities, and style issues using multi-step agentic reasoning.",
+  "tags": ["Agentic", "Code Review", " Security"],
+  "author": {
+    "name": "Soumik",
+    "email": "your@email.com"
+  },
+  "steps": [
+    {
+      "id": "code-review-flow",
+      "type": "mandatory",
+      "envKey": "LAMATIC_API_KEY"
+    }
+  ],
+  "integrations": ["GitHub", "Groq"],
+  "demoUrl": "https://agent-kit-stk.vercel.app/",
+  "githubUrl": "https://github.com/soumik15630m/AgentKit-stk/tree/main/kits/agentic/code-review"
+}
