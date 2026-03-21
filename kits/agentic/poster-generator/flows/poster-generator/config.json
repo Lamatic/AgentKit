@@ -3,18 +3,18 @@
     {
       "id": "triggerNode_1",
       "data": {
+        "modes": {},
         "nodeId": "graphqlNode",
-        "trigger": true,
+        "schema": {
+          "sampleOutput": "string"
+        },
         "values": {
           "id": "triggerNode_1",
           "nodeName": "API Request",
           "responeType": "realtime",
           "advance_schema": "{\n  \"user_input\": \"string\"\n}"
         },
-        "modes": {},
-        "schema": {
-          "sampleOutput": "string"
-        }
+        "trigger": true
       },
       "type": "triggerNode",
       "measured": {
@@ -25,7 +25,7 @@
         "x": 0,
         "y": 0
       },
-      "selected": true
+      "selected": false
     },
     {
       "id": "InstructorLLMNode_371",
@@ -33,6 +33,7 @@
         "label": "dynamicNode node",
         "modes": {},
         "nodeId": "InstructorLLMNode",
+        "schema": {},
         "values": {
           "id": "InstructorLLMNode_371",
           "tools": [],
@@ -64,8 +65,7 @@
               "credential_name": "Intent"
             }
           ]
-        },
-        "schema": {}
+        }
       },
       "type": "dynamicNode",
       "measured": {
@@ -76,7 +76,7 @@
         "x": 0,
         "y": 130
       },
-      "selected": false
+      "selected": true
     },
     {
       "id": "InstructorLLMNode_121",
@@ -84,6 +84,7 @@
         "label": "dynamicNode node",
         "modes": {},
         "nodeId": "InstructorLLMNode",
+        "schema": {},
         "values": {
           "id": "InstructorLLMNode_121",
           "tools": [],
@@ -115,8 +116,7 @@
               "credential_name": "Intent"
             }
           ]
-        },
-        "schema": {}
+        }
       },
       "type": "dynamicNode",
       "measured": {
@@ -135,6 +135,7 @@
         "label": "dynamicNode node",
         "modes": {},
         "nodeId": "InstructorLLMNode",
+        "schema": {},
         "values": {
           "id": "InstructorLLMNode_513",
           "tools": [],
@@ -166,8 +167,7 @@
               "credential_name": "Intent"
             }
           ]
-        },
-        "schema": {}
+        }
       },
       "type": "dynamicNode",
       "measured": {
@@ -184,7 +184,9 @@
       "id": "responseNode_triggerNode_1",
       "data": {
         "label": "Response",
+        "modes": {},
         "nodeId": "graphqlResponseNode",
+        "schema": {},
         "values": {
           "id": "responseNode_triggerNode_1",
           "headers": "{\"content-type\":\"application/json\"}",
@@ -194,9 +196,7 @@
           "retry_delay": "0",
           "outputMapping": "{\n  \"status\": \"complete\",\n  \"html_code\": \"{{InstructorLLMNode_513.output.html_code}}\",\n  \"poster_name\": \"{{InstructorLLMNode_513.output.poster_name}}\"\n}"
         },
-        "isResponseNode": true,
-        "modes": {},
-        "schema": {}
+        "isResponseNode": true
       },
       "type": "responseNode",
       "measured": {
@@ -213,43 +213,43 @@
   "edges": [
     {
       "id": "triggerNode_1-InstructorLLMNode_371",
+      "type": "defaultEdge",
       "source": "triggerNode_1",
       "target": "InstructorLLMNode_371",
       "sourceHandle": "bottom",
-      "targetHandle": "top",
-      "type": "defaultEdge"
+      "targetHandle": "top"
     },
     {
       "id": "InstructorLLMNode_371-InstructorLLMNode_121",
+      "type": "defaultEdge",
       "source": "InstructorLLMNode_371",
       "target": "InstructorLLMNode_121",
       "sourceHandle": "bottom",
-      "targetHandle": "top",
-      "type": "defaultEdge"
+      "targetHandle": "top"
     },
     {
       "id": "InstructorLLMNode_121-InstructorLLMNode_513",
+      "type": "defaultEdge",
       "source": "InstructorLLMNode_121",
       "target": "InstructorLLMNode_513",
       "sourceHandle": "bottom",
-      "targetHandle": "top",
-      "type": "defaultEdge"
+      "targetHandle": "top"
     },
     {
       "id": "InstructorLLMNode_513-responseNode_triggerNode_1",
+      "type": "defaultEdge",
       "source": "InstructorLLMNode_513",
       "target": "responseNode_triggerNode_1",
       "sourceHandle": "bottom",
-      "targetHandle": "top",
-      "type": "defaultEdge"
+      "targetHandle": "top"
     },
     {
       "id": "response-responseNode_triggerNode_1",
+      "type": "responseEdge",
       "source": "triggerNode_1",
       "target": "responseNode_triggerNode_1",
       "sourceHandle": "to-response",
-      "targetHandle": "from-trigger",
-      "type": "responseEdge"
+      "targetHandle": "from-trigger"
     }
   ]
 }
