@@ -7,6 +7,11 @@ export default function Home() {
     const FLOW_ID = process.env.NEXT_PUBLIC_FLOW_ID;
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+    const existingScript = document.querySelector(
+      `script[src*="widget.lamatic.ai"]`
+    );
+    if (existingScript) return;
+
     const root = document.getElementById('lamatic-chat-root');
     if (root) {
       root.dataset.apiUrl = API_URL;
@@ -18,6 +23,13 @@ export default function Home() {
     script.type = 'module';
     script.src = `https://widget.lamatic.ai/chat-v2?projectId=${PROJECT_ID}`;
     document.body.appendChild(script);
+
+ return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+
   }, []);
 
   return (
