@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { lamaticClient } from './utils';
 
 export default function Page() {
   const [ticketText, setTicketText] = useState('');
