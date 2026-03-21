@@ -1,22 +1,21 @@
-# 1. Agentic Generation - Generate Content
+# Code Review Agent
 
 ## About This Flow
 
-This flow automates a workflow with **9 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
+This flow automates a workflow with **8 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
 
 ## Flow Components
 
 This workflow includes the following node types:
-- API Request
-- Condition
+- Webhook
+- API
 - Code
-- Generate Text
-- Generate Image
-- API Response
+- Generate JSON
+- addNode
 
 ## Configuration Requirements
 
-This flow requires configuration for **3 node(s)** with private inputs (credentials, API keys, model selections, etc.). All required configurations are documented in the `inputs.json` file.
+This flow requires configuration for **4 node(s)** with private inputs (credentials, API keys, model selections, etc.). All required configurations are documented in the `inputs.json` file.
 
 ## Files Included
 
@@ -62,4 +61,4 @@ For questions or issues with this flow:
 
 ---
 *Exported from Lamatic Flow Editor*
-*Generated on 13/11/2025*
+*Generated on 20/3/2026*
