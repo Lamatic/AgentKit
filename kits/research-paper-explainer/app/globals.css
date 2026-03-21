@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #1a1207;
+  --paper: #f5f0e8;
+  --cream: #ede7d3;
+  --amber: #c8860a;
+  --amber-light: #f0a830;
+  --amber-pale: #fdf3dc;
+  --muted: #7a6e5f;
+  --border: #d6cdb8;
+  --success: #2d6a4f;
+  --error: #9b2226;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+
+.font-serif {
+  font-family: 'Instrument Serif', serif;
+}
+
+.font-mono {
+  font-family: 'DM Mono', monospace;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Prose styles for markdown */
+.prose h1, .prose h2, .prose h3 {
+  font-family: 'Instrument Serif', serif;
+  color: var(--ink);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+.prose h2 { font-size: 1.25rem; }
+.prose h3 { font-size: 1.1rem; }
+.prose p { margin-bottom: 0.85em; line-height: 1.75; color: #2e2416; }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose ul { padding-left: 1.5em; margin-bottom: 0.85em; }
+.prose ul li { margin-bottom: 0.35em; }
+.prose ol { padding-left: 1.5em; margin-bottom: 0.85em; }
+.prose ol li { margin-bottom: 0.35em; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-dot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.45s ease-out forwards;
+}
+.animate-fade-in-delay {
+  animation: fadeIn 0.45s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+.loading-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
