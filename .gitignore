@@ -1,1 +1,21 @@
-**/.DS_Store
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Build / output folders
+dist/
+build/
+
+# Logs
+npm-debug.log
+*.log
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code workspace settings
+.vscode/
