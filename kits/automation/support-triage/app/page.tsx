@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { lamaticClient } from './utils';
 
 export default function Page() {
-  const [ticketText, setTicketText] = useState('I was overcharged by $50 on my invoice today and I am furious!');
+  const [ticketText, setTicketText] = useState('');
   const [loading, setLoading] = useState(false);
   const [triageData, setTriageData] = useState<any>(null);
 
@@ -61,6 +61,7 @@ export default function Page() {
             rows={5}
             value={ticketText}
             onChange={(e) => setTicketText(e.target.value)}
+            placeholder="I was overcharged by $50 on my invoice today and I am furious!"
             spellCheck="false"
           />
           
@@ -144,6 +145,12 @@ export default function Page() {
             </div>
           </div>
         )}
+        {/* Subtle Credit Footer */}
+        <div className="text-center pt-8 pb-4">
+          <p className="text-gray-500 text-sm">
+            Built for the AgentKit Challenge by Yash Singhal
+          </p>
+        </div>
       </div>
     </div>
   );
