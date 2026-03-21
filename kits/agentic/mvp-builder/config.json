@@ -1,0 +1,23 @@
+{
+  "name": "MVP-Builder",
+  "description": "Create plan for MVP with your idea",
+  "tags": [],
+  "author": {
+    "name": "Darshan S",
+    "email": "darshans2727@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "mvp-builder",
+      "type": "mandatory",
+      "envKey": "FLOW_MVP_BUILDER"
+    }
+  ],
+  "integrations": [],
+  "features": [],
+  "demoUrl": "https://mvp-builder-sigma.vercel.app/",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/mvp-builder",
+  "deployUrl": "",
+  "documentationUrl": "",
+  "imageUrl": ""
+}

@@ -1,0 +1,409 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "User input",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"idea\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Classify the following idea into exactly one category:\nAllowed values (PICK ONLY FROM THESE):\n- web_app\n- mobile_app\n- extension\n- api_service\nIdea: {{triggerNode_1.output.idea}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "",
+          "nodeName": "Generate type",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700_copy_170",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        },\n        \"features\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature_name\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature name\"\n              },\n              \"feature_description\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature description\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"description\": \"List of features, array of objects\"\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate features SPECIFIC to the idea. You should only modify the features property, do not change anything else.\nIdea:\n{{triggerNode_1.output.idea}}\n{{InstructorLLMNode_700.output.result}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{InstructorLLMNode_700.output.result}}",
+          "nodeName": "Generate features",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_553",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700_copy_170_copy_606_copy_553",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        },\n        \"features\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature_name\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature name\"\n              },\n              \"feature_description\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature description\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"description\": \"List of features, array of objects\"\n        },\n        \"database\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"tables\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"Name of table\"\n                  },\n                  \"fields\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Array of fields for the table\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of tables\"\n            }\n          },\n          \"description\": \"Database structure\",\n          \"additionalProperties\": true\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate tables for the idea.\n{{triggerNode_1.output.idea}}\nYou should only modify the tables property, do not change anything else.\n{{InstructorLLMNode_700_copy_170.output.result}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{InstructorLLMNode_700_copy_170.output.result}}",
+          "nodeName": "Generate tables",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700_copy_170_copy_606",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        },\n        \"features\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature_name\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature name\"\n              },\n              \"feature_description\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature description\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"description\": \"List of features, array of objects\"\n        },\n        \"database\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"tables\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"Name of table\"\n                  },\n                  \"fields\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Array of fields for the table\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of tables\"\n            }\n          },\n          \"description\": \"Database structure\",\n          \"additionalProperties\": true\n        },\n        \"api\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"routes\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"method\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"HTTP method\"\n                  },\n                  \"path\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"API route path\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of api routes\"\n            }\n          },\n          \"description\": \"API routes\",\n          \"additionalProperties\": true\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate api routes for idea: \n{{triggerNode_1.output.idea}}\nYou should only modify the api property, do not change anything else.\n{{InstructorLLMNode_700_copy_170_copy_606_copy_553.output.result}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{InstructorLLMNode_700_copy_170_copy_606_copy_553.output.result}}",
+          "nodeName": "Generate api",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_106",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700_copy_170_copy_606",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        },\n        \"features\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature_name\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature name\"\n              },\n              \"feature_description\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature description\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"description\": \"List of features, array of objects\"\n        },\n        \"database\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"tables\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"Name of table\"\n                  },\n                  \"fields\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Array of fields for the table\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of tables\"\n            }\n          },\n          \"description\": \"Database structure\",\n          \"additionalProperties\": true\n        },\n        \"api\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"routes\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"method\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"HTTP method\"\n                  },\n                  \"path\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"API route path\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of api routes\"\n            }\n          },\n          \"description\": \"API routes\",\n          \"additionalProperties\": true\n        },\n        \"structure\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"frontend\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"description\": \"Array of file paths for frontend\"\n            },\n            \"backend\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"description\": \"Array of file paths for backend\"\n            }\n          },\n          \"description\": \"Project structure\",\n          \"additionalProperties\": true\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate project structure for the idea: \n{{triggerNode_1.output.idea}}\nGenerate a ELABORATE project structure not just folder paths. If type is web_app give project structure for Next.js (App Router). Include filepaths for frontend and backend in single line. For example: frontend/src/components/button.tsx, backend/src/server.ts.\nYou should only modify the structure property, do not change anything else.\n{{InstructorLLMNode_700_copy_170_copy_606.output.result}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{InstructorLLMNode_700_copy_170_copy_606.output.result}}",
+          "nodeName": "Generate structure",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700_copy_170_copy_606",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        },\n        \"features\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature_name\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature name\"\n              },\n              \"feature_description\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature description\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"description\": \"List of features, array of objects\"\n        },\n        \"database\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"tables\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"Name of table\"\n                  },\n                  \"fields\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Array of fields for the table\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of tables\"\n            }\n          },\n          \"description\": \"Database structure\",\n          \"additionalProperties\": true\n        },\n        \"api\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"routes\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"method\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"HTTP method\"\n                  },\n                  \"path\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"API route path\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of api routes\"\n            }\n          },\n          \"description\": \"API routes\",\n          \"additionalProperties\": true\n        },\n        \"structure\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"frontend\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"description\": \"Array of file paths for frontend\"\n            },\n            \"backend\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"description\": \"Array of file paths for backend\"\n            }\n          },\n          \"description\": \"Project structure\",\n          \"additionalProperties\": true\n        },\n        \"tech_stack\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"frontend\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Frontend tech stack\"\n            },\n            \"backend\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Backend tech stack\"\n            },\n            \"database\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Database tech stack\"\n            },\n            \"auth\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Auth tech stack\"\n            },\n            \"deployment\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Deployment tech stack\"\n            }\n          },\n          \"description\": \"Tech stack for the project\",\n          \"additionalProperties\": true\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate tech stack for the idea:\n{{triggerNode_1.output.idea}}\nBased on the idea and type, suggest a modern tech stack.\nYou should only modify the tech_stack property, do not change anything else.\n{{InstructorLLMNode_700_copy_170_copy_606_copy_106.output.result}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{InstructorLLMNode_700_copy_170_copy_606_copy_106.output.result}}",
+          "nodeName": "Generate tech stack",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239_copy_255",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_700_copy_170_copy_606",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Type of idea web_app | mobile_app | extension | api_service\"\n        },\n        \"features\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"feature_name\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature name\"\n              },\n              \"feature_description\": {\n                \"type\": \"string\",\n                \"required\": true,\n                \"description\": \"Feature description\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"description\": \"List of features, array of objects\"\n        },\n        \"database\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"tables\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"Name of table\"\n                  },\n                  \"fields\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Array of fields for the table\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of tables\"\n            }\n          },\n          \"description\": \"Database structure\",\n          \"additionalProperties\": true\n        },\n        \"api\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"routes\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"method\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"HTTP method\"\n                  },\n                  \"path\": {\n                    \"type\": \"string\",\n                    \"required\": true,\n                    \"description\": \"API route path\"\n                  }\n                },\n                \"additionalProperties\": true\n              },\n              \"description\": \"Array of api routes\"\n            }\n          },\n          \"description\": \"API routes\",\n          \"additionalProperties\": true\n        },\n        \"structure\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"frontend\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"description\": \"Array of file paths for frontend\"\n            },\n            \"backend\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"description\": \"Array of file paths for backend\"\n            }\n          },\n          \"description\": \"Project structure\",\n          \"additionalProperties\": true\n        },\n        \"tech_stack\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"frontend\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Frontend tech stack\"\n            },\n            \"backend\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Backend tech stack\"\n            },\n            \"database\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Database tech stack\"\n            },\n            \"auth\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Auth tech stack\"\n            },\n            \"deployment\": {\n              \"type\": \"string\",\n              \"required\": true,\n              \"description\": \"Deployment tech stack\"\n            }\n          },\n          \"description\": \"Tech stack for the project\",\n          \"additionalProperties\": true\n        },\n        \"summary\": {\n          \"type\": \"string\",\n          \"required\": true,\n          \"description\": \"Summary of plan\"\n        }\n      },\n      \"description\": \"Results\",\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an assistant that converts idea to MVP product."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate summary for the idea: {{triggerNode_1.output.idea}}\nCreate a summary of all the idea and implementation that you planned.\nYou should only modify the summary property, do not change anything else.\n{{InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239.output.result}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239.output.result}}",
+          "nodeName": "Generate summary",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 910
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"result\": \"{{InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239_copy_255.output.result}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 1040
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_700",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_700",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700-InstructorLLMNode_700_copy_170",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700",
+      "target": "InstructorLLMNode_700_copy_170",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170-InstructorLLMNode_700_copy_170_copy_606_copy_553-663",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700_copy_170",
+      "target": "InstructorLLMNode_700_copy_170_copy_606_copy_553",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_553-InstructorLLMNode_700_copy_170_copy_606",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700_copy_170_copy_606_copy_553",
+      "target": "InstructorLLMNode_700_copy_170_copy_606",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606-InstructorLLMNode_700_copy_170_copy_606_copy_106",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700_copy_170_copy_606",
+      "target": "InstructorLLMNode_700_copy_170_copy_606_copy_106",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_106-InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700_copy_170_copy_606_copy_106",
+      "target": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239-InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239_copy_255",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239",
+      "target": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239_copy_255",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239_copy_255-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_700_copy_170_copy_606_copy_106_copy_239_copy_255",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
