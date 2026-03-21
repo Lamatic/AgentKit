@@ -17,6 +17,11 @@ export function slugifyName(name: string) {
 }
 
 export function getPosterRoot(doc: Document) {
+  const explicitPosterRoot = doc.getElementById("poster")
+  if (explicitPosterRoot) {
+    return explicitPosterRoot
+  }
+
   const getElementArea = (element: HTMLElement) => {
     const rect = element.getBoundingClientRect()
     const width = Math.max(rect.width, element.scrollWidth, element.clientWidth)
@@ -39,7 +44,6 @@ export function getPosterRoot(doc: Document) {
 
   const prioritizedSelectors = [
     "[data-poster-root]",
-    "#poster",
     "[id*='poster' i]",
     "[class*='poster' i]",
     "main",
@@ -68,13 +72,7 @@ export function getPosterRoot(doc: Document) {
 }
 
 export function getPreviewRoot(doc: Document) {
-  return (
-    doc.querySelector<HTMLElement>("[data-poster-root]") ??
-    doc.querySelector<HTMLElement>("#poster") ??
-    doc.querySelector<HTMLElement>("[id*='poster' i]") ??
-    doc.querySelector<HTMLElement>("[class*='poster' i]") ??
-    getPosterRoot(doc)
-  )
+  return doc.getElementById("poster") ?? getPosterRoot(doc)
 }
 
 export function getElementDimensions(element: HTMLElement): PosterDimensions {

@@ -30,7 +30,6 @@ Set these in the kit root `.env` or `.env.local` file:
 ```bash
 LAMATIC_PROJECT_ENDPOINT=
 LAMATIC_FLOW_ID=
-LAMATIC_AGENT_ID=
 LAMATIC_PROJECT_ID=
 LAMATIC_PROJECT_API_KEY=
 ```
@@ -44,7 +43,7 @@ LAMATIC_PROJECT_API_KEY=
 
 ### Optional / currently unused by app runtime
 
-- `LAMATIC_AGENT_ID` — included in `.env.example`, not read by current server code
+- `LAMATIC_AGENT_ID` — legacy variable not required by current app runtime and not included in `.env.example`
 
 ## Setup and run instructions
 

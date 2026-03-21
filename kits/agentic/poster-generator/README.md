@@ -21,7 +21,6 @@ This README is focused on app setup and usage. For full flow documentation, prov
    ```bash
    LAMATIC_PROJECT_ENDPOINT=
    LAMATIC_FLOW_ID=
-   LAMATIC_AGENT_ID=
    LAMATIC_PROJECT_ID=
    LAMATIC_PROJECT_API_KEY=
    ```

@@ -72,8 +72,7 @@ function triggerFileDownload(blob: Blob, fileName: string) {
 async function withHiddenIframeDocument(
   html: string,
   run: (doc: Document) => Promise<void> | void
-) {
-  const iframe = document.createElement("iframe")
+) {  const iframe = document.createElement("iframe")
   iframe.style.position = "fixed"
   iframe.style.left = "-10000px"
   iframe.style.top = "0"
@@ -81,7 +80,6 @@ async function withHiddenIframeDocument(
   iframe.style.height = "2000px"
   iframe.style.opacity = "0"
   iframe.setAttribute("aria-hidden", "true")
-
   document.body.appendChild(iframe)
 
   try {
