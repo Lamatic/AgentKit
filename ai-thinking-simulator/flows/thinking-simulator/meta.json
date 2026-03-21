@@ -1,0 +1,17 @@
+{
+  "name": "AI Thinking Simulator",
+  "slug": "agentic-thinking-simulator",
+  "category": "agentic",
+  "tags": ["decision-making", "multi-perspective", "reasoning"],
+  "output": {
+    "answer": {
+      "type": "json",
+      "schema": {
+        "perspectives": "array",
+        "final_synthesis": "string",
+        "confidence": "number",
+        "recommended_action": "string"
+      }
+    }
+  }
+}

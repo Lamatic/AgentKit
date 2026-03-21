@@ -1,0 +1,27 @@
+{
+  "name": "AI Thinking Simulator",
+  "description": "See how different types of minds think about your problem. Get perspectives from a Logical Thinker, Investor, Risk-Averse Realist, Startup Founder, and your Future Self — then a final synthesis to help you decide.",
+  "tags": ["🧠 Agentic", "✨ Generative", "🎯 Decision Making"],
+  "author": {
+    "name": "Diya Kote",
+    "email": "diya@example.com"
+  },
+  "steps": [
+    {
+      "id": "agentic-thinking-simulator",
+      "type": "mandatory",
+      "envKey": "AGENTIC_THINKING_SIMULATOR_FLOW_ID"
+    }
+  ],
+  "integrations": [],
+  "features": [
+    "5 distinct cognitive perspectives per question",
+    "Confidence score on final synthesis",
+    "Trade-off awareness per perspective",
+    "Works for any life, tech, or business decision"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/thinking-simulator",
+  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/thinking-simulator&env=AGENTIC_THINKING_SIMULATOR_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY",
+  "documentationUrl": ""
+}

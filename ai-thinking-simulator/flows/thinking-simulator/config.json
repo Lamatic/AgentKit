@@ -1,0 +1,37 @@
+{
+  "id": "agentic-thinking-simulator",
+  "name": "AI Thinking Simulator",
+  "version": "1.0.0",
+  "trigger": { "type": "api", "method": "POST" },
+  "nodes": [
+    {
+      "id": "input",
+      "type": "trigger",
+      "label": "API Trigger"
+    },
+    {
+      "id": "llm-perspectives",
+      "type": "llm",
+      "label": "Generate Perspectives",
+      "config": {
+        "model": "llama-3.1-8b-instant",
+        "systemPrompt": "You are an expert at multi-perspective reasoning. Given a question or decision, you simulate how 5 distinct types of people would genuinely think about it — not generically, but with sharp, specific, opinionated takes that reflect each persona's real worldview.\n\nThe 5 personas are:\n1. 🧠 Logical Thinker — data-driven, systematic, cuts through emotion\n2. 💼 Investor — thinks in ROI, risk/reward, optionality, asymmetric bets\n3. 😬 Risk-Averse Parent — worst-case scenarios, stability, safety nets, long-term security\n4. 🚀 Startup Founder — bias to action, embrace uncertainty, move fast, learn by doing\n5. 🔮 Future You (5 years later) — looking back with hindsight, what would you regret NOT doing?\n\nFor each persona give a sharp, opinionated take — not wishy-washy. Each persona should disagree with at least one other.\n\nReturn ONLY valid JSON — no markdown, no extra text:\n{\n  \"perspectives\": [\n    {\n      \"role\": \"Logical Thinker\",\n      \"emoji\": \"🧠\",\n      \"opinion\": \"<one sharp sentence — their actual verdict>\",\n      \"reasoning\": \"<2-3 sentences of specific reasoning that reflects this persona's worldview>\",\n      \"concerns\": \"<one specific concern or caveat from this persona's perspective>\"\n    }\n  ],\n  \"final_synthesis\": \"<3-4 sentences that honestly synthesize the tension between perspectives and give a real recommendation — don't be vague>\",\n  \"confidence\": <float between 0 and 1 — how clear-cut is this decision?>,\n  \"recommended_action\": \"<one concrete action sentence>\"\n}",
+        "userPrompt": "Question: {{question}}",
+        "temperature": 0.7,
+        "responseFormat": "json"
+      }
+    },
+    {
+      "id": "output",
+      "type": "response",
+      "label": "Return Perspectives",
+      "config": {
+        "answer": "{{llm-perspectives.output}}"
+      }
+    }
+  ],
+  "edges": [
+    { "from": "input", "to": "llm-perspectives" },
+    { "from": "llm-perspectives", "to": "output" }
+  ]
+}

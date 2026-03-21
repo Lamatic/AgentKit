@@ -1,0 +1,9 @@
+{
+  "inputs": {
+    "question": {
+      "type": "string",
+      "description": "The decision or question to analyze from multiple perspectives",
+      "required": true
+    }
+  }
+}
