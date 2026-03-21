@@ -78,18 +78,18 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Folder structure
 
-```
-kits/agentic/thinking-simulator/
+```text
+ai-thinking-simulator/
 ├── .env.example
 ├── .gitignore
 ├── README.md
 ├── config.json
-├── package.json
 ├── orchestrate.js
-├── next.config.ts
+├── package.json
+├── next.config.js
 ├── tsconfig.json
 ├── tailwind.config.ts
-├── postcss.config.mjs
+├── postcss.config.js
 ├── actions/
 │   └── orchestrate.ts
 ├── app/

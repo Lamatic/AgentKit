@@ -111,13 +111,18 @@ export default function Home() {
     setError("")
     setResult(null)
 
-    const res = await simulateThinking(question.trim())
-    if (res.success && res.data) {
-      setResult(res.data)
-    } else {
-      setError(res.error ?? "Something went wrong")
+    try {
+      const res = await simulateThinking(question.trim())
+      if (res.success && res.data) {
+        setResult(res.data)
+      } else {
+        setError(res.error ?? "Something went wrong")
+      }
+    } catch (err) {
+      setError("Something went wrong")
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -195,6 +200,12 @@ export default function Home() {
               <p className="text-xs text-gray-500 mt-8 flex items-center justify-center gap-2">
                 <span>💳</span> No credit card required
               </p>
+
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-800 mt-6 font-medium">
+                  {error}
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -268,12 +279,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* Error */}
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-800 my-6 font-medium">
-                {error}
-              </div>
-            )}
+
           </>
         )}
       </main>

@@ -36,8 +36,8 @@ export async function simulateThinking(question: string): Promise<{
     const parsed: ThinkingResult = typeof raw === "string" ? JSON.parse(raw) : raw
 
     // Extract perspectives - handle both nested and top-level structures
-    const perspectives = parsed?.perspectives || parsed?.result?.perspectives
-    
+    const perspectives = (parsed?.perspectives || (parsed as Record<string, any>)?.result?.perspectives) as Perspective[] | undefined
+
     if (!perspectives || !Array.isArray(perspectives)) {
       throw new Error("Invalid response from Lamatic flow")
     }
