@@ -1,22 +1,19 @@
 {
-    "name": "Generative AI",
-    "description": "It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.",
-    "tags": ["🤖 Agentic", "✨ Generative"],
-    "author": {
-        "name": "Lamatic AI",
-        "email": "info@lamatic.ai"
-    },
-    "steps": [
-        {
-            "id": "agentic-generate-content",
-            "type": "mandatory",
-            "envKey": "AGENTIC_GENERATE_CONTENT"
-        }
-    ],
-    "integrations": [],
-    "features": [],
-    "demoUrl": "https://agent-kit-generation.vercel.app/",
-    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/generation",
-    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation",
-    "documentationUrl": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+  "name": "Code Review Agent",
+  "description": "Analyzes GitHub PRs for bugs, security vulnerabilities, and style issues using multi-step agentic reasoning.",
+  "tags": ["Agentic", "Code Review", " Security"],
+  "author": {
+    "name": "Soumik",
+    "email": "your@email.com"
+  },
+  "steps": [
+    {
+      "id": "code-review-flow",
+      "type": "mandatory",
+      "envKey": "LAMATIC_API_KEY"
+    }
+  ],
+  "integrations": ["GitHub", "Groq"],
+  "demoUrl": "https://agent-kit-stk.vercel.app/",
+  "githubUrl": "https://github.com/soumik15630m/AgentKit-stk/tree/main/kits/agentic/code-review"
 }

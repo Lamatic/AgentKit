@@ -1,106 +1,193 @@
-# Agent Kit Generation by Lamatic.ai
+# Code Review Agent
 
-<p align="center">
-  <a href="https://agent-kit-generation.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
-  </a>
-</p>
+An agentic Next.js starter kit that performs AI-powered code reviews on GitHub Pull Requests using Lamatic Flows. Enter any public GitHub PR and get a structured analysis of bugs, security vulnerabilities, and style issues in seconds.
 
+## Live Demo
 
-**Agent Kit Generation** is an AI-powered content generation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation)
+[agent-kit-stk.vercel.app](https://agent-kit-stk.vercel.app)
 
 ---
 
-## Lamatic Setup (Pre and Post)
+## What It Does
 
-Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
+The agent takes three inputs — GitHub owner, repository, and PR number — then runs a multi-step agentic flow:
 
-Pre: Build in Lamatic
-1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Generation' agent kit
-5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain your .env keys
-7. Copy the keys from your studio
+1. **Fetches** the PR diff from the GitHub REST API
+2. **Extracts** the raw patch content from all changed files
+3. **Analyzes bugs** — null pointer risks, logic errors, runtime failures
+4. **Analyzes security** — hardcoded secrets, injection risks, insecure dependencies
+5. **Analyzes style** — naming conventions, complexity, readability
+6. **Synthesizes** a concise overall summary of PR quality
 
-Post: Wire into this repo
-1. Create a .env file and set the keys
-2. Install and run locally:
-   - npm install
-   - npm run dev
-3. Deploy (Vercel recommended):
-   - Import your repo, set the project's Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
-
-Notes
-- Coming soon: single-click export and "Connect Git" in Lamatic to push config directly to your repo.
+Results are returned as structured JSON and rendered in a premium dark-themed UI with severity-aware triage cards.
 
 ---
 
-## 🔑 Setup
-## Required Keys and Config
+## Tech Stack
 
-You’ll need these things to run this project locally:  
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15, React 19 |
+| AI Flow | Lamatic Flows (GraphQL API) |
+| LLM | Groq — `llama-3.3-70b-versatile` |
+| GitHub Data | GitHub REST API |
+| Deployment | Vercel |
 
-1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+---
 
+## Prerequisites
 
-| Item              | Purpose                                      | Where to Get It                                 |
-| ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+- Node.js 18+
+- A [Lamatic](https://lamatic.ai) account with the Code Review Agent flow deployed
+- A [Groq](https://console.groq.com) API key (free)
+- A [GitHub](https://github.com) account (for public PR access)
 
-### 1. Environment Variables
+---
 
-Create `.env.local` with:
+## Environment Variables
 
-```bash
-# Lamatic
-AGENTIC_GENERATE_CONTENT = "AGENTIC_GENERATE_CONTENT Flow ID"
-LAMATIC_API_URL = "LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
-LAMATIC_API_KEY = "LAMATIC_API_KEY"
+Create a `.env` file in the kit root:
+
+```env
+LAMATIC_API_KEY="your-lamatic-api-key"
 ```
 
-### 2. Install & Run
+| Variable | Description |
+|---|---|
+| `LAMATIC_API_KEY` | Your Lamatic project API key from Settings → API Keys |
+
+---
+
+## Lamatic Flow Setup
+
+This kit requires a Lamatic flow with the following node structure:
+
+```
+API Request Trigger (owner, repo, pr_number)
+       ↓
+Code Node — extract diff from GitHub API response
+       ↓
+GitHub API Node — GET /repos/{owner}/{repo}/pulls/{pr_number}/files
+       ↓
+Generate JSON — Bug Analysis
+       ↓
+Generate JSON — Security Scan
+       ↓
+Generate JSON — Style Check
+       ↓
+Generate JSON — Final Merge (summary)
+       ↓
+API Response
+```
+
+Import the exported flow from the `flows/` directory into your Lamatic project, then update the `workflowId` in `app/api/review/route.ts` with your deployed flow ID.
+
+---
+
+## Running Locally
 
 ```bash
+# 1. Install dependencies
+cd kits/agentic/code-review
 npm install
+
+# 2. Set up environment variables
+cp .env.example .env
+# Fill in your LAMATIC_API_KEY
+
+# 3. Start the dev server
 npm run dev
-# Open http://localhost:3000
 ```
----
 
-## 📂 Repo Structure
-
-```
-/actions
- └── orchestrate.ts        # Lamatic workflow orchestration
-/app
- └── page.tsx              # Main generation form UI
-/components
- ├── header.tsx            # Header component with navigation
- └── ui                    # shadcn/ui components
-/lib
- └── lamatic-client.ts     # Lamatic SDK client
-/public
- └── lamatic-logo.png      # Lamatic branding
-/flows
-  └── ...                  # Lamatic Flows
-/package.json              # Dependencies & scripts
-```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🤝 Contributing
+## Usage
 
-We welcome contributions! Open an issue or PR in this repo.
+1. Enter the GitHub **owner** (e.g. `fmtlib`)
+2. Enter the **repository** name (e.g. `fmt`)
+3. Enter the **PR number** (e.g. `4660`)
+4. Click **Review PR**
+
+The agent will fetch the diff and return:
+
+- **Summary** — a concise 2-3 sentence overview of PR quality
+- **Bugs** — logic errors and runtime risks with severity levels (High / Medium / Low)
+- **Security** — vulnerability findings with severity levels
+- **Style** — readability and code quality suggestions
 
 ---
 
-## 📜 License
+## Project Structure
 
-MIT License – see [LICENSE](./LICENSE).
+```
+kits/agentic/code-review/
+├── app/
+│   ├── api/
+│   │   └── review/
+│   │       └── route.ts       # Calls Lamatic GraphQL API
+│   ├── page.tsx               # Main UI
+│   ├── layout.tsx
+│   └── globals.css
+├── flows/
+│   └── code-review-flow/      # Exported Lamatic flow
+├── .env.example
+├── config.json
+├── package.json
+└── README.md
+```
+
+---
+
+## API Reference
+
+### `POST /api/review`
+
+**Request:**
+```json
+{
+  "owner": "fmtlib",
+  "repo": "fmt",
+  "pr_number": "4660"
+}
+```
+
+**Response:**
+```json
+{
+  "summary": "The PR introduces a new is_container_adaptor trait...",
+  "bugs": [
+    { "line": "776", "issue": "Potential null pointer risk", "severity": "High" }
+  ],
+  "security": [
+    { "line": "765", "issue": "Insecure dependency", "severity": "Low" }
+  ],
+  "style": [
+    "code style",
+    "readability issues"
+  ]
+}
+```
+
+---
+
+## Deployment
+
+Deploy to Vercel in one click:
+
+1. Fork this repository
+2. Import to [vercel.com](https://vercel.com)
+3. Set Root Directory to `kits/agentic/code-review`
+4. Add environment variable: `LAMATIC_API_KEY`
+5. Deploy
+
+---
+
+![alt text](image.png)
+
+---
+
+## Author
+
+Built by [Soumik](https://github.com/soumik15630m) as a contribution to [Lamatic AgentKit](https://github.com/Lamatic/AgentKit).
