@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📄 Resume Reviewer Agent
 
-## Getting Started
+An AI-powered resume reviewer built on Lamatic.ai's AgentKit framework.
 
-First, run the development server:
+## Problem
+Job seekers struggle to get quality feedback on their resumes before applying. 
+Most people don't have access to an experienced HR professional to review their work.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Solution
+An AI agent that reviews resumes like a senior HR professional with 10+ years of 
+experience — providing structured, actionable feedback instantly.
+
+## Features
+- ✅ Strengths Analysis — what makes your resume stand out
+- ❌ Weakness Detection — areas that need improvement  
+- 💡 Actionable Suggestions — specific tips to improve
+- ⭐ Score out of 10 — overall resume rating
+
+## How to Use
+1. Clone the repo
+2. Navigate to this kit: `cd kits/assistant/resume-reviewer`
+3. Install dependencies: `npm install`
+4. Copy `.env.example` to `.env.local` and add your Lamatic credentials
+5. Run: `npm run dev`
+6. Open `localhost:3000` and paste your resume in the chat widget
+
+## Environment Variables
+```env
+NEXT_PUBLIC_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FLOW_ID=your_flow_id
+NEXT_PUBLIC_API_URL=your_lamatic_api_url
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Lamatic Flow Setup
+1. Create a new flow in Lamatic.ai
+2. Add Chat Widget trigger
+3. Add Generate Text node with resume review prompt
+4. Add Chat Response node
+5. Deploy the flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
+- Next.js 16 + Tailwind CSS
+- Lamatic.ai (Gemini 2.5)
+- Chat Widget Integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Built by
+Aman Agarwal — Lamatic.ai AgentKit Challenge
