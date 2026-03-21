@@ -14,9 +14,18 @@
             "envKey": "NEXT_PUBLIC_LAMATIC_FLOW_ID"
         }
     ],
-    "integrations": [],
+    "integrations": [
+        {
+            "name": "Lamatic Studio Flow",
+            "type": "AI Framework"
+        },
+        {
+            "name": "Gemini Free Tier",
+            "type": "LLM"
+        }
+    ],
     "features": ["Sentiment Analysis", "Auto-Drafting", "Urgency Detection"],
-    "demoUrl": "",
+    "demoUrl": "https://agent-kit-git-feat-suppo-3f22fd-yash-singhals-projects-d43367ba.vercel.app/",
     "githubUrl": "https://github.com/VITianYash42/AgentKit/tree/feat/support-triage/kits/automation/support-triage",
     "deployUrl": "",
     "documentationUrl": ""

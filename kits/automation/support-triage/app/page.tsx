@@ -8,20 +8,33 @@ export default function Page() {
   const [triageData, setTriageData] = useState<any>(null);
 
   const executeFlow = async () => {
+    const normalizedTicket = ticketText.trim();
+    if (!normalizedTicket) {
+      setTriageData({ error: "Please enter a ticket before processing." });
+      return;
+    }
+
     setLoading(true);
     setTriageData(null);
     
     try {
-      const response = await lamaticClient.executeFlow(
-        process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID as string, 
-        { ticket_text: ticketText }
-      );
+      const res = await fetch('/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_text: normalizedTicket })
+      });
       
+      const response = await res.json();
       const data = response.result || response;
 
-      // Intercept the quota error before it breaks the UI
-      if (data.message && data.message.includes('quota')) {
+      // Improved Rate Limit Detection
+      const message = typeof data?.message === 'string' ? data.message.toLowerCase() : '';
+      const isRateLimited = message.includes('quota') || message.includes('rate limit') || data?.status === 429;
+      
+      if (isRateLimited) {
         setTriageData({ error: "API Rate Limit: Free tier restricted. Please wait 60 seconds before testing the next ticket." });
+      } else if (data.error) {
+        setTriageData({ error: data.error });
       } else {
         setTriageData(data);
       }
@@ -29,9 +42,9 @@ export default function Page() {
     } catch (error) {
       console.error("Execution error:", error);
       setTriageData({ error: "Failed to connect to AI triage." });
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -53,12 +66,12 @@ export default function Page() {
 
         {/* Input Card */}
         <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-          <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">
+          <label htmlFor="ticketText" className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">
             Inbound Customer Ticket
           </label>
           <textarea 
+            id="ticketText"
             className="w-full p-5 bg-black/40 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none resize-none text-gray-200 placeholder-gray-600 transition-all duration-300"
-            rows={5}
             value={ticketText}
             onChange={(e) => setTicketText(e.target.value)}
             placeholder="I was overcharged by $50 on my invoice today and I am furious!"
