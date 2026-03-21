@@ -1,68 +1,32 @@
 {
   "name": "Research Paper Explainer & Quiz Agent",
-  "description": "An AI agent that takes any research paper (URL or abstract), explains it in plain language at multiple levels, and generates an interactive quiz to test understanding.",
-  "version": "1.0.0",
-  "author": "Aman Kumar",
-  "flows": [
+  "description": "Paste any research paper and get a plain-language explanation at your chosen level, plus an interactive quiz to test your understanding. Powered by two Lamatic flows and Gemini 2.5 Flash.",
+  "tags": [" Agentic", " Generative", " Education"],
+  "author": {
+    "name": "Aman Kumar",
+    "email": ""
+  },
+  "steps": [
     {
       "id": "explain-flow",
-      "name": "Paper Explainer Flow",
-      "trigger": "graphql",
-      "endpoint": "/api/explain",
-      "nodes": [
-        {
-          "id": "input",
-          "type": "input",
-          "config": {
-            "fields": ["paperContent", "level"]
-          }
-        },
-        {
-          "id": "llm-explainer",
-          "type": "llm",
-          "config": {
-            "model": "gpt-4o-mini",
-            "systemPrompt": "You are an expert academic communicator. Explain research papers clearly and accurately at the requested comprehension level. Always structure your explanation with: 1) Core Problem, 2) Methodology, 3) Key Findings, 4) Real-world Impact.",
-            "userPrompt": "Explain this research paper at {{level}} level:\n\n{{paperContent}}"
-          }
-        },
-        {
-          "id": "output",
-          "type": "output"
-        }
-      ]
+      "type": "mandatory",
+      "envKey": "LAMATIC_FLOW_ID"
     },
     {
       "id": "quiz-flow",
-      "name": "Quiz Generator Flow",
-      "trigger": "graphql",
-      "endpoint": "/api/quiz",
-      "nodes": [
-        {
-          "id": "input",
-          "type": "input",
-          "config": {
-            "fields": ["paperContent", "numQuestions"]
-          }
-        },
-        {
-          "id": "llm-quiz",
-          "type": "llm",
-          "config": {
-            "model": "gpt-4o-mini",
-            "systemPrompt": "You are a professor creating comprehension quizzes. Generate multiple-choice questions that test genuine understanding (not just memorization). Return ONLY valid JSON in this exact shape: {\"questions\": [{\"question\": \"...\", \"options\": [\"A) ...\",\"B) ...\",\"C) ...\",\"D) ...\"], \"correct\": 0, \"explanation\": \"...\"}]}",
-            "userPrompt": "Generate {{numQuestions}} multiple choice questions from this research paper:\n\n{{paperContent}}"
-          }
-        },
-        {
-          "id": "output",
-          "type": "output"
-        }
-      ]
+      "type": "mandatory",
+      "envKey": "QUIZ_FLOW_ID"
     }
   ],
-  "env": {
-    "required": ["LAMATIC_API_KEY", "LAMATIC_PROJECT_ID"],
-    "optional": ["NEXT_PUBLIC_APP_TITLE"]
-  }
+  "integrations": ["gemini"],
+  "features": [
+    "Multi-level paper explanation (Simple / Intermediate / Expert)",
+    "Interactive MCQ quiz generation",
+    "Live score tracking",
+    "Markdown rendering"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/research-paper-explainer",
+  "deployUrl": "",
+  "documentationUrl": ""
 }
