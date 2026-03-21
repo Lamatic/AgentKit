@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {
-    const PROJECT_ID = '7b89e9cf-1d37-47e5-a2f2-cf2bc4ff8ad8';
-    const FLOW_ID = '64cb741d-b5b8-4703-ab18-d4384927c56a';
-    const API_URL = 'https://amansorganization902-amansproject693.lamatic.dev';
+    const PROJECT_ID = process.env.NEXT_PUBLIC_PROJECT_ID;
+    const FLOW_ID = process.env.NEXT_PUBLIC_FLOW_ID;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const root = document.getElementById('lamatic-chat-root');
     if (root) {
