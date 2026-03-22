@@ -16,8 +16,8 @@
           "headers": "",
           "retries": "0",
           "webhookUrl": "",
-          "responeType": "realtime",
-          "retry_deplay": "0",
+          "responseType": "realtime",
+          "retry_delay": "0",
           "advance_schema": "{\n  \"user_message\": \"string\"\n}"
         }
       }
@@ -90,11 +90,12 @@
         "y": 0
       },
       "data": {
-        "nodeId": "LLMNode",
+        "nodeId": "InstructorLLMNode",
         "modes": {},
         "values": {
           "nodeName": "Intent Detector",
           "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"enum\": [\"RECIPE\", \"MENU\", \"GROCERY\", \"GENERAL\"],\n      \"description\": \"The detected intent from the user message\"\n    }\n  }\n}",
           "prompts": [
             {
               "id": "b2c3d4e5-0002-4000-b000-000000000001",
@@ -104,7 +105,7 @@
             {
               "id": "b2c3d4e5-0002-4000-b000-000000000002",
               "role": "system",
-              "content": "You are an intent detection agent for a Recipe AI app. Read the user message and classify it into exactly one of these intents:\n\n- RECIPE: User wants to generate a recipe for a specific dish\n- MENU: User wants a meal plan (daily or weekly)\n- GROCERY: User wants a grocery/shopping list for one or more recipes\n- GENERAL: User is asking a general cooking question\n\nRespond with only the intent label. No extra text. No punctuation. Just one word: RECIPE, MENU, GROCERY, or GENERAL."
+              "content": "You are an intent detection agent for a Recipe AI app. Read the user message and classify it into exactly one of these intents:\n\n- RECIPE: User wants to generate a recipe for a specific dish\n- MENU: User wants a meal plan (daily or weekly)\n- GROCERY: User wants a grocery/shopping list for one or more recipes\n- GENERAL: User is asking a general cooking question"
             }
           ],
           "memories": "[]",
@@ -130,17 +131,17 @@
             {
               "label": "Recipe",
               "value": "conditionNode_301-LLMNode_401",
-              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.generatedResponse}}\",\n      \"operator\": \"==\",\n      \"value\": \"RECIPE\"\n    }\n  ]\n}"
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.intent}}\",\n      \"operator\": \"==\",\n      \"value\": \"RECIPE\"\n    }\n  ]\n}"
             },
             {
               "label": "Menu",
               "value": "conditionNode_301-LLMNode_402",
-              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.generatedResponse}}\",\n      \"operator\": \"==\",\n      \"value\": \"MENU\"\n    }\n  ]\n}"
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.intent}}\",\n      \"operator\": \"==\",\n      \"value\": \"MENU\"\n    }\n  ]\n}"
             },
             {
               "label": "Grocery",
               "value": "conditionNode_301-LLMNode_403",
-              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.generatedResponse}}\",\n      \"operator\": \"==\",\n      \"value\": \"GROCERY\"\n    }\n  ]\n}"
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.intent}}\",\n      \"operator\": \"==\",\n      \"value\": \"GROCERY\"\n    }\n  ]\n}"
             },
             {
               "label": "Else",

@@ -10,18 +10,18 @@ This flow includes **11 nodes** working together across intent detection, routin
 
 ## What It Does
 
-| User Message                                     | Agent Response                         |
-| ------------------------------------------------ | -------------------------------------- |
-| _"Give me a recipe for butter chicken"_          | Full recipe with ingredients and steps |
-| _"Plan my meals for the week"_                   | 7-day breakfast, lunch, dinner plan    |
-| _"What do I need to make pasta and salad?"_      | Merged grocery list by category        |
-| _"How do I know when oil is hot enough to fry?"_ | Clear, friendly cooking answer         |
+| User Message | Agent Response |
+|---|---|
+| *"Give me a recipe for butter chicken"* | Full recipe with ingredients and steps |
+| *"Plan my meals for the week"* | 7-day breakfast, lunch, dinner plan |
+| *"What do I need to make pasta and salad?"* | Merged grocery list by category |
+| *"How do I know when oil is hot enough to fry?"* | Clear, friendly cooking answer |
 
 ---
 
 ## Flow Structure
 
-```
+```text
 [API Request Trigger]
         ↓
 [Recipe Supervisor Agent]
@@ -49,9 +49,9 @@ This workflow uses the following node types:
 - `graphqlNode` — API trigger that accepts the user message
 - `agentNode` — Supervisor that orchestrates the full flow
 - `agentLoopEndNode` — Closes the agent loop and returns the final response
-- `LLMNode` — Intent Detector, Recipe Generator, Menu Planner, Grocery Builder, Cooking Q&A
+- `LLMNode` — Intent Detector
 - `conditionNode` — Routes to the correct sub-agent based on detected intent
-- `InstructorLLMNode` — Formats the raw structured JSON into a clean user-facing response
+- `InstructorLLMNode` — Recipe Generator, Menu Planner, Grocery Builder, Cooking Q&A, and final response formatting
 - `graphqlResponseNode` — Returns the final output
 
 ---
@@ -68,25 +68,19 @@ This workflow uses the following node types:
 ## Setup Instructions
 
 ### 1. Import the template
-
 Import this template into your Lamatic workspace via the Template Library or by uploading `config.json` directly.
 
 ### 2. Configure your API key
-
 Open `inputs.json` and replace the placeholder with your actual key:
-
 ```json
 {
   "GEMINI_API_KEY": "your_google_gemini_api_key_here"
 }
 ```
-
 You can get a free Gemini API key at [aistudio.google.com](https://aistudio.google.com).
 
 ### 3. Test the flow
-
 Use the built-in test input from `meta.json`:
-
 ```json
 {
   "user_message": "Give me a recipe for butter chicken"
@@ -94,7 +88,6 @@ Use the built-in test input from `meta.json`:
 ```
 
 ### 4. Deploy
-
 Deploy the flow and integrate the API endpoint into your app or chat interface.
 
 ---
@@ -102,16 +95,12 @@ Deploy the flow and integrate the API endpoint into your app or chat interface.
 ## Example Inputs & Outputs
 
 ### Recipe Generation
-
 **Input:**
-
 ```json
 { "user_message": "Give me a recipe for chocolate lava cake" }
 ```
-
 **Output:**
-
-```
+```text
 🍫 Chocolate Lava Cake (Serves 4)
 Prep: 15 mins | Cook: 12 mins
 
@@ -130,16 +119,12 @@ Steps:
 ---
 
 ### Menu Planning
-
 **Input:**
-
 ```json
 { "user_message": "Plan a healthy meal plan for 3 days" }
 ```
-
 **Output:**
-
-```
+```text
 📅 Your 3-Day Meal Plan
 
 Monday
@@ -152,16 +137,12 @@ Monday
 ---
 
 ### Grocery List
-
 **Input:**
-
 ```json
 { "user_message": "What do I need to make pasta and caesar salad?" }
 ```
-
 **Output:**
-
-```
+```text
 🛒 Grocery List (12 items)
 
 Vegetables:
@@ -190,5 +171,5 @@ Dairy:
 
 ---
 
-_Exported from Lamatic Template Library_  
-_Template: Recipe AI Agent_
+*Exported from Lamatic Template Library*  
+*Template: Recipe AI Agent*
