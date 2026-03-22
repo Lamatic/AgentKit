@@ -1,0 +1,28 @@
+{
+  "name": "Support Triage Agent",
+  "description": "A Lamatic-powered kit that triages incoming support tickets, assigns severity, flags duplicate risk, recommends the likely owner, and drafts a concise escalation summary.",
+  "tags": ["Automation", "Support", "Triage"],
+  "author": {
+    "name": "Kumar Saurabh",
+    "email": "kumarsaurabh27d@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "support-triage",
+      "type": "mandatory",
+      "envKey": "FLOW_SUPPORT_TRIAGE"
+    }
+  ],
+  "integrations": ["OpenAI"],
+  "features": [
+    "Structured support ticket triage",
+    "Severity and SLA risk prediction",
+    "Duplicate issue hinting",
+    "Recommended owner assignment"
+  ],
+  "demoUrl": "",
+  "githubUrl": "",
+  "deployUrl": "",
+  "documentationUrl": "",
+  "imageUrl": ""
+}
