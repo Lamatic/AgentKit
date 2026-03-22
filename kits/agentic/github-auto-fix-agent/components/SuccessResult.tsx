@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle2,
@@ -8,17 +9,73 @@ import {
   AlertCircle,
   Bot,
   Terminal,
+  GitPullRequest,
+  Loader2,
 } from "lucide-react";
 
 interface SuccessResultProps {
   result: {
     pr_url?: string;
     analysis?: { summary?: string; root_cause?: string };
-    fix?: { explanation?: string; diff?: string };
+    fix?: { explanation?: string; diff?: string; updated_code?: string };
+    pr?: {
+      branch_name?: string;
+      commit_message?: string;
+      pr_title?: string;
+      pr_body?: string;
+    };
   };
+  issueUrl: string;
+  filePath: string;
 }
 
-export default function SuccessResult({ result }: SuccessResultProps) {
+export default function SuccessResult({
+  result,
+  issueUrl,
+  filePath,
+}: SuccessResultProps) {
+  const [prUrl, setPrUrl] = useState<string | null>(result.pr_url || null);
+  const [creatingPR, setCreatingPR] = useState(false);
+  const [prError, setPrError] = useState<string | null>(null);
+
+  const handleCreatePR = async () => {
+    if (!result.fix?.updated_code || !result.pr || !filePath) {
+      setPrError(
+        "Missing data required to create PR. Make sure file path was provided.",
+      );
+      return;
+    }
+
+    setCreatingPR(true);
+    setPrError(null);
+
+    try {
+      const res = await fetch("/api/create-pr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issue_url: issueUrl,
+          file_path: filePath,
+          fix: { updated_code: result.fix.updated_code },
+          pr: result.pr,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.pr_url) {
+        setPrUrl(data.pr_url);
+      } else {
+        setPrError(data.error || "Failed to create pull request.");
+      }
+    } catch (err) {
+      console.error(err);
+      setPrError("An unexpected error occurred while creating the PR.");
+    }
+
+    setCreatingPR(false);
+  };
+
   return (
     <motion.div
       key="success"
@@ -36,16 +93,18 @@ export default function SuccessResult({ result }: SuccessResultProps) {
           </div>
           <div>
             <h3 className="text-emerald-900 font-bold text-lg">
-              Fix Successfully Applied!
+              Fix Successfully Generated!
             </h3>
             <p className="text-emerald-700 text-sm">
-              The agent has analyzed the issue and created a patch.
+              The agent has analyzed the issue and generated a patch.
             </p>
           </div>
         </div>
-        {result.pr_url && (
+
+        {/* Show "View Pull Request" if PR was created, otherwise show "Create PR" button */}
+        {prUrl ? (
           <a
-            href={result.pr_url}
+            href={prUrl}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-xl text-primary-900 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
@@ -53,8 +112,38 @@ export default function SuccessResult({ result }: SuccessResultProps) {
             View Pull Request
             <ExternalLink className="ml-2 h-4 w-4" />
           </a>
+        ) : (
+          <button
+            onClick={handleCreatePR}
+            disabled={creatingPR}
+            className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-xl text-primary-900 bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {creatingPR ? (
+              <>
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                Creating PR...
+              </>
+            ) : (
+              <>
+                <GitPullRequest className="mr-2 h-4 w-4" />
+                Create PR
+              </>
+            )}
+          </button>
         )}
       </div>
+
+      {/* PR Error */}
+      {prError && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 border border-red-200/60 rounded-xl p-4 flex items-start space-x-3"
+        >
+          <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-red-700 text-sm">{prError}</p>
+        </motion.div>
+      )}
 
       {/* Analysis Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

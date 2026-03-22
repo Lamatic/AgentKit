@@ -71,7 +71,7 @@ export default function Home() {
         <AnimatePresence mode="wait">
           {result &&
             (result.success ? (
-              <SuccessResult result={result} />
+              <SuccessResult result={result} issueUrl={issueUrl} filePath={filePath} />
             ) : (
               <ErrorResult error={result.error} />
             ))}

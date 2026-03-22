@@ -58,8 +58,8 @@ export default function Header() {
         className="text-base md:text-lg text-text-secondary max-w-xl mx-auto leading-relaxed"
       >
         Provide a GitHub issue URL and a file path. Our intelligent agent will
-        analyze the root cause, generate a fix, and create a Pull Request
-        automatically.
+        analyze the root cause and generate a fix. You can then create a Pull
+        Request with one click.
       </motion.p>
     </header>
   );

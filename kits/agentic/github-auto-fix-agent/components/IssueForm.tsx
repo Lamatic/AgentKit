@@ -59,9 +59,6 @@ export default function IssueForm({
               htmlFor="filePath"
             >
               Target File Path{" "}
-              <span className="text-text-tertiary font-normal normal-case tracking-normal">
-                (optional)
-              </span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -92,7 +89,7 @@ export default function IssueForm({
           ) : (
             <>
               <Zap className="mr-2 h-5 w-5 text-primary-800 group-hover:scale-110 transition-transform" />
-              <span>Fix Issue & Create PR</span>
+              <span>Fix Issue</span>
             </>
           )}
         </button>

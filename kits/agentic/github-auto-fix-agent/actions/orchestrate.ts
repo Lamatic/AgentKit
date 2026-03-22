@@ -2,6 +2,10 @@
 
 import { lamaticClient } from "@/lib/lamatic-client";
 
+/**
+ * Step 1: Analyze the issue and generate a fix (NO PR creation).
+ * Returns analysis, fix data, and PR metadata from the Lamatic flow.
+ */
 export async function handleFixIssue(input: {
   issue_url: string;
   file_path?: string;
@@ -14,7 +18,7 @@ export async function handleFixIssue(input: {
     console.log("FLOW ID:", flowId);
     if (!flowId) throw new Error("Missing flow ID");
 
-    // 🔥 Step 1: Run Lamatic Flow
+    // Run Lamatic Flow
     const resData = await lamaticClient.executeFlow(flowId, input);
 
     if (resData.status !== "success" || !resData.result) {
@@ -22,20 +26,53 @@ export async function handleFixIssue(input: {
     }
 
     const result = resData.result;
-
     const { analysis, fix, pr } = result;
 
     console.log("[agent] Flow output:", result);
 
-    // 🔥 Step 2: Extract repo info
-    const match = input.issue_url.match(
+    return {
+      success: true,
+      analysis,
+      fix,
+      pr, // branch_name, commit_message, pr_title, pr_body
+    };
+  } catch (error) {
+    console.error("[agent] Error:", error);
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Step 2: Create a GitHub PR using the fix data from Step 1.
+ * This is called separately only when the user clicks "Create PR".
+ */
+export async function handleCreatePR(input: {
+  issue_url: string;
+  file_path: string;
+  fix: { updated_code: string };
+  pr: {
+    branch_name: string;
+    commit_message: string;
+    pr_title: string;
+    pr_body: string;
+  };
+}) {
+  try {
+    const { issue_url, file_path, fix, pr } = input;
+
+    // Extract repo info
+    const match = issue_url.match(
       /github.com\/(.*?)\/(.*?)\/issues\/(\d+)/,
     );
     if (!match) throw new Error("Invalid GitHub issue URL");
 
     const [, owner, repo] = match;
 
-    // 🔥 Step 3: Get repo default branch
+    // Get repo default branch
     const repoData = await fetch(
       `https://api.github.com/repos/${owner}/${repo}`,
       {
@@ -47,7 +84,7 @@ export async function handleFixIssue(input: {
 
     const baseBranch = repoData.default_branch;
 
-    // 🔥 Step 4: Get latest commit SHA
+    // Get latest commit SHA
     const refData = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`,
       {
@@ -59,7 +96,7 @@ export async function handleFixIssue(input: {
 
     const baseSha = refData.object.sha;
 
-    // 🔥 Step 5: Create branch
+    // Create branch
     await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
       method: "POST",
       headers: {
@@ -72,13 +109,9 @@ export async function handleFixIssue(input: {
       }),
     });
 
-    // 🔥 Step 6: Get file SHA
-    if (!input.file_path) {
-      throw new Error("file_path is required for PR creation");
-    }
-
+    // Get file SHA
     const fileData = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${input.file_path}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${file_path}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
@@ -88,9 +121,9 @@ export async function handleFixIssue(input: {
 
     const fileSha = fileData.sha;
 
-    // 🔥 Step 7: Update file
+    // Update file on branch
     await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${input.file_path}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${file_path}`,
       {
         method: "PUT",
         headers: {
@@ -106,7 +139,7 @@ export async function handleFixIssue(input: {
       },
     );
 
-    // 🔥 Step 8: Create PR
+    // Create PR
     const prRes = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/pulls`,
       {
@@ -129,11 +162,9 @@ export async function handleFixIssue(input: {
     return {
       success: true,
       pr_url: prData.html_url,
-      analysis,
-      fix,
     };
   } catch (error) {
-    console.error("[agent] Error:", error);
+    console.error("[agent] PR creation error:", error);
 
     return {
       success: false,
