@@ -8,7 +8,7 @@
 
 > **Turn raw meeting transcripts into structured, actionable intelligence — automatically delivered to Slack.**
 
-Built for the **Lamatic AgentKit Challenge** by [Vijayshree Vaibhav](https://github.com/vijayshreepathak).
+Built by [Vijayshree Vaibhav](https://github.com/vijayshreepathak).
 
 ---
 
