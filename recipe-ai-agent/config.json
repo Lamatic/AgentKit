@@ -1,0 +1,502 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlNode",
+        "modes": {},
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "headers": "",
+          "retries": "0",
+          "webhookUrl": "",
+          "responseType": "realtime",
+          "retry_delay": "0",
+          "advance_schema": "{\n  \"user_message\": \"string\"\n}"
+        }
+      }
+    },
+    {
+      "id": "agentNode_101",
+      "type": "agentNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "agentNode",
+        "values": {
+          "nodeName": "Recipe Supervisor",
+          "tools": [],
+          "agents": [
+            {
+              "name": "IntentRouter",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"The raw message from the user to detect intent and route accordingly\"\n    }\n  }\n}",
+              "description": "This path detects the user intent from the message and routes it to the correct sub-agent: recipe generation, menu planning, grocery list, or general Q&A"
+            },
+            {
+              "name": "ResponseFormatter",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"raw_response\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"The raw output from the intent-specific LLM node that needs to be formatted into a final clean response\"\n    }\n  }\n}",
+              "description": "This path takes the raw structured JSON from the sub-agent and formats it into a clean, human-readable response for the user"
+            }
+          ],
+          "prompts": [
+            {
+              "id": "a1b2c3d4-0001-4000-a000-000000000001",
+              "role": "user",
+              "content": "USER MESSAGE : {{triggerNode_1.output.user_message}}"
+            },
+            {
+              "id": "a1b2c3d4-0001-4000-a000-000000000002",
+              "role": "system",
+              "content": "You are the Recipe AI Supervisor. You receive a user message about cooking and coordinate two agents to produce a final response.\n\nYour job:\n1. Pass the user message to the IntentRouter agent, which will detect the intent (recipe / menu / grocery / general) and call the correct LLM sub-agent.\n2. Once the IntentRouter returns a structured JSON response, pass that to the ResponseFormatter agent to produce a clean human-readable reply.\n3. Return the final formatted response to the user.\n\nAgent order is always: INTENTROUTER -> RESPONSEFORMATTER\n\nThe final answer must contain no backticks, no JSON labels, no leading statements. Just the final formatted text reply."
+            }
+          ],
+          "messages": "[]",
+          "stopWord": "",
+          "connectedTo": "agentLoopEndNode_102",
+          "maxIterations": 5,
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "agentLoopEndNode_102",
+      "type": "agentLoopEndNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "agentLoopEndNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Agent Loop End",
+          "connectedTo": "agentNode_101"
+        }
+      }
+    },
+    {
+      "id": "LLMNode_201",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Intent Detector",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"enum\": [\"RECIPE\", \"MENU\", \"GROCERY\", \"GENERAL\"],\n      \"description\": \"The detected intent from the user message\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "b2c3d4e5-0002-4000-b000-000000000001",
+              "role": "user",
+              "content": "USER MESSAGE : {{agentNode_101.output.user_message}}"
+            },
+            {
+              "id": "b2c3d4e5-0002-4000-b000-000000000002",
+              "role": "system",
+              "content": "You are an intent detection agent for a Recipe AI app. Read the user message and classify it into exactly one of these intents:\n\n- RECIPE: User wants to generate a recipe for a specific dish\n- MENU: User wants a meal plan (daily or weekly)\n- GROCERY: User wants a grocery/shopping list for one or more recipes\n- GENERAL: User is asking a general cooking question"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "conditionNode_301",
+      "type": "conditionNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "conditionNode",
+        "modes": [],
+        "values": {
+          "nodeName": "Route by Intent",
+          "conditions": [
+            {
+              "label": "Recipe",
+              "value": "conditionNode_301-LLMNode_401",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.intent}}\",\n      \"operator\": \"==\",\n      \"value\": \"RECIPE\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Menu",
+              "value": "conditionNode_301-LLMNode_402",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.intent}}\",\n      \"operator\": \"==\",\n      \"value\": \"MENU\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Grocery",
+              "value": "conditionNode_301-LLMNode_403",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_201.output.intent}}\",\n      \"operator\": \"==\",\n      \"value\": \"GROCERY\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_301-LLMNode_404",
+              "condition": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "LLMNode_401",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Recipe Generator",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": { \"type\": \"string\", \"required\": true, \"description\": \"Always the string: recipe\" },\n    \"title\": { \"type\": \"string\", \"required\": true, \"description\": \"Name of the recipe\" },\n    \"servings\": { \"type\": \"number\", \"required\": true, \"description\": \"Number of servings\" },\n    \"prepTime\": { \"type\": \"string\", \"required\": true, \"description\": \"Preparation time e.g. 15 mins\" },\n    \"cookTime\": { \"type\": \"string\", \"required\": true, \"description\": \"Cooking time e.g. 30 mins\" },\n    \"ingredients\": { \"type\": \"array\", \"required\": true, \"description\": \"List of ingredient objects with amount, unit, name\" },\n    \"steps\": { \"type\": \"array\", \"required\": true, \"description\": \"Ordered list of step strings\" },\n    \"tags\": { \"type\": \"array\", \"required\": true, \"description\": \"Short keyword tags for the recipe\" }\n  }\n}",
+          "prompts": [
+            {
+              "id": "c3d4e5f6-0003-4000-c000-000000000001",
+              "role": "user",
+              "content": "USER MESSAGE : {{agentNode_101.output.user_message}}"
+            },
+            {
+              "id": "c3d4e5f6-0003-4000-c000-000000000002",
+              "role": "system",
+              "content": "You are a professional chef AI. Generate a complete, detailed recipe based on the user's request. Include at least 5 ingredients and at least 4 steps. Be specific with amounts and units."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_402",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Menu Planner",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": { \"type\": \"string\", \"required\": true, \"description\": \"Always the string: menu\" },\n    \"days\": { \"type\": \"array\", \"required\": true, \"description\": \"Array of day objects each with: day (string), breakfast (string), lunch (string), dinner (string)\" }\n  }\n}",
+          "prompts": [
+            {
+              "id": "d4e5f6g7-0004-4000-d000-000000000001",
+              "role": "user",
+              "content": "USER MESSAGE : {{agentNode_101.output.user_message}}"
+            },
+            {
+              "id": "d4e5f6g7-0004-4000-d000-000000000002",
+              "role": "system",
+              "content": "You are a nutrition-aware meal planning AI. Create a practical and balanced meal plan based on the user's request. If the user asks for N days, return exactly N days. If the user asks for a week, return 7 days. If the user asks for a day, return 1 day. Vary the meals — no repeated dishes across days. Keep meals realistic and easy to cook."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_403",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Grocery List Builder",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": { \"type\": \"string\", \"required\": true, \"description\": \"Always the string: grocery\" },\n    \"items\": { \"type\": \"array\", \"required\": true, \"description\": \"Array of grocery item objects each with: amount (string), unit (string), name (string), category (string). Valid categories: Vegetables, Fruits, Grains, Dairy, Protein, Spices, Condiments, Beverages, Other\" }\n  }\n}",
+          "prompts": [
+            {
+              "id": "e5f6g7h8-0005-4000-e000-000000000001",
+              "role": "user",
+              "content": "USER MESSAGE : {{agentNode_101.output.user_message}}"
+            },
+            {
+              "id": "e5f6g7h8-0005-4000-e000-000000000002",
+              "role": "system",
+              "content": "You are a grocery planning AI. Extract and compile a complete ingredient shopping list from the recipes mentioned by the user. Merge duplicate ingredients by summing amounts where possible. Sort items alphabetically within each category."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "LLMNode_404",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Cooking Q&A",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": { \"type\": \"string\", \"required\": true, \"description\": \"Always the string: general\" },\n    \"message\": { \"type\": \"string\", \"required\": true, \"description\": \"Clear, friendly, practical cooking answer under 200 words\" }\n  }\n}",
+          "prompts": [
+            {
+              "id": "f6g7h8i9-0006-4000-f000-000000000001",
+              "role": "user",
+              "content": "USER MESSAGE : {{agentNode_101.output.user_message}}"
+            },
+            {
+              "id": "f6g7h8i9-0006-4000-f000-000000000002",
+              "role": "system",
+              "content": "You are a friendly and knowledgeable cooking assistant. Answer general cooking questions clearly and helpfully. This includes techniques, substitutions, storage tips, cooking times, equipment advice, and food science. Keep the answer under 200 words. Be warm and encouraging."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "InstructorLLMNode_501",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "InstructorLLMNode",
+        "modes": {},
+        "values": {
+          "nodeName": "Response Formatter",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"formatted_response\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"The final human-readable response to show to the user based on the structured JSON input\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"One of: recipe, menu, grocery, general\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "g7h8i9j0-0007-4000-g000-000000000001",
+              "role": "user",
+              "content": "RAW AGENT OUTPUT : {{agentNode_101.output.raw_response}}"
+            },
+            {
+              "id": "g7h8i9j0-0007-4000-g000-000000000002",
+              "role": "system",
+              "content": "You are a response formatting agent. You receive a structured JSON output from a recipe AI and convert it into a clean, readable, friendly response for the user.\n\nFormatting rules by type:\n\nFor 'recipe':\n- Start with the recipe title in bold\n- Show servings, prep time, cook time\n- List all ingredients with amounts\n- Number the steps clearly\n- End with the tags as hashtags\n\nFor 'menu':\n- Show each day as a section header\n- List breakfast, lunch, dinner with emoji: 🌅 🌞 🌙\n\nFor 'grocery':\n- Group items by category\n- Show each item as: amount + unit + name\n- Add a total item count at the end\n\nFor 'general':\n- Return the message as-is with a friendly tone\n\nAlways produce a warm, clear, well-structured plain text response. No raw JSON in the output."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_601",
+      "type": "dynamicNode",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"output\": \"{{agentLoopEndNode_102.output.finalResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-agentNode_101",
+      "source": "triggerNode_1",
+      "target": "agentNode_101",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentNode_101-LLMNode_201",
+      "source": "agentNode_101",
+      "target": "LLMNode_201",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "IntentRouter",
+        "invisible": false
+      }
+    },
+    {
+      "id": "agentNode_101-InstructorLLMNode_501",
+      "source": "agentNode_101",
+      "target": "InstructorLLMNode_501",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "ResponseFormatter",
+        "invisible": false
+      }
+    },
+    {
+      "id": "agentNode_101-agentLoopEndNode_102",
+      "source": "agentNode_101",
+      "target": "agentLoopEndNode_102",
+      "type": "agentLoopEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Agent Loop End",
+        "invisible": true
+      }
+    },
+    {
+      "id": "LLMNode_201-conditionNode_301",
+      "source": "LLMNode_201",
+      "target": "conditionNode_301",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_301-LLMNode_401",
+      "source": "conditionNode_301",
+      "target": "LLMNode_401",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Recipe"
+      }
+    },
+    {
+      "id": "conditionNode_301-LLMNode_402",
+      "source": "conditionNode_301",
+      "target": "LLMNode_402",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Menu"
+      }
+    },
+    {
+      "id": "conditionNode_301-LLMNode_403",
+      "source": "conditionNode_301",
+      "target": "LLMNode_403",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Grocery"
+      }
+    },
+    {
+      "id": "conditionNode_301-LLMNode_404",
+      "source": "conditionNode_301",
+      "target": "LLMNode_404",
+      "type": "conditionEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Else"
+      }
+    },
+    {
+      "id": "LLMNode_401-agentLoopEndNode_102",
+      "source": "LLMNode_401",
+      "target": "agentLoopEndNode_102",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_402-agentLoopEndNode_102",
+      "source": "LLMNode_402",
+      "target": "agentLoopEndNode_102",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_403-agentLoopEndNode_102",
+      "source": "LLMNode_403",
+      "target": "agentLoopEndNode_102",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_404-agentLoopEndNode_102",
+      "source": "LLMNode_404",
+      "target": "agentLoopEndNode_102",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_501-agentLoopEndNode_102",
+      "source": "InstructorLLMNode_501",
+      "target": "agentLoopEndNode_102",
+      "type": "defaultEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentLoopEndNode_102-agentNode_101",
+      "source": "agentLoopEndNode_102",
+      "target": "agentNode_101",
+      "type": "agentLoopEdge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "data": {
+        "condition": "Agent Loop End",
+        "invisible": false
+      }
+    },
+    {
+      "id": "agentLoopEndNode_102-graphqlResponseNode_601",
+      "source": "agentLoopEndNode_102",
+      "target": "graphqlResponseNode_601",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_601",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_601",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}
