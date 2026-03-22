@@ -25,10 +25,12 @@ function extractParsed(resData: any): any {
   }
   // If none matched, try parsing the first string candidate
   for (const c of candidates) {
-    if (typeof c === "string" && c.trim().startsWith("{")) {
+    if (typeof c === "string") {
       try {
         const cleaned = c.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
-        return JSON.parse(cleaned)
+        if (cleaned.startsWith("{")) {
+          return JSON.parse(cleaned)
+        }
       } catch {}
     }
   }
