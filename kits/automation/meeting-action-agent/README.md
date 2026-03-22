@@ -1,8 +1,11 @@
 # 📋 Meeting Action Items Agent
 
-> An AI-powered agent that turns raw meeting notes into prioritized action items, key decisions, a markdown summary, and a follow-up email draft — in seconds.
+> **Problem:** After meetings, notes live in one place while tasks, docs, and follow-up emails live in others — so owners, deadlines, and priorities get lost in manual cleanup.  
+> **This kit:** One Lamatic flow + UI turns **pasted** notes or a transcript into **structured** decisions, **prioritized** action items (owner + deadline), a **markdown** summary, and a **ready-to-send** email draft — so you’re not re-typing the same meeting three times.
 
 Built with [Lamatic AgentKit](https://github.com/Lamatic/AgentKit) · [Lamatic Studio](https://studio.lamatic.ai) · Next.js
+
+**v1 scope:** text in (notes / pasted transcript). Audio file upload is out of scope for this kit.
 
 ---
 
