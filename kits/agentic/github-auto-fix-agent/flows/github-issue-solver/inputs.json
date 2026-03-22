@@ -1,0 +1,98 @@
+{
+  "InstructorLLMNode_142": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "mode": "instructor",
+      "description": "Select the model to generate text based on the prompt.",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "InstructorLLMNode_361": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "mode": "instructor",
+      "description": "Select the model to generate text based on the prompt.",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "InstructorLLMNode_239": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "mode": "instructor",
+      "description": "Select the model to generate text based on the prompt.",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "InstructorLLMNode_233": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "mode": "instructor",
+      "description": "Select the model to generate text based on the prompt.",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ]
+}
