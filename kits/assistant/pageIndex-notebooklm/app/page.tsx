@@ -22,11 +22,7 @@ export default function Page() {
     try {
       const result = await listDocuments();
       if (Array.isArray(result?.documents)) setDocuments(result.documents);
-    } catch {
-      // silent
-    } finally {
-      setListLoading(false);
-    }
+    } catch { /* silent */ } finally { setListLoading(false); }
   }, []);
 
   useEffect(() => { fetchDocuments(); }, [fetchDocuments]);
@@ -39,11 +35,7 @@ export default function Page() {
     try {
       const result = await getDocumentTree(doc.doc_id);
       if (Array.isArray(result?.tree)) setTree(result.tree);
-    } catch {
-      setTree([]);
-    } finally {
-      setTreeLoading(false);
-    }
+    } catch { setTree([]); } finally { setTreeLoading(false); }
   }
 
   function handleRetrievedNodes(nodes: RetrievedNode[]) {
@@ -51,56 +43,77 @@ export default function Page() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--bg)" }}>
-      {/* Header */}
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--bg)", overflow: "hidden" }}>
+
+      {/* ── Header ─────────────────────────────────── */}
       <header style={{
+        position: "relative",
+        height: "54px",
+        display: "flex", alignItems: "center",
+        padding: "0 20px",
+        gap: "10px",
         borderBottom: "1px solid var(--border)",
         background: "var(--surface)",
-        padding: "0 24px",
-        height: "56px",
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
         flexShrink: 0,
+        zIndex: 10,
       }}>
+        {/* Logo mark */}
         <div style={{
-          width: "32px", height: "32px",
+          width: "30px", height: "30px",
           background: "var(--accent)",
           borderRadius: "8px",
           display: "flex", alignItems: "center", justifyContent: "center",
           flexShrink: 0,
+          boxShadow: "0 0 16px rgba(45,212,191,0.3)",
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#041a17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
           </svg>
         </div>
+
         <div>
-          <h1 style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
-            PageIndex NotebookLM
+          <h1 style={{ margin: 0, fontSize: "13.5px", fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.01em" }}>
+            PageIndex
           </h1>
-          <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>
-            Vectorless RAG · Tree-structured retrieval
+          <p style={{ margin: 0, fontSize: "10.5px", fontFamily: "var(--font-mono)", color: "var(--text-3)", letterSpacing: "0.02em" }}>
+            Document Intelligence
           </p>
         </div>
+
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{
-            fontSize: "11px", color: "var(--accent-hover)",
-            background: "var(--accent-dim)",
-            border: "1px solid rgba(99,102,241,0.25)",
-            padding: "3px 10px",
-            borderRadius: "20px",
-            fontWeight: 500,
-          }}>
-            Powered by PageIndex + Groq
+          {/* Live indicator */}
+          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            <span style={{
+              width: "6px", height: "6px", borderRadius: "50%", background: "var(--green)",
+              animation: "glow-pulse 2s ease-in-out infinite",
+              boxShadow: "0 0 6px var(--green)",
+            }} />
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)", letterSpacing: "0.05em" }}>
+              ONLINE
+            </span>
+          </div>
+
+          <div style={{ width: "1px", height: "16px", background: "var(--border)" }} />
+
+          <span className="badge badge-accent">
+            Groq · PageIndex
           </span>
         </div>
+
+        {/* Accent line bottom */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: "1px",
+          background: "linear-gradient(90deg, transparent 0%, rgba(45,212,191,0.2) 50%, transparent 100%)",
+        }} />
       </header>
 
-      {/* Body */}
+      {/* ── Body ───────────────────────────────────── */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        {/* Sidebar */}
+
+        {/* ── Sidebar ─── */}
         <aside style={{
-          width: "260px",
+          width: "252px",
           flexShrink: 0,
           borderRight: "1px solid var(--border)",
           background: "var(--surface)",
@@ -108,58 +121,67 @@ export default function Page() {
           flexDirection: "column",
           overflow: "hidden",
         }}>
-          {/* Upload */}
-          <div style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}>
+          {/* Upload zone */}
+          <div style={{ padding: "14px 12px", borderBottom: "1px solid var(--border)" }}>
             <DocumentUpload onUploaded={fetchDocuments} />
           </div>
 
-          {/* Documents list */}
-          <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-            <div style={{
-              padding: "12px 16px 8px",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-            }}>
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Documents
-              </span>
-              <button
-                onClick={fetchDocuments}
-                disabled={listLoading}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  padding: "4px", borderRadius: "6px",
-                  color: "var(--text-muted)",
-                  display: "flex", alignItems: "center",
-                  transition: "color 0.15s, background 0.15s",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "none")}
-                title="Refresh"
+          {/* Documents label */}
+          <div style={{
+            padding: "14px 16px 8px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <span className="section-label">
+              Library
+            </span>
+            <button
+              className="btn btn-ghost btn-icon"
+              onClick={fetchDocuments}
+              disabled={listLoading}
+              title="Refresh"
+              style={{ width: "26px", height: "26px", borderRadius: "var(--radius-sm)", border: "none" }}
+            >
+              <svg
+                width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                style={{ animation: listLoading ? "spin 0.9s linear infinite" : "none" }}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ animation: listLoading ? "spin 1s linear infinite" : "none" }}>
-                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                </svg>
-              </button>
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "0 8px 8px" }}>
-              <DocumentList
-                documents={documents}
-                selectedId={selectedDoc?.doc_id || null}
-                onSelect={handleSelectDoc}
-              />
-            </div>
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+            </button>
+          </div>
+
+          {/* Doc list */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "0 8px 12px" }}>
+            <DocumentList
+              documents={documents}
+              selectedId={selectedDoc?.doc_id || null}
+              onSelect={handleSelectDoc}
+            />
+          </div>
+
+          {/* Footer brand */}
+          <div style={{
+            padding: "10px 16px",
+            borderTop: "1px solid var(--border)",
+            display: "flex", alignItems: "center", gap: "6px",
+          }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--text-3)", letterSpacing: "0.06em" }}>
+              VECTORLESS RAG · TREE RETRIEVAL
+            </span>
           </div>
         </aside>
 
-        {/* Main */}
-        <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        {/* ── Main ─── */}
+        <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--bg-alt)" }}>
           {selectedDoc ? (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
               {/* Tab bar */}
               <div style={{
-                padding: "12px 20px",
+                padding: "10px 18px",
                 borderBottom: "1px solid var(--border)",
                 background: "var(--surface)",
                 display: "flex", alignItems: "center", gap: "4px",
@@ -167,52 +189,44 @@ export default function Page() {
                 {(["chat", "tree"] as const).map((tab) => (
                   <button
                     key={tab}
+                    className={`tab ${activeTab === tab ? "active" : ""}`}
                     onClick={() => setActiveTab(tab)}
-                    style={{
-                      padding: "6px 14px",
-                      borderRadius: "8px",
-                      border: "none",
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      display: "flex", alignItems: "center", gap: "6px",
-                      transition: "all 0.15s",
-                      background: activeTab === tab ? "var(--accent)" : "transparent",
-                      color: activeTab === tab ? "white" : "var(--text-secondary)",
-                    }}
                   >
                     {tab === "chat" ? (
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                       </svg>
                     ) : (
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"/>
+                        <line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/>
+                        <line x1="3" y1="12" x2="3.01" y2="12"/>
+                        <line x1="3" y1="18" x2="3.01" y2="18"/>
                       </svg>
                     )}
                     {tab === "chat" ? "Chat" : "Tree Index"}
                     {tab === "tree" && highlightedIds.length > 0 && (
-                      <span style={{
-                        background: "var(--amber)", color: "#000",
-                        fontSize: "10px", fontWeight: 700,
-                        padding: "1px 6px", borderRadius: "10px",
-                      }}>
+                      <span className="badge badge-amber" style={{ padding: "0 5px", fontSize: "9px" }}>
                         {highlightedIds.length}
                       </span>
                     )}
                   </button>
                 ))}
-                <span style={{
-                  marginLeft: "auto",
-                  fontSize: "12px", color: "var(--text-muted)",
-                  maxWidth: "240px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  {selectedDoc.file_name}
-                </span>
+
+                <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{
+                    fontFamily: "var(--font-mono)", fontSize: "10.5px", color: "var(--text-3)",
+                    maxWidth: "220px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {selectedDoc.file_name}
+                  </span>
+                </div>
               </div>
 
               {/* Content */}
-              <div style={{ flex: 1, overflow: "hidden", padding: "20px" }}>
+              <div style={{ flex: 1, overflow: "hidden", padding: "18px" }}>
                 {activeTab === "chat" ? (
                   <ChatWindow
                     docId={selectedDoc.doc_id}
@@ -222,17 +236,18 @@ export default function Page() {
                 ) : (
                   <div style={{ height: "100%", overflowY: "auto" }}>
                     {treeLoading ? (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: "10px", color: "var(--text-muted)", fontSize: "14px" }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
-                          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: "10px" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                         </svg>
-                        Loading tree…
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-3)" }}>
+                          Building tree…
+                        </span>
                       </div>
                     ) : tree.length > 0 ? (
                       <TreeViewer tree={tree} fileName={selectedDoc.file_name} highlightedIds={highlightedIds} />
                     ) : (
-                      <div style={{ textAlign: "center", paddingTop: "48px", color: "var(--text-muted)", fontSize: "14px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-3)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>
                         No tree structure available.
                       </div>
                     )}
@@ -241,41 +256,67 @@ export default function Page() {
               </div>
             </div>
           ) : (
+            /* Empty state */
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ textAlign: "center", maxWidth: "360px" }}>
+              <div style={{ textAlign: "center", maxWidth: "400px", animation: "float-in 0.6s var(--ease) both" }}>
+                {/* Large icon */}
                 <div style={{
-                  width: "64px", height: "64px", margin: "0 auto 20px",
-                  background: "var(--surface-2)", border: "1px solid var(--border)",
-                  borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center",
+                  width: "72px", height: "72px", margin: "0 auto 24px",
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border-md)",
+                  borderRadius: "20px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "var(--shadow-md)",
                 }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                   </svg>
                 </div>
-                <p style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 600, color: "var(--text-primary)" }}>
+
+                <p style={{ margin: "0 0 10px", fontSize: "22px", fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.03em" }}>
                   Select a document
                 </p>
-                <p style={{ margin: "0 0 24px", fontSize: "14px", color: "var(--text-secondary)" }}>
-                  Upload a PDF or pick one from the sidebar to start chatting.
+                <p style={{ margin: "0 0 28px", fontSize: "14px", color: "var(--text-2)", lineHeight: 1.6 }}>
+                  Upload a PDF or Markdown file, then pick it from the sidebar to start an AI conversation.
                 </p>
+
+                {/* Info card */}
                 <div style={{
-                  background: "var(--surface-2)", border: "1px solid var(--border)",
-                  borderRadius: "12px", padding: "16px",
-                  fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.7,
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-lg)",
+                  padding: "18px 20px",
                   textAlign: "left",
+                  position: "relative", overflow: "hidden",
                 }}>
-                  <strong style={{ color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>How PageIndex works</strong>
-                  Builds a hierarchical tree index — like a table of contents optimised for AI. The LLM navigates the tree to find relevant sections, then fetches verbatim page content. No vectors, no chunking.
+                  <div style={{
+                    position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+                    background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+                    opacity: 0.4,
+                  }} />
+                  <p style={{ margin: "0 0 10px", fontSize: "11.5px", fontWeight: 600, color: "var(--accent)", fontFamily: "var(--font-mono)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    How it works
+                  </p>
+                  {[
+                    ["🌳", "Tree Index", "Builds a hierarchical map of your document like a smart table of contents."],
+                    ["🔍", "Agentic Search", "The LLM navigates the tree to find exactly the right section."],
+                    ["📄", "Verbatim Retrieval", "Returns exact page content — no chunking, no hallucination."],
+                  ].map(([icon, title, desc]) => (
+                    <div key={title as string} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                      <span style={{ fontSize: "14px", flexShrink: 0, marginTop: "1px" }}>{icon}</span>
+                      <div>
+                        <p style={{ margin: "0 0 1px", fontSize: "12px", fontWeight: 600, color: "var(--text-1)" }}>{title as string}</p>
+                        <p style={{ margin: 0, fontSize: "11px", color: "var(--text-2)", lineHeight: 1.5 }}>{desc as string}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           )}
         </main>
       </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }

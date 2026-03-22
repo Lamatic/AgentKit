@@ -32,7 +32,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
     setLoading(true);
     try {
       const result = await chatWithDocument(docId, userMsg.content, newMsgs);
-      setMessages(prev => [...prev, { role: "assistant", content: result.answer || "Sorry, no answer found." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: result.answer || "No answer found." }]);
       if (Array.isArray(result.retrieved_nodes) && result.retrieved_nodes.length) {
         setLastNodes(result.retrieved_nodes);
         setLastThinking(result.thinking || "");
@@ -40,44 +40,130 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
       }
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
 
   return (
     <div style={{
       display: "flex", flexDirection: "column", height: "100%",
-      background: "var(--surface)", border: "1px solid var(--border)",
-      borderRadius: "12px", overflow: "hidden",
+      background: "var(--surface)",
+      border: "1px solid var(--border)",
+      borderRadius: "var(--radius-xl)",
+      overflow: "hidden",
+      boxShadow: "var(--shadow-md)",
     }}>
-      {/* Messages */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
+
+      {/* ── Chat header ── */}
+      <div style={{
+        padding: "12px 16px",
+        borderBottom: "1px solid var(--border)",
+        display: "flex", alignItems: "center", gap: "10px",
+        flexShrink: 0,
+        background: "var(--surface-1)",
+      }}>
+        <div style={{
+          width: "8px", height: "8px", borderRadius: "50%",
+          background: loading ? "var(--amber)" : "var(--green)",
+          boxShadow: loading ? "0 0 8px var(--amber)" : "0 0 8px var(--green)",
+          transition: "all 0.3s",
+        }} />
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-2)", letterSpacing: "0.03em" }}>
+          {loading ? "Searching tree…" : "READY"}
+        </span>
+        <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {docName}
+        </span>
+      </div>
+
+      {/* ── Messages ── */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
+
         {messages.length === 0 && (
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "48px 24px", gap: "12px" }}>
-            <div style={{ width: "52px", height: "52px", border: "1px solid var(--border)", borderRadius: "14px", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            textAlign: "center", padding: "48px 24px", gap: "16px",
+            animation: "float-in 0.5s var(--ease) both",
+          }}>
+            <div style={{
+              width: "54px", height: "54px",
+              background: "var(--surface-2)",
+              border: "1px solid var(--border-md)",
+              borderRadius: "var(--radius-lg)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
             <div>
-              <p style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 600, color: "var(--text-primary)" }}>Ask anything</p>
-              <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-                The tree index navigates to the right page range in <em style={{ color: "var(--text-secondary)" }}>{docName}</em>
+              <p style={{ margin: "0 0 6px", fontSize: "17px", fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.02em" }}>
+                Ask anything
               </p>
+              <p style={{ margin: 0, fontSize: "13px", color: "var(--text-2)", lineHeight: 1.6, maxWidth: "260px" }}>
+                The tree index navigates to the right section in{" "}
+                <em style={{ color: "var(--accent)", fontStyle: "normal" }}>{docName}</em>
+              </p>
+            </div>
+
+            {/* Suggested prompts */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", maxWidth: "340px" }}>
+              {["Summarize this document", "What are the key findings?", "Explain the main argument"].map(q => (
+                <button
+                  key={q}
+                  onClick={() => setInput(q)}
+                  style={{
+                    padding: "5px 11px", borderRadius: "20px",
+                    background: "var(--surface-2)", border: "1px solid var(--border)",
+                    color: "var(--text-2)", fontSize: "12px", cursor: "pointer",
+                    transition: "all 0.18s var(--ease)", fontFamily: "var(--font-display)",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(45,212,191,0.3)"; e.currentTarget.style.color = "var(--accent)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-2)"; }}
+                >
+                  {q}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+              animation: msg.role === "user" ? "msg-in-user 0.3s var(--ease) both" : "msg-in-ai 0.3s var(--ease) both",
+            }}
+          >
+            {msg.role === "assistant" && (
+              <div style={{
+                width: "26px", height: "26px", borderRadius: "8px",
+                background: "var(--accent-dim)", border: "1px solid rgba(45,212,191,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, alignSelf: "flex-end", marginRight: "8px", marginBottom: "2px",
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+                </svg>
+              </div>
+            )}
             <div style={{
-              maxWidth: "80%", padding: "10px 14px",
-              borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-              fontSize: "14px", lineHeight: 1.6,
-              background: msg.role === "user" ? "var(--accent)" : "var(--surface-2)",
-              color: msg.role === "user" ? "white" : "var(--text-primary)",
+              maxWidth: "78%",
+              padding: msg.role === "user" ? "10px 14px" : "12px 16px",
+              borderRadius: msg.role === "user"
+                ? "18px 18px 5px 18px"
+                : "18px 18px 18px 5px",
+              fontSize: "14px", lineHeight: 1.65,
+              background: msg.role === "user"
+                ? "var(--accent)"
+                : "var(--surface-2)",
+              color: msg.role === "user" ? "#041a17" : "var(--text-1)",
+              fontWeight: msg.role === "user" ? 500 : 400,
               border: msg.role === "assistant" ? "1px solid var(--border)" : "none",
+              boxShadow: msg.role === "user" ? "0 4px 14px rgba(45,212,191,0.2)" : "none",
+              letterSpacing: "-0.005em",
             }}>
               {msg.content}
             </div>
@@ -85,32 +171,59 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
         ))}
 
         {loading && (
-          <div style={{ display: "flex" }}>
-            <div style={{ padding: "10px 16px", borderRadius: "16px 16px 16px 4px", background: "var(--surface-2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "10px", color: "var(--text-muted)", fontSize: "13px" }}>
-              <span style={{ display: "flex", gap: "4px" }}>
-                {[0,1,2].map(i => (
-                  <span key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent)", display: "inline-block", animation: `bounce 1.2s ${i * 0.2}s ease-in-out infinite` }} />
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "8px" }}>
+            <div style={{
+              width: "26px", height: "26px", borderRadius: "8px",
+              background: "var(--accent-dim)", border: "1px solid rgba(45,212,191,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+              </svg>
+            </div>
+            <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 5px", background: "var(--surface-2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ display: "flex", gap: "5px" }}>
+                {[0, 1, 2].map(i => (
+                  <span key={i} style={{
+                    width: "5px", height: "5px", borderRadius: "50%",
+                    background: "var(--accent)", display: "inline-block",
+                    animation: `pulse-dot 1.2s ${i * 0.18}s ease-in-out infinite`,
+                  }} />
                 ))}
               </span>
-              Searching tree…
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-3)" }}>
+                navigating tree
+              </span>
             </div>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
 
-      {/* Sources panel — now showing start_index→end_index page ranges */}
+      {/* ── Sources panel ── */}
       {lastNodes.length > 0 && (
-        <div style={{ borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>
-          <button onClick={() => setSourcesOpen(o => !o)} style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--amber)", fontSize: "12px", fontWeight: 500 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              {lastNodes.length} section{lastNodes.length !== 1 ? "s" : ""} retrieved
-              <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
-                (pp.{Math.min(...lastNodes.map(n => n.start_index))}–{Math.max(...lastNodes.map(n => n.end_index))})
+        <div style={{ borderTop: "1px solid var(--border)", background: "var(--surface-1)" }}>
+          <button
+            onClick={() => setSourcesOpen(o => !o)}
+            style={{
+              width: "100%", background: "none", border: "none", cursor: "pointer",
+              padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
+              color: "var(--amber)", outline: "none",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", fontWeight: 500, letterSpacing: "0.04em" }}>
+                {lastNodes.length} SECTION{lastNodes.length !== 1 ? "S" : ""} RETRIEVED
+              </span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>
+                pp.{Math.min(...lastNodes.map(n => n.start_index))}–{Math.max(...lastNodes.map(n => n.end_index))}
               </span>
             </span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: sourcesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: sourcesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.22s var(--ease)" }}>
               <polyline points="6 9 12 15 18 9"/>
             </svg>
           </button>
@@ -118,24 +231,36 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
           {sourcesOpen && (
             <div style={{ padding: "0 12px 12px", maxHeight: "220px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
               {lastThinking && (
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", fontStyle: "italic", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 10px", marginBottom: "4px" }}>
-                  <strong style={{ fontStyle: "normal", color: "var(--text-secondary)" }}>Tree reasoning: </strong>{lastThinking}
+                <div style={{
+                  fontSize: "11px", color: "var(--text-2)", fontStyle: "italic",
+                  background: "var(--surface-2)", border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-md)", padding: "10px 12px", marginBottom: "4px",
+                  borderLeft: "2px solid var(--accent)",
+                }}>
+                  <strong style={{ fontStyle: "normal", color: "var(--text-2)", fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                    Tree reasoning
+                  </strong>
+                  <br />
+                  <span style={{ marginTop: "4px", display: "block", lineHeight: 1.5 }}>{lastThinking}</span>
                 </div>
               )}
               {lastNodes.map(node => (
-                <div key={node.node_id} style={{ fontSize: "12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                    <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{node.title}</span>
-                    <span style={{ color: "var(--amber)", fontSize: "11px", background: "var(--amber-dim)", border: "1px solid rgba(245,158,11,0.2)", padding: "1px 6px", borderRadius: "4px", flexShrink: 0 }}>
-                      pp.{node.start_index}–{node.end_index}
-                    </span>
+                <div key={node.node_id} style={{
+                  fontSize: "12px",
+                  background: "var(--surface-2)", border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-md)", padding: "10px 12px",
+                  transition: "border-color 0.18s",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px", flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 600, color: "var(--text-1)", fontSize: "12.5px" }}>{node.title}</span>
+                    <span className="badge badge-amber">pp.{node.start_index}–{node.end_index}</span>
                   </div>
                   {node.summary && (
-                    <p style={{ margin: "0 0 6px", color: "var(--text-secondary)", lineHeight: 1.5, fontStyle: "italic", fontSize: "11px" }}>
+                    <p style={{ margin: "0 0 5px", color: "var(--text-2)", lineHeight: 1.5, fontStyle: "italic", fontSize: "11px" }}>
                       {node.summary}
                     </p>
                   )}
-                  <p style={{ margin: 0, color: "var(--text-muted)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                  <p style={{ margin: 0, color: "var(--text-3)", lineHeight: 1.5, fontSize: "11px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                     {node.page_content}
                   </p>
                 </div>
@@ -145,27 +270,36 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
         </div>
       )}
 
-      {/* Input */}
-      <form onSubmit={handleSend} style={{ display: "flex", gap: "10px", padding: "12px 16px", borderTop: "1px solid var(--border)", background: "var(--surface)" }}>
+      {/* ── Input ── */}
+      <form
+        onSubmit={handleSend}
+        style={{
+          display: "flex", gap: "8px", padding: "12px 14px",
+          borderTop: "1px solid var(--border)",
+          background: "var(--surface-1)",
+          flexShrink: 0,
+        }}
+      >
         <input
+          className="input"
           type="text" value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Ask a question about this document…"
           disabled={loading}
-          style={{ flex: 1, padding: "9px 14px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "13px", color: "var(--text-primary)", outline: "none", transition: "border-color 0.15s" }}
-          onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
-          onBlur={e => (e.currentTarget.style.borderColor = "var(--border)")}
         />
-        <button type="submit" disabled={loading || !input.trim()} style={{ width: "38px", height: "38px", background: loading || !input.trim() ? "var(--surface-2)" : "var(--accent)", border: "1px solid var(--border)", borderRadius: "8px", cursor: loading || !input.trim() ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.15s" }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={loading || !input.trim() ? "var(--text-muted)" : "white"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        <button
+          type="submit"
+          disabled={loading || !input.trim()}
+          className="btn btn-accent btn-icon"
+          style={{ width: "42px", height: "42px" }}
+          title="Send"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
         </button>
       </form>
-
-      <style>{`
-        @keyframes bounce { 0%,80%,100%{transform:scale(0.8);opacity:0.5} 40%{transform:scale(1);opacity:1} }
-      `}</style>
     </div>
   );
 }

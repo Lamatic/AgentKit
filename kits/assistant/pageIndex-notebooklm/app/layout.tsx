@@ -1,34 +1,24 @@
 import type { Metadata } from "next";
-import { DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "PageIndex NotebookLM — Vectorless Document Intelligence",
+  title: "PageIndex — Vectorless Document Intelligence",
   description:
     "Chat with your documents using PageIndex's agentic tree-structured retrieval. No vectors, no chunking — powered by Lamatic and Groq.",
+  viewport: "width=device-width, initial-scale=1",
+  themeColor: "#0a0b0d",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
-      <body style={{ fontFamily: "var(--font-sans, 'DM Sans', system-ui, sans-serif)" }}>
-        {children}
-      </body>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

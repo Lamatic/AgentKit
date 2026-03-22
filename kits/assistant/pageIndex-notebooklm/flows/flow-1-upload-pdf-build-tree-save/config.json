@@ -72,7 +72,7 @@
         },
         "values": {
           "id": "codeNode_570",
-          "code": "\n\nvar apiData = {{apiNode_948.output}};\n\n// Parse if Lamatic injected it as a string\nif (typeof apiData === \"string\") {\n  apiData = JSON.parse(apiData);\n}\n\nvar doc_id = apiData.doc_id || \"\";\nvar file_name = apiData.file_name || \"\";\nvar tree = apiData.tree || [];\nvar raw_text = apiData.raw_text || \"\";\nvar tree_node_count = apiData.tree_node_count || 0;\nvar file_url = {{triggerNode_1.output.file_url}} || \"\";\nvar supabase_url = {{secrets.project.SUPABASE_URL}} || \"\";\nvar supabase_key = {{secrets.project.SUPABASE_ANON_KEY}} || \"\";\n\nvar payload = JSON.stringify({\n  doc_id: doc_id,\n  file_name: file_name,\n  file_url: file_url,\n  tree: tree,\n  raw_text: raw_text,\n  tree_node_count: tree_node_count,\n  status: \"completed\"\n});\n\nvar response = await fetch(\n  supabase_url + \"/rest/v1/documents\",\n  {\n    method: \"POST\",\n    headers: {\n      \"apikey\": supabase_key,\n      \"Authorization\": \"Bearer \" + supabase_key,\n      \"Content-Type\": \"application/json\",\n      \"Prefer\": \"return=representation\"\n    },\n    body: payload\n  }\n);\n\nvar result = await response.json();\n\nif (!response.ok) {\n  output = {\n    success: false,\n    doc_id: \"\",\n    file_name: file_name,\n    tree_node_count: 0,\n    error: result.message || result.detail || JSON.stringify(result),\n    status_code: response.status\n  };\n} else {\n  var inserted = Array.isArray(result) ? result[0] : result;\n  output = {\n    success: true,\n    doc_id: inserted.doc_id || doc_id,\n    file_name: inserted.file_name || file_name,\n    tree_node_count: inserted.tree_node_count || tree_node_count,\n    status: \"completed\",\n    error: \"\",\n    status_code: response.status\n  };\n}",
+          "code": "\n\nvar apiData = {{apiNode_948.output}};\n\nif (typeof apiData === \"string\") {\n  apiData = JSON.parse(apiData);\n}\n\n// ✅ Strip null bytes and other problematic Unicode escape sequences\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str\n    .replace(/\\u0000/g, \"\")        // null bytes (main culprit)\n    .replace(/\\\\u0000/g, \"\")       // escaped null bytes as literal string\n    .replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\"); // other control chars\n}\n\nvar doc_id = apiData.doc_id || \"\";\nvar file_name = apiData.file_name || \"\";\nvar tree = apiData.tree || [];\nvar raw_text = sanitize(apiData.raw_text || \"\");  // ✅ sanitized\nvar tree_node_count = apiData.tree_node_count || 0;\nvar file_url = {{triggerNode_1.output.file_url}} || \"\";\nvar supabase_url = {{secrets.project.SUPABASE_URL}} || \"\";\nvar supabase_key = {{secrets.project.SUPABASE_ANON_KEY}} || \"\";\n\n// ✅ Also sanitize the tree JSON (in case summaries/titles have null bytes)\nvar sanitized_tree = JSON.parse(sanitize(JSON.stringify(tree)));\n\nvar payload = JSON.stringify({\n  doc_id: doc_id,\n  file_name: file_name,\n  file_url: file_url,\n  tree: sanitized_tree,\n  raw_text: raw_text,\n  tree_node_count: tree_node_count,\n  status: \"completed\"\n});\n\n// ... rest of your fetch code unchanged\n\nvar response = await fetch(\n  supabase_url + \"/rest/v1/documents\",\n  {\n    method: \"POST\",\n    headers: {\n      \"apikey\": supabase_key,\n      \"Authorization\": \"Bearer \" + supabase_key,\n      \"Content-Type\": \"application/json\",\n      \"Prefer\": \"return=representation\"\n    },\n    body: payload\n  }\n);\n\nvar result = await response.json();\n\nif (!response.ok) {\n  output = {\n    success: false,\n    doc_id: \"\",\n    file_name: file_name,\n    tree_node_count: 0,\n    error: result.message || result.detail || JSON.stringify(result),\n    status_code: response.status\n  };\n} else {\n  var inserted = Array.isArray(result) ? result[0] : result;\n  output = {\n    success: true,\n    doc_id: inserted.doc_id || doc_id,\n    file_name: inserted.file_name || file_name,\n    tree_node_count: inserted.tree_node_count || tree_node_count,\n    status: \"completed\",\n    error: \"\",\n    status_code: response.status\n  };\n}",
           "nodeName": "Code"
         }
       },
@@ -85,7 +85,7 @@
         "x": 0,
         "y": 260
       },
-      "selected": false
+      "selected": true
     },
     {
       "id": "responseNode_triggerNode_1",
@@ -113,7 +113,7 @@
         "x": 0,
         "y": 390
       },
-      "selected": true
+      "selected": false
     }
   ],
   "edges": [

@@ -40,58 +40,109 @@ export default function DocumentUpload({ onUploaded }: Props) {
     });
   }
 
-  const iconColor = dragging ? "var(--accent)" : status === "success" ? "var(--green)" : status === "error" ? "var(--red)" : "var(--text-muted)";
-  const borderColor = dragging ? "var(--accent)" : status === "success" ? "var(--green)" : status === "error" ? "var(--red)" : "var(--border)";
+  const isIdle = status === "idle";
 
   return (
     <div
-      onClick={() => status === "idle" && inputRef.current?.click()}
+      onClick={() => isIdle && inputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}
       style={{
-        border: `1px dashed ${borderColor}`,
-        borderRadius: "10px",
-        padding: "16px",
-        cursor: status === "idle" ? "pointer" : "default",
-        background: dragging ? "var(--accent-dim)" : "var(--surface-2)",
-        display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
+        borderRadius: "var(--radius-md)",
+        padding: "14px 12px",
+        cursor: isIdle ? "pointer" : "default",
+        border: `1.5px dashed ${
+          dragging ? "var(--accent)" :
+          status === "success" ? "var(--green)" :
+          status === "error" ? "var(--red)" :
+          status === "uploading" ? "rgba(45,212,191,0.3)" :
+          "var(--border-md)"
+        }`,
+        background: dragging
+          ? "var(--accent-dim)"
+          : status === "success"
+          ? "rgba(52,211,153,0.06)"
+          : status === "error"
+          ? "rgba(248,113,113,0.06)"
+          : "var(--surface-2)",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: "5px",
         textAlign: "center",
-        transition: "all 0.2s",
+        transition: "all 0.22s var(--ease)",
+        position: "relative", overflow: "hidden",
+        boxShadow: dragging ? "var(--glow)" : "none",
       }}
     >
-      <input ref={inputRef} type="file" accept=".pdf,.md" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); e.target.value = ""; }} />
+      <input
+        ref={inputRef} type="file" accept=".pdf,.md"
+        style={{ display: "none" }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); e.target.value = ""; }}
+      />
 
-      {status === "uploading" ? (
+      {status === "uploading" && (
         <>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--accent-hover)", fontSize: "13px", fontWeight: 500 }}>
-            <svg style={{ animation: "spin 1s linear infinite" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-            </svg>
-            Indexing document…
-          </div>
-          <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>Building tree structure</p>
-        </>
-      ) : status === "success" ? (
-        <>
-          <div style={{ color: "var(--green)", fontSize: "13px", fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Ready
-          </div>
-          <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>{message}</p>
-        </>
-      ) : status === "error" ? (
-        <>
-          <div style={{ color: "var(--red)", fontSize: "13px", fontWeight: 500 }}>Upload failed</div>
-          <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>{message}</p>
-        </>
-      ) : (
-        <>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          {/* Progress shimmer line */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+            background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 1.5s linear infinite",
+          }} />
+          <svg style={{ animation: "spin 0.8s linear infinite" }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
           </svg>
-          <p style={{ margin: 0, fontSize: "13px", fontWeight: 500, color: "var(--text-secondary)" }}>Upload a document</p>
-          <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>PDF or Markdown · drag & drop</p>
+          <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "var(--accent)" }}>Indexing…</p>
+          <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>
+            Building tree structure
+          </p>
+        </>
+      )}
+
+      {status === "success" && (
+        <>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "var(--green)" }}>Indexed</p>
+          <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>{message}</p>
+        </>
+      )}
+
+      {status === "error" && (
+        <>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "var(--red)" }}>Failed</p>
+          <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)", maxWidth: "160px" }}>{message}</p>
+        </>
+      )}
+
+      {isIdle && (
+        <>
+          <div style={{
+            width: "32px", height: "32px", borderRadius: "var(--radius-sm)",
+            background: "var(--surface-3)",
+            border: "1px solid var(--border)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all 0.18s var(--ease)",
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke={dragging ? "var(--accent)" : "var(--text-2)"}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <p style={{ margin: 0, fontSize: "12.5px", fontWeight: 600, color: "var(--text-1)" }}>
+            Upload document
+          </p>
+          <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>
+            PDF · Markdown · drop or click
+          </p>
         </>
       )}
     </div>
