@@ -10,7 +10,6 @@
   --card-foreground: oklch(0.15 0.02 270);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0.02 270);
-  /* Updated primary to purple for buttons and accents */
   --primary: oklch(0.55 0.18 270);
   --primary-foreground: oklch(0.98 0.01 270);
   --secondary: oklch(0.96 0.01 270);
@@ -24,7 +23,6 @@
   --border: oklch(0.92 0.01 270);
   --input: oklch(0.92 0.01 270);
   --ring: oklch(0.55 0.18 270);
-  /* Updated chart colors to purple/blue theme */
   --chart-1: oklch(0.55 0.18 270);
   --chart-2: oklch(0.6 0.15 240);
   --chart-3: oklch(0.65 0.12 210);
@@ -48,7 +46,6 @@
   --card-foreground: oklch(0.95 0.01 270);
   --popover: oklch(0.12 0.02 270);
   --popover-foreground: oklch(0.95 0.01 270);
-  /* Updated dark mode primary to brighter purple */
   --primary: oklch(0.65 0.2 270);
   --primary-foreground: oklch(0.08 0.02 270);
   --secondary: oklch(0.18 0.02 270);
@@ -62,7 +59,6 @@
   --border: oklch(0.18 0.02 270);
   --input: oklch(0.18 0.02 270);
   --ring: oklch(0.65 0.2 270);
-  /* Updated dark mode chart colors */
   --chart-1: oklch(0.65 0.2 270);
   --chart-2: oklch(0.7 0.18 240);
   --chart-3: oklch(0.75 0.15 210);
@@ -122,8 +118,24 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    font: inherit;
   }
 }

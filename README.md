@@ -1,169 +1,261 @@
-<div id="top"></div>
+# 🧠 AI Meeting Intelligence Copilot
 
-<p align="center">
-  <img width="100%" alt="lamatic cover" src="https://github.com/Lamatic/.github/raw/main/linkein-cover.jpg" />
-</p>
+[![agentkit-challenge](https://img.shields.io/badge/PR%20Label-agentkit--challenge-0f766e?style=for-the-badge)](https://github.com/Lamatic/AgentKit/pulls?q=label:agentkit-challenge)
+[![Built with Lamatic](https://img.shields.io/badge/Built%20with-Lamatic.ai-6366f1?style=for-the-badge)](https://lamatic.ai)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Slack](https://img.shields.io/badge/Slack-Integrated-4A154B?style=for-the-badge&logo=slack)](https://slack.com)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
 
-<p align="center">
-  <a href="https://lamatic.ai">
-    <picture>
-      <!-- Dark mode: keep existing white SVG -->
-      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
-      <!-- Light mode: use the black PNG you found -->
-      <source media="(prefers-color-scheme: light)" srcset="https://github.com/Lamatic/AgentKit/raw/main/templates/agentic/reasoning/public/lamatic-logo.png">
-      <!-- Fallback -->
-      <img width="300" alt="Lamatic.ai" src="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
-    </picture>
-  </a>
-</p>
+> **Turn raw meeting transcripts into structured, actionable intelligence — automatically delivered to Slack.**
 
-<h2 align="center">Stack to Build Agentic SaaS → 10x faster</h2>
-  <br/>
-  <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
-<p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
-</p>
-</p>
+Built for the **Lamatic AgentKit Challenge** by [Vijayshree Vaibhav](https://github.com/vijayshreepathak).
 
-<p align="center">
-<a href="https://lamatic.ai/docs/slack"><img src="https://img.shields.io/badge/Slack-Join%20Us-4A154B?logo=slack&logoColor=white" alt="Join lamatic.ai Slack"></a>
-<a href="https://github.com/Lamatic/AgentKit/stargazers">
-  <img src="https://img.shields.io/github/stars/Lamatic/AgentKit?logo=github" alt="GitHub Stars" />
-</a>
-<a href="https://github.com/Lamatic/AgentKit/network/members">
-  <img src="https://img.shields.io/github/forks/Lamatic/AgentKit?logo=github" alt="GitHub Forks" />
-</a>
-<a href="https://github.com/Lamatic/AgentKit/actions">
-  <img src="https://img.shields.io/github/actions/workflow/status/Lamatic/AgentKit/ci.yml?branch=main" alt="CI/CD Status" />
-</a>
+---
 
-<br/>
+## 🎯 Problem Statement
 
-## ✨ About AgentKit
+Teams walk out of meetings with scattered notes, untracked action items, and unclear ownership. Critical insights get lost in long conversation threads. Following up manually is slow and inconsistent.
 
-Deploy intelligent AI agents in minutes with enterprise-grade security, scalable architecture, and seamless integrations. Power everything from customer support to workflow automation with the future of agent-powered business.
+**This agent solves it in one step:** paste a meeting transcript → receive a structured summary, action items, risks, next steps, and a follow-up email draft — all delivered to Slack automatically.
 
-***
+---
 
-<table>
-  <tr>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/agentic.png" alt="Agentic Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Agentic</h3>
-  <p style="font-size: 15px;">Intelligent agents that can reason, plan, and execute complex tasks autonomously</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/embed.png" alt="Embed Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Embed</h3>
-  <p style="font-size: 15px;">Seamlessly integrate AI capabilities into your existing applications and workflows</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/assistant.png" alt="Assistant Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Assistant</h3>
-  <p style="font-size: 15px;">Smart assistants that help users with tasks, answer questions, and provide support</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/automation.png" alt="Automation Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Automation</h3>
-  <p style="font-size: 15px;">Automate repetitive tasks and streamline business processes with AI-powered workflows</p>
-    </td>
-  </tr>
-</table>
+## ✨ What It Does
 
-***
+| Input | Output |
+|---|---|
+| Raw meeting transcript | Executive summary |
+| Any language, any format | Action items with owners |
+| Paste or type directly | Risks & blockers |
+| | Suggested next steps |
+| | Follow-up email draft |
+| | Slack notification ⚡ |
 
-### 📦 Available Kits
+---
 
-Explore ready-to-deploy agent kits and templates built on Lamatic’s AgentKit framework.  
-Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
+## 🏗️ Architecture
 
-| Kit Name | Description | Status | Live Demo | Path |
-|-----------|--------------|--------|--------------|------|
-| **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
-| **Deep Search Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/agentic/deep-search`](./kits/agentic/deep-search) |
-| **Generation Agent** | A Next.js starter kit for generating text/json/image content using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app) | [`/kits/agentic/generation`](./kits/agentic/generation) |
-||
-| **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
-| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
-||
-| **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
-| **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
-||
-| **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/kits/embed`](./kits/embed) |
-| **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/chat`](./kits/embed/chat) |
-| **Search** | A Next.js starter kit for searchbot Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/search`](./kits/embed/search) |
-| **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/kits/embed/sheets`](./kits/embed/sheets) |
+```mermaid
+graph TD
+    A[👤 User] -->|Pastes transcript| B[Next.js Frontend\nkits/embed/chat]
+    B -->|Sends message| C[Lamatic Chat Widget\nchat-v2]
+    C -->|POST /widget/chat| D[Chat Trigger Node\nLamatic Studio]
 
-> 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
+    D --> E[🧠 Generate Text\nLLM - Executive Summary\nAction Items · Risks · Next Steps\nFollow-up Email]
+    E --> F[📋 Generate JSON\nStructured Output]
 
-## 🏛️ Architecture Overview
+    F --> G[⚡ Slack API Node\nWebhook POST]
+    F --> H[💬 Chat Response\nStreamed back to widget]
 
-- **Agent Engine**: Multi-agent system enabling advanced reasoning and planning
-- **Templates & Kits**: Pre-designed packs for popular use-cases and enterprise workflows
-- **Lamatic Core**: Central orchestration of all agentic, automation, and integration flows
-- **Security Layer**: End-to-end bank-grade encryption, compliance-ready
-- **Integrations Hub**: 1-click integrations with your stack (REST, Zapier, Webhooks, etc.)
+    G -->|Formatted insight card| I[📨 Slack Channel]
+    H -->|Rendered markdown| B
 
-```
-+------------------+             +------------------+          +-------------------+
-|  Web/API Client  | - GraphQL-> |     Lamatic      |  <-----> | Integrations/Apps |
-+------------------+             +------------------+          +-------------------+
-        ^                                 ^       
-    Frontend                      Agent Microservice
+    style A fill:#6366f1,color:#fff
+    style B fill:#1e293b,color:#fff
+    style C fill:#1e293b,color:#fff
+    style D fill:#0f766e,color:#fff
+    style E fill:#7c3aed,color:#fff
+    style F fill:#7c3aed,color:#fff
+    style G fill:#4A154B,color:#fff
+    style H fill:#0f766e,color:#fff
+    style I fill:#4A154B,color:#fff
 ```
 
-***
+**Flow inside Lamatic Studio:**
 
-## 🚀 Steps to Deploy
+```
+Chat Widget ──▶ Generate Text (LLM) ──▶ Generate JSON
+                                               │
+                              ┌────────────────┤
+                              ▼                ▼
+                          Slack API      Chat Response
+                         (Webhook)     (back to user)
+```
 
-1. **Clone the Repo**
-   ```sh
-   git clone https://github.com/Lamatic/AgentKit.git
-   cd AgentKit
-   ```
+---
 
-2. **Select Your AgentKit**
-   - Browse `/templates` for available kits.
-   - Example:
-     ```sh
-     cd templates/agentic/reasoning
-     ```
+## 📸 Screenshots
 
-3. **Configure Integrations**
-   - Enter API keys, endpoints, and credentials in `.env` or `/config`. The setup and configurations for the integration will be defined in that repo itself in it's ReadME.
+### Live Web App — Transcript Input & Structured Output
+![Web App Running](kits/embed/chat/app/Screenshots/FromwebPage-With%20Followup%20mail-Running.png)
 
-4. **Deploy**
-   - Run the agent locally with : 
-     ```sh
-     npm run deploy
-     ```
+### Lamatic Studio — Flow Execution & Preview
+![Lamatic Flow Running](kits/embed/chat/app/Screenshots/fromLamatic-Running.png)
 
-5. **Monitor & Scale**
-   - Dashboard live at `studio.lamatic.ai`
-   - Scale or update agents with a single Click.
+### Slack Integration — Auto-delivered Insights
+![Slack Integration](kits/embed/chat/app/Screenshots/Slack_integrated-Summarizer.png)
 
-***
+### Frontend Landing Page
+![Landing Page](kits/embed/chat/app/Screenshots/1.png)
 
-## 📚 Documentation & Resources
+---
 
-- [AgentKit Overview](https://lamatic.ai/templates/agentkits)
-- [Lamatic Guides](https://lamatic.ai/guides)
-- [API Reference](https://lamatic.ai/api)
-- [Community Support](https://github.com/Lamatic/AgentKit/discussions)
+## 🛠️ Tech Stack
 
-***
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14 (App Router) |
+| UI | Tailwind CSS + shadcn/ui |
+| AI Workflow | Lamatic Studio |
+| Chat Widget | Lamatic `chat-v2` embedded widget |
+| LLM | Configured in Lamatic (GPT-4o / Claude) |
+| Integrations | Slack Incoming Webhooks |
+| Deployment | Vercel |
 
-## 🤝 Contributing
+---
 
-We welcome your ideas and improvements! See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get started.
+## ⚙️ Quick Start
 
-***
+### 1. Clone
 
-## ⭐ Related Links
+```bash
+git clone https://github.com/vijayshreepathak/AgentKit.git
+cd AgentKit/kits/embed/chat
+```
 
-- [Lamatic.ai](https://lamatic.ai)
-- [Lamatic University](https://lamatic.ai/university)
-- [Case Studies](https://lamatic.ai/case-studies)
+### 2. Install
 
-***
+```bash
+npm install
+```
 
-Powerful, scalable agentic automations for the modern enterprise — with security, speed, and service at the core.
+### 3. Configure environment
+
+Create `.env.local` inside `kits/embed/chat/`:
+
+```env
+NEXT_PUBLIC_LAMATIC_PROJECT_ID=your_project_id
+NEXT_PUBLIC_LAMATIC_FLOW_ID=your_flow_id
+NEXT_PUBLIC_LAMATIC_API_URL=https://your-project.lamatic.dev
+```
+
+Get these values from your Lamatic Studio project settings.
+
+### 4. Run
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
+
+---
+
+## 🔧 Lamatic Studio Setup
+
+### Flow Structure
+
+Build this flow in [Lamatic Studio](https://studio.lamatic.ai):
+
+```
+[Chat Trigger] → [Generate Text] → [Generate JSON] → [Slack API]
+                                                    → [Chat Response]
+```
+
+### Chat Trigger Configuration
+
+1. Open your flow → click the **Chat Trigger** node
+2. Under **Allowed Domains**, add `*` (for development) or your production domain
+3. Click **Save** → **Deploy**
+
+### Generate Text Prompt (LLM Node)
+
+```
+You are an AI Meeting Intelligence Copilot. Analyze this meeting transcript and produce:
+
+## Executive Summary
+[2-3 sentence summary of the meeting]
+
+## Action Items
+- **[Owner]:** [Task] — due [date if mentioned]
+
+## Risks & Blockers
+- [Risk or blocker identified]
+
+## Next Steps
+- [Recommended follow-up action]
+
+## Follow-up Email Draft
+Subject: [Meeting Topic] — Decisions & Next Steps
+[Professional email body]
+
+Meeting transcript:
+{{trigger.chatMessage}}
+```
+
+### Slack Webhook
+
+1. Create an [Incoming Webhook](https://api.slack.com/messaging/webhooks) in your Slack workspace
+2. Add the webhook URL to the **API Node** in Lamatic
+3. The agent automatically sends the structured output to your channel
+
+---
+
+## 🚀 Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vijayshreepathak/AgentKit&root-directory=kits/embed/chat&env=NEXT_PUBLIC_LAMATIC_PROJECT_ID,NEXT_PUBLIC_LAMATIC_FLOW_ID,NEXT_PUBLIC_LAMATIC_API_URL&envDescription=Lamatic%20project%20credentials&envLink=https://lamatic.ai)
+
+After clicking Deploy:
+1. Fill in the three env vars from your Lamatic Studio
+2. Vercel builds and deploys automatically
+3. Add your Vercel production URL to the Chat Trigger's allowed domains in Lamatic
+
+---
+
+## 📁 Project Structure
+
+```
+kits/embed/chat/
+├── app/
+│   ├── page.js                    # Landing page (Server Component)
+│   ├── layout.js                  # Root layout with fonts + analytics
+│   ├── globals.css                # Tailwind v4 + CSS variables
+│   └── Screenshots/               # Demo screenshots
+├── components/
+│   ├── LamaticChat.js             # Lamatic widget lifecycle manager
+│   ├── HeroActions.jsx            # CTA buttons (Client Component)
+│   ├── TranscriptPlayground.jsx   # Transcript input + analyze flow
+│   └── ui/                        # shadcn/ui components
+├── flows/
+│   └── embedded-chatbot-chatbot/  # Exported Lamatic flow config
+├── .env.local                     # Local env vars (not committed)
+└── package.json
+```
+
+---
+
+## 💡 Key Engineering Decisions
+
+**Why `data-*` attributes on the root div?**
+The Lamatic `chat-v2` widget reads `data-api-url`, `data-flow-id`, and `data-project-id` from `#lamatic-chat-root` at initialization. These must be set before the script runs.
+
+**Why bootstrap on mount (not on button click)?**
+The widget fetches `chatConfig` and creates an IndexedDB session on init. Bootstrapping early means the session is ready before the user sends their first message — preventing "unexpected error" on first send.
+
+**Why not remove the root on unmount?**
+The Lamatic widget uses IndexedDB with the session key as a primary key. Removing + re-adding the root causes a `ConstraintError: Key already exists` because the old session record is still in the database. The root is intentionally a page-lifetime singleton.
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] Audio/video transcript upload (Whisper transcription)
+- [ ] Multi-language meeting support
+- [ ] Meeting history dashboard
+- [ ] Calendar integration (Google Meet / Zoom auto-fetch)
+- [ ] Team analytics on action item completion rates
+- [ ] Export to Notion / Confluence
+
+---
+
+## 👩‍💻 Author
+
+**Vijayshree Vaibhav**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-vijayshreevaibhav-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/vijayshreevaibhav/)
+[![GitHub](https://img.shields.io/badge/GitHub-vijayshreepathak-181717?style=flat&logo=github)](https://github.com/vijayshreepathak)
+
+---
+
+## 📜 License
+
+MIT — see [LICENSE](./LICENSE).
