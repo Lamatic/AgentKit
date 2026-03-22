@@ -22,8 +22,8 @@ export async function uploadDocument(file_url: string, file_name: string) {
       process.env.FLOW_ID_UPLOAD!,
       { file_url, file_name }
     );
-    // Response shape: { status, result: { doc_id, file_name, ... } }
-    return response.result ?? response;
+    const data = (response.result ?? response) as Record<string, unknown>;
+    return data;
   } catch (error) {
     console.error("Upload flow error:", error);
     throw new Error("Failed to upload document");
@@ -41,8 +41,7 @@ export async function chatWithDocument(
       process.env.FLOW_ID_CHAT!,
       { doc_id, query, messages }
     );
-
-    const data = response.result ?? response;
+    const data = (response.result ?? response) as Record<string, unknown>;
 
     // retrieved_nodes comes back as a JSON string from the Code Node
     return {
@@ -62,8 +61,7 @@ export async function listDocuments() {
       process.env.FLOW_ID_LIST!,
       {}
     );
-
-    const data = response.result ?? response;
+    const data = (response.result ?? response) as Record<string, unknown>;
 
     // documents comes back as a JSON string (JSON.stringify applied in Code Node)
     return {
@@ -84,14 +82,14 @@ export async function getDocumentTree(doc_id: string) {
       process.env.FLOW_ID_TREE!,
       { doc_id }
     );
-
-    const data = response.result ?? response;
+    const data = (response.result ?? response) as Record<string, unknown>;
 
     // tree comes back as a JSON string (JSON.stringify applied in Code Node)
+    // Note: the flow outputMapping has a typo "tre_node_count" — handle both spellings
     return {
       ...data,
       tree: safeParseJSON(data?.tree, []),
-      tree_node_count: Number(data?.tree_node_count) || 0,
+      tree_node_count: Number(data?.tree_node_count ?? data?.tre_node_count) || 0,
     };
   } catch (error) {
     console.error("Tree flow error:", error);
