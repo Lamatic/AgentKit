@@ -1,0 +1,27 @@
+{
+    "name": "Meeting Action Items Agent",
+    "description": "Paste raw meeting notes or transcripts and instantly get prioritized action items with owners, deadlines, and a follow-up email draft — powered by AI.",
+    "tags": ["⚙️ Automation", "📋 Productivity", "🤖 Agentic"],
+    "author": {
+        "name": "Harish",
+        "email": "harish@example.com"
+    },
+    "steps": [
+        {
+            "id": "meeting-action-agent",
+            "type": "mandatory",
+            "envKey": "MEETING_ACTION_FLOW_ID"
+        }
+    ],
+    "integrations": [],
+    "features": [
+        "Extracts key decisions from meeting notes",
+        "Identifies action items with owners, deadlines & priority",
+        "Generates a clean markdown summary report",
+        "Drafts a professional follow-up email"
+    ],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/meeting-action-agent",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/automation/meeting-action-agent&env=MEETING_ACTION_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Meeting%20Agent%20keys%20are%20required.",
+    "documentationUrl": ""
+}
