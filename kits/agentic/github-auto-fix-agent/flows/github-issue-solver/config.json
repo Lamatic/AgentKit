@@ -1,0 +1,302 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"issue_url\": \"string\",\n  \"file_path\": \"string\",\n  \"file_content\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_142",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_142",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"issue_url\": {\n      \"type\": \"string\"\n    },\n    \"repo_owner\": {\n      \"type\": \"string\"\n    },\n    \"repo_name\": {\n      \"type\": \"string\"\n    },\n    \"issue_number\": {\n      \"type\": \"string\"\n    },\n    \"file_path\": {\n      \"type\": \"string\"\n    },\n    \"file_content\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a strict JSON parser.\nYour task is to extract repository details from a GitHub issue URL.\nYou must:\n- Extract repo_owner, repo_name, and issue_number from the issue_url\n- Copy file_path and file_content if provided\nRules:\n- Always return valid JSON\n- No explanations\n- No markdown\n- If extraction fails, return empty strings"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Extract:\n- issue_url\n- repo_owner\n- repo_name\n- issue_number\n- file_path\n- file_content\nExample:\nhttps://github.com/facebook/react/issues/123\n→ repo_owner: facebook\n→ repo_name: react\n→ issue_number: 123issue_url: https://github.com/hyperjump-io/json-schema-errors/issues/175\nfile_content: {{triggerNode_1.output.file_content}}\nfile_path: {{triggerNode_1.output.file_path}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_840",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_840",
+          "url": "https://api.github.com/repos/{{InstructorLLMNode_142.output.repo_owner}}/{{InstructorLLMNode_142.output.repo_name}}/issues/{{InstructorLLMNode_142.output.issue_number}}",
+          "body": "",
+          "method": "GET",
+          "headers": "{\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"lamatic-agent\"}",
+          "retries": "2",
+          "nodeName": "API",
+          "retry_deplay": "1",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_361",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_361",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"summary\": {\n      \"type\": \"string\"\n    },\n    \"root_cause\": {\n      \"type\": \"string\"\n    },\n    \"affected_area\": {\n      \"type\": \"string\"\n    },\n    \"confidence\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a senior software engineer.\nYour task is to analyze a GitHub issue and identify the root problem.\nYou must:\n- Understand the issue title and description\n- Identify the actual problem being discussed\n- Explain the root cause clearly\n- Suggest which part of the codebase is affected\nRules:\n- Be precise and technical\n- Do not hallucinate unknown details\n- If context is insufficient, say \"Insufficient context\"\n- Always return structured JSON"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Analyze the issue and return:\n- summary\n- root_cause\n- affected_area\n- confidence (low | medium | high)Issue URL: {{triggerNode_1.output.issue_url}}\nTitle: {{apiNode_840.output.title}}\nDescription: {{apiNode_840.output.body}}\nFile content: {{triggerNode_1.output.file_content}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_239",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_239",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"updated_code\": {\n      \"type\": \"string\"\n    },\n    \"diff\": {\n      \"type\": \"string\"\n    },\n    \"explanation\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a senior software engineer fixing a bug.\nYour task is to generate a precise and minimal fix based on the issue analysis.\nYou must:\n- Fix only what is necessary\n- Keep code clean and production-ready\n- Avoid unnecessary changes\nRules:\n- If file_content is provided → modify it\n- If file_content is NOT provided → generate a plausible fix snippet\n- Always return structured JSON\n- Do not include explanations outside JSON"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate:1. updated_code (full corrected code or snippet)2. diff (optional but preferred, in git diff format)3. explanation (short technical explanation)Issue Summary: {{InstructorLLMNode_361.output.issue_summary}}\nRoot Cause: {{InstructorLLMNode_361.output.root_cause}}\nAffected Area: {{InstructorLLMNode_361.output.affected_area}}\nFile Path: {{InstructorLLMNode_142.output.file_path}}\nFile Content: {{InstructorLLMNode_142.output.file_content}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_233",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_233",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"branch_name\": {\n      \"type\": \"string\"\n    },\n    \"commit_message\": {\n      \"type\": \"string\"\n    },\n    \"pr_title\": {\n      \"type\": \"string\"\n    },\n    \"pr_body\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a software engineer preparing a GitHub pull request.\nYour task is to generate clean and professional PR metadata.\nYou must:\n- Create a meaningful branch name\n- Write a concise commit message\n- Write a clear PR title\n- Write a helpful PR description\nRules:\n- Keep everything short and professional\n- Follow common GitHub conventions\n- Use lowercase and hyphenated branch names\n- Do not include unnecessary text\n- Output only valid JSON"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate:- branch_name- commit_message- pr_title- pr_bodyIssue Summary: {{InstructorLLMNode_361.output.summary}}\nFix explanation: {{InstructorLLMNode_239.output.explanation}}\nFile path: {{InstructorLLMNode_142.output.file_path}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": true
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_142",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_142",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_142-apiNode_840",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_142",
+      "target": "apiNode_840",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_840-InstructorLLMNode_361",
+      "type": "defaultEdge",
+      "source": "apiNode_840",
+      "target": "InstructorLLMNode_361",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_361-InstructorLLMNode_239-542",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_361",
+      "target": "InstructorLLMNode_239",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_239-InstructorLLMNode_233",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_239",
+      "target": "InstructorLLMNode_233",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_233-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_233",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
