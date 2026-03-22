@@ -1,0 +1,15 @@
+{
+  "name": "Recipe AI Agent",
+  "description": "A conversational AI agent that detects user intent and responds with generated recipes, weekly meal plans, grocery lists, or cooking answers — all from a single natural language message.",
+  "tags": ["🍳 Food", "🤖 AI Agent", "🌱 Growth", "🛒 Grocery", "📅 Planning"],
+  "testInput": {
+    "user_message": "Give me a recipe for butter chicken"
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/template/recipe-ai-agent",
+  "author": {
+    "name": "Krish Mehta",
+    "email": "krish.mehta@umbc.edu"
+  }
+}
