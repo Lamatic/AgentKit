@@ -1,138 +1,147 @@
-# Agent Kit Embedded Chat by Lamatic.ai
-<p align="center">
-  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmFmdXh4aHB3bXZidmg1dDM1azhtY2xheTl6ZnUzbHdsYXo1OXVvcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6hnrR2Vk2PLByiWKbL/giphy.gif"/>
-</p>
+# 🧠 AI Meeting Intelligence Copilot — Kit README
 
-<p align="center">
-  <a href="https://agent-kit-embedded-chat.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
-  </a>
-</p>
+> Part of the [Lamatic AgentKit](https://github.com/Lamatic/AgentKit) · `kits/embed/chat`
 
-**Agent Kit Embedded Chat** is an AI-powered document chat system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vijayshreepathak/AgentKit&root-directory=kits/embed/chat&env=NEXT_PUBLIC_LAMATIC_PROJECT_ID,NEXT_PUBLIC_LAMATIC_FLOW_ID,NEXT_PUBLIC_LAMATIC_API_URL&envDescription=Lamatic%20project%20credentials)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/embed/chat&env=EMBEDDED_CHATBOT_PDF_INDEXATION,EMBEDDED_CHATBOT_WEBSITES_INDEXATION,EMBEDDED_CHATBOT_RESOURCE_DELETION,EMBEDDED_CHATBOT_CHATBOT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Config%Embedded%20Chat%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat)
+An AI-powered Next.js app that converts raw meeting transcripts into structured insights (summary, action items, risks, next steps, follow-up email) and delivers them to Slack — all through a Lamatic chat widget embedded in the UI.
 
 ---
 
+## 🗂️ Kit Structure
 
-## Lamatic Setup (Pre and Post)
-
-Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
-
-Pre: Build in Lamatic
-1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Embed Chat' agent kit
-5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain your .env keys
-7. Copy the keys from your studio
-
-Post: Wire into this repo
-1. Create a .env file and set the keys
-2. Install and run locally:
-   - npm install
-   - npm run dev
-3. Deploy (Vercel recommended):
-   - Import your repo, set the project’s Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
-
-Notes
-- Coming soon: single-click export and “Connect Git” in Lamatic to push config directly to your repo.
-
----
-
-## 🔑 Setup
-## Required Keys and Config
-
-You’ll need two things to run this project locally:  
-
-1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
-2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
-
-
-| Item              | Purpose                                      | Where to Get It                                 |
-| ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
-| Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
-
-### 1. Environment Variables
-
-Create `.env.local` with:
-
-```bash
-# Lamatic
-EMBEDDED_CHATBOT_PDF_INDEXATION = "EMBEDDED_CHATBOT_PDF_INDEXATION Flow ID"
-EMBEDDED_CHATBOT_WEBSITES_INDEXATION = "EMBEDDED_CHATBOT_WEBSITES_INDEXATION Flow ID"
-EMBEDDED_CHATBOT_RESOURCE_DELETION = "EMBEDDED_CHATBOT_RESOURCE_DELETION Flow ID"
-EMBEDDED_CHATBOT_CHATBOT = "EMBEDDED_CHATBOT_CHATBOT Flow ID"
-LAMATIC_API_URL = "LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
-LAMATIC_API_KEY = "LAMATIC_API_KEY"
-
-# Vercel Blob (configured on Vercel)
-BLOB_READ_WRITE_TOKEN=your_blob_token
+```
+kits/embed/chat/
+├── app/
+│   ├── page.js                    # Landing page — Server Component
+│   ├── layout.js                  # Root layout (Geist font + Vercel Analytics)
+│   ├── globals.css                # Tailwind v4 theme + CSS variables
+│   └── Screenshots/               # Demo screenshots
+│       ├── 1.png
+│       ├── fromLamatic-Running.png
+│       ├── FromwebPage-With Followup mail-Running.png
+│       └── Slack_integrated-Summarizer.png
+├── components/
+│   ├── LamaticChat.js             # Widget lifecycle — mounts root div + script
+│   ├── HeroActions.jsx            # Interactive hero buttons (Client Component)
+│   ├── TranscriptPlayground.jsx   # Textarea + Analyze button
+│   └── ui/                        # shadcn/ui primitives
+├── flows/
+│   └── embedded-chatbot-chatbot/  # Exported Lamatic flow JSON
+├── .env.local                     # ← create this (see below)
+└── package.json
 ```
 
-### 2. Install & Run
+---
+
+## 🚀 Local Setup
+
+### Prerequisites
+
+- Node.js 18+
+- A [Lamatic account](https://lamatic.ai) with your meeting intelligence flow deployed
+- A Slack incoming webhook URL (configured in your Lamatic flow)
+
+### 1. Install dependencies
 
 ```bash
+cd kits/embed/chat
 npm install
+```
+
+### 2. Create `.env.local`
+
+```env
+NEXT_PUBLIC_LAMATIC_PROJECT_ID=your_project_id
+NEXT_PUBLIC_LAMATIC_FLOW_ID=your_flow_id
+NEXT_PUBLIC_LAMATIC_API_URL=https://your-project.lamatic.dev
+```
+
+All three values are available in **Lamatic Studio → Project Settings → Embed Widget**.
+
+### 3. Run
+
+```bash
 npm run dev
 # Open http://localhost:3000
 ```
 
-### 3. Deploy Instructions (Vercel)
+---
 
-Click the “Deploy with Vercel” button.
-
-Fill in .env Keys from lamatic (required).
-
-After deployment, generate your own Blob token:
+## ☁️ Deploy to Vercel
 
 ```bash
-vercel storage blob token create
+# Option A — Vercel CLI
+vercel --root kits/embed/chat
+
+# Option B — click the button at the top of this file
 ```
 
-Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE_TOKEN and redeploy.
----
+Add the same three `NEXT_PUBLIC_*` env vars in the Vercel dashboard.
 
-## 📂 Repo Structure
-
-```
-/actions
- └── orchestrate.ts        # Lamatic workflow orchestration
-/app
- ├── page.tsx              # Main upload/indexation UI
- ├── chat
- │   └── page.tsx          # Chat interface with documents
- └── api
-     ├── index             # PDF indexation endpoint
-     ├── index-webpages    # Webpage indexation endpoint
-     ├── delete            # PDF deletion endpoint
-     ├── delete-resource   # Resource deletion endpoint
-     └── check-workflow-status  # Async workflow polling
-/lib
- └── lamatic-client.ts     # Lamatic SDK client
-/public
- └── images
-     ├── lamatic-logo.png  # Lamatic branding
-     └── *.png             # Data source icons
-/flows
-  └── ...                  # Lamatic Flows
-/package.json              # Dependencies & scripts
-```
+After deploying, add your Vercel production URL to the **Allowed Domains** list in your Lamatic Chat Trigger node, then redeploy the flow.
 
 ---
 
-## 🤝 Contributing
+## 🔧 Lamatic Flow Configuration
 
-We welcome contributions! Open an issue or PR in this repo.
+### Required nodes (in order)
+
+| # | Node | Purpose |
+|---|---|---|
+| 1 | Chat Trigger | Receives widget messages; whitelist your domain here |
+| 2 | Generate Text | LLM call — extracts summary, action items, risks, next steps, email |
+| 3 | Generate JSON | Structures the LLM output for Slack formatting |
+| 4a | Slack API | Sends formatted card to your Slack channel |
+| 4b | Chat Response | Streams the result back to the widget UI |
+
+### Domain whitelisting (important)
+
+In the **Chat Trigger** node config, add `*` for development or your exact domain for production. Without this, the widget returns 400 on every message.
+
+---
+
+## 🖼️ Screenshots
+
+| Web App | Lamatic Studio |
+|---|---|
+| ![Web](app/Screenshots/FromwebPage-With%20Followup%20mail-Running.png) | ![Studio](app/Screenshots/fromLamatic-Running.png) |
+
+| Slack Output | Landing Page |
+|---|---|
+| ![Slack](app/Screenshots/Slack_integrated-Summarizer.png) | ![Landing](app/Screenshots/1.png) |
+
+---
+
+## 🔑 How the widget integration works
+
+```
+page.js (Server Component)
+  └── <LamaticChat />  (Client Component)
+        │
+        │  On mount (useEffect):
+        ├── Creates <div id="lamatic-chat-root"
+        │     data-api-url="..."
+        │     data-flow-id="..."
+        │     data-project-id="..."
+        │   /> and appends to document.body
+        │
+        └── Injects <script type="module"
+              src="https://widget.lamatic.ai/chat-v2?projectId=...">
+              The widget's React app mounts into #lamatic-chat-root,
+              fetches chatConfig, creates an IndexedDB session, and
+              is ready to send messages.
+```
+
+**Why bootstrap on mount (not on button click)?**
+The widget needs ~500 ms to fetch `chatConfig` and create a session. Bootstrapping immediately on page load means the widget is fully ready before the user clicks "Open Copilot", preventing the "unexpected error" on the first message send.
 
 ---
 
 ## 📜 License
 
-MIT License – see [LICENSE](./LICENSE).
+MIT — see [LICENSE](../../LICENSE).
+
+---
+
+*Built by [Vijayshree Vaibhav](https://github.com/vijayshreepathak) for the Lamatic AgentKit Challenge.*
