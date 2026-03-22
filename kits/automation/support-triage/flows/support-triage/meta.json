@@ -1,0 +1,9 @@
+{
+  "name": "support-triage",
+  "description": "Triages support requests into a structured JSON response with severity, duplicate hints, owner recommendation, SLA risk, and escalation summary.",
+  "tags": ["support", "triage", "automation"],
+  "testInput": "",
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

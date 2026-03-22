@@ -1,0 +1,121 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"ticket_text\": \"string\",\n  \"customer_tier\": \"string\",\n  \"channel\": \"string\",\n  \"created_at\": \"string\",\n  \"past_ticket_context\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_833",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_833",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"severity\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"priority_reason\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"possible_duplicate\": {\n      \"type\": \"boolean\",\n      \"required\": true\n    },\n    \"recommended_owner\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"sla_risk\": {\n      \"type\": \"boolean\",\n      \"required\": true\n    },\n    \"escalation_summary\": {\n      \"type\": \"string\",\n      \"required\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a customer support triage assistant.\nAnalyze the incoming support request and return a structured JSON result.\nInstructions:\n- Classify the issue into a useful support category.\n- Assign severity as one of: low, medium, high, critical.\n- Write a short priority reason.\n- Decide whether this may be a duplicate of a past issue.\n- Recommend the most likely owner/team.\n- Flag whether there is SLA risk.\n- Write a concise escalation summary.\n- Be practical, concise, and consistent.\n- Only use the provided information."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Ticket text: {{ticket_text}}\nCustomer tier: {{customer_tier}}\nChannel: {{channel}}\nCreated at: {{created_at}}\nPast ticket context: {{past_ticket_context}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"category\": \"{{InstructorLLMNode_833.output.category}}\",\n  \"severity\": \"{{InstructorLLMNode_833.output.severity}}\",\n  \"priority_reason\": \"{{InstructorLLMNode_833.output.priority_reason}}\",\n  \"possible_duplicate\": \"{{InstructorLLMNode_833.output.possible_duplicate}}\",\n  \"recommended_owner\": \"{{InstructorLLMNode_833.output.recommended_owner}}\",\n  \"sla_risk\": \"{{InstructorLLMNode_833.output.sla_risk}}\",\n  \"escalation_summary\": \"{{InstructorLLMNode_833.output.escalation_summary}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_833",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_833",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_833-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_833",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
