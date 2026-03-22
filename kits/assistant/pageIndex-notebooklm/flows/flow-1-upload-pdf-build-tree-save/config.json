@@ -1,0 +1,154 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"file_url\": \"string\",\n  \"file_name\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_948",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_948",
+          "url": "https://pageindex-fastapi-production.up.railway.app/doc/",
+          "body": "{\"file_url\": \"{{triggerNode_1.output.file_url}}\", \"file_name\": \"{{triggerNode_1.output.file_name}}\"}",
+          "method": "POST",
+          "headers": "{\"x-api-key\":\"{{secrets.project.SERVER_API_KEY}}\",\"Content-Type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_570",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "error": "string",
+          "doc_id": "string",
+          "status": "string",
+          "success": "boolean",
+          "file_name": "string",
+          "status_code": "number",
+          "tree_node_count": "number"
+        },
+        "values": {
+          "id": "codeNode_570",
+          "code": "\n\nvar apiData = {{apiNode_948.output}};\n\n// Parse if Lamatic injected it as a string\nif (typeof apiData === \"string\") {\n  apiData = JSON.parse(apiData);\n}\n\nvar doc_id = apiData.doc_id || \"\";\nvar file_name = apiData.file_name || \"\";\nvar tree = apiData.tree || [];\nvar raw_text = apiData.raw_text || \"\";\nvar tree_node_count = apiData.tree_node_count || 0;\nvar file_url = {{triggerNode_1.output.file_url}} || \"\";\nvar supabase_url = {{secrets.project.SUPABASE_URL}} || \"\";\nvar supabase_key = {{secrets.project.SUPABASE_ANON_KEY}} || \"\";\n\nvar payload = JSON.stringify({\n  doc_id: doc_id,\n  file_name: file_name,\n  file_url: file_url,\n  tree: tree,\n  raw_text: raw_text,\n  tree_node_count: tree_node_count,\n  status: \"completed\"\n});\n\nvar response = await fetch(\n  supabase_url + \"/rest/v1/documents\",\n  {\n    method: \"POST\",\n    headers: {\n      \"apikey\": supabase_key,\n      \"Authorization\": \"Bearer \" + supabase_key,\n      \"Content-Type\": \"application/json\",\n      \"Prefer\": \"return=representation\"\n    },\n    body: payload\n  }\n);\n\nvar result = await response.json();\n\nif (!response.ok) {\n  output = {\n    success: false,\n    doc_id: \"\",\n    file_name: file_name,\n    tree_node_count: 0,\n    error: result.message || result.detail || JSON.stringify(result),\n    status_code: response.status\n  };\n} else {\n  var inserted = Array.isArray(result) ? result[0] : result;\n  output = {\n    success: true,\n    doc_id: inserted.doc_id || doc_id,\n    file_name: inserted.file_name || file_name,\n    tree_node_count: inserted.tree_node_count || tree_node_count,\n    status: \"completed\",\n    error: \"\",\n    status_code: response.status\n  };\n}",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"doc_id\": \"{{apiNode_948.output}}.doc_id\",\n  \"file_name\": \"{{apiNode_948.output}}.file_name\",\n  \"tree_node_count\": \"{{apiNode_948.output}}.tree_node_count\",\n  \"status\": \"completed\"\n}"
+        },
+        "disabled": false,
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-apiNode_948",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "apiNode_948",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_948-codeNode_570-252",
+      "type": "defaultEdge",
+      "source": "apiNode_948",
+      "target": "codeNode_570",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_570-responseNode_triggerNode_1-839",
+      "data": {},
+      "type": "defaultEdge",
+      "source": "codeNode_570",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

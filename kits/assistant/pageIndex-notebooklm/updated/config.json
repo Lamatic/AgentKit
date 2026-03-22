@@ -1,0 +1,50 @@
+{
+  "name": "PageIndex NotebookLM",
+  "description": "Upload PDFs and chat with them using vectorless, tree-structured RAG powered by PageIndex. A 7-stage pipeline (TOC detection → extraction → JSON transform → physical index assignment → tree build → summaries → page verification) builds a hierarchical document tree with exact page ranges. No vector database, no chunking.",
+  "tags": ["🤖 Agentic", "📚 RAG", "🗂️ Assistant", "✨ Generative"],
+  "author": {
+    "name": "Saurabh Tiwari",
+    "email": "st108113@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "pageindex-upload",
+      "type": "mandatory",
+      "envKey": "FLOW_ID_UPLOAD",
+      "description": "Uploads PDF, runs 7-stage PageIndex pipeline via FastAPI, saves tree to Supabase"
+    },
+    {
+      "id": "pageindex-chat",
+      "type": "mandatory",
+      "envKey": "FLOW_ID_CHAT",
+      "description": "Tree-based section search using exact start/end page ranges + Groq answer generation"
+    },
+    {
+      "id": "pageindex-list",
+      "type": "mandatory",
+      "envKey": "FLOW_ID_LIST",
+      "description": "Lists all uploaded documents from Supabase"
+    },
+    {
+      "id": "pageindex-tree",
+      "type": "mandatory",
+      "envKey": "FLOW_ID_TREE",
+      "description": "Returns full nested tree structure JSON for a document"
+    }
+  ],
+  "integrations": ["PageIndex", "Supabase", "Groq"],
+  "features": [
+    "Vectorless RAG — no embeddings or vector database",
+    "7-stage PageIndex pipeline: TOC detection, extraction, physical index assignment, tree build, summaries, verification",
+    "Exact page-range retrieval (start_index → end_index per section)",
+    "Multi-key Groq pool with round-robin rotation for free-tier throughput",
+    "Fallback extraction for documents without a formal TOC",
+    "Multi-document management with Supabase persistence",
+    "Interactive collapsible tree visualizer",
+    "Chat with full conversation history"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/pageindex-notebooklm",
+  "deployUrl": "",
+  "documentationUrl": ""
+}

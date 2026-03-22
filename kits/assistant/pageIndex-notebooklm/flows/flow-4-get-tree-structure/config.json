@@ -1,0 +1,145 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"doc_id\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "postgresNode_658",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "postgresNode",
+        "values": {
+          "id": "postgresNode_658",
+          "query": "SELECT tree, file_name, tree_node_count, created_at FROM documents WHERE doc_id = '{{triggerNode_1.output.doc_id}}' LIMIT 1;",
+          "action": "runQuery",
+          "nodeName": "Postgres",
+          "credentials": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_639",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "tree": "string",
+          "file_name": "string",
+          "created_at": "string",
+          "tree_node_count": "number"
+        },
+        "values": {
+          "id": "codeNode_639",
+          "code": "// Assign the value you want to return from this code node to `output`. \n// The `output` variable is already declared.\nconst doc = {{postgresNode_658.output.queryResult[0]}};\n\noutput = {\n  tree: JSON.stringify(doc.tree),\n  file_name: doc.file_name,\n  tree_node_count: doc.tree_node_count,\n  created_at: doc.created_at\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"tree\": \"{{codeNode_639.output.tree}}\",\n  \"file_name\": \"{{codeNode_639.output.file_name}}\",\n  \"tre_node_count\": \"{{codeNode_639.output.tree_node_count}}\",\n  \"created_at\": \"{{codeNode_639.output.created_at}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-postgresNode_658",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "postgresNode_658",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "postgresNode_658-codeNode_639",
+      "type": "defaultEdge",
+      "source": "postgresNode_658",
+      "target": "codeNode_639",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_639-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "codeNode_639",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
