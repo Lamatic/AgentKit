@@ -19,22 +19,37 @@ function stripJsonFences(s: string): string {
 function parseFromJsonString(raw: string): ColdEmailOutput {
   const cleaned = stripJsonFences(raw)
   const parsed = JSON.parse(cleaned) as Record<string, unknown>
+
+  const subject_line = parsed.subject_line
+  const email_body = parsed.email_body
+  const personalized_hook = parsed.personalized_hook
+
+  if (
+    typeof subject_line !== "string" || subject_line.trim() === "" ||
+    typeof email_body !== "string" || email_body.trim() === ""
+  ) {
+    throw new Error("Parsed JSON is missing required subject_line or email_body.")
+  }
+
   return {
-    subject_line: String(parsed.subject_line ?? ""),
-    email_body: String(parsed.email_body ?? ""),
-    personalized_hook: String(parsed.personalized_hook ?? ""),
+    subject_line,
+    email_body,
+    personalized_hook: typeof personalized_hook === "string" ? personalized_hook : "",
   }
 }
 
 function isColdEmailShape(o: Record<string, unknown>): boolean {
-  return typeof o.subject_line === "string" && typeof o.email_body === "string"
+  return (
+    typeof o.subject_line === "string" && o.subject_line.trim() !== "" &&
+    typeof o.email_body === "string" && o.email_body.trim() !== ""
+  )
 }
 
 function fromShape(o: Record<string, unknown>): ColdEmailOutput {
   return {
     subject_line: o.subject_line as string,
     email_body: o.email_body as string,
-    personalized_hook: String(o.personalized_hook ?? ""),
+    personalized_hook: typeof o.personalized_hook === "string" ? o.personalized_hook : "",
   }
 }
 

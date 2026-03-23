@@ -1,6 +1,6 @@
 "use server"
 
-import { lamaticClient } from "@/lib/lamatic-client"
+import { getLamaticClient } from "@/lib/lamatic-client"
 import { parseColdEmailResult, type ColdEmailOutput } from "@/lib/parse-cold-email-result"
 import { config } from "../orchestrate.js"
 
@@ -14,6 +14,25 @@ export type ColdEmailInput = {
   call_to_action: string
 }
 
+const INPUT_LIMITS: Record<keyof ColdEmailInput, number> = {
+  profile_data: 3000,
+  prospect_name: 200,
+  prospect_role: 200,
+  company_name: 200,
+  product_description: 1500,
+  value_proposition: 1000,
+  call_to_action: 300,
+}
+
+const REQUIRED_FIELDS: (keyof ColdEmailInput)[] = [
+  "profile_data",
+  "prospect_name",
+  "company_name",
+  "product_description",
+  "value_proposition",
+  "call_to_action",
+]
+
 const flow = config.flows.coldEmail
 
 export async function personalizeColdEmail(input: ColdEmailInput): Promise<{
@@ -26,6 +45,18 @@ export async function personalizeColdEmail(input: ColdEmailInput): Promise<{
       throw new Error("Workflow ID not configured (AUTOMATION_COLD_EMAIL).")
     }
 
+    for (const key of REQUIRED_FIELDS) {
+      if (!input[key]?.trim()) {
+        throw new Error(`Missing required field: ${key.replace(/_/g, " ")}`)
+      }
+    }
+
+    for (const [key, max] of Object.entries(INPUT_LIMITS) as [keyof ColdEmailInput, number][]) {
+      if ((input[key] ?? "").length > max) {
+        throw new Error(`${key.replace(/_/g, " ")} exceeds the ${max}-character limit.`)
+      }
+    }
+
     const workflowInput = Object.keys(flow.inputSchema).reduce(
       (acc, key) => {
         acc[key] = input[key as keyof ColdEmailInput]
@@ -34,7 +65,8 @@ export async function personalizeColdEmail(input: ColdEmailInput): Promise<{
       {} as Record<string, string>,
     )
 
-    const response = await lamaticClient.executeFlow(flow.workflowId, workflowInput)
+    const client = getLamaticClient()
+    const response = await client.executeFlow(flow.workflowId, workflowInput)
 
     if (process.env.NODE_ENV === "development") {
       console.log(
