@@ -1,0 +1,34 @@
+{
+  "name": "Founder Lens",
+  "description": "Powerful 7-phase agentic startup research agent. Submit a startup idea and get a brutally honest investor-grade brief built from real web data — market size, competitors, customer complaints, dead startup postmortems, and a contrarian VC take. Then chat with your analysis using RAG-powered persistent memory.",
+  "tags": ["🤖 Agentic", "🔍 Research", "✨ Generative", "💬 Chat"],
+  "author": {
+    "name": "Andrew Dosumu",
+    "email": "dev@andrewdosumu.com"
+  },
+  "steps": [
+    {
+      "id": "founder-lens-analyze",
+      "type": "mandatory",
+      "envKey": "FOUNDER_LENS_ANALYZE_FLOW_ID"
+    },
+    {
+      "id": "founder-lens-chat",
+      "type": "mandatory",
+      "envKey": "FOUNDER_LENS_CHAT_FLOW_ID"
+    }
+  ],
+  "integrations": ["Exa.ai", "OpenRouter", "Gemini Embeddings", "Weaviate"],
+  "features": [
+    "9 parallel Exa.ai web searches across market, competitors, customers, VC trends, success stories",
+    "Verbatim customer complaint mining from Reddit, G2, HN, Capterra",
+    "Dedicated contrarian VC persona finds the fatal flaw",
+    "RAG-powered persistent chat — brief stored in vector DB, retrieved per session",
+    "Semantic memory system tracks conversation history per user and session",
+    "Twitter/X and LinkedIn complaint signal search"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/founder-lens",
+  "deployUrl": "",
+  "documentationUrl": ""
+}

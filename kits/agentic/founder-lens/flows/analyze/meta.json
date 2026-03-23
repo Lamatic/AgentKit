@@ -1,0 +1,13 @@
+{
+  "name": "Founder Lens - Analyze",
+  "description": "Runs 9 parallel Exa.ai searches and synthesis to generate a structured Founder Brief.",
+  "tags": ["🤖 Agentic", "🔍 Research", "📈 Analysis"],
+  "testInput": "{\"idea\":\"Uber for private tutors\",\"userId\":\"test-user-001\",\"sessionId\":\"test-session-001\"}",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/founder-lens/flows/analyze",
+  "documentationUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/founder-lens#analyze-flow",
+  "deployUrl": "",
+  "author": {
+    "name": "Andrew Dosumu",
+    "email": "dev@andrewdosumu.com"
+  }
+}
