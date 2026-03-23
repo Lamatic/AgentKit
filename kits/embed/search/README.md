@@ -49,13 +49,13 @@ Notes
 You’ll need two things to run this project locally:  
 
 1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
-2. Vercel Blob Token – Required for resume file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
+2. Vercel Blob Token – Required for uploaded file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
 
 
 | Item              | Purpose                                      | Where to Get It                                 |
 | ----------------- | -------------------------------------------- | ----------------------------------------------- |
 | .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
-| Blob Read/Write Token   | Resume file storage                          | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
+| Blob Read/Write Token   | Uploaded file storage                        | [Vercel Blob Quickstart](https://vercel.com/docs/storage/vercel-blob/quickstart)                    |
 
 ### 1. Environment Variables
 
@@ -134,4 +134,4 @@ We welcome contributions! Open an issue or PR in this repo.
 
 ## 📜 License
 
-MIT License – see [LICENSE](./LICENSE).
+MIT License – see [LICENSE](../../../LICENSE).
