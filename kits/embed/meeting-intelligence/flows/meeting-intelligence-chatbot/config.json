@@ -137,7 +137,7 @@
         "nodeId": "apiNode",
         "values": {
           "id": "apiNode_145",
-          "url": "YOUR_SLACK_WEBHOOK_URL",
+          "url": "",
           "body": "{\n  \"text\": \"🚀 Meeting Insights\\n\\n*Summary:*\\n{{InstructorLLMNode_742.output.summary}}{{InstructorLLMNode_742.output.action_items}}{{InstructorLLMNode_742.output.risks}}{{InstructorLLMNode_742.output.next_steps}}\"\n}",
           "method": "POST",
           "headers": "{\"Content-Type\":\"application/json\"}",

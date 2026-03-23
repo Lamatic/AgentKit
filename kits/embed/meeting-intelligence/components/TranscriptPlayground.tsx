@@ -9,6 +9,35 @@ import { Badge } from "@/components/ui/badge";
 const SAMPLE_TRANSCRIPT =
   "Team discussed Q4 product launch. Rahul handles frontend. Priya backend. Budget concerns raised. Deadline next Friday.";
 
+const INPUT_ID = "lam-chat-message-input";
+const SEND_BTN_ID = "lam-chat-send-button";
+const MAX_ATTEMPTS = 20;
+
+function fillAndSend(value: string, attempt = 0): void {
+  const input = document.getElementById(INPUT_ID) as HTMLInputElement | HTMLTextAreaElement | null;
+
+  if (!input) {
+    if (attempt < MAX_ATTEMPTS) {
+      setTimeout(() => fillAndSend(value, attempt + 1), 100);
+    } else {
+      console.warn("[TranscriptPlayground] Widget input not found after retries");
+    }
+    return;
+  }
+
+  const nativeSetter =
+    Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set ||
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+
+  if (nativeSetter) nativeSetter.call(input, value);
+  else input.value = value;
+
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+
+  const sendBtn = document.getElementById(SEND_BTN_ID) as HTMLButtonElement | null;
+  if (sendBtn) sendBtn.click();
+}
+
 export default function TranscriptPlayground() {
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPT);
   const canAnalyze = useMemo(() => transcript.trim().length > 12, [transcript]);
@@ -17,24 +46,10 @@ export default function TranscriptPlayground() {
     const value = transcript.trim();
     if (!value) return;
 
-    // Open the widget then let the user paste / it auto-fills via the event.
     window.dispatchEvent(new Event("lamatic:open"));
 
-    // Give the widget a moment to open, then fill and send.
-    setTimeout(() => {
-      const input = document.getElementById("lam-chat-message-input");
-      if (input) {
-        const nativeSetter =
-          Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set ||
-          Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
-        if (nativeSetter) nativeSetter.call(input, value);
-        else input.value = value;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-
-        const sendBtn = document.getElementById("lam-chat-send-button");
-        if (sendBtn) sendBtn.click();
-      }
-    }, 600);
+    // Start polling after a short initial delay so the widget has time to open.
+    setTimeout(() => fillAndSend(value), 300);
   };
 
   return (

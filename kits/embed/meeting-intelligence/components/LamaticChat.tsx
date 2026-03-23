@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 // ---------------------------------------------------------------------------
 // Config — NEXT_PUBLIC_ vars are inlined by the Next.js bundler at build time.
 // ---------------------------------------------------------------------------
-const PROJECT_ID = process.env.NEXT_PUBLIC_LAMATIC_PROJECT_ID || "";
-const FLOW_ID    = process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID    || "";
-const API_URL    = process.env.NEXT_PUBLIC_LAMATIC_API_URL    || "";
+const PROJECT_ID = process.env.NEXT_PUBLIC_LAMATIC_PROJECT_ID ?? "";
+const FLOW_ID    = process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID    ?? "";
+const API_URL    = process.env.NEXT_PUBLIC_LAMATIC_API_URL    ?? "";
 
 const ROOT_ID   = "lamatic-chat-root";
 const SCRIPT_ID = "lamatic-chat-script";
@@ -23,7 +23,7 @@ let didBootstrap = false;
 // creates an IndexedDB session BEFORE the user sends the first message.
 // This prevents the "unexpected error" on first send.
 // ---------------------------------------------------------------------------
-function bootstrapWidget() {
+function bootstrapWidget(): void {
   if (didBootstrap) return;
   didBootstrap = true;
 
@@ -60,7 +60,11 @@ function bootstrapWidget() {
   }
 }
 
-export default function LamaticChat({ disabled = false }) {
+interface LamaticChatProps {
+  disabled?: boolean;
+}
+
+export default function LamaticChat({ disabled = false }: LamaticChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const isConfigured = Boolean(PROJECT_ID && FLOW_ID && API_URL);
 
@@ -78,8 +82,8 @@ export default function LamaticChat({ disabled = false }) {
   useEffect(() => {
     if (!isConfigured || disabled) return;
     try {
-      if (isOpen) window.LamaticChatWidget?.open?.();
-      else        window.LamaticChatWidget?.close?.();
+      if (isOpen) (window as Window & { LamaticChatWidget?: { open?: () => void; close?: () => void } }).LamaticChatWidget?.open?.();
+      else        (window as Window & { LamaticChatWidget?: { open?: () => void; close?: () => void } }).LamaticChatWidget?.close?.();
     } catch (e) {
       console.warn("[LamaticChat] toggle error", e);
     }
@@ -90,7 +94,7 @@ export default function LamaticChat({ disabled = false }) {
     if (disabled) return;
     const open   = () => setIsOpen(true);
     const close  = () => setIsOpen(false);
-    const toggle = () => setIsOpen(v => !v);
+    const toggle = () => setIsOpen((v) => !v);
     window.addEventListener("lamatic:open",   open);
     window.addEventListener("lamatic:close",  close);
     window.addEventListener("lamatic:toggle", toggle);
@@ -121,7 +125,7 @@ export default function LamaticChat({ disabled = false }) {
         type="button"
         className="rounded-full px-5 shadow-lg"
         aria-pressed={isOpen}
-        onClick={() => setIsOpen(v => !v)}
+        onClick={() => setIsOpen((v) => !v)}
       >
         {isOpen ? "Close Copilot" : "Open Copilot"}
       </Button>

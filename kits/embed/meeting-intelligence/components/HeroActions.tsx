@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 
-export default function HeroActions({ isLamaticReady }) {
+interface HeroActionsProps {
+  isLamaticReady: boolean;
+}
+
+export default function HeroActions({ isLamaticReady }: HeroActionsProps) {
   return (
     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
       <Button asChild size="lg">

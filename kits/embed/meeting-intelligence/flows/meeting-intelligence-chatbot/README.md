@@ -51,7 +51,7 @@ Converts the LLM's markdown output into structured JSON:
 
 ### 4. API Node (`apiNode_145`) — Slack Webhook
 Posts a formatted message to Slack with all insights.
-Replace `YOUR_SLACK_WEBHOOK_URL` in `config.json` (or set it in Lamatic Studio) with your Incoming Webhook URL.
+After importing the flow, set your Slack Incoming Webhook URL directly in Lamatic Studio under **Flow Inputs → apiNode_145 → url**. Do not edit `config.json` — the URL is intentionally left blank so Studio manages it as a private input.
 
 ### 5. Chat Response (`chatResponseNode_1`)
 Streams the full LLM analysis back to the chat widget UI.

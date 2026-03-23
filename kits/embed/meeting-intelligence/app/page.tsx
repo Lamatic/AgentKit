@@ -31,16 +31,18 @@ const risks = [
 
 export default function Home() {
   const lamaticConfig = {
-    projectId: process.env.NEXT_PUBLIC_LAMATIC_PROJECT_ID || "",
-    flowId: process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID || "",
-    apiUrl: process.env.NEXT_PUBLIC_LAMATIC_API_URL || "",
+    projectId: process.env.NEXT_PUBLIC_LAMATIC_PROJECT_ID ?? "",
+    flowId: process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID ?? "",
+    apiUrl: process.env.NEXT_PUBLIC_LAMATIC_API_URL ?? "",
   };
 
-  const missingEnvVars = Object.entries({
-    NEXT_PUBLIC_LAMATIC_PROJECT_ID: lamaticConfig.projectId,
-    NEXT_PUBLIC_LAMATIC_FLOW_ID: lamaticConfig.flowId,
-    NEXT_PUBLIC_LAMATIC_API_URL: lamaticConfig.apiUrl,
-  })
+  const missingEnvVars = (
+    Object.entries({
+      NEXT_PUBLIC_LAMATIC_PROJECT_ID: lamaticConfig.projectId,
+      NEXT_PUBLIC_LAMATIC_FLOW_ID: lamaticConfig.flowId,
+      NEXT_PUBLIC_LAMATIC_API_URL: lamaticConfig.apiUrl,
+    }) as [string, string][]
+  )
     .filter(([, value]) => !value)
     .map(([key]) => key);
 
@@ -126,7 +128,9 @@ export default function Home() {
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-700">Demo Preview</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">See how meeting insights are structured</h2>
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                See how meeting insights are structured
+              </h2>
               <p className="mt-4 text-base leading-7 text-slate-600">
                 Capture raw discussion on the left and instantly convert it into an executive-ready summary on the right.
               </p>
@@ -184,7 +188,9 @@ export default function Home() {
                     </div>
 
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-700">Risks &amp; Blockers</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-700">
+                        Risks &amp; Blockers
+                      </p>
                       <ul className="mt-3 space-y-3 text-sm leading-6 text-slate-700">
                         {risks.map((item) => (
                           <li key={item} className="rounded-xl bg-white px-3 py-3 shadow-sm shadow-slate-200/50">
