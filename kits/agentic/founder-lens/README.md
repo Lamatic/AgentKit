@@ -9,9 +9,15 @@
 
 ---
 
-## What It Does
+## 1. The Problem
 
-Founder Lens is a 7-phase autonomous startup research agent. Submit a startup idea and two Lamatic flows run in sequence:
+Non-technical founders spend weeks manually researching whether their idea is viable. They scour Reddit, Crunchbase, and postmortems — and still miss critical blind spots. They need an investor-grade analysis without spending thousands of dollars or hundreds of hours on manual data collection.
+
+---
+
+## 2. The Approach
+
+Founder Lens completely automates this research process in ~90 seconds using a 7-phase autonomous agent. Submit a startup idea and two Lamatic flows run in sequence:
 
 **Flow 1 — Analyze:** Deconstructs your idea into 8 targeted search queries, then fires 9 parallel Exa.ai web searches across:
 - **Market size** — TAM/SAM/SOM data
@@ -24,17 +30,27 @@ Founder Lens is a 7-phase autonomous startup research agent. Submit a startup id
 - **Business model benchmarks** — pricing and monetization data
 - **Unfair advantage signals** — what makes winners different
 
-Then a dedicated **Contrarian VC Persona** runs a separate pass to find the fatal flaw. The result is a structured Founder Brief JSON stored in **Weaviate vector DB** and **Lamatic semantic memory**, scoped to your `userId` and `sessionId`.
+Then a dedicated **Contrarian VC Persona** runs a separate pass to find the fatal flaw. The synthesized result is a structured Founder Brief stored in **Weaviate vector DB** and **Lamatic semantic memory**.
 
 **Flow 2 — Chat:** The founder sends messages and the system retrieves the stored brief via RAG + semantic memory and answers questions using GPT-4o with full context of the brief and conversation history.
 
 ---
 
-## The Problem It Solves
+## 3. The Result
 
-Non-technical founders spend weeks manually researching whether their idea is viable. They search Reddit, Google, Crunchbase, read postmortems — and still miss critical blind spots.
+Founder Lens saves founders immense time, reduces manual work entirely, and provides extreme clarity. It delivers the exact brief a VC analyst would write internally before taking a meeting, creating a repeatable workflow for testing new startup ideas before writing a single line of code.
 
-Founder Lens automates this entire process in ~90 seconds and gives you the brief a VC analyst would write internally before taking a meeting — but never share with you.
+---
+
+## 4. Tradeoffs & Assumptions
+
+**Tradeoffs:**
+- **Speed vs. Exhaustive Depth:** We chose to run 9 highly targeted parallel searches to keep the analysis under 90 seconds. We trade off multi-hour, deeply exhaustive agentic crawling for immediate, highly actionable insights.
+- **Frictionless UX:** The chat history is maintained in Lamatic semantic memory. Because we wanted a frictionless UX, we generate a unique `userId` and `sessionId` in `localStorage` automatically instead of requiring users to create accounts and log in securely.
+
+**Assumptions:**
+- We assume the user's idea revolves around software/tech. Extremely niche physical hardware, biotech, or offline local services might not yield as much verbatim complaint data on Reddit or G2.
+- The high quality of the analysis assumes Exa.ai can successfully retrieve highly semantic, relevant forum threads and news articles based on the generated keyword queries.
 
 ---
 
