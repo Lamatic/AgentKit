@@ -95,12 +95,17 @@ export function BriefDisplay({ briefJson }: BriefDisplayProps) {
   }
 
   // Access the nested objects from the exact LLM schema
+  // Some fields may appear top-level OR nested inside `market` depending on the model output
   const market = brief.market;
-  const comp = brief.competitive_landscape;
+  const comp = brief.competitive_landscape ?? market?.competitive_landscape;
   const voice = brief.customer_voice;
   const blueprint = brief.success_blueprint;
   const biz = brief.business_model;
   const contrarian = brief.contrarian_take;
+
+  // These can appear at the top level or nested inside market
+  const whyNow = brief.why_now_answer ?? market?.why_now_answer;
+  const unfairAdvantage = brief.unfair_advantage_available_now ?? market?.unfair_advantage_available_now;
 
   const renderTab = () => {
     switch (activeTab) {
@@ -112,14 +117,14 @@ export function BriefDisplay({ briefJson }: BriefDisplayProps) {
                 <p className="text-[16px] font-medium text-white leading-relaxed">{brief.the_one_sentence_pitch}</p>
               </Section>
             )}
-            {brief.why_now_answer && (
+            {whyNow && (
               <Section title="Why Now">
-                <p className="text-[14px] font-medium text-white/90 leading-relaxed">{brief.why_now_answer}</p>
+                <p className="text-[14px] font-medium text-white/90 leading-relaxed">{whyNow}</p>
               </Section>
             )}
-            {brief.unfair_advantage_available_now && (
+            {unfairAdvantage && (
               <Section title="Unfair Advantage">
-                <p className="text-[14px] font-medium text-white/90 leading-relaxed">{brief.unfair_advantage_available_now}</p>
+                <p className="text-[14px] font-medium text-white/90 leading-relaxed">{unfairAdvantage}</p>
               </Section>
             )}
             {brief.recommended_landing_page_headline && (

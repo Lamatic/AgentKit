@@ -38,7 +38,7 @@ Then a dedicated **Contrarian VC Persona** runs a separate pass to find the fata
 
 ## 3. The Result
 
-Founder Lens saves founders immense time, reduces manual work entirely, and provides extreme clarity. It delivers the exact brief a VC analyst would write internally before taking a meeting, creating a repeatable workflow for testing new startup ideas before writing a single line of code.
+Founder Lens saves founders immense time, reduces manual work entirely, and provides extreme clarity. It delivers the exact brief a VC analyst would write internally before taking a meeting, creating a repeatable workflow for testing new startup ideas before writing a single line of code. It even features an audio completion chime when the 90-second semantic analysis finishes, allowing founders to safely multi-task while the agent runs.
 
 ---
 

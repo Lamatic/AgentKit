@@ -3,6 +3,15 @@
 import { lamaticClient } from "@/lib/lamatic-client";
 import { config } from "../orchestrate.js";
 
+const TIMEOUT_MS = 150000; // 2.5 minutes
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]);
+}
+
 export async function analyzeIdea(
   idea: string,
   userId: string,
@@ -11,7 +20,14 @@ export async function analyzeIdea(
   try {
     const flow = config.flows.analyze;
     if (!flow.workflowId) throw new Error("FOUNDER_LENS_ANALYZE_FLOW_ID is not set.");
-    const resData = await lamaticClient.executeFlow(flow.workflowId, { idea, userId, sessionId });
+    
+    // Wrap the flow execution in a timeout
+    const resData: any = await withTimeout(
+      lamaticClient.executeFlow(flow.workflowId, { idea, userId, sessionId }),
+      TIMEOUT_MS,
+      "The AI provider is taking longer than usual to respond. This usually means their service is overloaded. Please try again in a few minutes."
+    );
+
     const brief = resData?.result?.brief;
     if (!brief) throw new Error("No brief returned from analyze flow.");
     return { success: true, brief, decomposition: resData?.result?.decomposition };

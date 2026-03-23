@@ -26,11 +26,13 @@ export function PhaseTracker() {
         clearInterval(interval);
         return prev;
       });
-    }, 4500);
+    }, 9000); // Changed from 4500ms to 9000ms. Total fake progress takes ~81 seconds to finish.
     return () => clearInterval(interval);
   }, []);
 
-  const progress = Math.round(((currentPhase + 1) / PHASES.length) * 100);
+  // Cap at 98% to prevent the user seeing "100%" while the backend API call is still running.
+  // The actual backend workflow averages ~90 seconds. This hits 98% around the 81-second mark and safely hovers there.
+  const progress = Math.round(((currentPhase + 1) / PHASES.length) * 98);
 
   return (
     <div className="w-full">

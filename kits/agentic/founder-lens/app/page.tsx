@@ -179,8 +179,11 @@ export default function Home() {
               </div>
 
               {/* Glass Input Card */}
-              <div className="w-full max-w-[680px]">
+              <div className="w-full max-w-[680px] space-y-4">
                 <IdeaForm onSubmit={handleAnalyze} />
+                <p className="text-[11px] text-white/20 text-center leading-relaxed px-12">
+                  Note: Due to operating costs, output from models may not be as solid as when you run the project locally and bring your own flagship models.
+                </p>
               </div>
             </div>
           )}
@@ -229,12 +232,20 @@ export default function Home() {
                 <h2 className="text-2xl font-medium tracking-[-0.02em] text-white">Analysis failed</h2>
                 <p className="text-[15px] text-white/50 px-6 leading-relaxed">{error}</p>
               </div>
-              <button
-                onClick={handleReset}
-                className="liquid-glass-pill px-8 py-3 text-[14px] font-medium hover:text-white"
-              >
-                Go back
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => handleAnalyze(currentIdea)}
+                  className="bg-white text-black px-8 py-3 rounded-full text-[14px] font-medium hover:bg-white/90 transition-colors"
+                >
+                  Retry analysis
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="liquid-glass-pill px-8 py-3 text-[14px] font-medium hover:text-white"
+                >
+                  Go back
+                </button>
+              </div>
             </div>
           )}
         </main>
