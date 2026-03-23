@@ -1,0 +1,9 @@
+{
+  "name": "Cold Email Personalisation",
+  "description": "Generates hyper-personalized cold outreach emails for college students applying to engineering internships. Takes LinkedIn/profile data and student context as inputs and outputs a subject line, email body, and personalization hook via a Gemini-powered LLM.",
+  "tags": ["email", "personalization", "outreach", "internship", "engineering", "college"],
+  "testInput": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/cold-email-personalization",
+  "documentationUrl": "https://github.com/Lamatic/AgentKit/blob/main/kits/automation/cold-email-personalization/README.md",
+  "deployUrl": ""
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Cold Email Personalization",
+  "description": "Generates hyper-personalized outreach for college students targeting engineering internships, co-ops, and new-grad roles from LinkedIn-style profile text and structured inputs.",
+  "tags": ["🤖 Automation", "📧 Sales", "✨ Generative"],
+  "author": {
+    "name": "Contributor",
+    "email": "hello@lamatic.ai"
+  },
+  "steps": [
+    {
+      "id": "cold-email-personalisation",
+      "type": "mandatory",
+      "envKey": "AUTOMATION_COLD_EMAIL"
+    }
+  ],
+  "integrations": [],
+  "features": [
+    "LinkedIn / profile context",
+    "Subject line + body + hook",
+    "Student internship outreach"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/cold-email-personalization",
+  "deployUrl": "",
+  "documentationUrl": "https://lamatic.ai/docs"
+}
