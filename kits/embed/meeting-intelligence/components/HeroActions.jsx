@@ -20,4 +20,3 @@ export default function HeroActions({ isLamaticReady }) {
     </div>
   );
 }
-

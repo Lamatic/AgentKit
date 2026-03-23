@@ -13,17 +13,28 @@ export default function TranscriptPlayground() {
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPT);
   const canAnalyze = useMemo(() => transcript.trim().length > 12, [transcript]);
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = () => {
     const value = transcript.trim();
     if (!value) return;
-    window.dispatchEvent(
-      new CustomEvent("lamatic:submit", {
-        detail: {
-          message: value,
-          autoSend: true,
-        },
-      }),
-    );
+
+    // Open the widget then let the user paste / it auto-fills via the event.
+    window.dispatchEvent(new Event("lamatic:open"));
+
+    // Give the widget a moment to open, then fill and send.
+    setTimeout(() => {
+      const input = document.getElementById("lam-chat-message-input");
+      if (input) {
+        const nativeSetter =
+          Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set ||
+          Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+        if (nativeSetter) nativeSetter.call(input, value);
+        else input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+
+        const sendBtn = document.getElementById("lam-chat-send-button");
+        if (sendBtn) sendBtn.click();
+      }
+    }, 600);
   };
 
   return (
@@ -60,4 +71,3 @@ export default function TranscriptPlayground() {
     </Card>
   );
 }
-

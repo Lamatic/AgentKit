@@ -1,0 +1,63 @@
+{
+  "llmNode": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model (Generate Text)",
+      "description": "Select the LLM used to extract insights from the meeting transcript. Supports Gemini, GPT-4o, Claude, and others.",
+      "type": "model",
+      "mode": "chat",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "gemini",
+          "credential_name": "",
+          "model_name": "gemini/gemini-2.5-flash",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "InstructorLLMNode_742": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model (Generate JSON)",
+      "description": "Select the LLM used to structure the analysis output as JSON.",
+      "type": "model",
+      "mode": "chat",
+      "modelType": "generator/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "gemini",
+          "credential_name": "",
+          "model_name": "gemini/gemini-2.5-flash",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "apiNode_145": [
+    {
+      "name": "url",
+      "label": "Slack Webhook URL",
+      "description": "Your Slack Incoming Webhook URL. Create one at api.slack.com/apps → Incoming Webhooks.",
+      "type": "string",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": ""
+    }
+  ]
+}

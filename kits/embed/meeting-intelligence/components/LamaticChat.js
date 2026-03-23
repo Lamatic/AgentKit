@@ -19,10 +19,9 @@ let didBootstrap = false;
 // ---------------------------------------------------------------------------
 // bootstrapWidget — mirrors the official Lamatic-generated embed script.
 //
-// Key difference from our previous version: this is called on mount (not on
-// first open), so the widget has time to fetch chatConfig + create a session
-// BEFORE the user clicks Open. This prevents the "unexpected error" that
-// happens when a message is sent before the widget is initialised.
+// Called on mount (not on button click) so the widget fetches chatConfig and
+// creates an IndexedDB session BEFORE the user sends the first message.
+// This prevents the "unexpected error" on first send.
 // ---------------------------------------------------------------------------
 function bootstrapWidget() {
   if (didBootstrap) return;
@@ -37,7 +36,7 @@ function bootstrapWidget() {
     return;
   }
 
-  // ── 1. Root div (appended directly to body — official Lamatic pattern) ───
+  // 1. Root div — appended directly to body (official Lamatic pattern).
   if (!document.getElementById(ROOT_ID)) {
     const root = document.createElement("div");
     root.id                = ROOT_ID;
@@ -45,67 +44,48 @@ function bootstrapWidget() {
     root.dataset.flowId    = FLOW_ID;
     root.dataset.projectId = PROJECT_ID;
     document.body.appendChild(root);
-    console.log("[LamaticChat] root mounted ✓", {
-      "data-api-url":    API_URL,
-      "data-flow-id":    FLOW_ID,
-      "data-project-id": PROJECT_ID,
-    });
+    console.log("[LamaticChat] root mounted ✓", { API_URL, FLOW_ID, PROJECT_ID });
   }
 
-  // ── 2. Script (injected once — matches official Lamatic embed) ───────────
+  // 2. Script — injected once (matches official Lamatic embed).
   if (!document.getElementById(SCRIPT_ID)) {
-    const script    = document.createElement("script");
-    script.id       = SCRIPT_ID;
-    script.type     = "module";
-    script.async    = true;
-    script.src      = `https://widget.lamatic.ai/chat-v2?projectId=${encodeURIComponent(PROJECT_ID)}`;
-    script.onload   = () => console.log("[LamaticChat] widget script loaded ✓");
-    script.onerror  = () => console.error("[LamaticChat] widget script failed to load");
+    const script   = document.createElement("script");
+    script.id      = SCRIPT_ID;
+    script.type    = "module";
+    script.async   = true;
+    script.src     = `https://widget.lamatic.ai/chat-v2?projectId=${encodeURIComponent(PROJECT_ID)}`;
+    script.onload  = () => console.log("[LamaticChat] widget script loaded ✓");
+    script.onerror = () => console.error("[LamaticChat] widget script failed to load");
     document.body.appendChild(script);
   }
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 export default function LamaticChat({ disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [ready,  setReady]  = useState(false);
-
   const isConfigured = Boolean(PROJECT_ID && FLOW_ID && API_URL);
 
-  // ── Bootstrap immediately on first client render ──────────────────────────
+  // Bootstrap immediately on first client render.
   useEffect(() => {
     if (disabled || !isConfigured) return;
-
-    // Matches the DOMContentLoaded timing of the official embed script.
-    // By the time useEffect runs, the DOM is fully interactive.
     bootstrapWidget();
 
-    const handleReady = () => {
-      console.log("[LamaticChat] lamaticChatWidgetReady ✓");
-      setReady(true);
-    };
-
+    const handleReady = () => console.log("[LamaticChat] lamaticChatWidgetReady ✓");
     window.addEventListener("lamaticChatWidgetReady", handleReady, { once: true });
     return () => window.removeEventListener("lamaticChatWidgetReady", handleReady);
   }, [disabled, isConfigured]);
 
-  // ── Sync open / close with the Lamatic widget JS API ─────────────────────
+  // Sync open / close with the Lamatic widget JS API.
   useEffect(() => {
     if (!isConfigured || disabled) return;
     try {
-      if (isOpen) {
-        window.LamaticChatWidget?.open?.();
-      } else {
-        window.LamaticChatWidget?.close?.();
-      }
+      if (isOpen) window.LamaticChatWidget?.open?.();
+      else        window.LamaticChatWidget?.close?.();
     } catch (e) {
       console.warn("[LamaticChat] toggle error", e);
     }
   }, [disabled, isConfigured, isOpen]);
 
-  // ── External event bus (used by HeroActions / TranscriptPlayground) ───────
+  // External event bus (used by HeroActions and TranscriptPlayground).
   useEffect(() => {
     if (disabled) return;
     const open   = () => setIsOpen(true);
@@ -121,8 +101,8 @@ export default function LamaticChat({ disabled = false }) {
     };
   }, [disabled]);
 
-  // NOTE: We intentionally do NOT remove #lamatic-chat-root on unmount.
-  // Removing + re-adding it causes "ConstraintError: Key already exists"
+  // NOTE: #lamatic-chat-root is intentionally NOT removed on unmount.
+  // Removing and re-adding it causes "ConstraintError: Key already exists"
   // in the widget's IndexedDB session store.
 
   if (!isConfigured || disabled) {
