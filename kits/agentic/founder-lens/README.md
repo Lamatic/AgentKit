@@ -72,9 +72,9 @@ Founder Lens saves founders immense time, reduces manual work entirely, and prov
 
 - Node.js 18+
 - A [Lamatic.ai](https://lamatic.ai) account with both flows deployed
-- An Exa.ai API key (configured in Lamatic as a credential)
 - An OpenRouter API key (configured in Lamatic as a credential)
 - A Gemini API key (configured in Lamatic as a credential)
+- **An Exa.ai API key:** You must create an account on [Exa.ai](https://exa.ai) to get an API key. Once you import the Analyze flow into Lamatic, click on each individual Exa search node. Under the Headers section, manually input your API key into the `x-api-key` field (as a key-value pair).
 
 ---
 
