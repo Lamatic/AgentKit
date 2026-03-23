@@ -1,0 +1,16 @@
+{
+  "name": "Hiring Copilot Agent",
+  "description": "AI-powered recruiter assistant that screens candidates, analyzes resumes, and suggests hiring decisions.",
+  "tags": ["🤖 Agentic", "💼 Hiring", "📄 Resume AI"],
+  "author": {
+    "name": "Anurag Bhoite"
+  },
+  "steps": [
+    {
+      "id": "hiring-copilot-flow",
+      "type": "mandatory",
+      "envKey": "AGENTIC_GENERATE_CONTENT"
+    }
+  ],
+  "demoUrl": "https://hiring-copilot-agent.vercel.app"
+}
