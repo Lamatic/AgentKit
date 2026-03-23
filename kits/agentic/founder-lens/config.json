@@ -27,7 +27,7 @@
     "Semantic memory system tracks conversation history per user and session",
     "Twitter/X and LinkedIn complaint signal search"
   ],
-  "demoUrl": "",
+  "demoUrl": "https://founder-lens-agentkit.vercel.app/",
   "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/founder-lens",
   "deployUrl": "",
   "documentationUrl": ""
