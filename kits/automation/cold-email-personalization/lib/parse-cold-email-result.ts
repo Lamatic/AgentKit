@@ -1,6 +1,6 @@
 /**
  * Normalizes Lamatic executeWorkflow `result` into subject_line, email_body, personalized_hook.
- * Handles: flat API response, nested nodes, generatedResponse (including ```json fences), answer, output.
+ * Handles: flat object, nested generatedResponse (string or object), and ```json fences.
  */
 export type ColdEmailOutput = {
   subject_line: string
@@ -38,9 +38,6 @@ function fromShape(o: Record<string, unknown>): ColdEmailOutput {
   }
 }
 
-const MAX_DEPTH = 14
-
-/** Try to parse any string that might be JSON email output (incl. ```json fences, escaped inner JSON). */
 function tryParseEmailJsonString(s: string): ColdEmailOutput | null {
   const t = s.trim()
   if (t.length < 15 || !t.includes("subject_line")) return null
@@ -51,7 +48,8 @@ function tryParseEmailJsonString(s: string): ColdEmailOutput | null {
   }
 }
 
-/** Depth-first: objects with subject_line+email_body, known keys, then recurse */
+const MAX_DEPTH = 6
+
 function findEmailObject(obj: unknown, depth = 0): ColdEmailOutput | null {
   if (obj == null || depth > MAX_DEPTH) return null
 
@@ -71,11 +69,18 @@ function findEmailObject(obj: unknown, depth = 0): ColdEmailOutput | null {
 
   const r = obj as Record<string, unknown>
 
-  if (isColdEmailShape(r)) {
-    return fromShape(r)
+  if (isColdEmailShape(r)) return fromShape(r)
+
+  if (typeof r.generatedResponse === "string" && r.generatedResponse.length > 0) {
+    const fromGen = tryParseEmailJsonString(r.generatedResponse)
+    if (fromGen) return fromGen
   }
 
-  // Generation-style flows
+  if (r.generatedResponse && typeof r.generatedResponse === "object" && !Array.isArray(r.generatedResponse)) {
+    const nested = r.generatedResponse as Record<string, unknown>
+    if (isColdEmailShape(nested)) return fromShape(nested)
+  }
+
   if (typeof r.answer === "string") {
     const fromAnswer = tryParseEmailJsonString(r.answer)
     if (fromAnswer) return fromAnswer
@@ -91,17 +96,6 @@ function findEmailObject(obj: unknown, depth = 0): ColdEmailOutput | null {
     if (inner) return inner
   }
 
-  if (typeof r.generatedResponse === "string" && r.generatedResponse.length > 0) {
-    const fromGen = tryParseEmailJsonString(r.generatedResponse)
-    if (fromGen) return fromGen
-  }
-
-  // generatedResponse is already a parsed object (Lamatic auto-parses JSON output)
-  if (r.generatedResponse && typeof r.generatedResponse === "object" && !Array.isArray(r.generatedResponse)) {
-    const nested = r.generatedResponse as Record<string, unknown>
-    if (isColdEmailShape(nested)) return fromShape(nested)
-  }
-
   for (const v of Object.values(r)) {
     const found = findEmailObject(v, depth + 1)
     if (found) return found
@@ -110,64 +104,53 @@ function findEmailObject(obj: unknown, depth = 0): ColdEmailOutput | null {
   return null
 }
 
-/**
- * Lamatic sometimes returns the API Response *JSON Schema* as the payload (type/properties/required)
- * instead of mapping real values from Generate Text. Detect that and explain how to fix it in Studio.
- */
 function isSchemaEchoNotEmailData(r: Record<string, unknown>): boolean {
-  if (r.type !== "object" || !r.properties || typeof r.properties !== "object") {
-    return false
-  }
+  if (r.type !== "object" || !r.properties || typeof r.properties !== "object") return false
   const props = r.properties as Record<string, unknown>
   const sl = props.subject_line
   const eb = props.email_body
   const ph = props.personalized_hook
-  if (!sl || !eb || !ph || typeof sl !== "object" || typeof eb !== "object" || typeof ph !== "object") {
-    return false
-  }
-  const onlyTypes =
+  if (!sl || !eb || !ph || typeof sl !== "object" || typeof eb !== "object" || typeof ph !== "object") return false
+  return (
     (sl as { type?: string }).type === "string" &&
     (eb as { type?: string }).type === "string" &&
-    (ph as { type?: string }).type === "string"
-  const noActualStrings =
+    (ph as { type?: string }).type === "string" &&
     typeof r.subject_line !== "string" &&
     typeof r.email_body !== "string" &&
     typeof r.generatedResponse !== "string"
-  return onlyTypes && noActualStrings
+  )
 }
 
-const LAMATIC_API_RESPONSE_FIX =
-  "Lamatic returned only the API Response JSON Schema (type/properties), not the email text. In Studio → API Response → map subject_line, email_body, and personalized_hook to Generate Text outputs (or parsed generatedResponse), then redeploy. See kit README → Troubleshooting."
+const LAMATIC_SCHEMA_ECHO_MESSAGE =
+  "Lamatic returned the API Response JSON Schema instead of email content. " +
+  "In Studio → API Response node → set outputMapping to map generatedResponse to " +
+  "{{LLMNode_XXX.generatedResponse}}, then Save and Deploy."
 
 export function parseColdEmailResult(result: unknown): ColdEmailOutput {
   if (result == null) {
-    throw new Error("No result returned from workflow")
+    throw new Error("No result returned from workflow.")
   }
 
   if (typeof result === "string") {
     const parsed = tryParseEmailJsonString(result)
     if (parsed) return parsed
-    throw new Error("Result was a string but not valid email JSON.")
+    throw new Error("Workflow returned a string that is not valid email JSON.")
   }
 
   if (typeof result !== "object") {
-    throw new Error("No result returned from workflow")
+    throw new Error("Unexpected workflow result type.")
   }
 
   const found = findEmailObject(result, 0)
-  if (found) {
-    return found
-  }
+  if (found) return found
 
   const r = result as Record<string, unknown>
   if (isSchemaEchoNotEmailData(r)) {
-    throw new Error(LAMATIC_API_RESPONSE_FIX)
+    throw new Error(LAMATIC_SCHEMA_ECHO_MESSAGE)
   }
 
-  const keys = Object.keys(result as object)
-  const preview = JSON.stringify(result).slice(0, 400)
   throw new Error(
-    `Unexpected workflow result shape (top-level keys: ${keys.join(", ") || "none"}). ` +
-      `Snippet: ${preview}. Fix API Response in Lamatic to return subject_line, email_body, personalized_hook — or ensure Generate Text output is included in result.`,
+    "Workflow result did not contain subject_line, email_body, or personalized_hook. " +
+    "Check your Lamatic API Response node outputMapping and redeploy.",
   )
 }

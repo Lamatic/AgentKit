@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -31,6 +31,17 @@ export default function ColdEmailPage() {
   } | null>(null)
   const [error, setError] = useState("")
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const INPUT_LIMITS: Record<keyof typeof initialForm, number> = {
+    profile_data: 3000,
+    prospect_name: 200,
+    prospect_role: 200,
+    company_name: 200,
+    product_description: 1500,
+    value_proposition: 1000,
+    call_to_action: 300,
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +56,12 @@ export default function ColdEmailPage() {
     for (const key of required) {
       if (!form[key].trim()) {
         setError(`Please fill in ${key.replace(/_/g, " ")}`)
+        return
+      }
+    }
+    for (const [key, max] of Object.entries(INPUT_LIMITS)) {
+      if (form[key as keyof typeof form].length > max) {
+        setError(`${key.replace(/_/g, " ")} exceeds the ${max}-character limit.`)
         return
       }
     }
@@ -77,11 +94,20 @@ export default function ColdEmailPage() {
   const copyText = async (label: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      setCopiedField(label)
-      setTimeout(() => setCopiedField(null), 2000)
     } catch {
-      console.error("Copy failed")
+      const ta = document.createElement("textarea")
+      ta.value = text
+      ta.style.position = "fixed"
+      ta.style.opacity = "0"
+      document.body.appendChild(ta)
+      ta.focus()
+      ta.select()
+      document.execCommand("copy")
+      document.body.removeChild(ta)
     }
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+    setCopiedField(label)
+    copyTimeoutRef.current = setTimeout(() => setCopiedField(null), 2000)
   }
 
   return (
@@ -112,6 +138,7 @@ export default function ColdEmailPage() {
                       value={form.profile_data}
                       onChange={(e) => setForm((f) => ({ ...f, profile_data: e.target.value }))}
                       className="min-h-[140px] resize-y"
+                      maxLength={INPUT_LIMITS.profile_data}
                       disabled={isLoading}
                     />
                   </div>
@@ -123,6 +150,7 @@ export default function ColdEmailPage() {
                         id="prospect_name"
                         value={form.prospect_name}
                         onChange={(e) => setForm((f) => ({ ...f, prospect_name: e.target.value }))}
+                        maxLength={INPUT_LIMITS.prospect_name}
                         disabled={isLoading}
                       />
                     </div>
@@ -133,6 +161,7 @@ export default function ColdEmailPage() {
                         placeholder="e.g. Senior Software Engineer"
                         value={form.prospect_role}
                         onChange={(e) => setForm((f) => ({ ...f, prospect_role: e.target.value }))}
+                        maxLength={INPUT_LIMITS.prospect_role}
                         disabled={isLoading}
                       />
                     </div>
@@ -144,6 +173,7 @@ export default function ColdEmailPage() {
                       id="company_name"
                       value={form.company_name}
                       onChange={(e) => setForm((f) => ({ ...f, company_name: e.target.value }))}
+                      maxLength={INPUT_LIMITS.company_name}
                       disabled={isLoading}
                     />
                   </div>
@@ -156,6 +186,7 @@ export default function ColdEmailPage() {
                       value={form.product_description}
                       onChange={(e) => setForm((f) => ({ ...f, product_description: e.target.value }))}
                       className="min-h-[100px]"
+                      maxLength={INPUT_LIMITS.product_description}
                       disabled={isLoading}
                     />
                   </div>
@@ -168,6 +199,7 @@ export default function ColdEmailPage() {
                       value={form.value_proposition}
                       onChange={(e) => setForm((f) => ({ ...f, value_proposition: e.target.value }))}
                       className="min-h-[80px]"
+                      maxLength={INPUT_LIMITS.value_proposition}
                       disabled={isLoading}
                     />
                   </div>
@@ -179,6 +211,7 @@ export default function ColdEmailPage() {
                       placeholder="e.g. 10-minute chat, referral, feedback on my background"
                       value={form.call_to_action}
                       onChange={(e) => setForm((f) => ({ ...f, call_to_action: e.target.value }))}
+                      maxLength={INPUT_LIMITS.call_to_action}
                       disabled={isLoading}
                     />
                   </div>
