@@ -67,7 +67,12 @@ function bootstrapWidget(): void {
         console.log("[LamaticChat] widget script loaded ✓");
       }
     };
-    script.onerror = () => console.error("[LamaticChat] widget script failed to load");
+    script.onerror = () => {
+      // Reset the guard so a subsequent mount can retry injection.
+      didBootstrap = false;
+      document.getElementById(SCRIPT_ID)?.remove();
+      console.error("[LamaticChat] widget script failed to load");
+    };
     document.body.appendChild(script);
   }
 }
