@@ -2,14 +2,14 @@ import { Lamatic } from "lamatic";
 import {config} from '../orchestrate.js'
 
 if (!process.env.AGENTIC_QUESTION_FLOW_ID || !process.env.AGENTIC_FEEDBACK_FLOW_ID) {
-  throw new Error(
-    "All Workflow IDs in environment variable are not set. Please add AGENTIC_QUESTION_FLOW_ID and AGENTIC_FEEDBACK_FLOW_ID to your .env file."
+  console.warn(
+    "Warning: AGENTIC_QUESTION_FLOW_ID or AGENTIC_FEEDBACK_FLOW_ID environment variables are not set. Please ensure they are added in your deployment environment."
   );
 }
 
 if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
-  throw new Error(
-    "All API Credentials in environment variable are not set. Please add it to your .env.local file."
+  console.warn(
+    "Warning: API Credentials environment variables are not set. Please ensure they are added in your deployment environment."
   );
 }
 
