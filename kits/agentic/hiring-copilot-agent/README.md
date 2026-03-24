@@ -10,15 +10,15 @@ Hiring Copilot Agent is an AI-powered recruiter assistant designed to **automate
 
 Recruiters often spend **hours manually reviewing hundreds of resumes**, leading to:
 
-* Slow hiring processes
-* Human bias in screening
-* Missed high-quality candidates
+- Slow hiring processes
+- Human bias in screening
+- Missed high-quality candidates
 
 This agent reduces that effort by:
 
-* Automatically analyzing resumes
-* Scoring candidates based on relevance
-* Generating hiring recommendations
+- Automatically analyzing resumes
+- Scoring candidates based on relevance
+- Generating hiring recommendations
 
 👉 Result: **Faster, smarter, and more efficient hiring**
 
@@ -26,19 +26,19 @@ This agent reduces that effort by:
 
 ## ⚡ Features
 
-* 📄 **Resume Analysis** — Extracts and understands candidate information
-* 📊 **Candidate Scoring** — Ranks candidates based on relevance
-* 🤖 **AI Hiring Recommendations** — Suggests whether to shortlist or reject
+- 📄 **Resume Analysis** — Extracts and understands candidate information
+- 📊 **Candidate Scoring** — Ranks candidates based on relevance
+- 🤖 **AI Hiring Recommendations** — Suggests whether to shortlist or reject
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Next.js** — Frontend framework
-* **TypeScript** — Type-safe development
-* **Lamatic AI** — Agent orchestration & flow execution
-* **Tailwind CSS** — UI styling
-* **Open AI** — File Scanning
+- **Next.js** — Frontend framework
+- **TypeScript** — Type-safe development
+- **Lamatic AI** — Agent orchestration & flow execution
+- **Tailwind CSS** — UI styling
+- **Open AI** — File Scanning
 
 ---
 
@@ -46,10 +46,10 @@ This agent reduces that effort by:
 
 Before running this project, make sure you have:
 
-* Node.js (v18 or higher)
-* npm (v9 or higher)
-* Lamatic account → https://lamatic.ai
-* Deployed Lamatic flow
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+- Lamatic account → https://lamatic.ai
+- Deployed Lamatic flow
 
 ---
 
@@ -94,10 +94,9 @@ Open:
 1. Uplpoad candidate resume and paste JD
 2. The AI analyzes the resume
 3. Get:
-
-   * Candidate score
-   * Hiring recommendation
-   * Insights for decision-making
+   - Candidate score
+   - Hiring recommendation
+   - Insights for decision-making
 
 ---
 
@@ -139,14 +138,24 @@ kits/agentic/hiring-copilot-agent/
 
 ---
 
-
 ## 📌 Notes
 
-* Ensure your Lamatic flow is deployed before running
-* Verify API keys and environment variables if errors occur
+- Ensure your Lamatic flow is deployed before running
+- Verify API keys and environment variables if errors occur
 
 ---
 
 ## 🧠 Why This Matters
 
 This kit demonstrates how AI can **transform traditional hiring workflows** by reducing manual effort and improving decision quality — making recruitment faster, scalable, and data-driven.
+
+## 🔮 Future Improvements
+
+- ⚡ **Batch Processing with Concurrency Control** _(Planned)_
+  Currently processes multiple resumes in parallel using asynchronous requests. Future improvements will introduce controlled batching to optimize performance and handle API rate limits efficiently.
+
+- 📊 **Progressive Result Streaming**
+  Candidate results are planned to be displayed **incrementally in real-time**, allowing recruiters to review insights as soon as each resume is processed instead of waiting for the entire batch to complete.
+
+- ⚖️ **Bias Detection & Fairness Analysis** _(Planned)_
+  Introduce mechanisms to reduce bias in candidate evaluation and improve fairness in hiring decisions.
