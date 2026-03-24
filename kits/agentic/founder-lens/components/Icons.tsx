@@ -1,3 +1,7 @@
+/**
+ * A collection of SVG icon components used throughout the Founder Lens application.
+ * Icons include Logo, DataNode, NeuralGraph, RiskPrism, Search, Chat, Target, Check, and Lightning.
+ */
 export const Icons = {
   Logo: ({ className }: { className?: string }) => (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

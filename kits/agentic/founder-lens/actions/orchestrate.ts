@@ -65,7 +65,11 @@ export async function chatWithBrief(
   try {
     const flow = config.flows.chat;
     if (!flow.workflowId) throw new Error("FOUNDER_LENS_CHAT_FLOW_ID is not set.");
-    const resData = await lamaticClient.executeFlow(flow.workflowId, { message, userId, sessionId });
+    const resData: any = await withTimeout(
+      lamaticClient.executeFlow(flow.workflowId, { message, userId, sessionId }),
+      90000, // 90 second timeout for chat
+      "The AI Analyst is taking too long to respond. Please try a shorter question or try again later."
+    );
     const answer = resData?.result?.answer;
     if (!answer) throw new Error("No answer returned from chat flow.");
     return { success: true, answer };
