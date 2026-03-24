@@ -1,0 +1,13 @@
+{
+  "name": "Reddit Scout",
+  "description": "",
+  "tags": [
+    "6028052f-e3bf-48ad-95d2-a83909a45bf1"
+  ],
+  "testInput": {
+    "query": "hp victus"
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

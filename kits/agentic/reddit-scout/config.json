@@ -1,0 +1,22 @@
+{
+    "name": "Reddit Scout",
+    "description": "Search Reddit for real product reviews and opinions. Get structured summaries of what real users are saying about any product or topic.",
+    "tags": ["🤖 Agentic", "🔍 Research"],
+    "author": {
+        "name": "Reddit Scout",
+        "email": ""
+    },
+    "steps": [
+        {
+            "id": "reddit-scout",
+            "type": "mandatory",
+            "envKey": "REDDIT_SCOUT_FLOW_ID"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/reddit-scout",
+    "deployUrl": "",
+    "documentationUrl": ""
+}
