@@ -20,7 +20,7 @@
 ## What It Does
 Runs a 7-phase autonomous research pipeline:
 1. Deconstructs the idea into a structured decomposition with 8 search queries
-2. Runs 9 parallel Exa.ai searches (market, VC trends, competitors, dead startups, customer voice, reviews, LinkedIn complaints, success stories, business model, unfair advantage)
+2. Runs 10 parallel Exa.ai searches (market, VC trends, competitors, dead startups, customer voice, reviews, LinkedIn complaints, success stories, business model, unfair advantage)
 3. Consolidates all search results into phase-labelled context strings
 4. Runs a contrarian VC persona to find fatal flaws
 5. Synthesizes everything into a comprehensive Founder Brief JSON
