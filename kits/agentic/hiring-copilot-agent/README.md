@@ -42,6 +42,12 @@ This agent reduces that effort by:
 
 ---
 
+## 🌐 Live Demo
+
+👉 https://hiring-copilot-agent.vercel.app
+
+---
+
 ## 🔑 Prerequisites
 
 Before running this project, make sure you have:
@@ -97,12 +103,6 @@ Open:
    - Candidate score
    - Hiring recommendation
    - Insights for decision-making
-
----
-
-## 🌐 Live Demo
-
-👉 https://hiring-copilot-agent.vercel.app
 
 ---
 
