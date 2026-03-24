@@ -7,10 +7,7 @@ export async function generateContent(payload: {
   job_description: string;
   name: string;
   skills: string[];
-  projects: {
-    name: string;
-    skills_gained: string[];
-  }[];
+  projects: string[];
   education: string;
   certificates: string[];
   experience_years: number;
@@ -29,14 +26,8 @@ export async function generateContent(payload: {
       throw new Error("Workflow ID missing");
     }
 
-    const formattedProjects = payload.projects.map((p) => ({
-      name: p.name,
-      skills_gained: p.skills_gained,
-    }));
-
     const finalPayload = {
-      ...payload,
-      projects: formattedProjects,
+      ...payload
     };
 
     // console.log("[orchestrate] Sending payload:", finalPayload);
