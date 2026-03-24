@@ -22,6 +22,14 @@ const PHASES = [
  */
 export function PhaseTracker() {
   const [currentPhase, setCurrentPhase] = useState(0);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeElapsed((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -98,6 +106,12 @@ export function PhaseTracker() {
           );
         })}
       </div>
+
+      {timeElapsed > 120 && (
+        <p className="text-[11px] text-white/30 italic mt-6 text-center animate-pulse">
+          This search is taking longer than usual, but the AI is still processing...
+        </p>
+      )}
     </div>
   );
 }
