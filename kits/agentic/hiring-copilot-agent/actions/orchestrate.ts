@@ -1,7 +1,6 @@
 "use server";
 
 import { lamaticClient } from "@/lib/lamatic-client";
-import { config } from "../orchestrate.js";
 
 export async function generateContent(payload: {
   job_description: string;
@@ -14,17 +13,9 @@ export async function generateContent(payload: {
   experience_level: string;
 }) {
   try {
-    const flows = config.flows;
-    const firstFlowKey = Object.keys(flows)[0];
-
-    if (!firstFlowKey) {
-      throw new Error("No workflows found in config");
-    }
-
-    const flow = flows[firstFlowKey as keyof typeof flows];
-
-    if (!flow.workflowId) {
-      throw new Error("Workflow ID missing");
+    const workflowId = process.env.AGENTIC_GENERATE_CONTENT;
+    if (!workflowId) {
+      throw new Error("AGENTIC_GENERATE_CONTENT is not configured");
     }
 
     const finalPayload = {
@@ -33,10 +24,7 @@ export async function generateContent(payload: {
 
     // console.log("[orchestrate] Sending payload:", finalPayload);
 
-    const resData = await lamaticClient.executeFlow(
-      flow.workflowId,
-      finalPayload,
-    );
+    const resData = await lamaticClient.executeFlow(workflowId, finalPayload);
 
     // console.log("[orchestrate] Raw response:", resData);
 
@@ -51,6 +39,5 @@ export async function generateContent(payload: {
       success: false,
       error: "Failed to evaluate candidate",
     };
-  }
   }
 }

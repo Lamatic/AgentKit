@@ -116,14 +116,14 @@ const MainPart = () => {
         );
       }
 
-      results
+      const sortedResults = results
         .filter((r) => r?.evaluation?.final_score != null)
         .sort(
           (a: any, b: any) =>
             b.evaluation.final_score - a.evaluation.final_score,
         );
 
-      setMessages((prev) => [...prev, { type: "ai", content: results }]);
+      setMessages((prev) => [...prev, { type: "ai", content: sortedResults }]);
       setFiles([]);
       setJodDesc("");
     } catch (err) {
