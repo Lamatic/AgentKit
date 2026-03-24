@@ -17,6 +17,10 @@ interface Message {
   content: string;
 }
 
+/**
+ * The main entry point for the Founder Lens application.
+ * Manages the application state from idle to analysis and ready.
+ */
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("idle");
   const [brief, setBrief] = useState("");

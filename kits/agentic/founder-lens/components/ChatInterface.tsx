@@ -21,6 +21,11 @@ const SUGGESTED_QUESTIONS = [
   "How do I get my first 100 customers?",
 ];
 
+/**
+ * Minimal markdown renderer for assistant responses.
+ * Handles headers and bold text.
+ * @param text The markdown text to render.
+ */
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");
   return lines.map((line, i) => {
@@ -43,6 +48,10 @@ function renderMarkdown(text: string): React.ReactNode {
   });
 }
 
+/**
+ * Modern chat interface for interacting with the startup analysis.
+ * Features auto-suggested questions and auto-scrolling.
+ */
 export function ChatInterface({ messages, onSendMessage, loading }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);

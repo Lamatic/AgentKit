@@ -16,6 +16,10 @@ const PHASES = [
   { name: "Synthesizing brief", description: "Generating Founder Brief..." },
 ];
 
+/**
+ * Visual progress tracker for the multi-phase analysis flow.
+ * Manages a simulated progress state that caps at 98% until completion.
+ */
 export function PhaseTracker() {
   const [currentPhase, setCurrentPhase] = useState(0);
 

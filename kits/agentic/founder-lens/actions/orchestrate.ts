@@ -5,6 +5,13 @@ import { config } from "../orchestrate.js";
 
 const TIMEOUT_MS = 150000; // 2.5 minutes
 
+/**
+ * Wraps a promise with a timeout.
+ * @param promise The promise to wrap.
+ * @param timeoutMs Timeout in milliseconds.
+ * @param errorMessage Message to throw on timeout.
+ * @returns The original promise result or throws a timeout error.
+ */
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
@@ -12,6 +19,13 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessa
   return Promise.race([promise, timeoutPromise]);
 }
 
+/**
+ * Executes the Lamatic analyze flow to generate a Founder Brief.
+ * @param idea The startup idea to analyze.
+ * @param userId Unique user identifier for session persistence.
+ * @param sessionId Unique session identifier for the analysis.
+ * @returns Object containing success status, generated brief, and idea decomposition.
+ */
 export async function analyzeIdea(
   idea: string,
   userId: string,
@@ -36,6 +50,13 @@ export async function analyzeIdea(
   }
 }
 
+/**
+ * Sends a chat message to the RAG-powered Lamatic chat flow.
+ * @param message The user's follow-up question.
+ * @param userId Unique user identifier.
+ * @param sessionId Unique session identifier.
+ * @returns Object containing the assistant's answer.
+ */
 export async function chatWithBrief(
   message: string,
   userId: string,

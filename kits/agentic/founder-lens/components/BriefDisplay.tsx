@@ -18,6 +18,11 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "contrarian", label: "Contrarian" },
 ];
 
+/**
+ * Parses raw JSON string or object from the LLM, handling potential markdown fencing.
+ * @param rawJson The raw JSON input.
+ * @returns Parsed object or null if parsing fails.
+ */
 function parseBrief(rawJson: string | object): any {
   if (typeof rawJson === "object" && rawJson !== null) return rawJson;
   if (!rawJson || typeof rawJson !== "string") return null;
@@ -39,6 +44,10 @@ function parseBrief(rawJson: string | object): any {
   }
 }
 
+/**
+ * Renders a color-coded badge based on the investment verdict.
+ * @param verdict The verdict string (e.g., "Go", "Cautious Go", "No Go").
+ */
 function VerdictBadge({ verdict }: { verdict: string }) {
   const lower = verdict?.toLowerCase() ?? "";
   const isGo = lower === "go";
@@ -57,6 +66,10 @@ function VerdictBadge({ verdict }: { verdict: string }) {
   );
 }
 
+/**
+ * Renders a list of strings with consistent styling.
+ * @param items Array of strings to render.
+ */
 function ListItems({ items }: { items: string[] }) {
   if (!items?.length) return null;
   return (
@@ -71,6 +84,11 @@ function ListItems({ items }: { items: string[] }) {
   );
 }
 
+/**
+ * Renders a structured section with a title and children.
+ * @param title Header text for the section.
+ * @param children Section content.
+ */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-4 py-4 border-b border-white/5 last:border-0 last:pb-0">
@@ -80,6 +98,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/**
+ * Main component to display the synthesized Founder Brief.
+ * Uses a tabbed interface to organize market, competition, and customer data.
+ * @param briefJson The raw JSON string of the brief.
+ */
 export function BriefDisplay({ briefJson }: BriefDisplayProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const brief = parseBrief(briefJson);

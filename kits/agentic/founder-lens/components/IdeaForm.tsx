@@ -14,6 +14,10 @@ const EXAMPLE_IDEAS = [
   "A Duolingo for learning how to invest in stocks",
 ];
 
+/**
+ * Glassmorphic input form for startup ideas.
+ * Features a typewriter effect for example placeholders.
+ */
 export function IdeaForm({ onSubmit, disabled }: IdeaFormProps) {
   const [idea, setIdea] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
