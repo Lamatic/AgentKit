@@ -4,6 +4,7 @@ import { lamaticClient } from "@/lib/lamatic-client";
 import { config } from "../orchestrate.js";
 
 const TIMEOUT_MS = 600000; // 10 minutes
+export const maxDuration = 600; // Vercel timeout in seconds (matching 10 mins)
 
 /**
  * Wraps a promise with a timeout.

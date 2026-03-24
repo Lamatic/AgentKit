@@ -107,7 +107,7 @@ export function PhaseTracker() {
         })}
       </div>
 
-      {timeElapsed > 120 && (
+      {timeElapsed > 60 && (
         <p className="text-[11px] text-white/30 italic mt-6 text-center animate-pulse">
           This search is taking longer than usual, but the AI is still processing...
         </p>
