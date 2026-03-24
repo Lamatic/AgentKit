@@ -15,6 +15,6 @@ if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.
 
 export const lamaticClient = new Lamatic({
   endpoint: config.api.endpoint ?? "",
-  projectId: config.api.projectId ?? null,
+  projectId: config.api.projectId,
   apiKey: config.api.apiKey ?? "",
 });
