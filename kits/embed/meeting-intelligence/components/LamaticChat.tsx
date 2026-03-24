@@ -32,11 +32,13 @@ function bootstrapWidget(): void {
   didBootstrap = true;
 
   if (!PROJECT_ID || !FLOW_ID || !API_URL) {
-    console.warn("[LamaticChat] Missing env vars — widget disabled.", {
-      PROJECT_ID: PROJECT_ID || "MISSING",
-      FLOW_ID:    FLOW_ID    || "MISSING",
-      API_URL:    API_URL    || "MISSING",
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[LamaticChat] Missing env vars — widget disabled.", {
+        PROJECT_ID: PROJECT_ID || "MISSING",
+        FLOW_ID:    FLOW_ID    || "MISSING",
+        API_URL:    API_URL    || "MISSING",
+      });
+    }
     return;
   }
 
@@ -48,7 +50,9 @@ function bootstrapWidget(): void {
     root.dataset.flowId    = FLOW_ID;
     root.dataset.projectId = PROJECT_ID;
     document.body.appendChild(root);
-    console.log("[LamaticChat] root mounted ✓", { API_URL, FLOW_ID, PROJECT_ID });
+    if (process.env.NODE_ENV === "development") {
+      console.log("[LamaticChat] root mounted ✓", { API_URL, FLOW_ID, PROJECT_ID });
+    }
   }
 
   // 2. Script — injected once (matches official Lamatic embed).
@@ -58,7 +62,11 @@ function bootstrapWidget(): void {
     script.type    = "module";
     script.async   = true;
     script.src     = `https://widget.lamatic.ai/chat-v2?projectId=${encodeURIComponent(PROJECT_ID)}`;
-    script.onload  = () => console.log("[LamaticChat] widget script loaded ✓");
+    script.onload  = () => {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[LamaticChat] widget script loaded ✓");
+      }
+    };
     script.onerror = () => console.error("[LamaticChat] widget script failed to load");
     document.body.appendChild(script);
   }
@@ -70,6 +78,7 @@ interface LamaticChatProps {
 
 export default function LamaticChat({ disabled = false }: LamaticChatProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isWidgetReady, setIsWidgetReady] = useState(false);
   const isConfigured = Boolean(PROJECT_ID && FLOW_ID && API_URL);
 
   // Bootstrap immediately on first client render.
@@ -77,14 +86,20 @@ export default function LamaticChat({ disabled = false }: LamaticChatProps) {
     if (disabled || !isConfigured) return;
     bootstrapWidget();
 
-    const handleReady = () => console.log("[LamaticChat] lamaticChatWidgetReady ✓");
+    const handleReady = () => {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[LamaticChat] lamaticChatWidgetReady ✓");
+      }
+      setIsWidgetReady(true);
+    };
     window.addEventListener("lamaticChatWidgetReady", handleReady, { once: true });
     return () => window.removeEventListener("lamaticChatWidgetReady", handleReady);
   }, [disabled, isConfigured]);
 
   // Sync open / close with the Lamatic widget JS API.
+  // Deferred until the widget signals it is ready to prevent silent no-ops.
   useEffect(() => {
-    if (!isConfigured || disabled) return;
+    if (!isConfigured || disabled || !isWidgetReady) return;
     try {
       const w = window as LamaticWindow;
       if (isOpen) w.LamaticChatWidget?.open?.();
@@ -92,7 +107,7 @@ export default function LamaticChat({ disabled = false }: LamaticChatProps) {
     } catch (e) {
       console.warn("[LamaticChat] toggle error", e);
     }
-  }, [disabled, isConfigured, isOpen]);
+  }, [disabled, isConfigured, isOpen, isWidgetReady]);
 
   // External event bus (used by HeroActions and TranscriptPlayground).
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,13 +14,16 @@ const SAMPLE_TRANSCRIPT =
 const INPUT_ID = "lam-chat-message-input";
 const SEND_BTN_ID = "lam-chat-send-button";
 const MAX_ATTEMPTS = 20;
+const MIN_TRANSCRIPT_LENGTH = 12;
 
-function fillAndSend(value: string, attempt = 0): void {
+function fillAndSend(value: string, attempt = 0, isCancelled: () => boolean = () => false): void {
+  if (isCancelled()) return;
+
   const input = document.getElementById(INPUT_ID) as HTMLInputElement | HTMLTextAreaElement | null;
 
   if (!input) {
     if (attempt < MAX_ATTEMPTS) {
-      setTimeout(() => fillAndSend(value, attempt + 1), 100);
+      setTimeout(() => fillAndSend(value, attempt + 1, isCancelled), 100);
     } else {
       console.warn("[TranscriptPlayground] Widget input not found after retries");
     }
@@ -46,8 +49,17 @@ interface TranscriptPlaygroundProps {
 
 export default function TranscriptPlayground({ isLamaticReady = true }: TranscriptPlaygroundProps) {
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPT);
+  const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
+
   const canAnalyze = useMemo(
-    () => isLamaticReady && transcript.trim().length > 12,
+    () => isLamaticReady && transcript.trim().length > MIN_TRANSCRIPT_LENGTH,
     [isLamaticReady, transcript],
   );
 
@@ -58,7 +70,7 @@ export default function TranscriptPlayground({ isLamaticReady = true }: Transcri
     window.dispatchEvent(new Event("lamatic:open"));
 
     // Start polling after a short initial delay so the widget has time to open.
-    setTimeout(() => fillAndSend(value), 300);
+    setTimeout(() => fillAndSend(value, 0, () => cancelledRef.current), 300);
   };
 
   return (
