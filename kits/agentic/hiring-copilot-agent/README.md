@@ -151,11 +151,8 @@ This kit demonstrates how AI can **transform traditional hiring workflows** by r
 
 ## 🔮 Future Improvements
 
-- ⚡ **Batch Processing with Concurrency Control** _(Planned)_
-  Currently processes multiple resumes in parallel using asynchronous requests. Future improvements will introduce controlled batching to optimize performance and handle API rate limits efficiently.
-
-- 📊 **Progressive Result Streaming**
-  Candidate results are planned to be displayed **incrementally in real-time**, allowing recruiters to review insights as soon as each resume is processed instead of waiting for the entire batch to complete.
+- ⚡ **Batch Processing with Concurrency Control** _(Implemented)_
+  Resumes are processed in parallel using optimized asynchronous batching, significantly reducing total processing time. Concurrency control ensures efficient handling of API rate limits while maintaining system stability and performance.
 
 - ⚖️ **Bias Detection & Fairness Analysis** _(Planned)_
-  Introduce mechanisms to reduce bias in candidate evaluation and improve fairness in hiring decisions.
+  Introduce mechanisms to detect and reduce bias in candidate evaluation, ensuring more fair and transparent hiring decisions.
