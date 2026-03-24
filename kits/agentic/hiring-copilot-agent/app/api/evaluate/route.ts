@@ -29,7 +29,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ IMPORTANT: return clean structure
     return Response.json({
       data: result.data,
     });

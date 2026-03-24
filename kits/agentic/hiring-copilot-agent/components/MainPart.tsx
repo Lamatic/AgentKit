@@ -37,13 +37,11 @@ const MainPart = () => {
 
     setMessages((prev) => [...prev, { type: "user", content: jobDesc }]);
 
-    // 🔥 helper to process single file
     const processFile = async (file: File) => {
       try {
         const formData = new FormData();
         formData.append("file", file);
 
-        // Step 1: Parse Resume
         const parsedRes = await fetch("/api/parse-resume", {
           method: "POST",
           body: formData,
@@ -67,7 +65,6 @@ const MainPart = () => {
           return null;
         }
 
-        // Step 2: Evaluate Candidate
         const evalRes = await fetch("/api/evaluate", {
           method: "POST",
           headers: {
@@ -97,7 +94,6 @@ const MainPart = () => {
     try {
       const results: any[] = [];
 
-      // 🔥 BATCHING (5 at a time → safe for APIs)
       const batchSize = 5;
 
       for (let i = 0; i < files.length; i += batchSize) {
@@ -107,11 +103,9 @@ const MainPart = () => {
           batch.map((file) => processFile(file)),
         );
 
-        // Push only valid results
         results.push(...batchResults.filter(Boolean));
       }
 
-      // 🔥 Ranking (same as your logic)
       results.sort(
         (a: any, b: any) => b.evaluation.final_score - a.evaluation.final_score,
       );
