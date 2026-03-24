@@ -1,0 +1,4 @@
+name: resume-analyzer-agent
+description: Analyze resume and match with job description
+
+entrypoint: agent.py
