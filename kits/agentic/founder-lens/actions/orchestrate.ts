@@ -3,7 +3,7 @@
 import { lamaticClient } from "@/lib/lamatic-client";
 import { config } from "../orchestrate.js";
 
-const TIMEOUT_MS = 600000; // 10 minutes
+const TIMEOUT_MS = 300000; // 5 minutes (Matching Vercel Hobby maxDuration)
 
 /**
  * Wraps a promise with a timeout.
