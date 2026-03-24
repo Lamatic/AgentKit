@@ -110,8 +110,9 @@ export function ChatInterface({ messages, onSendMessage, loading }: ChatInterfac
               {SUGGESTED_QUESTIONS.map((q, i) => (
                 <button
                   key={i}
-                  onClick={() => !loading && onSendMessage(q)}
-                  className="w-full text-left p-3.5 rounded-xl text-[12px] font-medium text-white/70 bg-white/5 border border-white/5 hover:bg-white/10 hover:text-white transition-all duration-300"
+                  onClick={() => onSendMessage(q)}
+                  disabled={loading}
+                  className="w-full text-left p-3.5 rounded-xl text-[12px] font-medium text-white/70 bg-white/5 border border-white/5 hover:bg-white/10 hover:text-white transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   {q}
                 </button>
