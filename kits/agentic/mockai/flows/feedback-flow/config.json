@@ -1,0 +1,121 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"candidateResponses\": [\n    {\n      \"question\": \"string\",\n      \"answers\": \"string\"\n    }\n  ]\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_633",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_633",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"positives\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"negatives\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"rating\": {\n      \"type\": \"number\",\n      \"required\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert interview judge in all fields and disciplinesYou will be given a set of questions asked and answers answered i.e in simple terms an interview transcriptThis is the list of question and answers{{triggerNode_1.output.answers}}You have to judge the answers and give them positives, negatives, and score on a scale of 1 to 10.Try to be friendly, and dont be highly critical.Your feedback should never discourage the candidate.Give positves and negatives in pointsminimum 1 point and maximun 5 points"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Write your prompt here"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": true
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"positives\": \"{{InstructorLLMNode_633.output.positives}}\",\n  \"negatives\": \"{{InstructorLLMNode_633.output.negatives}}\",\n  \"rating\": \"{{InstructorLLMNode_633.output.rating}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_633",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_633",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_633-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_633",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
