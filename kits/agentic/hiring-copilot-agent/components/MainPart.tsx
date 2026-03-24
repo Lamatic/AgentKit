@@ -131,6 +131,7 @@ const MainPart = () => {
         onChange={(e) => {
           const selectedFiles = Array.from(e.target.files || []);
           setFiles((prev) => [...prev, ...selectedFiles]);
+          e.currentTarget.value = "";
         }}
       />
 
