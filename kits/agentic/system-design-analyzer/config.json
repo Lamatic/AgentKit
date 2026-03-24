@@ -1,0 +1,22 @@
+{
+  "name": "System Design Analyzer",
+  "description": "An AI-powered tool that analyzes and provides comprehensive insights for system design specifications.",
+  "tags": ["🤖 AI Agent", "🔍 Analysis", "🏗️ System Design"],
+  "author": {
+    "name": "Lamatic Team",
+    "email": "team@lamatic.ai"
+  },
+  "steps": [
+    {
+      "id": "system-design-analyzer",
+      "type": "mandatory",
+      "envKey": "SYSTEM_DESIGN_ANALYZER_FLOW_ID"
+    }
+  ],
+  "integrations": [],
+  "features": ["Real-time analysis", "AI-powered insights", "Design validation"],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/system-design-analyzer",
+  "deployUrl": "",
+  "documentationUrl": ""
+}
