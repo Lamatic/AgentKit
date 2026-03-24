@@ -39,11 +39,56 @@ interface FlowResponse {
   links?: string[]
 }
 
-const suggestions = [
-  "Help me pack for my trip to Jaipur next week",
-  "Compare leather sofas vs fabric sofas",
-  "How to identify if the pashmina shawl I am buying is genuine?",
+const PERSONALITIES = [
+  { name: "Elon Musk", emoji: "🚀" },
+  { name: "Einstein", emoji: "🧠" },
+  { name: "Shakespeare", emoji: "🎭" },
+  { name: "Steve Jobs", emoji: "🍎" },
 ]
+
+const getPersonalityEmoji = (name: string): string => {
+  const match = PERSONALITIES.find(
+    (p) => p.name.toLowerCase() === name.toLowerCase()
+  )
+  return match ? match.emoji : "🌟"
+}
+
+const getPersonalitySuggestions = (name: string): string[] => {
+  const lower = name.toLowerCase()
+  if (lower.includes("elon") || lower.includes("musk")) {
+    return [
+      "What's your vision for colonising Mars?",
+      "How do you think about first principles?",
+      "What's the future of electric vehicles?",
+    ]
+  }
+  if (lower.includes("einstein")) {
+    return [
+      "Can you explain the theory of relativity simply?",
+      "What is the relationship between energy and mass?",
+      "How do you approach unsolvable problems?",
+    ]
+  }
+  if (lower.includes("shakespeare")) {
+    return [
+      "Write me a sonnet about modern technology",
+      "What makes a truly tragic hero?",
+      "How do you craft compelling dialogue?",
+    ]
+  }
+  if (lower.includes("jobs") || lower.includes("steve")) {
+    return [
+      "How do you define great product design?",
+      "What does it mean to think differently?",
+      "How do you build a company culture of excellence?",
+    ]
+  }
+  return [
+    `What are your most important ideas?`,
+    `What lessons from your life should everyone know?`,
+    `How do you approach difficult decisions?`,
+  ]
+}
 
 export default function LamaticThinkMode() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -57,9 +102,21 @@ export default function LamaticThinkMode() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [pendingQuery, setPendingQuery] = useState<string>("")
-  const hasTrackedRef = useRef(false) // ensure we insert only once per session
+  const hasTrackedRef = useRef(false)
+
+  const [selectedPersonality, setSelectedPersonality] = useState<string>("")
+  const [personalityInput, setPersonalityInput] = useState<string>("")
+  const [personalityConfirmed, setPersonalityConfirmed] = useState(false)
 
   const KIT_ID = "reasoning"
+
+  const suggestions = personalityConfirmed
+    ? getPersonalitySuggestions(selectedPersonality)
+    : [
+        "Help me pack for my trip to Jaipur next week",
+        "Compare leather sofas vs fabric sofas",
+        "How to identify if the pashmina shawl I am buying is genuine?",
+      ]
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -76,14 +133,12 @@ export default function LamaticThinkMode() {
     scrollToBottom()
   }, [messages, isLoading])
 
-  // resume action after login if redirected back with params
   useEffect(() => {
     if (typeof window === "undefined") return
     const url = new URL(window.location.href)
     const autostart = url.searchParams.get("autostart")
     const q = url.searchParams.get("query")
     if (autostart === "1" && q && !isLoading && messages.length === 0) {
-      // run once, then clean URL
       handleSubmit(q)
       url.searchParams.delete("autostart")
       url.searchParams.delete("query")
@@ -91,6 +146,26 @@ export default function LamaticThinkMode() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const handlePersonalityConfirm = (name?: string) => {
+    const finalName = name ?? personalityInput.trim()
+    if (!finalName) return
+    setSelectedPersonality(finalName)
+    setPersonalityConfirmed(true)
+  }
+
+  const handlePersonalityReset = () => {
+    setSelectedPersonality("")
+    setPersonalityInput("")
+    setPersonalityConfirmed(false)
+    setMessages([])
+    setInput("")
+  }
+
+  const buildPersonalityPrefix = (): string => {
+    if (!personalityConfirmed || !selectedPersonality) return ""
+    return `You are ${selectedPersonality}. Respond exactly as ${selectedPersonality} would — use their tone, vocabulary, philosophy, and mannerisms. Stay fully in character throughout. `
+  }
 
   const handleSubmit = async (query: string) => {
     if (!query.trim() || isLoading) return
@@ -114,7 +189,8 @@ export default function LamaticThinkMode() {
         message: msg.message,
       }))
 
-      console.log("[v0] Starting step-by-step orchestration pipeline")
+      const personalityPrefix = buildPersonalityPrefix()
+      const augmentedQuery = personalityPrefix ? `${personalityPrefix}\n\nUser asks: ${query}` : query
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -126,8 +202,7 @@ export default function LamaticThinkMode() {
 
       const results: Record<string, any> = {}
 
-      console.log("[v0] Executing step1...")
-      const step1Result = await orchestratePipelineStep(query, history, "step1")
+      const step1Result = await orchestratePipelineStep(augmentedQuery, history, "step1")
 
       if (!step1Result.success) {
         throw new Error(step1Result.error || "Failed to execute step1")
@@ -156,37 +231,23 @@ export default function LamaticThinkMode() {
 
       const allLinks: string[] = []
 
-      console.log("[v0] Executing step2A...")
-      const step2AResult = await orchestratePipelineStep(query, history, "step2A", results)
+      const step2AResult = await orchestratePipelineStep(augmentedQuery, history, "step2A", results)
       if (step2AResult.success && step2AResult.data && Object.keys(step2AResult.data).length > 0) {
         results.step2A = step2AResult.data
-        console.log("[v0] Stored step2A results:", results.step2A)
-        if (step2AResult.data?.links) {
-          allLinks.push(...step2AResult.data.links)
-        }
+        if (step2AResult.data?.links) allLinks.push(...step2AResult.data.links)
       }
 
-      console.log("[v0] Executing step2B...")
-      const step2BResult = await orchestratePipelineStep(query, history, "step2B", results)
+      const step2BResult = await orchestratePipelineStep(augmentedQuery, history, "step2B", results)
       if (step2BResult.success && step2BResult.data && Object.keys(step2BResult.data).length > 0) {
         results.step2B = step2BResult.data
-        console.log("[v0] Stored step2B results:", results.step2B)
-        if (step2BResult.data?.links) {
-          allLinks.push(...step2BResult.data.links)
-        }
+        if (step2BResult.data?.links) allLinks.push(...step2BResult.data.links)
       }
 
-      console.log("[v0] Executing step2C...")
-      const step2CResult = await orchestratePipelineStep(query, history, "step2C", results)
+      const step2CResult = await orchestratePipelineStep(augmentedQuery, history, "step2C", results)
       if (step2CResult.success && step2CResult.data && Object.keys(step2CResult.data).length > 0) {
         results.step2C = step2CResult.data
-        console.log("[v0] Stored step2C results:", results.step2C)
-        if (step2CResult.data?.links) {
-          allLinks.push(...step2CResult.data.links)
-        }
+        if (step2CResult.data?.links) allLinks.push(...step2CResult.data.links)
       }
-
-      console.log("[v0] All results before step3:", JSON.stringify(results, null, 2))
 
       setSearchLinks(allLinks)
       setCurrentStep("write")
@@ -208,8 +269,7 @@ export default function LamaticThinkMode() {
         setIsSearching(false)
       }, 1000)
 
-      console.log("[v0] Executing step3...")
-      const step3Result = await orchestratePipelineStep(query, history, "step3", results)
+      const step3Result = await orchestratePipelineStep(augmentedQuery, history, "step3", results)
 
       if (!step3Result.success) {
         throw new Error(step3Result.error || "Failed to execute step3")
@@ -280,307 +340,857 @@ export default function LamaticThinkMode() {
     }
   }
 
-  const showInitialInterface = messages.length === 0 && !isLoading
+  const showPersonalityPicker = !personalityConfirmed
+  const showInitialInterface = personalityConfirmed && messages.length === 0 && !isLoading
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link href="/" passHref>
-            <h1 className="text-2xl font-bold tracking-tight select-none">
-              <span className="text-black dark:text-white">Agent Kit</span>
-              <span className="text-red-600"> Reasoning</span>
-            </h1>
-          </Link>
-          <div className="flex gap-4">
-            <Link
-              href="https://lamatic.ai/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              Docs
-            </Link>
-            <Link
-              href="https://github.com/Lamatic/AgentKit"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors flex items-center gap-2"
-            >
-              <Github className="h-4 w-4" />
-              GitHub
-            </Link>
-          </div>
-        </div>
-      </header>
+    <>
+      {/* ── Global Styles ── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
-      {showInitialInterface && (
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="max-w-4xl w-full">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="mb-12">
-                <h1 className="text-5xl font-normal mb-4 text-balance">Meet Lamatic Agentic Reasoning Mode</h1>
-                <p className="text-xl text-muted-foreground">Ask detailed questions for better responses</p>
+        :root {
+          --obsidian: #0a0a0c;
+          --ink: #111114;
+          --surface: #161619;
+          --raised: #1e1e23;
+          --border: #2a2a32;
+          --border-glow: #c9a84c33;
+          --gold: #c9a84c;
+          --gold-dim: #9a7a35;
+          --gold-pale: #f0d98a;
+          --text-primary: #f0ece4;
+          --text-secondary: #9b9490;
+          --text-muted: #5a5650;
+          --crimson: #c0392b;
+          --crimson-dim: #922b21;
+        }
+
+        .elite-root {
+          font-family: 'DM Sans', sans-serif;
+          background: var(--obsidian);
+          color: var(--text-primary);
+          min-height: 100vh;
+        }
+
+        .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+        /* Noise texture overlay */
+        .elite-root::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+          pointer-events: none;
+          z-index: 0;
+          opacity: 0.4;
+        }
+
+        /* Ambient top glow */
+        .elite-root::after {
+          content: '';
+          position: fixed;
+          top: -200px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 800px;
+          height: 400px;
+          background: radial-gradient(ellipse, #c9a84c18 0%, transparent 70%);
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .elite-content { position: relative; z-index: 1; }
+
+        /* Header */
+        .elite-header {
+          border-bottom: 1px solid var(--border);
+          background: linear-gradient(180deg, #0e0e11 0%, transparent 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+
+        .elite-logo-main { color: var(--text-primary); letter-spacing: -0.02em; }
+        .elite-logo-accent { color: var(--gold); }
+
+        .elite-nav-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 18px;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          transition: all 0.2s ease;
+          text-decoration: none;
+        }
+
+        .elite-nav-docs {
+          background: transparent;
+          border: 1px solid var(--gold-dim);
+          color: var(--gold);
+        }
+        .elite-nav-docs:hover {
+          background: var(--gold);
+          color: var(--obsidian);
+          border-color: var(--gold);
+        }
+
+        .elite-nav-github {
+          background: transparent;
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+        }
+        .elite-nav-github:hover {
+          background: var(--raised);
+          color: var(--text-primary);
+          border-color: var(--text-muted);
+        }
+
+        /* Personality badge */
+        .personality-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 5px 14px 5px 10px;
+          background: linear-gradient(135deg, #1a1508 0%, #1e1a0a 100%);
+          border: 1px solid var(--gold-dim);
+          border-radius: 100px;
+          position: relative;
+          overflow: hidden;
+        }
+        .personality-badge::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, transparent, #c9a84c0a, transparent);
+          animation: shimmer 3s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+          0%, 100% { transform: translateX(-100%); }
+          50% { transform: translateX(100%); }
+        }
+        .personality-badge-name {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--gold-pale);
+          letter-spacing: 0.04em;
+        }
+        .personality-badge-close {
+          color: var(--gold-dim);
+          font-size: 0.65rem;
+          cursor: pointer;
+          margin-left: 2px;
+          transition: color 0.15s;
+          background: none;
+          border: none;
+          padding: 0;
+          line-height: 1;
+        }
+        .personality-badge-close:hover { color: var(--gold); }
+
+        /* ── Personality Picker ── */
+        .picker-stage {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+        }
+
+        .picker-inner { max-width: 560px; width: 100%; text-align: center; }
+
+        .picker-icon {
+          font-size: 5rem;
+          line-height: 1;
+          margin-bottom: 1.5rem;
+          display: block;
+          filter: drop-shadow(0 0 32px #c9a84c44);
+          animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+
+        .picker-title {
+          font-size: clamp(2rem, 5vw, 3.2rem);
+          font-weight: 300;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+          color: var(--text-primary);
+          margin-bottom: 0.75rem;
+        }
+
+        .picker-subtitle {
+          font-size: 1rem;
+          color: var(--text-secondary);
+          margin-bottom: 2.5rem;
+          font-weight: 300;
+        }
+
+        /* Input field */
+        .elite-input-wrap { position: relative; margin-bottom: 1.5rem; }
+
+        .elite-input {
+          width: 100%;
+          height: 58px;
+          padding: 0 58px 0 24px;
+          font-size: 1rem;
+          font-family: 'DM Sans', sans-serif;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          color: var(--text-primary);
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .elite-input::placeholder { color: var(--text-muted); }
+        .elite-input:focus {
+          border-color: var(--gold-dim);
+          box-shadow: 0 0 0 3px #c9a84c14, 0 4px 20px #00000040;
+        }
+
+        .elite-submit-btn {
+          position: absolute;
+          right: 8px;
+          top: 8px;
+          width: 42px;
+          height: 42px;
+          border-radius: 3px;
+          background: var(--gold);
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--obsidian);
+          transition: background 0.2s, transform 0.1s;
+        }
+        .elite-submit-btn:hover { background: var(--gold-pale); }
+        .elite-submit-btn:active { transform: scale(0.96); }
+        .elite-submit-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+        /* Quick pick chips */
+        .chip-label {
+          font-size: 0.65rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          margin-bottom: 0.75rem;
+        }
+
+        .chip-grid {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+        }
+
+        .personality-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
+          border: 1px solid var(--border);
+          border-radius: 3px;
+          background: var(--surface);
+          color: var(--text-secondary);
+          font-size: 0.85rem;
+          font-family: 'DM Sans', sans-serif;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        .personality-chip::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, #c9a84c08, transparent);
+          opacity: 0;
+          transition: opacity 0.2s;
+        }
+        .personality-chip:hover {
+          border-color: var(--gold-dim);
+          color: var(--gold-pale);
+          background: var(--raised);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 16px #00000060;
+        }
+        .personality-chip:hover::before { opacity: 1; }
+        .personality-chip-emoji { font-size: 1.2rem; }
+
+        /* ── Initial Chat Interface ── */
+        .chat-welcome {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+        }
+
+        .welcome-emoji {
+          font-size: 6rem;
+          display: block;
+          filter: drop-shadow(0 0 48px #c9a84c55);
+          animation: float 4s ease-in-out infinite;
+          margin-bottom: 1.5rem;
+        }
+
+        .welcome-title {
+          font-size: clamp(2rem, 5vw, 3.5rem);
+          font-weight: 300;
+          letter-spacing: -0.02em;
+          color: var(--text-primary);
+          margin-bottom: 0.75rem;
+        }
+
+        .welcome-subtitle {
+          font-size: 1.05rem;
+          color: var(--text-secondary);
+          font-weight: 300;
+          margin-bottom: 2.5rem;
+        }
+
+        .suggestion-row {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          width: 100%;
+          max-width: 560px;
+        }
+
+        .suggestion-btn {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 18px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          color: var(--text-secondary);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 0.9rem;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .suggestion-btn:hover {
+          border-color: var(--gold-dim);
+          color: var(--text-primary);
+          background: var(--raised);
+          transform: translateX(4px);
+        }
+        .suggestion-btn:disabled { opacity: 0.4; pointer-events: none; }
+        .suggestion-arrow { color: var(--gold-dim); font-size: 0.85rem; flex-shrink: 0; }
+
+        /* ── Active Chat ── */
+        .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .message-block { padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+        .message-block:last-child { border-bottom: none; }
+
+        .user-query {
+          font-size: clamp(1.4rem, 3vw, 2rem);
+          font-weight: 300;
+          letter-spacing: -0.02em;
+          color: var(--text-primary);
+          margin-bottom: 0.5rem;
+          line-height: 1.3;
+        }
+
+        .query-divider {
+          width: 40px;
+          height: 2px;
+          background: linear-gradient(90deg, var(--gold), transparent);
+          margin-top: 0.75rem;
+        }
+
+        /* Thinking indicator */
+        .thinking-bar {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--text-muted);
+          font-size: 0.85rem;
+          padding: 8px 0;
+        }
+        .thinking-dots {
+          display: flex;
+          gap: 4px;
+        }
+        .thinking-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--gold);
+          animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+        .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse-dot {
+          0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Answer layout */
+        .answer-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        @media (min-width: 1024px) {
+          .answer-grid { grid-template-columns: 2fr 1fr; }
+        }
+
+        /* Personality byline */
+        .personality-byline {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 1rem;
+          padding-bottom: 0.75rem;
+          border-bottom: 1px solid var(--border);
+        }
+        .byline-emoji { font-size: 1.3rem; }
+        .byline-name {
+          font-size: 0.8rem;
+          font-weight: 500;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--gold);
+        }
+
+        /* Processing panel */
+        .processing-panel {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-left: 3px solid var(--gold-dim);
+          border-radius: 4px;
+          padding: 20px 24px;
+          margin-bottom: 1.5rem;
+        }
+        .processing-steps {
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          line-height: 1.6;
+          font-style: italic;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1rem;
+        }
+        .searching-label {
+          font-size: 0.75rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--gold-dim);
+          margin-top: 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .search-pulse {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--gold);
+          animation: pulse-dot 1s ease-in-out infinite;
+        }
+
+        /* Link pills */
+        .link-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .link-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 10px;
+          background: var(--raised);
+          border: 1px solid var(--border);
+          border-radius: 100px;
+          font-size: 0.72rem;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.15s;
+          text-decoration: none;
+        }
+        .link-pill:hover { border-color: var(--gold-dim); color: var(--gold-pale); }
+        .link-pill img { width: 12px; height: 12px; border-radius: 2px; }
+
+        /* Prose (answer) */
+        .answer-prose {
+          font-size: 1rem;
+          line-height: 1.8;
+          color: var(--text-primary);
+        }
+        .answer-prose h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 400; margin: 1.5rem 0 0.75rem; color: var(--text-primary); letter-spacing: -0.01em; }
+        .answer-prose h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; margin: 1.25rem 0 0.5rem; color: var(--text-primary); }
+        .answer-prose h3 { font-size: 1rem; font-weight: 500; margin: 1rem 0 0.4rem; color: var(--text-primary); letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.8rem; }
+        .answer-prose p { margin-bottom: 1rem; color: var(--text-primary); }
+        .answer-prose ul { margin: 0.75rem 0 1rem 1.25rem; }
+        .answer-prose li { margin-bottom: 0.4rem; color: var(--text-secondary); }
+        .answer-prose li::marker { color: var(--gold-dim); }
+        .answer-prose strong { color: var(--gold-pale); font-weight: 500; }
+        .answer-prose a { color: var(--gold); text-decoration: none; border-bottom: 1px solid #c9a84c44; transition: border-color 0.15s; }
+        .answer-prose a:hover { border-color: var(--gold); }
+
+        /* References sidebar */
+        .refs-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0.75rem;
+        }
+        .refs-label {
+          font-size: 0.65rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+        }
+        .refs-count {
+          font-size: 0.7rem;
+          color: var(--gold-dim);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .ref-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          padding: 12px 14px;
+          margin-bottom: 8px;
+          transition: all 0.15s;
+          text-decoration: none;
+          display: block;
+        }
+        .ref-card:hover {
+          border-color: var(--gold-dim);
+          background: var(--raised);
+          transform: translateX(2px);
+        }
+        .ref-domain {
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: var(--gold);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 3px;
+        }
+        .ref-url {
+          font-size: 0.7rem;
+          color: var(--text-muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* Bottom input bar */
+        .input-bar-wrapper {
+          flex-shrink: 0;
+          background: linear-gradient(0deg, var(--ink) 60%, transparent 100%);
+          border-top: 1px solid var(--border);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+        .input-bar-inner {
+          max-width: 760px;
+          margin: 0 auto;
+          padding: 1.25rem 1.5rem 1.75rem;
+        }
+      `}</style>
+
+      <div className="elite-root">
+        <div className="elite-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+
+          {/* ── Header ── */}
+          <header className="elite-header" style={{ padding: '14px 28px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1200px', margin: '0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <Link href="/" passHref>
+                  <h1 style={{ fontSize: '1.35rem', fontWeight: 400, letterSpacing: '-0.02em', cursor: 'pointer', margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
+                    <span className="elite-logo-main">Neuro</span>
+                    <span className="elite-logo-accent"> Persona</span>
+                  </h1>
+                </Link>
+
+                {personalityConfirmed && (
+                  <div className="personality-badge">
+                    <span style={{ fontSize: '1rem' }}>{getPersonalityEmoji(selectedPersonality)}</span>
+                    <span className="personality-badge-name">{selectedPersonality}</span>
+                    <button className="personality-badge-close" onClick={handlePersonalityReset} title="Change personality">✕</button>
+                  </div>
+                )}
               </div>
 
-              <div className="w-full max-w-2xl mb-8">
-                <form onSubmit={handleFormSubmit} className="relative">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask anything"
-                    className="w-full h-14 pl-6 pr-14 text-lg bg-card border-input rounded-full shadow-sm"
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="absolute right-2 top-2 h-10 w-10 rounded-full"
-                    disabled={!input.trim() || isLoading}
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
-
-              <div className="space-y-3 w-full max-w-2xl">
-                {suggestions.map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    className="w-full justify-start h-auto p-4 text-left text-muted-foreground hover:text-foreground rounded-lg"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    disabled={isLoading}
-                  >
-                    <span className="mr-3">↗</span>
-                    {suggestion}
-                  </Button>
-                ))}
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <Link href="https://lamatic.ai/docs" target="_blank" rel="noopener noreferrer" className="elite-nav-btn elite-nav-docs">
+                  <FileText style={{ width: 13, height: 13 }} />
+                  Docs
+                </Link>
+                <Link href="https://github.com/Lamatic/AgentKit" target="_blank" rel="noopener noreferrer" className="elite-nav-btn elite-nav-github">
+                  <Github style={{ width: 13, height: 13 }} />
+                  GitHub
+                </Link>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </header>
 
-      {(messages.length > 0 || isLoading) && (
-        <div className="flex-1 flex flex-col">
-          {/* Scrollable Chat History - Middle Section */}
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea ref={scrollAreaRef} className="h-full">
-              <div className="max-w-7xl mx-auto px-6 py-6 space-y-8">
-                {messages.map((message, index) => {
-                  const nextMessage = messages[index + 1]
-                  const isLastUserMessage =
-                    index === messages.length - 1 ||
-                    (index === messages.length - 2 && messages[index + 1]?.role === "assistant")
+          {/* ── Personality Picker ── */}
+          {showPersonalityPicker && (
+            <div className="picker-stage">
+              <div className="picker-inner">
+                <span className="picker-icon">🎭</span>
+                <h1 className="picker-title serif">Who would you like<br />to speak with?</h1>
+                <p className="picker-subtitle">Type any famous personality's name and converse with them</p>
 
-                  return (
-                    <div key={index} className="space-y-6">
-                      {/* Query Heading */}
-                      {message.role === "user" && (
-                        <div className="border-b border-border pb-4">
-                          <h1 className="text-3xl font-normal text-foreground">{message.message}</h1>
-                        </div>
-                      )}
+                <div className="elite-input-wrap">
+                  <form onSubmit={(e) => { e.preventDefault(); handlePersonalityConfirm(); }}>
+                    <input
+                      value={personalityInput}
+                      onChange={(e) => setPersonalityInput(e.target.value)}
+                      placeholder="e.g. Albert Einstein, Cleopatra, Tesla…"
+                      className="elite-input"
+                      autoFocus
+                    />
+                    <button type="submit" className="elite-submit-btn" disabled={!personalityInput.trim()}>
+                      <ArrowUp style={{ width: 16, height: 16 }} />
+                    </button>
+                  </form>
+                </div>
 
-                      {isLastUserMessage && isLoading && !nextMessage && (
-                        <div className="space-y-4">
-                          <div className="text-muted-foreground">
-                            <p className="text-sm">Thinking...</p>
-                          </div>
-                        </div>
-                      )}
+                <p className="chip-label">Or choose one</p>
+                <div className="chip-grid">
+                  {PERSONALITIES.map((p) => (
+                    <button key={p.name} onClick={() => handlePersonalityConfirm(p.name)} className="personality-chip">
+                      <span className="personality-chip-emoji">{p.emoji}</span>
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
-                      {/* Answer and References */}
-                      {nextMessage && nextMessage.role === "assistant" && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                          {/* Answer Column */}
-                          <div className="lg:col-span-2">
-                            {nextMessage.isProcessing && nextMessage.steps && (
-                              <div className="border-l-4 border-red-500 pl-4 bg-red-50/50 dark:bg-red-950/20 rounded-r-lg mb-6">
-                                <div className="space-y-4">
-                                  <div className="text-red-600 dark:text-red-400">
-                                    {!isTypewriterDone ? (
-                                      <Typewriter
-                                        words={[nextMessage.steps]}
-                                        loop={1}
-                                        cursor={false}
-                                        typeSpeed={50}
-                                        onLoopDone={() => setIsTypewriterDone(true)}
-                                      />
-                                    ) : (
-                                      nextMessage.steps
+          {/* ── Initial Chat Interface ── */}
+          {showInitialInterface && (
+            <div className="chat-welcome">
+              <div style={{ maxWidth: 640, width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span className="welcome-emoji">{getPersonalityEmoji(selectedPersonality)}</span>
+                <h1 className="welcome-title serif">Chat with {selectedPersonality}</h1>
+                <p className="welcome-subtitle">Ask anything — they'll answer in their own words</p>
+
+                <div style={{ width: '100%', maxWidth: 560, marginBottom: '1.5rem' }}>
+                  <form onSubmit={handleFormSubmit} style={{ position: 'relative' }}>
+                    <input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder={`Ask ${selectedPersonality} anything…`}
+                      className="elite-input"
+                      disabled={isLoading}
+                    />
+                    <button type="submit" className="elite-submit-btn" disabled={!input.trim() || isLoading}>
+                      <ArrowUp style={{ width: 16, height: 16 }} />
+                    </button>
+                  </form>
+                </div>
+
+                <div className="suggestion-row">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      className="suggestion-btn"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      disabled={isLoading}
+                    >
+                      <span className="suggestion-arrow">↗</span>
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Active Chat ── */}
+          {personalityConfirmed && (messages.length > 0 || isLoading) && (
+            <div className="chat-area">
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <ScrollArea ref={scrollAreaRef} style={{ height: '100%' }}>
+                  <div style={{ maxWidth: 1100, margin: '0 auto', padding: '1.5rem 2rem 2rem' }}>
+                    {messages.map((message, index) => {
+                      const nextMessage = messages[index + 1]
+                      const isLastUserMessage =
+                        index === messages.length - 1 ||
+                        (index === messages.length - 2 && messages[index + 1]?.role === "assistant")
+
+                      return (
+                        <div key={index} className="message-block">
+                          {/* User query */}
+                          {message.role === "user" && (
+                            <div>
+                              <h2 className="user-query serif">{message.message}</h2>
+                              <div className="query-divider" />
+                            </div>
+                          )}
+
+                          {/* Thinking indicator */}
+                          {isLastUserMessage && isLoading && !nextMessage && (
+                            <div className="thinking-bar" style={{ marginTop: '1.5rem' }}>
+                              <div className="thinking-dots">
+                                <div className="thinking-dot" />
+                                <div className="thinking-dot" />
+                                <div className="thinking-dot" />
+                              </div>
+                              <span>{getPersonalityEmoji(selectedPersonality)} {selectedPersonality} is contemplating…</span>
+                            </div>
+                          )}
+
+                          {/* Answer + References */}
+                          {nextMessage && nextMessage.role === "assistant" && (
+                            <div className="answer-grid" style={{ marginTop: '1.5rem' }}>
+                              {/* Answer Column */}
+                              <div>
+                                {!nextMessage.isProcessing && nextMessage.message && (
+                                  <div className="personality-byline">
+                                    <span className="byline-emoji">{getPersonalityEmoji(selectedPersonality)}</span>
+                                    <span className="byline-name">{selectedPersonality}</span>
+                                  </div>
+                                )}
+
+                                {nextMessage.isProcessing && nextMessage.steps && (
+                                  <div className="processing-panel">
+                                    <div className="processing-steps">
+                                      {!isTypewriterDone ? (
+                                        <Typewriter
+                                          words={[nextMessage.steps]}
+                                          loop={1}
+                                          cursor={false}
+                                          typeSpeed={40}
+                                          onLoopDone={() => setIsTypewriterDone(true)}
+                                        />
+                                      ) : nextMessage.steps}
+                                    </div>
+
+                                    {isSearching && (
+                                      <div className="searching-label">
+                                        <div className="search-pulse" />
+                                        Searching the archives…
+                                      </div>
+                                    )}
+
+                                    {searchLinks.length > 0 && (
+                                      <div style={{ marginTop: '12px' }}>
+                                        <div style={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>Consulting</div>
+                                        <div className="link-pills">
+                                          {searchLinks.map((link, li) => (
+                                            <button
+                                              key={li}
+                                              onClick={() => window.open(link, "_blank")}
+                                              className="link-pill"
+                                            >
+                                              <img
+                                                src={getFaviconUrl(link) || "/placeholder.svg"}
+                                                alt=""
+                                                onError={(e) => { e.currentTarget.src = "/placeholder.svg?height=12&width=12" }}
+                                              />
+                                              <span style={{ maxWidth: '96px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {extractDomain(link)}
+                                              </span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
-                                  {isSearching && (
-                                    <div className="text-red-600 dark:text-red-400 text-sm">
-                                      Kicking off searches...
-                                    </div>
-                                  )}
-                                  {searchLinks.length > 0 && (
-                                    <div className="space-y-2">
-                                      <div className="text-xs text-muted-foreground">Searching through:</div>
-                                      <div className="flex flex-wrap gap-2">
-                                        {searchLinks.map((link, linkIndex) => (
-                                          <button
-                                            key={linkIndex}
-                                            onClick={() => window.open(link, "_blank")}
-                                            className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-white text-gray-700 text-xs rounded-full border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-                                          >
-                                            <img
-                                              src={getFaviconUrl(link) || "/placeholder.svg"}
-                                              alt=""
-                                              className="w-3 h-3"
-                                              onError={(e) => {
-                                                e.currentTarget.src = "/placeholder.svg?height=12&width=12"
-                                              }}
-                                            />
-                                            <span className="truncate max-w-24">{extractDomain(link)}</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                                )}
 
-                            {!nextMessage.isProcessing && nextMessage.message && (
-                              <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-h1:text-2xl prose-h1:font-bold prose-h1:mb-4 prose-h2:text-xl prose-h2:font-semibold prose-h2:mb-3 prose-h2:mt-6 prose-ul:space-y-2 prose-li:marker:text-muted-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline">
-                                <ReactMarkdown
-                                  components={{
-                                    a: ({ href, children }) => (
-                                      <a
-                                        href={href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary hover:underline inline-flex items-center gap-1"
-                                      >
-                                        {children}
-                                        <ExternalLink className="h-3 w-3" />
-                                      </a>
-                                    ),
-                                    h1: ({ children }) => (
-                                      <h1 className="text-2xl font-bold text-foreground mb-4 mt-6 first:mt-0">
-                                        {children}
-                                      </h1>
-                                    ),
-                                    h2: ({ children }) => (
-                                      <h2 className="text-xl font-semibold text-foreground mb-3 mt-6">{children}</h2>
-                                    ),
-                                    h3: ({ children }) => (
-                                      <h3 className="text-lg font-medium text-foreground mb-2 mt-4">{children}</h3>
-                                    ),
-                                    p: ({ children }) => (
-                                      <p className="text-foreground mb-4 leading-relaxed">{children}</p>
-                                    ),
-                                    ul: ({ children }) => (
-                                      <ul className="list-disc list-inside space-y-2 mb-4 text-foreground">
-                                        {children}
-                                      </ul>
-                                    ),
-                                    li: ({ children }) => (
-                                      <li className="text-foreground leading-relaxed">{children}</li>
-                                    ),
-                                    strong: ({ children }) => (
-                                      <strong className="font-semibold text-foreground">{children}</strong>
-                                    ),
-                                  }}
-                                >
-                                  {nextMessage.message}
-                                </ReactMarkdown>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* References Column */}
-                          <div className="lg:col-span-1">
-                            {!nextMessage.isProcessing &&
-                              nextMessage.references &&
-                              nextMessage.references.length > 0 && (
-                                <div className="space-y-4">
-                                  <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-medium text-muted-foreground">
-                                      {nextMessage.references.length} sites
-                                    </h3>
-                                    <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                                      Show all
-                                    </Button>
+                                {!nextMessage.isProcessing && nextMessage.message && (
+                                  <div className="answer-prose">
+                                    <ReactMarkdown
+                                      components={{
+                                        a: ({ href, children }) => (
+                                          <a href={href} target="_blank" rel="noopener noreferrer">
+                                            {children}
+                                            <ExternalLink style={{ display: 'inline', width: 11, height: 11, marginLeft: 2, verticalAlign: 'middle' }} />
+                                          </a>
+                                        ),
+                                        h1: ({ children }) => <h1>{children}</h1>,
+                                        h2: ({ children }) => <h2>{children}</h2>,
+                                        h3: ({ children }) => <h3>{children}</h3>,
+                                        p: ({ children }) => <p>{children}</p>,
+                                        ul: ({ children }) => <ul>{children}</ul>,
+                                        li: ({ children }) => <li>{children}</li>,
+                                        strong: ({ children }) => <strong>{children}</strong>,
+                                      }}
+                                    >
+                                      {nextMessage.message}
+                                    </ReactMarkdown>
                                   </div>
+                                )}
+                              </div>
 
-                                  <ScrollArea className="h-96">
-                                    <div className="space-y-3 pr-4">
-                                      {nextMessage.references.map((ref, refIndex) => (
-                                        <Card key={refIndex} className="p-4 hover:bg-accent/50 transition-colors">
-                                          <a
-                                            href={ref}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="block group"
-                                          >
-                                            <div className="flex items-start gap-3">
+                              {/* References Column */}
+                              <div>
+                                {!nextMessage.isProcessing && nextMessage.references && nextMessage.references.length > 0 && (
+                                  <div>
+                                    <div className="refs-header">
+                                      <span className="refs-label">Sources</span>
+                                      <span className="refs-count">{nextMessage.references.length} references</span>
+                                    </div>
+                                    <ScrollArea style={{ height: '380px' }}>
+                                      <div style={{ paddingRight: '8px' }}>
+                                        {nextMessage.references.map((ref, ri) => (
+                                          <a key={ri} href={ref} target="_blank" rel="noopener noreferrer" className="ref-card">
+                                            <div className="ref-domain">
                                               <img
                                                 src={getFaviconUrl(ref) || "/placeholder.svg"}
                                                 alt=""
-                                                className="w-4 h-4 mt-0.5 flex-shrink-0"
-                                                onError={(e) => {
-                                                  e.currentTarget.src = "/placeholder.svg?height=16&width=16"
-                                                }}
+                                                style={{ width: 13, height: 13 }}
+                                                onError={(e) => { e.currentTarget.src = "/placeholder.svg?height=13&width=13" }}
                                               />
-                                              <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm text-primary group-hover:underline truncate">
-                                                  {extractDomain(ref)}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{ref}</p>
-                                              </div>
+                                              {extractDomain(ref)}
                                             </div>
+                                            <div className="ref-url">{ref}</div>
                                           </a>
-                                        </Card>
-                                      ))}
-                                    </div>
-                                  </ScrollArea>
-                                </div>
-                              )}
-                          </div>
+                                        ))}
+                                      </div>
+                                    </ScrollArea>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
+                      )
+                    })}
+                  </div>
+                </ScrollArea>
               </div>
-            </ScrollArea>
-          </div>
 
-          {/* Fixed Input Section - Bottom */}
-          <div className="flex-shrink-0 relative">
-            {/* Blur gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none" />
-            <div className="relative border-t border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-              <div className="max-w-4xl mx-auto px-6 py-6 pb-8">
-                <form onSubmit={handleFormSubmit} className="relative max-w-2xl mx-auto">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask anything"
-                    className="w-full h-14 pl-6 pr-16 text-base bg-card/90 backdrop-blur-sm border-input/50 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="absolute right-2 top-2 h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
-                    disabled={!input.trim() || isLoading}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
+              {/* Fixed Input Bar */}
+              <div className="input-bar-wrapper">
+                <div className="input-bar-inner">
+                  <form onSubmit={handleFormSubmit} style={{ position: 'relative' }}>
+                    <input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder={`Ask ${selectedPersonality} anything…`}
+                      className="elite-input"
+                      disabled={isLoading}
+                    />
+                    <button type="submit" className="elite-submit-btn" disabled={!input.trim() || isLoading}>
+                      <Send style={{ width: 15, height: 15 }} />
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
         </div>
-      )}
-    </div>
+      </div>
+    </>
   )
 }
