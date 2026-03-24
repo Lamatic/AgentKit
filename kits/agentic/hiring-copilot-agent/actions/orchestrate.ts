@@ -49,7 +49,8 @@ export async function generateContent(payload: {
 
     return {
       success: false,
-      error: error.message || "Unknown error",
+      error: "Failed to evaluate candidate",
     };
+  }
   }
 }
