@@ -37,79 +37,93 @@ const MainPart = () => {
 
     setMessages((prev) => [...prev, { type: "user", content: jobDesc }]);
 
+    // 🔥 helper to process single file
+    const processFile = async (file: File) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Step 1: Parse Resume
+        const parsedRes = await fetch("/api/parse-resume", {
+          method: "POST",
+          body: formData,
+        });
+
+        const parsedData = await parsedRes.json();
+
+        let parsed;
+
+        try {
+          let raw = parsedData.parsed;
+
+          raw = raw
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+
+          parsed = JSON.parse(raw);
+        } catch {
+          console.error("Parsing JSON failed", parsedData);
+          return null;
+        }
+
+        // Step 2: Evaluate Candidate
+        const evalRes = await fetch("/api/evaluate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            job_description: jobDesc,
+            name: parsed.name || "",
+            skills: parsed.skills || [],
+            experience_years: parsed.experience_years || 0,
+            projects: (parsed.projects || []).map(
+              (p: any) => `${p.name}: ${p.skills_gained?.join(", ")}`,
+            ),
+            education: parsed.education || "",
+            certificates: parsed.certificates || [],
+          }),
+        });
+
+        const evalData = await evalRes.json();
+        return evalData?.data || null;
+      } catch (err) {
+        console.error("Error processing file:", err);
+        return null;
+      }
+    };
+
     try {
-      const results = await Promise.all(
-        files.map(async (file) => {
-          try {
-            const formData = new FormData();
-            formData.append("file", file);
+      const results: any[] = [];
 
-            const parsedRes = await fetch("/api/parse-resume", {
-              method: "POST",
-              body: formData,
-            });
+      // 🔥 BATCHING (5 at a time → safe for APIs)
+      const batchSize = 5;
 
-            const parsedData = await parsedRes.json();
+      for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize);
 
-            let parsed;
+        const batchResults = await Promise.all(
+          batch.map((file) => processFile(file)),
+        );
 
-            try {
-              let raw = parsedData.parsed;
+        // Push only valid results
+        results.push(...batchResults.filter(Boolean));
+      }
 
-              raw = raw
-                .replace(/```json/g, "")
-                .replace(/```/g, "")
-                .trim();
-
-              parsed = JSON.parse(raw);
-            } catch {
-              console.error("Parsing JSON failed", parsedData);
-              return null;
-            }
-
-            const evalRes = await fetch("/api/evaluate", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                job_description: jobDesc,
-                name: parsed.name || "",
-                skills: parsed.skills || [],
-                experience_years: parsed.experience_years || 0,
-                projects: (parsed.projects || []).map(
-                  (p: any) => `${p.name}: ${p.skills_gained?.join(", ")}`,
-                ),
-                education: parsed.education || "",
-                certificates: parsed.certificates || [],
-              }),
-            });
-
-            const evalData = await evalRes.json();
-            return evalData?.data || null;
-          } catch (err) {
-            console.error("Error processing file:", err);
-            return null;
-          }
-        }),
-      );
-
-      const filteredResults = results.filter(Boolean);
-
-      filteredResults.sort(
+      // 🔥 Ranking (same as your logic)
+      results.sort(
         (a: any, b: any) => b.evaluation.final_score - a.evaluation.final_score,
       );
 
-      setMessages((prev) => [
-        ...prev,
-        { type: "ai", content: filteredResults },
-      ]);
+      setMessages((prev) => [...prev, { type: "ai", content: results }]);
     } catch (err) {
       console.error("Batch processing error:", err);
     }
 
     setEvaluating(false);
     setFiles([]);
+    setJodDesc("");
   };
 
   return (
