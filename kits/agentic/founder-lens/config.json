@@ -20,7 +20,7 @@
   ],
   "integrations": ["Exa.ai", "OpenRouter", "Gemini Embeddings", "Weaviate"],
   "features": [
-    "9 parallel Exa.ai web searches across market, competitors, customers, VC trends, success stories",
+    "10 parallel Exa.ai web searches across market, competitors, customers, VC trends, success stories",
     "Verbatim customer complaint mining from Reddit, G2, HN, Capterra",
     "Dedicated contrarian VC persona finds the fatal flaw",
     "RAG-powered persistent chat — brief stored in vector DB, retrieved per session",

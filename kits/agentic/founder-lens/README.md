@@ -19,7 +19,7 @@ Non-technical founders spend weeks manually researching whether their idea is vi
 
 Founder Lens completely automates this research process in ~90 seconds using a 7-phase autonomous agent. Submit a startup idea and two Lamatic flows run in sequence:
 
-**Flow 1 — Analyze:** Deconstructs your idea into 8 targeted search queries, then fires 9 parallel Exa.ai web searches across:
+**Flow 1 — Analyze:** Deconstructs your idea into 8 targeted search queries, then fires 10 parallel Exa.ai web searches across:
 - **Market size** — TAM/SAM/SOM data
 - **VC funding signals** — Crunchbase trends and recent rounds
 - **Direct competitors** — mapping the competitive landscape
@@ -59,7 +59,7 @@ Founder Lens saves founders immense time, reduces manual work entirely, and prov
 | Layer | Technology |
 |---|---|
 | Flow orchestration, RAG, memory | **Lamatic.ai** |
-| Neural web search (9 parallel) | **Exa.ai** |
+| Neural web search (10 parallel) | **Exa.ai** |
 | Analysis synthesis & chat | **OpenRouter / GPT-4o** |
 | Idea deconstruction | **OpenRouter / Claude 3.5 Sonnet** |
 | Vector embeddings | **Gemini gemini-embedding-001** |
@@ -103,7 +103,7 @@ Founder Lens saves founders immense time, reduces manual work entirely, and prov
    ```
 
 5. **Open your browser**
-   ```
+   ```text
    http://localhost:3000
    ```
 
@@ -163,7 +163,7 @@ Retrieves the indexed brief and conversation history from memory, then answers t
 
 This kit was built for the [agentkit-challenge](https://github.com/Lamatic/AgentKit). To open a PR:
 
-```
+```text
 github.com/Lamatic/AgentKit/compare/main...YOUR-USERNAME:feat/founder-lens?expand=1
 ```
 
