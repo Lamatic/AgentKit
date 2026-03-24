@@ -7,9 +7,9 @@
   },
   "steps": [
     {
-      "id": "hiring-copilot-flow",
+      "id": "first-flow",
       "type": "mandatory",
-      "envKey": "AGENTIC_GENERATE_CONTENT"
+      "envKey": "AGENTIC_FIRST_FLOW"
     }
   ],
   "demoUrl": "https://hiring-copilot-agent.vercel.app"

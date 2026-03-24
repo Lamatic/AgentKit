@@ -10,6 +10,7 @@ export async function POST(req: Request) {
       education,
       certificates,
       experience_years,
+      experience_level,
     } = await req.json();
 
     const result = await generateContent({
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
       education,
       certificates,
       experience_years,
+      experience_level
     });
 
     if (!result.success) {

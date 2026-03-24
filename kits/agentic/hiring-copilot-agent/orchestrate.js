@@ -1,7 +1,7 @@
 export const config = {
   type: "atomic",
   flows: {
-    hiring_copilot: {
+    first_flow: {
       name: "AI Hiring Copilot",
       type: "graphQL",
       workflowId: process.env.AGENTIC_GENERATE_CONTENT,
@@ -9,16 +9,18 @@ export const config = {
         "Helps Recruiters shortlist perfect candidate against a JD from a pool of candidates.",
       inputSchema: {
         job_description: "string",
-        resume: "string"
+        name: "string",
+        skills: ["string"],
+        projects: ["string"],
+        education: "string",
+        certificates: ["string"],
+        experience_years: "number",
       },
       outputSchema: {
         candidate: {
           name: "string",
-          skills: {
-            name: "string",
-            skills_gained: "string"
-          },
-          experience: "number"
+          skills: ["string"],
+          experience: "number",
         },
         evaluation: {
           final_score: "number",
@@ -26,18 +28,18 @@ export const config = {
           breakdown: {
             skill_match: "number",
             experience_match: "number",
-            project_relevance: "number"
-          }
+            project_relevance: "number",
+          },
         },
-        reasoning: "string"
+        reasoning: "string",
       },
       mode: "sync",
-      polling: "false"
-    }
+      polling: "false",
+    },
   },
   api: {
     endpoint: process.env.LAMATIC_API_URL,
     projectId: process.env.LAMATIC_PROJECT_ID,
-    apiKey: process.env.LAMATIC_API_KEY
-  }
+    apiKey: process.env.LAMATIC_API_KEY,
+  },
 };

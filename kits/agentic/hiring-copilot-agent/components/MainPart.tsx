@@ -23,9 +23,11 @@ const MainPart = () => {
   };
 
   const handleSubmit = async () => {
+    if (evaluating) return;
+
     if (files.length === 0 || !jobDesc || jobDesc.length < 12) {
       if (files.length === 0) {
-        toast({ title: "Ensure atleast 1 File" });
+        toast({ title: "Ensure at least 1 Resume File" });
       } else {
         toast({ title: "JD must be greater than 12 chars." });
       }
@@ -35,89 +37,100 @@ const MainPart = () => {
     setChatBegan(true);
     setEvaluating(true);
 
-    setMessages((prev) => [...prev, { type: "user", content: jobDesc }]);
+    try {
+      setMessages((prev) => [...prev, { type: "user", content: jobDesc }]);
 
-    const processFile = async (file: File) => {
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const parsedRes = await fetch("/api/parse-resume", {
-          method: "POST",
-          body: formData,
-        });
-
-        const parsedData = await parsedRes.json();
-
-        let parsed;
-
+      const processFile = async (file: File) => {
         try {
-          let raw = parsedData.parsed;
+          const formData = new FormData();
+          formData.append("file", file);
 
-          raw = raw
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
-            .trim();
+          const parsedRes = await fetch("/api/parse-resume", {
+            method: "POST",
+            body: formData,
+          });
 
-          parsed = JSON.parse(raw);
-        } catch {
-          console.error("Parsing JSON failed", parsedData);
+          if (!parsedRes.ok) {
+            return null;
+          }
+          const parsedData = await parsedRes.json();
+          // console.log("PARSED DATA:", parsedData);
+          let parsed;
+
+          try {
+            let raw = parsedData.parsed;
+            raw = raw
+              .replace(/```json/g, "")
+              .replace(/```/g, "")
+              .trim();
+            parsed = JSON.parse(raw);
+            // console.log("PARSED JSON:", parsed);
+          } catch {
+            // console.error("Parsing JSON failed", parsedData);
+            return null;
+          }
+          const evalRes = await fetch("/api/evaluate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              job_description: jobDesc,
+              name: parsed.name || "",
+              skills: parsed.skills || [],
+              experience_years: parsed.experience_years || 0,
+              experience_level: `${parsed.experience_years || 0} years`,
+              projects: (parsed.projects || []).map(
+                (p: any) => `${p.name}: ${p.skills_gained?.join(", ")}`,
+              ),
+              education: parsed.education || "",
+              certificates: parsed.certificates || [],
+            }),
+          });
+
+          if (!evalRes.ok) {
+            return null;
+          }
+
+          const evalData = await evalRes.json();
+          // console.log("EVAL RESPONSE:", evalData);
+          return evalData?.data || null;
+        } catch (err) {
+          // console.error("Error processing file:", err);
           return null;
         }
+      };
 
-        const evalRes = await fetch("/api/evaluate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            job_description: jobDesc,
-            name: parsed.name || "",
-            skills: parsed.skills || [],
-            experience_years: parsed.experience_years || 0,
-            projects: (parsed.projects || []).map(
-              (p: any) => `${p.name}: ${p.skills_gained?.join(", ")}`,
-            ),
-            education: parsed.education || "",
-            certificates: parsed.certificates || [],
-          }),
-        });
-
-        const evalData = await evalRes.json();
-        return evalData?.data || null;
-      } catch (err) {
-        console.error("Error processing file:", err);
-        return null;
-      }
-    };
-
-    try {
       const results: any[] = [];
-
       const batchSize = 5;
 
       for (let i = 0; i < files.length; i += batchSize) {
         const batch = files.slice(i, i + batchSize);
 
-        const batchResults = await Promise.all(
+        const batchResults = await Promise.allSettled(
           batch.map((file) => processFile(file)),
         );
 
-        results.push(...batchResults.filter(Boolean));
+        results.push(
+          ...batchResults
+            .filter((r) => r.status === "fulfilled" && r.value)
+            .map((r: any) => r.value),
+        );
       }
 
-      results.sort(
-        (a: any, b: any) => b.evaluation.final_score - a.evaluation.final_score,
-      );
+      results
+        .filter((r) => r?.evaluation?.final_score != null)
+        .sort(
+          (a: any, b: any) =>
+            b.evaluation.final_score - a.evaluation.final_score,
+        );
 
       setMessages((prev) => [...prev, { type: "ai", content: results }]);
+      setFiles([]);
+      setJodDesc("");
     } catch (err) {
-      console.error("Batch processing error:", err);
+      // console.error("Batch processing error:", err);
+    } finally {
+      setEvaluating(false);
     }
-
-    setEvaluating(false);
-    setFiles([]);
-    setJodDesc("");
   };
 
   return (
@@ -222,15 +235,15 @@ const MainPart = () => {
                             <div className="flex justify-between">
                               <div>
                                 <div className="font-semibold text-lg">
-                                  {medal} {c.candidate.name}
+                                  {medal} {c?.candidate?.name ?? "Unknown"}
                                 </div>
                                 <div className="text-sm text-gray-400">
-                                  {c.evaluation.verdict}
+                                  {c?.evaluation?.verdict}
                                 </div>
                               </div>
 
                               <div className="text-xl font-bold text-[#D0FF00]">
-                                {c.evaluation.final_score}%
+                                {c?.evaluation?.final_score ?? 0}%
                               </div>
                             </div>
 

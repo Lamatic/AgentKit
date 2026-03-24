@@ -11,6 +11,7 @@ export async function generateContent(payload: {
   education: string;
   certificates: string[];
   experience_years: number;
+  experience_level: string;
 }) {
   try {
     const flows = config.flows;
@@ -27,7 +28,7 @@ export async function generateContent(payload: {
     }
 
     const finalPayload = {
-      ...payload
+      ...payload,
     };
 
     // console.log("[orchestrate] Sending payload:", finalPayload);
@@ -41,7 +42,7 @@ export async function generateContent(payload: {
 
     return {
       success: true,
-      data: resData?.result,
+      data: resData.result,
     };
   } catch (error: any) {
     console.error("[orchestrate] Error:", error);
