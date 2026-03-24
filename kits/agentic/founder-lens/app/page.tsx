@@ -10,6 +10,8 @@ import { generateUserId, generateSessionId } from "@/lib/utils";
 import { Icons } from "@/components/Icons";
 import { AuroraBackground } from "@/components/AuroraBackground";
 
+export const maxDuration = 600; // 10 minute timeout for Vercel Server Actions
+
 type AppState = "idle" | "analyzing" | "ready" | "error";
 
 interface Message {
