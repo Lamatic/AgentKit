@@ -26,13 +26,13 @@ export function IdeaForm({ onSubmit, disabled }: IdeaFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (idea.trim()) onSubmit(idea.trim());
+    if (idea.trim() && !disabled) onSubmit(idea.trim());
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
-      if (idea.trim()) onSubmit(idea.trim());
+      if (idea.trim() && !disabled) onSubmit(idea.trim());
     }
   };
 
