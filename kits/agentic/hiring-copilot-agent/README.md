@@ -64,6 +64,7 @@ Before running this project, make sure you have:
 Create a `.env` file from `.env.example` and fill in:
 
 ```env
+OPENAI_API_KEY="YOUR_API_KEY"
 AGENTIC_GENERATE_CONTENT="YOUR_FLOW_ID"
 LAMATIC_API_URL="YOUR_API_URL"
 LAMATIC_PROJECT_ID="YOUR_PROJECT_ID"
