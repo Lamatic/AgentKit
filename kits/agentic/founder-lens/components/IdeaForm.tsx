@@ -24,17 +24,34 @@ export function IdeaForm({ onSubmit, disabled }: IdeaFormProps) {
   const [typedPlaceholder, setTypedPlaceholder] = useState("");
   const [exampleIndex, setExampleIndex] = useState(0);
 
+import { useState, useRef, useEffect } from "react";
+
+export function IdeaForm({ onSubmit, disabled }: IdeaFormProps) {
+  const [idea, setIdea] = useState("");
+  const submitLockRef = useRef(false);
+
+  const submitIdea = () => {
+    const trimmed = idea.trim();
+    if (!trimmed || disabled || submitLockRef.current) return;
+    submitLockRef.current = true;
+    onSubmit(trimmed);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (idea.trim() && !disabled) onSubmit(idea.trim());
+    submitIdea();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
-      if (idea.trim() && !disabled) onSubmit(idea.trim());
+      submitIdea();
     }
   };
+
+  useEffect(() => {
+    if (!disabled) submitLockRef.current = false;
+  }, [disabled]);
 
   // Auto-resize textarea (capped at 200px to prevent page stretch)
   useEffect(() => {
