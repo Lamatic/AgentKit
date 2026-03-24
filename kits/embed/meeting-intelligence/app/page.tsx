@@ -137,7 +137,7 @@ export default function Home() {
             </div>
 
             <div className="mt-10">
-              <TranscriptPlayground />
+              <TranscriptPlayground isLamaticReady={isLamaticReady} />
             </div>
 
             <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_1.1fr]">

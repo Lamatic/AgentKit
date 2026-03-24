@@ -13,6 +13,10 @@ const API_URL    = process.env.NEXT_PUBLIC_LAMATIC_API_URL    ?? "";
 const ROOT_ID   = "lamatic-chat-root";
 const SCRIPT_ID = "lamatic-chat-script";
 
+type LamaticWindow = Window & {
+  LamaticChatWidget?: { open?: () => void; close?: () => void };
+};
+
 // Module-level guard — survives React Fast Refresh so we never double-inject.
 let didBootstrap = false;
 
@@ -82,8 +86,9 @@ export default function LamaticChat({ disabled = false }: LamaticChatProps) {
   useEffect(() => {
     if (!isConfigured || disabled) return;
     try {
-      if (isOpen) (window as Window & { LamaticChatWidget?: { open?: () => void; close?: () => void } }).LamaticChatWidget?.open?.();
-      else        (window as Window & { LamaticChatWidget?: { open?: () => void; close?: () => void } }).LamaticChatWidget?.close?.();
+      const w = window as LamaticWindow;
+      if (isOpen) w.LamaticChatWidget?.open?.();
+      else        w.LamaticChatWidget?.close?.();
     } catch (e) {
       console.warn("[LamaticChat] toggle error", e);
     }

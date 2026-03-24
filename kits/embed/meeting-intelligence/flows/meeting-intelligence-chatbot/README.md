@@ -4,7 +4,7 @@ This Lamatic flow powers the AI Meeting Intelligence Copilot. It takes a raw mee
 
 ## Flow Architecture
 
-```
+```text
 Chat Widget (Chat Trigger)
         ↓
 Generate Text (LLM) — extracts full analysis

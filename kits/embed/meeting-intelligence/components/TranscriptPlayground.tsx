@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 const SAMPLE_TRANSCRIPT =
   "Team discussed Q4 product launch. Rahul handles frontend. Priya backend. Budget concerns raised. Deadline next Friday.";
 
+// These IDs must match the Lamatic chat widget's internal DOM structure.
+// If the widget updates, verify these selectors still work.
 const INPUT_ID = "lam-chat-message-input";
 const SEND_BTN_ID = "lam-chat-send-button";
 const MAX_ATTEMPTS = 20;
@@ -38,9 +40,16 @@ function fillAndSend(value: string, attempt = 0): void {
   if (sendBtn) sendBtn.click();
 }
 
-export default function TranscriptPlayground() {
+interface TranscriptPlaygroundProps {
+  isLamaticReady?: boolean;
+}
+
+export default function TranscriptPlayground({ isLamaticReady = true }: TranscriptPlaygroundProps) {
   const [transcript, setTranscript] = useState(SAMPLE_TRANSCRIPT);
-  const canAnalyze = useMemo(() => transcript.trim().length > 12, [transcript]);
+  const canAnalyze = useMemo(
+    () => isLamaticReady && transcript.trim().length > 12,
+    [isLamaticReady, transcript],
+  );
 
   const handleAnalyze = () => {
     const value = transcript.trim();
