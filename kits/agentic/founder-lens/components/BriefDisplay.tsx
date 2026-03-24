@@ -27,17 +27,38 @@ function parseBrief(rawJson: string | object): any {
   if (typeof rawJson === "object" && rawJson !== null) return rawJson;
   if (!rawJson || typeof rawJson !== "string") return null;
 
+  // 1. Try standard JSON.parse
   try {
     return JSON.parse(rawJson);
-  } catch {
+  } catch (e1) {
+    // 2. If fails, try cleaning up markdown fences and extracting the object
     try {
-      let cleaned = rawJson.replace(/```json\s*/gi, "").replace(/```\s*/g, "");
+      let cleaned = rawJson.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
       const start = cleaned.indexOf("{");
       const end = cleaned.lastIndexOf("}");
       if (start === -1 || end === -1) return null;
-      let sliced = cleaned.slice(start, end + 1);
-      sliced = sliced.replace(/\n/g, "\\n").replace(/\r/g, "");
-      return JSON.parse(sliced);
+      const sliced = cleaned.slice(start, end + 1);
+      
+      try {
+        return JSON.parse(sliced);
+      } catch (e2) {
+        // 3. Last resort: handle unescaped newlines inside strings (common LLM error)
+        // We only replace newlines with \n if they seem to be inside a field value
+        // but it's safer to just try a simple "replace actual newlines with literal \n"
+        // but ONLY if the parse fails. 
+        // Note: Aggressive replacement of all \n with \\n breaks structural newlines.
+        // Let's try to just remove literal newlines that are NOT inside strings if possible, 
+        // or just accept that it's broken if e2 failed.
+        // Actually, some LLMs return JSON with real newlines inside string values.
+        try {
+          // This is a last-ditch effort to fix unescaped newlines in values
+          // by escaping THEM and then fixing the ones that shouldn't have been escaped.
+          const escaped = sliced.replace(/\n/g, "\\n").replace(/\r/g, "");
+          return JSON.parse(escaped);
+        } catch (e3) {
+          return null;
+        }
+      }
     } catch {
       return null;
     }
