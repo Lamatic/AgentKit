@@ -9,9 +9,9 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev -p 3200",
+    "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start -p 3200"
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
