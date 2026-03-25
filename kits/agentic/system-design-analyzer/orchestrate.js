@@ -1,19 +1,19 @@
 export const config = {
   type: "atomic",
   flows: {
-    "system-design-analyzer": {
-      name: "System Design Analyzer",
+    "check-your-saas": {
+      name: "Check Your SaaS",
       type: "graphQL",
       workflowId: process.env.SYSTEM_DESIGN_ANALYZER_FLOW_ID,
-      description: "Analyzes system design specifications and provides comprehensive insights on architecture, backend design, performance, security, cost, and overall system quality.",
-      expectedOutput: ["issues", "recommendations", "summary"],
+      description: "Analyzes system design specifications and extracts components, data flow, and assumptions using AI agents.",
+      expectedOutput: ["components", "data_flow", "assumptions"],
       inputSchema: {
         system_design: "string"
       },
       outputSchema: {
-        issues: "array",
-        recommendations: "array",
-        summary: "string"
+        components: "array",
+        data_flow: "string",
+        assumptions: "array"
       },
       mode: "sync",
       polling: "false"

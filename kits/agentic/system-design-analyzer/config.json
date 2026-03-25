@@ -8,7 +8,7 @@
   },
   "steps": [
     {
-      "id": "system-design-analyzer",
+      "id": "check-your-saas",
       "type": "mandatory",
       "envKey": "SYSTEM_DESIGN_ANALYZER_FLOW_ID"
     }
