@@ -8,7 +8,7 @@ const LAMATIC_API_KEY = process.env.LAMATIC_API_KEY;
 const FLOW_ID = process.env.SYSTEM_DESIGN_ANALYZER_FLOW_ID;
 
 const query = `
-  query ExecuteWorkflow(
+  mutation ExecuteWorkflow(
     $workflowId: String!
     $system_design: String
   ) {
@@ -39,6 +39,12 @@ export async function analyzeSystemDesign(systemDesign: string) {
       system_design: systemDesign,
     };
 
+    console.log('Calling Lamatic API with:', {
+      url: LAMATIC_API_URL,
+      workflowId: FLOW_ID,
+      systemDesignLength: systemDesign.length,
+    });
+
     const options = {
       method: 'POST',
       url: LAMATIC_API_URL,
@@ -53,10 +59,17 @@ export async function analyzeSystemDesign(systemDesign: string) {
     const response = await axios(options);
 
     if (response.data?.errors) {
-      throw new Error(response.data.errors[0]?.message || 'GraphQL error');
+      const errorMsg = response.data.errors[0]?.message || 'GraphQL error';
+      console.error('GraphQL Error:', response.data.errors);
+      throw new Error(errorMsg);
     }
 
     const result = response.data?.data?.executeWorkflow;
+
+    if (!result) {
+      console.error('No result in response:', response.data);
+      throw new Error('No result received from API');
+    }
 
     return {
       success: true,
