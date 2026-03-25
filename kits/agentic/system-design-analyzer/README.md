@@ -14,7 +14,7 @@ A modern, AI-powered web application that analyzes system design specifications 
 
 - **Frontend**: Next.js 15, React 18, TypeScript
 - **Styling**: Tailwind CSS v4, custom components
-- **API**: Lamatic GraphQL API
+- **API**: Lamatic SDK (`lamatic` npm package)
 - **Form Handling**: React Hook Form + Zod validation
 - **Icons**: Lucide React
 
@@ -49,10 +49,10 @@ cp .env.example .env.local
 Edit `.env.local` with your Lamatic credentials:
 
 ```env
-LAMATIC_API_URL = "https://trishitsorganization963-chekyoursaas335.lamatic.dev/graphql"
-LAMATIC_PROJECT_ID = "92d387df-59be-4563-acec-02288b4d8d95"
-LAMATIC_API_KEY = "YOUR_LAMATIC_API_KEY_HERE"
-SYSTEM_DESIGN_ANALYZER_FLOW_ID = "2392ad97-51e9-4954-8d38-bc668e644818"
+LAMATIC_API_URL = "YOUR_LAMATIC_API_URL"
+LAMATIC_PROJECT_ID = "YOUR_PROJECT_ID"
+LAMATIC_API_KEY = "YOUR_API_KEY"
+SYSTEM_DESIGN_ANALYZER_FLOW_ID = "YOUR_FLOW_ID"
 NEXT_PUBLIC_APP_NAME = "System Design Analyzer"
 ```
 
@@ -110,25 +110,24 @@ npm run start
 
 ## API Integration
 
-The application uses the Lamatic GraphQL API to process system design specifications. The integration is handled through server actions in `actions/orchestrate.ts`.
+The application uses the **Lamatic SDK** (`lamatic` npm package) to execute flows. The integration is handled through server actions in `actions/orchestrate.ts`.
 
-### GraphQL Query
+### Server Action
 
-```graphql
-query ExecuteWorkflow(
-  $workflowId: String!
-  $system_design: String
-) {
-  executeWorkflow(
-    workflowId: $workflowId
-    payload: {
-      system_design: $system_design
-    }
-  ) {
-    status
-    result
-  }
-}
+The `analyzeSystemDesign()` server action in `actions/orchestrate.ts` handles the API communication:
+
+```typescript
+import { Lamatic } from 'lamatic';
+
+const lamaticClient = new Lamatic({
+  endpoint: process.env.LAMATIC_API_URL,
+  projectId: process.env.LAMATIC_PROJECT_ID,
+  apiKey: process.env.LAMATIC_API_KEY,
+});
+
+await lamaticClient.executeFlow(SYSTEM_DESIGN_ANALYZER_FLOW_ID, {
+  system_design: userInput,
+});
 ```
 
 ## Project Structure
@@ -168,33 +167,58 @@ system-design-analyzer/
 
 The application follows Lamatic's modern design system:
 
-- **Colors**: Red-Orange gradient primary (matching Lamatic branding)
-- **Typography**: Poppins font family
+- **Colors**: White (#ffffff) background, Black (#000000) text, Red (#dc2626) accent
+- **Typography**: Inter font family with variable weights
 - **Components**: Clean, minimalist design with focus on usability
-- **Responsiveness**: Full mobile and tablet support
+- **Responsiveness**: Fully responsive mobile and tablet support
 
 ## Error Handling
 
 The application handles various error scenarios:
 
-- Missing API credentials
-- Network errors
-- API errors from Lamatic
-- Validation errors on form submission
+- Input validation errors (minimum 10 characters)
+- Network errors during API calls
+- Server errors from Lamatic flows
+- Missing API credentials in environment variables
 
-All errors are displayed to the user with clear, actionable messages.
+All errors are displayed to the user with clear, actionable messages in the error section of the form.
 
 ## License
 
 This project is part of the Lamatic AgentKit and follows the same license.
 
+## Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Import the repository in Vercel
+3. Set the root directory to `kits/agentic/system-design-analyzer`
+4. Add environment variables in Vercel Dashboard:
+   - `LAMATIC_API_URL`
+   - `LAMATIC_PROJECT_ID`
+   - `LAMATIC_API_KEY`
+   - `SYSTEM_DESIGN_ANALYZER_FLOW_ID`
+5. Deploy
+
+## Troubleshooting
+
+**Issue**: "LAMATIC_API_KEY is not set"
+- **Solution**: Check `.env.local` has all required variables
+
+**Issue**: Flow returns object instead of string
+- **Solution**: Ensure the flow response is properly serialized in `actions/orchestrate.ts`
+
+**Issue**: Port 3000 already in use
+- **Solution**: Use `PORT=3001 npm run dev` to run on a different port
+
 ## Support
 
 For issues or questions:
 1. Check the [Lamatic documentation](https://lamatic.ai/docs)
-2. Review the flow configuration in `flows/system-design-analyzer/`
-3. Ensure all environment variables are correctly set
+2. Review the [AgentKit README](https://github.com/Lamatic/AgentKit)
+3. Open an issue in the [GitHub repository](https://github.com/Lamatic/AgentKit/issues)
 
 ## Contributing
 
-Contributions are welcome! Please follow the AgentKit contribution guidelines in the main repository.
+Contributions are welcome! Please follow the [AgentKit contribution guidelines](https://github.com/Lamatic/AgentKit/blob/main/CONTRIBUTING.md).
