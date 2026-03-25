@@ -301,7 +301,7 @@ jobs:
               echo "---"
               echo ":stop_sign: Please fix the errors above before this PR can be merged."
               echo ""
-              echo "Refer to [CONTRIBUTING.md](../CONTRIBUTING.md) and [CLAUDE.md](../CLAUDE.md) for the expected folder structure."
+              echo "Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) and [CLAUDE.md](./CLAUDE.md) for the expected folder structure."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
