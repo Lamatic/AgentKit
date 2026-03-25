@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'AI Career Copilot | Your Personal Career Assistant',
   description: 'AI-powered career analysis tool that helps you identify skills, find suitable roles, and create personalized learning paths.',
   keywords: 'career, AI, resume analysis, job recommendations, skill development, career planning',
-  authors: [{ name: 'Your Name' }],
+  authors: [{ name: 'Durvankur Joshi ' }],
   openGraph: {
     title: 'AI Career Copilot',
     description: 'Your personal AI career assistant',
