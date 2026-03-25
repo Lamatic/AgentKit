@@ -13,7 +13,7 @@
             "envKey": "WATCHDOG_FLOW_ID"
         }
     ],
-    "integrations": ["Firecrawl", "Postgres", "Discord","Google Sheets"],
+    "integrations": ["Firecrawl", "Postgres"],
     "features": [
         "Automated monitoring of competitor websites for pricing and feature changes.",
         "Generation of sales counter-strategies based on detected changes.",

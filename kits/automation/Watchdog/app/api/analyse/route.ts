@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const LAMATIC_ENDPOINT = process.env.LAMATIC_ENDPOINT!
+const LAMATIC_ENDPOINT = process.env.LAMATIC_API_URL!
 const LAMATIC_API_KEY = process.env.LAMATIC_API_KEY!
-const WORKFLOW_ID = process.env.LAMATIC_WORKFLOW_ID!
+const WORKFLOW_ID = process.env.WATCHDOG_FLOW_ID!
 const LAMATIC_PROJECT_ID = process.env.LAMATIC_PROJECT_ID!
 
 const EXECUTE_WORKFLOW = `
@@ -19,9 +19,15 @@ const EXECUTE_WORKFLOW = `
 
 export async function POST(req: NextRequest) {
   try {
-    const { competitors } = await req.json()
+    const body = await req.json();
+    const competitors = Array.isArray(body?.competitors) ? body.competitors : [];
 
-    if (!competitors || competitors.length === 0) {
+    const isValid = competitors.length > 0 && competitors.every(
+      (c: any) => typeof c?.org_name === 'string' && c.org_name.trim() &&
+                  typeof c?.url === 'string' && c.url.trim()
+    );
+
+    if (!isValid) {
       return NextResponse.json({ error: 'No competitors provided' }, { status: 400 })
     }
 

@@ -75,15 +75,13 @@ export default function WatchdogDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-100 px-6 py-12 md:py-16">
-      {/* Background glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-indigo-600/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-violet-600/4 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-150 h-100 bg-indigo-600/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-100 h-75 bg-violet-600/4 rounded-full blur-3xl" />
       </div>
 
       <div className="relative max-w-2xl mx-auto">
 
-        {/* Header */}
         <header className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-[11px] font-medium tracking-widest uppercase mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
@@ -115,7 +113,6 @@ export default function WatchdogDashboard() {
           </div>
         </header>
 
-        {/* Competitors List */}
         {competitors.length > 0 && (
           <div className="mb-8">
             <p className="text-[11px] font-medium tracking-widest uppercase text-slate-600 mb-3 flex items-center gap-2">
@@ -157,7 +154,6 @@ export default function WatchdogDashboard() {
           </div>
         )}
 
-        {/* Output Box */}
         <div className={`bg-[#111118] border rounded-2xl overflow-hidden transition-colors duration-300 ${results.length > 0 ? "border-white/13" : "border-white/[0.07]"}`}>
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07] bg-[#16161f]">
             <span className="text-[11px] font-medium tracking-widest uppercase text-slate-500">
@@ -176,8 +172,7 @@ export default function WatchdogDashboard() {
             )}
           </div>
 
-          <div className="p-6 min-h-[200px]">
-            {/* Error */}
+          <div className="p-6 min-h-50">
             {analysisError && (
               <div className="flex items-start gap-3 bg-red-500/[0.07] border border-red-500/20 rounded-xl p-4">
                 <div className="w-5 h-5 rounded-full bg-red-500/15 flex items-center justify-center text-red-400 text-[10px] font-bold shrink-0 mt-0.5">!</div>
@@ -188,7 +183,6 @@ export default function WatchdogDashboard() {
               </div>
             )}
 
-            {/* Loading */}
             {!analysisError && loading && (
               <div className="flex flex-col items-center justify-center gap-4 py-10">
                 <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-indigo-500 animate-spin" />
@@ -201,7 +195,6 @@ export default function WatchdogDashboard() {
               </div>
             )}
 
-            {/* Empty */}
             {!analysisError && !loading && results.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-600">
                 <div className="w-11 h-11 rounded-xl bg-[#16161f] border border-white/[0.07] flex items-center justify-center mb-1">
@@ -212,7 +205,6 @@ export default function WatchdogDashboard() {
               </div>
             )}
 
-            {/* Results */}
             {!analysisError && !loading && results.length > 0 && (
               <div className="flex flex-col gap-5">
                 {results.map((item, index) => (
@@ -242,7 +234,6 @@ export default function WatchdogDashboard() {
         </div>
       </div>
 
-      {/* Modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md"

@@ -1,4 +1,12 @@
 {
+  "name": "agent-kit-hiring-automation",
+  "author": "Lamatic AI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/Watchdog"
+  },
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +17,7 @@
     "dotenv": "^17.3.1",
     "lamatic": "^0.3.2",
     "lucide-react": "^1.6.0",
-    "next": "latest",
+    "next": "16.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
