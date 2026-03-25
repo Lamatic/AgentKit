@@ -1,0 +1,319 @@
+name: Validate PR Contribution
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate:
+    if: startsWith(github.event.pull_request.title, 'feat:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Validate contribution structure
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+
+          ERRORS=()
+          WARNINGS=()
+          NEW_PROJECTS=()
+          EXISTING_MODIFIED=()
+
+          # --- A. Compute diff and classify changed files ---
+
+          MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD)
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRD "$MERGE_BASE"...HEAD || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changed files detected."
+            echo "## PR Validation Results" >> "$GITHUB_STEP_SUMMARY"
+            echo "No contribution files detected in this PR." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Known exceptions to skip
+          SKIP_PATHS=("templates/indexation" "kits/agentic/stock-analysis")
+
+          should_skip() {
+            local path="$1"
+            for skip in "${SKIP_PATHS[@]}"; do
+              if [ "$path" = "$skip" ]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          # Extract project path from a file path
+          get_project_path() {
+            local file="$1"
+            if [[ "$file" == kits/* ]]; then
+              # kits/<category>/<kit-name>/... → 3 levels
+              echo "$file" | cut -d/ -f1-3
+            elif [[ "$file" == bundles/* ]]; then
+              # bundles/<bundle-name>/... → 2 levels
+              # Handle nested bundles like bundles/sample/chatbot
+              local second
+              second=$(echo "$file" | cut -d/ -f2)
+              if [ "$second" = "sample" ]; then
+                echo "$file" | cut -d/ -f1-3
+              else
+                echo "$file" | cut -d/ -f1-2
+              fi
+            elif [[ "$file" == templates/* ]]; then
+              # templates/<template-name>/... → 2 levels
+              echo "$file" | cut -d/ -f1-2
+            else
+              echo ""
+            fi
+          }
+
+          # Get contribution type from project path
+          get_type() {
+            local path="$1"
+            if [[ "$path" == kits/* ]]; then
+              echo "kit"
+            elif [[ "$path" == bundles/* ]]; then
+              echo "bundle"
+            elif [[ "$path" == templates/* ]]; then
+              echo "template"
+            fi
+          }
+
+          # Collect unique project paths
+          declare -A PROJECT_MAP
+          OTHER_FILES=()
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            project_path=$(get_project_path "$file")
+            if [ -z "$project_path" ]; then
+              OTHER_FILES+=("$file")
+            else
+              PROJECT_MAP["$project_path"]=1
+            fi
+          done <<< "$CHANGED_FILES"
+
+          # --- B. Check 1: No edits to existing projects ---
+
+          CHECK1_PASS=true
+
+          for project_path in "${!PROJECT_MAP[@]}"; do
+            if should_skip "$project_path"; then
+              continue
+            fi
+
+            # Check if the project existed at the merge base
+            if git ls-tree --name-only "$MERGE_BASE" -- "$project_path" 2>/dev/null | grep -q .; then
+              EXISTING_MODIFIED+=("$project_path")
+              ERRORS+=("Existing project modified: $project_path — feat: PRs should only add new contributions")
+              CHECK1_PASS=false
+            else
+              NEW_PROJECTS+=("$project_path")
+            fi
+          done
+
+          # --- C. Check 2: Root file presence ---
+
+          CHECK2_PASS=true
+
+          for project_path in "${NEW_PROJECTS[@]}"; do
+            if should_skip "$project_path"; then
+              continue
+            fi
+
+            ptype=$(get_type "$project_path")
+
+            case "$ptype" in
+              kit)
+                for req in config.json README.md; do
+                  if [ ! -f "$project_path/$req" ]; then
+                    ERRORS+=("Missing $req in $project_path")
+                    CHECK2_PASS=false
+                  fi
+                done
+                if [ ! -d "$project_path/flows" ]; then
+                  ERRORS+=("Missing flows/ directory in $project_path")
+                  CHECK2_PASS=false
+                fi
+                ;;
+              bundle)
+                for req in config.json README.md; do
+                  if [ ! -f "$project_path/$req" ]; then
+                    ERRORS+=("Missing $req in $project_path")
+                    CHECK2_PASS=false
+                  fi
+                done
+                if [ ! -d "$project_path/flows" ]; then
+                  ERRORS+=("Missing flows/ directory in $project_path")
+                  CHECK2_PASS=false
+                fi
+                ;;
+              template)
+                for req in config.json inputs.json meta.json README.md; do
+                  if [ ! -f "$project_path/$req" ]; then
+                    ERRORS+=("Missing $req in $project_path")
+                    CHECK2_PASS=false
+                  fi
+                done
+                ;;
+            esac
+          done
+
+          # --- D. Check 3: Flow folder validation ---
+
+          CHECK3_PASS=true
+          FLOW_REQUIRED=(config.json inputs.json meta.json README.md)
+
+          for project_path in "${NEW_PROJECTS[@]}"; do
+            if should_skip "$project_path"; then
+              continue
+            fi
+
+            ptype=$(get_type "$project_path")
+
+            # Only kits and bundles require flows/ validation
+            if [ "$ptype" = "template" ]; then
+              continue
+            fi
+
+            if [ ! -d "$project_path/flows" ]; then
+              # Already caught in Check 2
+              continue
+            fi
+
+            # Check at least one flow exists
+            flow_count=0
+            for flow_dir in "$project_path/flows"/*/; do
+              [ -d "$flow_dir" ] || continue
+              flow_count=$((flow_count + 1))
+
+              for req in "${FLOW_REQUIRED[@]}"; do
+                if [ ! -f "$flow_dir$req" ]; then
+                  ERRORS+=("Missing $req in $flow_dir")
+                  CHECK3_PASS=false
+                fi
+              done
+            done
+
+            if [ "$flow_count" -eq 0 ]; then
+              ERRORS+=("No flow subdirectories found in $project_path/flows/ — at least one flow is required")
+              CHECK3_PASS=false
+            fi
+          done
+
+          # --- E. Check 4: Warn on changes outside contribution dirs ---
+
+          CHECK4_WARN=false
+          if [ ${#OTHER_FILES[@]} -gt 0 ]; then
+            CHECK4_WARN=true
+            for f in "${OTHER_FILES[@]}"; do
+              WARNINGS+=("File outside kits/bundles/templates modified: $f")
+            done
+          fi
+
+          # --- F. Output results to job summary ---
+
+          {
+            echo "## PR Validation Results"
+            echo ""
+
+            if [ ${#NEW_PROJECTS[@]} -gt 0 ]; then
+              echo "### New Contributions Detected"
+              for p in "${NEW_PROJECTS[@]}"; do
+                ptype=$(get_type "$p")
+                echo "- **${ptype^}**: \`$p\`"
+              done
+              echo ""
+            fi
+
+            if [ ${#EXISTING_MODIFIED[@]} -gt 0 ]; then
+              echo "### Existing Projects Modified (not allowed in feat: PRs)"
+              for p in "${EXISTING_MODIFIED[@]}"; do
+                echo "- \`$p\`"
+              done
+              echo ""
+            fi
+
+            echo "### Check Results"
+            echo ""
+            echo "| Check | Status |"
+            echo "|-------|--------|"
+
+            if [ "$CHECK1_PASS" = true ]; then
+              echo "| No edits to existing projects | :white_check_mark: Pass |"
+            else
+              echo "| No edits to existing projects | :x: Fail |"
+            fi
+
+            if [ "$CHECK2_PASS" = true ]; then
+              echo "| Required root files present | :white_check_mark: Pass |"
+            else
+              echo "| Required root files present | :x: Fail |"
+            fi
+
+            if [ "$CHECK3_PASS" = true ]; then
+              echo "| Flow folder structure valid | :white_check_mark: Pass |"
+            else
+              echo "| Flow folder structure valid | :x: Fail |"
+            fi
+
+            if [ "$CHECK4_WARN" = true ]; then
+              echo "| No changes outside contribution dirs | :warning: Warning |"
+            else
+              echo "| No changes outside contribution dirs | :white_check_mark: Pass |"
+            fi
+
+            echo ""
+
+            if [ ${#ERRORS[@]} -gt 0 ]; then
+              echo "### Errors"
+              echo ""
+              for err in "${ERRORS[@]}"; do
+                echo "- :x: $err"
+              done
+              echo ""
+            fi
+
+            if [ ${#WARNINGS[@]} -gt 0 ]; then
+              echo "### Warnings"
+              echo ""
+              for warn in "${WARNINGS[@]}"; do
+                echo "- :warning: $warn"
+              done
+              echo ""
+            fi
+
+            if [ ${#ERRORS[@]} -eq 0 ]; then
+              echo "---"
+              echo ":tada: All checks passed! This contribution follows the AgentKit structure."
+            else
+              echo "---"
+              echo ":stop_sign: Please fix the errors above before this PR can be merged."
+              echo ""
+              echo "Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) and [CLAUDE.md](./CLAUDE.md) for the expected folder structure."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Print to logs as well
+          if [ ${#ERRORS[@]} -gt 0 ]; then
+            echo ""
+            echo "=== VALIDATION FAILED ==="
+            for err in "${ERRORS[@]}"; do
+              echo "::error::$err"
+            done
+            exit 1
+          fi
+
+          echo ""
+          echo "=== ALL CHECKS PASSED ==="
