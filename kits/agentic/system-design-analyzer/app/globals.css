@@ -1,59 +1,27 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.6%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.6%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.6%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 84% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --primary: 0 84% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 32.6% 17.5%;
-    --secondary-foreground: 0 0% 100%;
-    --ring: 0 84% 60%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.6%;
-    --foreground: 0 0% 98.2%;
-    --card: 0 0% 7.8%;
-    --card-foreground: 0 0% 98.2%;
-    --popover: 0 0% 7.8%;
-    --popover-foreground: 0 0% 98.2%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 84% 60%;
-    --accent-foreground: 0 0% 9% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 9.2%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --primary: 0 84% 60%;
-    --primary-foreground: 0 0% 9.2%;
-    --secondary: 217 32.6% 17.5%;
-    --secondary-foreground: 0 0% 100%;
-    --ring: 0 84% 60%;
-  }
+@theme {
+  --color-primary: #dc2626;
+  --color-red: #dc2626;
+  --color-red-light: #ef4444;
+  --color-red-dark: #991b1b;
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-gray: #f3f4f6;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+* {
+  @apply border-gray-900;
+}
+
+html {
+  @apply scroll-smooth;
+}
+
+body {
+  @apply bg-white text-black;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold tracking-tight;
 }

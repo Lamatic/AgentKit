@@ -9,28 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "next": "^15.1.0",
     "@hookform/resolvers": "^3.4.2",
-    "react-hook-form": "^7.53.2",
-    "zod": "^3.23.8",
-    "axios": "^1.7.7",
     "@radix-ui/react-primitive": "^2.0.0",
+    "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.4.0",
     "lucide-react": "^0.408.0",
+    "next": "^15.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.2",
+    "recharts": "^2.12.7",
     "sonner": "^1.5.0",
-    "recharts": "^2.12.7"
+    "tailwind-merge": "^2.4.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^20.12.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "tailwindcss": "^4.0.0",
+    "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "autoprefixer": "^10.4.19"
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.4.5"
   }
 }

@@ -8,7 +8,7 @@ import { analyzeSystemDesign } from '@/actions/orchestrate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Zap, ChevronRight, Copy, Check } from 'lucide-react';
+import { Loader2, Zap, ChevronRight, Copy, Check, Github, Linkedin } from 'lucide-react';
 
 const formSchema = z.object({
   systemDesign: z.string().min(10, {
@@ -71,57 +71,79 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Lamatic Logo SVG */}
+            <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="4" width="10" height="10" fill="#dc2626" rx="2" />
+              <rect x="18" y="4" width="10" height="10" fill="#dc2626" rx="2" />
+              <rect x="4" y="18" width="10" height="10" fill="#dc2626" rx="2" />
+              <rect x="18" y="18" width="10" height="10" fill="#dc2626" rx="2" />
+            </svg>
+            <div>
+              <h1 className="text-xl font-bold text-red-600">
+                Lamatic
+              </h1>
+              <p className="text-xs text-gray-600">System Design Analyzer</p>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-              System Design Analyzer
-            </h1>
           </div>
-          <div className="text-sm text-gray-600">
-            Powered by <span className="font-semibold">Lamatic</span>
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://github.com/Lamatic/AgentKit" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-600 hover:text-red-600 transition-colors"
+            >
+              <Github className="w-5 h-5" />
+            </a>
+            <a 
+              href="https://lamatic.ai" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-600 hover:text-red-600 transition-colors"
+            >
+              <span className="font-semibold text-sm">Lamatic</span>
+            </a>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-              Analyze Your System Designs
+          <div className="mb-16 text-center">
+            <h2 className="text-5xl sm:text-6xl font-black tracking-tight mb-6 text-black">
+              Analyze Your System <span className="text-red-600">Designs</span>
             </h2>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto leading-relaxed">
               Get AI-powered insights and recommendations for your system architecture. Enter your design
-              specification and receive comprehensive analysis.
+              specification and receive comprehensive, actionable analysis powered by Lamatic.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Form Section */}
             <div className="lg:col-span-2">
-              <Card className="shadow-lg border-gray-200">
-                <CardHeader>
-                  <CardTitle>Enter System Design</CardTitle>
-                  <CardDescription>
+              <Card className="shadow-lg border-gray-300 bg-white">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-black">Enter System Design</CardTitle>
+                  <CardDescription className="text-gray-600">
                     Describe your system architecture, components, and requirements
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-3">
                         System Design Specification
                       </label>
                       <Textarea
                         placeholder="e.g., Design a dashboard system that handles 1M concurrent users with real-time updates..."
-                        className="resize-none"
+                        className="resize-none bg-white border-gray-300 text-black placeholder:text-gray-400 focus:border-red-600 focus:ring-red-600"
                         rows={8}
                         {...form.register('systemDesign')}
                       />
@@ -135,7 +157,7 @@ export default function Home() {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 text-base font-semibold"
+                      className="w-full h-12 text-base font-semibold bg-red-600 hover:bg-red-700 text-white"
                     >
                       {isLoading ? (
                         <>
@@ -151,7 +173,7 @@ export default function Home() {
                     </Button>
 
                     {error && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                         {error}
                       </div>
                     )}
@@ -161,11 +183,11 @@ export default function Home() {
 
               {/* Result Section */}
               {result && (
-                <Card className="mt-8 shadow-lg border-gray-200">
+                <Card className="mt-8 shadow-lg border-gray-300 bg-white">
                   <CardHeader className="border-b border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle>Analysis Results</CardTitle>
+                        <CardTitle className="text-black">Analysis Results</CardTitle>
                         {status && (
                           <CardDescription className="mt-2">
                             Status: <span className="font-semibold text-green-600">{status}</span>
@@ -176,7 +198,7 @@ export default function Home() {
                         variant="outline"
                         size="sm"
                         onClick={copyToClipboard}
-                        className="gap-2"
+                        className="gap-2 border-gray-300 text-black hover:bg-gray-100 hover:text-red-600"
                       >
                         {copied ? (
                           <>
@@ -193,10 +215,8 @@ export default function Home() {
                     </div>
                   </CardHeader>
                   <CardContent className="mt-6">
-                    <div className="prose prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap text-gray-700 bg-gray-50 p-6 rounded-lg border border-gray-200 font-mono text-sm leading-relaxed">
-                        {result}
-                      </div>
+                    <div className="whitespace-pre-wrap text-black bg-gray-100 p-6 rounded-lg border border-gray-300 font-mono text-sm leading-relaxed max-h-96 overflow-y-auto">
+                      {result}
                     </div>
                   </CardContent>
                 </Card>
@@ -205,17 +225,17 @@ export default function Home() {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <Card className="shadow-lg border-gray-200 sticky top-24">
-                <CardHeader>
-                  <CardTitle className="text-lg">Example Designs</CardTitle>
-                  <CardDescription>Click to try these examples</CardDescription>
+              <Card className="shadow-lg border-gray-300 bg-white sticky top-24">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-black text-lg">Example Designs</CardTitle>
+                  <CardDescription className="text-gray-600">Click to try these examples</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="pt-6 space-y-3">
                   {exampleDesigns.map((example, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleExampleClick(example)}
-                      className="w-full text-left p-3 text-sm rounded-lg bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-300 transition-colors text-gray-700 hover:text-red-700 font-medium"
+                      className="w-full text-left p-3 text-sm rounded-lg bg-gray-100 hover:bg-red-50 border border-gray-300 hover:border-red-300 transition-all duration-300 text-black hover:text-red-600 font-medium"
                     >
                       {example}
                     </button>
@@ -224,29 +244,29 @@ export default function Home() {
               </Card>
 
               {/* Features Card */}
-              <Card className="mt-6 shadow-lg border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-lg">Features</CardTitle>
+              <Card className="mt-6 shadow-lg border-gray-300 bg-white">
+                <CardHeader className="border-b border-gray-200">
+                  <CardTitle className="text-black text-lg">Features</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="pt-6 space-y-4">
                   <div className="flex gap-3">
-                    <Zap className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <Zap className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">Real-time Analysis</p>
+                      <p className="font-semibold text-sm text-black">Real-time Analysis</p>
                       <p className="text-xs text-gray-600">Get instant insights</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <Zap className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <Zap className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">AI-Powered</p>
+                      <p className="font-semibold text-sm text-black">AI-Powered</p>
                       <p className="text-xs text-gray-600">Advanced recommendations</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <Zap className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <Zap className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">Comprehensive</p>
+                      <p className="font-semibold text-sm text-black">Comprehensive</p>
                       <p className="text-xs text-gray-600">Complete system review</p>
                     </div>
                   </div>
@@ -258,14 +278,44 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 mt-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm text-gray-600">
-          <p>
-            Powered by{' '}
-            <a href="https://lamatic.ai" className="font-semibold text-gray-900 hover:text-red-600">
-              Lamatic AI
-            </a>
-          </p>
+      <footer className="border-t border-gray-200 mt-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="font-bold text-black mb-4">Lamatic</h3>
+              <p className="text-gray-600 text-sm">AI Agent Infrastructure for Modern Teams</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-black mb-3 text-sm">Product</h4>
+              <ul className="space-y-2">
+                <li><a href="https://lamatic.ai/product/build" className="text-gray-600 hover:text-red-600 text-sm transition-colors">Build</a></li>
+                <li><a href="https://lamatic.ai/product/deploy" className="text-gray-600 hover:text-red-600 text-sm transition-colors">Deploy</a></li>
+                <li><a href="https://lamatic.ai/product/optimize" className="text-gray-600 hover:text-red-600 text-sm transition-colors">Optimize</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-black mb-3 text-sm">Company</h4>
+              <ul className="space-y-2">
+                <li><a href="https://lamatic.ai/about" className="text-gray-600 hover:text-red-600 text-sm transition-colors">About</a></li>
+                <li><a href="https://lamatic.ai/docs" className="text-gray-600 hover:text-red-600 text-sm transition-colors">Docs</a></li>
+                <li><a href="https://lamatic.ai/pricing" className="text-gray-600 hover:text-red-600 text-sm transition-colors">Pricing</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-black mb-3 text-sm">Connect</h4>
+              <div className="flex gap-4">
+                <a href="https://github.com/Lamatic" className="text-gray-600 hover:text-red-600 transition-colors">
+                  <Github className="w-5 h-5" />
+                </a>
+                <a href="https://linkedin.com/company/lamatic" className="text-gray-600 hover:text-red-600 transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-200 pt-8 text-center text-gray-600 text-sm">
+            <p>© 2024 Lamatic. Powered by AgentKit. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
