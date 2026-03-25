@@ -8,7 +8,7 @@ import { analyzeSystemDesign } from '@/actions/orchestrate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, ChevronRight, Copy, Check } from 'lucide-react';
+import { Loader2, ChevronRight, Copy, Check, Github } from 'lucide-react';
 
 const formSchema = z.object({
   systemDesign: z.string().min(10, {
@@ -57,10 +57,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-white">
-      {/* Header - Minimal */}
-      <header className="border-b border-gray-200 py-3 px-6">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen w-full bg-white overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-red-50/30"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-red-100/20 rounded-full blur-3xl opacity-40 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-50/20 rounded-full blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-red-100/10 rounded-full blur-3xl opacity-30"></div>
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Lamatic Logo */}
             <svg width="133" height="24" viewBox="0 0 133 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-6 w-auto">
@@ -85,127 +93,164 @@ export default function Home() {
               </defs>
             </svg>
           </div>
-          <span className="text-xs text-gray-500">System Design Analyzer</span>
+          <a
+            href="https://github.com/Lamatic/AgentKit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black hover:bg-red-600 text-white transition-all duration-300 font-medium text-sm group"
+          >
+            <Github className="w-4 h-4" />
+            <span>GitHub</span>
+            <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </a>
         </div>
       </header>
 
-      {/* Main Content - No Scroll */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Input */}
-        <div className="flex-1 flex flex-col border-r border-gray-200 p-6 overflow-hidden">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-black">Analyze Design</h2>
-            <p className="text-xs text-gray-600">Describe your system architecture</p>
+      {/* Main Content */}
+      <main className="flex-1 py-16 px-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <h1 className="text-6xl md:text-7xl font-black tracking-tight mb-4 text-black">
+              Analyze Your
+              <br />
+              <span className="bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent">
+                System Design
+              </span>
+            </h1>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+              Get AI-powered insights for your system architecture. Enter your design specification and receive comprehensive analysis powered by Lamatic.
+            </p>
           </div>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 flex-1 overflow-hidden">
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <label className="text-xs font-semibold text-black mb-2">System Design</label>
-              <Textarea
-                placeholder="e.g., Design a scalable social media platform with 1M concurrent users..."
-                className="flex-1 resize-none bg-white border-gray-300 text-black placeholder:text-gray-400 focus:border-red-600 focus:ring-red-600"
-                {...form.register('systemDesign')}
-              />
-              {form.formState.errors.systemDesign && (
-                <p className="text-xs text-red-600 mt-1">
-                  {form.formState.errors.systemDesign.message}
-                </p>
-              )}
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-10 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  Analyze
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-
-            {error && (
-              <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                {error}
-              </div>
-            )}
-          </form>
-        </div>
-
-        {/* Right Panel - Results/Examples */}
-        <div className="flex-1 flex flex-col p-6 overflow-hidden">
-          {!result ? (
-            <div className="h-full flex flex-col">
-              <div className="mb-4">
-                <h3 className="text-sm font-bold text-black mb-3">Quick Examples</h3>
-                <div className="space-y-2 flex-1 overflow-y-auto">
-                  {[
-                    'Design a distributed cache like Redis',
-                    'Build a real-time notification system',
-                    'Create a URL shortener service',
-                    'Design a video streaming platform',
-                  ].map((example, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => form.setValue('systemDesign', example)}
-                      className="w-full text-left text-xs p-2 rounded bg-gray-100 hover:bg-red-50 border border-gray-300 hover:border-red-300 text-black hover:text-red-600 transition-all"
-                    >
-                      {example}
-                    </button>
-                  ))}
+          {/* Form Section */}
+          <Card className="border-gray-200/50 bg-white/95 backdrop-blur-sm shadow-2xl rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-gray-200/50">
+              <CardTitle className="text-2xl text-black">System Design Analyzer</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-3">
+                    Describe your system architecture
+                  </label>
+                  <Textarea
+                    placeholder="e.g., Design a scalable social media platform with 1M concurrent users, real-time notifications, and content delivery..."
+                    className="resize-none bg-white border-2 border-gray-200 text-black placeholder:text-gray-400 focus:border-red-600 focus:ring-red-600 rounded-xl h-32"
+                    {...form.register('systemDesign')}
+                  />
+                  {form.formState.errors.systemDesign && (
+                    <p className="text-sm text-red-600 mt-2 font-medium">
+                      {form.formState.errors.systemDesign.message}
+                    </p>
+                  )}
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-full flex flex-col">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-black">Analysis Result</h3>
+
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyToClipboard}
-                  className="h-7 px-2 gap-1 text-xs border-gray-300 text-black hover:bg-red-50 hover:text-red-600"
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02]"
                 >
-                  {copied ? (
+                  {isLoading ? (
                     <>
-                      <Check className="w-3 h-3" />
-                      Copied
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing Design...
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3 h-3" />
-                      Copy
+                      Analyze Design
+                      <ChevronRight className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>
-              </div>
-              <div className="flex-1 overflow-y-auto bg-gray-50 p-3 rounded border border-gray-300">
-                <p className="text-xs text-black leading-relaxed whitespace-pre-wrap font-mono">
+
+                {error && (
+                  <div className="bg-red-50/80 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+                    {error}
+                  </div>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Result Section */}
+          {result && (
+            <Card className="mt-8 border-gray-200/50 bg-white/95 backdrop-blur-sm shadow-2xl rounded-2xl overflow-hidden">
+              <CardHeader className="border-b border-gray-200/50">
+                <div className="flex items-center justify-between gap-4">
+                  <CardTitle className="text-2xl text-black">Analysis Results</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyToClipboard}
+                    className="gap-2 border-gray-200 text-black hover:bg-red-50 hover:text-red-600 rounded-lg"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="whitespace-pre-wrap text-black bg-gray-50/50 p-6 rounded-xl border border-gray-200 font-mono text-sm leading-relaxed max-h-96 overflow-y-auto">
                   {result}
-                </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setResult(null);
+                    form.reset();
+                  }}
+                  className="w-full mt-4 border-gray-200 text-black hover:bg-gray-100 rounded-lg font-medium"
+                >
+                  Analyze Another Design
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quick Examples */}
+          {!result && (
+            <div className="mt-12">
+              <h3 className="text-center text-lg font-bold text-black mb-6">Try These Examples</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {[
+                  'Design a distributed cache system like Redis with 100K QPS',
+                  'Build a real-time collaboration tool with millions of concurrent users',
+                  'Create a machine learning platform for training models at scale',
+                  'Design a global CDN for low-latency content delivery',
+                ].map((example, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => form.setValue('systemDesign', example)}
+                    className="text-left p-4 rounded-xl bg-white border-2 border-gray-200 hover:border-red-300 hover:bg-red-50/30 transition-all duration-300 group"
+                  >
+                    <p className="text-sm text-black font-medium group-hover:text-red-600">
+                      {example}
+                    </p>
+                  </button>
+                ))}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setResult(null);
-                  form.reset();
-                }}
-                className="mt-3 h-8 text-xs border-gray-300 text-black hover:bg-gray-100"
-              >
-                Analyze Another Design
-              </Button>
             </div>
           )}
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200/50 mt-16 bg-white/50 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-6 py-8 text-center text-gray-600 text-sm">
+          <p>© 2024 Lamatic. Powered by AgentKit. Built with ❤️ for system designers.</p>
+        </div>
+      </footer>
     </div>
   );
 }
