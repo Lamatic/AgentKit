@@ -1,67 +1,56 @@
 'use server';
 
-import { Lamatic } from 'lamatic';
+import { lamaticClient } from '@/lib/lamatic-client';
 
-const { LAMATIC_API_URL, LAMATIC_PROJECT_ID, LAMATIC_API_KEY, SYSTEM_DESIGN_ANALYZER_FLOW_ID } = process.env;
-
-const lamaticClient = new Lamatic({
-  endpoint: LAMATIC_API_URL || '',
-  projectId: LAMATIC_PROJECT_ID || '',
-  apiKey: LAMATIC_API_KEY || '',
-});
+const { SYSTEM_DESIGN_ANALYZER_FLOW_ID } = process.env;
 
 export async function analyzeSystemDesign(systemDesign: string) {
-  if (!LAMATIC_API_KEY) {
-    throw new Error('LAMATIC_API_KEY is not set');
-  }
-
   if (!SYSTEM_DESIGN_ANALYZER_FLOW_ID) {
     throw new Error('SYSTEM_DESIGN_ANALYZER_FLOW_ID is not set');
   }
 
   try {
-    console.log('Calling Lamatic Flow with:', {
+    console.log('[Lamatic SDK] Executing flow:', {
       flowId: SYSTEM_DESIGN_ANALYZER_FLOW_ID,
-      systemDesignLength: systemDesign.length,
+      designLength: systemDesign.length,
+      timestamp: new Date().toISOString(),
     });
 
     const response = await lamaticClient.executeFlow(SYSTEM_DESIGN_ANALYZER_FLOW_ID, {
       system_design: systemDesign,
     });
 
-    console.log('Flow Response:', response);
+    console.log('[Lamatic SDK] Response received:', {
+      status: response?.status,
+      timestamp: new Date().toISOString(),
+    });
 
-    // Extract the actual result content from the response
+    if (!response) {
+      throw new Error('No response received from flow execution');
+    }
+
+    // Extract result content - handle various response formats
     let resultContent = '';
     
-    if (typeof response === 'string') {
-      resultContent = response;
-    } else if (response?.result) {
-      if (typeof response.result === 'string') {
-        resultContent = response.result;
-      } else if (response.result?.analysis) {
-        resultContent = typeof response.result.analysis === 'string' 
-          ? response.result.analysis 
-          : JSON.stringify(response.result.analysis, null, 2);
-      } else if (response.result?.content) {
-        resultContent = typeof response.result.content === 'string'
-          ? response.result.content
-          : JSON.stringify(response.result.content, null, 2);
-      } else {
-        // Fallback: stringify the entire result object
-        resultContent = JSON.stringify(response.result, null, 2);
-      }
+    if (typeof response.result === 'string') {
+      resultContent = response.result;
+    } else if (typeof response.result === 'object' && response.result !== null) {
+      resultContent = JSON.stringify(response.result, null, 2);
+    } else if (response.result) {
+      resultContent = String(response.result);
     } else {
+      // If no result field, stringify the entire response
       resultContent = JSON.stringify(response, null, 2);
     }
 
     return {
       success: true,
-      status: 'completed',
+      status: response.status || 'completed',
       result: resultContent,
     };
   } catch (error) {
-    console.error('Error calling Lamatic Flow:', error);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Lamatic SDK] Error:', errorMessage);
+    throw new Error(`Failed to analyze system design: ${errorMessage}`);
   }
 }
