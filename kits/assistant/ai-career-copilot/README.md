@@ -32,9 +32,28 @@ An AI-powered career assistant that analyzes resumes and provides personalized c
 
 ---
 
-## ⚙️ Environment Variables
+## ⚙️ Installation
 
-Create a `.env` file:
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/Lamatic/AgentKit.git
+cd AgentKit/kits/assistant/ai-career-copilot
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Setup environment variables**
+
+```bash
+cp .env.example .env
+```
+
+4. **Add your Lamatic credentials in `.env`**
 
 ```env
 LAMATIC_API_KEY=YOUR_API_KEY
@@ -43,21 +62,11 @@ LAMATIC_API_URL=YOUR_API_URL
 AGENTIC_GENERATE_CONTENT=YOUR_FLOW_ID
 ```
 
-⚠️ Do NOT commit real API keys
-
----
-
-## 🚀 Installation & Setup
+5. **Run the project**
 
 ```bash
-git clone https://github.com/Lamatic/AgentKit.git
-cd AgentKit/kits/assistant/ai-career-copilot
-npm install
 npm run dev
 ```
-
-Open:
-👉 http://localhost:3000
 
 ---
 
@@ -84,10 +93,10 @@ ai-career-copilot/
 ├── app/                # Next.js pages
 ├── components/         # UI components
 ├── actions/            # Server actions
-├── lib/                # API client (Lamatic)
+├── lib/                # Lamatic API client
 ├── flows/              # Exported Lamatic flow
-├── .env.example        # Env template
-├── config.json         # Kit config
+├── .env.example        # Environment template
+├── config.json         # Kit configuration
 └── README.md
 ```
 
