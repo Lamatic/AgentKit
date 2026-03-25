@@ -31,12 +31,34 @@ export async function analyzeSystemDesign(systemDesign: string) {
 
     console.log('Flow Response:', response);
 
-    const result = response.result || response;
+    // Extract the actual result content from the response
+    let resultContent = '';
+    
+    if (typeof response === 'string') {
+      resultContent = response;
+    } else if (response?.result) {
+      if (typeof response.result === 'string') {
+        resultContent = response.result;
+      } else if (response.result?.analysis) {
+        resultContent = typeof response.result.analysis === 'string' 
+          ? response.result.analysis 
+          : JSON.stringify(response.result.analysis, null, 2);
+      } else if (response.result?.content) {
+        resultContent = typeof response.result.content === 'string'
+          ? response.result.content
+          : JSON.stringify(response.result.content, null, 2);
+      } else {
+        // Fallback: stringify the entire result object
+        resultContent = JSON.stringify(response.result, null, 2);
+      }
+    } else {
+      resultContent = JSON.stringify(response, null, 2);
+    }
 
     return {
       success: true,
-      status: result?.status || 'completed',
-      result: result?.result || result,
+      status: 'completed',
+      result: resultContent,
     };
   } catch (error) {
     console.error('Error calling Lamatic Flow:', error);

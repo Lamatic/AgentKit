@@ -38,7 +38,13 @@ export default function Home() {
 
     try {
       const response = await analyzeSystemDesign(values.systemDesign);
-      setResult(response.result);
+      
+      // Ensure result is a string
+      const resultData = typeof response.result === 'string' 
+        ? response.result 
+        : JSON.stringify(response.result, null, 2);
+      
+      setResult(resultData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to analyze system design';
       setError(errorMessage);
@@ -173,7 +179,7 @@ export default function Home() {
           </Card>
 
           {/* Result Section */}
-          {result && (
+          {result && typeof result === 'string' && (
             <Card className="mt-8 border-gray-200/50 bg-white/95 backdrop-blur-sm shadow-2xl rounded-2xl overflow-hidden">
               <CardHeader className="border-b border-gray-200/50">
                 <div className="flex items-center justify-between gap-4">
