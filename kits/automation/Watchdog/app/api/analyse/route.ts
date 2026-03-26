@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     try {
       data = JSON.parse(text)
     } catch {
-      console.error('Non-JSON from Lamatic:', text.slice(0, 400))
+      // console.error('Non-JSON from Lamatic:', text.slice(0, 400))
       return NextResponse.json(
         { error: `Lamatic returned non-JSON response (HTTP ${res.status})` },
         { status: 500 }
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (data.errors) {
-      console.error('GraphQL errors:', data.errors)
+      // console.error('GraphQL errors:', data.errors)
       return NextResponse.json(
         { error: data.errors[0]?.message || 'GraphQL error' },
         { status: 500 }
