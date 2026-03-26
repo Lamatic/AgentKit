@@ -62,6 +62,6 @@ export async function generateChangelog({
 
   // Handle sync flow (returns result directly)
   const changelog = extractChangelog(response);
-    if (!changelog) throw new Error("Failed to extract changelog from Lamatic response");
-    return changelog;
+  if (!changelog) throw new Error("Failed to extract changelog from Lamatic response");
+  return changelog;
 }

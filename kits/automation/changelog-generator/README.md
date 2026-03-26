@@ -33,7 +33,7 @@ An AI-powered kit that generates professional, well-structured changelogs from G
 
 ```bash
 git clone https://github.com/Lamatic/AgentKit.git
-+cd AgentKit/kits/automation/changelog-generator
+cd AgentKit/kits/automation/changelog-generator
 npm install
 ```
 
