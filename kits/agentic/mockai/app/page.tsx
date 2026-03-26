@@ -410,49 +410,13 @@ export default function InterviewPrepPage() {
               <label htmlFor="answer" className="text-sm font-bold text-slate-600 uppercase tracking-widest">
                 Your Answer
               </label>
-              
-              <div className="flex items-center gap-3">
-                {/* Visualizer Orb next to recording button */}
-                <div 
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording ? 'opacity-100' : 'opacity-0 scale-50'}`}
-                >
-                  <div 
-                    className="absolute w-8 h-8 rounded-full bg-rose-500/30 transition-transform duration-75"
-                    style={{ transform: `scale(${visualizerScale})` }}
-                  />
-                  <div className="absolute w-4 h-4 rounded-full bg-rose-500 z-10" />
-                </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleRecording}
-                  className={`gap-2 h-9 rounded-full px-4 border shadow-sm transition-all duration-300 ${
-                    isRecording
-                      ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 hover:text-rose-700 ring-2 ring-rose-500/30'
-                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-indigo-600'
-                  }`}
-                >
-                  {isRecording ? (
-                    <>
-                      <MicOff className="w-4 h-4 animate-pulse" />
-                      <span className="font-semibold">Stop Recording</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-4 h-4" />
-                      <span className="font-medium">Record Voice</span>
-                    </>
-                  )}
-                </Button>
-              </div>
             </div>
 
             <div className="relative">
               <Textarea
                 id="answer"
-                placeholder="Click Record or type your answer here..."
+                placeholder="Type your answer here..."
                 value={displayAnswer}
                 onChange={(e) => {
                   if (e.target.value.length <= MAX_CHARS) {
