@@ -1,0 +1,50 @@
+{
+  "id": "89a0f4dc-3a9d-46c2-acdf-167ed4194583",
+  "name": "Interview Preparation Evaluator",
+  "description": "Evaluates interview answers for behavioral and technical questions using AI, providing detailed structured feedback.",
+  "version": "1.0.0",
+  "type": "flow",
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "API Request",
+      "description": "Receives jobDescription, resume, and userAnswer as inputs"
+    },
+    {
+      "id": "Behaviour_Prep",
+      "type": "Generate JSON (InstructorLLM)",
+      "description": "Evaluates the behavioral aspect of the interview answer",
+      "model": "groq/llama-3.1-8b-instant",
+      "outputs": ["score", "strengths", "improvements", "better_answer"]
+    },
+    {
+      "id": "Technical_Prep",
+      "type": "Generate JSON (InstructorLLM)",
+      "description": "Evaluates the technical aspect of the interview answer",
+      "model": "groq/llama-3.1-8b-instant",
+      "outputs": ["score", "strengths", "improvements", "better_answer"]
+    },
+    {
+      "id": "response",
+      "type": "API Response",
+      "description": "Returns combined behavioral and technical evaluation results"
+    }
+  ],
+  "inputs": {
+    "jobDescription": "string",
+    "resume": "string",
+    "userAnswer": "string"
+  },
+  "outputs": {
+    "behavioral_score": "number",
+    "behavioral_strengths": "array",
+    "behavioral_improvements": "array",
+    "behavioral_better_answer": "string",
+    "technical_score": "number",
+    "technical_strengths": "array",
+    "technical_improvements": "array",
+    "technical_better_answer": "string"
+  },
+  "provider": "groq",
+  "createdAt": "2026-03-26"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "Interview Preparation",
+  "description": "An AI-powered interview preparation coach that evaluates candidate answers for both behavioral and technical questions, providing structured feedback with scores, strengths, improvements, and better answer suggestions.",
+  "tags": ["🤖 Agentic", "✨ Generative", "🎯 Assistant"],
+  "author": {
+    "name": "Interview Prepration",
+    "email": ""
+  },
+  "steps": [
+    {
+      "id": "89a0f4dc-3a9d-46c2-acdf-167ed4194583",
+      "type": "mandatory",
+      "envKey": "INTERVIEW_PREP_FLOW_ID"
+    }
+  ],
+  "integrations": [
+    {
+      "name": "Groq",
+      "description": "LLM provider for evaluating interview answers using llama-3.1-8b-instant"
+    }
+  ],
+  "features": [
+    "Behavioral interview answer evaluation",
+    "Technical interview answer evaluation",
+    "Structured feedback with scores (1-10)",
+    "Strengths and improvements analysis",
+    "Better answer suggestions"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/interview-preparation",
+  "deployUrl": "",
+  "documentationUrl": ""
+}

@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "jobDescription": {
+      "type": "string",
+      "description": "The interview question or job description context for evaluation",
+      "required": true,
+      "example": "Tell me about a time you handled a conflict in your team."
+    },
+    "resume": {
+      "type": "string",
+      "description": "The candidate's resume or background information",
+      "required": true,
+      "example": "5 years of experience in software engineering, worked at XYZ company..."
+    },
+    "userAnswer": {
+      "type": "string",
+      "description": "The candidate's interview answer to be evaluated",
+      "required": true,
+      "example": "In my previous role, I encountered a situation where two team members disagreed on the technical approach..."
+    }
+  }
+}
