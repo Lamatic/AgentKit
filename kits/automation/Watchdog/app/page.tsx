@@ -273,7 +273,7 @@ export default function WatchdogDashboard() {
 
               <div>
                 <label className="block text-[11px] font-medium tracking-widest uppercase text-slate-500 mb-2">
-                  Pricing / Landing URL
+                  Pricing / features / updates / Landing URL
                 </label>
                 <div className="relative">
                   <Globe size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
