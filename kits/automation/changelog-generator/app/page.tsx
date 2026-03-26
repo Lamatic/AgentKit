@@ -70,11 +70,12 @@ export default function ChangelogPage() {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-xs text-zinc-500 mb-2 tracking-wider uppercase">
+                <label htmlFor="repo-url" className="block text-xs text-zinc-500 mb-2 tracking-wider uppercase">
                   GitHub Repository URL
                 </label>
                 <input
                   type="text"
+                  id="repo-url"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
                   placeholder="https://github.com/owner/repo"
@@ -84,22 +85,24 @@ export default function ChangelogPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-zinc-500 mb-2 tracking-wider uppercase">
+                  <label htmlFor="date-from" className="block text-xs text-zinc-500 mb-2 tracking-wider uppercase">
                     From Date
                   </label>
                   <input
                     type="date"
+                    id="date-from"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
                     className="w-full bg-zinc-800/80 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all [color-scheme:dark]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-zinc-500 mb-2 tracking-wider uppercase">
+                  <label htmlFor="date-to" className="block text-xs text-zinc-500 mb-2 tracking-wider uppercase">
                     To Date
                   </label>
                   <input
                     type="date"
+                    id="date-to"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
                     className="w-full bg-zinc-800/80 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all [color-scheme:dark]"

@@ -33,7 +33,7 @@ An AI-powered kit that generates professional, well-structured changelogs from G
 
 ```bash
 git clone https://github.com/Lamatic/AgentKit.git
-cd kits/automation/changelog-generator
++cd AgentKit/kits/automation/changelog-generator
 npm install
 ```
 
@@ -56,10 +56,10 @@ cp .env.example .env
 Fill in your `.env`:
 
 ```env
-FLOW_ID="your-flow-id"
-LAMATIC_API_URL="your-api-endpoint"
+LAMATIC_FLOW_ID="your-flow-id"
+LAMATIC_PROJECT_ENDPOINT="your-api-endpoint"
 LAMATIC_PROJECT_ID="your-project-id"
-LAMATIC_API_KEY="your-api-key"
+LAMATIC_PROJECT_API_KEY="your-api-key"
 ```
 
 ### 4. Run Locally
@@ -95,4 +95,4 @@ changelog-generator/
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](../../../../CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](../../../CONTRIBUTING.md) for guidelines.
