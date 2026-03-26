@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TreeNode } from "@/lib/types";
+import { TreeNode, TreeNodeResolved } from "@/lib/types";
 
 interface Props {
   tree: TreeNode[];
@@ -9,13 +9,53 @@ interface Props {
   highlightedIds: string[];
 }
 
-function TreeNodeRow({ node, depth, highlightedIds }: { node: TreeNode; depth: number; highlightedIds: string[] }) {
+/** Build a lookup map and resolve the flat API list into a nested tree.
+ *  Root nodes are those whose node_id appears in the first item's `nodes`
+ *  list OR nodes that are not referenced as children by any other node.
+ */
+function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
+  const map = new Map<string, TreeNodeResolved>();
+
+  // First pass: create resolved nodes with empty children arrays
+  for (const n of flat) {
+    map.set(n.node_id, { ...n, nodes: [] });
+  }
+
+  // Second pass: populate children
+  const childIds = new Set<string>();
+  for (const n of flat) {
+    const resolved = map.get(n.node_id)!;
+    for (const childId of n.nodes) {
+      const child = map.get(childId);
+      if (child) {
+        resolved.nodes.push(child);
+        childIds.add(childId);
+      }
+    }
+  }
+
+  // Roots = nodes not referenced as a child
+  return flat
+    .map(n => map.get(n.node_id)!)
+    .filter(n => !childIds.has(n.node_id));
+}
+
+function TreeNodeRow({
+  node,
+  depth,
+  highlightedIds,
+}: {
+  node: TreeNodeResolved;
+  depth: number;
+  highlightedIds: string[];
+}) {
   const [open, setOpen] = useState(depth < 2);
   const isHighlighted = highlightedIds.includes(node.node_id);
-  const hasChildren = node.nodes && node.nodes.length > 0;
-  const pageSpan = node.start_index === node.end_index
-    ? `p.${node.start_index}`
-    : `pp.${node.start_index}–${node.end_index}`;
+  const hasChildren = node.nodes.length > 0;
+  const pageSpan =
+    node.start_index === node.end_index
+      ? `p.${node.start_index}`
+      : `pp.${node.start_index}–${node.end_index}`;
 
   return (
     <div style={{ animation: "float-in 0.25s var(--ease) both" }}>
@@ -107,8 +147,8 @@ function TreeNodeRow({ node, depth, highlightedIds }: { node: TreeNode; depth: n
           marginLeft: `${22 + depth * 16}px`,
           paddingLeft: "4px",
         }}>
-          {node.nodes!.map(child => (
-            <TreeNodeRow key={child.node_id} node={child} depth={depth + 1} highlightedIds={highlightedIds} />
+          {node.nodes.map((child, i) => (
+            <TreeNodeRow key={child.node_id ?? i} node={child} depth={depth + 1} highlightedIds={highlightedIds} />
           ))}
         </div>
       )}
@@ -117,8 +157,10 @@ function TreeNodeRow({ node, depth, highlightedIds }: { node: TreeNode; depth: n
 }
 
 export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
-  const totalNodes = (nodes: TreeNode[]): number =>
-    nodes.reduce((acc, n) => acc + 1 + totalNodes(n.nodes || []), 0);
+  const resolvedRoots = buildTree(tree);
+
+  const totalNodes = (nodes: TreeNodeResolved[]): number =>
+    nodes.reduce((acc, n) => acc + 1 + totalNodes(n.nodes), 0);
 
   return (
     <div style={{
@@ -154,15 +196,15 @@ export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
             </span>
           )}
           <span className="badge badge-default">
-            {totalNodes(tree)} nodes
+            {totalNodes(resolvedRoots)} nodes
           </span>
         </div>
       </div>
 
       {/* Tree body */}
       <div style={{ flex: 1, overflowY: "auto", padding: "10px 8px" }}>
-        {tree.map(node => (
-          <TreeNodeRow key={node.node_id} node={node} depth={0} highlightedIds={highlightedIds} />
+        {resolvedRoots.map((node, i) => (
+          <TreeNodeRow key={node.node_id ?? i} node={node} depth={0} highlightedIds={highlightedIds} />
         ))}
       </div>
 

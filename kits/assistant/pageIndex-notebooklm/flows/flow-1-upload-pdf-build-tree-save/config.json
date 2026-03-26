@@ -5,6 +5,9 @@
       "data": {
         "modes": {},
         "nodeId": "graphqlNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
         "values": {
           "id": "triggerNode_1",
           "nodeName": "API Request",
@@ -25,22 +28,21 @@
       "selected": false
     },
     {
-      "id": "apiNode_948",
+      "id": "extractFromFileNode_1",
       "data": {
-        "label": "dynamicNode node",
         "logic": [],
         "modes": {},
-        "nodeId": "apiNode",
+        "nodeId": "extractFromFileNode",
+        "schema": {
+          "files": "object"
+        },
         "values": {
-          "id": "apiNode_948",
-          "url": "https://pageindex-fastapi-production.up.railway.app/doc/",
-          "body": "{\"file_url\": \"{{triggerNode_1.output.file_url}}\", \"file_name\": \"{{triggerNode_1.output.file_name}}\"}",
-          "method": "POST",
-          "headers": "{\"x-api-key\":\"{{secrets.project.SERVER_API_KEY}}\",\"Content-Type\":\"application/json\"}",
-          "retries": "0",
-          "nodeName": "API",
-          "retry_deplay": "0",
-          "convertXmlResponseToJson": false
+          "id": "extractFromFileNode_1",
+          "format": "pdf",
+          "fileUrl": "[\"{{triggerNode_1.output.file_url}}\"]",
+          "nodeName": "Extract PDF",
+          "joinPages": false,
+          "operation": "extractFromPDF"
         }
       },
       "type": "dynamicNode",
@@ -52,28 +54,27 @@
         "x": 0,
         "y": 130
       },
-      "selected": false
+      "selected": false,
+      "draggable": false
     },
     {
-      "id": "codeNode_570",
+      "id": "codeNode_format",
       "data": {
-        "label": "dynamicNode node",
         "logic": [],
         "modes": {},
         "nodeId": "codeNode",
         "schema": {
-          "error": "string",
-          "doc_id": "string",
-          "status": "string",
-          "success": "boolean",
-          "file_name": "string",
-          "status_code": "number",
-          "tree_node_count": "number"
+          "pages": "array",
+          "raw_text": "string",
+          "toc_items": "array",
+          "page_count": "number",
+          "pages_json": "string",
+          "has_native_toc": "boolean"
         },
         "values": {
-          "id": "codeNode_570",
-          "code": "\n\nvar apiData = {{apiNode_948.output}};\n\nif (typeof apiData === \"string\") {\n  apiData = JSON.parse(apiData);\n}\n\n// ✅ Strip null bytes and other problematic Unicode escape sequences\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str\n    .replace(/\\u0000/g, \"\")        // null bytes (main culprit)\n    .replace(/\\\\u0000/g, \"\")       // escaped null bytes as literal string\n    .replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\"); // other control chars\n}\n\nvar doc_id = apiData.doc_id || \"\";\nvar file_name = apiData.file_name || \"\";\nvar tree = apiData.tree || [];\nvar raw_text = sanitize(apiData.raw_text || \"\");  // ✅ sanitized\nvar tree_node_count = apiData.tree_node_count || 0;\nvar file_url = {{triggerNode_1.output.file_url}} || \"\";\nvar supabase_url = {{secrets.project.SUPABASE_URL}} || \"\";\nvar supabase_key = {{secrets.project.SUPABASE_ANON_KEY}} || \"\";\n\n// ✅ Also sanitize the tree JSON (in case summaries/titles have null bytes)\nvar sanitized_tree = JSON.parse(sanitize(JSON.stringify(tree)));\n\nvar payload = JSON.stringify({\n  doc_id: doc_id,\n  file_name: file_name,\n  file_url: file_url,\n  tree: sanitized_tree,\n  raw_text: raw_text,\n  tree_node_count: tree_node_count,\n  status: \"completed\"\n});\n\n// ... rest of your fetch code unchanged\n\nvar response = await fetch(\n  supabase_url + \"/rest/v1/documents\",\n  {\n    method: \"POST\",\n    headers: {\n      \"apikey\": supabase_key,\n      \"Authorization\": \"Bearer \" + supabase_key,\n      \"Content-Type\": \"application/json\",\n      \"Prefer\": \"return=representation\"\n    },\n    body: payload\n  }\n);\n\nvar result = await response.json();\n\nif (!response.ok) {\n  output = {\n    success: false,\n    doc_id: \"\",\n    file_name: file_name,\n    tree_node_count: 0,\n    error: result.message || result.detail || JSON.stringify(result),\n    status_code: response.status\n  };\n} else {\n  var inserted = Array.isArray(result) ? result[0] : result;\n  output = {\n    success: true,\n    doc_id: inserted.doc_id || doc_id,\n    file_name: inserted.file_name || file_name,\n    tree_node_count: inserted.tree_node_count || tree_node_count,\n    status: \"completed\",\n    error: \"\",\n    status_code: response.status\n  };\n}",
-          "nodeName": "Code"
+          "id": "codeNode_format",
+          "code": "const files = {{extractFromFileNode_1.output.files}};\nconst file = files[0];\nconst pages = file.data;  // array of page strings\nconst tocItems = {{extractFromFileNode_1.output.toc_items}} || [];\n\n// Build raw_text with [PAGE N] markers (same format your query flow expects)\nconst rawText = pages\n  .map((text, i) => `[PAGE ${i + 1}]\\n${text}`)\n  .join(\"\\n\\n\");\n\noutput = {\n  raw_text: rawText,\n  pages: pages,\n  page_count: pages.length,\n  toc_items: tocItems,\n  has_native_toc: tocItems.length > 0,\n  pages_json: JSON.stringify(pages)\n};",
+          "nodeName": "Format Pages"
         }
       },
       "type": "dynamicNode",
@@ -85,21 +86,115 @@
         "x": 0,
         "y": 260
       },
-      "selected": true
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "InstructorLLMNode_tree",
+      "data": {
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "schema": {},
+        "values": {
+          "id": "InstructorLLMNode_tree",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"tree\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"node_id\": {\n            \"type\": \"string\"\n          },\n          \"title\": {\n            \"type\": \"string\"\n          },\n          \"start_index\": {\n            \"type\": \"number\"\n          },\n          \"end_index\": {\n            \"type\": \"number\"\n          },\n          \"summary\": {\n            \"type\": \"string\"\n          },\n          \"nodes\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"additionalProperties\": true\n      }\n    },\n    \"tree_node_count\": {\n      \"type\": \"number\",\n      \"description\": \"Total number of nodes in the tree array\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "role": "system",
+              "content": "Total pages: {{codeNode_format.output.page_count}}\n{{#if codeNode_format.output.has_native_toc}} Native TOC found — use this as the structure basis: {{codeNode_format.output.toc_items}} {{else}} No TOC found — infer structure from these first 3 pages: {{codeNode_format.output.pages_json}} {{/if}}\nBuild a complete PageIndex tree covering all {{codeNode_format.output.page_count}} pages."
+            },
+            {
+              "role": "user",
+              "content": "Total pages: {{codeNode_format.output.page_count}}\n{{#if codeNode_format.output.has_native_toc}} Native TOC found — use this as the structure basis: {{codeNode_format.output.toc_items}} {{else}} No TOC found — infer structure from these first 3 pages: {{codeNode_format.output.pages_json}} {{/if}}\nBuild a complete PageIndex tree covering all {{codeNode_format.output.page_count}} pages."
+            }
+          ],
+          "nodeName": "Generate Tree",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": true,
+      "draggable": false
+    },
+    {
+      "id": "variablesNode_617",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "variablesNode",
+        "schema": {},
+        "values": {
+          "id": "variablesNode_617",
+          "mapping": "{\n  \"file_name\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.file_name}}\"\n  },\n  \"file_url\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.file_url}}\"\n  },\n  \"tree\": {\n    \"type\": \"string\",\n    \"value\": \"{{InstructorLLMNode_tree.output.tree}}\"\n  },\n  \"raw_data\": {\n    \"type\": \"string\",\n    \"value\": \"{{extractFromFileNode_1.output.files}}\"\n  },\n  \"tre_node_count\": {\n    \"type\": \"number\",\n    \"value\": \"{{InstructorLLMNode_tree.output.tree_node_count}}\"\n  }\n}",
+          "nodeName": "Variables"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_save",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "error": "null",
+          "doc_id": "string",
+          "status": "string",
+          "success": "boolean",
+          "file_name": "string",
+          "status_code": "number",
+          "response_text": "string",
+          "tree_node_count": "number"
+        },
+        "values": {
+          "id": "codeNode_save",
+          "code": "const tree = {{InstructorLLMNode_tree.output.tree}};\nconst rawText = {{extractFromFileNode_1.output.files[0].data}};\nconst fileName = {{triggerNode_1.output.file_name}};\nconst fileUrl = {{triggerNode_1.output.file_url}};\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};\nconst supabaseKey = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};\n\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str.replace(/\\u0000/g, \"\").replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\");\n}\n\n// Sanitize page text\nrawText.forEach((page, i) => {\n  rawText[i] = sanitize(page);\n});\n\nconst docId = \"pi-\" + Math.random().toString(36).slice(2, 18);\n\nconst payload = {\n  doc_id: docId,\n  file_name: fileName,\n  file_url: fileUrl,\n  raw_text: rawText,\n  tree: tree,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n\nconst response = await fetch(supabaseUrl + \"/rest/v1/documents\", {\n  method: \"POST\",\n  headers: {\n    \"apikey\": supabaseKey,\n    \"Authorization\": \"Bearer \" + supabaseKey,\n    \"Content-Type\": \"application/json\",\n    \"Prefer\": \"return=representation\"\n  },\n  body: JSON.stringify(payload)\n});\n\nconst result = await response.json();\n\noutput = {\n  success: response.ok,\n  status_code: response.status,\n  response_text: response.statusText,\n  error: result[0]?.error || result.error || null,\n  doc_id: docId,\n  file_name: fileName,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n",
+          "nodeName": "Save to Supabase"
+        },
+        "disabled": false
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false,
+      "draggable": false
     },
     {
       "id": "responseNode_triggerNode_1",
       "data": {
         "label": "Response",
+        "modes": {},
         "nodeId": "graphqlResponseNode",
+        "schema": {},
         "values": {
           "id": "responseNode_triggerNode_1",
-          "headers": "{\"content-type\":\"application/json\"}",
-          "retries": "0",
           "nodeName": "API Response",
-          "webhookUrl": "",
-          "retry_delay": "0",
-          "outputMapping": "{\n  \"doc_id\": \"{{apiNode_948.output}}.doc_id\",\n  \"file_name\": \"{{apiNode_948.output}}.file_name\",\n  \"tree_node_count\": \"{{apiNode_948.output}}.tree_node_count\",\n  \"status\": \"completed\"\n}"
+          "outputMapping": "{\n  \"doc_id\": \"{{codeNode_save.output.doc_id}}\",\n  \"file_name\": \"{{codeNode_save.output.file_name}}\",\n  \"tree_node_count\": \"{{codeNode_save.output.tree_node_count}}\",\n  \"status\": \"{{codeNode_save.output.status}}\"\n}"
         },
         "disabled": false,
         "isResponseNode": true
@@ -111,39 +206,62 @@
       },
       "position": {
         "x": 0,
-        "y": 390
+        "y": 780
       },
       "selected": false
     }
   ],
   "edges": [
     {
-      "id": "triggerNode_1-apiNode_948",
+      "id": "triggerNode_1-extractFromFileNode_1",
       "type": "defaultEdge",
       "source": "triggerNode_1",
-      "target": "apiNode_948",
+      "target": "extractFromFileNode_1",
       "sourceHandle": "bottom",
       "targetHandle": "top"
     },
     {
-      "id": "apiNode_948-codeNode_570-252",
+      "id": "extractFromFileNode_1-codeNode_format",
       "type": "defaultEdge",
-      "source": "apiNode_948",
-      "target": "codeNode_570",
+      "source": "extractFromFileNode_1",
+      "target": "codeNode_format",
       "sourceHandle": "bottom",
       "targetHandle": "top"
     },
     {
-      "id": "codeNode_570-responseNode_triggerNode_1-839",
-      "data": {},
+      "id": "codeNode_format-InstructorLLMNode_tree",
       "type": "defaultEdge",
-      "source": "codeNode_570",
+      "source": "codeNode_format",
+      "target": "InstructorLLMNode_tree",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_save-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "codeNode_save",
       "target": "responseNode_triggerNode_1",
       "sourceHandle": "bottom",
       "targetHandle": "top"
     },
     {
-      "id": "response-trigger_triggerNode_1",
+      "id": "variablesNode_617-codeNode_save",
+      "type": "defaultEdge",
+      "source": "variablesNode_617",
+      "target": "codeNode_save",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_tree-variablesNode_617",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_tree",
+      "target": "variablesNode_617",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
       "type": "responseEdge",
       "source": "triggerNode_1",
       "target": "responseNode_triggerNode_1",

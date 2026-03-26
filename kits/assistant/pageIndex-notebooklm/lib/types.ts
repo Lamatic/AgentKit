@@ -7,13 +7,24 @@ export interface Document {
   created_at: string;
 }
 
+// Raw API shape: nodes is a flat array of child IDs
 export interface TreeNode {
   node_id: string;
   title: string;
-  start_index: number;   // physical page where section starts
-  end_index: number;     // physical page where section ends
-  summary: string;       // short 1-2 sentence AI description (≤200 chars)
-  nodes?: TreeNode[];
+  start_index: number;
+  end_index: number;
+  summary: string;
+  nodes: string[];       // child node_ids
+}
+
+// Resolved shape used internally after building the tree
+export interface TreeNodeResolved {
+  node_id: string;
+  title: string;
+  start_index: number;
+  end_index: number;
+  summary: string;
+  nodes: TreeNodeResolved[];
 }
 
 export interface RetrievedNode {

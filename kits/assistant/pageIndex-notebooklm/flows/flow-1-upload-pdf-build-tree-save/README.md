@@ -2,19 +2,21 @@
 
 ## About This Flow
 
-This flow automates a workflow with **4 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
+This flow automates a workflow with **7 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
 
 ## Flow Components
 
 This workflow includes the following node types:
 - API Request
-- API
+- Extract from File
 - Code
+- Generate JSON
+- Variables
 - API Response
 
 ## Configuration Requirements
 
-This flow requires configuration for **0 node(s)** with private inputs (credentials, API keys, model selections, etc.). All required configurations are documented in the `inputs.json` file.
+This flow requires configuration for **1 node(s)** with private inputs (credentials, API keys, model selections, etc.). All required configurations are documented in the `inputs.json` file.
 
 ## Files Included
 
@@ -60,4 +62,4 @@ For questions or issues with this flow:
 
 ---
 *Exported from Lamatic Flow Editor*
-*Generated on 3/22/2026*
+*Generated on 3/27/2026*
