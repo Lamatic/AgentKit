@@ -1,42 +1,64 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(req: Request) {
+const EXECUTE_WORKFLOW = `
+  query ExecuteWorkflow($workflowId: String!, $payload: JSON!) {
+    executeWorkflow(
+      workflowId: $workflowId
+      payload: $payload
+    ) {
+      status
+      result
+    }
+  }
+`
+
+export async function POST(req: NextRequest) {
   try {
-    // 1. Safe Environment Variable Loading
-    const { 
-      LAMATIC_API_URL, 
-      LAMATIC_API_KEY, 
-      WATCHDOG_FLOW_ID, 
-      LAMATIC_PROJECT_ID 
+    const {
+      LAMATIC_API_URL,
+      LAMATIC_API_KEY,
+      WATCHDOG_FLOW_ID,
+      LAMATIC_PROJECT_ID,
     } = process.env;
 
+    // ✅ ENV VALIDATION
     if (!LAMATIC_API_URL || !LAMATIC_API_KEY || !WATCHDOG_FLOW_ID || !LAMATIC_PROJECT_ID) {
-      console.error("Missing Environment Variables");
-      return NextResponse.json({ error: "Server Configuration Error" }, { status: 500 });
+      console.error("Missing env vars:", {
+        hasURL: !!LAMATIC_API_URL,
+        hasKey: !!LAMATIC_API_KEY,
+        hasFlow: !!WATCHDOG_FLOW_ID,
+        hasProject: !!LAMATIC_PROJECT_ID,
+      });
+
+      return NextResponse.json(
+        { error: "Missing required environment variables" },
+        { status: 500 }
+      );
     }
 
-    // 2. Strong Request Validation
+    // ✅ BODY PARSE
     const body = await req.json();
     const competitors = Array.isArray(body?.competitors) ? body.competitors : [];
-    const isValid = competitors.length > 0 && competitors.every(
-      (c: any) => typeof c?.org_name === 'string' && c.org_name.trim() &&
-                  typeof c?.url === 'string' && c.url.trim()
-    );
+
+    // ✅ VALIDATION
+    const isValid =
+      competitors.length > 0 &&
+      competitors.every(
+        (c: any) =>
+          typeof c?.org_name === 'string' &&
+          c.org_name.trim() &&
+          typeof c?.url === 'string' &&
+          c.url.trim()
+      );
 
     if (!isValid) {
-      return NextResponse.json({ error: 'Invalid competitors data' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid competitors data' },
+        { status: 400 }
+      );
     }
 
-    const EXECUTE_WORKFLOW = `
-      mutation ExecuteWorkflow($workflowId: String!, $payload: JSON!) {
-        executeWorkflow(workflowId: $workflowId, payload: $payload)
-      }
-    `;
-
-    // 3. Hardened Fetch with Timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); 
-
+    // ✅ API CALL (NO TIMEOUT — since your current setup works)
     const res = await fetch(LAMATIC_API_URL, {
       method: 'POST',
       headers: {
@@ -51,25 +73,54 @@ export async function POST(req: Request) {
           payload: { competitors },
         },
       }),
-      signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
+    // ✅ HANDLE NON-200 RESPONSES
     if (!res.ok) {
       const errorText = await res.text();
-      return NextResponse.json({ error: `Lamatic Error: ${res.status}` }, { status: res.status });
+      return NextResponse.json(
+        { error: `Lamatic HTTP ${res.status}`, details: errorText },
+        { status: res.status }
+      );
     }
 
-    const data = await res.json();
+    // ✅ SAFE PARSE
+    let data: any;
+    try {
+      data = await res.json();
+    } catch {
+      return NextResponse.json(
+        { error: `Invalid JSON from Lamatic` },
+        { status: 500 }
+      );
+    }
+
+    // ✅ GRAPHQL ERROR HANDLING
     if (data.errors) {
-      return NextResponse.json({ error: data.errors[0]?.message }, { status: 500 });
+      return NextResponse.json(
+        { error: data.errors[0]?.message || 'GraphQL error' },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(data.data.executeWorkflow);
+    // ✅ SAFE RESPONSE ACCESS
+    const result = data?.data?.executeWorkflow;
+
+    if (!result) {
+      return NextResponse.json(
+        { error: "Unexpected Lamatic response structure" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(result);
+
   } catch (err: any) {
-    console.error('Route Error:', err);
-    const message = err.name === 'AbortError' ? 'Request Timed Out' : 'Internal Server Error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Analyze route error:', err);
+
+    return NextResponse.json(
+      { error: err.message || 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
