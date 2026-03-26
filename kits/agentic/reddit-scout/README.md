@@ -1,24 +1,70 @@
 # Reddit Scout by Lamatic.ai
 
 <p align="center">
-  <a href="#" target="_blank">
+  <a href="https://reddit-scout-tawny.vercel.app/" target="_blank">
     <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
   </a>
 </p>
 
-**Reddit Scout** is an AI-powered product review research tool built with [Lamatic.ai](https://lamatic.ai). It searches Reddit for real user opinions and generates structured review summaries for any product or topic.
+**Reddit Scout** is an AI-powered product review research tool built with [Lamatic.ai](https://lamatic.ai). It searches Reddit for real user opinions and generates structured, scannable review summaries for any product or topic.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/reddit-scout&env=REDDIT_SCOUT_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Reddit%20Scout%20keys%20are%20required.)
 
 ---
 
-## Lamatic Setup (Pre and Post)
+## The Problem
+
+When researching a product before buying, the most honest opinions live on Reddit — not in influencer reviews or star ratings. But finding and reading through dozens of Reddit threads is time-consuming. People manually Google "site:reddit.com [product] reviews", open 10 tabs, read hundreds of comments, and try to mentally synthesize what the consensus is. This takes 15-20 minutes per product and is hard to do consistently.
+
+**Nobody has built a focused tool that automates this specific workflow.**
+
+## The Approach
+
+Reddit Scout is a single-purpose tool: type a product name, get a structured review summary from Reddit.
+
+**How it works:**
+
+1. User enters a product or topic (e.g., "HP Victus", "Sony WH-1000XM5")
+2. An LLM generates Reddit-scoped search queries
+3. Google Serper API finds the most relevant Reddit threads
+4. Serper's scrape endpoint extracts full thread content (posts + comments)
+5. A second LLM analyzes all content and produces a structured summary
+
+**Tech stack:**
+- **Lamatic AI** — orchestrates the entire flow (search, scrape, analyze)
+- **Google Serper API** — Reddit-scoped web search and thread scraping
+- **Next.js** — clean, fast frontend
+- **ReactMarkdown** — renders AI output as formatted markdown
+
+## The Result
+
+A clean, single-page app where users type a product name and get a structured review in seconds:
+
+- **Overall Sentiment** — positive/negative split at a glance
+- **What Users Love** — key pros from real users
+- **Common Complaints** — honest downsides
+- **Notable User Quotes** — direct quotes with context
+- **Frequently Discussed Features** — what keeps coming up
+- **Final Verdict** — direct recommendation
+
+**Live demo:** [reddit-scout-tawny.vercel.app](https://reddit-scout-tawny.vercel.app/)
+
+## Tradeoffs & Assumptions
+
+- **Scrape vs. full crawl:** We use Serper's scrape endpoint (single-page) instead of Firecrawl (which doesn't support Reddit). This means we get thread content but not all nested comments — we capture the most relevant discussion.
+- **10 threads per search:** We scrape the top 10 Reddit results. This balances speed (~20s) with coverage. More threads would mean longer wait times.
+- **No caching:** Every search hits the API fresh. Adding a cache layer would reduce costs for repeated queries but wasn't needed for this scope.
+- **Single product search:** No comparison mode (e.g., "X vs Y") — keeping the scope narrow and the output clean.
+
+---
+
+## Lamatic Setup
 
 Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
 
 **Pre: Build in Lamatic**
 1. Sign in or sign up at https://lamatic.ai
-2. Create a project (if you don't have one yet)
+2. Create a project
 3. Click "+ New Flow" and select "Flow"
 4. Build the Reddit Scout flow:
    - Trigger Node (GraphQL) with input `{ "query": "string" }`
@@ -32,16 +78,15 @@ Before running this project, you must build and deploy the flow in Lamatic, then
    - Response Node: Return with output mapping `{ "answer": "{{LLMNode.output.generatedResponse}}" }`
 5. Configure providers and API credentials (Serper API key)
 6. Deploy the flow in Lamatic and obtain your .env keys
-7. Copy the keys from your studio
 
 **Post: Wire into this repo**
-1. Create a .env file and set the keys
+1. Create a `.env` file and set the keys
 2. Install and run locally:
-   - npm install
-   - npm run dev
+   - `npm install`
+   - `npm run dev`
 3. Deploy (Vercel recommended):
-   - Import your repo, set the project's Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
+   - Import your repo, set the project's Root Directory to `kits/agentic/reddit-scout`
+   - Add env vars in Vercel (same as your `.env`)
    - Deploy and test your live URL
 
 ---
@@ -59,7 +104,7 @@ Before running this project, you must build and deploy the flow in Lamatic, then
 
 | Item | Purpose | Where to Get It |
 |------|---------|-----------------|
-| .env Key | Authentication for Lamatic AI APIs and Orchestration | [lamatic.ai](https://lamatic.ai) |
+| Lamatic API Key | Authentication for Lamatic AI APIs | [lamatic.ai](https://lamatic.ai) |
 | Serper API Key | Google Search API for Reddit search | [serper.dev](https://serper.dev) |
 
 ### 1. Environment Variables
@@ -101,28 +146,6 @@ npm run dev
   └── reddit-scout/        # Exported Lamatic flow
 /package.json              # Dependencies & scripts
 ```
-
----
-
-## How It Works
-
-1. **User enters a product name** (e.g., "HP Victus", "Sony WH-1000XM5")
-2. **AI generates a Reddit-scoped search query** (e.g., "site:reddit.com HP Victus reviews")
-3. **Google Serper API searches** for relevant Reddit threads
-4. **Serper scrape extracts** the full content of each Reddit thread
-5. **AI analyzes all thread content** and generates a structured summary including:
-   - Overall sentiment breakdown
-   - What users love
-   - Common complaints
-   - Notable real user quotes
-   - Frequently discussed features
-   - Final verdict
-
----
-
-## Contributing
-
-We welcome contributions! Open an issue or PR in this repo.
 
 ---
 
