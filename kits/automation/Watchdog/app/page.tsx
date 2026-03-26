@@ -26,11 +26,25 @@ export default function WatchdogDashboard() {
     if (!newName.trim() || !newUrl.trim()) { setError("Both fields are required."); return; }
     if (competitors.length >= 10) { setError("Maximum 10 competitors allowed."); return; }
     setCompetitors([...competitors, { org_name: newName.trim(), url: newUrl.trim() }]);
+    setResults([]);
+    setAnalysisError("");
     setNewName("");
     setNewUrl("");
   };
 
-  const removeCompetitor = (index: number) => setCompetitors(competitors.filter((_, i) => i !== index));
+  const removeCompetitor = (index: number) => {
+    setCompetitors(competitors.filter((_, i) => i !== index));
+    setResults([]);
+    setAnalysisError("");
+  };
+
+  const cleanResults = (rawResults || []).map((item: any) => {
+    const formatted = item.codeNode_584?.output?.formatted;
+    return {
+      org_name: item.org_name || formatted?.org_name || "Unknown",
+      response: typeof formatted === 'string' ? formatted : (item.response || "No data")
+    };
+  });
 
   const analyzeCompetitors = async () => {
     if (competitors.length === 0) return;
@@ -134,6 +148,7 @@ export default function WatchdogDashboard() {
                   </div>
                   <button
                     onClick={() => removeCompetitor(i)}
+                    aria-label={`Remove ${comp.org_name}`}
                     className="text-slate-600 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-lg transition-all duration-150 cursor-pointer"
                   >
                     <Trash2 size={14} />

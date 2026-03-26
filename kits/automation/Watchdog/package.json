@@ -1,9 +1,12 @@
 {
-  "name": "agent-kit-hiring-automation",
-  "author": "Lamatic AI",
+  "name": "Intelligent Watchdog",
+  "author": {
+      "name": "Agent Harsh",
+      "email": "maneharsh513@gmail.com"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/Watchdog"
+    "url": "https://github.com/HarshM1010/AgentKit/tree/feat/intelligent_watchdog/kits/automation/Watchdog"
   },
   "version": "0.1.0",
   "private": true,

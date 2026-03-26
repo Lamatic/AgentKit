@@ -1,5 +1,5 @@
 {
-    "name": "Competitive Pricing Watchdog",
+    "name": "Intelligent Watchdog",
     "description": "Monitors competitor websites for pricing and feature changes and generates sales counter-strategies, and maintains a historical ledger in Google Sheets.",
     "tags": ["🤖 Automation", "📈 Sales Strategy", "🔍 Monitoring"],
     "author": {
@@ -19,7 +19,7 @@
         "Generation of sales counter-strategies based on detected changes.",
         "Maintenance of a historical ledger in Google Sheets for tracking competitor activity over time."
     ],
-    "demoUrl": "https://agent-kit-generation.vercel.app/",
+    "demoUrl": "https://intelligent-watchdog.vercel.app/",
     "githubUrl": "https://github.com/HarshM1010/AgentKit_Watchdog/tree/feat/agentic_watchdog",
     "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/HarshM1010/AgentKit_Watchdog&root-directory=kits/automation/pricing-watchdog&env=WATCHDOG_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Pricing%20Watchdog%20flow%20ID%20and%20Lamatic%20API%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/pricing-watchdog",
     "documentationUrl": "https://lamatic.ai/templates/agentkits/automation/pricing-watchdog"
