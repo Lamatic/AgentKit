@@ -32,11 +32,10 @@
 <a href="https://github.com/Lamatic/AgentKit/network/members">
   <img src="https://img.shields.io/github/forks/Lamatic/AgentKit?logo=github" alt="GitHub Forks" />
 </a>
-<a href="https://github.com/Lamatic/AgentKit/actions">
+<!-- <a href="https://github.com/Lamatic/AgentKit/actions">
   <img src="https://img.shields.io/github/actions/workflow/status/Lamatic/AgentKit/ci.yml?branch=main" alt="CI/CD Status" />
-</a>
-
-<br/>
+</a>   -->
+<img src="https://img.shields.io/coderabbit/prs/github/Lamatic/AgentKit?utm_source=oss&utm_medium=github&utm_campaign=Lamatic%2FAgentKit&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews">
 
 ## ✨ About AgentKit
 
