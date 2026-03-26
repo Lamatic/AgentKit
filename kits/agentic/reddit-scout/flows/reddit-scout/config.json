@@ -42,7 +42,7 @@
             {
               "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
               "role": "user",
-              "content": "Here is what I want to search :\nhp victus"
+              "content": "Here is what I want to search :\n{{triggerNode_1.output.query}}"
             }
           ],
           "memories": "[]",
@@ -62,7 +62,7 @@
         "x": 0,
         "y": 130
       },
-      "selected": true
+      "selected": false
     },
     {
       "id": "webSearchNode_187",
@@ -77,7 +77,7 @@
           "type": "https://google.serper.dev/search",
           "query": "{{LLMNode_988.output.generatedResponse}}",
           "country": "in",
-          "results": "5",
+          "results": "4",
           "language": "en",
           "location": "India",
           "nodeName": "Web Search",
@@ -245,7 +245,7 @@
             {
               "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
               "role": "system",
-              "content": "You are a product review analyst. You will receive raw Reddit thread data scraped from the web. Analyze all the content and produce a clean, well-structured summary in markdown format. Use this exact structure:\n## 📊 Overall Sentiment\n(Brief summary: positive/negative/mixed with approximate % breakdown)\n## 👍 What Users Love\n(Bullet points of pros mentioned across threads)\n## 👎 Common Complaints\n(Bullet points of cons and issues mentioned)\n## 💬 Notable User Quotes\n(2-4 real user quotes from the data, keep them short and impactful)\n## 🏷️ Frequently Discussed Features\n(Key features/topics that keep coming up)\n## ✅ Final Verdict\n(2-3 sentence recommendation based on Reddit consensus)\nRules:\n- Only use information from the provided Reddit data\n- Do not fabricate reviews or opinions\n- Keep each section concise and scannable\n- Use emojis sparingly for visual clarity"
+              "content": "You are a product review analyst. Given raw Reddit thread data, produce a structured review summary in clean markdown format. Use this exact structure WITHOUT any emojis:\n## Overall Sentiment\n(1 sentence summary with approximate positive/negative split)\n## What Users Love\n- (short bullet points of pros, each 1 line max)\n## Common Complaints\n- (short bullet points of cons, each 1 line max)\n## Notable User Quotes\n> \"short quote 1\" — context\n> \"short quote 2\" — context\n(Max 4 quotes, keep them short)\n## Frequently Discussed Features\n- (key topics that come up, each 1 line)\n## Final Verdict\n(2-3 sentences, direct recommendation)\nRules:\n- NO emojis anywhere in the output\n- Keep each bullet point to ONE short sentence\n- Quotes should be under 20 words each\n- Do not add any preamble, intro, or \"based on the data\" framing\n- Start directly with \"## Overall Sentiment\"\n- Use plain markdown only"
             },
             {
               "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
@@ -278,12 +278,13 @@
         "label": "Response",
         "nodeId": "graphqlResponseNode",
         "values": {
+          "id": "responseNode_triggerNode_1",
           "headers": "{\"content-type\":\"application/json\"}",
           "retries": "0",
           "nodeName": "API Response",
           "webhookUrl": "",
           "retry_delay": "0",
-          "outputMapping": "{}"
+          "outputMapping": "{\n  \"answer\": \"{{LLMNode_936.output.generatedResponse}}\"\n}"
         },
         "disabled": false,
         "isResponseNode": true

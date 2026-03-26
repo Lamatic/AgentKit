@@ -1,7 +1,8 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import {config} from "../orchestrate.js"
+
+const FLOW_ID = process.env.REDDIT_SCOUT_FLOW_ID
 
 export async function searchReddit(
   query: string,
@@ -11,34 +12,17 @@ export async function searchReddit(
   error?: string
 }> {
   try {
+    if (!FLOW_ID) {
+      throw new Error("REDDIT_SCOUT_FLOW_ID environment variable is not set")
+    }
+
     console.log("[v0] Searching Reddit for:", query)
 
-    const flows = config.flows
-    const firstFlowKey = Object.keys(flows)[0]
-
-    if (!firstFlowKey) {
-      throw new Error("No workflows found in configuration")
-    }
-
-    const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows];
-    console.log("[v0] Using workflow:", flow.name, flow.workflowId);
-
-    const inputs: Record<string, any> = {
-      query,
-    }
-
-    for (const inputKey of Object.keys(flow.inputSchema || {})) {
-      if (inputKey === "query") {
-        inputs[inputKey] = query
-      }
-    }
+    const inputs: Record<string, any> = { query }
 
     console.log("[v0] Sending inputs:", inputs)
 
-    if(!flow.workflowId){
-      throw Error("Workflow not found in config.")
-    }
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    const resData = await lamaticClient.executeFlow(FLOW_ID, inputs)
     console.log("[v0] Raw response:", resData)
 
     const answer = resData?.result?.answer
