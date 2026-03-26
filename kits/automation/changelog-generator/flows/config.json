@@ -1,0 +1,132 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"repo_url\": \"string\",\n  \"date_from\": \"string\",\n  \"date_to\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_549",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_549",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert developer assistant that generates professional, well-structured changelogs from GitHub repository information. You always format output in clean markdown with emoji section headers. You write clearly for both technical and non-technical audiences."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate a professional changelog for the following GitHub repository:\nRepository: {{triggerNode_1.output.repo_url}}\nFrom Date: {{triggerNode_1.output.date_from}}\nTo Date: {{triggerNode_1.output.date_to}}\nCreate a well-structured changelog in this exact format:\n## 📋 Summary\n(2-sentence plain English summary for non-technical stakeholders)\n## 🚀 New Features\n(list new features, or omit section if none)\n## 🐛 Bug Fixes\n(list bug fixes, or omit section if none)\n## 🔧 Improvements\n(list improvements/enhancements, or omit section if none)\n## ⚠️ Breaking Changes\n(list breaking changes, or omit section if none)\n## 📦 Dependencies\n(list dependency updates, or omit section if none)"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "groq/llama-3.1-8b-instant",
+              "credentialId": "3ae319d5-e1ca-4cb1-80e6-fbe2d17d5407",
+              "provider_name": "groq",
+              "credential_name": "groq-free"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": true
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"changeLog\": \"{{LLMNode_549.output.generatedResponse}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_549",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_549",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_549-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_549",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "selected": false,
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
