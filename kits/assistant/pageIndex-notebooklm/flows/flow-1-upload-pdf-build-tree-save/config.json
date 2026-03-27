@@ -12,7 +12,7 @@
           "id": "triggerNode_1",
           "nodeName": "API Request",
           "responeType": "realtime",
-          "advance_schema": "{\n  \"file_url\": \"string\",\n  \"file_name\": \"string\"\n}"
+          "advance_schema": "{\n  \"file_url\": \"string\",\n  \"file_name\": \"string\",\n  \"file_base64\": \"string\",\n  \"mime_type\": \"string\"\n}"
         },
         "trigger": true
       },
@@ -28,6 +28,30 @@
       "selected": false
     },
     {
+      "id": "codeNode_630",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "id": "codeNode_630",
+          "code": "// Assign the value you want to return from this code node to `output`. \n// The `output` variable is already declared.\nconst fileBase64 = {{triggerNode_1.output.file_base64}};\nconst fileUrl    = {{triggerNode_1.output.file_url}};\nconst fileName   = {{triggerNode_1.output.file_name}} || \"document.pdf\";\nconst mimeType   = {{triggerNode_1.output.mime_type}} || \"application/pdf\";\n\n// If a URL was provided directly, use it — no storage upload needed\nif (!fileBase64 && fileUrl) {\n  output = { resolved_url: fileUrl, file_name: fileName, uploaded_to_storage: false };\n  return;\n}\n\nif (!fileBase64) {\n  throw new Error(\"No file_base64 or file_url provided\");\n}\n\n// Upload base64 to Supabase Storage\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};   // from Lamatic secret\nconst serviceKey  = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};    // from Lamatic secret\n\n// Convert base64 to binary\n// base64 may arrive as a plain string or as data:mime;base64,... URI\nlet b64 = fileBase64;\nif (b64.includes(\",\")) b64 = b64.split(\",\")[1];\n\nconst binaryStr = atob(b64);\nconst bytes     = new Uint8Array(binaryStr.length);\nfor (let i = 0; i < binaryStr.length; i++) {\n  bytes[i] = binaryStr.charCodeAt(i);\n}\n\n// Unique storage path\nconst safeName    = fileName.replace(/[^a-zA-Z0-9._-]/g, \"_\");\nconst storagePath = `${Date.now()}_${safeName}`;\n\nconst uploadResp = await fetch(\n  `${supabaseUrl}/storage/v1/object/pdfs/${storagePath}`,\n  {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": `Bearer ${serviceKey}`,\n      \"Content-Type\": mimeType,\n      \"x-upsert\": \"false\",\n    },\n    body: bytes,\n  }\n);\n\nif (!uploadResp.ok) {\n  const errText = await uploadResp.text();\n  throw new Error(`Storage upload failed: ${uploadResp.status} — ${errText}`);\n}\n\nconst publicUrl = `${supabaseUrl}/storage/v1/object/public/pdfs/${storagePath}`;\n\noutput = {\n  resolved_url: publicUrl,\n  file_name: fileName,\n  uploaded_to_storage: true,\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
       "id": "extractFromFileNode_1",
       "data": {
         "logic": [],
@@ -39,7 +63,7 @@
         "values": {
           "id": "extractFromFileNode_1",
           "format": "pdf",
-          "fileUrl": "[\"{{triggerNode_1.output.file_url}}\"]",
+          "fileUrl": "[\"{{codeNode_630.output.resolved_url}}\"]",
           "nodeName": "Extract PDF",
           "joinPages": false,
           "operation": "extractFromPDF"
@@ -52,7 +76,7 @@
       },
       "position": {
         "x": 0,
-        "y": 130
+        "y": 260
       },
       "selected": false,
       "draggable": false
@@ -84,7 +108,7 @@
       },
       "position": {
         "x": 0,
-        "y": 260
+        "y": 390
       },
       "selected": false,
       "draggable": false
@@ -119,9 +143,9 @@
       },
       "position": {
         "x": 0,
-        "y": 390
+        "y": 520
       },
-      "selected": true,
+      "selected": false,
       "draggable": false
     },
     {
@@ -145,7 +169,7 @@
       },
       "position": {
         "x": 0,
-        "y": 520
+        "y": 650
       },
       "selected": false
     },
@@ -167,7 +191,7 @@
         },
         "values": {
           "id": "codeNode_save",
-          "code": "const tree = {{InstructorLLMNode_tree.output.tree}};\nconst rawText = {{extractFromFileNode_1.output.files[0].data}};\nconst fileName = {{triggerNode_1.output.file_name}};\nconst fileUrl = {{triggerNode_1.output.file_url}};\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};\nconst supabaseKey = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};\n\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str.replace(/\\u0000/g, \"\").replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\");\n}\n\n// Sanitize page text\nrawText.forEach((page, i) => {\n  rawText[i] = sanitize(page);\n});\n\nconst docId = \"pi-\" + Math.random().toString(36).slice(2, 18);\n\nconst payload = {\n  doc_id: docId,\n  file_name: fileName,\n  file_url: fileUrl,\n  raw_text: rawText,\n  tree: tree,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n\nconst response = await fetch(supabaseUrl + \"/rest/v1/documents\", {\n  method: \"POST\",\n  headers: {\n    \"apikey\": supabaseKey,\n    \"Authorization\": \"Bearer \" + supabaseKey,\n    \"Content-Type\": \"application/json\",\n    \"Prefer\": \"return=representation\"\n  },\n  body: JSON.stringify(payload)\n});\n\nconst result = await response.json();\n\noutput = {\n  success: response.ok,\n  status_code: response.status,\n  response_text: response.statusText,\n  error: result[0]?.error || result.error || null,\n  doc_id: docId,\n  file_name: fileName,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n",
+          "code": "const tree = {{InstructorLLMNode_tree.output.tree}};\nconst rawText = {{extractFromFileNode_1.output.files[0].data}};\nconst fileName = {{triggerNode_1.output.file_name}};\nconst fileUrl = {{codeNode_630.output.resolver_url}}\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};\nconst supabaseKey = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};\n\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str.replace(/\\u0000/g, \"\").replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\");\n}\n\n// Sanitize page text\nrawText.forEach((page, i) => {\n  rawText[i] = sanitize(page);\n});\n\nconst docId = \"pi-\" + Math.random().toString(36).slice(2, 18);\n\nconst payload = {\n  doc_id: docId,\n  file_name: fileName,\n  file_url: fileUrl,\n  raw_text: rawText,\n  tree: tree,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n\nconst response = await fetch(supabaseUrl + \"/rest/v1/documents\", {\n  method: \"POST\",\n  headers: {\n    \"apikey\": supabaseKey,\n    \"Authorization\": \"Bearer \" + supabaseKey,\n    \"Content-Type\": \"application/json\",\n    \"Prefer\": \"return=representation\"\n  },\n  body: JSON.stringify(payload)\n});\n\nconst result = await response.json();\n\noutput = {\n  success: response.ok,\n  status_code: response.status,\n  response_text: response.statusText,\n  error: result[0]?.error || result.error || null,\n  doc_id: docId,\n  file_name: fileName,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n",
           "nodeName": "Save to Supabase"
         },
         "disabled": false
@@ -179,9 +203,9 @@
       },
       "position": {
         "x": 0,
-        "y": 650
+        "y": 780
       },
-      "selected": false,
+      "selected": true,
       "draggable": false
     },
     {
@@ -206,20 +230,12 @@
       },
       "position": {
         "x": 0,
-        "y": 780
+        "y": 910
       },
       "selected": false
     }
   ],
   "edges": [
-    {
-      "id": "triggerNode_1-extractFromFileNode_1",
-      "type": "defaultEdge",
-      "source": "triggerNode_1",
-      "target": "extractFromFileNode_1",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
     {
       "id": "extractFromFileNode_1-codeNode_format",
       "type": "defaultEdge",
@@ -257,6 +273,22 @@
       "type": "defaultEdge",
       "source": "InstructorLLMNode_tree",
       "target": "variablesNode_617",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "triggerNode_1-codeNode_630",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "codeNode_630",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_630-extractFromFileNode_1",
+      "type": "defaultEdge",
+      "source": "codeNode_630",
+      "target": "extractFromFileNode_1",
       "sourceHandle": "bottom",
       "targetHandle": "top"
     },

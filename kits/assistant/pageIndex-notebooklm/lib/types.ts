@@ -53,8 +53,6 @@ export interface UploadResponse {
   file_name: string;
   tree_node_count: string;
   status: string;
-  saved: string;
-  error: string;
 }
 
 export interface ListResponse {

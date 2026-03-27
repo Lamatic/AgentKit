@@ -22,9 +22,13 @@ export default function DocumentUpload({ onUploaded }: Props) {
     setStatus("uploading");
     try {
       const dataUrl = await fileToDataUrl(file);
-      const result = (await uploadDocument(dataUrl, file.name)) as UploadResponse;
-      if (result?.error) { setStatus("error"); setMessage(result.error); }
-      else { setStatus("success"); setMessage(`${result.tree_node_count} nodes indexed`); onUploaded(); }
+      // Split "data:<mime>;base64,<data>" → { mime_type, file_base64 }
+      const [meta, file_base64] = dataUrl.split(",");
+      const mime_type = meta.replace("data:", "").replace(";base64", "");
+      const result = (await uploadDocument(file.name, { file_base64, mime_type })) as unknown as UploadResponse;
+      setStatus("success");
+      setMessage(`${result.tree_node_count} nodes indexed`);
+      onUploaded();
     } catch {
       setStatus("error"); setMessage("Upload failed. Check your flow.");
     }

@@ -16,11 +16,15 @@ function safeParseJSON<T>(value: unknown, fallback: T): T {
 }
 
 // ── Flow 1: Upload PDF → build tree → save to Supabase ───────
-export async function uploadDocument(file_url: string, file_name: string) {
+// Accepts either a remote file_url OR a local file (base64 + mime_type).
+export async function uploadDocument(
+  file_name: string,
+  options: { file_url?: string; file_base64?: string; mime_type?: string }
+) {
   try {
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_UPLOAD!,
-      { file_url, file_name }
+      { file_name, ...options }
     );
     const data = (response.result ?? response) as Record<string, unknown>;
     return data;

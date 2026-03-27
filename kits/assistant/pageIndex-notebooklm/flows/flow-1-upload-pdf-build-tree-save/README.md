@@ -2,14 +2,14 @@
 
 ## About This Flow
 
-This flow automates a workflow with **7 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
+This flow automates a workflow with **8 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
 
 ## Flow Components
 
 This workflow includes the following node types:
 - API Request
-- Extract from File
 - Code
+- Extract from File
 - Generate JSON
 - Variables
 - API Response
