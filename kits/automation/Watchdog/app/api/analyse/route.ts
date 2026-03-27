@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     // ✅ VALIDATION
     const isValid =
-      competitors.length > 0 &&
+      competitors.length <= 10 &&
       competitors.every(
         (c: any) =>
           typeof c?.org_name === 'string' &&
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
     if (!isValid) {
       return NextResponse.json(
-        { error: 'Invalid competitors data' },
+        { error: 'Invalid competitors data. Provide 1-10 competitors with org_name and url.' },
         { status: 400 }
       );
     }

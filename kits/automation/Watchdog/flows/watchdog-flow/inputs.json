@@ -8,8 +8,8 @@
       "items": {
         "type": "object",
         "properties": {
-          "org_name": { "type": "string", "format": "uri" },
-          "url": { "type": "string" }
+            "org_name": { "type": "string" },
+            "url": { "type": "string", "format": "uri" }
         },
         "required": ["org_name", "url"],
         "additionalProperties": false

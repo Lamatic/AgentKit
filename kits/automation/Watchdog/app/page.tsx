@@ -347,7 +347,7 @@ export default function WatchdogDashboard() {
 
             <div className="flex gap-2.5">
               <button
-                onClick={() => { setModalOpen(false); setNewName(""); setNewUrl(""); setError(""); }}
+                onClick={closeModal}
                 className="flex-1 py-2.5 text-sm text-slate-400 hover:text-slate-200 border border-white/[0.07] hover:border-white/13 rounded-xl transition-all duration-150 cursor-pointer"
               >
                 Cancel
