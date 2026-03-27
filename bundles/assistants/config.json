@@ -63,7 +63,7 @@
     "integrations": [],
     "features": [],
     "demoUrl": "",
-    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/bundles/chat",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/bundles/assistants",
     "deployUrl": "",
     "documentationUrl": ""
 }
