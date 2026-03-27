@@ -2,7 +2,37 @@
 
 import { useState, useRef, useEffect } from "react";
 import { chatWithDocument } from "@/actions/orchestrate";
-import { Message, RetrievedNode } from "@/lib/types";
+import { ChatResponse, Message, RetrievedNode } from "@/lib/types";
+
+// Lightweight markdown → HTML (no external deps)
+function renderMarkdown(text: string): string {
+  return text
+    // Headings
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    // Bold + italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    // Inline code
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    // Bullet list items (* or -)
+    .replace(/^[*-] (.+)$/gm, "<li>$1</li>")
+    // Numbered list items
+    .replace(/^\d+\.\s+(.+)$/gm, "<li>$1</li>")
+    // Wrap consecutive <li> blocks in <ul>
+    .replace(/((?:<li>[\s\S]*?<\/li>\s*)+)/g, (match) => `<ul>${match}</ul>`)
+    // Horizontal rule
+    .replace(/^---$/gm, "<hr />")
+    // Paragraphs: double newline → <p> break
+    .replace(/\n{2,}/g, "</p><p>")
+    // Single newline → <br />
+    .replace(/\n/g, "<br />")
+    // Wrap in paragraph
+    .replace(/^/, "<p>")
+    .replace(/$/, "</p>");
+}
 
 interface Props {
   docId: string;
@@ -31,7 +61,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
     setInput("");
     setLoading(true);
     try {
-      const result = await chatWithDocument(docId, userMsg.content, newMsgs);
+      const result = await chatWithDocument(docId, userMsg.content, newMsgs) as unknown as ChatResponse;
       setMessages(prev => [...prev, { role: "assistant", content: result.answer || "No answer found." }]);
       if (Array.isArray(result.retrieved_nodes) && result.retrieved_nodes.length) {
         setLastNodes(result.retrieved_nodes);
@@ -164,9 +194,12 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
               border: msg.role === "assistant" ? "1px solid var(--border)" : "none",
               boxShadow: msg.role === "user" ? "0 4px 14px rgba(45,212,191,0.2)" : "none",
               letterSpacing: "-0.005em",
-            }}>
-              {msg.content}
-            </div>
+            }}
+            {...(msg.role === "assistant"
+              ? { dangerouslySetInnerHTML: { __html: renderMarkdown(msg.content) } }
+              : { children: msg.content }
+            )}
+            />
           </div>
         ))}
 
