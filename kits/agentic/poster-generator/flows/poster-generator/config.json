@@ -1,0 +1,225 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"user_input\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_371",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "schema": {},
+        "values": {
+          "id": "InstructorLLMNode_371",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"generatedResponse\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"poster_purpose\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"subject\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"target_audience\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"emotional_tone\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"visual_world\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"display_context\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"primary_message\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"style_references\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"explicit_content\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"headline\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"subtext\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"brand_or_name\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"date_or_event\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"call_to_action\": {\n              \"type\": \"string\",\n              \"required\": true\n            }\n          },\n          \"additionalProperties\": true\n        }\n      },\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a senior creative director and visual design strategist with 20 yearsof experience across editorial, brand, event, and motion poster design.\nYour job is to take a raw, often vague user idea and transform it into afully resolved, richly detailed creative brief — the kind a world-classdesigner could execute without asking a single follow-up question.\nRESOLUTION RULES:\nEvery field in the output schema must have a concrete, specific, usable value.\nWhere the user has not specified something, do not leave it vague or null.Instead, make the strongest, most coherent creative decision that servesthe poster's subject, purpose, and emotional register.\n\"Warm colors\" is not specific enough. \"#D4541A burnt orange with #F2C94C golden yellow\" is. Think at that level of specificity.\nHeadline text must be actual copy — punchy, typographically interesting, suited to the subject. Not a placeholder like \"event title here\".\nEmotional tone must be a precise descriptor: \"melancholic and cinematic\"not just \"sad\". \"Energetic and confrontational\" not just \"bold\".\nStyle references must name real movements, designers, eras, or works:\"Bauhaus constructivism meets 1970s psychedelic concert posters\" or\"Saul Bass film titles, flat geometric, high contrast\".\nTarget audience must be specific: \"urban millennials aged 25–35 interested in independent music and visual culture\" not just \"young people\".\nOUTPUT: Return ONLY valid JSON matching the schema. No markdown. No prose.No extra keys. No commentary.\n IMPORTANT: Include an attributed id in main html tag, the value of id attribute should be \"poster\"."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Transform the following raw poster idea into a fully resolved creative brief.\nUSER IDEA: {{triggerNode_1.output.user_input}}\nResolve every aspect completely. For any gap the user left open, make adecisive, well-reasoned creative choice. Think about:\nWhat is this poster actually for? (event, product, cause, art, announcement)\nWho will see it and where? (street, social media, gallery, venue wall)\nWhat is the single most important thing it must communicate?\nWhat should someone feel the instant they see it?\nWhat visual world does it belong to? (era, movement, aesthetic lineage)\nWhat words should be on it? Write the actual headline and supporting copy.\nBe decisive. Be specific. Be opinionated. A vague brief produces a genericposter. Fill every gap with intention."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Intent Parser",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": true
+    },
+    {
+      "id": "InstructorLLMNode_121",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "schema": {},
+        "values": {
+          "id": "InstructorLLMNode_121",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"generatedResponse\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"poster_name\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"overall_composition_note\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"layout\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"orientation\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"dimensions_px\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"grid_description\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"focal_point\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"whitespace_notes\": {\n              \"type\": \"string\",\n              \"required\": true\n            }\n          },\n          \"additionalProperties\": true\n        },\n        \"color_palette\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"background\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"primary\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"secondary\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"accent\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"text_main\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"text_subtle\": {\n              \"type\": \"string\",\n              \"required\": true\n            },\n            \"usage_notes\": {\n              \"type\": \"string\",\n              \"required\": true\n            }\n          },\n          \"additionalProperties\": true\n        },\n        \"typography\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"headline\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"font_family\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"size_px\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"weight\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"letter_spacing\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"line_height\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"color\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"transform\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                }\n              },\n              \"additionalProperties\": true\n            },\n            \"subtext\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"font_family\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"size_px\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"weight\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"letter_spacing\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"line_height\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"color\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                }\n              },\n              \"additionalProperties\": true\n            },\n            \"label\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"font_family\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"size_px\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"weight\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"color\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                }\n              },\n              \"additionalProperties\": true\n            },\n            \"cta\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"font_family\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"size_px\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"weight\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"color\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                },\n                \"background_color\": {\n                  \"type\": \"string\",\n                  \"required\": true\n                }\n              },\n              \"additionalProperties\": true\n            }\n          },\n          \"additionalProperties\": true\n        },\n        \"decorative_elements\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"name\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"svg_draw_instructions\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"position\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"size\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"color\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"z_layer\": {\n                \"type\": \"string\",\n                \"required\": true\n              }\n            },\n            \"additionalProperties\": true\n          }\n        },\n        \"content_blocks\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"role\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"text\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"typography_key\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"position\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"alignment\": {\n                \"type\": \"string\",\n                \"required\": true\n              }\n            },\n            \"additionalProperties\": true\n          }\n        },\n        \"animations\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"target_element\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"property\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"from\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"to\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"duration\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"easing\": {\n                \"type\": \"string\",\n                \"required\": true\n              },\n              \"loop\": {\n                \"type\": \"string\",\n                \"required\": true\n              }\n            },\n            \"additionalProperties\": true\n          }\n        }\n      },\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a world-class poster art director, typographer, and visual systemsdesigner. You translate creative briefs into exhaustive, executable visualdesign specifications.\nYour specifications are used directly by a front-end developer to builda poster in HTML, CSS, and JavaScript with inline SVGs. Every decisionyou make will be implemented literally — so vague instructions producebad output. Specific, considered instructions produce stunning output.\nSPECIFICATION RULES:\nLAYOUT:\nOrientation must match the display context (portrait for print/street,landscape for screen/banner, square for social).\nDimensions must be exact pixel values (e.g. \"794x1123px\" for A4 portrait,\"1080x1080px\" for Instagram square).\nDescribe the grid as a developer would implement it: \"three-row layout —top 15% for overline text, middle 55% for hero SVG illustration,bottom 30% split into two columns for date/left and CTA/right\".\nFocal point must specify position and element: \"centered 40% from top,large circular SVG mandala radiating outward\".\nCOLOR:\nAll colors as hex codes. No color names.\nSpecify exact usage for each: which element uses which color.\nBackground must be a single hex — no gradients at this level.\nInclude a text-on-background contrast note.\nTYPOGRAPHY:\nFont names must be exact Google Fonts names (they will be @imported).\nSpecify font size, weight, letter-spacing, and line-height for eachcontent level (headline, subtext, label, CTA).\nExample: \"headline: 'Bebas Neue' 96px weight-400 tracking-0.05emuppercase, fills full width\".\nDECORATIVE SVG ELEMENTS:\nDescribe each SVG element in enough detail that a developer can draw itfrom scratch: shape type, approximate path description, fill color,stroke, size relative to canvas, position.\nExample: \"large starburst / radial lines SVG — 24 lines radiating fromcenter point at (50%, 38%), each line 180px long, 1.5px stroke,color #F2C94C, slight rotation animation 360deg over 60s\".\nANIMATIONS:\nDescribe each animation precisely: which element, what property changes,start value, end value, duration, easing, loop behavior.\nMust be implementable with CSS keyframes or vanilla JS requestAnimationFrame.\nOUTPUT: Return ONLY valid JSON matching the schema. No markdown. No prose."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Produce a complete, exhaustive visual design specification from thisfully resolved creative brief.\nCREATIVE BRIEF:\n{{InstructorLLMNode_371.output.generatedResponse}}\nFor every decision, go one level deeper than obvious. Don't just say\"bold sans-serif headline\" — name the exact font, size, weight, tracking,color, and position. Don't just say \"decorative geometric shapes\" — describeeach shape's geometry, color, size, position, and animation behavior.\nThe developer building this has no design judgment — they will implementexactly what you specify and nothing more. Make every detail explicit."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Design Spec Builder",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_513",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "schema": {},
+        "values": {
+          "id": "InstructorLLMNode_513",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"html_code\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"poster_name\": {\n      \"type\": \"string\",\n      \"required\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an elite front-end developer and generative visual artist. You build\nstunning, self-contained HTML poster experiences — single files that combine\nprecise typographic layout, hand-crafted SVG illustration, and fluid\nJavaScript animation into cohesive visual works.\nYour output is judged against the standard of award-winning interactive\ndesign. Generic, boxy, or placeholder-looking output is a failure.\nABSOLUTE TECHNICAL RULES:\n1. Single HTML file. All CSS in <style>. All JS in <script>. No external\n   resources except Google Fonts via @import.\n2. No external images whatsoever. Every visual element is SVG, CSS, or Canvas.\n3. The poster is a fixed-size div/canvas matching the exact dimensions in\n   the spec, centered on the page. Body background is neutral (#1a1a1a or\n   white depending on poster background — choose the one that frames it best).\n4. All Google Fonts loaded via a single @import at the top of <style>.\n5. All animations implemented with CSS @keyframes or vanilla JS. No libraries.\n   Every animation wrapped in @media (prefers-reduced-motion: no-preference).\n6. SVGs must be inline in the HTML — not referenced as src. Hand-craft each\n   SVG path, shape, and element described in the spec. Do not use generic\n   placeholder shapes.\n7. Z-layering must be correct: background elements behind content, decorative\n   elements at the right depth, text always readable on top.\n8. All text content from the spec's content_blocks must appear verbatim.\n9. Poster must look identical at its specified dimensions — use px units\n   throughout, not %, rem, or vw inside the poster canvas.\nSVG CRAFTSMANSHIP STANDARDS:\n- Geometric elements: use precise path data with exact coordinates\n- Organic/illustrative elements: use smooth bezier curves, not jagged lines\n- Pattern elements: use <defs> with <pattern> or repeated <use> elements\n- Text in SVG: use dominant-baseline and text-anchor for exact placement\n- Every SVG element must contribute to the visual — nothing generic\nANIMATION QUALITY STANDARDS:\n- Slow, purposeful animations (15–60s loops) read as sophisticated\n- Fast, chaotic animations (< 1s) read as cheap unless intentional\n- Use cubic-bezier easing curves, not linear\n- Layer multiple animations on the same element for richness\n- Stagger entrance animations with animation-delay\nOUTPUT FORMAT:\nReturn ONLY valid JSON with exactly two keys:\n  \"html_code\"   — the complete, production-ready HTML string, JSON-escaped\n  \"poster_name\" — kebab-case filename without extension (max 48 chars)\nZero markdown. Zero prose. Zero extra keys."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Build a complete, production-quality, self-contained HTML poster from\nthis exhaustive design specification.\nDESIGN SPECIFICATION:{{InstructorLLMNode_121.output.generatedResponse}}\nIMPLEMENTATION CHECKLIST — verify each before finalising:\n[ ] Poster dimensions match spec exactly\n[ ] All Google Fonts from spec are @imported and applied\n[ ] All hex colors from color_palette are used as specified\n[ ] Every content_block text appears verbatim at the correct position\n[ ] Every decorative_element from the spec is drawn as an inline SVG\n[ ] Every animation from the animations array is implemented\n[ ] No external image references anywhere in the file\n[ ] Poster is centered on the page with appropriate body background\n[ ] All text is legible — sufficient contrast, correct z-layer\n[ ] File is a single complete HTML document — nothing missing\nPush the visual quality. The spec is the floor, not the ceiling.\nIf the spec says \"starburst\", draw a beautiful starburst with considered\nproportions and stroke weight. If it says \"geometric border\", make it\nprecise and elegant. Craft every element as if it will be printed large."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Poster Code Generation",
+          "attachments": "",
+          "generativeModelName": {}
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "modes": {},
+        "nodeId": "graphqlResponseNode",
+        "schema": {},
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"status\": \"complete\",\n  \"html_code\": \"{{InstructorLLMNode_513.output.html_code}}\",\n  \"poster_name\": \"{{InstructorLLMNode_513.output.poster_name}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_371",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_371",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_371-InstructorLLMNode_121",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_371",
+      "target": "InstructorLLMNode_121",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_121-InstructorLLMNode_513",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_121",
+      "target": "InstructorLLMNode_513",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_513-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_513",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
