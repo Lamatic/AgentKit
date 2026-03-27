@@ -106,4 +106,4 @@ We welcome contributions! Open an issue or PR in this repo.
 
 ## 📜 License
 
-MIT License – see [LICENSE](./LICENSE).
+MIT License – see [LICENSE](../../../LICENSE).
