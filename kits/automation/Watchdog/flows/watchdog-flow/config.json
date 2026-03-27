@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "webhook",
+      "config": {
+        "method": "POST",
+        "path": "/execute"
+      }
+    }
+  ],
+  "outputMapping": {
+    "result": "{{LLMNode_331.output.generatedResponse}}"
+  }
+}

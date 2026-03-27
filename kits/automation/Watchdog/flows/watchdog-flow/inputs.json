@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "competitors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "org_name": { "type": "string" },
+          "url": { "type": "string" }
+        },
+        "required": ["org_name", "url"]
+      }
+    }
+  },
+  "required": ["competitors"]
+}
