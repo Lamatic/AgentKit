@@ -3,13 +3,16 @@
   "properties": {
     "competitors": {
       "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
       "items": {
         "type": "object",
         "properties": {
-          "org_name": { "type": "string" },
+          "org_name": { "type": "string", "format": "uri" },
           "url": { "type": "string" }
         },
-        "required": ["org_name", "url"]
+        "required": ["org_name", "url"],
+        "additionalProperties": false
       }
     }
   },
