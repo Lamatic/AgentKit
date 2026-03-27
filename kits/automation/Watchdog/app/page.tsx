@@ -289,7 +289,7 @@ export default function WatchdogDashboard() {
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md"
-          onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
           <div className="w-full max-w-md bg-[#16161f] border border-white/13 rounded-2xl p-7 shadow-2xl shadow-black/50">
             <div className="flex items-start justify-between mb-6">
