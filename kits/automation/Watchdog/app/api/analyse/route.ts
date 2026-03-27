@@ -37,7 +37,16 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ BODY PARSE
-    const body = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
     const competitors = Array.isArray(body?.competitors) ? body.competitors : [];
 
     // ✅ VALIDATION
@@ -58,7 +67,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ API CALL (NO TIMEOUT — since your current setup works)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 400000);
+
     const res = await fetch(LAMATIC_API_URL, {
       method: 'POST',
       headers: {
@@ -73,7 +84,9 @@ export async function POST(req: NextRequest) {
           payload: { competitors },
         },
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     // ✅ HANDLE NON-200 RESPONSES
     if (!res.ok) {
@@ -117,6 +130,12 @@ export async function POST(req: NextRequest) {
 
   } catch (err: any) {
     console.error('Analyze route error:', err);
+    if (err.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'Request timeout - Lamatic API did not respond in time' },
+        { status: 504 }
+      );
+    }
 
     return NextResponse.json(
       { error: err.message || 'Internal server error' },

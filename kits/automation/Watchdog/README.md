@@ -1,105 +1,42 @@
-# Agent Kit Generation by Lamatic.ai
+## Intelligent Watchdog by Lamatic.ai
 
-<p align="center">
-  <a href="https://agent-kit-generation.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
-  </a>
-</p>
+<p align="center"><a href="https://intelligent-watchdog.vercel.app/" target="_blank"><img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" /></a></p>
 
 
-**Agent Kit Generation** is an AI-powered content generation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation)
-
----
-
-## Lamatic Setup (Pre and Post)
-
-Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
-
-Pre: Build in Lamatic
-1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Generation' agent kit
-5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain your .env keys
-7. Copy the keys from your studio
-
-Post: Wire into this repo
-1. Create a .env file and set the keys
-2. Install and run locally:
-   - npm install
-   - npm run dev
-3. Deploy (Vercel recommended):
-   - Import your repo, set the project's Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
-
-Notes
-- Coming soon: single-click export and "Connect Git" in Lamatic to push config directly to your repo.
-
----
-
-## 🔑 Setup
-## Required Keys and Config
-
-You’ll need these things to run this project locally:  
-
-1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+Intelligent Watchdog is an autonomous AI-powered competitor monitoring system. It leverages Lamatic.ai and Firecrawl to track rival websites, detect shifts in pricing or features, and generate high-impact "Sales Battle Cards" to help sales teams counter competitor moves in real-time.Lamatic Setup (Pre and Post)Before running this project, you must build and deploy the flow in Lamatic to enable the scraping and analysis logic.Pre: Build in LamaticSign in or sign up at lamatic.ai.Create a new project.Click “+ New Flow” and create a flow with the following nodes:Webhook Trigger: To receive competitor URLs.Firecrawl Scraper: To extract clean text from landing pages.LLM Node: To compare "Last Known Data" vs. "Current Scrape" and generate the analysis.Deploy the flow and obtain your API keys from the Lamatic Studio.Post: Wire into this repoCreate a .env.local file in the root directory.Add your Lamatic keys (Project ID, API Key, and Flow ID).Install and run locally:npm installnpm run devDeploy to Vercel:Import your repo and set the Root Directory to kits/automation/Watchdog.Add your environment variables in the Vercel Dashboard.🔑 Setup & Required KeysTo run this project locally, you will need the following credentials from your Lamatic dashboard:ItemPurposeWhere to Get ItLAMATIC_API_KEYAuthentication for Lamatic GraphQL APIslamatic.ai SettingsWATCHDOG_FLOW_IDIdentifies your specific Watchdog logic flowLamatic Flow EditorLAMATIC_PROJECT_IDLinks the app to your specific project workspaceLamatic Project Settings.
 
 
-| Item              | Purpose                                      | Where to Get It                                 |
-| ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
+1. Environment VariablesCreate a .env.local file with the following:Bash# Lamatic Configuration
 
-### 1. Environment Variables
+WATCHDOG_FLOW_ID = "811a44e5-a5ab-471e-9b1e-9e994b49554f"
+LAMATIC_API_URL = "https://harshsorganization186-watchdog623.lamatic.dev/graphql"
+LAMATIC_PROJECT_ID = "be77e472-8fda-41f1-a52d-575cf5b1bb3f"
+LAMATIC_API_KEY = "36dfd9791177adaee07cb4976a9e40f4"
 
-Create `.env.local` with:
-
-```bash
-# Lamatic
-AGENTIC_GENERATE_CONTENT = "AGENTIC_GENERATE_CONTENT Flow ID"
-LAMATIC_API_URL = "LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
-LAMATIC_API_KEY = "LAMATIC_API_KEY"
-```
-
-### 2. Install & Run
-
-```bash
-npm install
+2. Install & RunBashnpm install
 npm run dev
-# Open http://localhost:3000
-```
----
 
-## 📂 Repo Structure
 
-```
-/actions
- └── orchestrate.ts        # Lamatic workflow orchestration
-/app
- └── page.tsx              # Main generation form UI
+## The app will be available at: http://localhost:3000
+
+
+📂 Repo StructurePlaintext/app
+ ├── api/analyse/route.ts   # Backend API handling Lamatic GraphQL calls
+ └── page.tsx               # Main Dashboard UI with Markdown rendering
 /components
- ├── header.tsx            # Header component with navigation
- └── ui                    # shadcn/ui components
-/lib
- └── lamatic-client.ts     # Lamatic SDK client
-/public
- └── lamatic-logo.png      # Lamatic branding
+ └── ui/                    # Shared shadcn/ui components (Loader, Buttons)
 /flows
-  └── ...                  # Lamatic Flows
-/package.json              # Dependencies & scripts
-```
+ └── watchdog-flow/  # Lamatic Flow Metadata
+     ├── config.json        # Node configurations and output mapping
+     ├── inputs.json        # JSON Schema for competitor data
+     └── meta.json          # Marketplace metadata (icon, category)
+/public                     # Static assets and icons
+/package.json               # Project dependencies (react-markdown, lucide-react)
 
----
 
-## 🤝 Contributing
+🛡️ Core FeaturesReal-time Web Scraping: Deep-scans competitor URLs to extract pricing tables and feature lists.Smart Comparison: AI detects if a change is "meaningful" to avoid noise and only reports critical shifts.Battle Card Generation: Provides "Hook vs. Catch" talking points for sales reps.Responsive UI: Dark-themed, mobile-friendly dashboard with professional Markdown styling.
 
-We welcome contributions! Open an issue or PR in this repo.
-
----
+🤝 ContributingWe welcome contributions to make the Watchdog even smarter! Feel free to open an issue or submit a PR.
 
 ## 📜 License
 

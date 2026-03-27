@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, X, Globe, Building2, ChevronRight, Trash2, Loader } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
@@ -15,6 +15,14 @@ export default function WatchdogDashboard() {
   const [newUrl, setNewUrl] = useState("");
   const [error, setError] = useState("");
   const [analysisError, setAnalysisError] = useState("");
+  const requestVersionRef = useRef(0);
+
+  const closeModal = () => {
+    setError("");
+    setModalOpen(false);
+    setNewName("");
+    setNewUrl("");
+  };
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") setModalOpen(false); };
@@ -23,34 +31,41 @@ export default function WatchdogDashboard() {
   }, []);
 
   const addCompetitor = () => {
-    setError("");
     if (!newName.trim() || !newUrl.trim()) { setError("Both fields are required."); return; }
     if (competitors.length >= 10) { setError("Maximum 10 competitors allowed."); return; }
     setCompetitors([...competitors, { org_name: newName.trim(), url: newUrl.trim() }]);
-    setNewName("");
-    setNewUrl("");
+    setResults([]);
+    requestVersionRef.current += 1;
+    closeModal();
   };
 
-  const removeCompetitor = (index: number) => setCompetitors(competitors.filter((_, i) => i !== index));
+  const removeCompetitor = (index: number) => {
+    setCompetitors(competitors.filter((_, i) => i !== index));
+    setResults([]);
+    requestVersionRef.current += 1;
+  } 
 
   const analyzeCompetitors = async () => {
     if (competitors.length === 0) return;
     setLoading(true);
     setResults([]);
     setAnalysisError("");
+    const currentVersion = requestVersionRef.current;
+
     try {
       const res = await fetch("/api/analyse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ competitors }),
       });
-
+      
       const text = await res.text();
       let data: any;
       try { data = JSON.parse(text); } catch {
         throw new Error(`Server returned an unexpected response (HTTP ${res.status}). Check your API credentials.`);
       }
       if (!res.ok) throw new Error(data?.message || data?.error || `Request failed with status ${res.status}`);
+      if (currentVersion !== requestVersionRef.current) return;
 
       // Parse GraphQL response: { status, result }
       const raw = data.result;
@@ -81,9 +96,11 @@ export default function WatchdogDashboard() {
 
       setResults(cleanResults);
     } catch (err: any) {
-      setAnalysisError(err.message || "Something went wrong. Please try again.");
+      if (currentVersion === requestVersionRef.current) {
+        setAnalysisError(err.message || "Something went wrong.");
+      }
     } finally {
-      setLoading(false);
+      if (currentVersion === requestVersionRef.current) setLoading(false);
     }
   };
 
@@ -148,6 +165,8 @@ export default function WatchdogDashboard() {
                   </div>
                   <button
                     onClick={() => removeCompetitor(i)}
+                    aria-label={`Remove ${c.org_name}`}
+                    title={`Remove ${c.org_name}`}
                     className="text-slate-600 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-lg transition-all duration-150 cursor-pointer"
                   >
                     <Trash2 size={14} />
@@ -205,6 +224,7 @@ export default function WatchdogDashboard() {
                   {[0, 1, 2].map(i => (
                     <span key={i} className="animate-bounce inline-block" style={{ animationDelay: `${i * 150}ms` }}>.</span>
                   ))}
+                  (this might take time)
                 </span>
               </div>
             )}
@@ -220,42 +240,48 @@ export default function WatchdogDashboard() {
             )}
 
             {!analysisError && !loading && results.length > 0 && (
-  <div className="flex flex-col gap-5">
-    {results.map((item, index) => (
-      <div
-        key={index}
-        className="bg-[#0a0a0f] border border-white/[0.07] hover:border-indigo-500/30 rounded-xl p-6 transition-colors duration-200"
-      >
-        <div className="flex items-center gap-2.5 mb-6 border-b border-white/5 pb-4">
-          <h3 className="text-xl font-light text-slate-100">{item.org_name}</h3>
-          <span className="text-[10px] font-semibold tracking-widest uppercase text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
-            Intelligence Report
-          </span>
-        </div>
+              <div className="flex flex-col gap-5">
+                {results.map((item, index) => (
+                  <div
+                    key={index}
+                    className="bg-[#0a0a0f] border border-white/[0.07] hover:border-indigo-500/30 rounded-xl p-6 transition-colors duration-200"
+                  >
+                    <div className="flex items-center gap-2.5 mb-6 border-b border-white/5 pb-4">
+                      <h3 className="text-xl font-light text-slate-100">{item.org_name}</h3>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                        Intelligence Report
+                      </span>
+                    </div>
 
-        <div className="prose prose-invert prose-slate max-w-none 
-          prose-headings:font-light prose-headings:tracking-tight prose-headings:text-indigo-400
-          prose-p:text-slate-400 prose-p:leading-relaxed
-          prose-strong:text-slate-100 prose-strong:font-semibold
-          prose-table:border prose-table:border-white/5 prose-table:rounded-xl
-          prose-th:bg-white/5 prose-th:text-indigo-400 prose-th:p-3
-          prose-td:p-3 prose-td:border-t prose-td:border-white/5
-          prose-blockquote:border-l-indigo-500 prose-blockquote:bg-indigo-500/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg">
-          
-          {item.response === "NO_CHANGE" ? (
-            <span className="flex items-center gap-2 text-slate-600 italic">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
-              No changes detected.
-            </span>
-          ) : (
-            <ReactMarkdown>{item.response}</ReactMarkdown>
-          )}
-          
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+                    <div className="prose prose-invert prose-slate max-w-none 
+                      /* Spacing & Typography */
+                      prose-p:text-slate-400 prose-p:leading-relaxed prose-p:my-6 
+                      prose-headings:font-light prose-headings:tracking-tight prose-headings:text-slate-400 prose-headings:mt-10 prose-headings:mb-4
+                      prose-strong:text-slate-400 prose-strong:font-semibold
+                      prose-hr:border-white/10 prose-hr:my-12
+                      
+                      /* Tables */
+                      prose-table:border prose-table:border-white/5 prose-table:rounded-xl prose-table:my-8
+                      prose-th:bg-white/5 prose-th:text-indigo-400 prose-th:p-3
+                      prose-td:p-3 prose-td:border-t prose-td:border-white/5
+                      
+                      /* Blockquotes & Lists */
+                      prose-blockquote:border-l-indigo-500 prose-blockquote:bg-indigo-500/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:my-8 prose-blockquote:italic
+                      prose-li:my-2">
+                      
+                      {item.response === "NO_CHANGE" ? (
+                          <span className="flex items-center gap-2 text-slate-600 italic">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
+                              No changes detected.
+                          </span>
+                      ) : (
+                          <ReactMarkdown>{item.response}</ReactMarkdown>
+                      )}      
+                  </div>
+              </div>
+            ))}
+          </div>
+        )}
           </div>
         </div>
       </div>
@@ -272,7 +298,8 @@ export default function WatchdogDashboard() {
                 <p className="text-sm text-slate-500 mt-1">Enter organisation details to begin tracking</p>
               </div>
               <button
-                onClick={() => { setModalOpen(false); setNewName(""); setNewUrl(""); setError(""); }}
+                onClick={closeModal}
+                aria-label="Close modal"
                 className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/[0.07] text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all duration-150 cursor-pointer"
               >
                 <X size={13} />
@@ -281,12 +308,13 @@ export default function WatchdogDashboard() {
 
             <div className="space-y-4 mb-5">
               <div>
-                <label className="block text-[11px] font-medium tracking-widest uppercase text-slate-500 mb-2">
+                <label htmlFor="org-name" className="block text-[11px] font-medium tracking-widest uppercase text-slate-500 mb-2">
                   Organisation Name
                 </label>
                 <div className="relative">
                   <Building2 size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
                   <input
+                    id="org-name"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addCompetitor()}
@@ -298,12 +326,13 @@ export default function WatchdogDashboard() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium tracking-widest uppercase text-slate-500 mb-2">
+                <label htmlFor="target-url" className="block text-[11px] font-medium tracking-widest uppercase text-slate-500 mb-2">
                   Pricing / features / updates / Landing URL
                 </label>
                 <div className="relative">
                   <Globe size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
                   <input
+                    id="target-url"
                     value={newUrl}
                     onChange={(e) => setNewUrl(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addCompetitor()}
