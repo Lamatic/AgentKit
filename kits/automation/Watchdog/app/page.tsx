@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Plus, X, Globe, Building2, ChevronRight, Trash2, Loader } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 
 type Competitor = { org_name: string; url: string };
 type Result = { org_name: string; response: string };
@@ -219,30 +220,42 @@ export default function WatchdogDashboard() {
             )}
 
             {!analysisError && !loading && results.length > 0 && (
-              <div className="flex flex-col gap-5">
-                {results.map((item, index) => (
-                  <div
-                    key={index}
-                    className="bg-[#0a0a0f] border border-white/[0.07] hover:border-indigo-500/30 rounded-xl p-5 transition-colors duration-200"
-                  >
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <h3 className="text-lg font-light text-slate-100">{item.org_name}</h3>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
-                        Report
-                      </span>
-                    </div>
-                    <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap font-light">
-                      {item.response === "NO_CHANGE" ? (
-                        <span className="flex items-center gap-2 text-slate-600 italic">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
-                          No changes detected.
-                        </span>
-                      ) : item.response}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+  <div className="flex flex-col gap-5">
+    {results.map((item, index) => (
+      <div
+        key={index}
+        className="bg-[#0a0a0f] border border-white/[0.07] hover:border-indigo-500/30 rounded-xl p-6 transition-colors duration-200"
+      >
+        <div className="flex items-center gap-2.5 mb-6 border-b border-white/5 pb-4">
+          <h3 className="text-xl font-light text-slate-100">{item.org_name}</h3>
+          <span className="text-[10px] font-semibold tracking-widest uppercase text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+            Intelligence Report
+          </span>
+        </div>
+
+        <div className="prose prose-invert prose-slate max-w-none 
+          prose-headings:font-light prose-headings:tracking-tight prose-headings:text-indigo-400
+          prose-p:text-slate-400 prose-p:leading-relaxed
+          prose-strong:text-slate-100 prose-strong:font-semibold
+          prose-table:border prose-table:border-white/5 prose-table:rounded-xl
+          prose-th:bg-white/5 prose-th:text-indigo-400 prose-th:p-3
+          prose-td:p-3 prose-td:border-t prose-td:border-white/5
+          prose-blockquote:border-l-indigo-500 prose-blockquote:bg-indigo-500/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg">
+          
+          {item.response === "NO_CHANGE" ? (
+            <span className="flex items-center gap-2 text-slate-600 italic">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
+              No changes detected.
+            </span>
+          ) : (
+            <ReactMarkdown>{item.response}</ReactMarkdown>
+          )}
+          
+        </div>
+      </div>
+    ))}
+  </div>
+)}
           </div>
         </div>
       </div>

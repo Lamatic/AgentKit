@@ -1,8 +1,8 @@
 {
   "name": "Intelligent Watchdog",
   "author": {
-      "name": "Agent Harsh",
-      "email": "maneharsh513@gmail.com"
+    "name": "Agent Harsh",
+    "email": "maneharsh513@gmail.com"
   },
   "repository": {
     "type": "git",
@@ -17,12 +17,14 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/typography": "^0.5.19",
     "dotenv": "^17.3.1",
     "lamatic": "^0.3.2",
     "lucide-react": "^1.6.0",
     "next": "16.2.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
