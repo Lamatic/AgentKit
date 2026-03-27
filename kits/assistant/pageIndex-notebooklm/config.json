@@ -13,6 +13,11 @@
       "envKey": "FLOW_CHAT_WITH_PDF"
     },
     {
+      "id": "flow-1-upload-pdf-build-tree-save",
+      "type": "mandatory",
+      "envKey": "FLOW_FLOW_1_UPLOAD_PDF_BUILD_TREE_SAVE"
+    },
+    {
       "id": "flow-4-get-tree-structure",
       "type": "mandatory",
       "envKey": "FLOW_FLOW_4_GET_TREE_STRUCTURE"
@@ -21,11 +26,6 @@
       "id": "flow-list-all-documents",
       "type": "mandatory",
       "envKey": "FLOW_FLOW_LIST_ALL_DOCUMENTS"
-    },
-    {
-      "id": "flow-1-upload-pdf-build-tree-save",
-      "type": "mandatory",
-      "envKey": "FLOW_FLOW_1_UPLOAD_PDF_BUILD_TREE_SAVE"
     }
   ],
   "integrations": [],
