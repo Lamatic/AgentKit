@@ -17,7 +17,7 @@
   </a>
 </p>
 
-<h2 align="center">Stack to Build Agentic SaaS → 10x faster</h2>
+<h2 align="center">Stack to Build Reliable AI Agents</h2>
   <br/>
   <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
 <p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
