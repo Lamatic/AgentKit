@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
           typeof c?.org_name === 'string' &&
           c.org_name.trim() &&
           typeof c?.url === 'string' &&
-          c.url.trim()
+          c.url.trim() &&
++         /^https?:\/\/.+/.test(c.url.trim())
       );
 
     if (!isValid) {
@@ -71,23 +72,27 @@ export async function POST(req: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-    const res = await fetch(LAMATIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${LAMATIC_API_KEY}`,
-        'x-project-id': LAMATIC_PROJECT_ID,
-      },
-      body: JSON.stringify({
-        query: EXECUTE_WORKFLOW,
-        variables: {
-          workflowId: WATCHDOG_FLOW_ID,
-          payload: { competitors },
+    let res: Response;
+    try {
+      res = await fetch(LAMATIC_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${LAMATIC_API_KEY}`,
+          'x-project-id': LAMATIC_PROJECT_ID,
         },
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+        body: JSON.stringify({
+          query: EXECUTE_WORKFLOW,
+          variables: {
+            workflowId: WATCHDOG_FLOW_ID,
+            payload: { competitors },
+          },
+        }),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     // ✅ HANDLE NON-200 RESPONSES
     if (!res.ok) {

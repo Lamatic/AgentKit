@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, X, Globe, Building2, ChevronRight, Trash2, Loader } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
-type Competitor = { org_name: string; url: string };
+type Competitor = { id: string; org_name: string; url: string };
 type Result = { org_name: string; response: string };
 
 export default function WatchdogDashboard() {
@@ -30,20 +30,41 @@ export default function WatchdogDashboard() {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
+  const invalidateAnalysis = () => {
+    requestVersionRef.current += 1;
+    setLoading(false);
+    setAnalysisError("");
+    setResults([]);
+  };
+
   const addCompetitor = () => {
     if (!newName.trim() || !newUrl.trim()) { setError("Both fields are required."); return; }
     if (competitors.length >= 10) { setError("Maximum 10 competitors allowed."); return; }
-    setCompetitors([...competitors, { org_name: newName.trim(), url: newUrl.trim() }]);
-    setResults([]);
-    requestVersionRef.current += 1;
+    setCompetitors([...competitors, {
+      id: crypto.randomUUID(), 
+      org_name: newName.trim(),
+      url: newUrl.trim()
+    }]);
+    invalidateAnalysis();
     closeModal();
   };
 
   const removeCompetitor = (index: number) => {
     setCompetitors(competitors.filter((_, i) => i !== index));
-    setResults([]);
-    requestVersionRef.current += 1;
+    invalidateAnalysis();
   } 
+
+  const normalizeWatchdogData = (raw: any): { results: any[] } => {
+    // Handle stringified JSON from GraphQL
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+    // Detect and convert to Canonical Form: { results: [...] }
+    if (parsed?.results && Array.isArray(parsed.results)) return { results: parsed.results };
+    if (parsed?.Result && Array.isArray(parsed.Result)) return { results: parsed.Result };
+    if (Array.isArray(parsed)) return { results: parsed };
+
+    return { results: [] }; // Safety fallback
+  };
 
   const analyzeCompetitors = async () => {
     if (competitors.length === 0) return;
@@ -68,17 +89,13 @@ export default function WatchdogDashboard() {
       if (currentVersion !== requestVersionRef.current) return;
 
       // Parse GraphQL response: { status, result }
-      const raw = data.result;
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      const rawResults: any[] = Array.isArray(parsed)
-        ? parsed
-        : parsed?.Result || parsed?.results || [];
+      const { results: rawResults } = normalizeWatchdogData(data.result);
 
       const cleanResults: Result[] = rawResults.map((item: any) => {
         // 1. Look for the stable contract fields first
         const orgName = item.org_name || "Unknown";
         let responseBody = item.response;
-        
+
         if (!responseBody) {
           responseBody = typeof item === "string" 
             ? item 
@@ -153,7 +170,7 @@ export default function WatchdogDashboard() {
             <div className="flex flex-col gap-2">
               {competitors.map((c, i) => (
                 <div
-                  key={i}
+                  key={c.id}
                   className="flex items-center justify-between bg-[#111118] border border-white/[0.07] hover:border-white/13 rounded-xl px-4 py-3 transition-colors duration-150"
                 >
                   <div>

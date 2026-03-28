@@ -11,7 +11,7 @@
   ],
   "outputMapping": {
     "result": {
-      "org_name": "{{trigger.org_name}}",
+      "org_name": "{{forLoopNode_304.output.currentValue.org_name}}",
       "response": "{{LLMNode_331.output.generatedResponse}}"
     }
   }
