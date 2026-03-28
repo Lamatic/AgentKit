@@ -76,7 +76,10 @@ export default function WatchdogDashboard() {
     try {
       const res = await fetch("/api/analyse", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.WATCHDOG_APP_SECRET}`
+        },
         body: JSON.stringify({ competitors }),
       });
       

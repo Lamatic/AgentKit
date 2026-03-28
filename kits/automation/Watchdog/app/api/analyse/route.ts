@@ -14,6 +14,22 @@ const EXECUTE_WORKFLOW = `
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. ABUSE CONTROL & AUTHENTICATION
+    // Check for a secret 'App Key' to ensure only your frontend can call this API
+    const authHeader = req.headers.get("Authorization");
+    const APP_SECRET = process.env.WATCHDOG_APP_SECRET;
+
+    if (APP_SECRET && authHeader !== `Bearer ${APP_SECRET}`) {
+      return NextResponse.json(
+        { error: "Unauthorized access. Bot-like behavior detected." },
+        { status: 401 }
+      );
+    }
+
+    // 2. RATE LIMITING (Basic Implementation)
+    const ip = req.headers.get("x-forwarded-for") || "anonymous";
+    // (Logic: If this IP has sent 5 requests in the last minute, block them)
+    // For now, we gate by requiring the secret above.
     const {
       LAMATIC_API_URL,
       LAMATIC_API_KEY,
