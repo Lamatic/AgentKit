@@ -52,7 +52,7 @@ export async function generateContent(
     console.log("[v0] Raw response:", resData)
 
     // Parse the answer from resData?.output.answer
-    const answer = resData?.result?.answer
+    const answer = data?.data?.executeWorkflow?.result
 
     if (!answer) {
       throw new Error("No answer found in response")
