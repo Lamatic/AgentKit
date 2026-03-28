@@ -48,14 +48,6 @@ Results are returned as structured JSON and rendered in a premium dark-themed UI
 
 Create a `.env` file in the kit root:
 
-```env
-LAMATIC_API_KEY="your-lamatic-api-key"
-```
-
-| Variable | Description |
-|---|---|
-| `LAMATIC_API_KEY` | Your Lamatic project API key from Settings → API Keys |
-
 ---
 
 ## Lamatic Flow Setup
