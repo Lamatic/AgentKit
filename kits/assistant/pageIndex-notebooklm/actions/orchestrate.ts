@@ -43,19 +43,23 @@ export async function chatWithDocument(
   try {
     if (!process.env.FLOW_ID_CHAT) throw new Error("FLOW_ID_CHAT not set");
 
+    const payload = {
+      doc_id,
+      query,
+      messages: JSON.stringify(messages),
+    };
+
+    console.log("[chatWithDocument] SENDING →", JSON.stringify(payload, null, 2));
+
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_CHAT!,
-      {
-        doc_id,
-        query,
-        messages: JSON.stringify(messages), // pass history as string
-      }
+      payload
     );
 
     const raw = response as unknown as Record<string, unknown>;
     const data = (raw.result ?? raw) as Record<string, unknown>;
 
-    console.log("[chatWithDocument] response keys:", Object.keys(raw), "data keys:", Object.keys(data));
+    console.log("[chatWithDocument] RECEIVED ←", JSON.stringify(data, null, 2));
 
     return {
       answer: (data.answer as string) ?? "",

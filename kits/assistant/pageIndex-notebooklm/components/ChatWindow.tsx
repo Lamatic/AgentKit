@@ -41,18 +41,50 @@ interface Props {
 }
 
 export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const storageKey = `chat_${docId}`;
+  const historyKey = `chat_history_${docId}`;
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { const s = localStorage.getItem(storageKey); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [lastNodes, setLastNodes] = useState<RetrievedNode[]>([]);
   const [lastThinking, setLastThinking] = useState("");
   // Raw Lamatic API message history — passed back each turn for multi-turn context
-  const [lamaticHistory, setLamaticHistory] = useState<Array<{ role: string; content: string }>>([]);
+  const [lamaticHistory, setLamaticHistory] = useState<Array<{ role: string; content: string }>>(() => {
+    if (typeof window === "undefined") return [];
+    try { const s = localStorage.getItem(historyKey); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    try { localStorage.setItem(storageKey, JSON.stringify(messages)); } catch { /* quota exceeded */ }
+  }, [messages, storageKey]);
+
+  // Persist lamatic history
+  useEffect(() => {
+    try { localStorage.setItem(historyKey, JSON.stringify(lamaticHistory)); } catch { /* quota exceeded */ }
+  }, [lamaticHistory, historyKey]);
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
-  useEffect(() => { setMessages([]); setLastNodes([]); setLastThinking(""); setSourcesOpen(false); setLamaticHistory([]); }, [docId]);
+
+  // When docId changes, restore from localStorage (lazy init already handles initial mount)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`chat_${docId}`);
+      setMessages(saved ? JSON.parse(saved) : []);
+      const savedHistory = localStorage.getItem(`chat_history_${docId}`);
+      setLamaticHistory(savedHistory ? JSON.parse(savedHistory) : []);
+    } catch {
+      setMessages([]);
+      setLamaticHistory([]);
+    }
+    setLastNodes([]); setLastThinking(""); setSourcesOpen(false);
+  }, [docId]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();

@@ -63,7 +63,7 @@
         },
         "values": {
           "id": "codeNode_429",
-          "code": "const tree = {{postgresNode_817.output.queryResult[0].tree}};\n\n// tree.nodes are string IDs, not objects — just pass them as-is\nfunction stripToTOC(nodes) {\n  return nodes.map(node => ({\n    node_id: node.node_id,\n    title: node.title,\n    start_index: node.start_index,\n    end_index: node.end_index,\n    description: node.summary,\n    children: node.nodes || []  // keep as string IDs, LLM can still read them\n  }));\n}\n\noutput = {\n  toc_json: JSON.stringify(stripToTOC(tree)),\n  node_count: tree.length\n};",
+          "code": "const tree = {{postgresNode_817.output.queryResult[0].tree}};\n\n// tree.nodes are string IDs, not objects — just pass them as-is\nfunction stripToTOC(nodes, depth = 0) {\n  return nodes.map(node => ({\n    node_id: node.node_id,\n    title: node.title,\n    start_index: node.start_index,\n    end_index: node.end_index,\n    description: node.summary,\n    children: node.nodes && node.nodes.length > 0\n      ? stripToTOC(node.nodes, depth + 1)\n      : []\n  }));\n}\n\noutput = {\n  toc_json: JSON.stringify(stripToTOC(tree)),\n  node_count: tree.length\n};",
           "nodeName": "Code"
         }
       },
@@ -132,7 +132,7 @@
         },
         "values": {
           "id": "codeNode_358",
-          "code": "const tree = {{postgresNode_817.output.queryResult[0].tree}};\nconst rawTextRaw = {{postgresNode_817.output.queryResult[0].raw_text}};\nconst nodeList = {{InstructorLLMNode_432.output.node_list}};\n\n// Parse raw_text (stored as TEXT in DB)\nconst pages = typeof rawTextRaw === \"string\" ? JSON.parse(rawTextRaw) : rawTextRaw;\n\n// Build flat node map from top-level tree array\nconst nodeMap = {};\nfor (const n of tree) {\n  nodeMap[n.node_id] = n;\n}\n\nconst selectedNodes = nodeList.map(id => nodeMap[id]).filter(Boolean);\n\nconst MAX_PAGES_PER_NODE = 2;    // hard cap — never more than 2 pages per node\nconst MAX_CHARS_PER_PAGE = 2000; // truncate very long pages\n\nconst retrieved = selectedNodes.map(node => {\n  const startPage = (node.start_index || 1) - 1; // 0-based\n  const rawEndPage = (node.end_index || node.start_index || 1) - 1;\n\n  // Enforce max pages cap\n  const endPage = Math.min(rawEndPage, startPage + MAX_PAGES_PER_NODE - 1, pages.length - 1);\n\n  const pageSlices = pages\n    .slice(startPage, endPage + 1)\n    .map(p => p.length > MAX_CHARS_PER_PAGE ? p.slice(0, MAX_CHARS_PER_PAGE) + \"...\" : p);\n\n  const pageContent = pageSlices.join(\"\\n\\n\").trim();\n\n  return {\n    node_id: node.node_id,\n    title: node.title,\n    start_index: node.start_index,\n    end_index: node.end_index,\n    summary: node.summary,\n    page_content: pageContent || node.summary\n  };\n});\n\nconst context = retrieved\n  .map(n => `[Section: \"${n.title}\" | Pages: ${n.start_index}–${n.end_index}]\\n${n.page_content}`)\n  .join(\"\\n\\n---\\n\\n\");\n\noutput = {\n  context,\n  retrieved_nodes: retrieved,\n  total_chars: context.length\n};",
+          "code": "const tree = {{postgresNode_817.output.queryResult[0].tree}};\nconst rawTextRaw = {{postgresNode_817.output.queryResult[0].raw_text}};\nconst nodeList = {{InstructorLLMNode_432.output.node_list}};\n\nconst pages = typeof rawTextRaw === \"string\" ? JSON.parse(rawTextRaw) : rawTextRaw;\n\n// ── Detect page offset ────────────────────────────────────────────────────────\n// The tree uses PRINTED page numbers from the TOC.\n// The pages array uses PHYSICAL page indices (0-based).\n// Books with roman-numeral front matter have an offset between the two.\n//\n// Strategy: find the first chapter node in the tree (depth 1, lowest start_index).\n// Search physical pages for that chapter's title text.\n// offset = physical_page_found - tree_start_index\n\nfunction detectOffset(tree, pages) {\n  // Get all top-level nodes sorted by start_index\n  const topLevel = [...tree].sort((a, b) => (a.start_index || 0) - (b.start_index || 0));\n  \n  for (const node of topLevel) {\n    const printedPage = node.start_index;\n    if (!printedPage || !node.title) continue;\n    \n    const titleLower = node.title.toLowerCase().replace(/chapter-?\\d+[-:\\s]*/i, \"\").trim();\n    if (titleLower.length < 3) continue;\n\n    // Search physical pages around where we expect to find it\n    // Front matter is rarely more than 40 pages\n    for (let physIdx = 0; physIdx < Math.min(pages.length, 60); physIdx++) {\n      const pageText = (pages[physIdx] || \"\").toLowerCase();\n      if (pageText.includes(titleLower)) {\n        const offset = physIdx - (printedPage - 1); // physIdx is 0-based, printedPage is 1-based\n        if (offset !== 0) {\n          console.log(`[offset] \"${node.title}\" TOC page ${printedPage} → physical index ${physIdx} → offset +${offset}`);\n        }\n        return offset;\n      }\n    }\n  }\n  return 0; // no offset detected\n}\n\nconst pageOffset = detectOffset(tree, pages);\n\n// ── Flatten tree recursively ──────────────────────────────────────────────────\nfunction flattenTree(nodes, map = {}) {\n  for (const n of nodes) {\n    map[n.node_id] = n;\n    if (n.nodes && n.nodes.length > 0) flattenTree(n.nodes, map);\n  }\n  return map;\n}\nconst nodeMap = flattenTree(tree);\nconst selectedNodes = nodeList.map(id => nodeMap[id]).filter(Boolean);\n\nconst MAX_PAGES_PER_NODE = 2;\nconst MAX_CHARS_PER_PAGE = 2000;\n\nconst retrieved = selectedNodes.map(node => {\n  // Apply offset: convert printed page number → physical array index (0-based)\n  const startPhysIdx = (node.start_index || 1) - 1 + pageOffset;\n  const endPhysIdx   = (node.end_index   || node.start_index || 1) - 1 + pageOffset;\n\n  const cappedEnd = Math.min(endPhysIdx, startPhysIdx + MAX_PAGES_PER_NODE - 1, pages.length - 1);\n\n  const pageSlices = pages\n    .slice(startPhysIdx, cappedEnd + 1)\n    .map(p => p && p.length > MAX_CHARS_PER_PAGE ? p.slice(0, MAX_CHARS_PER_PAGE) + \"...\" : (p || \"\"));\n\n  const pageContent = pageSlices.join(\"\\n\\n\").trim();\n\n  return {\n    node_id:     node.node_id,\n    title:       node.title,\n    start_index: node.start_index,\n    end_index:   node.end_index,\n    summary:     node.summary,\n    page_content: pageContent || node.summary,\n  };\n});\n\nconst context = retrieved\n  .map(n => `[Section: \"${n.title}\" | Pages: ${n.start_index}–${n.end_index}]\\n${n.page_content}`)\n  .join(\"\\n\\n---\\n\\n\");\n\noutput = {\n  context,\n  retrieved_nodes: retrieved,\n  total_chars: context.length,\n  page_offset_detected: pageOffset,\n};",
           "nodeName": "Code"
         }
       },
@@ -145,7 +145,7 @@
         "x": 0,
         "y": 520
       },
-      "selected": false
+      "selected": true
     },
     {
       "id": "LLMNode_392",
@@ -185,7 +185,7 @@
         "x": 0,
         "y": 650
       },
-      "selected": true
+      "selected": false
     },
     {
       "id": "responseNode_triggerNode_1",
