@@ -27,7 +27,7 @@ Results are returned as structured JSON and rendered in a premium dark-themed UI
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 15, React 19 |
+| Frontend | Next.js 16.2.1, React 19 |
 | AI Flow | Lamatic Flows (GraphQL API) |
 | LLM | Groq — `llama-3.3-70b-versatile` |
 | GitHub Data | GitHub REST API |
@@ -123,7 +123,7 @@ kits/agentic/code-review/
 │   ├── layout.tsx
 │   └── globals.css
 ├── flows/
-│   └── code-review-flow/      # Exported Lamatic flow
+│   └── code-review-agent/      # Exported Lamatic flow
 ├── .env.example
 ├── config.json
 ├── package.json
