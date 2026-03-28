@@ -6,13 +6,6 @@
     "name": "Lamatic AI",
     "email": "info@lamatic.ai"
   },
-  "steps": [
-    {
-      "id": "code-review-agent",
-      "type": "mandatory",
-      "envKey": "FLOW_CODE_REVIEW_AGENT"
-    }
-  ],
   "integrations": [],
   "features": [],
   "demoUrl": "",
