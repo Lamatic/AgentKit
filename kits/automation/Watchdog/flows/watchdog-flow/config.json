@@ -10,6 +10,9 @@
     }
   ],
   "outputMapping": {
-    "result": "{{LLMNode_331.output.generatedResponse}}"
+    "result": {
+      "org_name": "{{trigger.org_name}}",
+      "response": "{{LLMNode_331.output.generatedResponse}}"
+    }
   }
 }

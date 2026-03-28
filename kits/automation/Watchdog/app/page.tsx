@@ -75,22 +75,19 @@ export default function WatchdogDashboard() {
         : parsed?.Result || parsed?.results || [];
 
       const cleanResults: Result[] = rawResults.map((item: any) => {
-        const formatted = item.codeNode_584?.output?.formatted;
-
-        if (formatted && typeof formatted === "object") {
-          return {
-            org_name: formatted.org_name || item.org_name || "Unknown",
-            response: formatted.response || JSON.stringify(formatted),
-          };
+        // 1. Look for the stable contract fields first
+        const orgName = item.org_name || "Unknown";
+        let responseBody = item.response;
+        
+        if (!responseBody) {
+          responseBody = typeof item === "string" 
+            ? item 
+            : JSON.stringify(item);
         }
 
-        if (item.org_name && item.response) return item;
-
         return {
-          org_name: item.org_name || "Unknown",
-          response: typeof formatted === "string"
-            ? formatted
-            : JSON.stringify(item),
+          org_name: orgName,
+          response: responseBody,
         };
       });
 

@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
 
     // ✅ VALIDATION
     const isValid =
+      competitors.length > 0 &&
       competitors.length <= 10 &&
       competitors.every(
         (c: any) =>
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 40000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const res = await fetch(LAMATIC_API_URL, {
       method: 'POST',
