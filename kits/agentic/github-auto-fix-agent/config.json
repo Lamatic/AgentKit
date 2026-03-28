@@ -23,6 +23,6 @@
   ],
   "demoUrl": "https://agent-kit-beta.vercel.app/",
   "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/github-auto-fix-agent",
-  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/RitoG09/AgentKit&root-directory=kits/agentic/github-auto-fix-agent",
+  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/github-auto-fix-agent",
   "documentationUrl": ""
 }
