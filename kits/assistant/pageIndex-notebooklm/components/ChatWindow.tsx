@@ -47,10 +47,12 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [lastNodes, setLastNodes] = useState<RetrievedNode[]>([]);
   const [lastThinking, setLastThinking] = useState("");
+  // Raw Lamatic API message history — passed back each turn for multi-turn context
+  const [lamaticHistory, setLamaticHistory] = useState<Array<{ role: string; content: string }>>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
-  useEffect(() => { setMessages([]); setLastNodes([]); setLastThinking(""); setSourcesOpen(false); }, [docId]);
+  useEffect(() => { setMessages([]); setLastNodes([]); setLastThinking(""); setSourcesOpen(false); setLamaticHistory([]); }, [docId]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -61,8 +63,28 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
     setInput("");
     setLoading(true);
     try {
-      const result = await chatWithDocument(docId, userMsg.content, newMsgs) as unknown as ChatResponse;
-      setMessages(prev => [...prev, { role: "assistant", content: result.answer || "No answer found." }]);
+      const result = await chatWithDocument(docId, userMsg.content, lamaticHistory) as unknown as ChatResponse & { messages: unknown };
+      const assistantContent = result.answer || "No answer found.";
+      setMessages(prev => [...prev, { role: "assistant", content: assistantContent }]);
+
+      // Update Lamatic history for the next turn
+      // Try to use the flow-returned messages first
+      let nextHistory: Array<{ role: string; content: string }> | null = null;
+      if (result.messages) {
+        const parsed = typeof result.messages === "string"
+          ? (() => { try { return JSON.parse(result.messages as string); } catch { return null; } })()
+          : result.messages;
+        if (Array.isArray(parsed) && parsed.length) nextHistory = parsed;
+      }
+      // Fallback: build history from UI messages if flow didn't return it
+      if (!nextHistory) {
+        nextHistory = [...newMsgs, { role: "assistant", content: assistantContent }].map(m => ({
+          role: m.role,
+          content: m.content,
+        }));
+      }
+      setLamaticHistory(nextHistory);
+
       if (Array.isArray(result.retrieved_nodes) && result.retrieved_nodes.length) {
         setLastNodes(result.retrieved_nodes);
         setLastThinking(result.thinking || "");

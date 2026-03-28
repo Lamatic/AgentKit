@@ -38,23 +38,34 @@ export async function uploadDocument(
 export async function chatWithDocument(
   doc_id: string,
   query: string,
-  messages: Array<{ role: string; content: string }>
+  messages: Array<{ role: string; content: string }> = []
 ) {
   try {
+    if (!process.env.FLOW_ID_CHAT) throw new Error("FLOW_ID_CHAT not set");
+
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_CHAT!,
-      { doc_id, query, messages }
+      {
+        doc_id,
+        query,
+        messages: JSON.stringify(messages), // pass history as string
+      }
     );
-    const data = (response.result ?? response) as Record<string, unknown>;
 
-    // retrieved_nodes comes back as a JSON string from the Code Node
+    const raw = response as unknown as Record<string, unknown>;
+    const data = (raw.result ?? raw) as Record<string, unknown>;
+
+    console.log("[chatWithDocument] response keys:", Object.keys(raw), "data keys:", Object.keys(data));
+
     return {
-      ...data,
-      retrieved_nodes: safeParseJSON(data?.retrieved_nodes, []),
+      answer: (data.answer as string) ?? "",
+      messages: data.messages,
+      retrieved_nodes: safeParseJSON(data.retrieved_nodes, []),
+      thinking: (data.thinking as string) ?? "",
     };
   } catch (error) {
     console.error("Chat flow error:", error);
-    throw new Error("Failed to get answer");
+    throw new Error("Failed to get answer: " + (error as Error).message);
   }
 }
 
@@ -79,24 +90,36 @@ export async function listDocuments() {
   }
 }
 
-// ── Flow 4: Get full tree structure ───────────────────────────
+// ── Flow 4: Get full tree structure (or delete) ────────────────
 export async function getDocumentTree(doc_id: string) {
   try {
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_TREE!,
-      { doc_id }
+      { doc_id, action: "get_tree" }
     );
     const data = (response.result ?? response) as Record<string, unknown>;
-
-    // tree comes back as a JSON string (JSON.stringify applied in Code Node)
-    // Note: the flow outputMapping has a typo "tre_node_count" — handle both spellings
     return {
       ...data,
       tree: safeParseJSON(data?.tree, []),
-      tree_node_count: Number(data?.tree_node_count ?? data?.tre_node_count) || 0,
+      tree_node_count: Number(data?.tree_node_count) || 0,
     };
   } catch (error) {
     console.error("Tree flow error:", error);
     throw new Error("Failed to get document tree");
+  }
+}
+
+// ── Flow 4 (delete action): Remove a document ───────────────────
+export async function deleteDocument(doc_id: string) {
+  try {
+    const response = await lamaticClient.executeFlow(
+      process.env.FLOW_ID_TREE!,
+      { doc_id, action: "delete" }
+    );
+    const data = (response.result ?? response) as Record<string, unknown>;
+    return data as { success: boolean; action: string; message: string; doc_id: string; file_name: string };
+  } catch (error) {
+    console.error("Delete flow error:", error);
+    throw new Error("Failed to delete document");
   }
 }

@@ -101,7 +101,7 @@
             }
           ],
           "memories": "[]",
-          "messages": "[]",
+          "messages": "{{triggerNode_1.output.messages}}",
           "nodeName": "Generate JSON",
           "attachments": "",
           "generativeModelName": ""
@@ -127,6 +127,7 @@
         "nodeId": "codeNode",
         "schema": {
           "context": "string",
+          "total_chars": "number",
           "retrieved_nodes": "array"
         },
         "values": {
@@ -168,7 +169,7 @@
             }
           ],
           "memories": "[]",
-          "messages": "{{triggerNode_1.output.messages}}[]",
+          "messages": "{{triggerNode_1.output.messages}}",
           "nodeName": "Generate Text",
           "attachments": "",
           "credentials": "",
@@ -198,7 +199,7 @@
           "nodeName": "API Response",
           "webhookUrl": "",
           "retry_delay": "0",
-          "outputMapping": "{\n  \"answer\": \"{{LLMNode_392.output.generatedResponse}}\",\n  \"retrieved_nodes\": \"{{codeNode_358.output.retrieved_nodes}}\",\n  \"thinking\": \"{{InstructorLLMNode_432.output.thinking}}\",\n  \"doc_id\": \"{{triggerNode_1.output.doc_id}}\"\n}"
+          "outputMapping": "{\n  \"answer\": \"{{LLMNode_392.output.generatedResponse}}\",\n  \"messages\": \"{{LLMNode_392.output.messages}}\",\n  \"retrieved_nodes\": \"{{codeNode_358.output.retrieved_nodes}}\",\n  \"thinking\": \"{{InstructorLLMNode_432.output.thinking}}\",\n  \"doc_id\": \"{{triggerNode_1.output.doc_id}}\"\n}"
         },
         "isResponseNode": true
       },

@@ -108,6 +108,22 @@ export default function Page() {
         }} />
       </header>
 
+      {/* ── Demo notice ── */}
+      <div style={{
+        padding: "6px 20px",
+        background: "rgba(251,191,36,0.07)",
+        borderBottom: "1px solid rgba(251,191,36,0.18)",
+        display: "flex", alignItems: "center", gap: "8px",
+        flexShrink: 0,
+      }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", color: "var(--amber)", letterSpacing: "0.01em" }}>
+          Demo project · Document processing is limited to 30–50 pages · Chat history is not stored persistently
+        </span>
+      </div>
+
       {/* ── Body ───────────────────────────────────── */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
 
@@ -159,6 +175,14 @@ export default function Page() {
               documents={documents}
               selectedId={selectedDoc?.doc_id || null}
               onSelect={handleSelectDoc}
+              onDeleted={() => {
+                fetchDocuments();
+                // If the deleted doc was selected, clear the view
+                setSelectedDoc(prev => {
+                  const stillExists = documents.some(d => d.doc_id === prev?.doc_id);
+                  return stillExists ? prev : null;
+                });
+              }}
             />
           </div>
 
@@ -225,34 +249,33 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Content */}
-              <div style={{ flex: 1, overflow: "hidden", padding: "18px" }}>
-                {activeTab === "chat" ? (
-                  <ChatWindow
-                    docId={selectedDoc.doc_id}
-                    docName={selectedDoc.file_name}
-                    onRetrievedNodes={handleRetrievedNodes}
-                  />
-                ) : (
-                  <div style={{ height: "100%", overflowY: "auto" }}>
-                    {treeLoading ? (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: "10px" }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
-                          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                        </svg>
-                        <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-3)" }}>
-                          Building tree…
-                        </span>
-                      </div>
-                    ) : tree.length > 0 ? (
-                      <TreeViewer tree={tree} fileName={selectedDoc.file_name} highlightedIds={highlightedIds} />
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-3)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>
-                        No tree structure available.
-                      </div>
-                    )}
-                  </div>
-                )}
+              {/* Content — both panels stay mounted to preserve state */}
+              <div style={{ flex: 1, overflow: "hidden", padding: "18px", display: activeTab === "chat" ? "block" : "none", height: "100%" }}>
+                <ChatWindow
+                  docId={selectedDoc.doc_id}
+                  docName={selectedDoc.file_name}
+                  onRetrievedNodes={handleRetrievedNodes}
+                />
+              </div>
+              <div style={{ flex: 1, overflow: "hidden", padding: "18px", display: activeTab === "tree" ? "block" : "none", height: "100%" }}>
+                <div style={{ height: "100%", overflowY: "auto" }}>
+                  {treeLoading ? (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: "10px" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                      </svg>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-3)" }}>
+                        Building tree…
+                      </span>
+                    </div>
+                  ) : tree.length > 0 ? (
+                    <TreeViewer tree={tree} fileName={selectedDoc.file_name} highlightedIds={highlightedIds} />
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-3)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>
+                      No tree structure available.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ) : (

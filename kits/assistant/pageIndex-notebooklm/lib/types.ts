@@ -61,8 +61,20 @@ export interface ListResponse {
 }
 
 export interface TreeResponse {
+  success: boolean;
+  action: string;
+  message: string;
+  doc_id: string;
   tree: TreeNode[];
   file_name: string;
   tree_node_count: number;
   created_at: string;
+}
+
+export interface DeleteResponse {
+  success: boolean;
+  action: string;
+  message: string;
+  doc_id: string;
+  file_name: string;
 }

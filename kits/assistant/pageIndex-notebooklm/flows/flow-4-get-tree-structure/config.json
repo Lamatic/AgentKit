@@ -9,7 +9,7 @@
           "id": "triggerNode_1",
           "nodeName": "API Request",
           "responeType": "realtime",
-          "advance_schema": "{\n  \"doc_id\": \"string\"\n}"
+          "advance_schema": "{\n  \"doc_id\": \"string\",\n  \"action\": \"string\"\n}"
         },
         "trigger": true
       },
@@ -19,23 +19,58 @@
         "height": 93
       },
       "position": {
-        "x": 0,
+        "x": 225,
         "y": 0
+      },
+      "selected": true
+    },
+    {
+      "id": "conditionNode_944",
+      "data": {
+        "label": "Condition",
+        "modes": {},
+        "nodeId": "conditionNode",
+        "values": {
+          "id": "conditionNode_944",
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_944-addNode_581",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.action}}\",\n      \"operator\": \"==\",\n      \"value\": \"get_tree\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_944-addNode_226",
+              "condition": {}
+            }
+          ],
+          "allowMultipleConditionExecution": false
+        }
+      },
+      "type": "conditionNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 130
       },
       "selected": false
     },
     {
-      "id": "postgresNode_658",
+      "id": "postgresNode_113",
       "data": {
-        "label": "dynamicNode node",
+        "label": "New",
         "logic": [],
         "modes": {},
         "nodeId": "postgresNode",
         "values": {
-          "id": "postgresNode_658",
-          "query": "SELECT tree, file_name, tree_node_count, created_at FROM documents WHERE doc_id = '{{triggerNode_1.output.doc_id}}' LIMIT 1;",
+          "id": "postgresNode_113",
+          "query": "DELETE FROM documents WHERE doc_id = '{{triggerNode_1.output.doc_id}}' RETURNING doc_id, file_name;",
           "action": "runQuery",
-          "nodeName": "Postgres",
+          "nodeName": "Delete Document",
           "credentials": ""
         }
       },
@@ -45,28 +80,24 @@
         "height": 93
       },
       "position": {
-        "x": 0,
-        "y": 130
+        "x": 450,
+        "y": 260
       },
       "selected": false
     },
     {
-      "id": "codeNode_639",
+      "id": "postgresNode_206",
       "data": {
-        "label": "dynamicNode node",
+        "label": "New",
         "logic": [],
         "modes": {},
-        "nodeId": "codeNode",
-        "schema": {
-          "tree": "string",
-          "file_name": "string",
-          "created_at": "string",
-          "tree_node_count": "number"
-        },
+        "nodeId": "postgresNode",
         "values": {
-          "id": "codeNode_639",
-          "code": "// Assign the value you want to return from this code node to `output`. \n// The `output` variable is already declared.\nconst doc = {{postgresNode_658.output.queryResult[0]}};\n\noutput = {\n  tree: JSON.stringify(doc.tree),\n  file_name: doc.file_name,\n  tree_node_count: doc.tree_node_count,\n  created_at: doc.created_at\n};",
-          "nodeName": "Code"
+          "id": "postgresNode_206",
+          "query": "SELECT tree, file_name, tree_node_count, created_at FROM documents WHERE doc_id = '{{triggerNode_1.output.doc_id}}' LIMIT 1;",
+          "action": "runQuery",
+          "nodeName": "Get Tree",
+          "credentials": ""
         }
       },
       "type": "dynamicNode",
@@ -81,18 +112,40 @@
       "selected": false
     },
     {
+      "id": "codeNode_merge",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "id": "codeNode_merge",
+          "code": "const action = {{triggerNode_1.output.action}};\n\nif (action === \"get_tree\") {\n  const getResult = {{postgresNode_206.output.queryResult}};\n  const doc = getResult && getResult[0];\n\n  if (!doc) {\n    output = {\n      success: false,\n      action: \"get_tree\",\n      message: \"Document not found\",\n      doc_id: {{triggerNode_1.output.doc_id}},\n      tree: null,\n      file_name: null,\n      tree_node_count: null,\n      created_at: null\n    };\n  } else {\n    output = {\n      success: true,\n      action: \"get_tree\",\n      message: \"Document fetched successfully\",\n      doc_id: {{triggerNode_1.output.doc_id}},\n      tree: JSON.stringify(doc.tree),\n      file_name: doc.file_name,\n      tree_node_count: doc.tree_node_count,\n      created_at: doc.created_at\n    };\n  }\n\n} else {\n  const deleteResult = {{postgresNode_113.output.queryResult}};\n\n  if (!deleteResult || deleteResult.length === 0) {\n    output = {\n      success: false,\n      action: \"delete\",\n      message: \"Document not found or already deleted\",\n      doc_id: {{triggerNode_1.output.doc_id}},\n      tree: null,\n      file_name: null,\n      tree_node_count: null,\n      created_at: null\n    };\n  } else {\n    output = {\n      success: true,\n      action: \"delete\",\n      message: \"Document deleted successfully\",\n      doc_id: deleteResult[0].doc_id,\n      tree: null,\n      file_name: deleteResult[0].file_name,\n      tree_node_count: null,\n      created_at: null\n    };\n  }\n}",
+          "nodeName": "Merge Response"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
       "id": "responseNode_triggerNode_1",
       "data": {
         "label": "Response",
+        "modes": {},
         "nodeId": "graphqlResponseNode",
         "values": {
           "id": "responseNode_triggerNode_1",
           "headers": "{\"content-type\":\"application/json\"}",
-          "retries": "0",
           "nodeName": "API Response",
-          "webhookUrl": "",
-          "retry_delay": "0",
-          "outputMapping": "{\n  \"tree\": \"{{codeNode_639.output.tree}}\",\n  \"file_name\": \"{{codeNode_639.output.file_name}}\",\n  \"tre_node_count\": \"{{codeNode_639.output.tree_node_count}}\",\n  \"created_at\": \"{{codeNode_639.output.created_at}}\"\n}"
+          "outputMapping": "{\n  \"success\": \"{{codeNode_merge.output.success}}\",\n  \"action\": \"{{codeNode_merge.output.action}}\",\n  \"message\": \"{{codeNode_merge.output.message}}\",\n  \"doc_id\": \"{{codeNode_merge.output.doc_id}}\",\n  \"tree\": \"{{codeNode_merge.output.tree}}\",\n  \"file_name\": \"{{codeNode_merge.output.file_name}}\",\n  \"tree_node_count\": \"{{codeNode_merge.output.tree_node_count}}\",\n  \"created_at\": \"{{codeNode_merge.output.created_at}}\"\n}"
         },
         "isResponseNode": true
       },
@@ -102,39 +155,69 @@
         "height": 93
       },
       "position": {
-        "x": 0,
-        "y": 390
+        "x": 225,
+        "y": 520
       },
-      "selected": true
+      "selected": false
     }
   ],
   "edges": [
     {
-      "id": "triggerNode_1-postgresNode_658",
+      "id": "codeNode_merge-responseNode_triggerNode_1",
       "type": "defaultEdge",
-      "source": "triggerNode_1",
-      "target": "postgresNode_658",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
-    {
-      "id": "postgresNode_658-codeNode_639",
-      "type": "defaultEdge",
-      "source": "postgresNode_658",
-      "target": "codeNode_639",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
-    {
-      "id": "codeNode_639-responseNode_triggerNode_1",
-      "type": "defaultEdge",
-      "source": "codeNode_639",
+      "source": "codeNode_merge",
       "target": "responseNode_triggerNode_1",
       "sourceHandle": "bottom",
       "targetHandle": "top"
     },
     {
-      "id": "response-trigger_triggerNode_1",
+      "id": "conditionNode_944-postgresNode_206",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_944",
+      "target": "postgresNode_206",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_944-postgresNode_113",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_944",
+      "target": "postgresNode_113",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "postgresNode_206-codeNode_merge",
+      "type": "defaultEdge",
+      "source": "postgresNode_206",
+      "target": "codeNode_merge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "postgresNode_113-codeNode_merge",
+      "type": "defaultEdge",
+      "source": "postgresNode_113",
+      "target": "codeNode_merge",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "triggerNode_1-conditionNode_944",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "conditionNode_944",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
       "type": "responseEdge",
       "source": "triggerNode_1",
       "target": "responseNode_triggerNode_1",
