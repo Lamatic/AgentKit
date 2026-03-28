@@ -41,7 +41,7 @@
           "headers": "{\"Accept\":\"application/vnd.github.v3+json\",\"User-Agent\":\"code-review-agent\"}",
           "retries": "0",
           "nodeName": "API",
-          "retry_deplay": "0",
+          "retry_delay": "0",
           "convertXmlResponseToJson": false
         }
       },
