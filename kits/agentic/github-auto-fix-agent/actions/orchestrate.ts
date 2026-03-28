@@ -12,10 +12,12 @@ export async function handleFixIssue(input: {
   file_content?: string;
 }) {
   try {
-    console.log("[agent] Input:", input);
-
+    console.log("[agent] Input received", {
+      hasIssueUrl: Boolean(input.issue_url),
+      hasFilePath: Boolean(input.file_path),
+      hasFileContent: Boolean(input.file_content),
+    });
     const flowId = process.env.GITHUB_AUTO_FIX;
-    console.log("FLOW ID:", flowId);
     if (!flowId) throw new Error("Missing flow ID");
 
     // Run Lamatic Flow
@@ -28,7 +30,11 @@ export async function handleFixIssue(input: {
     const result = resData.result;
     const { analysis, fix, pr } = result;
 
-    console.log("[agent] Flow output:", result);
+    console.log("[agent] Flow output received", {
+      hasAnalysis: Boolean(result?.analysis),
+      hasFix: Boolean(result?.fix),
+      hasPr: Boolean(result?.pr),
+    });
 
     return {
       success: true,
@@ -65,9 +71,7 @@ export async function handleCreatePR(input: {
     const { issue_url, file_path, fix, pr } = input;
 
     // Extract repo info
-    const match = issue_url.match(
-      /github.com\/(.*?)\/(.*?)\/issues\/(\d+)/,
-    );
+    const match = issue_url.match(/github.com\/(.*?)\/(.*?)\/issues\/(\d+)/);
     if (!match) throw new Error("Invalid GitHub issue URL");
 
     const [, owner, repo] = match;
