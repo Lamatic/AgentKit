@@ -1,6 +1,7 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
+import config from "../config"
 
 +export async function generateContent(
 +  prUrl: string,
@@ -27,10 +28,14 @@ import { lamaticClient } from "@/lib/lamatic-client"
    const inputs: Record<string, any> = { prUrl }
     console.log("[v0] Sending inputs:", inputs)
 
-    if(!flow.workflowId){
+    if (!flow.workflowId) {
       throw Error("Workflow not found in config.")
     }
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+     const workflowId = process.env[flow.workflowId]
+   if (!workflowId) {
+     throw new Error(`Missing environment variable for workflow ID key: ${flow.workflowId}`)
+   }
+   const resData = await lamaticClient.executeFlow(workflowId, inputs)
     console.log("[v0] Raw response:", resData)
 
 const answer = resData?.result?.answer
