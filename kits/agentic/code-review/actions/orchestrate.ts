@@ -1,20 +1,16 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import {config} from "../orchestrate.js"
 
-type InputType = "text" | "image" | "json"
-
-export async function generateContent(
-  inputType: InputType,
-  instructions: string,
++export async function generateContent(
++  prUrl: string,
 ): Promise<{
   success: boolean
   data?: any
   error?: string
 }> {
   try {
-    console.log("[v0] Generating content with:", { inputType, instructions })
+    console.log("[v0] Generating content with:", { prUrl })
 
     // Get the first workflow from the config
     const flows = config.flows
@@ -28,21 +24,7 @@ export async function generateContent(
     const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows];
     console.log("[v0] Using workflow:", flow.name, flow.workflowId);
 
-    // Prepare inputs based on the flow's input schema
-    const inputs: Record<string, any> = {
-      mode: inputType,
-      instructions,
-    }
-
-    // Map to schema if needed
-    for (const inputKey of Object.keys(flow.inputSchema || {})) {
-      if (inputKey === "inputType" || inputKey === "type") {
-        inputs[inputKey] = inputType
-      } else if (inputKey === "instructions" || inputKey === "query") {
-        inputs[inputKey] = instructions
-      }
-    }
-
+   const inputs: Record<string, any> = { prUrl }
     console.log("[v0] Sending inputs:", inputs)
 
     if(!flow.workflowId){
@@ -51,7 +33,6 @@ export async function generateContent(
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
     console.log("[v0] Raw response:", resData)
 
-    // Parse the answer from resData?.output.answer
     const answer = data?.data?.executeWorkflow?.result
 
     if (!answer) {
