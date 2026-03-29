@@ -369,13 +369,18 @@ jobs:
           REPO="${{ github.repository }}"
           LABEL="passing-checks"
 
-          # Ensure the label exists in the repo (create if missing)
-          gh api "repos/$REPO/labels/$LABEL" --silent 2>/dev/null || \
-            gh api "repos/$REPO/labels" \
+          # Ensure the label exists in the repo
+          if ! gh api "repos/$REPO/labels/$LABEL" --silent 2>/dev/null; then
+            if gh api "repos/$REPO/labels" \
               --method POST \
               -f name="$LABEL" \
               -f color="0e8a16" \
-              -f description="All validation checks passed"
+              -f description="All validation checks passed" 2>/dev/null; then
+              echo "Created label '$LABEL'"
+            else
+              echo "Warning: Could not create label '$LABEL' (insufficient permissions or network error)"
+            fi
+          fi
 
           if [ "${{ steps.validate.outcome }}" = "success" ]; then
             gh pr edit "$PR_NUMBER" --add-label "$LABEL" --repo "$REPO"
