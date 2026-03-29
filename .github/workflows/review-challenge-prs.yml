@@ -1,0 +1,274 @@
+name: Review AgentKit Challenge PRs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (log actions without posting comments)"
+        type: boolean
+        default: false
+  schedule:
+    # Run Monday, Wednesday, Friday at 09:00 UTC
+    - cron: "0 9 * * 1,3,5"
+
+jobs:
+  review-prs:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Review agentkit-challenge PRs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // DRY_RUN is only applicable for workflow_dispatch events;
+            // scheduled runs always post comments (never dry-run).
+            const DRY_RUN = context.eventName === 'workflow_dispatch'
+              ? Boolean(${{ inputs.dry_run }})
+              : false;
+            const LABEL = 'agentkit-challenge';
+            const CODERABBIT_LOGIN = 'coderabbitai[bot]';
+
+            // Unique markers embedded in bot comments to prevent duplicates
+            const MARKER_CHANGES = '<!-- agentkit-review-bot: changes-requested -->';
+            const MARKER_COMMENTS = '<!-- agentkit-review-bot: actionable-comments -->';
+
+            // Messages
+            const MSG_RESOLVE_CHANGES = (author) =>
+              `${MARKER_CHANGES}\nHi @${author}! 👋\n\n` +
+              `Before this PR can be reviewed by maintainers, please **resolve all comments and requested changes** from the CodeRabbit automated review.\n\n` +
+              `Steps to follow:\n` +
+              `1. Read through all CodeRabbit comments carefully\n` +
+              `2. Address each issue raised (or reply explaining why you disagree)\n` +
+              `3. Push your fixes as new commits\n` +
+              `4. Once all issues are resolved, comment here so we can re-review\n\n` +
+              `This helps keep the review process efficient for everyone. Thank you! 🙏`;
+
+            const MSG_TRIGGER_REVIEW =
+              `@coderabbitai review`;
+
+            const MSG_RESOLVE_COMMENTS = (author) =>
+              `${MARKER_COMMENTS}\nHi @${author}! 👋\n\n` +
+              `CodeRabbit has posted actionable review comments on this PR. Please review and address them before requesting a maintainer review.\n\n` +
+              `Once you've addressed the CodeRabbit feedback, please push your changes and we'll take another look. Thank you! 🙏`;
+
+            // Fetch all open PRs with the agentkit-challenge label
+            const allPRs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            const challengePRs = allPRs.filter(pr =>
+              pr.labels.some(label => label.name === LABEL)
+            );
+
+            console.log(`Found ${challengePRs.length} open PRs with label '${LABEL}'`);
+
+            const summary = {
+              noReview: [],
+              changesRequested: [],
+              actionableComments: [],
+              clean: [],
+            };
+
+            for (const pr of challengePRs) {
+              const prNum = pr.number;
+              const author = pr.user.login;
+              console.log(`\nChecking PR #${prNum}: "${pr.title}" by @${author}`);
+
+              // Get all reviews for this PR
+              const reviewsResp = await github.rest.pulls.listReviews({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum,
+              });
+              const reviews = reviewsResp.data;
+
+              const codeRabbitReviews = reviews.filter(r => r.user.login === CODERABBIT_LOGIN);
+
+              if (codeRabbitReviews.length === 0) {
+                console.log(`  → No CodeRabbit review found. Triggering review.`);
+                summary.noReview.push(`#${prNum} by @${author} — "${pr.title}"`);
+                if (!DRY_RUN) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNum,
+                    body: MSG_TRIGGER_REVIEW,
+                  });
+                  console.log(`  ✓ Triggered CodeRabbit review`);
+                } else {
+                  console.log(`  [DRY RUN] Would trigger CodeRabbit review`);
+                }
+                continue;
+              }
+
+              // Get the latest CodeRabbit review state
+              // Sort by submitted_at descending to get the latest
+              const sortedCRReviews = codeRabbitReviews.sort(
+                (a, b) => new Date(b.submitted_at) - new Date(a.submitted_at)
+              );
+              const latestCRReview = sortedCRReviews[0];
+              const hasChangesRequested = codeRabbitReviews.some(
+                r => r.state === 'CHANGES_REQUESTED'
+              );
+
+              console.log(`  Latest CodeRabbit state: ${latestCRReview.state}`);
+
+              // Check if the review is stale (latest commit after last CR review)
+              const allCommitsResp = await github.rest.pulls.listCommits({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNum,
+                per_page: 100,
+              });
+
+              const commits = allCommitsResp.data;
+              // Sort commits by committer date to reliably get the latest,
+              // regardless of the API response ordering.
+              const sortedCommits = [...commits].sort(
+                (a, b) => new Date(b.commit.committer.date) - new Date(a.commit.committer.date)
+              );
+              const latestCommitDate = sortedCommits.length > 0
+                ? new Date(sortedCommits[0].commit.committer.date)
+                : null;
+
+              const latestCRDate = new Date(latestCRReview.submitted_at);
+              const isStale = latestCommitDate && latestCommitDate > latestCRDate;
+
+              if (isStale) {
+                console.log(`  → CodeRabbit review is stale (new commits after last review). Triggering re-review.`);
+                summary.noReview.push(`#${prNum} by @${author} — stale review, re-triggered`);
+                if (!DRY_RUN) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNum,
+                    body: MSG_TRIGGER_REVIEW,
+                  });
+                  console.log(`  ✓ Triggered CodeRabbit re-review`);
+                } else {
+                  console.log(`  [DRY RUN] Would trigger CodeRabbit re-review`);
+                }
+                continue;
+              }
+
+              if (hasChangesRequested) {
+                console.log(`  → Has CHANGES_REQUESTED from CodeRabbit. Asking author to resolve.`);
+                summary.changesRequested.push(`#${prNum} by @${author} — "${pr.title}"`);
+
+                // Check if we already posted this message recently (avoid spam)
+                const commentsResp = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNum,
+                  per_page: 100,
+                });
+
+                const existingReminder = commentsResp.data.some(c =>
+                  c.user.login === 'github-actions[bot]' &&
+                  c.body.includes(MARKER_CHANGES)
+                );
+
+                if (existingReminder) {
+                  console.log(`  → Reminder already posted. Skipping.`);
+                } else if (!DRY_RUN) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNum,
+                    body: MSG_RESOLVE_CHANGES(author),
+                  });
+                  console.log(`  ✓ Posted reminder to resolve CodeRabbit changes`);
+                } else {
+                  console.log(`  [DRY RUN] Would post reminder to resolve CodeRabbit changes`);
+                }
+              } else if (codeRabbitReviews.some(r =>
+                r.state === 'COMMENTED' && r.body && r.body.includes('Actionable comments posted:')
+              )) {
+                // Has actionable comments from CodeRabbit (even without CHANGES_REQUESTED)
+                // NOTE: This regex depends on CodeRabbit's comment format.
+                // If CodeRabbit changes how it reports actionable comments, update this pattern.
+                const actionableMatch = latestCRReview.body &&
+                  latestCRReview.body.match(/Actionable comments posted:\s*(\d+)/);
+                const actionableCount = actionableMatch ? parseInt(actionableMatch[1]) : 0;
+
+                if (actionableCount > 0) {
+                  console.log(`  → Has ${actionableCount} actionable comments. Asking author to address them.`);
+                  summary.actionableComments.push(
+                    `#${prNum} by @${author} — ${actionableCount} actionable comments — "${pr.title}"`
+                  );
+
+                  const commentsResp = await github.rest.issues.listComments({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNum,
+                    per_page: 100,
+                  });
+
+                  const existingReminder = commentsResp.data.some(c =>
+                    c.user.login === 'github-actions[bot]' &&
+                    c.body.includes(MARKER_COMMENTS)
+                  );
+
+                  if (existingReminder) {
+                    console.log(`  → Reminder already posted. Skipping.`);
+                  } else if (!DRY_RUN) {
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: prNum,
+                      body: MSG_RESOLVE_COMMENTS(author),
+                    });
+                    console.log(`  ✓ Posted reminder to address CodeRabbit comments`);
+                  } else {
+                    console.log(`  [DRY RUN] Would post reminder to address CodeRabbit comments`);
+                  }
+                } else {
+                  console.log(`  → CodeRabbit reviewed with no blocking comments. Ready for maintainer review.`);
+                  summary.clean.push(`#${prNum} by @${author} — "${pr.title}"`);
+                }
+              } else {
+                console.log(`  → No actionable CodeRabbit comments. May be ready for review.`);
+                summary.clean.push(`#${prNum} by @${author} — "${pr.title}"`);
+              }
+            }
+
+            // Print summary
+            core.summary
+              .addHeading('AgentKit Challenge PR Review Summary', 2)
+              .addRaw(`\n**Total PRs checked:** ${challengePRs.length}\n\n`);
+
+            if (summary.noReview.length > 0) {
+              core.summary
+                .addHeading('🔄 CodeRabbit Review Triggered (no/stale review)', 3)
+                .addList(summary.noReview);
+            }
+
+            if (summary.changesRequested.length > 0) {
+              core.summary
+                .addHeading('🔴 Changes Requested by CodeRabbit', 3)
+                .addList(summary.changesRequested);
+            }
+
+            if (summary.actionableComments.length > 0) {
+              core.summary
+                .addHeading('🟡 Actionable CodeRabbit Comments Pending', 3)
+                .addList(summary.actionableComments);
+            }
+
+            if (summary.clean.length > 0) {
+              core.summary
+                .addHeading('✅ Ready for Maintainer Review', 3)
+                .addList(summary.clean);
+            }
+
+            await core.summary.write();
+
+            if (DRY_RUN) {
+              console.log('\n[DRY RUN] No comments were actually posted.');
+            }
