@@ -54,7 +54,7 @@ Create a `.env` file in the kit root:
 
 This kit requires a Lamatic flow with the following node structure:
 
-```
+```text
 API Request Trigger (owner, repo, pr_number)
        ↓
 Code Node — extract diff from GitHub API response
@@ -113,7 +113,7 @@ The agent will fetch the diff and return:
 
 ## Project Structure
 
-```
+```text
 kits/agentic/code-review/
 ├── app/
 │   ├── api/
