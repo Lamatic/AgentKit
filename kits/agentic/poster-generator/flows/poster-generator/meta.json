@@ -1,0 +1,9 @@
+{
+  "name": "Poster Generation",
+  "description": "poster-generator is a Next.js app + Lamatic flow that turns a natural-language idea into a finished poster HTML file, then lets you preview and export it as HTML, PNG, JPG, or SVG.",
+  "tags": "",
+  "testInput": "",
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://agent-kit-pg.vercel.app/"
+}
