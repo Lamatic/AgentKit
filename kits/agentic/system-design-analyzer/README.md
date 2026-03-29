@@ -49,11 +49,11 @@ cp .env.example .env.local
 Edit `.env.local` with your Lamatic credentials:
 
 ```env
-LAMATIC_API_URL = "YOUR_LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "YOUR_PROJECT_ID"
-LAMATIC_API_KEY = "YOUR_API_KEY"
-SYSTEM_DESIGN_ANALYZER_FLOW_ID = "YOUR_FLOW_ID"
-NEXT_PUBLIC_APP_NAME = "System Design Analyzer"
+LAMATIC_PROJECT_ENDPOINT="https://your-organization.lamatic.dev/graphql"
+LAMATIC_FLOW_ID="your-flow-id-here"
+LAMATIC_PROJECT_ID="your-project-id-here"
+LAMATIC_PROJECT_API_KEY="lt-your-api-key-here"
+NEXT_PUBLIC_APP_NAME="System Design Analyzer"
 ```
 
 ### 4. Run Development Server
@@ -70,10 +70,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `LAMATIC_API_URL` | Lamatic GraphQL endpoint | ✅ |
+| `LAMATIC_PROJECT_ENDPOINT` | Lamatic GraphQL endpoint | ✅ |
+| `LAMATIC_FLOW_ID` | Flow ID for system design analysis | ✅ |
 | `LAMATIC_PROJECT_ID` | Your Lamatic Project ID | ✅ |
-| `LAMATIC_API_KEY` | Your Lamatic API Key | ✅ |
-| `SYSTEM_DESIGN_ANALYZER_FLOW_ID` | Flow ID for system design analysis | ✅ |
+| `LAMATIC_PROJECT_API_KEY` | Your Lamatic API Key | ✅ |
 | `NEXT_PUBLIC_APP_NAME` | Application name | ✅ |
 
 ## Flows
@@ -117,17 +117,19 @@ The application uses the **Lamatic SDK** (`lamatic` npm package) to execute flow
 The `analyzeSystemDesign()` server action in `actions/orchestrate.ts` handles the API communication:
 
 ```typescript
-import { Lamatic } from 'lamatic';
+import { lamaticClient } from '@/lib/lamatic-client';
 
-const lamaticClient = new Lamatic({
-  endpoint: process.env.LAMATIC_API_URL,
-  projectId: process.env.LAMATIC_PROJECT_ID,
-  apiKey: process.env.LAMATIC_API_KEY,
-});
+const { LAMATIC_FLOW_ID } = process.env;
 
-await lamaticClient.executeFlow(SYSTEM_DESIGN_ANALYZER_FLOW_ID, {
-  system_design: userInput,
-});
+export async function analyzeSystemDesign(
+  systemDesign: string
+): Promise<ServerActionResponse<SystemDesignAnalysis>> {
+  const response = await lamaticClient.executeFlow(LAMATIC_FLOW_ID, {
+    system_design: systemDesign,
+  });
+  
+  return response;
+}
 ```
 
 ## Project Structure
@@ -195,15 +197,15 @@ This project is part of the Lamatic AgentKit and follows the same license.
 2. Import the repository in Vercel
 3. Set the root directory to `kits/agentic/system-design-analyzer`
 4. Add environment variables in Vercel Dashboard:
-   - `LAMATIC_API_URL`
+   - `LAMATIC_PROJECT_ENDPOINT`
+   - `LAMATIC_FLOW_ID`
    - `LAMATIC_PROJECT_ID`
-   - `LAMATIC_API_KEY`
-   - `SYSTEM_DESIGN_ANALYZER_FLOW_ID`
+   - `LAMATIC_PROJECT_API_KEY`
 5. Deploy
 
 ## Troubleshooting
 
-**Issue**: "LAMATIC_API_KEY is not set"
+**Issue**: "LAMATIC_FLOW_ID is not set"
 - **Solution**: Check `.env.local` has all required variables
 
 **Issue**: Flow returns object instead of string

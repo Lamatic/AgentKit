@@ -1,14 +1,13 @@
 {
-  "parser_agent": [
+  "classifier": [
     {
       "name": "generativeModelName",
       "label": "Generative Model Name",
       "type": "model",
-      "mode": "instructor",
-      "description": "Select the model to generate text based on the prompt.",
       "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
       "required": true,
-      "isPrivate": true,
       "defaultValue": [
         {
           "configName": "configA",
@@ -20,19 +19,19 @@
       ],
       "typeOptions": {
         "loadOptionsMethod": "listModels"
-      }
+      },
+      "isPrivate": true
     }
   ],
-  "backend_agent": [
+  "component_parser": [
     {
       "name": "generativeModelName",
       "label": "Generative Model Name",
       "type": "model",
-      "mode": "instructor",
-      "description": "Select the model to generate text based on the prompt.",
       "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
       "required": true,
-      "isPrivate": true,
       "defaultValue": [
         {
           "configName": "configA",
@@ -44,7 +43,8 @@
       ],
       "typeOptions": {
         "loadOptionsMethod": "listModels"
-      }
+      },
+      "isPrivate": true
     }
   ],
   "performance_agent": [
@@ -52,11 +52,10 @@
       "name": "generativeModelName",
       "label": "Generative Model Name",
       "type": "model",
-      "mode": "instructor",
-      "description": "Select the model to generate text based on the prompt.",
       "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
       "required": true,
-      "isPrivate": true,
       "defaultValue": [
         {
           "configName": "configA",
@@ -68,7 +67,56 @@
       ],
       "typeOptions": {
         "loadOptionsMethod": "listModels"
-      }
+      },
+      "isPrivate": true
+    }
+  ],
+  "reliability_agent": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
+      "required": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "isPrivate": true
+    }
+  ],
+  "consistency_agent": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
+      "required": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "isPrivate": true
     }
   ],
   "security_agent": [
@@ -76,11 +124,10 @@
       "name": "generativeModelName",
       "label": "Generative Model Name",
       "type": "model",
-      "mode": "instructor",
-      "description": "Select the model to generate text based on the prompt.",
       "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
       "required": true,
-      "isPrivate": true,
       "defaultValue": [
         {
           "configName": "configA",
@@ -92,7 +139,8 @@
       ],
       "typeOptions": {
         "loadOptionsMethod": "listModels"
-      }
+      },
+      "isPrivate": true
     }
   ],
   "cost_agent": [
@@ -100,11 +148,10 @@
       "name": "generativeModelName",
       "label": "Generative Model Name",
       "type": "model",
-      "mode": "instructor",
-      "description": "Select the model to generate text based on the prompt.",
       "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
       "required": true,
-      "isPrivate": true,
       "defaultValue": [
         {
           "configName": "configA",
@@ -116,7 +163,8 @@
       ],
       "typeOptions": {
         "loadOptionsMethod": "listModels"
-      }
+      },
+      "isPrivate": true
     }
   ],
   "judge_agent": [
