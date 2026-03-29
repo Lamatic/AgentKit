@@ -22,10 +22,11 @@
   },
   "steps": [
     {
-      "id": "code-review-flow",
+      "id": "code-review-agent",
       "type": "mandatory",
-      "envKey": "LAMATIC_API_KEY"
+      "envKey": "AGENTIC_GENERATE_CONTENT"
     }
+  ]
   ],
   "integrations": ["GitHub", "Groq"],
   "demoUrl": "https://agent-kit-stk.vercel.app/",
