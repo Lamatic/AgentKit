@@ -33,7 +33,7 @@ import { lamaticClient } from "@/lib/lamatic-client"
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
     console.log("[v0] Raw response:", resData)
 
-    const answer = data?.data?.executeWorkflow?.result
+const answer = resData?.result?.answer
 
     if (!answer) {
       throw new Error("No answer found in response")
