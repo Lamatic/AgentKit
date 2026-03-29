@@ -9,6 +9,9 @@ jobs:
     if: startsWith(github.event.pull_request.title, 'feat:')
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,8 +39,13 @@ jobs:
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "No changed files detected."
-            echo "## PR Validation Results" >> "$GITHUB_STEP_SUMMARY"
-            echo "No contribution files detected in this PR." >> "$GITHUB_STEP_SUMMARY"
+            SUMMARY_FILE="/tmp/pr_validation_summary.md"
+            {
+              echo "## PR Validation Results"
+              echo ""
+              echo "No contribution files detected in this PR."
+            } > "$SUMMARY_FILE"
+            cat "$SUMMARY_FILE" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
@@ -224,6 +232,7 @@ jobs:
 
           # --- F. Output results to job summary ---
 
+          SUMMARY_FILE="/tmp/pr_validation_summary.md"
           {
             echo "## PR Validation Results"
             echo ""
@@ -303,7 +312,9 @@ jobs:
               echo ""
               echo "Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) and [CLAUDE.md](./CLAUDE.md) for the expected folder structure."
             fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          } > "$SUMMARY_FILE"
+
+          cat "$SUMMARY_FILE" >> "$GITHUB_STEP_SUMMARY"
 
           # Print to logs as well
           if [ ${#ERRORS[@]} -gt 0 ]; then
@@ -317,3 +328,32 @@ jobs:
 
           echo ""
           echo "=== ALL CHECKS PASSED ==="
+
+      - name: Post validation results as PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SUMMARY_FILE="/tmp/pr_validation_summary.md"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+
+          if [ ! -f "$SUMMARY_FILE" ]; then
+            echo "No summary file found, skipping comment."
+            exit 0
+          fi
+
+          # Find an existing bot comment that starts with the validation header
+          COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --jq '.[] | select(.user.type == "Bot" and (.body | startswith("## PR Validation Results"))) | .id' \
+            | head -1)
+
+          if [ -n "$COMMENT_ID" ]; then
+            gh api "repos/$REPO/issues/comments/$COMMENT_ID" \
+              --method PATCH \
+              -f body="$(cat "$SUMMARY_FILE")"
+          else
+            gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+              --method POST \
+              -f body="$(cat "$SUMMARY_FILE")"
+          fi

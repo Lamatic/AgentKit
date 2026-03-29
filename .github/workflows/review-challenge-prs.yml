@@ -92,7 +92,7 @@ jobs:
 
               if (codeRabbitReviews.length === 0) {
                 console.log(`  → No CodeRabbit review found. Triggering review.`);
-                summary.noReview.push(`#${prNum} by @${author} — "${pr.title}"`);
+                summary.noReview.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
                 if (!DRY_RUN) {
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
@@ -142,7 +142,7 @@ jobs:
 
               if (isStale) {
                 console.log(`  → CodeRabbit review is stale (new commits after last review). Triggering re-review.`);
-                summary.noReview.push(`#${prNum} by @${author} — stale review, re-triggered`);
+                summary.noReview.push(`[#${prNum}](${pr.html_url}) by @${author} — stale review, re-triggered`);
                 if (!DRY_RUN) {
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
@@ -159,7 +159,7 @@ jobs:
 
               if (hasChangesRequested) {
                 console.log(`  → Has CHANGES_REQUESTED from CodeRabbit. Asking author to resolve.`);
-                summary.changesRequested.push(`#${prNum} by @${author} — "${pr.title}"`);
+                summary.changesRequested.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
 
                 // Check if we already posted this message recently (avoid spam)
                 const commentsResp = await github.rest.issues.listComments({
@@ -200,7 +200,7 @@ jobs:
                 if (actionableCount > 0) {
                   console.log(`  → Has ${actionableCount} actionable comments. Asking author to address them.`);
                   summary.actionableComments.push(
-                    `#${prNum} by @${author} — ${actionableCount} actionable comments — "${pr.title}"`
+                    `[#${prNum}](${pr.html_url}) by @${author} — ${actionableCount} actionable comments — "${pr.title}"`
                   );
 
                   const commentsResp = await github.rest.issues.listComments({
@@ -230,11 +230,11 @@ jobs:
                   }
                 } else {
                   console.log(`  → CodeRabbit reviewed with no blocking comments. Ready for maintainer review.`);
-                  summary.clean.push(`#${prNum} by @${author} — "${pr.title}"`);
+                  summary.clean.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
                 }
               } else {
                 console.log(`  → No actionable CodeRabbit comments. May be ready for review.`);
-                summary.clean.push(`#${prNum} by @${author} — "${pr.title}"`);
+                summary.clean.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
               }
             }
 
