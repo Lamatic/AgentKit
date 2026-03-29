@@ -17,6 +17,7 @@ jobs:
     permissions:
       pull-requests: write
       issues: write
+      contents: write
     steps:
       - name: Review agentkit-challenge PRs
         uses: actions/github-script@v7
@@ -30,6 +31,7 @@ jobs:
               : false;
             const LABEL = 'agentkit-challenge';
             const CODERABBIT_LOGIN = 'coderabbitai[bot]';
+            const LABEL_PASSING = 'passing-checks';
 
             // Unique markers embedded in bot comments to prevent duplicates
             const MARKER_CHANGES = '<!-- agentkit-review-bot: changes-requested -->';
@@ -68,17 +70,120 @@ jobs:
 
             console.log(`Found ${challengePRs.length} open PRs with label '${LABEL}'`);
 
+            // Ensure the passing-checks label exists in the repo
+            if (!DRY_RUN) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: LABEL_PASSING,
+                });
+              } catch (e) {
+                if (e.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: LABEL_PASSING,
+                    color: '0e8a16',
+                    description: 'All validation checks passed',
+                  });
+                  console.log(`Created label '${LABEL_PASSING}'`);
+                }
+              }
+            }
+
+            const addPassingLabel = async (prNum) => {
+              if (DRY_RUN) {
+                console.log(`  [DRY RUN] Would add '${LABEL_PASSING}' label`);
+                return;
+              }
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNum,
+                  labels: [LABEL_PASSING],
+                });
+                console.log(`  ✓ Added '${LABEL_PASSING}' label`);
+              } catch (e) {
+                console.log(`  Warning: Could not add label: ${e.message}`);
+              }
+            };
+
+            const removePassingLabel = async (prNum) => {
+              if (DRY_RUN) {
+                console.log(`  [DRY RUN] Would remove '${LABEL_PASSING}' label`);
+                return;
+              }
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNum,
+                  name: LABEL_PASSING,
+                });
+                console.log(`  ✓ Removed '${LABEL_PASSING}' label`);
+              } catch (e) {
+                if (e.status !== 404) console.log(`  Warning: Could not remove label: ${e.message}`);
+              }
+            };
+
             const summary = {
               noReview: [],
               changesRequested: [],
               actionableComments: [],
               clean: [],
+              branchUpdated: [],
             };
 
             for (const pr of challengePRs) {
               const prNum = pr.number;
               const author = pr.user.login;
               console.log(`\nChecking PR #${prNum}: "${pr.title}" by @${author}`);
+
+              // Update branch if it is behind the base branch.
+              // Possible mergeable_state values and how they are handled:
+              //   'behind'   — branch needs base commits merged in → update automatically (handled here)
+              //   'clean'    — up to date and ready to merge → no action needed
+              //   'dirty'    — has merge conflicts → requires author intervention, skip
+              //   'unstable' — CI is failing → not a branch-staleness issue, skip
+              //   'blocked'  — blocked by branch protection rules → skip
+              //   'unknown'  — GitHub is still computing mergeability → skip, retry on next run
+              //   null       — PR details fetch failed → logged and skipped
+              let mergeableState = null;
+              try {
+                const prDetails = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNum,
+                });
+                mergeableState = prDetails.data.mergeable_state;
+              } catch (e) {
+                console.log(`  Warning: Could not fetch PR details to check branch status: ${e.message}`);
+              }
+
+              if (mergeableState === 'behind') {
+                console.log(`  → Branch is behind base branch. Updating.`);
+                summary.branchUpdated.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
+                if (!DRY_RUN) {
+                  try {
+                    await github.rest.pulls.updateBranch({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      pull_number: prNum,
+                    });
+                    console.log(`  ✓ Branch updated`);
+                  } catch (e) {
+                    console.log(`  Warning: Could not update branch: ${e.message}`);
+                  }
+                } else {
+                  console.log(`  [DRY RUN] Would update branch`);
+                }
+              } else if (mergeableState === null) {
+                console.log(`  → Branch status unknown (PR details fetch failed). Skipping update.`);
+              } else {
+                console.log(`  → Branch state is '${mergeableState}'. No automatic update needed.`);
+              }
 
               // Get all reviews for this PR
               const reviewsResp = await github.rest.pulls.listReviews({
@@ -92,7 +197,7 @@ jobs:
 
               if (codeRabbitReviews.length === 0) {
                 console.log(`  → No CodeRabbit review found. Triggering review.`);
-                summary.noReview.push(`#${prNum} by @${author} — "${pr.title}"`);
+                summary.noReview.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
                 if (!DRY_RUN) {
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
@@ -104,6 +209,7 @@ jobs:
                 } else {
                   console.log(`  [DRY RUN] Would trigger CodeRabbit review`);
                 }
+                await removePassingLabel(prNum);
                 continue;
               }
 
@@ -142,7 +248,7 @@ jobs:
 
               if (isStale) {
                 console.log(`  → CodeRabbit review is stale (new commits after last review). Triggering re-review.`);
-                summary.noReview.push(`#${prNum} by @${author} — stale review, re-triggered`);
+                summary.noReview.push(`[#${prNum}](${pr.html_url}) by @${author} — stale review, re-triggered`);
                 if (!DRY_RUN) {
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
@@ -154,12 +260,13 @@ jobs:
                 } else {
                   console.log(`  [DRY RUN] Would trigger CodeRabbit re-review`);
                 }
+                await removePassingLabel(prNum);
                 continue;
               }
 
               if (hasChangesRequested) {
                 console.log(`  → Has CHANGES_REQUESTED from CodeRabbit. Asking author to resolve.`);
-                summary.changesRequested.push(`#${prNum} by @${author} — "${pr.title}"`);
+                summary.changesRequested.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
 
                 // Check if we already posted this message recently (avoid spam)
                 const commentsResp = await github.rest.issues.listComments({
@@ -187,6 +294,7 @@ jobs:
                 } else {
                   console.log(`  [DRY RUN] Would post reminder to resolve CodeRabbit changes`);
                 }
+                await removePassingLabel(prNum);
               } else if (codeRabbitReviews.some(r =>
                 r.state === 'COMMENTED' && r.body && r.body.includes('Actionable comments posted:')
               )) {
@@ -200,7 +308,7 @@ jobs:
                 if (actionableCount > 0) {
                   console.log(`  → Has ${actionableCount} actionable comments. Asking author to address them.`);
                   summary.actionableComments.push(
-                    `#${prNum} by @${author} — ${actionableCount} actionable comments — "${pr.title}"`
+                    `[#${prNum}](${pr.html_url}) by @${author} — ${actionableCount} actionable comments — "${pr.title}"`
                   );
 
                   const commentsResp = await github.rest.issues.listComments({
@@ -228,13 +336,16 @@ jobs:
                   } else {
                     console.log(`  [DRY RUN] Would post reminder to address CodeRabbit comments`);
                   }
+                  await removePassingLabel(prNum);
                 } else {
                   console.log(`  → CodeRabbit reviewed with no blocking comments. Ready for maintainer review.`);
-                  summary.clean.push(`#${prNum} by @${author} — "${pr.title}"`);
+                  summary.clean.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
+                  await addPassingLabel(prNum);
                 }
               } else {
                 console.log(`  → No actionable CodeRabbit comments. May be ready for review.`);
-                summary.clean.push(`#${prNum} by @${author} — "${pr.title}"`);
+                summary.clean.push(`[#${prNum}](${pr.html_url}) by @${author} — "${pr.title}"`);
+                await addPassingLabel(prNum);
               }
             }
 
@@ -242,6 +353,12 @@ jobs:
             core.summary
               .addHeading('AgentKit Challenge PR Review Summary', 2)
               .addRaw(`\n**Total PRs checked:** ${challengePRs.length}\n\n`);
+
+            if (summary.branchUpdated.length > 0) {
+              core.summary
+                .addHeading('🔀 Branch Updated (was behind base)', 3)
+                .addList(summary.branchUpdated);
+            }
 
             if (summary.noReview.length > 0) {
               core.summary
