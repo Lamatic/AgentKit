@@ -12,6 +12,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,6 +23,7 @@ jobs:
         run: git fetch origin ${{ github.event.pull_request.base.ref }}
 
       - name: Validate contribution structure
+        id: validate
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
@@ -356,4 +358,29 @@ jobs:
             gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
               --method POST \
               -f body="$(cat "$SUMMARY_FILE")"
+          fi
+
+      - name: Apply passing-checks label
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          LABEL="passing-checks"
+
+          # Ensure the label exists in the repo (create if missing)
+          gh api "repos/$REPO/labels/$LABEL" --silent 2>/dev/null || \
+            gh api "repos/$REPO/labels" \
+              --method POST \
+              -f name="$LABEL" \
+              -f color="0e8a16" \
+              -f description="All validation checks passed"
+
+          if [ "${{ steps.validate.outcome }}" = "success" ]; then
+            gh pr edit "$PR_NUMBER" --add-label "$LABEL" --repo "$REPO"
+            echo "Added '$LABEL' label to PR #$PR_NUMBER"
+          else
+            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" --repo "$REPO" 2>/dev/null || true
+            echo "Removed '$LABEL' label from PR #$PR_NUMBER (validation failed)"
           fi

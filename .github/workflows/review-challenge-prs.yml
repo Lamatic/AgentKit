@@ -30,6 +30,7 @@ jobs:
               : false;
             const LABEL = 'agentkit-challenge';
             const CODERABBIT_LOGIN = 'coderabbitai[bot]';
+            const LABEL_PASSING = 'passing-checks';
 
             // Unique markers embedded in bot comments to prevent duplicates
             const MARKER_CHANGES = '<!-- agentkit-review-bot: changes-requested -->';
@@ -68,6 +69,64 @@ jobs:
 
             console.log(`Found ${challengePRs.length} open PRs with label '${LABEL}'`);
 
+            // Ensure the passing-checks label exists in the repo
+            if (!DRY_RUN) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: LABEL_PASSING,
+                });
+              } catch (e) {
+                if (e.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: LABEL_PASSING,
+                    color: '0e8a16',
+                    description: 'All validation checks passed',
+                  });
+                  console.log(`Created label '${LABEL_PASSING}'`);
+                }
+              }
+            }
+
+            const addPassingLabel = async (prNum) => {
+              if (DRY_RUN) {
+                console.log(`  [DRY RUN] Would add '${LABEL_PASSING}' label`);
+                return;
+              }
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNum,
+                  labels: [LABEL_PASSING],
+                });
+                console.log(`  ✓ Added '${LABEL_PASSING}' label`);
+              } catch (e) {
+                console.log(`  Warning: Could not add label: ${e.message}`);
+              }
+            };
+
+            const removePassingLabel = async (prNum) => {
+              if (DRY_RUN) {
+                console.log(`  [DRY RUN] Would remove '${LABEL_PASSING}' label`);
+                return;
+              }
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNum,
+                  name: LABEL_PASSING,
+                });
+                console.log(`  ✓ Removed '${LABEL_PASSING}' label`);
+              } catch (e) {
+                if (e.status !== 404) console.log(`  Warning: Could not remove label: ${e.message}`);
+              }
+            };
+
             const summary = {
               noReview: [],
               changesRequested: [],
@@ -104,6 +163,7 @@ jobs:
                 } else {
                   console.log(`  [DRY RUN] Would trigger CodeRabbit review`);
                 }
+                await removePassingLabel(prNum);
                 continue;
               }
 
@@ -154,6 +214,7 @@ jobs:
                 } else {
                   console.log(`  [DRY RUN] Would trigger CodeRabbit re-review`);
                 }
+                await removePassingLabel(prNum);
                 continue;
               }
 
