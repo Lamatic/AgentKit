@@ -109,7 +109,7 @@
           "messages": "[]",
           "nodeName": "Bug_Analysis",
           "attachments": "",
-          "generativeModelName": ""
+          "generativeModelName": "llama-3.3-70b-versatile"
         }
       },
       "type": "dynamicNode",
@@ -149,7 +149,7 @@
           "messages": "[]",
           "nodeName": "Security_Scan",
           "attachments": "",
-          "generativeModelName": ""
+          "generativeModelName": "llama-3.3-70b-versatile"
         }
       },
       "type": "dynamicNode",
@@ -189,7 +189,7 @@
           "messages": "[]",
           "nodeName": "Style_Check",
           "attachments": "",
-          "generativeModelName": ""
+          "generativeModelName": "llama-3.3-70b-versatile"
         }
       },
       "type": "dynamicNode",
@@ -246,7 +246,7 @@
           "messages": "[]",
           "nodeName": "Final_Merge",
           "attachments": "",
-          "generativeModelName": ""
+          "generativeModelName": "llama-3.3-70b-versatile"
         }
       },
       "type": "dynamicNode",
