@@ -21,6 +21,26 @@ export async function uploadDocument(
   file_name: string,
   options: { file_url?: string; file_base64?: string; mime_type?: string }
 ) {
+  // ── Validate upload contract ──────────────────────────────────
+  const hasUrl = Boolean(options.file_url);
+  const hasBase64 = Boolean(options.file_base64);
+
+  if (hasUrl && hasBase64) {
+    throw new Error(
+      "uploadDocument: provide either file_url or file_base64, not both."
+    );
+  }
+  if (!hasUrl && !hasBase64) {
+    throw new Error(
+      "uploadDocument: either file_url or file_base64 must be provided."
+    );
+  }
+  if (hasBase64 && !options.mime_type) {
+    throw new Error(
+      "uploadDocument: mime_type is required when file_base64 is provided."
+    );
+  }
+
   try {
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_UPLOAD!,

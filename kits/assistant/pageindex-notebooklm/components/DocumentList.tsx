@@ -55,8 +55,10 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
   return (
     <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
       <style>{`
-        li:hover .doc-delete-btn { opacity: 0.5 !important; }
-        li:hover .doc-delete-btn:hover { opacity: 1 !important; }
+        li:hover .doc-delete-btn,
+        li:focus-within .doc-delete-btn { opacity: 0.5 !important; }
+        li:hover .doc-delete-btn:hover,
+        .doc-delete-btn:focus-visible { opacity: 1 !important; }
       `}</style>
       
       {deleteError && (
@@ -121,54 +123,7 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
                 </p>
               </div>
 
-              {/* Inline trash icon / spinner */}
-              <div style={{ marginLeft: "auto", flexShrink: 0, display: "flex", alignItems: "center", marginTop: "1px" }}>
-                {isDeleting ? (
-                  <svg style={{ animation: "spin 0.8s linear infinite" }} width="13" height="13" viewBox="0 0 24 24"
-                    fill="none" stroke="var(--text-3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                  </svg>
-                ) : !isConfirming ? (
-                  <div
-                    onClick={e => { e.stopPropagation(); setConfirmId(doc.doc_id); }}
-                    title="Delete document"
-                    className="doc-delete-btn"
-                    style={{
-                      width: "22px", height: "22px", borderRadius: "var(--radius-sm)",
-                      border: "1px solid transparent",
-                      background: "transparent",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer", opacity: 0,
-                      transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.opacity = "1";
-                      e.currentTarget.style.background = "rgba(248,113,113,0.12)";
-                      e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.opacity = "0";
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.borderColor = "transparent";
-                    }}
-                  >
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                      stroke="var(--red)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                      <path d="M10 11v6M14 11v6"/>
-                      <path d="M9 6V4h6v2"/>
-                    </svg>
-                  </div>
-                ) : (
-                  <div style={{
-                    width: "4px", height: "4px", borderRadius: "50%",
-                    background: "var(--red)", flexShrink: 0,
-                    boxShadow: "0 0 6px var(--red)",
-                  }} />
-                )}
-              </div>
-
+              {/* Active indicator dot (purely decorative) */}
               {active && !isConfirming && (
                 <div style={{
                   width: "4px", height: "4px", borderRadius: "50%",
@@ -176,7 +131,68 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
                   boxShadow: "0 0 6px var(--accent)",
                 }} />
               )}
+
+              {/* Delete spinner — decorative only, not interactive */}
+              {isDeleting && (
+                <div style={{ marginLeft: "auto", flexShrink: 0, display: "flex", alignItems: "center", marginTop: "1px" }}>
+                  <svg style={{ animation: "spin 0.8s linear infinite" }} width="13" height="13" viewBox="0 0 24 24"
+                    fill="none" stroke="var(--text-3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                </div>
+              )}
             </button>
+
+            {/* ── Delete button ────────────────────────────────────────────────────
+                Placed OUTSIDE the row <button> (sibling, not child) to avoid the
+                nested-interactive HTML violation. Position absolute over the row.
+                Keyboard-accessible: visible on :focus-visible via CSS above. */}
+            {!isDeleting && !isConfirming && (
+              <button
+                aria-label={`Delete document ${doc.file_name}`}
+                onClick={e => { e.stopPropagation(); setConfirmId(doc.doc_id); }}
+                className="doc-delete-btn"
+                style={{
+                  position: "absolute", top: "50%", right: "8px",
+                  transform: "translateY(-50%)",
+                  width: "22px", height: "22px", borderRadius: "var(--radius-sm)",
+                  border: "1px solid transparent",
+                  background: "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", opacity: 0,
+                  transition: "all 0.15s",
+                  zIndex: 1,
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.background = "rgba(248,113,113,0.12)";
+                  e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.opacity = "0";
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.borderColor = "transparent";
+                }}
+                onFocus={e => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.background = "rgba(248,113,113,0.12)";
+                  e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)";
+                }}
+                onBlur={e => {
+                  e.currentTarget.style.opacity = "0";
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.borderColor = "transparent";
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--red)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4h6v2"/>
+                </svg>
+              </button>
+            )}
 
             {/* Confirm/Cancel strip below the row */}
             {isConfirming && (

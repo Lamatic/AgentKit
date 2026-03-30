@@ -45,7 +45,8 @@ export interface ChatResponse {
   answer: string;
   retrieved_nodes: RetrievedNode[];
   thinking: string;
-  doc_id: string;
+  /** Raw Lamatic message history returned by the flow for multi-turn context. */
+  messages?: unknown;
 }
 
 export interface UploadResponse {

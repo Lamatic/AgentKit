@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { listDocuments, getDocumentTree } from "@/actions/orchestrate";
 import { Document, TreeNode, RetrievedNode } from "@/lib/types";
 import { BookOpen } from "lucide-react";
@@ -17,6 +17,8 @@ export default function Page() {
   const [listLoading, setListLoading] = useState(false);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"chat" | "tree">("chat");
+  // Monotonic counter used to cancel stale tree-fetch results
+  const treeRequestIdRef = useRef(0);
 
   const fetchDocuments = useCallback(async () => {
     setListLoading(true);
@@ -47,10 +49,19 @@ export default function Page() {
     setHighlightedIds([]);
     setActiveTab("chat");
     setTreeLoading(true);
+    // Capture this request's id; if the user selects another doc before this
+    // resolves, requestId will no longer match the ref and we discard the result.
+    const requestId = ++treeRequestIdRef.current;
     try {
       const result = await getDocumentTree(doc.doc_id);
+      if (requestId !== treeRequestIdRef.current) return; // stale — discard
       if (Array.isArray(result?.tree)) setTree(result.tree);
-    } catch { setTree([]); } finally { setTreeLoading(false); }
+    } catch {
+      if (requestId !== treeRequestIdRef.current) return;
+      setTree([]);
+    } finally {
+      if (requestId === treeRequestIdRef.current) setTreeLoading(false);
+    }
   }
 
   function handleRetrievedNodes(nodes: RetrievedNode[]) {
@@ -307,7 +318,7 @@ export default function Page() {
                   Select a document
                 </p>
                 <p style={{ margin: "0 0 28px", fontSize: "14px", color: "var(--text-2)", lineHeight: 1.6 }}>
-                  Upload a PDF or Markdown file, then pick it from the sidebar to start an AI conversation.
+                  Upload a PDF and pick it from the sidebar to start an AI conversation.
                 </p>
 
                 {/* Info card */}

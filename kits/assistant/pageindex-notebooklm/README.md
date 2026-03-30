@@ -138,7 +138,12 @@ create table documents (
   created_at timestamptz default now()
 );
 alter table documents enable row level security;
-create policy "service_access" on documents for all using (true);
+-- Only the Supabase service role (used server-side in Lamatic flows) can
+-- read and write documents. No direct client-side access is permitted.
+create policy "service_role_only" on documents
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
 ```
 
 ### 2. Import Lamatic Flows
@@ -158,6 +163,9 @@ Add these secrets in **Lamatic → Settings → Secrets**:
 |---|---|
 | `SUPABASE_URL` | `https://xxx.supabase.co` |
 | `SUPABASE_ANON_KEY` | From Supabase Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | From Supabase Settings → API — **server-side only, never expose client-side** |
+
+> **Important:** `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. Store it in Lamatic Secrets only — never in `.env.local` shipped to the browser.
 
 ### 3. Install and Configure
 

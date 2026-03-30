@@ -17,10 +17,13 @@ export default function DocumentUpload({ onUploaded }: Props) {
   async function processFile(file: File) {
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
 
-    const allowedTypes = ["application/pdf", "text/markdown", "text/x-markdown"];
-    if (!allowedTypes.includes(file.type) && !file.name.endsWith(".md")) {
+    // Only PDFs are supported — the upstream flow does not handle Markdown.
+    const allowedTypes = ["application/pdf"];
+    if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith(".pdf")) {
       setStatus("error");
-      setMessage("Only PDF and Markdown files are supported.");
+      setMessage("Only PDF files are supported.");
+      // Schedule reset so the picker can be re-opened (matches success/error paths).
+      resetTimerRef.current = setTimeout(() => { setStatus("idle"); setMessage(""); }, 3500);
       return;
     }
     setStatus("uploading");
@@ -57,8 +60,20 @@ export default function DocumentUpload({ onUploaded }: Props) {
   const isIdle = status === "idle";
 
   return (
+    // tabIndex + role + onKeyDown make the upload zone keyboard-accessible.
+    // Keyboard users can Tab to it and press Enter or Space to open the picker.
     <div
+      role="button"
+      tabIndex={isIdle ? 0 : -1}
+      aria-label="Upload document — click or drop a PDF file"
       onClick={() => isIdle && inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (!isIdle) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}
@@ -88,7 +103,7 @@ export default function DocumentUpload({ onUploaded }: Props) {
       }}
     >
       <input
-        ref={inputRef} type="file" accept=".pdf,.md"
+        ref={inputRef} type="file" accept=".pdf"
         style={{ display: "none" }}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); e.target.value = ""; }}
       />
@@ -155,7 +170,7 @@ export default function DocumentUpload({ onUploaded }: Props) {
             Upload document
           </p>
           <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>
-            PDF · Markdown · drop or click
+            PDF · drop or click
           </p>
         </>
       )}

@@ -35,6 +35,33 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
     }
   }
 
+  // ── Cycle detection ─────────────────────────────────────────────
+  // Run a DFS tracking visiting/visited state. A back-edge to a node
+  // currently in the visiting set means we found a cycle.
+  type VisitState = "unvisited" | "visiting" | "visited";
+  const state = new Map<string, VisitState>();
+  map.forEach((_, id) => state.set(id, "unvisited"));
+
+  function dfs(nodeId: string): void {
+    state.set(nodeId, "visiting");
+    const node = map.get(nodeId)!;
+    for (const child of node.nodes) {
+      const childState = state.get(child.node_id);
+      if (childState === "visiting") {
+        throw new Error(
+          `buildTree: cycle detected — node "${child.node_id}" is its own ancestor.`
+        );
+      }
+      if (childState === "unvisited") dfs(child.node_id);
+    }
+    state.set(nodeId, "visited");
+  }
+
+  for (const [id, s] of state.entries()) {
+    if (s === "unvisited") dfs(id);
+  }
+  // ── End cycle detection ─────────────────────────────────────────
+
   // Roots = nodes not referenced as a child
   return flat
     .map(n => map.get(n.node_id)!)
@@ -60,13 +87,31 @@ function TreeNodeRow({
 
   return (
     <div style={{ animation: "float-in 0.25s var(--ease) both" }}>
-      <div
+      {/* Semantic button wrapper — enables keyboard toggle and exposes state */}
+      <button
         onClick={() => hasChildren && setOpen(o => !o)}
+        aria-expanded={hasChildren ? open : undefined}
+        onKeyDown={(e) => {
+          if (!hasChildren) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen(o => !o);
+          }
+        }}
+        style={{
+          width: "100%",
+          textAlign: "left",
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: hasChildren ? "pointer" : "default",
+        }}
+      >
+      <div
         style={{
           display: "flex", alignItems: "flex-start", gap: "8px",
           padding: `7px 10px 7px ${10 + depth * 16}px`,
           borderRadius: "var(--radius-md)",
-          cursor: hasChildren ? "pointer" : "default",
           background: isHighlighted ? "var(--amber-dim)" : "transparent",
           border: `1px solid ${isHighlighted ? "rgba(246,201,14,0.25)" : "transparent"}`,
           transition: "all 0.18s var(--ease)",
@@ -137,8 +182,9 @@ function TreeNodeRow({
           )}
         </div>
       </div>
+      </button>
 
-      {/* Children */}
+      {/* Children — rendered outside the toggle button */}
       {open && hasChildren && (
         <div style={{
           borderLeft: `1px solid ${isHighlighted ? "rgba(246,201,14,0.2)" : "var(--border)"}`,

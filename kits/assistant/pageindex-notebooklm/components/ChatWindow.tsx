@@ -132,7 +132,9 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
       }
       setLamaticHistory(nextHistory);
 
-      if (Array.isArray(result.retrieved_nodes) && result.retrieved_nodes.length) {
+      // Always update retrieval state when the field is present — even if empty,
+      // so that previous turn's sources/highlights are cleared correctly.
+      if (Array.isArray(result.retrieved_nodes)) {
         setLastNodes(result.retrieved_nodes);
         setLastThinking(result.thinking || "");
         onRetrievedNodes?.(result.retrieved_nodes);
