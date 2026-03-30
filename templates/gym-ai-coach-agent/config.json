@@ -1,0 +1,12 @@
+{
+  "name": "Gym AI Coach Agent",
+  "description": "AI agent that generates personalized diet and workout plans based on user input.",
+  "tags": ["fitness", "ai", "health", "agent"],
+  "author": "Harish Vasamsetti",
+  "steps": [
+    "Provide user input (weight, goal, diet)",
+    "Generate fitness plan",
+    "Return structured output"
+  ],
+  "env": []
+}
