@@ -2,6 +2,54 @@
 
 A modern, AI-powered agentic kit that analyzes system design specifications and provides comprehensive insights to help engineers and candidates prepare for system design interviews.
 
+---
+
+## What This Kit Does
+
+System Design Analyzer provides **real-time AI-powered analysis** of system design proposals. It identifies architectural issues by category and severity, suggests improvements with priority rankings, and delivers overall architecture scores—perfect for interview preparation and architecture reviews.
+
+## Providers & Prerequisites
+
+**External Providers:**
+- **Lamatic AI** - Orchestration and agentic reasoning
+- **LLM Integration** - Architecture analysis using your configured LLM
+
+**Development Requirements:**
+- Node.js 18+ and npm 9+
+- Lamatic account with API credentials
+- Lamatic project with configured `check-your-saas` flow
+
+## How to Run Locally
+
+```bash
+# 1. Navigate to kit
+cd kits/agentic/system-design-analyzer
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment
+cp .env.example .env.local
+# Edit with your Lamatic credentials
+
+# 4. Start dev server
+npm run dev
+# Opens at http://localhost:3000
+```
+
+## Live Preview
+
+https://system-designer-mocha.vercel.app/
+
+## Lamatic Flow
+
+- **Flow ID:** `check-your-saas` (`2392ad97-51e9-4954-8d38-bc668e644818`)
+- **Type:** Agentic Reasoning
+- **Input:** `system_design` (string) - System design specification
+- **Output:** `issues`, `recommendations`, `summary` - Structured analysis results
+
+---
+
 ## 🎯 Problem Statement
 
 System design interviews are challenging, and candidates often struggle to get feedback on their architecture proposals in real-time. This kit provides instant, AI-powered analysis to identify issues, suggest improvements, and help refine designs before interviews.
