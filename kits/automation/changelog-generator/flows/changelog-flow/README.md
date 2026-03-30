@@ -54,7 +54,7 @@ Your contribution will help others build amazing automations! 🚀
 
 For questions or issues with this flow:
 - Review the node documentation for specific integrations
-- Check the Lamatic documentation at docs.lamatic.ai
+- Check the Lamatic documentation at [https://docs.lamatic.ai](https://docs.lamatic.ai)
 - Contact support for assistance
 
 ---
