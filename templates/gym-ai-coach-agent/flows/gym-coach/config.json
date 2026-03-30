@@ -1,170 +1,167 @@
-triggerNode:
-  nodeId: triggerNode_1
-  nodeType: chatTriggerNode
-  nodeName: User Input
-  values:
-    chat: ''
-    domains: &ref_0
-      - '*'
-    chatConfig: &ref_1
-      botName: Lamatic Bot
-      imageUrl: >-
-        https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826
-      position: right
-      policyUrl: https://lamatic.ai/docs/legal/privacy-policy
-      displayMode: popup
-      placeholder: Compose your message
-      suggestions:
-        - What is lamatic?
-        - How do I add data to my chatbot?
-        - Explain this product to me
-      errorMessage: Oops! Something went wrong. Please try again.
-      hideBranding: false
-      primaryColor: '#ef4444'
-      headerBgColor: '#000000'
-      greetingMessage: Hi, I am Lamatic Bot. Ask me anything about Lamatic
-      headerTextColor: '#FFFFFF'
-      showEmojiButton: true
-      suggestionBgColor: '#f1f5f9'
-      userMessageBgColor: '#FEF2F2'
-      agentMessageBgColor: '#f1f5f9'
-      suggestionTextColor: '#334155'
-      userMessageTextColor: '#d12323'
-      agentMessageTextColor: '#334155'
-  modes: {}
-  allConfigs:
-    Config A:
-      id: triggerNode_1
-      chat: ''
-      domains: *ref_0
-      nodeName: User Input
-      chatConfig: *ref_1
-  schema: {}
-nodes:
-  - nodeId: LLMNode_567
-    nodeType: LLMNode
-    nodeName: AI Coach Engine
-    values:
-      tools: &ref_2 []
-      prompts: &ref_3
-        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
-          role: system
-          content: |-
-            You are an expert fitness coach.
-            You create personalized fitness plans based on user details.
-            Rules:
-            - Use simple, practical, Indian diet
-            - Focus on budget-friendly foods
-            - Keep workout beginner-friendly unless specified
-            - Give clear structured output
-            - Avoid expensive or unrealistic suggestions
-            Always generate:
-            1. Diet Plan
-            2. Workout Plan
-            3. Protein Sources
-            4. Tips
-        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
-          role: user
-          content: >-
-            User input:
-
-            {{input}}
-
-            Analyze the user carefully.
-
-            Also estimate daily protein requirement (grams).
-
-            Now generate clean structured output:
-
-            🏋️ GYM AI COACH PLAN
-
-            👤 Profile Summary:
-
-            - Goal:
-
-            - Weight:
-
-            - Diet Type:
-
-            🥗 DIET PLAN:
-
-            Breakfast:
-
-            Lunch:
-
-            Dinner:
-
-            Snacks:
-
-            🏋️ WORKOUT PLAN:
-
-            Day 1:
-
-            Day 2:
-
-            Day 3:
-
-            💪 PROTEIN TARGET:
-
-            - Daily protein needed:
-
-            🍗 PROTEIN SOURCES:
-
-            -
-
-            ⚡ TIPS:
-
-            -If user is vegetarian → avoid eggs/meat If budget is low → suggest
-            cheap foods only
-      memories: '[]'
-      messages: '{{triggerNode_1.output.chatHistory}}'
-      attachments: ''
-      credentials: ''
-      generativeModelName: &ref_4
-        - type: generator/text
-          params: {}
-          configName: configA
-          model_name: gemini/gemini-2.5-flash
-          credentialId: 32c708a5-14de-41ff-91fe-04edcd840f2a
-          provider_name: gemini
-          credential_name: gemini
-    modes: {}
-    needs:
-      - triggerNode_1
-    allConfigs:
-      Config A:
-        id: LLMNode_567
-        tools: *ref_2
-        prompts: *ref_3
-        memories: '[]'
-        messages: '{{triggerNode_1.output.chatHistory}}'
-        nodeName: AI Coach Engine
-        attachments: ''
-        credentials: ''
-        generativeModelName: *ref_4
-    schema:
-      _meta: object
-      images: array
-      tool_calls: object
-      generatedResponse: string
-responseNode:
-  nodeId: responseNode_triggerNode_1
-  nodeType: chatResponseNode
-  nodeName: Final Response
-  values:
-    content: '{{LLMNode_567.output.generatedResponse}}'
-    references: ''
-    webhookUrl: ''
-    webhookHeaders: ''
-  needs:
-    - LLMNode_567
-  modes: {}
-  allConfigs:
-    Config A:
-      id: responseNode_triggerNode_1
-      content: '{{LLMNode_567.output.generatedResponse}}'
-      nodeName: Final Response
-      references: ''
-      webhookUrl: ''
-      webhookHeaders: ''
-  schema: {}
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "chatTriggerNode",
+        "schema": {},
+        "values": {
+          "id": "triggerNode_1",
+          "chat": "",
+          "domains": [
+            "*"
+          ],
+          "nodeName": "User Input",
+          "chatConfig": {
+            "botName": "Lamatic Bot",
+            "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
+            "position": "right",
+            "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
+            "displayMode": "popup",
+            "placeholder": "Compose your message",
+            "suggestions": [
+              "What is lamatic?",
+              "How do I add data to my chatbot?",
+              "Explain this product to me"
+            ],
+            "errorMessage": "Oops! Something went wrong. Please try again.",
+            "hideBranding": false,
+            "primaryColor": "#ef4444",
+            "headerBgColor": "#000000",
+            "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+            "headerTextColor": "#FFFFFF",
+            "showEmojiButton": true,
+            "suggestionBgColor": "#f1f5f9",
+            "userMessageBgColor": "#FEF2F2",
+            "agentMessageBgColor": "#f1f5f9",
+            "suggestionTextColor": "#334155",
+            "userMessageTextColor": "#d12323",
+            "agentMessageTextColor": "#334155"
+          }
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_567",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "schema": {
+          "_meta": "object",
+          "images": "array",
+          "tool_calls": "object",
+          "generatedResponse": "string"
+        },
+        "values": {
+          "id": "LLMNode_567",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert fitness coach.\nYou create personalized fitness plans based on user details.\nRules:\n- Use simple, practical, Indian diet\n- Focus on budget-friendly foods\n- Keep workout beginner-friendly unless specified\n- Give clear structured output\n- Avoid expensive or unrealistic suggestions\nAlways generate:\n1. Diet Plan\n2. Workout Plan\n3. Protein Sources\n4. Tips"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User input:\n{{input}}\nAnalyze the user carefully.\nAlso estimate daily protein requirement (grams).\nNow generate clean structured output:\n🏋️ GYM AI COACH PLAN\n👤 Profile Summary:\n- Goal:\n- Weight:\n- Diet Type:\n🥗 DIET PLAN:\nBreakfast:\nLunch:\nDinner:\nSnacks:\n🏋️ WORKOUT PLAN:\nDay 1:\nDay 2:\nDay 3:\n💪 PROTEIN TARGET:\n- Daily protein needed:\n🍗 PROTEIN SOURCES:\n-\n⚡ TIPS:\n-If user is vegetarian → avoid eggs/meat If budget is low → suggest cheap foods only"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{triggerNode_1.output.chatHistory}}",
+          "nodeName": "AI Coach Engine",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "gemini/gemini-2.5-flash",
+              "credentialId": "",
+              "provider_name": "gemini",
+              "credential_name": "gemini"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "modes": {},
+        "nodeId": "chatResponseNode",
+        "schema": {},
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "content": "{{LLMNode_567.output.generatedResponse}}",
+          "nodeName": "Final Response",
+          "references": "",
+          "webhookUrl": "",
+          "webhookHeaders": ""
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_567",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_567",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_567-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_567",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

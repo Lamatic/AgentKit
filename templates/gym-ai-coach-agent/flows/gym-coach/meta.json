@@ -1,6 +1,9 @@
 {
-  "input": "Weight: 61kg, 
-  Goal: Muscle Gain, 
-  Budget: Low, Diet: 
-  Vegetarian"
+  "name": "1 - Getting Started",
+  "description": "",
+  "tags": "",
+  "testInput": "",
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
 }

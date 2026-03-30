@@ -4,9 +4,9 @@
   "tags": ["fitness", "ai", "health", "agent"],
   "author": "Harish Vasamsetti",
   "steps": [
-    "Provide user input (weight, goal, diet)",
-    "Generate fitness plan",
-    "Return structured output"
-  ],
+  "Provide user input (weight, goal, budget, diet)",
+  "Generate fitness plan",
+  "Return structured output"
+],
   "env": []
 }
