@@ -63,10 +63,16 @@ export async function chatWithDocument(
   try {
     // removed FLOW_ID_CHAT check as it is checked in lamatic-client.ts
 
+    // Cap history: strip "No answer found." turns (they corrupt LLM context)
+    // then keep only the last 10 messages to avoid token-limit failures.
+    const trimmedMessages = messages
+      .filter(m => !(m.role === "assistant" && m.content === "No answer found."))
+      .slice(-10);
+
     const payload = {
       doc_id,
       query,
-      messages: JSON.stringify(messages),
+      messages: JSON.stringify(trimmedMessages),
     };
 
     if (process.env.NODE_ENV !== "production") {
