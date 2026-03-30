@@ -78,9 +78,16 @@ const MainPart = () => {
               skills: parsed.skills || [],
               experience_years: parsed.experience_years || 0,
               experience_level: `${parsed.experience_years || 0} years`,
-              projects: (parsed.projects || []).map(
-                (p: any) => `${p.name}: ${p.skills_gained?.join(", ")}`,
-              ),
+              projects: (parsed.projects || [])
+                .map((p: any) => {
+                  const name =
+                    typeof p?.name === "string" ? p.name.trim() : "";
+                  const skills = Array.isArray(p?.skills_gained)
+                    ? p.skills_gained.filter(Boolean)
+                    : [];
+                  return [name, skills.join(", ")].filter(Boolean).join(": ");
+                })
+                .filter(Boolean),
               education: parsed.education || "",
               certificates: parsed.certificates || [],
             }),
