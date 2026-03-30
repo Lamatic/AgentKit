@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TreeNode, TreeNodeResolved } from "@/lib/types";
+import { ChevronRight, Circle } from "lucide-react";
 
 interface Props {
   tree: TreeNode[];
@@ -43,14 +44,14 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
 function TreeNodeRow({
   node,
   depth,
-  highlightedIds,
+  highlightedIdSet,
 }: {
   node: TreeNodeResolved;
   depth: number;
-  highlightedIds: string[];
+  highlightedIdSet: Set<string>;
 }) {
   const [open, setOpen] = useState(depth < 2);
-  const isHighlighted = highlightedIds.includes(node.node_id);
+  const isHighlighted = highlightedIdSet.has(node.node_id);
   const hasChildren = node.nodes.length > 0;
   const pageSpan =
     node.start_index === node.end_index
@@ -78,19 +79,16 @@ function TreeNodeRow({
         {/* Chevron / dot */}
         <span style={{ marginTop: "3px", flexShrink: 0, width: "14px", color: isHighlighted ? "var(--amber)" : "var(--text-3)" }}>
           {hasChildren ? (
-            <svg
-              width="12" height="12" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ transform: open ? "rotate(90deg)" : "rotate(0)", transition: "transform 0.2s var(--ease)" }}
-            >
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
+            <ChevronRight 
+              size={12} 
+              strokeWidth={2.5} 
+              style={{ transform: open ? "rotate(90deg)" : "rotate(0)", transition: "transform 0.2s var(--ease)", color: isHighlighted ? "var(--amber)" : "var(--text-3)" }} 
+            />
           ) : (
-            <span style={{
-              display: "block", width: "5px", height: "5px", borderRadius: "50%",
-              background: isHighlighted ? "var(--amber)" : "var(--border-md)",
-              margin: "4px 4.5px",
-            }} />
+            <Circle 
+              size={5} 
+              style={{ color: isHighlighted ? "var(--amber)" : "var(--border-md)", margin: "4px 4.5px" }} 
+            />
           )}
         </span>
 
@@ -148,7 +146,7 @@ function TreeNodeRow({
           paddingLeft: "4px",
         }}>
           {node.nodes.map((child, i) => (
-            <TreeNodeRow key={child.node_id ?? i} node={child} depth={depth + 1} highlightedIds={highlightedIds} />
+            <TreeNodeRow key={child.node_id ?? i} node={child} depth={depth + 1} highlightedIdSet={highlightedIdSet} />
           ))}
         </div>
       )}
@@ -158,6 +156,8 @@ function TreeNodeRow({
 
 export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
   const resolvedRoots = buildTree(tree);
+  
+  const highlightedIdSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
 
   const totalNodes = (nodes: TreeNodeResolved[]): number =>
     nodes.reduce((acc, n) => acc + 1 + totalNodes(n.nodes), 0);
@@ -204,7 +204,7 @@ export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
       {/* Tree body */}
       <div style={{ flex: 1, overflowY: "auto", padding: "10px 8px" }}>
         {resolvedRoots.map((node, i) => (
-          <TreeNodeRow key={node.node_id ?? i} node={node} depth={0} highlightedIds={highlightedIds} />
+          <TreeNodeRow key={node.node_id ?? i} node={node} depth={0} highlightedIdSet={highlightedIdSet} />
         ))}
       </div>
 

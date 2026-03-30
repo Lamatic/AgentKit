@@ -3,10 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { chatWithDocument } from "@/actions/orchestrate";
 import { ChatResponse, Message, RetrievedNode } from "@/lib/types";
+import { MessageSquare, Bot, Search, ChevronDown, Send } from "lucide-react";
+import DOMPurify from "dompurify";
 
 // Lightweight markdown → HTML (no external deps)
 function renderMarkdown(text: string): string {
-  return text
+  const html = text
     // Headings
     .replace(/^### (.+)$/gm, "<h3>$1</h3>")
     .replace(/^## (.+)$/gm, "<h2>$1</h2>")
@@ -32,6 +34,7 @@ function renderMarkdown(text: string): string {
     // Wrap in paragraph
     .replace(/^/, "<p>")
     .replace(/$/, "</p>");
+  return DOMPurify.sanitize(html);
 }
 
 interface Props {
@@ -104,7 +107,14 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
       let nextHistory: Array<{ role: string; content: string }> | null = null;
       if (result.messages) {
         const parsed = typeof result.messages === "string"
-          ? (() => { try { return JSON.parse(result.messages as string); } catch { return null; } })()
+          ? (() => { 
+              try { 
+                return JSON.parse(result.messages as string); 
+              } catch (e) { 
+                console.warn("Failed to parse result.messages:", e, result.messages);
+                return null; 
+              } 
+            })()
           : result.messages;
         if (Array.isArray(parsed) && parsed.length) nextHistory = parsed;
       }
@@ -176,9 +186,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
               borderRadius: "var(--radius-lg)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
+              <MessageSquare size={22} color="var(--text-3)" strokeWidth={1.5} />
             </div>
             <div>
               <p style={{ margin: "0 0 6px", fontSize: "17px", fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.02em" }}>
@@ -226,11 +234,9 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
                 width: "26px", height: "26px", borderRadius: "8px",
                 background: "var(--accent-dim)", border: "1px solid rgba(45,212,191,0.2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, alignSelf: "flex-end", marginRight: "8px", marginBottom: "2px",
+                flexShrink: 0, alignSelf: "flex-end", margin: "0 8px 2px 0",
               }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
-                </svg>
+                <Bot size={11} color="var(--accent)" strokeWidth={2.5} />
               </div>
             )}
             <div style={{
@@ -264,9 +270,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
               background: "var(--accent-dim)", border: "1px solid rgba(45,212,191,0.2)",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
-              </svg>
+              <Bot size={11} color="var(--accent)" strokeWidth={2.5} />
             </div>
             <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 5px", background: "var(--surface-2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ display: "flex", gap: "5px" }}>
@@ -299,9 +303,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
             }}
           >
             <span style={{ display: "flex", alignItems: "center", gap: "7px" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
+              <Search size={12} strokeWidth={2} />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", fontWeight: 500, letterSpacing: "0.04em" }}>
                 {lastNodes.length} SECTION{lastNodes.length !== 1 ? "S" : ""} RETRIEVED
               </span>
@@ -309,10 +311,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
                 pp.{Math.min(...lastNodes.map(n => n.start_index))}–{Math.max(...lastNodes.map(n => n.end_index))}
               </span>
             </span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ transform: sourcesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.22s var(--ease)" }}>
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+            <ChevronDown size={13} strokeWidth={2.5} style={{ transform: sourcesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.22s var(--ease)" }} />
           </button>
 
           {sourcesOpen && (
@@ -381,10 +380,7 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
           style={{ width: "42px", height: "42px" }}
           title="Send"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
+          <Send size={15} strokeWidth={2.5} />
         </button>
       </form>
     </div>

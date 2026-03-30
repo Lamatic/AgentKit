@@ -41,7 +41,7 @@ export async function chatWithDocument(
   messages: Array<{ role: string; content: string }> = []
 ) {
   try {
-    if (!process.env.FLOW_ID_CHAT) throw new Error("FLOW_ID_CHAT not set");
+    // removed FLOW_ID_CHAT check as it is checked in lamatic-client.ts
 
     const payload = {
       doc_id,
@@ -49,7 +49,9 @@ export async function chatWithDocument(
       messages: JSON.stringify(messages),
     };
 
-    console.log("[chatWithDocument] SENDING →", JSON.stringify(payload, null, 2));
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[chatWithDocument] SENDING → Flow Execution Started");
+    }
 
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_CHAT!,
@@ -59,7 +61,9 @@ export async function chatWithDocument(
     const raw = response as unknown as Record<string, unknown>;
     const data = (raw.result ?? raw) as Record<string, unknown>;
 
-    console.log("[chatWithDocument] RECEIVED ←", JSON.stringify(data, null, 2));
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[chatWithDocument] RECEIVED ← Flow Execution Completed");
+    }
 
     return {
       answer: (data.answer as string) ?? "",
@@ -114,7 +118,9 @@ export async function getDocumentTree(doc_id: string) {
 }
 
 // ── Flow 4 (delete action): Remove a document ───────────────────
-export async function deleteDocument(doc_id: string) {
+export async function deleteDocument(doc_id: string, token?: string) {
+  // TODO: Validate JWT and user permissions before deleting
+  // if (!token || !verifyJwt(token)) throw new Error("Unauthorized");
   try {
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_TREE!,

@@ -1,9 +1,14 @@
 {
   "name": "Flow 1 Upload PDF Build Tree Save",
-  "description": "",
-  "tags": [],
-  "testInput": "",
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": ""
+  "description": "Upload a PDF, build a tree index, and save to database.",
+  "tags": [
+    "upload",
+    "pdf",
+    "pageindex",
+    "notebooklm"
+  ],
+  "testInput": "{}",
+  "githubUrl": "https://github.com/Skt329/AgentKit",
+  "documentationUrl": "https://github.com/Skt329/AgentKit",
+  "deployUrl": "https://pageindex-notebooklm.vercel.app/"
 }

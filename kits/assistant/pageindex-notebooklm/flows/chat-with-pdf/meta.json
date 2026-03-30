@@ -1,9 +1,14 @@
 {
   "name": "Chat with Pdf",
-  "description": "",
-  "tags": [],
-  "testInput": "",
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": ""
+  "description": "chat-with-pdf using NotebookLM",
+  "tags": [
+    "pdf",
+    "notebooklm",
+    "assistant",
+    "document-search"
+  ],
+  "testInput": "{}",
+  "githubUrl": "https://github.com/Skt329/AgentKit",
+  "documentationUrl": "https://github.com/Skt329/AgentKit",
+  "deployUrl": "https://pageindex-notebooklm.vercel.app/"
 }

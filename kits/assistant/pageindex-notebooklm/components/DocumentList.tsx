@@ -8,21 +8,26 @@ interface Props {
   documents: Document[];
   selectedId: string | null;
   onSelect: (doc: Document) => void;
-  onDeleted?: () => void;
+  onDeleted?: (doc_id: string) => void;
 }
 
 export default function DocumentList({ documents, selectedId, onSelect, onDeleted }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   async function handleDelete(doc_id: string) {
     setDeletingId(doc_id);
     setConfirmId(null);
+    setDeleteError(null);
     try {
       await deleteDocument(doc_id);
-      onDeleted?.();
-    } catch {
-      // silently ignore — list refresh will reflect reality
+      onDeleted?.(doc_id);
+    } catch (err) {
+      console.error("Failed to delete document:", err);
+      // Fallback UI error indication
+      setDeleteError("Delete failed");
     } finally {
       setDeletingId(null);
     }
@@ -49,6 +54,17 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
 
   return (
     <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
+      <style>{`
+        li:hover .doc-delete-btn { opacity: 0.5 !important; }
+        li:hover .doc-delete-btn:hover { opacity: 1 !important; }
+      `}</style>
+      
+      {deleteError && (
+        <li style={{ color: "var(--red)", fontSize: "11px", padding: "4px 8px", textAlign: "center" }}>
+          {deleteError}
+        </li>
+      )}
+
       {documents.map((doc, idx) => {
         const active = selectedId === doc.doc_id;
         const isConfirming = confirmId === doc.doc_id;
@@ -210,11 +226,6 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
               </div>
             )}
 
-            {/* Make delete btn visible on row hover via CSS */}
-            <style>{`
-              li:hover .doc-delete-btn { opacity: 0.5 !important; }
-              li:hover .doc-delete-btn:hover { opacity: 1 !important; }
-            `}</style>
           </li>
         );
       })}

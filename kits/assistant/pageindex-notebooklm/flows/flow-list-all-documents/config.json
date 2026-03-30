@@ -61,7 +61,7 @@
           "nodeName": "API Response",
           "webhookUrl": "",
           "retry_delay": "0",
-          "outputMapping": "{\n  \"documents\": \"{{postgresNode_831.output.queryResult}}\",\n  \"total\": \"{{postgresNode_831.output.status}}\"\n}"
+          "outputMapping": "{\n  \"documents\": \"{{postgresNode_831.output.queryResult}}\",\n  \"total\": \"{{postgresNode_831.output.queryResult.length}}\"\n}"
         },
         "isResponseNode": true
       },

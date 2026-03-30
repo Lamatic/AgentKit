@@ -59,9 +59,9 @@
     "Markdown-rendered AI responses",
     "Responsive dark-mode UI"
   ],
-  "demoUrl": "",
+  "demoUrl": "https://pageindex-notebooklm.vercel.app/",
   "githubUrl": "https://github.com/Skt329/AgentKit",
-  "deployUrl": "",
-  "documentationUrl": "",
+  "deployUrl": "https://pageindex-notebooklm.vercel.app/",
+  "documentationUrl": "https://github.com/Skt329/AgentKit",
   "imageUrl": ""
 }

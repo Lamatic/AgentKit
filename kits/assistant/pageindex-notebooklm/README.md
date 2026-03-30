@@ -24,7 +24,7 @@ The entire PageIndex pipeline — TOC detection, tree construction, page indexin
 
 ## Architecture
 
-```
+```text
 ┌────────────────────────────────────────────────────┐
 │                  Next.js Frontend                  │
 │  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌─────────┐ │
@@ -191,7 +191,7 @@ npm run dev
 
 ## Project Structure
 
-```
+```text
 pageindex-notebooklm/
 ├── actions/
 │   └── orchestrate.ts        # Server actions — all 4 flow calls via Lamatic SDK

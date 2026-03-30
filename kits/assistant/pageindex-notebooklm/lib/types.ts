@@ -51,7 +51,7 @@ export interface ChatResponse {
 export interface UploadResponse {
   doc_id: string;
   file_name: string;
-  tree_node_count: string;
+  tree_node_count: number;
   status: string;
 }
 

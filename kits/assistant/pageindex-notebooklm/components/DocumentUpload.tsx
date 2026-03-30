@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { uploadDocument } from "@/actions/orchestrate";
 import { UploadResponse } from "@/lib/types";
 
@@ -12,9 +12,13 @@ export default function DocumentUpload({ onUploaded }: Props) {
   const [message, setMessage] = useState("");
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   async function processFile(file: File) {
-    if (!file.type.includes("pdf") && !file.name.endsWith(".md")) {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+
+    const allowedTypes = ["application/pdf", "text/markdown", "text/x-markdown"];
+    if (!allowedTypes.includes(file.type) && !file.name.endsWith(".md")) {
       setStatus("error");
       setMessage("Only PDF and Markdown files are supported.");
       return;
@@ -32,8 +36,14 @@ export default function DocumentUpload({ onUploaded }: Props) {
     } catch {
       setStatus("error"); setMessage("Upload failed. Check your flow.");
     }
-    setTimeout(() => { setStatus("idle"); setMessage(""); }, 3500);
+    resetTimerRef.current = setTimeout(() => { setStatus("idle"); setMessage(""); }, 3500);
   }
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
 
   function fileToDataUrl(file: File): Promise<string> {
     return new Promise((res, rej) => {
