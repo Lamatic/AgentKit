@@ -1,56 +1,47 @@
-import axios from "axios";
+import { Lamatic } from "lamatic";
 
-const endpoint = process.env.LAMATIC_API_URL!;
-const apiKey = process.env.LAMATIC_API_KEY!;
-const projectId = process.env.LAMATIC_PROJECT_ID!;
+// ✅ Validate env variables (FAIL FAST)
+const requiredEnv = [
+  "LAMATIC_API_URL",
+  "LAMATIC_PROJECT_ID",
+  "LAMATIC_API_KEY",
+  "LAMATIC_FLOW_ID",
+];
+
+requiredEnv.forEach((key) => {
+  if (!process.env[key]) {
+    throw new Error(`❌ Missing required env variable: ${key}`);
+  }
+});
+
 const flowId = process.env.LAMATIC_FLOW_ID!;
 
-export const lamaticClient = {
-  async executeCareerAnalysis(input: {
-    resume_text: string;
-    domain: string;
-  }) {
-    const query = `
-      query ExecuteWorkflow(
-        $workflowId: String!
-        $resume_text: String
-        $domain: String
-      ) {
-        executeWorkflow(
-          workflowId: $workflowId
-          payload: {
-            resume_text: $resume_text
-            domain: $domain
-          }
-        ) {
-          status
-          result
-        }
-      }
-    `;
+// ✅ Initialize SDK (STANDARD WAY)
+export const lamaticClient = new Lamatic({
+  endpoint: process.env.LAMATIC_API_URL!,
+  projectId: process.env.LAMATIC_PROJECT_ID!,
+  apiKey: process.env.LAMATIC_API_KEY!,
+});
 
-    const variables = {
-      workflowId: flowId,
-      resume_text: input.resume_text,
-      domain: input.domain,
-    };
-
-    const res = await axios.post(
-      endpoint,
-      { query, variables },
+// ✅ Wrapper function (keeps your architecture same)
+export async function executeCareerAnalysis(input: {
+  resume_text: string;
+  domain: string;
+}) {
+  try {
+    const res = await lamaticClient.executeFlow(
+      flowId,
       {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "x-project-id": projectId,
-        },
+        resume_text: input.resume_text,
+        domain: input.domain,
       }
     );
 
-    if (res.data.errors) {
-      throw new Error(JSON.stringify(res.data.errors));
-    }
+    // ✅ IMPORTANT: match old axios behavior
+    return res.result;
 
-    return res.data.data.executeWorkflow.result;
-  },
-};
+  } catch (error) {
+    console.error("Lamatic SDK Error:", error);
+    throw new Error("Lamatic execution failed");
+  }
+}

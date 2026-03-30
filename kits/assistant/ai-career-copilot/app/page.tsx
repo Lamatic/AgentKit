@@ -67,7 +67,10 @@ export default function Home() {
           )}
           
           {error && (
-            <ErrorMessage message={error} onRetry={() => window.location.reload()} />
+            <ErrorMessage 
+              message={error} 
+              onRetry={handleReset} 
+            />
           )}
           
           {result && !loading && !error && (

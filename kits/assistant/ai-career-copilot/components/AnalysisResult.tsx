@@ -5,7 +5,7 @@ import SkillsDisplay from './SkillsDisplay';
 import RoadmapDisplay from './RoadmapDisplay';
 import ProjectsDisplay from './ProjectsDisplay';
 import InterviewQuestions from './InterviewQuestions';
-import { TrendingUp, Briefcase, Lightbulb } from 'lucide-react';
+import { TrendingUp, Briefcase } from 'lucide-react'; // Removed Lightbulb
 
 interface AnalysisResultProps {
   data: CareerAnalysisOutput;

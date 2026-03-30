@@ -1,31 +1,86 @@
 'use client';
 
-import { HelpCircle } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
+import * as Accordion from '@radix-ui/react-accordion';
+import { forwardRef } from 'react';
 
 interface InterviewQuestionsProps {
   questions: string[];
 }
 
+const AccordionTrigger = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+  ({ children, className, ...props }, ref) => (
+    <Accordion.Header className="flex">
+      <Accordion.Trigger
+        ref={ref}
+        className={`group flex flex-1 items-center justify-between py-4 text-sm font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180 ${className}`}
+        {...props}
+      >
+        {children}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 15 15"
+          fill="none"
+          className="h-4 w-4 shrink-0 transition-transform duration-200"
+        >
+          <path
+            d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.5648L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35948 12.0434 6.6759 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.6759 2.94637 6.35948 3.13523 6.15803Z"
+            fill="currentColor"
+            fillRule="evenodd"
+            clipRule="evenodd"
+          />
+        </svg>
+      </Accordion.Trigger>
+    </Accordion.Header>
+  )
+);
+AccordionTrigger.displayName = 'AccordionTrigger';
+
+const AccordionContent = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ children, className, ...props }, ref) => (
+    <Accordion.Content
+      ref={ref}
+      className={`overflow-hidden text-sm data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown ${className}`}
+      {...props}
+    >
+      <div className="pb-4 pt-0">{children}</div>
+    </Accordion.Content>
+  )
+);
+AccordionContent.displayName = 'AccordionContent';
+
 export default function InterviewQuestions({ questions }: InterviewQuestionsProps) {
   return (
-    <div className="card">
-      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <HelpCircle className="w-5 h-5 text-blue-600" />
-        Interview Questions to Practice
-      </h3>
-      <div className="space-y-3">
-        {questions.map((question, idx) => (
-          <div key={idx} className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-xs font-semibold">
-              {idx + 1}
-            </span>
-            <p className="text-gray-700">{question}</p>
-          </div>
-        ))}
+    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center gap-2 border-b border-gray-200 p-6">
+        <MessageSquare className="h-5 w-5 text-blue-600" />
+        <h3 className="text-lg font-semibold">Interview Questions</h3>
       </div>
-      {questions.length === 0 && (
-        <p className="text-gray-500 text-center py-4">No interview questions available</p>
-      )}
+      
+      <div className="p-6">
+        {questions.length > 0 ? (
+          <Accordion.Root type="multiple" className="w-full">
+            {questions.map((question, idx) => (
+              <Accordion.Item key={idx} value={`question-${idx}`} className="border-b border-gray-200 last:border-0">
+                <AccordionTrigger className="hover:bg-gray-50 px-4 rounded">
+                  <span className="text-left text-gray-900">
+                    {idx + 1}. {question}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pl-8 text-gray-600">
+                    <p className="italic">Prepare your answer based on your experience and the job requirements.</p>
+                  </div>
+                </AccordionContent>
+              </Accordion.Item>
+            ))}
+          </Accordion.Root>
+        ) : (
+          <p className="py-8 text-center text-gray-500">No interview questions available</p>
+        )}
+      </div>
     </div>
   );
 }

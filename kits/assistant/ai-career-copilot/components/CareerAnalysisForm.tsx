@@ -3,7 +3,8 @@
 import { useState } from 'react';
 
 interface CareerAnalysisFormProps {
-  onSubmit: (resumeText: string, domain: string) => void;
+  onSubmit: (resumeText: string, domain: string) => Promise<void> | void;
+  // This allows both async and sync functions
 }
 
 const DOMAINS = [
@@ -25,6 +26,7 @@ export default function CareerAnalysisForm({ onSubmit }: CareerAnalysisFormProps
   const [resumeText, setResumeText] = useState('');
   const [domain, setDomain] = useState('');
   const [errors, setErrors] = useState<{ resumeText?: string; domain?: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add loading state
 
   const validate = () => {
     const newErrors: { resumeText?: string; domain?: string } = {};
@@ -43,10 +45,15 @@ export default function CareerAnalysisForm({ onSubmit }: CareerAnalysisFormProps
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onSubmit(resumeText, domain);
+      setIsSubmitting(true);
+      try {
+        await onSubmit(resumeText, domain);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -64,6 +71,7 @@ export default function CareerAnalysisForm({ onSubmit }: CareerAnalysisFormProps
             placeholder="Paste your resume, skills, or experience here..."
             rows={8}
             className={`input-field ${errors.resumeText ? 'border-red-500 focus:ring-red-500' : ''}`}
+            disabled={isSubmitting}
           />
           {errors.resumeText && (
             <p className="mt-1 text-sm text-red-600">{errors.resumeText}</p>
@@ -81,6 +89,7 @@ export default function CareerAnalysisForm({ onSubmit }: CareerAnalysisFormProps
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
             className={`input-field ${errors.domain ? 'border-red-500 focus:ring-red-500' : ''}`}
+            disabled={isSubmitting}
           >
             <option value="">Select a domain...</option>
             {DOMAINS.map((d) => (
@@ -94,8 +103,12 @@ export default function CareerAnalysisForm({ onSubmit }: CareerAnalysisFormProps
           )}
         </div>
 
-        <button type="submit" className="btn-primary w-full">
-          Analyze My Career Path
+        <button 
+          type="submit" 
+          className="btn-primary w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Analyzing...' : 'Analyze My Career Path'}
         </button>
       </form>
     </div>
