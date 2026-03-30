@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FileText, Loader2, Trash2 } from "lucide-react";
 import { Document } from "@/lib/types";
 import { deleteDocument } from "@/actions/orchestrate";
 
@@ -36,12 +37,7 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
   if (documents.length === 0) {
     return (
       <div style={{ padding: "28px 12px", textAlign: "center" }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-          stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-          style={{ margin: "0 auto 10px", display: "block" }}>
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
+        <FileText size={24} stroke="var(--text-3)" strokeWidth={1.5} style={{ margin: "0 auto 10px", display: "block" }} />
         <p style={{ margin: "0 0 3px", fontSize: "12px", color: "var(--text-2)", fontWeight: 500 }}>
           No documents yet
         </p>
@@ -98,12 +94,7 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
                 display: "flex", alignItems: "center", justifyContent: "center",
                 marginTop: "1px", transition: "all 0.18s var(--ease)",
               }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                  stroke={active ? "var(--accent)" : "var(--text-3)"}
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
+                <FileText size={12} stroke={active ? "var(--accent)" : "var(--text-3)"} strokeWidth={2} />
               </div>
 
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -135,10 +126,7 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
               {/* Delete spinner — decorative only, not interactive */}
               {isDeleting && (
                 <div style={{ marginLeft: "auto", flexShrink: 0, display: "flex", alignItems: "center", marginTop: "1px" }}>
-                  <svg style={{ animation: "spin 0.8s linear infinite" }} width="13" height="13" viewBox="0 0 24 24"
-                    fill="none" stroke="var(--text-3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                  </svg>
+                  <Loader2 size={13} stroke="var(--text-3)" strokeWidth={2.5} style={{ animation: "spin 0.8s linear infinite" }} />
                 </div>
               )}
             </button>
@@ -184,13 +172,7 @@ export default function DocumentList({ documents, selectedId, onSelect, onDelete
                   e.currentTarget.style.borderColor = "transparent";
                 }}
               >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--red)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6M14 11v6"/>
-                  <path d="M9 6V4h6v2"/>
-                </svg>
+                <Trash2 size={11} stroke="var(--red)" strokeWidth={2.5} />
               </button>
             )}
 

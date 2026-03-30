@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { TreeNode, TreeNodeResolved } from "@/lib/types";
-import { ChevronRight, Circle } from "lucide-react";
+import { ChevronRight, Circle, Search } from "lucide-react";
 
 interface Props {
   tree: TreeNode[];
@@ -201,8 +201,18 @@ function TreeNodeRow({
 }
 
 export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
-  const resolvedRoots = buildTree(tree);
-  
+  let resolvedRoots: TreeNodeResolved[];
+  try {
+    resolvedRoots = buildTree(tree);
+  } catch (err) {
+    console.error("TreeViewer: buildTree failed —", err);
+    return (
+      <div style={{ padding: "24px 16px", color: "var(--red)", fontFamily: "var(--font-mono)", fontSize: "12px", lineHeight: 1.6 }}>
+        Invalid tree structure detected. Please re-upload the document.
+      </div>
+    );
+  }
+
   const highlightedIdSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
 
   const totalNodes = (nodes: TreeNodeResolved[]): number =>
@@ -262,9 +272,7 @@ export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
           background: "var(--amber-dim)",
           display: "flex", alignItems: "center", gap: "7px",
         }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+          <Search size={11} stroke="var(--amber)" strokeWidth={2.5} />
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", color: "var(--amber)", fontWeight: 500, letterSpacing: "0.04em" }}>
             {highlightedIds.length} NODE{highlightedIds.length !== 1 ? "S" : ""} USED IN LAST ANSWER
           </span>

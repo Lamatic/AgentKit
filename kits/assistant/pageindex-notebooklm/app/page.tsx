@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { listDocuments, getDocumentTree } from "@/actions/orchestrate";
 import { Document, TreeNode, RetrievedNode } from "@/lib/types";
-import { BookOpen } from "lucide-react";
+import { BookOpen, AlertCircle, RefreshCw, MessageSquare, List, Loader2 } from "lucide-react";
 import DocumentUpload from "@/components/DocumentUpload";
 import DocumentList from "@/components/DocumentList";
 import ChatWindow from "@/components/ChatWindow";
@@ -139,9 +139,7 @@ export default function Page() {
         display: "flex", alignItems: "center", gap: "8px",
         flexShrink: 0,
       }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
+        <AlertCircle size={12} stroke="var(--amber)" strokeWidth={2.5} style={{ flexShrink: 0 }} />
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", color: "var(--amber)", letterSpacing: "0.01em" }}>
           Demo project · Document processing is limited to 30–50 pages · Chat history is not stored persistently
         </span>
@@ -180,15 +178,7 @@ export default function Page() {
               title="Refresh"
               style={{ width: "26px", height: "26px", borderRadius: "var(--radius-sm)", border: "none" }}
             >
-              <svg
-                width="12" height="12" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ animation: listLoading ? "spin 0.9s linear infinite" : "none" }}
-              >
-                <polyline points="23 4 23 10 17 10"/>
-                <polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
+              <RefreshCw size={12} stroke="currentColor" strokeWidth={2.5} style={{ animation: listLoading ? "spin 0.9s linear infinite" : "none" }} />
             </button>
           </div>
 
@@ -236,18 +226,9 @@ export default function Page() {
                     onClick={() => setActiveTab(tab)}
                   >
                     {tab === "chat" ? (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                      </svg>
+                      <MessageSquare size={12} stroke="currentColor" strokeWidth={2} />
                     ) : (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="8" y1="6" x2="21" y2="6"/>
-                        <line x1="8" y1="12" x2="21" y2="12"/>
-                        <line x1="8" y1="18" x2="21" y2="18"/>
-                        <line x1="3" y1="6" x2="3.01" y2="6"/>
-                        <line x1="3" y1="12" x2="3.01" y2="12"/>
-                        <line x1="3" y1="18" x2="3.01" y2="18"/>
-                      </svg>
+                      <List size={12} stroke="currentColor" strokeWidth={2} />
                     )}
                     {tab === "chat" ? "Chat" : "Tree Index"}
                     {tab === "tree" && highlightedIds.length > 0 && (
@@ -281,9 +262,7 @@ export default function Page() {
                 <div style={{ height: "100%", overflowY: "auto" }}>
                   {treeLoading ? (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: "10px" }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                      </svg>
+                      <Loader2 size={16} stroke="var(--accent)" strokeWidth={2} style={{ animation: "spin 1s linear infinite" }} />
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-3)" }}>
                         Building tree…
                       </span>

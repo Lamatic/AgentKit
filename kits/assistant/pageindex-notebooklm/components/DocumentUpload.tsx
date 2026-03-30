@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Loader2, Check, AlertCircle, Upload } from "lucide-react";
 import { uploadDocument } from "@/actions/orchestrate";
 import { UploadResponse } from "@/lib/types";
 
@@ -117,9 +118,7 @@ export default function DocumentUpload({ onUploaded }: Props) {
             backgroundSize: "200% 100%",
             animation: "shimmer 1.5s linear infinite",
           }} />
-          <svg style={{ animation: "spin 0.8s linear infinite" }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-          </svg>
+          <Loader2 size={18} stroke="var(--accent)" strokeWidth={2.5} style={{ animation: "spin 0.8s linear infinite" }} />
           <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "var(--accent)" }}>Indexing…</p>
           <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>
             Building tree structure
@@ -130,9 +129,7 @@ export default function DocumentUpload({ onUploaded }: Props) {
       {status === "success" && (
         <>
           <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
+            <Check size={14} stroke="var(--green)" strokeWidth={2.5} />
           </div>
           <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "var(--green)" }}>Indexed</p>
           <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)" }}>{message}</p>
@@ -141,9 +138,7 @@ export default function DocumentUpload({ onUploaded }: Props) {
 
       {status === "error" && (
         <>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
+          <AlertCircle size={16} stroke="var(--red)" strokeWidth={2} />
           <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "var(--red)" }}>Failed</p>
           <p style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-3)", maxWidth: "160px" }}>{message}</p>
         </>
@@ -158,13 +153,7 @@ export default function DocumentUpload({ onUploaded }: Props) {
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all 0.18s var(--ease)",
           }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-              stroke={dragging ? "var(--accent)" : "var(--text-2)"}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
+            <Upload size={15} stroke={dragging ? "var(--accent)" : "var(--text-2)"} strokeWidth={2} />
           </div>
           <p style={{ margin: 0, fontSize: "12.5px", fontWeight: 600, color: "var(--text-1)" }}>
             Upload document
