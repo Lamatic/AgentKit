@@ -201,6 +201,9 @@ function TreeNodeRow({
 }
 
 export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
+  // Must be declared before any early return to satisfy Rules of Hooks
+  const highlightedIdSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
+
   let resolvedRoots: TreeNodeResolved[];
   try {
     resolvedRoots = buildTree(tree);
@@ -212,8 +215,6 @@ export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
       </div>
     );
   }
-
-  const highlightedIdSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
 
   const totalNodes = (nodes: TreeNodeResolved[]): number =>
     nodes.reduce((acc, n) => acc + 1 + totalNodes(n.nodes), 0);
