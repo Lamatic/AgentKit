@@ -33,8 +33,8 @@ export async function analyzeSystemDesign(
       throw new Error('[Flow] No response received from flow execution');
     }
 
-    // Check if the flow returned an error status
-    if (response.status === 'error' || response.status === 'failed') {
+    // Check if the flow returned an error
+    if (response.status === 'error') {
       const errorDetails = response.error || response.message || 'Unknown error from flow';
       console.error('[v0] Flow error:', errorDetails);
       throw new Error(`[Flow] Execution failed: ${errorDetails}`);
