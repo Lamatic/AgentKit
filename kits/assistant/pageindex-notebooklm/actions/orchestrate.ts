@@ -118,9 +118,11 @@ export async function getDocumentTree(doc_id: string) {
 }
 
 // ── Flow 4 (delete action): Remove a document ───────────────────
-export async function deleteDocument(doc_id: string, token?: string) {
-  // TODO: Validate JWT and user permissions before deleting
-  // if (!token || !verifyJwt(token)) throw new Error("Unauthorized");
+// Note: This demo kit has no authentication layer — deleteDocument is
+// intentionally unauthenticated. Production deployments should add JWT
+// validation and ownership checks (e.g., verifyJwt(token) + getDocumentOwner)
+// before calling the flow.
+export async function deleteDocument(doc_id: string) {
   try {
     const response = await lamaticClient.executeFlow(
       process.env.FLOW_ID_TREE!,

@@ -1,9 +1,9 @@
 {
   "name": "Flow List All Documents",
-  "description": "",
-  "tags": [],
-  "testInput": "",
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": ""
+  "description": "List all uploaded documents stored in Supabase, returning doc_id, file_name, file_url, tree_node_count, status, and created_at for each document.",
+  "tags": ["list", "documents", "pageindex", "notebooklm", "supabase"],
+  "testInput": "{}",
+  "githubUrl": "https://github.com/Skt329/AgentKit",
+  "documentationUrl": "https://github.com/Skt329/AgentKit",
+  "deployUrl": "https://pageindex-notebooklm.vercel.app/"
 }

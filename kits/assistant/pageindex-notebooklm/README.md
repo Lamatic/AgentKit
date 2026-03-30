@@ -192,26 +192,26 @@ npm run dev
 ## Project Structure
 
 ```text
-pageindex-notebooklm/
+pageindex-notebooklm/  (TypeScript · Next.js/React)
 ├── actions/
-│   └── orchestrate.ts        # Server actions — all 4 flow calls via Lamatic SDK
+│   └── orchestrate.ts        # TypeScript — Server actions — all 4 flow calls via Lamatic SDK
 ├── app/
-│   ├── globals.css            # Design system (CSS custom properties, animations)
-│   ├── layout.tsx             # Root layout with metadata
-│   └── page.tsx               # Main page — document list + chat + tree viewer
+│   ├── globals.css            # CSS — Design system (custom properties, animations)
+│   ├── layout.tsx             # TSX/React — Root layout with metadata
+│   └── page.tsx               # TSX/React — Main page — document list + chat + tree viewer
 ├── components/
-│   ├── ChatWindow.tsx         # Chat UI with markdown, sources, persistence
-│   ├── DocumentList.tsx       # Document sidebar with search + delete
-│   ├── DocumentUpload.tsx     # Drag-and-drop / URL upload
-│   └── TreeViewer.tsx         # Interactive hierarchical tree viewer
+│   ├── ChatWindow.tsx         # TSX/React — Chat UI with markdown, sources, persistence
+│   ├── DocumentList.tsx       # TSX/React — Document sidebar with search + delete
+│   ├── DocumentUpload.tsx     # TSX/React — Drag-and-drop / URL upload
+│   └── TreeViewer.tsx         # TSX/React — Interactive hierarchical tree viewer
 ├── flows/
 │   ├── flow-1-upload-pdf-build-tree-save/
 │   ├── chat-with-pdf/
 │   ├── flow-list-all-documents/
 │   └── flow-4-get-tree-structure/
 ├── lib/
-│   ├── lamatic-client.ts      # Lamatic SDK initialization
-│   └── types.ts               # TypeScript interfaces
+│   ├── lamatic-client.ts      # TypeScript — Lamatic SDK initialization
+│   └── types.ts               # TypeScript — Shared interfaces and types
 ├── config.json                # Kit metadata
 └── .env.example               # Environment variable template
 ```

@@ -1,9 +1,9 @@
 {
   "name": "Flow 4 Get Tree Structure",
-  "description": "",
-  "tags": [],
-  "testInput": "",
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": ""
+  "description": "Retrieve the full hierarchical tree structure for a document or delete a document and its associated data from Supabase.",
+  "tags": ["tree", "pageindex", "notebooklm", "document-management", "delete"],
+  "testInput": "{\"doc_id\": \"example-doc-id\", \"action\": \"get_tree\"}",
+  "githubUrl": "https://github.com/Skt329/AgentKit",
+  "documentationUrl": "https://github.com/Skt329/AgentKit",
+  "deployUrl": "https://pageindex-notebooklm.vercel.app/"
 }

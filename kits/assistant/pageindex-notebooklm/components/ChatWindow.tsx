@@ -5,6 +5,8 @@ import { chatWithDocument } from "@/actions/orchestrate";
 import { ChatResponse, Message, RetrievedNode } from "@/lib/types";
 import { MessageSquare, Bot, Search, ChevronDown, Send } from "lucide-react";
 import DOMPurify from "dompurify";
+import { Card } from "@/components/ui/card";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 // Lightweight markdown → HTML (no external deps)
 function renderMarkdown(text: string): string {
@@ -138,14 +140,15 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
   }
 
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", height: "100%",
-      background: "var(--surface)",
-      border: "1px solid var(--border)",
-      borderRadius: "var(--radius-xl)",
-      overflow: "hidden",
-      boxShadow: "var(--shadow-md)",
-    }}>
+    <Card 
+      className="flex flex-col h-full overflow-hidden"
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius-xl)",
+        boxShadow: "var(--shadow-md)"
+      }}
+    >
 
       {/* ── Chat header ── */}
       <div style={{
@@ -293,15 +296,19 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
 
       {/* ── Sources panel ── */}
       {lastNodes.length > 0 && (
-        <div style={{ borderTop: "1px solid var(--border)", background: "var(--surface-1)" }}>
-          <button
-            onClick={() => setSourcesOpen(o => !o)}
-            style={{
-              width: "100%", background: "none", border: "none", cursor: "pointer",
-              padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
-              color: "var(--amber)", outline: "none",
-            }}
-          >
+        <Collapsible 
+          open={sourcesOpen}
+          onOpenChange={setSourcesOpen}
+          style={{ borderTop: "1px solid var(--border)", background: "var(--surface-1)" }}
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              style={{
+                width: "100%", background: "none", border: "none", cursor: "pointer",
+                padding: "9px 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
+                color: "var(--amber)", outline: "none",
+              }}
+            >
             <span style={{ display: "flex", alignItems: "center", gap: "7px" }}>
               <Search size={12} strokeWidth={2} />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", fontWeight: 500, letterSpacing: "0.04em" }}>
@@ -312,9 +319,10 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
               </span>
             </span>
             <ChevronDown size={13} strokeWidth={2.5} style={{ transform: sourcesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.22s var(--ease)" }} />
-          </button>
+            </button>
+          </CollapsibleTrigger>
 
-          {sourcesOpen && (
+          <CollapsibleContent>
             <div style={{ padding: "0 12px 12px", maxHeight: "220px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
               {lastThinking && (
                 <div style={{
@@ -352,8 +360,8 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {/* ── Input ── */}
@@ -383,6 +391,6 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
           <Send size={15} strokeWidth={2.5} />
         </button>
       </form>
-    </div>
+    </Card>
   );
 }
