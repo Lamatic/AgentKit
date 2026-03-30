@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { analyzeSystemDesign } from '@/actions/orchestrate';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, ChevronRight, Copy, Check, Github, Zap, Shield, TrendingUp, Database, Network, AlertCircle, Coffee } from 'lucide-react';
+import { Loader2, Copy, Check, Github, Zap, Database, Network, AlertCircle, Coffee } from 'lucide-react';
 
 const formSchema = z.object({
   systemDesign: z.string().min(10, {
@@ -349,16 +349,34 @@ export default function Home() {
               <div className="bg-white border border-gray-200/60 rounded-2xl p-7 shadow-lg mb-4 overflow-y-auto flex-1">
                 {renderAnalysisResults(result)}
               </div>
-              <Button
-                onClick={() => {
-                  setResult(null);
-                  form.reset();
-                }}
-                className="w-full h-10 bg-gradient-to-r from-red-600 to-orange-600 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Analyze Another
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={copyToClipboard}
+                  className="h-10 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg group"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Results
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setResult(null);
+                    form.reset();
+                  }}
+                  className="h-10 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Analyze Another
+                </Button>
+              </div>
             </div>
           )}
 

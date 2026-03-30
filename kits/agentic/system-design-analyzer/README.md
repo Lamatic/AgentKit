@@ -216,10 +216,9 @@ The flow uses an agentic reasoning node that:
 # Start dev server
 npm run dev
 
-# In another terminal, test the API
-curl -X POST http://localhost:3000/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"systemDesign":"Your design here..."}'
+# Then visit http://localhost:3000 in your browser
+# Enter a system design description and click "Analyze"
+# Results will appear below the input form
 ```
 
 ### Production Build Validation
@@ -253,7 +252,7 @@ Set these in Vercel project settings:
 
 - **Build Size**: 28.1 kB (main) + 102 kB (shared chunks)
 - **First Load JS**: ~130 kB
-- **Pages**: All 4 pages prerendered as static content
+- **Pages**: App Router page prerendered as static content
 - **TypeScript**: Full type safety with zero errors
 - **Security**: 0 vulnerabilities (npm audit clean)
 
