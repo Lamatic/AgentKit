@@ -10,7 +10,7 @@ export default function InterviewQuestions({ questions }: InterviewQuestionsProp
   return (
     <div className="card">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <HelpCircle className="w-5 h-5 text-primary-600" />
+        <HelpCircle className="w-5 h-5 text-blue-600" />
         Interview Questions to Practice
       </h3>
       <div className="space-y-3">

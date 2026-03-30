@@ -3,7 +3,7 @@ import axios from "axios";
 const endpoint = process.env.LAMATIC_API_URL!;
 const apiKey = process.env.LAMATIC_API_KEY!;
 const projectId = process.env.LAMATIC_PROJECT_ID!;
-const flowId = process.env.AGENTIC_GENERATE_CONTENT!;
+const flowId = process.env.LAMATIC_FLOW_ID!;
 
 export const lamaticClient = {
   async executeCareerAnalysis(input: {
