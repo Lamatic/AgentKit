@@ -89,6 +89,7 @@ function TreeNodeRow({
     <div style={{ animation: "float-in 0.25s var(--ease) both" }}>
       {/* Semantic button wrapper — enables keyboard toggle and exposes state */}
       <button
+        type="button"
         onClick={() => hasChildren && setOpen(o => !o)}
         aria-expanded={hasChildren ? open : undefined}
         onKeyDown={(e) => {
@@ -98,6 +99,8 @@ function TreeNodeRow({
             setOpen(o => !o);
           }
         }}
+        onFocus={(e) => { if (!isHighlighted) (e.currentTarget.firstElementChild as HTMLElement).style.background = "var(--surface-2)"; }}
+        onBlur={(e) => { if (!isHighlighted) (e.currentTarget.firstElementChild as HTMLElement).style.background = "transparent"; }}
         style={{
           width: "100%",
           textAlign: "left",
@@ -200,6 +203,11 @@ function TreeNodeRow({
   );
 }
 
+/** Pure recursive helper — hoisted to module level to avoid redefining on every render. */
+function totalNodes(nodes: TreeNodeResolved[]): number {
+  return nodes.reduce((acc, n) => acc + 1 + totalNodes(n.nodes), 0);
+}
+
 export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
   // Must be declared before any early return to satisfy Rules of Hooks
   const highlightedIdSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
@@ -215,9 +223,6 @@ export default function TreeViewer({ tree, fileName, highlightedIds }: Props) {
       </div>
     );
   }
-
-  const totalNodes = (nodes: TreeNodeResolved[]): number =>
-    nodes.reduce((acc, n) => acc + 1 + totalNodes(n.nodes), 0);
 
   return (
     <div style={{
