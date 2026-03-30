@@ -84,12 +84,14 @@ export async function listDocuments() {
       process.env.FLOW_ID_LIST!,
       {}
     );
-    const data = (response.result ?? response) as Record<string, unknown>;
+    const raw = response as unknown as Record<string, unknown>;
+    const data = (raw.result ?? raw) as Record<string, unknown>;
 
-    // documents comes back as a JSON string (JSON.stringify applied in Code Node)
+    const documents = safeParseJSON(data?.documents, []);
+
     return {
       ...data,
-      documents: safeParseJSON(data?.documents, []),
+      documents,
       total: Number(data?.total) || 0,
     };
   } catch (error) {

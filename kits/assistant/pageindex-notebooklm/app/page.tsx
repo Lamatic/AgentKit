@@ -26,6 +26,20 @@ export default function Page() {
     } catch { /* silent */ } finally { setListLoading(false); }
   }, []);
 
+  // One-time migration: clear localStorage chat data corrupted by the old
+  // persist-effect bug (which wrote one doc's messages into another doc's slot).
+  // Bump CHAT_STORAGE_VERSION whenever a breaking change requires a fresh wipe.
+  const CHAT_STORAGE_VERSION = "2";
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("chat_storage_version") !== CHAT_STORAGE_VERSION) {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith("chat_"))
+        .forEach(k => localStorage.removeItem(k));
+      localStorage.setItem("chat_storage_version", CHAT_STORAGE_VERSION);
+    }
+  }, []);
+
   useEffect(() => { fetchDocuments(); }, [fetchDocuments]);
 
   async function handleSelectDoc(doc: Document) {
@@ -246,6 +260,7 @@ export default function Page() {
               {/* Content — both panels stay mounted to preserve state */}
               <div style={{ flex: 1, overflow: "hidden", padding: "18px", display: activeTab === "chat" ? "block" : "none", height: "100%" }}>
                 <ChatWindow
+                  key={selectedDoc.doc_id}
                   docId={selectedDoc.doc_id}
                   docName={selectedDoc.file_name}
                   onRetrievedNodes={handleRetrievedNodes}

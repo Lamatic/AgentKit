@@ -65,15 +65,18 @@ export default function ChatWindow({ docId, docName, onRetrievedNodes }: Props) 
   });
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Persist messages to localStorage whenever they change
+  // Persist messages — only re-run when messages change.
+  // Intentionally omit storageKey from deps: if included, a doc switch would
+  // fire this effect (storageKey changed) with the OLD messages, overwriting
+  // the new doc's slot before the docId-load effect could populate it.
   useEffect(() => {
-    try { localStorage.setItem(storageKey, JSON.stringify(messages)); } catch { /* quota exceeded */ }
-  }, [messages, storageKey]);
+    try { localStorage.setItem(`chat_${docId}`, JSON.stringify(messages)); } catch { /* quota exceeded */ }
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Persist lamatic history
+  // Persist lamatic history — same reasoning as above.
   useEffect(() => {
-    try { localStorage.setItem(historyKey, JSON.stringify(lamaticHistory)); } catch { /* quota exceeded */ }
-  }, [lamaticHistory, historyKey]);
+    try { localStorage.setItem(`chat_history_${docId}`, JSON.stringify(lamaticHistory)); } catch { /* quota exceeded */ }
+  }, [lamaticHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
