@@ -1,0 +1,409 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"message\": \"string\",\n  \"userId\": \"string\",\n  \"sessionId\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_safeMessage",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "safeMessage": "string"
+        },
+        "values": {
+          "id": "codeNode_safeMessage",
+          "code": "let msg = {{triggerNode_1.output.message}};\nreturn {\n  safeMessage: (msg && String(msg).trim().length > 0)\n    ? String(msg).trim()\n    : 'Give me a full summary of my startup analysis'\n};",
+          "nodeName": "Safe Message"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 130
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "memoryRetrieveNode_chat",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "memoryRetrieveNode",
+        "schema": {
+          "memories": "object",
+          "rawMemories": "object"
+        },
+        "values": {
+          "id": "memoryRetrieveNode_chat",
+          "limit": "10",
+          "filters": "{\n  \"operator\": \"And\",\n  \"operands\": [\n    {\n      \"path\": [\"uniqueId\"],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.userId}}\"\n    },\n    {\n      \"path\": [\"sessionId\"],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.sessionId}}\"\n    }\n  ]\n}",
+          "nodeName": "Memory Retrieve - Conversation History",
+          "searchQuery": "{{codeNode_safeMessage.output.safeMessage}}",
+          "memoryCollection": "founderLensChatHistory",
+          "embeddingModelName": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "openrouter/anthropic/claude-3.5-sonnet:beta",
+              "credentialId": "9f493577-98a1-4e64-b831-2fa783db97b8",
+              "provider_name": "openrouter",
+              "credential_name": "OpenRouter Frees"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 260
+      },
+      "selected": true,
+      "draggable": false
+    },
+    {
+      "id": "RAGNode_brief",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "RAGNode",
+        "schema": {
+          "_meta": "object",
+          "references": "string",
+          "modelResponse": "string"
+        },
+        "values": {
+          "id": "RAGNode_brief",
+          "limit": 30,
+          "filters": "{\n  \"operator\": \"And\",\n  \"operands\": [\n    {\n      \"path\": [\n        \"userId\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.userId}}\"\n    },\n    {\n      \"path\": [\n        \"sessionId\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.sessionId}}\"\n    }\n  ]\n}",
+          "prompts": [
+            {
+              "id": "rag-brief-sys-001",
+              "role": "system",
+              "content": "Return the retrieved context exactly as-is. Do not summarize, rephrase, or add commentary. Output only the raw retrieved content."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "RAG - Retrieve Brief",
+          "vectorDB": "",
+          "certainty": "0.5",
+          "queryField": "{{codeNode_safeMessage.output.safeMessage}}",
+          "embeddingModelName": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_contextManager",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "turnCount": "string",
+          "briefContext": "string",
+          "historyString": "string",
+          "isFirstMessage": "string",
+          "conversationWarning": "string"
+        },
+        "values": {
+          "id": "codeNode_contextManager",
+          "code": "let rawBriefRefs = {{RAGNode_brief.output.references}} || [];\nlet rawMemories = {{memoryRetrieveNode_chat.output.rawMemories}} || [];\n\nlet briefRecords = Array.isArray(rawBriefRefs) ? rawBriefRefs : [];\n\nlet briefContext = '';\nif (briefRecords.length > 0) {\n  briefContext = briefRecords.map(function(r) {\n    return r.content || r.text || r.memory || JSON.stringify(r);\n  }).join('\\n\\n');\n}\n\nif (!briefContext || briefContext.trim() === '' || briefContext === '{}') {\n  briefContext = '(Brief not yet indexed for this session — please run the analysis flow first)';\n}\n\nlet turnCount = Array.isArray(rawMemories) ? rawMemories.length : 0;\nlet isFirstMessage = turnCount === 0;\n\nlet memories = {{memoryRetrieveNode_chat.output.memories}} || [];\nlet historyString = '';\nif (Array.isArray(memories) && memories.length > 0) {\n  historyString = memories.slice(-6).map(function(m) {\n    return (m.role || 'user') + ': ' + (m.content || '');\n  }).join('\\n');\n}\n\nlet conversationWarning = '';\nif (turnCount >= 15) {\n  conversationWarning = '\\n\\n---\\n⚠️ This conversation has ' + turnCount + ' exchanges. For best results analyzing a new idea, start a fresh chat. Your brief for this session remains fully accessible.';\n}\n\nreturn {\n  isFirstMessage: String(isFirstMessage),\n  turnCount: String(turnCount),\n  briefContext: briefContext,\n  historyString: historyString,\n  conversationWarning: conversationWarning\n};",
+          "nodeName": "Context Manager"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "LLMNode_chat",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "schema": {
+          "_meta": "object",
+          "images": "array",
+          "tool_calls": "object",
+          "generatedResponse": "string"
+        },
+        "values": {
+          "id": "LLMNode_chat",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "chat-sys-001",
+              "role": "system",
+              "content": "You are Founder Lens — an elite AI startup analyst. A founder has completed a comprehensive 7-phase research analysis on their startup idea. You have access to the relevant sections of that brief below, plus recent conversation history.\nBEHAVIOUR RULES:\n1. IF IS FIRST MESSAGE IS \"true\" (conversation history is empty): The founder is seeing their analysis for the first time. Present the full brief as a well-structured narrative document using these headers in order: ## Verdict, ## Market Opportunity, ## Competitive Landscape, ## Customer Voice, ## Success Blueprint, ## Business Model, ## The Contrarian Take, ## First 5 Things To Validate. Write in flowing prose paragraphs under each header — no bullet points. Be thorough and specific. Use the exact data from the brief. End by inviting follow-up questions.\n2. IF IS FIRST MESSAGE IS \"false\" (follow-up conversation): Answer the founder's specific question directly using the retrieved brief context. Be precise and grounded. Reference specific data points by name — e.g. \"Your brief identifies Databricks as the competitor to fear because...\" Give concrete recommendations when asked. Do not hedge.\n3. Never invent research not present in the brief. If something is not covered, say so and offer logical reasoning instead.\n4. Tone: smart co-founder who has done the research and tells the truth even when it hurts. No corporate speak. No filler.\nIS FIRST MESSAGE: {{codeNode_contextManager.output.isFirstMessage}}\nRETRIEVED BRIEF CONTENT: {{codeNode_contextManager.output.briefContext}}\nRECENT CONVERSATION HISTORY: {{codeNode_contextManager.output.historyString}}"
+            },
+            {
+              "id": "chat-user-001",
+              "role": "user",
+              "content": "{{triggerNode_1.output.message}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Founder Lens Chat",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 107.5,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_appendWarning",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "finalAnswer": "string"
+        },
+        "values": {
+          "id": "codeNode_appendWarning",
+          "code": "let response = {{LLMNode_chat.output.generatedResponse}} || '';\nlet warning = {{codeNode_contextManager.output.conversationWarning}} || '';\nreturn {\n  finalAnswer: String(response) + String(warning)\n};",
+          "nodeName": "Append Warning If Needed"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 650
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "memoryNode_storeChat",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "memoryNode",
+        "schema": {
+          "memoryActions": "object",
+          "extractedFacts": "object"
+        },
+        "values": {
+          "id": "memoryNode_storeChat",
+          "nodeName": "Memory Add - Store Conversation",
+          "uniqueId": "{{triggerNode_1.output.userId}}",
+          "sessionId": "{{triggerNode_1.output.sessionId}}",
+          "memoryValue": [
+            {
+              "role": "user",
+              "content": "{{triggerNode_1.output.message}}"
+            },
+            {
+              "role": "assistant",
+              "content": "{{LLMNode_chat.output.generatedResponse}}"
+            }
+          ],
+          "memoryCollection": "founderLensChatHistory",
+          "embeddingModelName": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "openrouter/openai/gpt-4o",
+              "credentialId": "f41360bc-89df-4fe7-a349-421552b805fb",
+              "provider_name": "openrouter",
+              "credential_name": "chatgpt"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 780
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "graphqlResponseNode_888",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlResponseNode",
+        "schema": {},
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"answer\": \"{{codeNode_appendWarning.output.finalAnswer}}\"\n}"
+        }
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 910
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-codeNode_safeMessage",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "codeNode_safeMessage",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_safeMessage-RAGNode_brief",
+      "type": "defaultEdge",
+      "source": "codeNode_safeMessage",
+      "target": "RAGNode_brief",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_safeMessage-memoryRetrieveNode_chat",
+      "type": "defaultEdge",
+      "source": "codeNode_safeMessage",
+      "target": "memoryRetrieveNode_chat",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "RAGNode_brief-codeNode_contextManager",
+      "type": "defaultEdge",
+      "source": "RAGNode_brief",
+      "target": "codeNode_contextManager",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "memoryRetrieveNode_chat-codeNode_contextManager",
+      "type": "defaultEdge",
+      "source": "memoryRetrieveNode_chat",
+      "target": "codeNode_contextManager",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_contextManager-LLMNode_chat",
+      "type": "defaultEdge",
+      "source": "codeNode_contextManager",
+      "target": "LLMNode_chat",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_chat-codeNode_appendWarning",
+      "type": "defaultEdge",
+      "source": "LLMNode_chat",
+      "target": "codeNode_appendWarning",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_contextManager-codeNode_appendWarning",
+      "type": "defaultEdge",
+      "source": "codeNode_contextManager",
+      "target": "codeNode_appendWarning",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_appendWarning-memoryNode_storeChat",
+      "type": "defaultEdge",
+      "source": "codeNode_appendWarning",
+      "target": "memoryNode_storeChat",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "memoryNode_storeChat-graphqlResponseNode_888",
+      "type": "defaultEdge",
+      "source": "memoryNode_storeChat",
+      "target": "graphqlResponseNode_888",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-graphqlResponseNode_888",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_888",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
