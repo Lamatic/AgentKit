@@ -166,85 +166,86 @@ export default function MedicalAssistantPage() {
     return (
         <div className="h-screen w-screen flex overflow-hidden" style={{ background: '#fafafa' }}>
             {/* ── Sidebar ── */}
-            <aside
-                className={`${sidebarOpen ? "w-72" : "w-0"
-                    } transition-all duration-300 flex flex-col overflow-hidden flex-shrink-0`}
-                style={{ background: '#fff', borderRight: sidebarOpen ? '1px solid #e2e8f0' : 'none' }}
-            >
-                {/* Brand */}
-                <div className="h-14 flex items-center gap-2 px-5 flex-shrink-0" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <Stethoscope className="w-5 h-5" style={{ color: '#f43f5e' }} />
-                    <span className="text-lg font-bold tracking-tight whitespace-nowrap">
-                        <span style={{ color: '#0f172a' }}>Medical</span>{" "}
-                        <span style={{ color: '#f43f5e' }}>Assistant</span>
-                    </span>
-                </div>
-
-                {/* New Session */}
-                <div className="p-3 flex-shrink-0">
-                    <button
-                        onClick={createNewSession}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm"
-                        style={{ background: '#f43f5e', color: '#fff' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#e11d48')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = '#f43f5e')}
-                    >
-                        <Plus className="w-4 h-4" />
-                        New Session
-                    </button>
-                </div>
-
-                {/* Session List */}
-                <div className="flex-1 overflow-y-auto px-3 pb-3">
-                    <div className="flex flex-col gap-1">
-                        {sessions.length === 0 ? (
-                            <p className="text-center py-8 text-sm" style={{ color: '#94a3b8' }}>No sessions yet</p>
-                        ) : (
-                            sessions.map((session) => (
-                                <button
-                                    key={session.id}
-                                    onClick={() => setActiveSessionId(session.id)}
-                                    className="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-2.5"
-                                    style={{
-                                        background: session.id === activeSessionId ? '#f1f5f9' : 'transparent',
-                                        color: session.id === activeSessionId ? '#0f172a' : '#475569',
-                                        fontWeight: session.id === activeSessionId ? 500 : 400,
-                                    }}
-                                >
-                                    <MessageSquare className="w-4 h-4 flex-shrink-0" />
-                                    <span className="truncate">{session.title}</span>
-                                </button>
-                            ))
-                        )}
+            {sidebarOpen && (
+                <aside
+                    className="w-72 flex flex-col overflow-hidden flex-shrink-0"
+                    style={{ background: '#fff', borderRight: '1px solid #e2e8f0' }}
+                >
+                    {/* Brand */}
+                    <div className="h-14 flex items-center gap-2 px-5 flex-shrink-0" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <Stethoscope className="w-5 h-5" style={{ color: '#f43f5e' }} />
+                        <span className="text-lg font-bold tracking-tight whitespace-nowrap">
+                            <span style={{ color: '#0f172a' }}>Medical</span>{" "}
+                            <span style={{ color: '#f43f5e' }}>Assistant</span>
+                        </span>
                     </div>
-                </div>
+
+                    {/* New Session */}
+                    <div className="p-3 flex-shrink-0">
+                        <button
+                            onClick={createNewSession}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm"
+                            style={{ background: '#f43f5e', color: '#fff' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#e11d48')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = '#f43f5e')}
+                        >
+                            <Plus className="w-4 h-4" />
+                            New Session
+                        </button>
+                    </div>
+
+                    {/* Session List */}
+                    <div className="flex-1 overflow-y-auto px-3 pb-3">
+                        <div className="flex flex-col gap-1">
+                            {sessions.length === 0 ? (
+                                <p className="text-center py-8 text-sm" style={{ color: '#94a3b8' }}>No sessions yet</p>
+                            ) : (
+                                sessions.map((session) => (
+                                    <button
+                                        key={session.id}
+                                        onClick={() => setActiveSessionId(session.id)}
+                                        className="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-2.5"
+                                        style={{
+                                            background: session.id === activeSessionId ? '#f1f5f9' : 'transparent',
+                                            color: session.id === activeSessionId ? '#0f172a' : '#475569',
+                                            fontWeight: session.id === activeSessionId ? 500 : 400,
+                                        }}
+                                    >
+                                        <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                                        <span className="truncate">{session.title}</span>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
  
-                {/* Sidebar Footer Links */}
-                <div className="p-3 flex-shrink-0" style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <div className="flex flex-col gap-1">
-                        <Link
-                            href="https://lamatic.ai/docs"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
-                            style={{ color: '#475569' }}
-                        >
-                            <FileText className="w-4 h-4" style={{ color: '#94a3b8' }} />
-                            Documentation
-                        </Link>
-                        <Link
-                            href="https://github.com/Lamatic/AgentKit"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
-                            style={{ color: '#475569' }}
-                        >
-                            <Github className="w-4 h-4" style={{ color: '#94a3b8' }} />
-                            GitHub
-                        </Link>
+                    {/* Sidebar Footer Links */}
+                    <div className="p-3 flex-shrink-0" style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <div className="flex flex-col gap-1">
+                            <Link
+                                href="https://lamatic.ai/docs"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
+                                style={{ color: '#475569' }}
+                            >
+                                <FileText className="w-4 h-4" style={{ color: '#94a3b8' }} />
+                                Documentation
+                            </Link>
+                            <Link
+                                href="https://github.com/Lamatic/AgentKit"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
+                                style={{ color: '#475569' }}
+                            >
+                                <Github className="w-4 h-4" style={{ color: '#94a3b8' }} />
+                                GitHub
+                            </Link>
+                        </div>
                     </div>
-                </div>
-            </aside>
+                </aside>
+            )}
 
             {/* ── Main Area ── */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

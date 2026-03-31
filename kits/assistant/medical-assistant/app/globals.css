@@ -126,7 +126,7 @@
 }
 
 /* ===== Chat Message Animations ===== */
-@keyframes chatMessageEnter {
+@keyframes chat-message-enter {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -138,7 +138,7 @@
 }
 
 .chat-message-enter {
-  animation: chatMessageEnter 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+  animation: chat-message-enter 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
 /* ===== Markdown prose overrides in chat ===== */

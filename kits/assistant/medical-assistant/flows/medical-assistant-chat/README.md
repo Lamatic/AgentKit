@@ -22,9 +22,9 @@ This flow powers a medical assistant chatbot that provides general health inform
 
 ## Output Schema
 
-| Field    | Type     | Description                                           |
-| -------- | -------- | ----------------------------------------------------- |
-| `query` | `string` | Max 1000 chars, sanitized for safety | The user's medical question or symptom description |
+| Field    | Type     | Description                            |
+| -------- | -------- | -------------------------------------- |
+| `answer` | `string` | The medical information response.      |
 
 ## Test Input
 

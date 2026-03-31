@@ -57,7 +57,7 @@ Create `.env` with:
 ```bash
 # Lamatic
 MEDICAL_ASSISTANT_CHAT=your_flow_id_here
-LAMATIC_API_URL=https://api.lamatic.ai
+LAMATIC_API_URL=your_lamatic_api_url_here
 LAMATIC_PROJECT_ID=your_project_id_here
 LAMATIC_API_KEY=your_api_key_here
 ```

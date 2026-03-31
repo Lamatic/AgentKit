@@ -1,7 +1,20 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import {config} from "../orchestrate.js"
+import {config} from "../orchestrate"
+
+function summarizeMessage(message: unknown): string | undefined {
+  if (typeof message !== "string") {
+    return undefined
+  }
+
+  const trimmed = message.replace(/\s+/g, " ").trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  return trimmed.length > 160 ? `${trimmed.slice(0, 157)}...` : trimmed
+}
 
 export async function sendMedicalQuery(
   query: string,
@@ -10,6 +23,7 @@ export async function sendMedicalQuery(
   data?: any
   error?: string
 }> {
+  let correlationId: string | undefined
   try {
     console.log("[medical-assistant] Processing query, length:", query.length)
 
@@ -53,10 +67,19 @@ export async function sendMedicalQuery(
     // Handle async response - if we get a requestId, poll for the result
     if (resData?.result?.requestId && !resData?.result?.answer) {
       const requestId = resData.result.requestId
+      correlationId = requestId
       console.log("[medical-assistant] Async response, polling with requestId:", requestId)
       
+      const pollStartedAt = Date.now()
       const asyncResult = await lamaticClient.checkStatus(requestId, 2, 60)
-      console.log("[medical-assistant] Async poll result:", asyncResult)
+      const durationMs = Date.now() - pollStartedAt
+      console.log("[medical-assistant] Async poll metadata:", {
+        requestId,
+        status: asyncResult?.status,
+        statusCode: (asyncResult as any)?.statusCode ?? (asyncResult as any)?.code,
+        durationMs,
+        message: summarizeMessage(asyncResult?.message),
+      })
 
       if (asyncResult?.status === "error") {
         throw new Error(`Workflow execution failed: ${asyncResult?.message || "Unknown error"}`)
@@ -90,7 +113,13 @@ export async function sendMedicalQuery(
       data: answer,
     }
   } catch (error) {
-    console.error("[medical-assistant] Query error:", error)
+    const errorMeta = {
+      correlationId: (error as any)?.requestId ?? correlationId,
+      name: (error as any)?.name,
+      statusCode: (error as any)?.statusCode ?? (error as any)?.code,
+      message: summarizeMessage((error as any)?.message),
+    }
+    console.error("[medical-assistant] Query error metadata:", errorMeta)
 
     let errorMessage = "Unknown error occurred"
     if (error instanceof Error) {

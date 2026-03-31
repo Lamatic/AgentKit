@@ -1,5 +1,5 @@
 import { Lamatic } from "lamatic";
-import {config} from '../orchestrate.js'
+import {config} from '../orchestrate'
 
 if (!process.env.MEDICAL_ASSISTANT_CHAT) {
   throw new Error(
