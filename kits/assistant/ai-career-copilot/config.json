@@ -1,5 +1,5 @@
 {
-  "name": "AI Career Copilot",
+  "name": "ai-career-copilot",
   "version": "1.0.0",
   "description": "AI-powered career assistant that analyzes resumes and provides personalized career guidance including skill analysis, job recommendations, learning roadmaps, project suggestions, and interview preparation.",
   "author": {
@@ -9,7 +9,7 @@
   "category": "assistant",
   "repository": "https://github.com/Durvankur-Joshi/AgentKit",
   "documentation": "https://github.com/Durvankur-Joshi/AgentKit/tree/main/kits/assistant/ai-career-copilot",
-  "demo": "https://ai-career-copilot.vercel.app",
+  "demo": "https://ai-career-copilot-git-feat-ai-1db25c-durvankur-joshis-projects.vercel.app",
   "screenshots": [],
   "features": [
     "Resume text analysis",
@@ -28,7 +28,7 @@
     {
       "id": "ai-career-copilot",
       "type": "mandatory",
-      "envKey": "AGENTIC_GENERATE_CONTENT"
+      "envKey": "LAMATIC_FLOW_ID"
     }
   ]
 }
