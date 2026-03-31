@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, X, Globe, Building2, ChevronRight, Trash2, Loader } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
+import { analyzeCompetitorsAction } from "./actions";
 
 type Competitor = { id: string; org_name: string; url: string };
 type Result = { org_name: string; response: string };
@@ -25,7 +26,7 @@ export default function WatchdogDashboard() {
   };
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") setModalOpen(false); };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeModal(); };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
@@ -74,42 +75,50 @@ export default function WatchdogDashboard() {
     const currentVersion = requestVersionRef.current;
 
     try {
-      const res = await fetch("/api/analyse", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.WATCHDOG_APP_SECRET}`
-        },
-        body: JSON.stringify({ competitors }),
-      });
+      // const res = await fetch("/api/analyse", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     "Authorization": `Bearer ${process.env.WATCHDOG_APP_SECRET}`
+      //   },
+      //   body: JSON.stringify({ competitors }),
+      // });
       
-      const text = await res.text();
-      let data: any;
-      try { data = JSON.parse(text); } catch {
-        throw new Error(`Server returned an unexpected response (HTTP ${res.status}). Check your API credentials.`);
-      }
-      if (!res.ok) throw new Error(data?.message || data?.error || `Request failed with status ${res.status}`);
+      // const text = await res.text();
+      // let data: any;
+      // try { data = JSON.parse(text); } catch {
+      //   throw new Error(`Server returned an unexpected response (HTTP ${res.status}). Check your API credentials.`);
+      // }
+      // if (!res.ok) throw new Error(data?.message || data?.error || `Request failed with status ${res.status}`);
+
+      const result = await analyzeCompetitorsAction(competitors);
       if (currentVersion !== requestVersionRef.current) return;
 
       // Parse GraphQL response: { status, result }
-      const { results: rawResults } = normalizeWatchdogData(data.result);
+      // const { results: rawResults } = normalizeWatchdogData(data.result);
+      const { results: rawResults } = normalizeWatchdogData(result.result);
 
-      const cleanResults: Result[] = rawResults.map((item: any) => {
-        // 1. Look for the stable contract fields first
-        const orgName = item.org_name || "Unknown";
-        let responseBody = item.response;
+      // const cleanResults: Result[] = rawResults.map((item: any) => {
+      //   // 1. Look for the stable contract fields first
+      //   const orgName = item.org_name || "Unknown";
+      //   let responseBody = item.response;
 
-        if (!responseBody) {
-          responseBody = typeof item === "string" 
-            ? item 
-            : JSON.stringify(item);
-        }
+      //   if (!responseBody) {
+      //     responseBody = typeof item === "string" 
+      //       ? item 
+      //       : JSON.stringify(item);
+      //   }
 
-        return {
-          org_name: orgName,
-          response: responseBody,
-        };
-      });
+      //   return {
+      //     org_name: orgName,
+      //     response: responseBody,
+      //   };
+      // });
+
+      const cleanResults: Result[] = rawResults.map((item: any) => ({
+        org_name: item.org_name || "Unknown",
+        response: item.response || (typeof item === "string" ? item : JSON.stringify(item)),
+      }));
 
       setResults(cleanResults);
     } catch (err: any) {
