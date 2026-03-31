@@ -14,7 +14,23 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 }
 
 export async function analyzeCompetitorsAction(competitors: any[]) {
+
   try {
+     // Input validation
+    if (!Array.isArray(competitors) || competitors.length === 0 || competitors.length > 10) {
+      throw new Error("Provide 1-10 competitors.");
+    }
+    const isValid = competitors.every(
+      (c) =>
+        typeof c?.org_name === "string" &&
+        c.org_name.trim() &&
+        typeof c?.url === "string" &&
+        /^https?:\/\/.+/.test(c.url.trim())
+    );
+    if (!isValid) {
+      throw new Error("Each competitor must have a valid org_name and URL.");
+    }
+
     // 2. 🛡️ Security Check: Rate Limiting
     const headerList = await headers();
     const ip = headerList.get("x-forwarded-for") || "127.0.0.1";
@@ -43,9 +59,13 @@ export async function analyzeCompetitorsAction(competitors: any[]) {
         }
       }
     `;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 80000);
 
     // 3. 🚀 Secure Fetch: Performed entirely on the server
-    const res = await fetch(LAMATIC_API_URL, {
+    let res: Response;
+    try {
+    res = await fetch(LAMATIC_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +79,11 @@ export async function analyzeCompetitorsAction(competitors: any[]) {
           payload: { competitors },
         },
       }),
+        signal: controller.signal,
     });
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     if (!res.ok) throw new Error(`Lamatic Error: ${res.status}`);
     

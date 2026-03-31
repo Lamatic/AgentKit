@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, X, Globe, Building2, ChevronRight, Trash2, Loader } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { analyzeCompetitorsAction } from "./actions";
+import remarkGfm from 'remark-gfm';
 
 type Competitor = { id: string; org_name: string; url: string };
 type Result = { org_name: string; response: string };
@@ -75,45 +76,12 @@ export default function WatchdogDashboard() {
     const currentVersion = requestVersionRef.current;
 
     try {
-      // const res = await fetch("/api/analyse", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     "Authorization": `Bearer ${process.env.WATCHDOG_APP_SECRET}`
-      //   },
-      //   body: JSON.stringify({ competitors }),
-      // });
-      
-      // const text = await res.text();
-      // let data: any;
-      // try { data = JSON.parse(text); } catch {
-      //   throw new Error(`Server returned an unexpected response (HTTP ${res.status}). Check your API credentials.`);
-      // }
-      // if (!res.ok) throw new Error(data?.message || data?.error || `Request failed with status ${res.status}`);
-
       const result = await analyzeCompetitorsAction(competitors);
       if (currentVersion !== requestVersionRef.current) return;
 
       // Parse GraphQL response: { status, result }
       // const { results: rawResults } = normalizeWatchdogData(data.result);
       const { results: rawResults } = normalizeWatchdogData(result.result);
-
-      // const cleanResults: Result[] = rawResults.map((item: any) => {
-      //   // 1. Look for the stable contract fields first
-      //   const orgName = item.org_name || "Unknown";
-      //   let responseBody = item.response;
-
-      //   if (!responseBody) {
-      //     responseBody = typeof item === "string" 
-      //       ? item 
-      //       : JSON.stringify(item);
-      //   }
-
-      //   return {
-      //     org_name: orgName,
-      //     response: responseBody,
-      //   };
-      // });
 
       const cleanResults: Result[] = rawResults.map((item: any) => ({
         org_name: item.org_name || "Unknown",
@@ -250,7 +218,6 @@ export default function WatchdogDashboard() {
                   {[0, 1, 2].map(i => (
                     <span key={i} className="animate-bounce inline-block" style={{ animationDelay: `${i * 150}ms` }}>.</span>
                   ))}
-                  (this might take time)
                 </span>
               </div>
             )}
@@ -279,29 +246,59 @@ export default function WatchdogDashboard() {
                       </span>
                     </div>
 
-                    <div className="prose prose-invert prose-slate max-w-none 
-                      /* Spacing & Typography */
-                      prose-p:text-slate-400 prose-p:leading-relaxed prose-p:my-6 
-                      prose-headings:font-light prose-headings:tracking-tight prose-headings:text-slate-400 prose-headings:mt-10 prose-headings:mb-4
-                      prose-strong:text-slate-400 prose-strong:font-semibold
-                      prose-hr:border-white/10 prose-hr:my-12
-                      
-                      /* Tables */
-                      prose-table:border prose-table:border-white/5 prose-table:rounded-xl prose-table:my-8
-                      prose-th:bg-white/5 prose-th:text-indigo-400 prose-th:p-3
-                      prose-td:p-3 prose-td:border-t prose-td:border-white/5
-                      
-                      /* Blockquotes & Lists */
-                      prose-blockquote:border-l-indigo-500 prose-blockquote:bg-indigo-500/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:my-8 prose-blockquote:italic
-                      prose-li:my-2">
-                      
+                    <div className="space-y-1">      
                       {item.response === "NO_CHANGE" ? (
                           <span className="flex items-center gap-2 text-slate-600 italic">
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
                               No changes detected.
                           </span>
                       ) : (
-                          <ReactMarkdown>{item.response}</ReactMarkdown>
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              h2: ({ children }) => (
+                                <h2 className="text-lg font-semibold text-slate-200 mt-8 mb-3 flex items-center gap-2">{children}</h2>
+                              ),
+                              h3: ({ children }) => (
+                                <h3 className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mt-6 mb-2">{children}</h3>
+                              ),
+                              p: ({ children }) => (
+                                <p className="text-slate-400 text-sm leading-relaxed my-3">{children}</p>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="text-slate-200 font-semibold">{children}</strong>
+                              ),
+                              table: ({ children }) => (
+                                <div className="overflow-x-auto my-6 rounded-xl border border-white/[0.07]">
+                                  <table className="w-full text-sm">{children}</table>
+                                </div>
+                              ),
+                              thead: ({ children }) => (
+                                <thead className="bg-indigo-500/10">{children}</thead>
+                              ),
+                              th: ({ children }) => (
+                                <th className="text-left text-indigo-400 font-semibold text-[11px] uppercase tracking-wider px-4 py-3 border-b border-white/[0.07]">{children}</th>
+                              ),
+                              td: ({ children }) => (
+                                <td className="text-slate-400 px-4 py-3 border-t border-white/5 align-top">{children}</td>
+                              ),
+                              tr: ({ children }) => (
+                                <tr className="hover:bg-white/2 transition-colors">{children}</tr>
+                              ),
+                              hr: () => <hr className="border-white/[0.07] my-8" />,
+                              ul: ({ children }) => (
+                                <ul className="my-3 space-y-1.5 pl-4">{children}</ul>
+                              ),
+                              li: ({ children }) => (
+                                <li className="text-slate-400 text-sm leading-relaxed flex gap-2 before:content-['▸'] before:text-indigo-500 before:shrink-0">{children}</li>
+                              ),
+                              blockquote: ({ children }) => (
+                                <blockquote className="border-l-2 border-indigo-500 bg-indigo-500/5 px-4 py-3 rounded-r-lg my-4 italic text-slate-400 text-sm">{children}</blockquote>
+                              ),
+                            }}
+                          >
+                            {item.response}
+                          </ReactMarkdown>
                       )}      
                   </div>
               </div>

@@ -18,15 +18,16 @@
   "dependencies": {
     "@tailwindcss/postcss": "4.2.2",
     "@tailwindcss/typography": "0.5.19",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.37.0",
+    "@upstash/ratelimit": "2.0.8",
+    "@upstash/redis": "1.37.0",
     "dotenv": "17.3.1",
     "lamatic": "0.3.2",
     "lucide-react": "1.6.0",
     "next": "16.2.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-markdown": "10.1.0"
+    "react-markdown": "10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@types/node": "25.5.0",
