@@ -1,0 +1,28 @@
+{
+    "name": "github-manager",
+    "description": "Extract information from the repository docs and use that to answer questions related to the project, automate issue triaging",
+    "tags": ["📄 Document", "✨ Automation"],
+    "author": {
+        "name": "Vasistha Yadav",
+        "email": "vasisthayadav58@gmail.com"
+    },
+    "steps": [
+        {
+            "id": "docs scraping",
+            "type": "mandatory"
+        },
+        {
+            "id": "classifier",
+            "type": "mandatory",
+            "prerequisiteSteps": [
+                "data_source"
+            ]
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "",
+    "deployUrl": "",
+    "documentationUrl": ""
+}
