@@ -36,6 +36,7 @@
   <img src="https://img.shields.io/github/actions/workflow/status/Lamatic/AgentKit/ci.yml?branch=main" alt="CI/CD Status" />
 </a>   -->
 <img src="https://img.shields.io/coderabbit/prs/github/Lamatic/AgentKit?utm_source=oss&utm_medium=github&utm_campaign=Lamatic%2FAgentKit&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews">
+<img src="https://github.com/Lamatic/AgentKit/actions/workflows/review-challenge-prs.yml/badge.svg">
 
 ## ✨ About AgentKit
 
