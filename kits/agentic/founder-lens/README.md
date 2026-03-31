@@ -7,6 +7,8 @@
 ![GPT-4o](https://img.shields.io/badge/GPT--4o-OpenRouter-10B981?style=flat-square)
 ![agentkit-challenge](https://img.shields.io/badge/challenge-agentkit-F59E0B?style=flat-square)
 
+[**Live Demo →**](https://founder-lens-agentkit.vercel.app/)
+
 ---
 
 ## 1. The Problem
