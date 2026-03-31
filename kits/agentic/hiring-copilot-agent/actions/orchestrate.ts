@@ -10,7 +10,6 @@ export async function generateContent(payload: {
   education: string;
   certificates: string[];
   experience_years: number;
-  experience_level: string;
 }) {
   try {
     const workflowId = process.env.AGENTIC_GENERATE_CONTENT;
@@ -25,7 +24,11 @@ export async function generateContent(payload: {
     // console.log("[orchestrate] Sending payload:", finalPayload);
 
     const resData = await lamaticClient.executeFlow(workflowId, finalPayload);
-
+    if (!resData || resData.status !== "success") {
+      throw new Error(
+        `Lamatic flow failed: ${resData?.status} - ${resData?.message || "unknown error"}`,
+      );
+    }
     // console.log("[orchestrate] Raw response:", resData);
 
     return {

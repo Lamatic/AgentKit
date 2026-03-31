@@ -77,7 +77,6 @@ const MainPart = () => {
               name: parsed.name || "",
               skills: parsed.skills || [],
               experience_years: parsed.experience_years || 0,
-              experience_level: `${parsed.experience_years || 0} years`,
               projects: (parsed.projects || [])
                 .map((p: any) => {
                   const name =
