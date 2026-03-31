@@ -1,7 +1,7 @@
 # Medical Assistant by Lamatic.ai
 
 <p align="center">
-  <a href="#" target="_blank">
+  <a href="https://medical-assistant-mu.vercel.app/" target="_blank">
     <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
   </a>
 </p>
