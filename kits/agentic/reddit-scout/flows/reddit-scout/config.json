@@ -1,0 +1,413 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"query\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_988",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_988",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Generate 1 Google search queries scoped to Reddit for product reviews. Format as: site:reddit.com <product> reviews"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Here is what I want to search :\n{{triggerNode_1.output.query}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "webSearchNode_187",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "webSearchNode",
+        "values": {
+          "id": "webSearchNode_187",
+          "page": 1,
+          "type": "https://google.serper.dev/search",
+          "query": "{{LLMNode_988.output.generatedResponse}}",
+          "country": "in",
+          "results": "4",
+          "language": "en",
+          "location": "India",
+          "nodeName": "Web Search",
+          "dateRange": "qdr:y",
+          "credentials": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_892",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "redditData": "string"
+        },
+        "values": {
+          "id": "codeNode_892",
+          "code": "const data = {{webSearchNode_187.output.output}};\noutput = data.organic.map(item => item.link);\n",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "batchNode_890",
+      "data": {
+        "label": "batchNode node",
+        "modes": {},
+        "nodeId": "batchNode",
+        "values": {
+          "id": "batchNode_890",
+          "endValue": 10,
+          "nodeName": "Batch",
+          "increment": 1,
+          "connectedTo": "batchEndNode_732",
+          "iterateOver": "list",
+          "initialValue": 0,
+          "iteratorValue": "{{codeNode_892.output}}",
+          "concurrencyLimit": "1"
+        }
+      },
+      "type": "batchNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "webSearchNode_141",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "webSearchNode",
+        "values": {
+          "id": "webSearchNode_141",
+          "page": 1,
+          "type": "https://scrape.serper.dev",
+          "query": "{{batchNode_890.output.currentValue}}",
+          "country": "",
+          "results": "1",
+          "language": "",
+          "location": "",
+          "nodeName": "Web Search",
+          "dateRange": "",
+          "credentials": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "batchEndNode_732",
+      "data": {
+        "label": "batchEndNode node",
+        "modes": {},
+        "nodeId": "batchEndNode",
+        "values": {
+          "nodeName": "Batch End",
+          "connectedTo": "batchNode_890"
+        }
+      },
+      "type": "batchEndNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      }
+    },
+    {
+      "id": "codeNode_524",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "allRedditData": "string"
+        },
+        "values": {
+          "id": "codeNode_524",
+          "code": "const batch = {{batchEndNode_732.output.batchOutput}}\nconst results = batch.map((item, i) => {\n  const text = item.webSearchNode_141.output.output.text;\n  return `[Reddit Thread ${i+1}]\\n${text}`;\n});\noutput = { allRedditData: results.join(\"\\n\\n===\\n\\n\") };\n",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 910
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_936",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_936",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a product review analyst. Given raw Reddit thread data, produce a structured review summary in clean markdown format. Use this exact structure WITHOUT any emojis:\n## Overall Sentiment\n(1 sentence summary with approximate positive/negative split)\n## What Users Love\n- (short bullet points of pros, each 1 line max)\n## Common Complaints\n- (short bullet points of cons, each 1 line max)\n## Notable User Quotes\n> \"short quote 1\" — context\n> \"short quote 2\" — context\n(Max 4 quotes, keep them short)\n## Frequently Discussed Features\n- (key topics that come up, each 1 line)\n## Final Verdict\n(2-3 sentences, direct recommendation)\nRules:\n- NO emojis anywhere in the output\n- Keep each bullet point to ONE short sentence\n- Quotes should be under 20 words each\n- Do not add any preamble, intro, or \"based on the data\" framing\n- Start directly with \"## Overall Sentiment\"\n- Use plain markdown only"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Analyze these Reddit discussions and provide a structured review summary:{{codeNode_524.output.allRedditData}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 1040
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"answer\": \"{{LLMNode_936.output.generatedResponse}}\"\n}"
+        },
+        "disabled": false,
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 1170
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_988",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_988",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_988-webSearchNode_187",
+      "type": "defaultEdge",
+      "source": "LLMNode_988",
+      "target": "webSearchNode_187",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "webSearchNode_187-codeNode_892",
+      "type": "defaultEdge",
+      "source": "webSearchNode_187",
+      "target": "codeNode_892",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_892-batchNode_890-137",
+      "type": "defaultEdge",
+      "source": "codeNode_892",
+      "target": "batchNode_890",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "batchNode_890-webSearchNode_141-175",
+      "data": {
+        "condition": "Batch Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "batchNode_890",
+      "target": "webSearchNode_141",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "webSearchNode_141-batchEndNode_732-738",
+      "type": "defaultEdge",
+      "source": "webSearchNode_141",
+      "target": "batchEndNode_732",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "batchEndNode_732-codeNode_524-777",
+      "type": "defaultEdge",
+      "source": "batchEndNode_732",
+      "target": "codeNode_524",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_524-LLMNode_936",
+      "type": "defaultEdge",
+      "source": "codeNode_524",
+      "target": "LLMNode_936",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_936-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_936",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    },
+    {
+      "id": "batchNode_890-batchEndNode_732-990",
+      "data": {
+        "condition": "Batch"
+      },
+      "type": "loopEdge",
+      "source": "batchNode_890",
+      "target": "batchEndNode_732",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "batchEndNode_732-batchNode_890-440",
+      "data": {
+        "condition": "Batch",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "batchEndNode_732",
+      "target": "batchNode_890",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    }
+  ]
+}

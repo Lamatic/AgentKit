@@ -1,0 +1,22 @@
+{
+    "name": "Reddit Scout",
+    "description": "Search Reddit for real product reviews and opinions. Get structured summaries of what real users are saying about any product or topic.",
+    "tags": ["🤖 Agentic", "🔍 Research"],
+    "author": {
+        "name": "Reddit Scout",
+        "email": ""
+    },
+    "steps": [
+        {
+            "id": "reddit-scout",
+            "type": "mandatory",
+            "envKey": "REDDIT_SCOUT_FLOW_ID"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "https://reddit-scout-tawny.vercel.app/",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/reddit-scout",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/reddit-scout&env=REDDIT_SCOUT_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Reddit%20Scout%20keys%20are%20required.",
+    "documentationUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/reddit-scout"
+}
