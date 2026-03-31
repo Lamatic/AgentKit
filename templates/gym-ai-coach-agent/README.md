@@ -1,25 +1,62 @@
-# Gym AI Coach Agent
+# 1 - Getting Started
 
-## Problem
-Many beginners struggle to create proper diet and workout plans.
+## About This Flow
 
-## Solution
-An AI-powered agent that generates personalized fitness plans.
+This flow automates a workflow with **3 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
 
-## Features
-- Budget-friendly Indian diet
-- Workout planning
-- Protein estimation
-- Structured output
+## Flow Components
 
-## Setup
-1. Add your API key (Gemini or other)
-2. Import flow into Lamatic
-3. Run the agent
+This workflow includes the following node types:
+- Chat Trigger
+- Generate Text
+- Chat Response
 
-## Usage
-Enter:
-Weight, Goal, Budget, Diet
+## Configuration Requirements
 
-Get:
-Complete fitness plan instantly
+This flow requires configuration for **1 node(s)** with private inputs (credentials, API keys, model selections, etc.). All required configurations are documented in the `inputs.json` file.
+
+## Files Included
+
+- **config.json** - Complete flow structure with nodes and connections
+- **inputs.json** - Private inputs requiring configuration
+- **meta.json** - Flow metadata and information
+
+## Next Steps
+
+### Share with the Community
+
+Help grow the Lamatic ecosystem by contributing this flow to AgentKit!
+
+1. **Fork the Repository**
+   - Visit [github.com/Lamatic/AgentKit](https://github.com/Lamatic/AgentKit)
+   - Fork the repository to your GitHub account
+
+2. **Prepare Your Submission**
+   - Create a new folder with a descriptive name for your flow
+   - Add all files from this package (`config.json`, `inputs.json`, `meta.json`)
+   - Write a comprehensive README.md that includes:
+     - Clear description of what the flow does
+     - Use cases and benefits
+     - Step-by-step setup instructions
+     - Required credentials and how to obtain them
+     - Example inputs and expected outputs
+     - Screenshots or diagrams (optional but recommended)
+
+3. **Open a Pull Request**
+   - Commit your changes with a descriptive message
+   - Push to your forked repository
+   - Open a PR to [github.com/Lamatic/AgentKit](https://github.com/Lamatic/AgentKit)
+   - Add a clear description of your flow in the PR
+
+Your contribution will help others build amazing automations! 🚀
+
+## Support
+
+For questions or issues with this flow:
+- Review the node documentation for specific integrations
+- Check the Lamatic documentation at docs.lamatic.ai
+- Contact support for assistance
+
+---
+*Exported from Lamatic Flow Editor*
+*Generated on 3/31/2026*
