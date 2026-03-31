@@ -1,4 +1,4 @@
-https://harishsorganization135-gymaicoachagent262.lamatic.dev
+https://studio.lamatic.ai/HarishsOrganization135/project/GymAiCoachAgent262/flow/bdbf6a03-6419-4eec-befd-0266b5436b7a/edit
 
 # 1 - Getting Started
 
