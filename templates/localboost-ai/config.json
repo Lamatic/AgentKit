@@ -1,0 +1,208 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"business_name\": \"string\",\n  \"website\": \"string\",\n  \"instagram\": \"string\",\n  \"location\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "firecrawlNode_439",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {
+          "webhook": "list"
+        },
+        "nodeId": "firecrawlNode",
+        "values": {
+          "id": "firecrawlNode_439",
+          "url": "{{triggerNode_1.output.website}}",
+          "mode": "syncSingleScrape",
+          "urls": "",
+          "delay": 0,
+          "limit": 10,
+          "model": "spark-1-mini",
+          "mobile": false,
+          "prompt": "",
+          "search": "",
+          "timeout": 30000,
+          "waitFor": 2000,
+          "webhook": "",
+          "nodeName": "Firecrawl",
+          "agentUrls": "",
+          "agentJobId": "",
+          "crawlDepth": 1,
+          "crawlLimit": 10,
+          "maxCredits": "",
+          "agentSchema": "",
+          "credentials": "Firecrawl",
+          "excludePath": [],
+          "excludeTags": [],
+          "includePath": [],
+          "includeTags": [],
+          "sitemapOnly": false,
+          "crawlSubPages": false,
+          "ignoreSitemap": false,
+          "webhookEvents": [
+            "completed",
+            "failed",
+            "page",
+            "started"
+          ],
+          "changeTracking": false,
+          "webhookHeaders": "",
+          "onlyMainContent": true,
+          "webhookMetadata": "",
+          "includeSubdomains": false,
+          "maxDiscoveryDepth": 1,
+          "allowBackwardLinks": false,
+          "allowExternalLinks": false,
+          "skipTlsVerification": false,
+          "ignoreQueryParameters": true,
+          "strictConstrainToURLs": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_168",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_168",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"business_summary\": {\n      \"type\": \"string\"\n    },\n    \"evidence\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"detected_problems\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"growth_opportunities\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"quick_wins\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"offer_angle\": {\n      \"type\": \"string\"\n    },\n    \"personalized_outreach\": {\n      \"type\": \"string\"\n    },\n    \"lead_score\": {\n      \"type\": \"string\"\n    },\n    \"reason_for_score\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a B2B lead generation strategist specialized in analyzing real local businesses.\nYour job is to analyze a specific business using the provided data (name, website, instagram, location).\nRules:\n- Be specific to THIS business\n- Do not generate generic answers\n- If information is limited, infer realistic insights based on typical businesses in that niche\n- Focus on real marketing gaps, conversion issues, and growth opportunities\n- Think like someone trying to close this client\nReturn structured data only."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Business name: {{trigger.business_name}}\nWebsite: {{trigger.website}}\nInstagram: {{trigger.instagram}}\nLocation: {{trigger.location}}\nScraped website content: {{firecrawlNode_439.output.markdown}}\nAnalyze this business using the real website content above.Field instructions:- business_summary: summarize what the business does and how it positions itself- evidence: list 3 to 5 concrete signals found on the website- detected_problems: list 3 to 5 weaknesses or missing conversion/trust elements- growth_opportunities: list 3 to 5 realistic marketing opportunities- quick_wins: list 3 practical improvements that could be implemented fast- offer_angle: best service angle to pitch- p- personalized_outreach: write a short outreach message in Brazilian Portuguese that references at least one specific detail from the website (e.g. services, WhatsApp CTA, or location)- lead_score: High, Medium, or Low- reason_for_score: explain the score based on the evidence foundImportant:- Mention local positioning if present- Mention WhatsApp CTA if present- Mention service pages if present- Do not make up Instagram performance, reviews, or ad performance unless clearly supported by input\nVERY IMPORTANT:\n- You MUST include the \"evidence\" field\n- Each evidence item must reference something found in the website content\n- Do not skip this field"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "gpt-4o-mini",
+              "credentialId": "4afd5974-b7f1-4fc8-bf04-e8841720061b",
+              "provider_name": "openai",
+              "credential_name": "Lead inte"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": true
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"business_summary\": \"{{InstructorLLMNode_168.output.business_summary}}\",\n  \"evidence\": \"{{InstructorLLMNode_168.output.evidence}}\",\n  \"detected_problems\": \"{{InstructorLLMNode_168.output.detected_problems}}\",\n  \"growth_opportunities\": \"{{InstructorLLMNode_168.output.growth_opportunities}}\",\n  \"quick_wins\": \"{{InstructorLLMNode_168.output.quick_wins}}\",\n  \"offer_angle\": \"{{InstructorLLMNode_168.output.offer_angle}}\",\n  \"personalized_outreach\": \"{{InstructorLLMNode_168.output.personalized_outreach}}\",\n  \"lead_score\": \"{{InstructorLLMNode_168.output.lead_score}}\",\n  \"reason_for_score\": \"{{InstructorLLMNode_168.output.reason_for_score}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "InstructorLLMNode_168-responseNode_triggerNode_1-317",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_168",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "triggerNode_1-firecrawlNode_439",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "firecrawlNode_439",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "firecrawlNode_439-InstructorLLMNode_168",
+      "type": "defaultEdge",
+      "source": "firecrawlNode_439",
+      "target": "InstructorLLMNode_168",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "selected": false,
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
