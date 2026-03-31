@@ -1,0 +1,33 @@
+{
+  "name": "System Design Analyzer",
+  "description": "AI-powered system design analyzer that identifies architectural issues and provides recommendations for scalable, resilient systems.",
+  "tags": [
+    "🤖 Agentic Reasoning",
+    "🏗️ Architecture Analysis",
+    "💡 Design Review",
+    "⚡ Real-time Feedback"
+  ],
+  "author": {
+    "name": "Lamatic.ai",
+    "email": "hello@lamatic.ai"
+  },
+  "steps": [
+    {
+      "id": "check-your-saas",
+      "type": "mandatory",
+      "envKey": "LAMATIC_FLOW_ID"
+    }
+  ],
+  "integrations": [],
+  "features": [
+    "Real-time system design analysis",
+    "Identifies architectural issues and bottlenecks",
+    "Provides actionable recommendations",
+    "Handles complex distributed systems",
+    "Supports cloud-native architecture patterns"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/system-design-analyzer",
+  "deployUrl": "",
+  "documentationUrl": ""
+}
