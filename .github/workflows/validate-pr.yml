@@ -9,10 +9,6 @@ jobs:
     if: startsWith(github.event.pull_request.title, 'feat:')
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +19,6 @@ jobs:
         run: git fetch origin ${{ github.event.pull_request.base.ref }}
 
       - name: Validate contribution structure
-        id: validate
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
@@ -41,13 +36,8 @@ jobs:
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "No changed files detected."
-            SUMMARY_FILE="/tmp/pr_validation_summary.md"
-            {
-              echo "## PR Validation Results"
-              echo ""
-              echo "No contribution files detected in this PR."
-            } > "$SUMMARY_FILE"
-            cat "$SUMMARY_FILE" >> "$GITHUB_STEP_SUMMARY"
+            echo "## PR Validation Results" >> "$GITHUB_STEP_SUMMARY"
+            echo "No contribution files detected in this PR." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
@@ -234,7 +224,6 @@ jobs:
 
           # --- F. Output results to job summary ---
 
-          SUMMARY_FILE="/tmp/pr_validation_summary.md"
           {
             echo "## PR Validation Results"
             echo ""
@@ -314,9 +303,7 @@ jobs:
               echo ""
               echo "Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) and [CLAUDE.md](./CLAUDE.md) for the expected folder structure."
             fi
-          } > "$SUMMARY_FILE"
-
-          cat "$SUMMARY_FILE" >> "$GITHUB_STEP_SUMMARY"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           # Print to logs as well
           if [ ${#ERRORS[@]} -gt 0 ]; then
@@ -330,62 +317,3 @@ jobs:
 
           echo ""
           echo "=== ALL CHECKS PASSED ==="
-
-      - name: Post validation results as PR comment
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          SUMMARY_FILE="/tmp/pr_validation_summary.md"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          REPO="${{ github.repository }}"
-
-          if [ ! -f "$SUMMARY_FILE" ]; then
-            echo "No summary file found, skipping comment."
-            exit 0
-          fi
-
-          # Find an existing bot comment that starts with the validation header
-          COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
-            --jq '.[] | select(.user.type == "Bot" and (.body | startswith("## PR Validation Results"))) | .id' \
-            | head -1)
-
-          if [ -n "$COMMENT_ID" ]; then
-            gh api "repos/$REPO/issues/comments/$COMMENT_ID" \
-              --method PATCH \
-              -f body="$(cat "$SUMMARY_FILE")"
-          else
-            gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
-              --method POST \
-              -f body="$(cat "$SUMMARY_FILE")"
-          fi
-
-      - name: Apply passing-checks label
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          REPO="${{ github.repository }}"
-          LABEL="passing-checks"
-
-          # Ensure the label exists in the repo
-          if ! gh api "repos/$REPO/labels/$LABEL" --silent 2>/dev/null; then
-            if gh api "repos/$REPO/labels" \
-              --method POST \
-              -f name="$LABEL" \
-              -f color="0e8a16" \
-              -f description="All validation checks passed" 2>/dev/null; then
-              echo "Created label '$LABEL'"
-            else
-              echo "Warning: Could not create label '$LABEL' (insufficient permissions or network error)"
-            fi
-          fi
-
-          if [ "${{ steps.validate.outcome }}" = "success" ]; then
-            gh pr edit "$PR_NUMBER" --add-label "$LABEL" --repo "$REPO"
-            echo "Added '$LABEL' label to PR #$PR_NUMBER"
-          else
-            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" --repo "$REPO" 2>/dev/null || true
-            echo "Removed '$LABEL' label from PR #$PR_NUMBER (validation failed)"
-          fi
