@@ -9,6 +9,8 @@
 
 [**Live Demo →**](https://founder-lens-agentkit.vercel.app/)
 
+![Founder Lens Screenshot](public/sample.png)
+
 ---
 
 ## 1. The Problem
