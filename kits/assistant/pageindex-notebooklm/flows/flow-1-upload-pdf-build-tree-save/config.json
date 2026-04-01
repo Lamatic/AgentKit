@@ -34,9 +34,14 @@
         "logic": [],
         "modes": {},
         "nodeId": "codeNode",
+        "schema": {
+          "file_name": "string",
+          "resolved_url": "string",
+          "uploaded_to_storage": "boolean"
+        },
         "values": {
           "id": "codeNode_630",
-          "code": "// Assign the value you want to return from this code node to `output`. \n// The `output` variable is already declared.\nconst fileBase64 = {{triggerNode_1.output.file_base64}};\nconst fileUrl    = {{triggerNode_1.output.file_url}};\nconst fileName   = {{triggerNode_1.output.file_name}} || \"document.pdf\";\nconst mimeType   = {{triggerNode_1.output.mime_type}} || \"application/pdf\";\n\n// If a URL was provided directly, use it — no storage upload needed\nif (!fileBase64 && fileUrl) {\n  output = { resolved_url: fileUrl, file_name: fileName, uploaded_to_storage: false };\n  return;\n}\n\nif (!fileBase64) {\n  throw new Error(\"No file_base64 or file_url provided\");\n}\n\n// Upload base64 to Supabase Storage\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};   // from Lamatic secret\nconst serviceKey  = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};    // from Lamatic secret\n\n// Convert base64 to binary\n// base64 may arrive as a plain string or as data:mime;base64,... URI\nlet b64 = fileBase64;\nif (b64.includes(\",\")) b64 = b64.split(\",\")[1];\n\nconst binaryStr = atob(b64);\nconst bytes     = new Uint8Array(binaryStr.length);\nfor (let i = 0; i < binaryStr.length; i++) {\n  bytes[i] = binaryStr.charCodeAt(i);\n}\n\n// Unique storage path\nconst safeName    = fileName.replace(/[^a-zA-Z0-9._-]/g, \"_\");\nconst storagePath = `${Date.now()}_${safeName}`;\n\nconst uploadResp = await fetch(\n  `${supabaseUrl}/storage/v1/object/pdfs/${storagePath}`,\n  {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": `Bearer ${serviceKey}`,\n      \"Content-Type\": mimeType,\n      \"x-upsert\": \"false\",\n    },\n    body: bytes,\n  }\n);\n\nif (!uploadResp.ok) {\n  const errText = await uploadResp.text();\n  throw new Error(`Storage upload failed: ${uploadResp.status} — ${errText}`);\n}\n\nconst signResp = await fetch(\n  `${supabaseUrl}/storage/v1/object/sign/pdfs/${storagePath}`,\n  {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": `Bearer ${serviceKey}`,\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({ expiresIn: 3600 })\n  }\n);\nif (!signResp.ok) throw new Error(`Signed URL failed: ${signResp.status}`);\nconst signData = await signResp.json();\nconst signedUrl = `${supabaseUrl}/storage/v1${signData.signedURL}`;\n\noutput = {\n  resolved_url: signedUrl,\n  file_name: fileName,\n  uploaded_to_storage: true,\n};",
+          "code": "// Assign the value you want to return from this code node to `output`. \n// The `output` variable is already declared.\nconst fileBase64 = {{triggerNode_1.output.file_base64}};\nconst fileUrl    = {{triggerNode_1.output.file_url}};\nconst fileName   = {{triggerNode_1.output.file_name}} || \"document.pdf\";\nconst mimeType   = {{triggerNode_1.output.mime_type}} || \"application/pdf\";\n\n// If a URL was provided directly, use it — no storage upload needed\nif (!fileBase64 && fileUrl) {\n  output = { resolved_url: fileUrl, file_name: fileName, uploaded_to_storage: false };\n  return output;\n}\n\nif (!fileBase64) {\n  throw new Error(\"No file_base64 or file_url provided\");\n}\n\n// Upload base64 to Supabase Storage\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};   // from Lamatic secret\nconst serviceKey  = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};    // from Lamatic secret\n\n// Convert base64 to binary\n// base64 may arrive as a plain string or as data:mime;base64,... URI\nlet b64 = fileBase64;\nif (b64.includes(\",\")) b64 = b64.split(\",\")[1];\n\nconst binaryStr = atob(b64);\nconst bytes     = new Uint8Array(binaryStr.length);\nfor (let i = 0; i < binaryStr.length; i++) {\n  bytes[i] = binaryStr.charCodeAt(i);\n}\n\n// Unique storage path\nconst safeName    = fileName.replace(/[^a-zA-Z0-9._-]/g, \"_\");\nconst storagePath = `${Date.now()}_${safeName}`;\n\nconst uploadResp = await fetch(\n  `${supabaseUrl}/storage/v1/object/pdfs/${storagePath}`,\n  {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": `Bearer ${serviceKey}`,\n      \"Content-Type\": mimeType,\n      \"x-upsert\": \"false\",\n    },\n    body: bytes,\n  }\n);\n\nif (!uploadResp.ok) {\n  const errText = await uploadResp.text();\n  throw new Error(`Storage upload failed: ${uploadResp.status} — ${errText}`);\n}\n\nconst signResp = await fetch(\n  `${supabaseUrl}/storage/v1/object/sign/pdfs/${storagePath}`,\n  {\n    method: \"POST\",\n    headers: {\n      \"Authorization\": `Bearer ${serviceKey}`,\n      \"Content-Type\": \"application/json\"\n    },\n    body: JSON.stringify({ expiresIn: 3600 }) // Valid for 1 hour\n  }\n);\nif (!signResp.ok) {\n  throw new Error(`Signed URL failed: ${signResp.status}`);\n}\nconst signData = await signResp.json();\nconst signedUrl = `${supabaseUrl}/storage/v1${signData.signedURL}`;\nconsole.log(\"Processing complete\");\n\noutput = {\n  resolved_url: signedUrl,\n  file_name: fileName,\n  uploaded_to_storage: true,\n};\n\nconsole.log(\"✅ Code node complete:\", output.resolved_url);",
           "nodeName": "Code"
         }
       },
@@ -49,7 +54,7 @@
         "x": 0,
         "y": 130
       },
-      "selected": false
+      "selected": true
     },
     {
       "id": "extractFromFileNode_1",
@@ -63,7 +68,7 @@
         "values": {
           "id": "extractFromFileNode_1",
           "format": "pdf",
-          "fileUrl": "[\"{{codeNode_630.output.resolved_url}}\"]",
+          "fileUrl": "{{codeNode_630.output.resolved_url}}",
           "nodeName": "Extract PDF",
           "joinPages": false,
           "operation": "extractFromPDF"
@@ -158,7 +163,7 @@
         "schema": {},
         "values": {
           "id": "variablesNode_617",
-          "mapping": "{\n  \"file_name\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.file_name}}\"\n  },\n  \"file_url\": {\n    \"type\": \"string\",\n    \"value\": \"{{codeNode_630.output.resolved_url}}\"\n  },\n  \"tree\": {\n    \"type\": \"string\",\n    \"value\": \"{{InstructorLLMNode_tree.output.tree}}\"\n  },\n  \"raw_data\": {\n    \"type\": \"string\",\n    \"value\": \"{{extractFromFileNode_1.output.files}}\"\n  },\n  \"tree_node_count\": {\n    \"type\": \"number\",\n    \"value\": \"{{InstructorLLMNode_tree.output.tree_node_count}}\"\n  }\n}",
+          "mapping": "{\n  \"file_name\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.file_name}}\"\n  },\n  \"file_url\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.file_url}}\"\n  },\n  \"tree\": {\n    \"type\": \"string\",\n    \"value\": \"{{InstructorLLMNode_tree.output.tree}}\"\n  },\n  \"raw_data\": {\n    \"type\": \"string\",\n    \"value\": \"{{extractFromFileNode_1.output.files}}\"\n  },\n  \"tree_node_count\": {\n    \"type\": \"number\",\n    \"value\": \"{{InstructorLLMNode_tree.output.tree_node_count}}\"\n  }\n}",
           "nodeName": "Variables"
         }
       },
@@ -191,7 +196,7 @@
         },
         "values": {
           "id": "codeNode_save",
-          "code": "const tree = {{InstructorLLMNode_tree.output.tree}};\nconst rawText = {{codeNode_format.output.raw_text}};\nconst fileName = {{triggerNode_1.output.file_name}};\nconst fileUrl = {{codeNode_630.output.resolved_url}};\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};\nconst supabaseKey = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};\n\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str.replace(/\\u0000/g, \"\").replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\");\n}\n\nconst sanitizedRawText = sanitize(rawText);\n\nconst docId = \"pi-\" + Math.random().toString(36).slice(2, 18);\n\nconst payload = {\n  doc_id: docId,\n  file_name: fileName,\n  file_url: fileUrl,\n  raw_text: sanitizedRawText,\n  tree: tree,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n\nconst response = await fetch(supabaseUrl + \"/rest/v1/documents\", {\n  method: \"POST\",\n  headers: {\n    \"apikey\": supabaseKey,\n    \"Authorization\": \"Bearer \" + supabaseKey,\n    \"Content-Type\": \"application/json\",\n    \"Prefer\": \"return=representation\"\n  },\n  body: JSON.stringify(payload)\n});\n\nconst result = await response.json();\n\nif (!response.ok) {\n  const errorDetail = result?.message || result?.error || result?.hint || response.statusText;\n  output = {\n    success: false,\n    status_code: response.status,\n    response_text: response.statusText,\n    error: errorDetail,\n    doc_id: docId,\n    file_name: fileName,\n    tree_node_count: tree.length,\n    status: \"failed\"\n  };\n  throw new Error(`Supabase write failed [${response.status}]: ${errorDetail}`);\n}\n\noutput = {\n  success: true,\n  status_code: response.status,\n  response_text: response.statusText,\n  error: null,\n  doc_id: result[0]?.doc_id || docId,\n  file_name: fileName,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};",
+          "code": "const tree = {{InstructorLLMNode_tree.output.tree}};\nconst rawText = {{codeNode_format.output.raw_text}};\nconst fileName = {{triggerNode_1.output.file_name}};\nconst fileUrl = {{codeNode_630.output.resolved_url}};\nconst supabaseUrl = {{secrets.project.SUPABASE_URL}};\nconst supabaseKey = {{secrets.project.SUPABASE_SERVICE_ROLE_KEY}};\n\nfunction sanitize(str) {\n  if (typeof str !== \"string\") return str;\n  return str.replace(/\\u0000/g, \"\").replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/g, \"\");\n}\n\nconst sanitizedRawText = sanitize(rawText);\n\nconst docId = \"pi-\" + Math.random().toString(36).slice(2, 18);\n\nconst payload = {\n  doc_id: docId,\n  file_name: fileName,\n  file_url: fileUrl,\n  raw_text: rawText,\n  tree: tree,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n\nconst response = await fetch(supabaseUrl + \"/rest/v1/documents\", {\n  method: \"POST\",\n  headers: {\n    \"apikey\": supabaseKey,\n    \"Authorization\": \"Bearer \" + supabaseKey,\n    \"Content-Type\": \"application/json\",\n    \"Prefer\": \"return=representation\"\n  },\n  body: JSON.stringify(payload)\n});\n\nconst result = await response.json();\n\nif (!response.ok) {\n  const errorDetail = result?.message || result?.error || result?.hint || response.statusText;\n  output = {\n    success: false,\n    status_code: response.status,\n    response_text: response.statusText,\n    error: errorDetail,\n    doc_id: docId,\n    file_name: fileName,\n    tree_node_count: tree.length,\n    status: \"failed\"\n  };\n  throw new Error(`Supabase write failed [${response.status}]: ${errorDetail}`);\n}\n\noutput = {\n  success: true,\n  status_code: response.status,\n  response_text: response.statusText,\n  error: null,\n  doc_id: result[0]?.doc_id || docId,\n  file_name: fileName,\n  tree_node_count: tree.length,\n  status: \"completed\"\n};\n",
           "nodeName": "Save to Supabase"
         },
         "disabled": false
@@ -205,7 +210,7 @@
         "x": 0,
         "y": 780
       },
-      "selected": true,
+      "selected": false,
       "draggable": false
     },
     {

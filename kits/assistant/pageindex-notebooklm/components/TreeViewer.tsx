@@ -13,6 +13,7 @@ interface Props {
 /** Build a lookup map and resolve the flat API list into a nested tree.
  *  Root nodes are those whose node_id appears in the first item's `nodes`
  *  list OR nodes that are not referenced as children by any other node.
+ *  Tolerates LLM hallucinations by gracefully ignoring duplicate IDs, missing references, DAGs, and cycles.
  */
 function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
   const map = new Map<string, TreeNodeResolved>();
@@ -20,7 +21,8 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
   // First pass: create resolved nodes with empty children arrays
   for (const n of flat) {
     if (map.has(n.node_id)) {
-      throw new Error(`buildTree: Duplicate node_id detected: "${n.node_id}". Cannot create TreeNode.`);
+      console.warn(`buildTree: Duplicate node_id detected: "${n.node_id}". Skipping.`);
+      continue;
     }
     map.set(n.node_id, { ...n, nodes: [] });
   }
@@ -28,14 +30,18 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
   // Second pass: populate children
   const parentMap = new Map<string, string>();
   for (const n of flat) {
-    const resolved = map.get(n.node_id)!;
+    const resolved = map.get(n.node_id);
+    if (!resolved) continue;
+
     for (const childId of n.nodes) {
       const child = map.get(childId);
       if (!child) {
-        throw new Error(`buildTree: Missing reference for childId "${childId}" requested by parent "${n.node_id}". Cannot create TreeNodeResolved.`);
+        console.warn(`buildTree: Missing reference for childId "${childId}" requested by parent "${n.node_id}". Skipping.`);
+        continue;
       }
       if (parentMap.has(childId)) {
-        throw new Error(`buildTree: Shared child detected. Child "${childId}" is claimed by multiple parents ("${parentMap.get(childId)}" and "${n.node_id}"). DAG structures are not supported for TreeNodeResolved.`);
+        console.warn(`buildTree: Shared child detected. Child "${childId}" is claimed by multiple parents. Skipping.`);
+        continue;
       }
       parentMap.set(childId, n.node_id);
       resolved.nodes.push(child);
@@ -43,8 +49,6 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
   }
 
   // ── Cycle detection ─────────────────────────────────────────────
-  // Run a DFS tracking visiting/visited state. A back-edge to a node
-  // currently in the visiting set means we found a cycle.
   type VisitState = "unvisited" | "visiting" | "visited";
   const state = new Map<string, VisitState>();
   map.forEach((_, id) => state.set(id, "unvisited"));
@@ -52,15 +56,19 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
   function dfs(nodeId: string): void {
     state.set(nodeId, "visiting");
     const node = map.get(nodeId)!;
+    
+    const validChildren = [];
     for (const child of node.nodes) {
       const childState = state.get(child.node_id);
       if (childState === "visiting") {
-        throw new Error(
-          `buildTree: cycle detected — node "${child.node_id}" is its own ancestor.`
-        );
+        console.warn(`buildTree: cycle detected — node "${child.node_id}" is its own ancestor. Skipping back-edge.`);
+        continue;
       }
+      validChildren.push(child);
       if (childState === "unvisited") dfs(child.node_id);
     }
+    node.nodes = validChildren;
+    
     state.set(nodeId, "visited");
   }
 
@@ -70,9 +78,7 @@ function buildTree(flat: TreeNode[]): TreeNodeResolved[] {
   // ── End cycle detection ─────────────────────────────────────────
 
   // Roots = nodes not referenced as a child
-  return flat
-    .map(n => map.get(n.node_id)!)
-    .filter(n => !parentMap.has(n.node_id));
+  return Array.from(map.values()).filter(n => !parentMap.has(n.node_id));
 }
 
 function TreeNodeRow({
