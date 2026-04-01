@@ -69,6 +69,10 @@ npm run dev
 # Open http://localhost:3000
 ```
 
+## Live Preview
+
+https://legal-drab-three.vercel.app/
+
 ## Execution Paths
 
 - Client widget path: the bundled `flows/assistant-legal-advisor/config.json` uses a Chat Widget trigger and works with `components/legal-ask-widget.tsx`.
