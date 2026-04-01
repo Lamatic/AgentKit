@@ -1,13 +1,9 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
+import { normalizePriority } from "@/lib/priority"
 
 type Priority = "High" | "Medium" | "Low"
-
-function normalizePriority(p: string): Priority {
-  const cap = ((p ?? "medium").charAt(0).toUpperCase() + (p ?? "medium").slice(1).toLowerCase()) as Priority
-  return (["High", "Medium", "Low"] as Priority[]).includes(cap) ? cap : "Medium"
-}
 
 function extractParsed(resData: any): any {
   // Try every possible path the Lamatic SDK might use
@@ -53,10 +49,14 @@ export async function analyzeMeeting(meetingNotes: string): Promise<{
     if (!flowId) throw new Error("MEETING_ACTION_FLOW_ID is not set in environment variables.")
 
     const resData = await lamaticClient.executeFlow(flowId, { meeting_notes: meetingNotes })
-    console.log("[meeting-agent] Full SDK response:", JSON.stringify(resData))
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[meeting-agent] SDK response received")
+    }
 
     const parsed = extractParsed(resData)
-    console.log("[meeting-agent] Extracted parsed:", JSON.stringify(parsed))
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[meeting-agent] Parsed payload extracted:", Boolean(parsed))
+    }
 
     if (!parsed) {
       // Return raw so the UI can show something
@@ -80,7 +80,7 @@ export async function analyzeMeeting(meetingNotes: string): Promise<{
       },
     }
   } catch (error) {
-    console.error("[meeting-agent] Error:", error)
+    console.error("[meeting-agent] Error during flow execution")
     let errorMessage = "Unknown error occurred"
     if (error instanceof Error) {
       errorMessage = error.message

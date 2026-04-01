@@ -1,5 +1,4 @@
 **/.DS_Store
-.env*
+.env
 node_modules/
 .next/
-/meeting-action-agent/

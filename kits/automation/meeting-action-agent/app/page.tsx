@@ -20,6 +20,7 @@ import {
   FileText,
 } from "lucide-react"
 import { analyzeMeeting } from "@/actions/orchestrate"
+import { normalizePriority } from "@/lib/priority"
 import ReactMarkdown from "react-markdown"
 import { Header } from "@/components/header"
 
@@ -88,7 +89,6 @@ export default function MeetingAgentPage() {
 
     try {
       const response = await analyzeMeeting(meetingNotes)
-      console.log("[page] Full response:", JSON.stringify(response))
 
       if (response.success) {
         if (response.data) {
@@ -108,14 +108,7 @@ export default function MeetingAgentPage() {
                       task: item.task ?? "",
                       owner: item.owner ?? "Unassigned",
                       deadline: item.deadline ?? "TBD",
-                      priority:
-                        (["High", "Medium", "Low"].includes(
-                          (item.priority ?? "").charAt(0).toUpperCase() +
-                            (item.priority ?? "").slice(1).toLowerCase(),
-                        )
-                          ? (item.priority ?? "").charAt(0).toUpperCase() +
-                            (item.priority ?? "").slice(1).toLowerCase()
-                          : "Medium") as "High" | "Medium" | "Low",
+                      priority: normalizePriority(item.priority),
                     }))
                   : [],
                 summary_report: inner.summary_report ?? "",
