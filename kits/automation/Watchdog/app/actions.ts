@@ -13,7 +13,12 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   });
 }
 
-export async function analyzeCompetitorsAction(competitors: any[]) {
+interface CompetitorInput {
+  org_name: string;
+  url: string;
+}
+
+export async function analyzeCompetitorsAction(competitors: CompetitorInput[]) {
 
   try {
      // Input validation
