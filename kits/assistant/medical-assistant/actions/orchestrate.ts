@@ -16,16 +16,36 @@ function summarizeMessage(message: unknown): string | undefined {
   return trimmed.length > 160 ? `${trimmed.slice(0, 157)}...` : trimmed
 }
 
+function normalizePayload(payload: unknown): string {
+  if (payload === null) {
+    return "null"
+  }
+  if (payload === undefined) {
+    return ""
+  }
+  if (typeof payload === "string") {
+    return payload
+  }
+
+  return JSON.stringify(payload)
+}
+
 export async function sendMedicalQuery(
   query: string,
 ): Promise<{
   success: boolean
-  data?: any
+  data?: string
   error?: string
 }> {
   let correlationId: string | undefined
   try {
     console.log("[medical-assistant] Processing query, length:", query.length)
+
+    if (!process.env.MEDICAL_ASSISTANT_CHAT) {
+      throw new Error(
+        "MEDICAL_ASSISTANT_CHAT environment variable is not set. Please add it to your .env.local file."
+      )
+    }
 
     // Get the first workflow from the config
     const flows = config.flows
@@ -102,15 +122,16 @@ export async function sendMedicalQuery(
       answer = rawAnswer
     }
 
-    console.log("[medical-assistant] Parsed answer:", answer ? `[${answer.length} chars]` : "null")
+    const normalizedAnswer = normalizePayload(answer ?? rawAnswer)
+    console.log("[medical-assistant] Parsed answer:", normalizedAnswer ? `[${normalizedAnswer.length} chars]` : "null")
 
-    if (!answer) {
+    if (!normalizedAnswer) {
        throw new Error("No answer found in response. Check workflow output configuration.")
     }
 
     return {
       success: true,
-      data: answer,
+      data: normalizedAnswer,
     }
   } catch (error) {
     const errorMeta = {

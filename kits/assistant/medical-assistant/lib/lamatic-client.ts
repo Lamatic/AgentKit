@@ -1,11 +1,5 @@
 import { Lamatic } from "lamatic";
-import {config} from '../orchestrate'
-
-if (!process.env.MEDICAL_ASSISTANT_CHAT) {
-  throw new Error(
-    "MEDICAL_ASSISTANT_CHAT environment variable is not set. Please add it to your .env.local file."
-  );
-}
+import { config } from "../orchestrate";
 
 if (!config.api?.endpoint || !config.api?.projectId || !config.api?.apiKey) {
   throw new Error(

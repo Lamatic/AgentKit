@@ -300,11 +300,16 @@ export default function MedicalAssistantPage() {
                         >
                             <div className="flex flex-col gap-6">
                                 <div>
-                                    <label className="flex items-center gap-2 text-[13px] font-semibold mb-2.5" style={{ color: '#334155' }}>
+                                    <label
+                                        htmlFor="medical-query-input"
+                                        className="flex items-center gap-2 text-[13px] font-semibold mb-2.5"
+                                        style={{ color: '#334155' }}
+                                    >
                                         <Stethoscope className="w-4 h-4" style={{ color: '#f43f5e' }} />
                                         Medical Query or Symptom
                                     </label>
                                     <textarea
+                                        id="medical-query-input"
                                         ref={inputRef}
                                         placeholder="e.g. What are the common symptoms of the flu?"
                                         value={input}
@@ -474,9 +479,14 @@ export default function MedicalAssistantPage() {
                             style={{ borderTop: '1px solid #e2e8f0', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)' }}
                         >
                             <div className="max-w-3xl mx-auto">
-                                <div className="relative">
+                                <div
+                                    className="relative"
+                                    aria-label="Chat composer"
+                                >
                                     <textarea
+                                        id="medical-assistant-composer"
                                         ref={inputRef}
+                                        aria-label="Message"
                                         placeholder="Describe your symptoms or ask a question..."
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
@@ -497,6 +507,7 @@ export default function MedicalAssistantPage() {
                                         disabled={!input.trim() || isLoading}
                                         className="absolute right-2.5 bottom-2.5 p-2 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                         style={{ background: '#f43f5e', color: '#fff' }}
+                                        aria-label={isLoading ? "Sending message" : "Send message"}
                                     >
                                         {isLoading ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />

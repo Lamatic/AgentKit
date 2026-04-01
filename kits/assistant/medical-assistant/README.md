@@ -74,7 +74,7 @@ npm run dev
 
 ## 📂 Repo Structure
 
-```
+```text
 /actions
  └── orchestrate.ts        # Lamatic workflow orchestration for medical queries
 /app
