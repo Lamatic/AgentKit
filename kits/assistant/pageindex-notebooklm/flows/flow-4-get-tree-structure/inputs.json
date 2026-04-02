@@ -1,0 +1,26 @@
+{
+  "postgresNode_113": [
+    {
+      "name": "credentials",
+      "label": "Credentials",
+      "description": "Select the credentials for postgres authentication.",
+      "type": "select",
+      "isCredential": true,
+      "required": true,
+      "defaultValue": "",
+      "isPrivate": true
+    }
+  ],
+  "postgresNode_206": [
+    {
+      "name": "credentials",
+      "label": "Credentials",
+      "description": "Select the credentials for postgres authentication.",
+      "type": "select",
+      "isCredential": true,
+      "required": true,
+      "defaultValue": "",
+      "isPrivate": true
+    }
+  ]
+}
