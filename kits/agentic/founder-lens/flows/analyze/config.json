@@ -1,0 +1,1076 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"idea\": \"string\",\n  \"userId\": \"string\",\n  \"sessionId\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_currentDate",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "year": "string",
+          "prevYear": "string",
+          "dateString": "string"
+        },
+        "values": {
+          "id": "codeNode_currentDate",
+          "code": "let now = new Date();\nlet year = now.getFullYear();\nlet month = now.toLocaleString('en-US', { month: 'long' });\nreturn {\n  year: String(year),\n  prevYear: String(year - 1),\n  dateString: month + ' ' + String(year)\n};",
+          "nodeName": "Get Current Date"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2142.5,
+        "y": 130
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "LLMNode_decompose",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "schema": {
+          "_meta": "object",
+          "images": "array",
+          "tool_calls": "object",
+          "generatedResponse": "string"
+        },
+        "values": {
+          "id": "LLMNode_decompose",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "decomp-sys-001",
+              "role": "system",
+              "content": "You are a startup research analyst with access to real-time web search. Today is {{codeNode_currentDate.output.dateString}}. Before generating any output, use your web search capability to verify the current state of the market for the idea submitted. Your job: deconstruct the founder's idea using current, up-to-date market knowledge — not assumptions from training data.\nCRITICAL: Return ONLY a raw JSON object. No markdown. No backticks. No explanation. No preamble. The very first character of your response must be { and the very last must be }.\nSteps before responding: 1. Search the web for the current state of this market in {{codeNode_currentDate.output.year}} 2. Search for who the current key players and recently funded startups are 3. Then generate your JSON using what you actually found\n{\n  \"core_mechanism\": \"...\",\n  \"value_proposition\": \"...\",\n  \"target_customer\": \"...\",\n  \"problem_being_solved\": \"...\",\n  \"monetization_model\": \"...\",\n  \"category\": \"...\",\n  \"adjacent_markets\": [\"...\", \"...\"],\n  \"underlying_assumptions\": [\"...\", \"...\"],\n  \"search_queries\": [\n    \"actual Google search query for TAM SAM SOM market size analyst reports for this specific idea in {{codeNode_currentDate.output.year}}\",\n    \"actual Google search query for VC funding Crunchbase investment trends for this specific category {{codeNode_currentDate.output.prevYear}} {{codeNode_currentDate.output.year}}\",\n    \"actual Google search query for direct named competitors with recent funding and current pricing\",\n    \"actual Google search query for failed startups postmortem in this exact space recent\",\n    \"actual Google search query for customer complaints Reddit reviews alternatives for this product type\",\n    \"actual Google search query for YC Indie Hackers first 100 customers success story this specific space\",\n    \"actual Google search query for unit economics CAC LTV churn benchmarks this category SaaS\",\n    \"actual Google search query for new APIs regulation behaviour shift opportunity {{codeNode_currentDate.output.prevYear}} {{codeNode_currentDate.output.year}} this space\"\n  ]\n}"
+            },
+            {
+              "id": "decomp-user-001",
+              "role": "user",
+              "content": "Startup idea: {{triggerNode_1.output.idea}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Phase 0 - Idea Deconstruction",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 260
+      },
+      "selected": true,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_parseDecomp",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "q0": "string",
+          "q1": "string",
+          "q2": "string",
+          "q3": "string",
+          "q4": "string",
+          "q5": "string",
+          "q6": "string",
+          "q7": "string",
+          "category": "string",
+          "fullDecomp": "string",
+          "assumptions": "string",
+          "targetCustomer": "string",
+          "adjacentMarkets": "string"
+        },
+        "values": {
+          "id": "codeNode_parseDecomp",
+          "code": "let raw = {{LLMNode_decompose.output.generatedResponse}};\n\nif (typeof raw === 'object' && raw !== null) {\n  var parsed = raw;\n} else {\n  var cleaned = String(raw).replace(/```json/gi, '').replace(/```/g, '').trim();\n  var start = cleaned.indexOf('{');\n  var end = cleaned.lastIndexOf('}');\n  if (start !== -1 && end !== -1) {\n    cleaned = cleaned.substring(start, end + 1);\n  }\n  var parsed = {};\n  try { parsed = JSON.parse(cleaned); } catch(e) { parsed = {}; }\n}\n\nlet q = parsed.search_queries || [];\n\nreturn {\n  fullDecomp: JSON.stringify(parsed),\n  category: parsed.category || '',\n  targetCustomer: parsed.target_customer || '',\n  assumptions: JSON.stringify(parsed.underlying_assumptions || []),\n  adjacentMarkets: JSON.stringify(parsed.adjacent_markets || []),\n  q0: q[0] || '',\n  q1: q[1] || '',\n  q2: q[2] || '',\n  q3: q[3] || '',\n  q4: q[4] || '',\n  q5: q[5] || '',\n  q6: q[6] || '',\n  q7: q[7] || ''\n};",
+          "nodeName": "Parse Decomposition"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 390
+      },
+      "draggable": false
+    },
+    {
+      "id": "apiNode_vctrends",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_vctrends",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q1}}\",\"type\":\"deep\",\"num_results\":5,\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - VC Trends",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 520
+      },
+      "draggable": false
+    },
+    {
+      "id": "apiNode_unfair",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_unfair",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q7}}\",\"type\":\"deep\",\"num_results\":5,\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Unfair Advantage",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 4050,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_twitter",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_twitter",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{triggerNode_1.output.idea}} complaints frustrating broken worst terrible switching\",\"type\":\"auto\",\"num_results\":10,\"includeDomains\":[\"twitter.com\",\"x.com\"],\"contents\":{\"text\":{\"max_characters\":2000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Twitter Customer Complaints",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2700,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_success",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_success",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q5}} how founder got first customers story\",\"type\":\"deep\",\"num_results\":5,\"includeDomains\":[\"indiehackers.com\",\"news.ycombinator.com\",\"techcrunch.com\",\"blog.ycombinator.com\"],\"contents\":{\"text\":{\"max_characters\":4000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Success DNA",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 3150,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_reviews",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_reviews",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{triggerNode_1.output.idea}} alternatives reviews complaints problems\",\"type\":\"auto\",\"num_results\":8,\"includeDomains\":[\"g2.com\",\"capterra.com\",\"producthunt.com\"],\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Reviews",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2250,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_market",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_market",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q0}}\",\"type\":\"deep\",\"num_results\":5,\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Market Size",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_dead",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_dead",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q3}}\",\"type\":\"deep\",\"num_results\":5,\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Dead Competitors",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 1350,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_customer",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_customer",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q4}}\",\"type\":\"auto\",\"num_results\":8,\"includeDomains\":[\"reddit.com\",\"g2.com\",\"capterra.com\",\"news.ycombinator.com\"],\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Customer Voice",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 1800,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "apiNode_competitors",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_competitors",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q2}}\",\"type\":\"deep\",\"num_results\":5,\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Competitors",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 900,
+        "y": 520
+      },
+      "draggable": false
+    },
+    {
+      "id": "apiNode_bizmodel",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "schema": {
+          "output": "object"
+        },
+        "values": {
+          "id": "apiNode_bizmodel",
+          "url": "https://api.exa.ai/search",
+          "body": "{\"query\":\"{{codeNode_parseDecomp.output.q6}}\",\"type\":\"deep\",\"num_results\":5,\"contents\":{\"text\":{\"max_characters\":3000}}}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\",\"x-api-key\":\" \"}",
+          "retries": "0",
+          "nodeName": "Exa Search - Business Model",
+          "retry_deplay": "0"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 3600,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_consolidate",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "phase1_market": "string",
+          "phase5_unfair": "string",
+          "phase4_success": "string",
+          "phase3_customer": "string",
+          "phase6_bizmodel": "string",
+          "phase2_competitive": "string"
+        },
+        "values": {
+          "id": "codeNode_consolidate",
+          "code": "function exaText(apiResult, limit) {\n  let data = apiResult || {};\n  let results = data.results || [];\n  return results.slice(0, limit || 5).map(function(r) {\n    let title = r.title || '';\n    let url = r.url || '';\n    let text = r.text || '';\n    return '--- SOURCE: ' + url + '\\nTITLE: ' + title + '\\nCONTENT:\\n' + text + '\\n';\n  }).join('\\n');\n}\n\nlet marketData   = exaText({{apiNode_market.output}});\nlet vcData       = exaText({{apiNode_vctrends.output}});\nlet compData     = exaText({{apiNode_competitors.output}});\nlet deadData     = exaText({{apiNode_dead.output}});\nlet customerData = exaText({{apiNode_customer.output}}, 8);\nlet reviewData   = exaText({{apiNode_reviews.output}}, 8);\nlet twitterData  = exaText({{apiNode_twitter.output}}, 10);\nlet successData  = exaText({{apiNode_success.output}});\nlet bizData      = exaText({{apiNode_bizmodel.output}});\nlet unfairData   = exaText({{apiNode_unfair.output}});\n\nreturn {\n  phase1_market:      'MARKET SIZE & RESEARCH:\\n' + marketData + '\\n\\nVC INVESTMENT SIGNALS:\\n' + vcData,\n  phase2_competitive: 'DIRECT COMPETITORS:\\n' + compData + '\\n\\nDEAD COMPETITORS & POSTMORTEMS:\\n' + deadData,\n  phase3_customer:    'CUSTOMER COMPLAINTS (Reddit, G2, HN):\\n' + customerData + '\\n\\nREVIEW SITE DEEP READ:\\n' + reviewData + '\\n\\nTWITTER/X REAL-TIME COMPLAINTS:\\n' + twitterData,\n  phase4_success:     'SUCCESS STORIES (Indie Hackers, HN, TechCrunch):\\n' + successData,\n  phase5_unfair:      'UNFAIR ADVANTAGE SIGNALS:\\n' + unfairData,\n  phase6_bizmodel:    'BUSINESS MODEL & UNIT ECONOMICS:\\n' + bizData\n};",
+          "nodeName": "Consolidate Research"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 650
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "LLMNode_contrarian",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "schema": {
+          "_meta": "object",
+          "images": "array",
+          "tool_calls": "object",
+          "generatedResponse": "string"
+        },
+        "values": {
+          "id": "LLMNode_contrarian",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "contr-sys-001",
+              "role": "system",
+              "content": "You are the most sceptical partner at a top-tier VC fund. You have killed 47 companies that seemed great on paper. You have no ego, no sentimentality, and zero interest in encouraging bad ideas.\nYour job: read this startup idea and all research gathered, then find every reason it will fail. Be surgical. Be ruthless. Do not encourage. Find the fatal flaw.\nReturn ONLY valid JSON — no markdown fences, no preamble: {\n  \"most_likely_cause_of_death\": \"...\",\n  \"the_fatal_flaw\": \"...\",\n  \"the_competitor_to_fear\": \"...\",\n  \"dangerous_assumption\": \"...\",\n  \"market_dynamic_making_this_hard\": \"...\",\n  \"honest_prognosis\": \"...\"\n}"
+            },
+            {
+              "id": "contr-user-001",
+              "role": "user",
+              "content": "STARTUP IDEA: {{triggerNode_1.output.idea}}\nIDEA DECOMPOSITION:\n{{codeNode_parseDecomp.output.fullDecomp}}\nMARKET DATA:\n{{codeNode_consolidate.output.phase1_market}}\nCOMPETITIVE LANDSCAPE:\n{{codeNode_consolidate.output.phase2_competitive}}\nCUSTOMER VOICE (incl. Twitter/X):\n{{codeNode_consolidate.output.phase3_customer}}\nBUSINESS MODEL DATA:\n{{codeNode_consolidate.output.phase6_bizmodel}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Phase 7 - The Contrarian",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2142.5,
+        "y": 780
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "LLMNode_finalBrief",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "schema": {
+          "_meta": "object",
+          "images": "array",
+          "tool_calls": "object",
+          "generatedResponse": "string"
+        },
+        "values": {
+          "id": "LLMNode_finalBrief",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "brief-sys-001",
+              "role": "system",
+              "content": "You are Founder Lens — a brutally precise startup research engine. You have just completed a 7-phase analysis using real web data including Twitter/X real-time complaint signals. Your job is to synthesize it into the Founder Brief.\nSTRICT RULES — violating any of these makes the output useless:\n1. CUSTOMER COMPLAINTS must be direct quotes or near-verbatim phrases pulled from the research — including tweets. They must sound like a real human wrote them in a review, Reddit post, or tweet. NEVER paraphrase. Twitter/X quotes are especially valuable as they represent raw, unfiltered customer rage before it becomes a formal review.\n2. DEAD COMPETITORS must include the real reason with specifics — funding amount, year, what product failed, what the postmortem said. Not generic statements like \"overestimated demand.\"\n3. UNFAIR ADVANTAGE must name a specific thing: a named API, a named regulation, a named behaviour shift, with a timeframe. It must be something a competitor cannot easily copy in the next 6 months. If the research does not contain a strong unfair advantage signal, write exactly: \"(no clear unfair advantage found in research — founder must identify this themselves)\" rather than inventing a vague one.\n4. SUCCESS BLUEPRINT must name real tactics: specific communities, specific channels, specific founder names if found in research. \"Leveraging early user networks\" is NOT acceptable.\n5. MARKET SIZE must use the exact figure from the research with the source year.\n6. Every field must be grounded in the research provided below. If something genuinely was not in the research, say \"(not found in research)\" — do not invent.\nReturn ONLY valid JSON — no markdown fences, no preamble, no trailing text. First character must be { and last must be }.\n{\n  \"verdict\": \"Go | Cautious Go | No Go\",\n  \"confidence_level\": \"High | Medium | Low\",\n  \"the_one_sentence_pitch\": \"...\",\n  \"market\": {\n    \"size\": \"exact figure from research with year\",\n    \"timing\": \"Perfect Window | Too Early | Too Late\",\n    \"tailwinds\": [\"specific named trend with evidence\", \"...\"],\n    \"headwinds\": [\"specific named obstacle with evidence\", \"...\"]\n  },\n  \"competitive_landscape\": {\n    \"direct_competitors\": [\n      {\"name\": \"...\", \"strength\": \"specific named capability\", \"weakness\": \"specific named limitation\"}\n    ],\n    \"indirect_competitors\": [\"...\"],\n    \"dead_competitors_and_why\": [\n      {\"name\": \"...\", \"reason\": \"specific: what they built, when they shut down, what the postmortem said\"}\n    ],\n    \"the_gap_nobody_owns\": \"one specific sentence describing the exact unoccupied position\"\n  },\n  \"customer_voice\": {\n    \"top_5_complaints_verbatim\": [\n      \"direct quote or near-verbatim phrase from a real review, Reddit post, or tweet\",\n      \"direct quote or near-verbatim phrase from a real review, Reddit post, or tweet\",\n      \"direct quote or near-verbatim phrase from a real review, Reddit post, or tweet\",\n      \"direct quote or near-verbatim phrase from a real review, Reddit post, or tweet\",\n      \"direct quote or near-verbatim phrase from a real review, Reddit post, or tweet\"\n    ],\n    \"twitter_rage_signals\": [\n      \"raw tweet or near-verbatim Twitter complaint showing unfiltered customer frustration\",\n      \"raw tweet or near-verbatim Twitter complaint showing unfiltered customer frustration\",\n      \"raw tweet or near-verbatim Twitter complaint showing unfiltered customer frustration\"\n    ],\n    \"ignored_customer_segment\": \"specific demographic with specific behaviour\",\n    \"the_exact_pain_worth_solving\": \"one sentence using the customer's own language\",\n    \"words_to_use_on_landing_page\": [\"word or short phrase customers actually use\", \"...\"]\n  },\n  \"success_blueprint\": {\n    \"what_winners_had_in_common\": [\"specific named tactic or decision\", \"...\"],\n    \"the_initial_wedge_that_worked\": \"specific: which customer segment, which channel, which message\",\n    \"how_first_100_customers_were_acquired\": \"specific: named community, named tactic, named founder if found\",\n    \"the_distribution_secret\": \"one specific non-obvious insight from the research\"\n  },\n  \"unfair_advantage_available_now\": \"name the specific thing: API name, regulation name, platform shift, with timeframe\",\n  \"why_now_answer\": \"specific event or shift that happened in the last 12-18 months that creates the window\",\n  \"business_model\": {\n    \"recommended_model\": \"...\",\n    \"path_to_1M_ARR\": \"specific numbers: X customers at $Y/month = $Z ARR\",\n    \"dangerous_assumption\": \"the single most dangerous assumption with a specific reason why\",\n    \"unit_economics_warning\": \"specific benchmark from research: what CAC/LTV ratio looks like in this category\"\n  },\n  \"contrarian_take\": {\n    \"most_likely_cause_of_death\": \"specific scenario with named competitor or market dynamic\",\n    \"the_fatal_flaw\": \"the single assumption that is probably wrong and why\",\n    \"the_competitor_to_fear\": \"named company with specific reason: their distribution moat, pricing floor, or enterprise lock-in\"\n  },\n  \"first_5_things_to_validate\": [\n    \"specific testable hypothesis with a method to test it\",\n    \"specific testable hypothesis with a method to test it\",\n    \"specific testable hypothesis with a method to test it\",\n    \"specific testable hypothesis with a method to test it\",\n    \"specific testable hypothesis with a method to test it\"\n  ],\n  \"recommended_landing_page_headline\": \"headline using words customers actually use, not marketing speak\",\n  \"honest_verdict_no_sugar_coating\": \"2-3 sentences that a brutally honest friend would say, not a consultant\"\n}"
+            },
+            {
+              "id": "brief-user-001",
+              "role": "user",
+              "content": "STARTUP IDEA: {{triggerNode_1.output.idea}}\n\n=== IDEA DECOMPOSITION ===\n{{codeNode_parseDecomp.output.fullDecomp}}\n\n=== PHASE 1: MARKET REALITY ===\n{{codeNode_consolidate.output.phase1_market}}\n\n=== PHASE 2: COMPETITIVE INTELLIGENCE ===\n{{codeNode_consolidate.output.phase2_competitive}}\n\n=== PHASE 3: CUSTOMER VOICE MINING (Reddit + Reviews + Twitter/X) ===\n{{codeNode_consolidate.output.phase3_customer}}\n\n=== PHASE 4: SUCCESS DNA ===\n{{codeNode_consolidate.output.phase4_success}}\n\n=== PHASE 5: UNFAIR ADVANTAGE SIGNALS ===\n{{codeNode_consolidate.output.phase5_unfair}}\n\n=== PHASE 6: BUSINESS MODEL STRESS TEST ===\n{{codeNode_consolidate.output.phase6_bizmodel}}\n\n=== PHASE 7: CONTRARIAN TAKE ===\n{{LLMNode_contrarian.output.generatedResponse}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Final Synthesis - Founder Brief",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 910
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_briefToFacts",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "factsArray": "array",
+          "factsString": "string",
+          "metadataArray": "array"
+        },
+        "values": {
+          "id": "codeNode_briefToFacts",
+          "code": "let raw = {{LLMNode_finalBrief.output.generatedResponse}};\n\nif (typeof raw === 'object' && raw !== null) {\n  var b = raw;\n} else {\n  var cleaned = String(raw).replace(/```json/gi, '').replace(/```/g, '').trim();\n  var start = cleaned.indexOf('{');\n  var end = cleaned.lastIndexOf('}');\n  if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);\n  var b = {};\n  try { b = JSON.parse(cleaned); } catch(e) { b = {}; }\n}\n\nlet facts = [];\n\nfacts.push('VERDICT: ' + (b.verdict || '') + ' | Confidence: ' + (b.confidence_level || ''));\nfacts.push('ONE SENTENCE PITCH: ' + (b.the_one_sentence_pitch || ''));\nfacts.push('MARKET SIZE: ' + ((b.market || {}).size || '') + ' | TIMING: ' + ((b.market || {}).timing || ''));\n\nlet tailwinds = ((b.market || {}).tailwinds || []).join(' | ');\nfacts.push('MARKET TAILWINDS: ' + tailwinds);\n\nlet headwinds = ((b.market || {}).headwinds || []).join(' | ');\nfacts.push('MARKET HEADWINDS: ' + headwinds);\n\nlet competitors = ((b.competitive_landscape || {}).direct_competitors || []).map(function(c) {\n  return c.name + ' (strength: ' + c.strength + ', weakness: ' + c.weakness + ')';\n}).join(' | ');\nfacts.push('DIRECT COMPETITORS: ' + competitors);\n\nfacts.push('THE GAP NOBODY OWNS: ' + ((b.competitive_landscape || {}).the_gap_nobody_owns || ''));\n\nlet dead = ((b.competitive_landscape || {}).dead_competitors_and_why || []).map(function(c) {\n  return c.name + ' — ' + c.reason;\n}).join(' | ');\nfacts.push('DEAD COMPETITORS: ' + dead);\n\nlet complaints = ((b.customer_voice || {}).top_5_complaints_verbatim || []).join(' ||| ');\nfacts.push('CUSTOMER COMPLAINTS VERBATIM: ' + complaints);\n\nlet twitterRage = ((b.customer_voice || {}).twitter_rage_signals || []).join(' ||| ');\nfacts.push('TWITTER RAGE SIGNALS: ' + twitterRage);\n\nfacts.push('IGNORED SEGMENT: ' + ((b.customer_voice || {}).ignored_customer_segment || ''));\nfacts.push('EXACT PAIN TO SOLVE: ' + ((b.customer_voice || {}).the_exact_pain_worth_solving || ''));\n\nlet landing = ((b.customer_voice || {}).words_to_use_on_landing_page || []).join(', ');\nfacts.push('LANDING PAGE WORDS: ' + landing);\n\nfacts.push('UNFAIR ADVANTAGE: ' + (b.unfair_advantage_available_now || ''));\nfacts.push('WHY NOW: ' + (b.why_now_answer || ''));\nfacts.push('RECOMMENDED BUSINESS MODEL: ' + ((b.business_model || {}).recommended_model || ''));\nfacts.push('PATH TO 1M ARR: ' + ((b.business_model || {}).path_to_1M_ARR || ''));\nfacts.push('DANGEROUS ASSUMPTION: ' + ((b.business_model || {}).dangerous_assumption || ''));\nfacts.push('UNIT ECONOMICS WARNING: ' + ((b.business_model || {}).unit_economics_warning || ''));\nfacts.push('MOST LIKELY CAUSE OF DEATH: ' + ((b.contrarian_take || {}).most_likely_cause_of_death || ''));\nfacts.push('THE FATAL FLAW: ' + ((b.contrarian_take || {}).the_fatal_flaw || ''));\nfacts.push('COMPETITOR TO FEAR: ' + ((b.contrarian_take || {}).the_competitor_to_fear || ''));\n\nlet validate = (b.first_5_things_to_validate || []).join(' | ');\nfacts.push('FIRST 5 THINGS TO VALIDATE: ' + validate);\n\nfacts.push('RECOMMENDED HEADLINE: ' + (b.recommended_landing_page_headline || ''));\nfacts.push('HONEST VERDICT: ' + (b.honest_verdict_no_sugar_coating || ''));\n\nlet whatWinners = ((b.success_blueprint || {}).what_winners_had_in_common || []).join(' | ');\nfacts.push('WHAT WINNERS HAD IN COMMON: ' + whatWinners);\n\nfacts.push('INITIAL WEDGE: ' + ((b.success_blueprint || {}).the_initial_wedge_that_worked || ''));\nfacts.push('HOW FIRST 100 CUSTOMERS ACQUIRED: ' + ((b.success_blueprint || {}).how_first_100_customers_were_acquired || ''));\nfacts.push('DISTRIBUTION SECRET: ' + ((b.success_blueprint || {}).the_distribution_secret || ''));\n\nlet metadataArray = facts.map(function(f) {\n  return {\n    content: f,\n    userId: {{triggerNode_1.output.userId}},\n    sessionId: {{triggerNode_1.output.sessionId}}\n  };\n});\n\nreturn {\n  factsString: facts.join('\\n\\n'),\n  factsArray: facts,\n  metadataArray: metadataArray\n};",
+          "nodeName": "Brief To Memory Facts"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 1040
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "vectorizeNode_brief",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "vectorizeNode",
+        "schema": {
+          "_meta": "object",
+          "vectors": "object"
+        },
+        "values": {
+          "id": "vectorizeNode_brief",
+          "nodeName": "Vectorize Brief",
+          "inputText": "{{codeNode_briefToFacts.output.factsArray}}",
+          "embeddingModelName": "",
+          "generativeModelName": {}
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 1170
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "codeNode_pairVectorsMetadata",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "vectors": "object",
+          "metadata": "object"
+        },
+        "values": {
+          "id": "codeNode_pairVectorsMetadata",
+          "code": "let vectors = {{vectorizeNode_brief.output.vectors}};\nlet metaSource = {{codeNode_briefToFacts.output.metadataArray}};\n\nlet pairedMetadata = [];\n\nfor (const idx in vectors) {\n  let i = parseInt(idx);\n  let meta = metaSource[i] || {};\n  pairedMetadata.push({\n    content:   meta.content   || '',\n    userId:    meta.userId    || '',\n    sessionId: meta.sessionId || ''\n  });\n}\n\nreturn {\n  vectors:  vectors,\n  metadata: pairedMetadata\n};",
+          "nodeName": "Pair Vectors With Metadata"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2142.5,
+        "y": 1300
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "IndexNode_brief",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "IndexNode",
+        "schema": {
+          "message": "string",
+          "recordsIndexed": "string",
+          "duplicateRecordsDeleted": "string"
+        },
+        "values": {
+          "id": "IndexNode_brief",
+          "nodeName": "Index Brief to VectorDB",
+          "vectorDB": "",
+          "webhookURL": "",
+          "primaryKeys": [
+            "userId",
+            "sessionId"
+          ],
+          "vectorsField": "{{codeNode_pairVectorsMetadata.output.vectors}}",
+          "metadataField": "{{codeNode_pairVectorsMetadata.output.metadata}}",
+          "duplicateOperation": "overwrite",
+          "embeddingModelName": {
+            "type": "embedder/text",
+            "params": {},
+            "model_name": "gemini/gemini-embedding-001",
+            "credentialId": "5207df06-27af-4865-b9d3-3e41e57b05e0",
+            "provider_name": "gemini",
+            "credential_name": "embeddings"
+          },
+          "generativeModelName": {}
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2142.5,
+        "y": 1430
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "memoryNode_storeAnalysis",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "memoryNode",
+        "schema": {
+          "memoryActions": "object",
+          "extractedFacts": "object"
+        },
+        "values": {
+          "id": "memoryNode_storeAnalysis",
+          "nodeName": "Memory Add - Store Analysis",
+          "uniqueId": "{{triggerNode_1.output.userId}}",
+          "sessionId": "{{triggerNode_1.output.sessionId}}",
+          "memoryValue": [
+            {
+              "role": "user",
+              "content": "Founder Lens analysis for idea: {{triggerNode_1.output.idea}}"
+            },
+            {
+              "role": "assistant",
+              "content": "{{codeNode_briefToFacts.output.factsString}}"
+            }
+          ],
+          "memoryCollection": "founderLensChatHistory",
+          "embeddingModelName": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "openrouter/openai/gpt-4o",
+              "credentialId": "f41360bc-89df-4fe7-a349-421552b805fb",
+              "provider_name": "openrouter",
+              "credential_name": "chatgpt"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 1560
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "graphqlResponseNode_999",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlResponseNode",
+        "schema": {},
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"brief\": \"{{LLMNode_finalBrief.output.generatedResponse}}\",\n  \"decomposition\": \"{{codeNode_parseDecomp.output.fullDecomp}}\"\n}"
+        }
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 2025,
+        "y": 1690
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-codeNode_currentDate",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "codeNode_currentDate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "triggerNode_1-LLMNode_decompose",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_decompose",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_currentDate-LLMNode_decompose",
+      "type": "defaultEdge",
+      "source": "codeNode_currentDate",
+      "target": "LLMNode_decompose",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_decompose-codeNode_parseDecomp",
+      "type": "defaultEdge",
+      "source": "LLMNode_decompose",
+      "target": "codeNode_parseDecomp",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_market",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_market",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_vctrends",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_vctrends",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_competitors",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_competitors",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_dead",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_dead",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_customer",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_customer",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_reviews",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_reviews",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_success",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_success",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_bizmodel",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_bizmodel",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_unfair",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_unfair",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_parseDecomp-apiNode_twitter",
+      "type": "defaultEdge",
+      "source": "codeNode_parseDecomp",
+      "target": "apiNode_twitter",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_market-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_market",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_vctrends-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_vctrends",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_competitors-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_competitors",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_dead-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_dead",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_customer-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_customer",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_reviews-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_reviews",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_twitter-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_twitter",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_success-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_success",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_bizmodel-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_bizmodel",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_unfair-codeNode_consolidate",
+      "type": "defaultEdge",
+      "source": "apiNode_unfair",
+      "target": "codeNode_consolidate",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_consolidate-LLMNode_contrarian",
+      "type": "defaultEdge",
+      "source": "codeNode_consolidate",
+      "target": "LLMNode_contrarian",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_consolidate-LLMNode_finalBrief",
+      "type": "defaultEdge",
+      "source": "codeNode_consolidate",
+      "target": "LLMNode_finalBrief",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_contrarian-LLMNode_finalBrief",
+      "type": "defaultEdge",
+      "source": "LLMNode_contrarian",
+      "target": "LLMNode_finalBrief",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_finalBrief-codeNode_briefToFacts",
+      "type": "defaultEdge",
+      "source": "LLMNode_finalBrief",
+      "target": "codeNode_briefToFacts",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_briefToFacts-vectorizeNode_brief",
+      "type": "defaultEdge",
+      "source": "codeNode_briefToFacts",
+      "target": "vectorizeNode_brief",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "vectorizeNode_brief-codeNode_pairVectorsMetadata",
+      "type": "defaultEdge",
+      "source": "vectorizeNode_brief",
+      "target": "codeNode_pairVectorsMetadata",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_briefToFacts-codeNode_pairVectorsMetadata",
+      "type": "defaultEdge",
+      "source": "codeNode_briefToFacts",
+      "target": "codeNode_pairVectorsMetadata",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_pairVectorsMetadata-IndexNode_brief",
+      "type": "defaultEdge",
+      "source": "codeNode_pairVectorsMetadata",
+      "target": "IndexNode_brief",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_briefToFacts-memoryNode_storeAnalysis",
+      "type": "defaultEdge",
+      "source": "codeNode_briefToFacts",
+      "target": "memoryNode_storeAnalysis",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "IndexNode_brief-memoryNode_storeAnalysis",
+      "type": "defaultEdge",
+      "source": "IndexNode_brief",
+      "target": "memoryNode_storeAnalysis",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "memoryNode_storeAnalysis-graphqlResponseNode_999",
+      "type": "defaultEdge",
+      "source": "memoryNode_storeAnalysis",
+      "target": "graphqlResponseNode_999",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-graphqlResponseNode_999",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_999",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
