@@ -12,7 +12,7 @@ This repository explains the challenge for internship candidates applying to Lam
 
 Candidates are asked to choose a **unique problem statement**, build a practical contribution, and share it through a pull request and a short walkthrough video.
 
-The goal is not to make the biggest project possible. The goal is to make something focused, useful, and well explained. A strong submission shows good judgment, clear thinking, and enough polish for someone else to understand it quickly.
+The goal is not to make the biggest project possible. The goal is to make something focused, useful, and well explained. A strong submission shows good judgment, clear thinking, and enough polish for someone else to understax nd it quickly.
 
 ## ✅ What a strong submission looks like
 
