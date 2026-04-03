@@ -1,0 +1,13 @@
+{
+  "name": "Dependency Risk Analyzer",
+  "description": "Automated security analysis for npm and Python dependencies. Detects abandoned packages, CVEs, license risks, and bus factor. Free alternative to Snyk using OSV.dev database.",
+  "tags": ["🔒 Security", "🛡️ DevOps", "🔍 Analysis"],
+  "testInput": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/templates/dependency-risk-analyzer",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/template/dependency-risk-analyzer",
+  "author": {
+    "name": "Ansari Usaid Anzer",
+    "email": "hello@lamatic.ai"
+  }
+}
