@@ -47,7 +47,7 @@ You'll need two things to run this extension:
 
 ### 1. Config File
 
-Copy your project payload into [`lamatic-config.json`](./lamatic-config.json) in the extension root directory.
+Copy your project payload into `lamatic-config.json` in the extension root directory (you can start from [`lamatic-config-example.json`](./lamatic-config-example.json)).
 
 ### 2. Load Extension in Chrome
 
@@ -87,6 +87,6 @@ We welcome contributions! Open an issue or PR in this repo.
 
 ## 📜 License
 
-MIT License – see [LICENSE](./LICENSE).
+MIT License – see [LICENSE](../../../LICENSE).
 
 ---
