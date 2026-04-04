@@ -1,0 +1,14 @@
+.git
+.github
+**/.DS_Store
+**/.env
+**/.next
+**/node_modules
+**/coverage
+**/dist
+**/build
+**/.turbo
+**/.vercel
+docs/plans
+dogfood-output
+content

@@ -1,3 +1,17 @@
 **/.DS_Store
 
 .env
+.agents/
+.claude/
+.crush/
+.omx/
+.openhands/
+.serena/
+.pi/
+.playwright-mcp/
+dogfood-output/
+docs/plans/
+task_plan.md
+findings.md
+progress.md
+content/

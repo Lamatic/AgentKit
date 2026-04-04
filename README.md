@@ -152,6 +152,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 - [AgentKit Overview](https://lamatic.ai/templates/agentkits)
 - [Lamatic Guides](https://lamatic.ai/guides)
 - [API Reference](https://lamatic.ai/api)
+- [Docker Deployment Guide](./docs/deployment.md)
 - [Community Support](https://github.com/Lamatic/AgentKit/discussions)
 
 ***

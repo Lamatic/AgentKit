@@ -1,0 +1,15 @@
+services:
+  agentkit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        KIT_PATH: ${KIT_PATH:-kits/agentic/code-review}
+        NODE_VERSION: ${NODE_VERSION:-20}
+    env_file:
+      - ${KIT_ENV_FILE:-.env}
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+    ports:
+      - "${PORT:-3000}:3000"
