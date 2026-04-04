@@ -1,0 +1,42 @@
+{
+  "scraperNode_823": [
+    {
+      "name": "credentials",
+      "label": "Credentials",
+      "type": "select",
+      "description": "Select the credentials for scraper authentication.",
+      "isCredential": true,
+      "required": true,
+      "defaultValue": "",
+      "isPrivate": true
+    }
+  ],
+  "vectorizeNode_295": [
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model",
+      "mode": "embedding",
+      "description": "Select the model to convert the texts into vector representations.",
+      "modelType": "embedder/text",
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ],
+  "IndexNode_824": [
+    {
+      "name": "vectorDB",
+      "label": "Vector DB",
+      "type": "select",
+      "isDB": true,
+      "required": true,
+      "isPrivate": true,
+      "defaultValue": "",
+      "description": "Select the vector database where the vectors will be indexed."
+    }
+  ]
+}
