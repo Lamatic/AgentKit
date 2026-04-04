@@ -84,6 +84,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 ||
 | **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
+| **Blog Writing Automation** | Generates, optimizes, and publishes blog posts from webhook or scheduler triggers. | Available |  | [`/kits/automation/blog-automation`](./kits/automation/blog-automation) |
 ||
 | **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
 | **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
