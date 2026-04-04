@@ -1,4 +1,5 @@
 import { Lamatic } from "lamatic";
+import { CareerAnalysisInput, CareerAnalysisOutput } from "@/types";
 
 // ✅ Validate env variables (FAIL FAST)
 const requiredEnv = [
@@ -24,10 +25,9 @@ export const lamaticClient = new Lamatic({
 });
 
 // ✅ Wrapper function (keeps your architecture same)
-export async function executeCareerAnalysis(input: {
-  resume_text: string;
-  domain: string;
-}) {
+export async function executeCareerAnalysis(
+  input: CareerAnalysisInput
+): Promise<CareerAnalysisOutput> {
   try {
     const res = await lamaticClient.executeFlow(
       flowId,
@@ -37,11 +37,11 @@ export async function executeCareerAnalysis(input: {
       }
     );
 
-    // ✅ IMPORTANT: match old axios behavior
-    return res.result;
+    // ✅ IMPORTANT: return correctly typed data
+    return res.result as CareerAnalysisOutput;
 
   } catch (error) {
     console.error("Lamatic SDK Error:", error);
-    throw new Error("Lamatic execution failed");
+    throw error;
   }
 }

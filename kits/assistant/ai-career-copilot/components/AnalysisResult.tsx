@@ -35,11 +35,11 @@ export default function AnalysisResult({ data }: AnalysisResultProps) {
               <TrendingUp className="w-5 h-5 text-blue-600" />
               Career Readiness Score
             </h3>
-            <p className={`text-4xl font-bold ${getScoreColor(data.readiness_score)}`}>
-              {data.readiness_score}/100
+            <p className={`text-4xl font-bold ${getScoreColor(data.readiness_score ?? 0)}`}>
+              {(data.readiness_score ?? 0)}/100
             </p>
             <p className="text-sm text-gray-600 mt-1">
-              {getScoreLevel(data.readiness_score)}
+              {getScoreLevel(data.readiness_score ?? 0)}
             </p>
           </div>
           <div className="text-right">
@@ -63,7 +63,7 @@ export default function AnalysisResult({ data }: AnalysisResultProps) {
           Recommended Job Roles
         </h3>
         <div className="flex flex-wrap gap-2">
-          {data.roles.map((role, idx) => (
+          {(data.roles ?? []).map((role, idx) => (
             <span
               key={idx}
               className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"

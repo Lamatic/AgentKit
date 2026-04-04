@@ -25,7 +25,7 @@ export async function analyzeCareer(
 
     return {
       success: true,
-      data: result as CareerAnalysisOutput, // ✅ Now matches type
+      data: result , 
       timestamp: new Date().toISOString(),
     };
 
