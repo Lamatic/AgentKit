@@ -87,6 +87,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 ||
 | **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
 | **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
+| **Legal Assistant** | Research legal questions against a Lamatic-connected legal corpus with citations, next steps, and a standing disclaimer. | Available |  | [`/kits/assistant/legal-assistant`](./kits/assistant/legal-assistant) |
 ||
 | **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/kits/embed`](./kits/embed) |
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/chat`](./kits/embed/chat) |
