@@ -48,7 +48,12 @@ Results are returned as structured JSON and rendered in a premium dark-themed UI
 
 Create a `.env` file in the kit root:
 
----
+```bash
+AGENTIC_GENERATE_CONTENT="your-deployed-flow-id"
+LAMATIC_API_URL="https://your-org.lamatic.dev"
+LAMATIC_PROJECT_ID="your-project-id"
+LAMATIC_API_KEY="your-api-key"
+```
 
 ## Lamatic Flow Setup
 
@@ -72,7 +77,7 @@ Generate JSON — Final Merge (summary)
 API Response
 ```
 
-Import the exported flow from the `flows/` directory into your Lamatic project, then update the `workflowId` in `app/api/review/route.ts` with your deployed flow ID.
+Import the exported flow from the `flows/` directory into your Lamatic project, deploy it, then copy the deployed flow id into `AGENTIC_GENERATE_CONTENT`.
 
 ---
 
@@ -85,7 +90,7 @@ npm install
 
 # 2. Set up environment variables
 cp .env.example .env
-# Fill in your LAMATIC_API_KEY
+# Fill in all Lamatic values from your project
 
 # 3. Start the dev server
 npm run dev
@@ -172,7 +177,8 @@ Deploy to Vercel in one click:
 2. Import to [vercel.com](https://vercel.com)
 3. Set Root Directory to `kits/agentic/code-review`
 4. Add environment variable: `LAMATIC_API_KEY`
-5. Deploy
+5. Add `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, and `AGENTIC_GENERATE_CONTENT`
+6. Deploy
 
 ---
 
