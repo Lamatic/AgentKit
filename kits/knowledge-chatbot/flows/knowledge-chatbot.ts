@@ -1,8 +1,77 @@
-// Flow definition for knowledge-chatbot
-// When @lamatic/sdk ships: import { defineFlow, nodes, edges } from '@lamatic/sdk'
+// Flow: knowledge-chatbot
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
-export default {
-  nodes: [
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "Knowledge Chatbot",
+  "description": "Contextual api to answer queries with knowledge from Content",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "RAGNode_711": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Database",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database to be queried.",
+      "defaultValue": ""
+    },
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "This field allows the user to select the embedding model used to embed the query into vector space. It loads available embedding models through the listModels method.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    },
+    {
+      "mode": "chat",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model to generate responses from the query results.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+export const references = {
+  constitutions: {
+    default: "@constitutions/default.md"
+  },
+  prompts: {
+    ragSystem: "@prompts/rag-system.md"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
@@ -63,7 +132,7 @@ export default {
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
             "role": "system",
-            "content": "You are a helpful chat assistant who is trained on the data as defined by the builder. In the context, you will be given the most relevant contents from the database from which you have to reference and answer. These will be context documents, from which you will answer. In the end, you will be giving reference(s) as well and a small CTA to the user to check them out for further refinement of their answer. In case of no relevant answers, do not make the answer yourself and let them know that no relevant reference/document can be found in the context database. In case the source is of a database or S3 bucket (protected sources), you can just claim it to be from the official database without revealing it's details since you would have no URL to refer to."
+            "content": "@prompts/rag-system.md"
           },
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
@@ -96,8 +165,9 @@ export default {
       }
     }
   }
-],
-  edges: [
+];
+
+export const edges = [
   {
     "id": "triggerNode_1-RAGNode_711",
     "source": "triggerNode_1",
@@ -122,5 +192,6 @@ export default {
     "targetHandle": "from-trigger",
     "type": "responseEdge"
   }
-],
-};
+];
+
+export default { meta, inputs, references, nodes, edges };

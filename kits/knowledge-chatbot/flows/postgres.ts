@@ -1,8 +1,119 @@
-// Flow definition for postgres
-// When @lamatic/sdk ships: import { defineFlow, nodes, edges } from '@lamatic/sdk'
+// Flow: postgres
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
-export default {
-  nodes: [
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "Postgres",
+  "description": "Postgres Indexation",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "IndexNode_824": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Vector DB",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database where the vectors will be indexed.",
+      "defaultValue": ""
+    }
+  ],
+  "triggerNode_1": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Postgres database authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    },
+    {
+      "name": "schemas",
+      "type": "select",
+      "label": "Schema",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the source schema.",
+      "typeOptions": {
+        "loadOptionsMethod": "getSchemas"
+      },
+      "airbyteInputName": "source/configuration.schemas[0]",
+      "defaultModeValue": {
+        "mode": "list",
+        "value": ""
+      }
+    },
+    {
+      "name": "tables",
+      "type": "select",
+      "label": "Table/View",
+      "required": true,
+      "isPrivate": true,
+      "description": "Specify the source table or view for batch processing.",
+      "typeOptions": {
+        "loadOptionsMethod": "getTables"
+      },
+      "defaultValue": "",
+      "isAirbyteStream": true,
+      "airbyteInputName": "connection/configurations.streams[0].name"
+    }
+  ],
+  "variablesNode_543": [
+    {
+      "keys": [
+        "title",
+        "source"
+      ],
+      "name": "mapping",
+      "type": "variablesInput",
+      "label": "Mapping",
+      "required": true,
+      "description": "Map the variables with the values",
+      "defaultValue": "",
+      "useCaseInput": true
+    }
+  ],
+  "vectorizeNode_177": [
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "Select the model to convert the texts into vector representations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+export const references = {
+  constitutions: {
+    default: "@constitutions/default.md"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
@@ -121,8 +232,9 @@ export default {
       }
     }
   }
-],
-  edges: [
+];
+
+export const edges = [
   {
     "id": "codeNode_331-vectorizeNode_177",
     "source": "codeNode_331",
@@ -171,5 +283,6 @@ export default {
     "targetHandle": "top",
     "type": "defaultEdge"
   }
-],
-};
+];
+
+export default { meta, inputs, references, nodes, edges };

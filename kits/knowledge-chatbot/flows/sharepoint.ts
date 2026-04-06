@@ -1,8 +1,107 @@
-// Flow definition for sharepoint
-// When @lamatic/sdk ships: import { defineFlow, nodes, edges } from '@lamatic/sdk'
+// Flow: sharepoint
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
-export default {
-  nodes: [
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "Sharepoint",
+  "description": "Sharepoint Indexation",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "IndexNode_622": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Vector DB",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database where the vectors will be indexed.",
+      "defaultValue": ""
+    }
+  ],
+  "triggerNode_1": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Onedrive authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    },
+    {
+      "name": "site_url",
+      "type": "resourceLocator",
+      "label": "Sharepoint Site",
+      "modes": [
+        {
+          "name": "list",
+          "type": "select",
+          "label": "From List",
+          "required": true,
+          "defaultValue": ""
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "label": "By URL",
+          "required": true,
+          "defaultValue": ""
+        }
+      ],
+      "required": true,
+      "isPrivate": true,
+      "description": "URL of SharePoint site to search for files. Example: https://lamatic.sharepoint.com/sites/test",
+      "placeholder": "https://lamatic.sharepoint.com/sites/test",
+      "typeOptions": {
+        "loadOptionsMethod": "getSiteUrls"
+      },
+      "airbyteInputName": "source/configuration.site_url",
+      "defaultModeValue": {
+        "mode": "list",
+        "value": ""
+      }
+    }
+  ],
+  "vectorizeNode_639": [
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "Select the model to convert the texts into vector representations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+export const references = {
+  constitutions: {
+    default: "@constitutions/default.md"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
@@ -154,8 +253,9 @@ export default {
       }
     }
   }
-],
-  edges: [
+];
+
+export const edges = [
   {
     "id": "variablesNode_289-chunkNode_318",
     "source": "variablesNode_289",
@@ -212,5 +312,6 @@ export default {
     "targetHandle": "top",
     "type": "defaultEdge"
   }
-],
-};
+];
+
+export default { meta, inputs, references, nodes, edges };

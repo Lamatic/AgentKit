@@ -1,8 +1,78 @@
-// Flow definition for crawling-indexation
-// When @lamatic/sdk ships: import { defineFlow, nodes, edges } from '@lamatic/sdk'
+// Flow: crawling-indexation
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
-export default {
-  nodes: [
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "Crawling Indexation",
+  "description": "Crawling Indexation",
+  "tags": [],
+  "testInput": {
+    "urls": [
+      "https://lamatic.ai/docs"
+    ]
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "vectorNode_157": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Vector DB",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database where the action will be performed.",
+      "defaultValue": ""
+    }
+  ],
+  "firecrawlNode_785": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for crawler authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    }
+  ],
+  "vectorizeNode_314": [
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "Select the model to convert the texts into vector representations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+export const references = {
+  constitutions: {
+    default: "@constitutions/default.md"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
@@ -237,8 +307,9 @@ export default {
       }
     }
   }
-],
-  edges: [
+];
+
+export const edges = [
   {
     "id": "triggerNode_1-firecrawlNode_785",
     "source": "triggerNode_1",
@@ -355,5 +426,6 @@ export default {
     "targetHandle": "from-trigger",
     "type": "responseEdge"
   }
-],
-};
+];
+
+export default { meta, inputs, references, nodes, edges };

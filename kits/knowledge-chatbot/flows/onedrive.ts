@@ -1,8 +1,94 @@
-// Flow definition for onedrive
-// When @lamatic/sdk ships: import { defineFlow, nodes, edges } from '@lamatic/sdk'
+// Flow: onedrive
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
-export default {
-  nodes: [
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "Onedrive",
+  "description": "Onedrive",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "IndexNode_622": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Vector DB",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database where the vectors will be indexed.",
+      "defaultValue": ""
+    }
+  ],
+  "triggerNode_1": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Onedrive authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    },
+    {
+      "name": "drive_name",
+      "type": "text",
+      "label": "Drive Name",
+      "required": true,
+      "isPrivate": true,
+      "description": "Name of the Microsoft OneDrive drive where the file(s) exist. For most accounts, this is \"OneDrive\".",
+      "defaultValue": "OneDrive",
+      "airbyteInputName": "source/configuration.drive_name"
+    },
+    {
+      "name": "folder_path",
+      "type": "text",
+      "label": "Folder Path",
+      "required": true,
+      "isPrivate": true,
+      "description": "Path to a specific folder within the drives to search for files. Leave \".\" to search all folders of the drives. This does not apply to shared items. For a folder absolute path, use the format \"./FolderName/SubfolderName\"",
+      "defaultValue": ".",
+      "airbyteInputName": "source/configuration.folder_path"
+    }
+  ],
+  "vectorizeNode_639": [
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "Select the model to convert the texts into vector representations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+export const references = {
+  constitutions: {
+    default: "@constitutions/default.md"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
@@ -153,8 +239,9 @@ export default {
       }
     }
   }
-],
-  edges: [
+];
+
+export const edges = [
   {
     "id": "variablesNode_289-chunkNode_318",
     "source": "variablesNode_289",
@@ -211,5 +298,6 @@ export default {
     "targetHandle": "top",
     "type": "defaultEdge"
   }
-],
-};
+];
+
+export default { meta, inputs, references, nodes, edges };
