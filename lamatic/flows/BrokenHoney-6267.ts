@@ -1,35 +1,6 @@
 const flowConfig = {
   "id": "2bda5969-ed9d-4531-b615-47152801f746",
-  "name": "1 - Getting Started",
-  "edges": [
-    {
-      "id": "triggerNode_1-LLMNode_567",
-      "type": "defaultEdge",
-      "source": "triggerNode_1",
-      "target": "LLMNode_567",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
-    {
-      "id": "LLMNode_567-responseNode_triggerNode_1",
-      "type": "defaultEdge",
-      "source": "LLMNode_567",
-      "target": "responseNode_triggerNode_1",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
-    {
-      "id": "response-responseNode_triggerNode_1",
-      "type": "responseEdge",
-      "source": "triggerNode_1",
-      "target": "responseNode_triggerNode_1",
-      "sourceHandle": "to-response",
-      "targetHandle": "from-trigger"
-    }
-  ],
-  "status": "active",
-  "created_at": "2026-04-06T00:47:37.303791+00:00",
-  "trigger_id": null,
+  "name": "Resume Analyzer",
   "nodes": [
     {
       "id": "sticky-gm21yx26f",
@@ -285,7 +256,35 @@ const flowConfig = {
       },
       "selected": false
     }
-  ]
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_567",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_567",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_567-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_567",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ],
+  "status": "active",
+  "created_at": "2026-04-06T00:47:37.303791+00:00"
 };
 
 export async function getNodesAndEdges(): Promise<{
