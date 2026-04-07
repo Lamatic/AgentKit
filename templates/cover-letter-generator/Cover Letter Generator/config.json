@@ -1,0 +1,119 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"resume\": \"string\",\n  \"job_description\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_160",
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_160",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "201de7d9-b31f-4065-bbae-3363983ce3bf",
+              "role": "user",
+              "content": "Resume: {{triggerNode_1.output.resume}}\nJob Description: {{triggerNode_1.output.job_description}}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You will be provided with resume content and a job description. Write a tailored professional cover letter that matches the candidate's background to the role. Emphasize relevant skills, experiences, and motivation. Keep it polished, specific, and ready to send."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "gpt-4o-mini",
+              "credentialId": "fed20872-f157-4e85-95b2-b7fc96a3af3b",
+              "provider_name": "openai",
+              "credential_name": "OpenAi Key"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": true
+    },
+    {
+      "id": "graphqlResponseNode_651",
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"summary\": \"{{LLMNode_160.output.generatedResponse}}\"\n}"
+        }
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "LLMNode_160-graphqlResponseNode_651",
+      "type": "defaultEdge",
+      "source": "LLMNode_160",
+      "target": "graphqlResponseNode_651",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "triggerNode_1-LLMNode_160-871",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_160",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-graphqlResponseNode_651",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_651",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
