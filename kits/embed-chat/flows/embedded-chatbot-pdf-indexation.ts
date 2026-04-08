@@ -48,16 +48,19 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "embedded_chatbot_pdf_indexation_api_request": "@triggers/webhooks/embedded-chatbot-pdf-indexation_api-request.ts"
+  "scripts": {
+    "embedded_chatbot_pdf_indexation_extract_text": "@scripts/embedded-chatbot-pdf-indexation_extract-text.ts",
+    "embedded_chatbot_pdf_indexation_get_chunks": "@scripts/embedded-chatbot-pdf-indexation_get-chunks.ts",
+    "embedded_chatbot_pdf_indexation_transform_metadata": "@scripts/embedded-chatbot-pdf-indexation_transform-metadata.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "extractFromFileNode_944",
@@ -104,7 +107,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "id": "codeNode_315",
-        "code": "output = {{extractFromFileNode_944.output.files}}[0]['data'][0]",
+        "code": "@scripts/embedded-chatbot-pdf-indexation_extract-text.ts",
         "nodeName": "Extract Text"
       }
     },
@@ -156,7 +159,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "id": "codeNode_254",
-        "code": "let docs =  {{chunkNode_318.output.chunks}}\n\nlet outputDocs = docs.map(doc => doc.pageContent);\nconsole.log(outputDocs)\noutput = outputDocs;",
+        "code": "@scripts/embedded-chatbot-pdf-indexation_get-chunks.ts",
         "nodeName": "Get Chunks"
       }
     },
@@ -201,7 +204,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "id": "codeNode_507",
-        "code": "let vectors = {{vectorizeNode_639.output.vectors}}\nlet metadataProps = [];\nlet texts = {{codeNode_254.output}};\n\nfor (const idx in vectors) {\n    let metadata = {}\n    metadata[\"content\"] = texts[idx];\n    metadata[\"title\"] = {{variablesNode_954.output.title}};\n    metadata[\"source\"] = {{variablesNode_954.output.source}};\n    metadataProps.push(metadata);\n}\n\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}",
+        "code": "@scripts/embedded-chatbot-pdf-indexation_transform-metadata.ts",
         "nodeName": "Transform Metadata"
       }
     },
@@ -274,8 +277,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/embedded-chatbot-pdf-indexation_api-request.ts",
-        "advance_schema": "@triggers/webhooks/embedded-chatbot-pdf-indexation_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },

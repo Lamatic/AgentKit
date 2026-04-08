@@ -75,16 +75,18 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "embedded_search_websites_indexation_api_request": "@triggers/webhooks/embedded-search-websites-indexation_api-request.ts"
+  "scripts": {
+    "embedded_search_websites_indexation_extract_chunks": "@scripts/embedded-search-websites-indexation_extract-chunks.ts",
+    "embedded_search_websites_indexation_transform_metadata": "@scripts/embedded-search-websites-indexation_transform-metadata.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -93,8 +95,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/embedded-search-websites-indexation_api-request.ts",
-        "advance_schema": "@triggers/webhooks/embedded-search-websites-indexation_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -298,7 +300,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "let docs = {{ chunkNode_968.output.chunks }};\n\nlet outputDocs = docs.map((doc) => doc.pageContent)\n\nreturn outputDocs",
+        "code": "@scripts/embedded-search-websites-indexation_extract-chunks.ts",
         "nodeName": "Extract Chunks"
       }
     },
@@ -343,7 +345,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "let vectors = {{ vectorizeNode_314.output.vectors }};\nlet metadataProps = [];\nlet texts = {{codeNode_794.output}};\n\nfor (const idx in vectors) {\n  let metadata = {}\n  metadata[\"content\"] = texts[idx];\n  metadata[\"title\"] = {{variablesNode_658.output.title}};\n  metadata[\"description\"] = {{variablesNode_658.output.description}};\n  metadata[\"source\"] = {{variablesNode_658.output.source}};\n  metadataProps.push(metadata)\n};\n\noutput = { \"metadata\": metadataProps, \"vectors\": vectors }",
+        "code": "@scripts/embedded-search-websites-indexation_transform-metadata.ts",
         "nodeName": "Transform Metadata"
       }
     },

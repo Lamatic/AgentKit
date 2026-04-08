@@ -22,6 +22,7 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -34,7 +35,7 @@ export const references = {
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",

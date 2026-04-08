@@ -65,16 +65,20 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "embedded_search_search_collate_results": "@scripts/embedded-search-search_collate-results.ts"
   },
   "triggers": {
     "embedded_search_search_search_widget": "@triggers/widgets/embedded-search-search_search-widget.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -82,7 +86,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "searchTriggerNode",
       "values": {
-        "search": "@triggers/widgets/embedded-search-search_search-widget.ts",
+        "search": "",
         "domains": "@triggers/widgets/embedded-search-search_search-widget.ts",
         "nodeName": "Search Widget",
         "searchConfig": "@triggers/widgets/embedded-search-search_search-widget.ts"
@@ -136,7 +140,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const pdfDBSearchResults = {{searchNode_842.output.searchResults}};\nconst websiteDBSearchResults = {{searchNode_145.output.searchResults}};\n\nconst pdfAverage = pdfDBSearchResults.length > 0 \n  ? pdfDBSearchResults.reduce((sum, doc) => sum + (doc._additional.certainty || 0), 0) / pdfDBSearchResults.length \n  : 0;\n\nconst websiteAverage = websiteDBSearchResults.length > 0 \n  ? websiteDBSearchResults.reduce((sum, doc) => sum + (doc._additional.certainty || 0), 0) / websiteDBSearchResults.length \n  : 0;\n\nconst searchResults = pdfAverage >= websiteAverage ? pdfDBSearchResults : websiteDBSearchResults;\n\nconst updatedResults = searchResults.map(doc => ({\n  title: doc.title,       \n  content: doc.content,\n  type: doc.source\n}));\n\noutput = {\"results\": updatedResults};",
+        "code": "@scripts/embedded-search-search_collate-results.ts",
         "nodeName": "Collate Results"
       }
     },

@@ -1,5 +1,4 @@
 // Flow: postgres
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -106,14 +105,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "postgres_transform_metadata": "@scripts/postgres_transform-metadata.ts",
+    "postgres_row_chunking": "@scripts/postgres_row-chunking.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -162,7 +166,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Transform Metadata",
-        "code": "let vectors = {{vectorizeNode_177.output.vectors}};\nlet metadataProps = [];\n\nlet metadata = {}\nmetadata[\"title\"] = {{ variablesNode_543.output.title }};\nmetadata[\"content\"] = {{ codeNode_331.output }}[0]\nmetadata[\"source\"] = {{ variablesNode_543.output.source }};\n\nmetadataProps.push(metadata)\n\nconsole.log(\"finaldata:\", {\"metadata\": metadataProps, \"vectors\": vectors});\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        "code": "@scripts/postgres_transform-metadata.ts"
       }
     }
   },
@@ -213,7 +217,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Row Chunking",
-        "code": "function objectToString(obj) {\n  return Object.entries(obj)\n    .map(([key, value]) => `${key}: ${value}`)\n    .join(\", \");\n}\n\noutput = [objectToString({{ triggerNode_1.output }})]"
+        "code": "@scripts/postgres_row-chunking.ts"
       }
     }
   },

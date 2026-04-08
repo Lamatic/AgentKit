@@ -1,8 +1,7 @@
-// Trigger config: Search Widget (widget)
+// Widget settings: Search Widget (search)
 // Flow: search-widget
-// Type: searchTriggerNode
+// Widget UI/appearance — domains, colors, layout.
 
 export default {
-  "domains": [],
-  "search": ""
+  "domains": []
 };

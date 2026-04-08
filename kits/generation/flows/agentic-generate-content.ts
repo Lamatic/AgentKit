@@ -84,6 +84,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -91,19 +92,24 @@ export const references = {
   "prompts": {
     "text_system": "@prompts/text-system.md",
     "json_system": "@prompts/json-system.md",
-    "generate_image_system": "@prompts/generate-image-system.md"
+    "generate_image_system": "@prompts/generate-image-system.md",
+    "agentic_generate_content_text_user": "@prompts/agentic-generate-content_text_user.md",
+    "agentic_generate_content_json_user": "@prompts/agentic-generate-content_json_user.md",
+    "agentic_generate_content_generate_image_user": "@prompts/agentic-generate-content_generate-image_user.md"
   },
   "modelConfigs": {
     "agentic_generate_content_text": "@model-configs/agentic-generate-content_text.ts",
     "agentic_generate_content_json": "@model-configs/agentic-generate-content_json.ts",
     "agentic_generate_content_generate_image": "@model-configs/agentic-generate-content_generate-image.ts"
   },
-  "triggers": {
-    "agentic_generate_content_api_request": "@triggers/webhooks/agentic-generate-content_api-request.ts"
+  "scripts": {
+    "agentic_generate_content_invalid_mode": "@scripts/agentic-generate-content_invalid-mode.ts",
+    "agentic_generate_content_parse_json": "@scripts/agentic-generate-content_parse-json.ts",
+    "agentic_generate_content_finalise_output": "@scripts/agentic-generate-content_finalise-output.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -113,8 +119,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/agentic-generate-content_api-request.ts",
-        "advance_schema": "@triggers/webhooks/agentic-generate-content_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -179,7 +185,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = \"Invalid Mode of Request\";",
+        "code": "@scripts/agentic-generate-content_invalid-mode.ts",
         "nodeName": "Invalid Mode"
       }
     },
@@ -211,7 +217,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER INSTRUCTION : {{triggerNode_1.output.instructions}}"
+            "content": "@prompts/agentic-generate-content_text_user.md"
           }
         ],
         "memories": "@model-configs/agentic-generate-content_text.ts",
@@ -250,7 +256,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "GENERATE A JSON FOR THIS USER REQUEST : {{triggerNode_1.output.instructions}}"
+            "content": "@prompts/agentic-generate-content_json_user.md"
           }
         ],
         "memories": "@model-configs/agentic-generate-content_json.ts",
@@ -279,7 +285,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "let answer = {};\nanswer = JSON.parse({{LLMNode_255.output.generatedResponse}});\noutput = answer;",
+        "code": "@scripts/agentic-generate-content_parse-json.ts",
         "nodeName": "Parse JSON"
       }
     },
@@ -310,7 +316,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "CREATE AN IMAGE FOR THIS INSTRUCTION : {{triggerNode_1.output.instructions}}"
+            "content": "@prompts/agentic-generate-content_generate-image_user.md"
           }
         ],
         "nodeName": "Generate Image",
@@ -335,7 +341,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "let answer = \"\";\n\nif({{LLMNode_430.output.generatedResponse}}){\n  answer = {{LLMNode_430.output.generatedResponse}};\n}\nelse if({{ImageGenNode_535.output.imageUrl}}){\n  answer = {{ImageGenNode_535.output.imageUrl}};\n}\nelse if({{LLMNode_255.output.generatedResponse}}){\n  answer = {{codeNode_904.output}};\n}\n\noutput = answer;",
+        "code": "@scripts/agentic-generate-content_finalise-output.ts",
         "nodeName": "Finalise Output"
       }
     },

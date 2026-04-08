@@ -2,7 +2,7 @@
 // Flow: blog-writer-agent
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/blog-writer-agent_generate-text.ts",
+  "memories": "@model-configs/blog-writer-agent_generate-text.ts",
+  "messages": "@model-configs/blog-writer-agent_generate-text.ts"
 };

@@ -2,7 +2,7 @@
 // Flow: article-summariser
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/article-summariser_generate-text.ts",
+  "memories": "@model-configs/article-summariser_generate-text.ts",
+  "messages": "@model-configs/article-summariser_generate-text.ts"
 };

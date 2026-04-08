@@ -1,5 +1,4 @@
 // Flow: s3
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -90,14 +89,20 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "s3_extract_text": "@scripts/s3_extract-text.ts",
+    "s3_get_chunks": "@scripts/s3_get-chunks.ts",
+    "s3_transform_metadata": "@scripts/s3_transform-metadata.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -179,7 +184,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Extract Text",
-        "code": "output = {{extractFromFileNode_944.output.files}}[0]['data'][0]"
+        "code": "@scripts/s3_extract-text.ts"
       }
     }
   },
@@ -217,7 +222,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Get Chunks",
-        "code": "let docs =  {{chunkNode_318.output.chunks}}\n\nlet outputDocs = docs.map(doc => doc.pageContent);\nconsole.log(outputDocs)\noutput = outputDocs;"
+        "code": "@scripts/s3_get-chunks.ts"
       }
     }
   },
@@ -248,7 +253,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Transform Metadata",
-        "code": "let vectors = {{vectorizeNode_639.output.vectors}}\nlet metadataProps = [];\nlet texts = {{codeNode_254.output}};\n\nfor (const idx in vectors) {\n    let metadata = {}\n    metadata[\"content\"] = texts[idx];\n    metadata[\"title\"] = {{variablesNode_954.output.title}};\n    metadata[\"source\"] = {{variablesNode_954.output.source}};\n    metadataProps.push(metadata);\n}\n\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        "code": "@scripts/s3_transform-metadata.ts"
       }
     }
   },

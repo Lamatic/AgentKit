@@ -89,6 +89,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -96,19 +97,19 @@ export const references = {
   "prompts": {
     "intent_parser_system": "@prompts/intent-parser-system.md",
     "design_spec_builder_system": "@prompts/design-spec-builder-system.md",
-    "poster_code_generation_system": "@prompts/poster-code-generation-system.md"
+    "poster_code_generation_system": "@prompts/poster-code-generation-system.md",
+    "poster_generator_intent_parser_user": "@prompts/poster-generator_intent-parser_user.md",
+    "poster_generator_design_spec_builder_user": "@prompts/poster-generator_design-spec-builder_user.md",
+    "poster_generator_poster_code_generation_user": "@prompts/poster-generator_poster-code-generation_user.md"
   },
   "modelConfigs": {
     "poster_generator_intent_parser": "@model-configs/poster-generator_intent-parser.ts",
     "poster_generator_design_spec_builder": "@model-configs/poster-generator_design-spec-builder.ts",
     "poster_generator_poster_code_generation": "@model-configs/poster-generator_poster-code-generation.ts"
-  },
-  "triggers": {
-    "poster_generator_api_request": "@triggers/webhooks/poster-generator_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -121,8 +122,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/poster-generator_api-request.ts",
-        "advance_schema": "@triggers/webhooks/poster-generator_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -157,7 +158,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "Transform the following raw poster idea into a fully resolved creative brief.\nUSER IDEA: {{triggerNode_1.output.user_input}}\nResolve every aspect completely. For any gap the user left open, make adecisive, well-reasoned creative choice. Think about:\nWhat is this poster actually for? (event, product, cause, art, announcement)\nWho will see it and where? (street, social media, gallery, venue wall)\nWhat is the single most important thing it must communicate?\nWhat should someone feel the instant they see it?\nWhat visual world does it belong to? (era, movement, aesthetic lineage)\nWhat words should be on it? Write the actual headline and supporting copy.\nBe decisive. Be specific. Be opinionated. A vague brief produces a genericposter. Fill every gap with intention."
+            "content": "@prompts/poster-generator_intent-parser_user.md"
           }
         ],
         "memories": "@model-configs/poster-generator_intent-parser.ts",
@@ -198,7 +199,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "Produce a complete, exhaustive visual design specification from thisfully resolved creative brief.\nCREATIVE BRIEF:\n{{InstructorLLMNode_371.output.generatedResponse}}\nFor every decision, go one level deeper than obvious. Don't just say\"bold sans-serif headline\" — name the exact font, size, weight, tracking,color, and position. Don't just say \"decorative geometric shapes\" — describeeach shape's geometry, color, size, position, and animation behavior.\nThe developer building this has no design judgment — they will implementexactly what you specify and nothing more. Make every detail explicit."
+            "content": "@prompts/poster-generator_design-spec-builder_user.md"
           }
         ],
         "memories": "@model-configs/poster-generator_design-spec-builder.ts",
@@ -239,7 +240,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "Build a complete, production-quality, self-contained HTML poster from\nthis exhaustive design specification.\nDESIGN SPECIFICATION:{{InstructorLLMNode_121.output.generatedResponse}}\nIMPLEMENTATION CHECKLIST — verify each before finalising:\n[ ] Poster dimensions match spec exactly\n[ ] All Google Fonts from spec are @imported and applied\n[ ] All hex colors from color_palette are used as specified\n[ ] Every content_block text appears verbatim at the correct position\n[ ] Every decorative_element from the spec is drawn as an inline SVG\n[ ] Every animation from the animations array is implemented\n[ ] No external image references anywhere in the file\n[ ] Poster is centered on the page with appropriate body background\n[ ] All text is legible — sufficient contrast, correct z-layer\n[ ] File is a single complete HTML document — nothing missing\nPush the visual quality. The spec is the floor, not the ceiling.\nIf the spec says \"starburst\", draw a beautiful starburst with considered\nproportions and stroke weight. If it says \"geometric border\", make it\nprecise and elegant. Craft every element as if it will be printed large."
+            "content": "@prompts/poster-generator_poster-code-generation_user.md"
           }
         ],
         "memories": "@model-configs/poster-generator_poster-code-generation.ts",

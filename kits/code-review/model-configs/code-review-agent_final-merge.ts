@@ -2,8 +2,8 @@
 // Flow: code-review-agent
 
 export default {
-  "generativeModelName": "llama-3.3-70b-versatile",
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/code-review-agent_final-merge.ts",
+  "memories": "@model-configs/code-review-agent_final-merge.ts",
+  "messages": "@model-configs/code-review-agent_final-merge.ts",
+  "attachments": "@model-configs/code-review-agent_final-merge.ts"
 };

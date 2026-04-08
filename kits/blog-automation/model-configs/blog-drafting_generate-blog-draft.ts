@@ -2,5 +2,5 @@
 // Flow: blog-drafting
 
 export default {
-  "generativeModelName": ""
+  "generativeModelName": "@model-configs/blog-drafting_generate-blog-draft.ts"
 };

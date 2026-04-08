@@ -1,8 +1,7 @@
-// Trigger config: Chat Widget (widget)
+// Widget settings: Chat Widget (chat)
 // Flow: rag-chatbot
-// Type: chatTriggerNode
+// Widget UI/appearance — domains, colors, layout.
 
 export default {
-  "domains": [],
-  "chat": ""
+  "domains": []
 };

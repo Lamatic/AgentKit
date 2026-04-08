@@ -1,0 +1,1 @@
+GIVE ME AN IMAGE OF THIS REQUEST : {{LLMNode_608.output.generatedResponse}}

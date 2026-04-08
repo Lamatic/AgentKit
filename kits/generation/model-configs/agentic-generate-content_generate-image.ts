@@ -2,5 +2,5 @@
 // Flow: agentic-generate-content
 
 export default {
-  "imageGenModelName": ""
+  "imageGenModelName": "@model-configs/agentic-generate-content_generate-image.ts"
 };

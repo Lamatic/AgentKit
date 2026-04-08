@@ -2,7 +2,7 @@
 // Flow: webpage-qa
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/webpage-qa_generate-text.ts",
+  "memories": "@model-configs/webpage-qa_generate-text.ts",
+  "messages": "@model-configs/webpage-qa_generate-text.ts"
 };

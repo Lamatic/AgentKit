@@ -56,16 +56,14 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
-  },
-  "triggers": {
-    "blog_publish_api_request": "@triggers/webhooks/blog-publish_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_3",
@@ -74,8 +72,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/blog-publish_api-request.ts",
-        "advance_schema": "@triggers/webhooks/blog-publish_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },

@@ -2,8 +2,8 @@
 // Flow: poster-generator
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/poster-generator_intent-parser.ts",
+  "memories": "@model-configs/poster-generator_intent-parser.ts",
+  "messages": "@model-configs/poster-generator_intent-parser.ts",
+  "attachments": "@model-configs/poster-generator_intent-parser.ts"
 };

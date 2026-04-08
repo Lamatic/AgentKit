@@ -2,10 +2,10 @@
 // Flow: search-widget
 
 export default {
-  "generativeModelName": {},
-  "embeddingModelName": {},
-  "limit": 5,
-  "certainty": "0.5",
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/search-widget_rag.ts",
+  "embeddingModelName": "@model-configs/search-widget_rag.ts",
+  "limit": "@model-configs/search-widget_rag.ts",
+  "certainty": "@model-configs/search-widget_rag.ts",
+  "memories": "@model-configs/search-widget_rag.ts",
+  "messages": "@model-configs/search-widget_rag.ts"
 };

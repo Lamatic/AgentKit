@@ -2,7 +2,7 @@
 // Flow: document-chatbot
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/document-chatbot_generate-text.ts",
+  "memories": "@model-configs/document-chatbot_generate-text.ts",
+  "messages": "@model-configs/document-chatbot_generate-text.ts"
 };

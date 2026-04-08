@@ -1,5 +1,4 @@
 // Flow: gsheet
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -117,14 +116,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "gsheet_transform_metadata": "@scripts/gsheet_transform-metadata.ts",
+    "gsheet_row_chunking": "@scripts/gsheet_row-chunking.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -175,7 +179,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Transform Metadata",
-        "code": "let vectors = {{vectorizeNode_177.output.vectors}};\nlet metadataProps = [];\n\nlet metadata = {}\nmetadata[\"title\"] = {{ variablesNode_305.output.title }};\nmetadata[\"content\"] = {{ codeNode_331.output }}[0]\nmetadata[\"source\"] = {{ variablesNode_305.output.source }};\n\nmetadataProps.push(metadata)\n\nconsole.log(\"finaldata:\", {\"metadata\": metadataProps, \"vectors\": vectors});\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        "code": "@scripts/gsheet_transform-metadata.ts"
       }
     }
   },
@@ -226,7 +230,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Row Chunking",
-        "code": "function objectToString(obj) {\n  return Object.entries(obj)\n    .map(([key, value]) => `${key}: ${value}`)\n    .join(\", \");\n}\n\noutput = [objectToString({{ triggerNode_1.output }})]"
+        "code": "@scripts/gsheet_row-chunking.ts"
       }
     }
   },

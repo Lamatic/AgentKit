@@ -2,8 +2,8 @@
 // Flow: assistant-grammer-correction
 
 export default {
-  "generativeModelName": "",
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/assistant-grammer-correction_generate-json.ts",
+  "memories": "@model-configs/assistant-grammer-correction_generate-json.ts",
+  "messages": "@model-configs/assistant-grammer-correction_generate-json.ts",
+  "attachments": "@model-configs/assistant-grammer-correction_generate-json.ts"
 };

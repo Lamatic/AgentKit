@@ -22,6 +22,7 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -32,15 +33,12 @@ export const references = {
   "modelConfigs": {
     "currency_converter_generate_text": "@model-configs/currency-converter_generate-text.ts"
   },
-  "triggers": {
-    "currency_converter_api_request": "@triggers/webhooks/currency-converter_api-request.ts"
-  },
   "tools": {
     "currency_converter_generate_text_tools": "@tools/currency-converter_generate-text_tools.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -54,8 +52,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/currency-converter_api-request.ts",
-        "advance_schema": "@triggers/webhooks/currency-converter_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       }
     }
   },

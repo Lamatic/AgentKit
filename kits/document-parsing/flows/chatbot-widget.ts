@@ -65,6 +65,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -81,7 +82,7 @@ export const references = {
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -89,32 +90,10 @@ export const nodes = [
       "nodeId": "chatTriggerNode",
       "values": {
         "id": "triggerNode_1",
-        "chat": "@triggers/widgets/chatbot-widget_chat-widget.ts",
+        "chat": "",
         "domains": "@triggers/widgets/chatbot-widget_chat-widget.ts",
         "nodeName": "Chat Widget",
-        "chatConfig": {
-          "botName": "Lamatic Bot",
-          "imageUrl": "https://api.lamatic.ai/storage/v1/object/public/widget-avatar/LamaticShowcase/UrlScraperChatbot866/2bf0df6e-04b0-4392-8100-4c8a4d5eeb09/1749111185167.png",
-          "position": "right",
-          "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
-          "displayMode": "dialog",
-          "placeholder": "Compose your message",
-          "suggestions": [],
-          "errorMessage": "Oops! Something went wrong. Please try again.",
-          "hideBranding": false,
-          "primaryColor": "#4b65d9",
-          "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
-          "headerTextColor": "#FFFFFF",
-          "showEmojiButton": true,
-          "suggestionBgColor": "#f1f5f9",
-          "showAdvancedColors": true,
-          "userMessageBgColor": "#faf5ff",
-          "agentMessageBgColor": "#f1f5f9",
-          "suggestionTextColor": "#334155",
-          "userMessageTextColor": "#092395",
-          "agentMessageTextColor": "#334155"
-        }
+        "chatConfig": "@triggers/widgets/chatbot-widget_chat-widget.ts"
       },
       "trigger": true
     },

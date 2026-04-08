@@ -89,6 +89,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -99,13 +100,10 @@ export const references = {
   },
   "modelConfigs": {
     "classifier_generate_text": "@model-configs/classifier_generate-text.ts"
-  },
-  "triggers": {
-    "classifier_webhook": "@triggers/webhooks/classifier_webhook.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",

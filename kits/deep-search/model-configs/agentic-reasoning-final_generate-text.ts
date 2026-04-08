@@ -2,8 +2,8 @@
 // Flow: agentic-reasoning-final
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/agentic-reasoning-final_generate-text.ts",
+  "memories": "@model-configs/agentic-reasoning-final_generate-text.ts",
+  "messages": "@model-configs/agentic-reasoning-final_generate-text.ts",
+  "attachments": "@model-configs/agentic-reasoning-final_generate-text.ts"
 };

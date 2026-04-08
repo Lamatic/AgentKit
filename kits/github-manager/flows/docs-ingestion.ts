@@ -57,6 +57,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -64,13 +65,10 @@ export const references = {
   "scripts": {
     "docs_ingestion_extract_chunks": "@scripts/docs-ingestion_extract-chunks.ts",
     "docs_ingestion_transform_metadata": "@scripts/docs-ingestion_transform-metadata.ts"
-  },
-  "triggers": {
-    "docs_ingestion_api_request": "@triggers/webhooks/docs-ingestion_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -79,8 +77,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/docs-ingestion_api-request.ts",
-        "advance_schema": "@triggers/webhooks/docs-ingestion_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },

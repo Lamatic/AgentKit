@@ -2,7 +2,7 @@
 // Flow: json-summariser
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/json-summariser_generate-text.ts",
+  "memories": "@model-configs/json-summariser_generate-text.ts",
+  "messages": "@model-configs/json-summariser_generate-text.ts"
 };

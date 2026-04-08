@@ -2,10 +2,10 @@
 // Flow: chatbot-widget
 
 export default {
-  "generativeModelName": "",
-  "embeddingModelName": "",
-  "limit": 20,
-  "certainty": "0.5",
-  "memories": "[]",
-  "messages": "{{triggerNode_1.output.chatHistory}}"
+  "generativeModelName": "@model-configs/chatbot-widget_rag.ts",
+  "embeddingModelName": "@model-configs/chatbot-widget_rag.ts",
+  "limit": "@model-configs/chatbot-widget_rag.ts",
+  "certainty": "@model-configs/chatbot-widget_rag.ts",
+  "memories": "@model-configs/chatbot-widget_rag.ts",
+  "messages": "@model-configs/chatbot-widget_rag.ts"
 };
