@@ -1,0 +1,9 @@
+{
+  "name": "Meeting Intelligence Chatbot",
+  "description": "AI-powered flow that transforms meeting transcripts into structured insights (summary, action items, risks, next steps, follow-up email) and delivers them to Slack via webhook.",
+  "tags": ["meeting", "intelligence", "slack", "llm", "summarization"],
+  "testInput": "Team discussed Q4 product launch. Rahul will handle frontend delivery by Friday. Priya is responsible for backend APIs. Marketing team will prepare campaign assets. Budget concerns were raised. Final launch deadline is next Friday. Weekly sync scheduled every Tuesday.",
+  "githubUrl": "https://github.com/vijayshreepathak/AgentKit/tree/feat/meeting-intelligence-agent/kits/embed/meeting-intelligence",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

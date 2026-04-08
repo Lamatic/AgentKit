@@ -19,7 +19,7 @@
 
 <h2 align="center">Stack to Build Reliable AI Agents</h2>
   <br/>
-  <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
+  <h3 align="center">Opensource SDK • Collaborative Studio • Serverless Deployment</h3>
 <p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
 </p>
 </p>
@@ -73,29 +73,27 @@ Deploy intelligent AI agents in minutes with enterprise-grade security, scalable
 
 ### 📦 Available Kits
 
-Explore ready-to-deploy agent kits and templates built on Lamatic’s AgentKit framework.  
+Explore ready-to-deploy agent kits and templates built on Lamatic's AgentKit framework.  
 Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
 
 | Kit Name | Description | Status | Live Demo | Path |
 |-----------|--------------|--------|--------------|------|
-| **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
+| **🤖 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
 | **Deep Search Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/agentic/deep-search`](./kits/agentic/deep-search) |
 | **Generation Agent** | A Next.js starter kit for generating text/json/image content using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app) | [`/kits/agentic/generation`](./kits/agentic/generation) |
-||
-| **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
+| **⚙️ Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
-||
 | **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
-| **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
-||
+| **Grammar Assistant** | A Chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
 | **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/kits/embed`](./kits/embed) |
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/chat`](./kits/embed/chat) |
 | **Search** | A Next.js starter kit for searchbot Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/search`](./kits/embed/search) |
 | **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/kits/embed/sheets`](./kits/embed/sheets) |
+| **Meeting Intelligence Copilot** | Transforms raw meeting transcripts into structured insights (summary, action items, risks) and delivers them to Slack via an embedded Lamatic chat widget. | Available | | [`/kits/embed/meeting-intelligence`](./kits/embed/meeting-intelligence) |
 
 > 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
 
-## 🏛️ Architecture Overview
+## 🏗️ Architecture Overview
 
 - **Agent Engine**: Multi-agent system enabling advanced reasoning and planning
 - **Templates & Kits**: Pre-designed packs for popular use-cases and enterprise workflows
@@ -160,7 +158,7 @@ We welcome your ideas and improvements! See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ***
 
-## ⭐ Related Links
+## 🔗 Related Links
 
 - [Lamatic.ai](https://lamatic.ai)
 - [Lamatic University](https://lamatic.ai/university)

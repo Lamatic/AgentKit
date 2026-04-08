@@ -1,4 +1,4 @@
-# Agent Kit Embedded Chat by Lamatic.ai
+﻿# Agent Kit Embedded Chat by Lamatic.ai
 <p align="center">
   <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmFmdXh4aHB3bXZidmg1dDM1azhtY2xheTl6ZnUzbHdsYXo1OXVvcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6hnrR2Vk2PLByiWKbL/giphy.gif"/>
 </p>
@@ -22,8 +22,8 @@ Before running this project, you must build and deploy the flow in Lamatic, then
 
 Pre: Build in Lamatic
 1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow” and select "Templates" 
+2. Create a project (if you donΓÇÖt have one yet)  
+3. Click ΓÇ£+ New FlowΓÇ¥ and select "Templates" 
 4. Select the 'Embed Chat' agent kit
 5. Configure providers/tools/inputs as prompted  
 6. Deploy the kit in Lamatic and obtain your .env keys
@@ -35,22 +35,22 @@ Post: Wire into this repo
    - npm install
    - npm run dev
 3. Deploy (Vercel recommended):
-   - Import your repo, set the project’s Root Directory (if applicable)
+   - Import your repo, set the projectΓÇÖs Root Directory (if applicable)
    - Add env vars in Vercel (same as your .env)
    - Deploy and test your live URL
 
 Notes
-- Coming soon: single-click export and “Connect Git” in Lamatic to push config directly to your repo.
+- Coming soon: single-click export and ΓÇ£Connect GitΓÇ¥ in Lamatic to push config directly to your repo.
 
 ---
 
-## 🔑 Setup
+## ≡ƒöæ Setup
 ## Required Keys and Config
 
-You’ll need two things to run this project locally:  
+YouΓÇÖll need two things to run this project locally:  
 
-1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
-2. Vercel Blob Token – Required for uploaded file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
+1. **.env Keys** ΓåÆ get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
+2. Vercel Blob Token ΓÇô Required for uploaded file storage. Each deployment needs its own Blob token. You can generate it from your Vercel project after the first deploy (see instructions below).
 
 
 | Item              | Purpose                                      | Where to Get It                                 |
@@ -86,7 +86,7 @@ npm run dev
 
 ### 3. Deploy Instructions (Vercel)
 
-Click the “Deploy with Vercel” button.
+Click the ΓÇ£Deploy with VercelΓÇ¥ button.
 
 Fill in .env Keys from lamatic (required).
 
@@ -96,43 +96,43 @@ After deployment, generate your own Blob token:
 vercel storage blob token create
 ```
 
-Add/Replace it in Vercel Dashboard → Environment Variables → BLOB_READ_WRITE_TOKEN and redeploy.
+Add/Replace it in Vercel Dashboard ΓåÆ Environment Variables ΓåÆ BLOB_READ_WRITE_TOKEN and redeploy.
 ---
 
-## 📂 Repo Structure
+## ≡ƒôé Repo Structure
 
 ```
 /actions
- └── orchestrate.ts        # Lamatic workflow orchestration
+ ΓööΓöÇΓöÇ orchestrate.ts        # Lamatic workflow orchestration
 /app
- ├── page.tsx              # Main upload/indexation UI
- ├── chat
- │   └── page.tsx          # Chat interface with documents
- └── api
-     ├── index             # PDF indexation endpoint
-     ├── index-webpages    # Webpage indexation endpoint
-     ├── delete            # PDF deletion endpoint
-     ├── delete-resource   # Resource deletion endpoint
-     └── check-workflow-status  # Async workflow polling
+ Γö£ΓöÇΓöÇ page.tsx              # Main upload/indexation UI
+ Γö£ΓöÇΓöÇ chat
+ Γöé   ΓööΓöÇΓöÇ page.tsx          # Chat interface with documents
+ ΓööΓöÇΓöÇ api
+     Γö£ΓöÇΓöÇ index             # PDF indexation endpoint
+     Γö£ΓöÇΓöÇ index-webpages    # Webpage indexation endpoint
+     Γö£ΓöÇΓöÇ delete            # PDF deletion endpoint
+     Γö£ΓöÇΓöÇ delete-resource   # Resource deletion endpoint
+     ΓööΓöÇΓöÇ check-workflow-status  # Async workflow polling
 /lib
- └── lamatic-client.ts     # Lamatic SDK client
+ ΓööΓöÇΓöÇ lamatic-client.ts     # Lamatic SDK client
 /public
- └── images
-     ├── lamatic-logo.png  # Lamatic branding
-     └── *.png             # Data source icons
+ ΓööΓöÇΓöÇ images
+     Γö£ΓöÇΓöÇ lamatic-logo.png  # Lamatic branding
+     ΓööΓöÇΓöÇ *.png             # Data source icons
 /flows
-  └── ...                  # Lamatic Flows
+  ΓööΓöÇΓöÇ ...                  # Lamatic Flows
 /package.json              # Dependencies & scripts
 ```
 
 ---
 
-## 🤝 Contributing
+## ≡ƒñ¥ Contributing
 
 We welcome contributions! Open an issue or PR in this repo.
 
 ---
 
-## 📜 License
+## ≡ƒô£ License
 
-MIT License – see [LICENSE](../../../LICENSE).
+MIT License ΓÇô see [LICENSE](../../../LICENSE).
