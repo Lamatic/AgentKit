@@ -1,5 +1,4 @@
 // Flow: resume-parser
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,12 +22,19 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "resume_parser_generate_text_system": "@prompts/resume-parser_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "resume_parser_generate_text": "@model-configs/resume-parser_generate-text.ts"
+  },
+  "triggers": {
+    "resume_parser_api_request": "@triggers/webhooks/resume-parser_api-request.ts"
   }
 };
 
@@ -46,8 +52,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/resume-parser_api-request.ts",
+        "advance_schema": "@triggers/webhooks/resume-parser_api-request.ts"
       }
     }
   },
@@ -102,9 +108,9 @@ export const nodes = [
             "content": "@prompts/resume-parser_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/resume-parser_generate-text.ts",
+        "messages": "@model-configs/resume-parser_generate-text.ts",
+        "generativeModelName": "@model-configs/resume-parser_generate-text.ts"
       }
     }
   },

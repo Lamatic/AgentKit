@@ -1,5 +1,4 @@
 // Flow: get-started-with-google-sheet
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -24,12 +23,16 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "get_started_with_google_sheet_generate_text_system": "@prompts/get-started-with-google-sheet_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "get_started_with_google_sheet_generate_text": "@model-configs/get-started-with-google-sheet_generate-text.ts"
   }
 };
 
@@ -78,9 +81,9 @@ export const nodes = [
             "content": "@prompts/get-started-with-google-sheet_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/get-started-with-google-sheet_generate-text.ts",
+        "messages": "@model-configs/get-started-with-google-sheet_generate-text.ts",
+        "generativeModelName": "@model-configs/get-started-with-google-sheet_generate-text.ts"
       }
     }
   },

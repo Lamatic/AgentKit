@@ -1,5 +1,4 @@
 // Flow: firecrawl-webhook
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,12 +22,16 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "scripts": {
     "firecrawl_webhook_code": "@scripts/firecrawl-webhook_code.ts"
+  },
+  "triggers": {
+    "firecrawl_webhook_webhook": "@triggers/webhooks/firecrawl-webhook_webhook.ts"
   }
 };
 

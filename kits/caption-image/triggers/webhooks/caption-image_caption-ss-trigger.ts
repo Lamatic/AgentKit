@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"photo\": {},\n  \"timestamp\": \"string\",\n  \"location\": \"string\",\n  \"people\": \"[string]\"\n}",
-  "responseType": "realtime"
+  "advance_schema": "{\n  \"photo\": {},\n  \"timestamp\": \"string\",\n  \"location\": \"string\",\n  \"people\": \"[string]\"\n}",
+  "responeType": "realtime"
 };

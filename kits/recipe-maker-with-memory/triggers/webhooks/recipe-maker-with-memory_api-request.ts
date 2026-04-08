@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"query\": \"string\",\n  \"id\": \"int\"\n}",
-  "responseType": "realtime"
+  "advance_schema": "{\n  \"query\": \"string\",\n  \"id\": \"int\"\n}",
+  "responeType": "realtime"
 };

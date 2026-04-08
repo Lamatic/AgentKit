@@ -1,5 +1,4 @@
 // Flow: advertisement-poster-generation
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,6 +21,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -29,6 +29,13 @@ export const references = {
   "prompts": {
     "advertisement_poster_generation_multi_modal_system": "@prompts/advertisement-poster-generation_multi-modal_system.md",
     "advertisement_poster_generation_generate_image_user": "@prompts/advertisement-poster-generation_generate-image_user.md"
+  },
+  "modelConfigs": {
+    "advertisement_poster_generation_multi_modal": "@model-configs/advertisement-poster-generation_multi-modal.ts",
+    "advertisement_poster_generation_generate_image": "@model-configs/advertisement-poster-generation_generate-image.ts"
+  },
+  "triggers": {
+    "advertisement_poster_generation_api_request": "@triggers/webhooks/advertisement-poster-generation_api-request.ts"
   }
 };
 
@@ -50,9 +57,9 @@ export const nodes = [
         "headers": "",
         "retries": "0",
         "webhookUrl": "",
-        "responeType": "realtime",
+        "responeType": "@triggers/webhooks/advertisement-poster-generation_api-request.ts",
         "retry_deplay": "0",
-        "advance_schema": "{\n  \"imageURL\": \"string\"\n}"
+        "advance_schema": "@triggers/webhooks/advertisement-poster-generation_api-request.ts"
       }
     }
   },
@@ -76,10 +83,10 @@ export const nodes = [
             "content": "@prompts/advertisement-poster-generation_multi-modal_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": "{{triggerNode_1.output.imageURL}}",
-        "generativeModelName": {}
+        "memories": "@model-configs/advertisement-poster-generation_multi-modal.ts",
+        "messages": "@model-configs/advertisement-poster-generation_multi-modal.ts",
+        "attachments": "@model-configs/advertisement-poster-generation_multi-modal.ts",
+        "generativeModelName": "@model-configs/advertisement-poster-generation_multi-modal.ts"
       }
     }
   },
@@ -102,7 +109,7 @@ export const nodes = [
             "content": "@prompts/advertisement-poster-generation_generate-image_user.md"
           }
         ],
-        "imageGenModelName": ""
+        "imageGenModelName": "@model-configs/advertisement-poster-generation_generate-image.ts"
       }
     }
   },

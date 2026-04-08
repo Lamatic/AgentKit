@@ -1,5 +1,4 @@
 // Flow: introduction-to-rag
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,6 +22,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -32,6 +32,12 @@ export const references = {
   },
   "scripts": {
     "introduction_to_rag_code": "@scripts/introduction-to-rag_code.ts"
+  },
+  "modelConfigs": {
+    "introduction_to_rag_rag": "@model-configs/introduction-to-rag_rag.ts"
+  },
+  "triggers": {
+    "introduction_to_rag_api_request": "@triggers/webhooks/introduction-to-rag_api-request.ts"
   }
 };
 
@@ -49,8 +55,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"text\": \"string\",\n  \"query\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/introduction-to-rag_api-request.ts",
+        "advance_schema": "@triggers/webhooks/introduction-to-rag_api-request.ts"
       }
     }
   },
@@ -153,7 +159,7 @@ export const nodes = [
       "nodeId": "RAGNode",
       "values": {
         "nodeName": "RAG",
-        "limit": 5,
+        "limit": "@model-configs/introduction-to-rag_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -162,13 +168,13 @@ export const nodes = [
             "content": "@prompts/introduction-to-rag_rag_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/introduction-to-rag_rag.ts",
+        "messages": "@model-configs/introduction-to-rag_rag.ts",
         "vectorDB": "",
-        "certainty": "0.5",
+        "certainty": "@model-configs/introduction-to-rag_rag.ts",
         "queryField": "{{triggerNode_1.output.query}}",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/introduction-to-rag_rag.ts",
+        "generativeModelName": "@model-configs/introduction-to-rag_rag.ts"
       }
     }
   },

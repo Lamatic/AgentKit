@@ -1,5 +1,4 @@
 // Flow: invoice-summariser
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,12 +21,19 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "invoice_summariser_generate_text_system": "@prompts/invoice-summariser_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "invoice_summariser_generate_text": "@model-configs/invoice-summariser_generate-text.ts"
+  },
+  "triggers": {
+    "invoice_summariser_api_request": "@triggers/webhooks/invoice-summariser_api-request.ts"
   }
 };
 
@@ -45,8 +51,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/invoice-summariser_api-request.ts",
+        "advance_schema": "@triggers/webhooks/invoice-summariser_api-request.ts"
       }
     }
   },
@@ -101,9 +107,9 @@ export const nodes = [
             "content": "@prompts/invoice-summariser_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/invoice-summariser_generate-text.ts",
+        "messages": "@model-configs/invoice-summariser_generate-text.ts",
+        "generativeModelName": "@model-configs/invoice-summariser_generate-text.ts"
       }
     }
   },

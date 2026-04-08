@@ -1,5 +1,4 @@
 // Flow: review-responder
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,6 +22,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -32,6 +32,12 @@ export const references = {
   },
   "scripts": {
     "review_responder_code": "@scripts/review-responder_code.ts"
+  },
+  "modelConfigs": {
+    "review_responder_generate_text": "@model-configs/review-responder_generate-text.ts"
+  },
+  "triggers": {
+    "review_responder_api_request": "@triggers/webhooks/review-responder_api-request.ts"
   }
 };
 
@@ -49,8 +55,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"review\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/review-responder_api-request.ts",
+        "advance_schema": "@triggers/webhooks/review-responder_api-request.ts"
       }
     }
   },
@@ -73,9 +79,9 @@ export const nodes = [
             "content": "@prompts/review-responder_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/review-responder_generate-text.ts",
+        "messages": "@model-configs/review-responder_generate-text.ts",
+        "generativeModelName": "@model-configs/review-responder_generate-text.ts"
       }
     }
   },
@@ -124,9 +130,9 @@ export const nodes = [
             "content": "@prompts/review-responder_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/review-responder_generate-text.ts",
+        "messages": "@model-configs/review-responder_generate-text.ts",
+        "generativeModelName": "@model-configs/review-responder_generate-text.ts"
       }
     }
   },
@@ -149,9 +155,9 @@ export const nodes = [
             "content": "@prompts/review-responder_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/review-responder_generate-text.ts",
+        "messages": "@model-configs/review-responder_generate-text.ts",
+        "generativeModelName": "@model-configs/review-responder_generate-text.ts"
       }
     }
   },

@@ -1,6 +1,5 @@
 // Model config: Generate JSON (InstructorLLMNode)
 // Flow: localboost-ai
-// Extracted from inline node values — edit here, referenced back in flow
 
 export default {
   "generativeModelName": [
@@ -15,5 +14,6 @@ export default {
     }
   ],
   "memories": "[]",
-  "messages": "[]"
+  "messages": "[]",
+  "attachments": ""
 };

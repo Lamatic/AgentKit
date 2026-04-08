@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"title\": \"string\",\n  \"urls\": \"[string]\",\n  \"type\": \"string\"\n}",
-  "responseType": "realtime"
+  "advance_schema": "{\n  \"title\": \"string\",\n  \"urls\": \"[string]\",\n  \"type\": \"string\"\n}",
+  "responeType": "realtime"
 };

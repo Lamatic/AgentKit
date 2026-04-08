@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"urls\": \"[string]\"\n}",
-  "responseType": "async"
+  "advance_schema": "{\n  \"urls\": \"[string]\"\n}",
+  "responeType": "async"
 };

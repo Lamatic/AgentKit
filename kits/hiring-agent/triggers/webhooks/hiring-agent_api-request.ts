@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"resume_url\": \"string\",\n  \"job_description\": \"string\"\n}",
-  "responseType": "realtime"
+  "advance_schema": "{\n  \"resume_url\": \"string\",\n  \"job_description\": \"string\"\n}",
+  "responeType": "realtime"
 };

@@ -1,5 +1,4 @@
 // Flow: classifier
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -89,6 +88,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -96,6 +96,12 @@ export const references = {
   "prompts": {
     "classifier_generate_text_system": "@prompts/classifier_generate-text_system.md",
     "classifier_generate_text_user": "@prompts/classifier_generate-text_user.md"
+  },
+  "modelConfigs": {
+    "classifier_generate_text": "@model-configs/classifier_generate-text.ts"
+  },
+  "triggers": {
+    "classifier_webhook": "@triggers/webhooks/classifier_webhook.ts"
   }
 };
 
@@ -149,12 +155,12 @@ export const nodes = [
             "content": ""
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/classifier_generate-text.ts",
+        "messages": "@model-configs/classifier_generate-text.ts",
         "nodeName": "Generate Text",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/classifier_generate-text.ts",
+        "credentials": "@model-configs/classifier_generate-text.ts",
+        "generativeModelName": "@model-configs/classifier_generate-text.ts"
       }
     },
     "type": "dynamicNode",
@@ -252,12 +258,12 @@ export const nodes = [
             "content": "@prompts/classifier_generate-text_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/classifier_generate-text.ts",
+        "messages": "@model-configs/classifier_generate-text.ts",
         "nodeName": "Generate Text",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/classifier_generate-text.ts",
+        "credentials": "@model-configs/classifier_generate-text.ts",
+        "generativeModelName": "@model-configs/classifier_generate-text.ts"
       }
     },
     "type": "dynamicNode",

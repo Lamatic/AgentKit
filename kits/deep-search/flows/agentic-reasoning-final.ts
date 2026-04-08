@@ -1,5 +1,4 @@
 // Flow: agentic-reasoning-final
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -199,13 +198,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "generate_text_system": "@prompts/generate-text-system.md"
+  },
+  "modelConfigs": {
+    "agentic_reasoning_final_generate_text": "@model-configs/agentic-reasoning-final_generate-text.ts"
+  },
+  "triggers": {
+    "agentic_reasoning_final_api_request": "@triggers/webhooks/agentic-reasoning-final_api-request.ts"
   }
 };
 
@@ -224,8 +229,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"query\": \"string\",\n  \"research\": [\n    [\n      {\n        \"title\": \"string\",\n        \"link\": \"string\",\n        \"snippet\": \"string\",\n        \"date\": \"string\",\n        \"position\": \"string\"\n      }\n    ]\n  ]\n}"
+        "responeType": "@triggers/webhooks/agentic-reasoning-final_api-request.ts",
+        "advance_schema": "@triggers/webhooks/agentic-reasoning-final_api-request.ts"
       }
     }
   },
@@ -254,10 +259,10 @@ export const nodes = [
             "content": "QUERY : {{triggerNode_1.output.query}}\n\nRESEARCH : {{triggerNode_1.output.research}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": "",
-        "generativeModelName": {}
+        "memories": "@model-configs/agentic-reasoning-final_generate-text.ts",
+        "messages": "@model-configs/agentic-reasoning-final_generate-text.ts",
+        "attachments": "@model-configs/agentic-reasoning-final_generate-text.ts",
+        "generativeModelName": "@model-configs/agentic-reasoning-final_generate-text.ts"
       }
     }
   },

@@ -1,5 +1,4 @@
 // Flow: custom-media-chatbot
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,6 +22,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -33,6 +33,12 @@ export const references = {
   },
   "scripts": {
     "custom_media_chatbot_text_extraction": "@scripts/custom-media-chatbot_text-extraction.ts"
+  },
+  "modelConfigs": {
+    "custom_media_chatbot_generate_text": "@model-configs/custom-media-chatbot_generate-text.ts"
+  },
+  "triggers": {
+    "custom_media_chatbot_chat_widget": "@triggers/widgets/custom-media-chatbot_chat-widget.ts"
   }
 };
 
@@ -50,8 +56,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Chat Widget",
-        "chat": "",
-        "domains": []
+        "chat": "@triggers/widgets/custom-media-chatbot_chat-widget.ts",
+        "domains": "@triggers/widgets/custom-media-chatbot_chat-widget.ts"
       }
     }
   },
@@ -126,9 +132,9 @@ export const nodes = [
             "content": "@prompts/custom-media-chatbot_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/custom-media-chatbot_generate-text.ts",
+        "messages": "@model-configs/custom-media-chatbot_generate-text.ts",
+        "generativeModelName": "@model-configs/custom-media-chatbot_generate-text.ts"
       }
     }
   },

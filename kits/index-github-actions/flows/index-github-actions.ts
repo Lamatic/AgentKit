@@ -1,5 +1,4 @@
 // Flow: index-github-actions
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,12 +21,16 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "scripts": {
     "index_github_actions_prepare_metadata": "@scripts/index-github-actions_prepare-metadata.ts"
+  },
+  "triggers": {
+    "index_github_actions_github_action_webhook": "@triggers/webhooks/index-github-actions_github-action-webhook.ts"
   }
 };
 

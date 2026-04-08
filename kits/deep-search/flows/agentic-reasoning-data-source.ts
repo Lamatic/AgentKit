@@ -1,5 +1,4 @@
 // Flow: agentic-reasoning-data-source
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -67,13 +66,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "generate_json_system": "@prompts/generate-json-system.md"
+  },
+  "modelConfigs": {
+    "agentic_reasoning_data_source_generate_json": "@model-configs/agentic-reasoning-data-source_generate-json.ts"
+  },
+  "triggers": {
+    "agentic_reasoning_data_source_api_request": "@triggers/webhooks/agentic-reasoning-data-source_api-request.ts"
   }
 };
 
@@ -86,8 +91,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"steps\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/agentic-reasoning-data-source_api-request.ts",
+        "advance_schema": "@triggers/webhooks/agentic-reasoning-data-source_api-request.ts"
       },
       "trigger": true
     },
@@ -123,11 +128,11 @@ export const nodes = [
             "content": "STEPS : {{triggerNode_1.output.steps}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/agentic-reasoning-data-source_generate-json.ts",
+        "messages": "@model-configs/agentic-reasoning-data-source_generate-json.ts",
         "nodeName": "Generate JSON",
-        "attachments": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/agentic-reasoning-data-source_generate-json.ts",
+        "generativeModelName": "@model-configs/agentic-reasoning-data-source_generate-json.ts"
       }
     },
     "type": "dynamicNode",

@@ -1,5 +1,4 @@
 // Flow: slack-ask-bot
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -24,12 +23,16 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "slack_ask_bot_rag_system": "@prompts/slack-ask-bot_rag_system.md"
+  },
+  "modelConfigs": {
+    "slack_ask_bot_rag": "@model-configs/slack-ask-bot_rag.ts"
   }
 };
 
@@ -93,7 +96,7 @@ export const nodes = [
       "nodeId": "RAGNode",
       "values": {
         "nodeName": "RAG",
-        "limit": 5,
+        "limit": "@model-configs/slack-ask-bot_rag.ts",
         "filters": "[]",
         "prompts": [
           {
@@ -103,11 +106,11 @@ export const nodes = [
           }
         ],
         "vectorDB": "",
-        "certainty": 0.7,
+        "certainty": "@model-configs/slack-ask-bot_rag.ts",
         "queryField": "{{triggerNode_1.output.text}}",
         "userTemplate": "User Query: {query} \\n Documents: {context}",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/slack-ask-bot_rag.ts",
+        "generativeModelName": "@model-configs/slack-ask-bot_rag.ts"
       }
     }
   },

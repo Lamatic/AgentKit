@@ -1,5 +1,4 @@
 // Flow: blog-publish
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -56,10 +55,13 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "triggers": {
+    "blog_publish_api_request": "@triggers/webhooks/blog-publish_api-request.ts"
   }
 };
 
@@ -72,8 +74,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"title\": \"string\",\n  \"content\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/blog-publish_api-request.ts",
+        "advance_schema": "@triggers/webhooks/blog-publish_api-request.ts"
       },
       "trigger": true
     },

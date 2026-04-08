@@ -1,5 +1,4 @@
 // Flow: embedded-sheets
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -170,7 +169,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -182,6 +181,17 @@ export const references = {
     "generate_text_system": "@prompts/generate-text-system.md",
     "summarisation_system": "@prompts/summarisation-system.md",
     "categorise_system": "@prompts/categorise-system.md"
+  },
+  "modelConfigs": {
+    "embedded_sheets_generate_image_prompt": "@model-configs/embedded-sheets_generate-image-prompt.ts",
+    "embedded_sheets_generate_image": "@model-configs/embedded-sheets_generate-image.ts",
+    "embedded_sheets_generate_text_prompt": "@model-configs/embedded-sheets_generate-text-prompt.ts",
+    "embedded_sheets_generate_text": "@model-configs/embedded-sheets_generate-text.ts",
+    "embedded_sheets_summarisation": "@model-configs/embedded-sheets_summarisation.ts",
+    "embedded_sheets_categorise": "@model-configs/embedded-sheets_categorise.ts"
+  },
+  "triggers": {
+    "embedded_sheets_api_request": "@triggers/webhooks/embedded-sheets_api-request.ts"
   }
 };
 
@@ -194,8 +204,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "async",
-        "advance_schema": "{\n  \"sheetId\": \"string\",\n  \"columnId\": \"string\",\n  \"rowId\": \"string\",\n  \"instruction\": \"string\",\n  \"aiType\": \"string\",\n  \"data\": \"string\",\n  \"outputFormat\": \"string\",\n  \"webhookUrl\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/embedded-sheets_api-request.ts",
+        "advance_schema": "@triggers/webhooks/embedded-sheets_api-request.ts"
       },
       "trigger": true
     },
@@ -328,12 +338,12 @@ export const nodes = [
             "content": "USER REQUEST : {{triggerNode_1.output.instruction}}\n\nCONTEXT : {{triggerNode_1.output.data}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/embedded-sheets_generate-image-prompt.ts",
+        "messages": "@model-configs/embedded-sheets_generate-image-prompt.ts",
         "nodeName": "Generate Image Prompt",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/embedded-sheets_generate-image-prompt.ts",
+        "credentials": "@model-configs/embedded-sheets_generate-image-prompt.ts",
+        "generativeModelName": "@model-configs/embedded-sheets_generate-image-prompt.ts"
       }
     },
     "type": "dynamicNode",
@@ -367,12 +377,12 @@ export const nodes = [
             "content": "GIVE ME AN IMAGE OF THIS REQUEST : {{LLMNode_608.output.generatedResponse}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/embedded-sheets_generate-image.ts",
+        "messages": "@model-configs/embedded-sheets_generate-image.ts",
         "nodeName": "Generate Image",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/embedded-sheets_generate-image.ts",
+        "credentials": "@model-configs/embedded-sheets_generate-image.ts",
+        "generativeModelName": "@model-configs/embedded-sheets_generate-image.ts"
       }
     },
     "type": "dynamicNode",
@@ -406,12 +416,12 @@ export const nodes = [
             "content": "USER REQUEST : {{triggerNode_1.output.instruction}}\n\nCONTEXTS : {{triggerNode_1.output.data}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/embedded-sheets_generate-text-prompt.ts",
+        "messages": "@model-configs/embedded-sheets_generate-text-prompt.ts",
         "nodeName": "Generate Text Prompt",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/embedded-sheets_generate-text-prompt.ts",
+        "credentials": "@model-configs/embedded-sheets_generate-text-prompt.ts",
+        "generativeModelName": "@model-configs/embedded-sheets_generate-text-prompt.ts"
       }
     },
     "type": "dynamicNode",
@@ -445,12 +455,12 @@ export const nodes = [
             "content": "USER REQUEST : {{LLMNode_432.output.generatedResponse}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/embedded-sheets_generate-text.ts",
+        "messages": "@model-configs/embedded-sheets_generate-text.ts",
         "nodeName": "Generate Text",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/embedded-sheets_generate-text.ts",
+        "credentials": "@model-configs/embedded-sheets_generate-text.ts",
+        "generativeModelName": "@model-configs/embedded-sheets_generate-text.ts"
       }
     },
     "type": "dynamicNode",
@@ -528,12 +538,12 @@ export const nodes = [
             "content": "SUMMARISE BASED ON THE USER REQUEST : {{triggerNode_1.output.instruction}}\n\nAND CONTEXT PARAMS : {{triggerNode_1.output.data}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/embedded-sheets_summarisation.ts",
+        "messages": "@model-configs/embedded-sheets_summarisation.ts",
         "nodeName": "Summarisation",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/embedded-sheets_summarisation.ts",
+        "credentials": "@model-configs/embedded-sheets_summarisation.ts",
+        "generativeModelName": "@model-configs/embedded-sheets_summarisation.ts"
       }
     },
     "type": "dynamicNode",
@@ -589,12 +599,12 @@ export const nodes = [
             "content": "USER REQUEST : {{triggerNode_1.output.instruction}}\n\nCATEGORISE THE INFORMATION : {{triggerNode_1.output.data}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/embedded-sheets_categorise.ts",
+        "messages": "@model-configs/embedded-sheets_categorise.ts",
         "nodeName": "Categorise",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/embedded-sheets_categorise.ts",
+        "credentials": "@model-configs/embedded-sheets_categorise.ts",
+        "generativeModelName": "@model-configs/embedded-sheets_categorise.ts"
       }
     },
     "type": "dynamicNode",

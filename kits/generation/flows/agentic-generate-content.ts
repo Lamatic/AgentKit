@@ -1,5 +1,4 @@
 // Flow: agentic-generate-content
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -84,7 +83,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -93,6 +92,14 @@ export const references = {
     "text_system": "@prompts/text-system.md",
     "json_system": "@prompts/json-system.md",
     "generate_image_system": "@prompts/generate-image-system.md"
+  },
+  "modelConfigs": {
+    "agentic_generate_content_text": "@model-configs/agentic-generate-content_text.ts",
+    "agentic_generate_content_json": "@model-configs/agentic-generate-content_json.ts",
+    "agentic_generate_content_generate_image": "@model-configs/agentic-generate-content_generate-image.ts"
+  },
+  "triggers": {
+    "agentic_generate_content_api_request": "@triggers/webhooks/agentic-generate-content_api-request.ts"
   }
 };
 
@@ -106,8 +113,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"mode\": \"string\",\n  \"instructions\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/agentic-generate-content_api-request.ts",
+        "advance_schema": "@triggers/webhooks/agentic-generate-content_api-request.ts"
       },
       "trigger": true
     },
@@ -207,12 +214,12 @@ export const nodes = [
             "content": "USER INSTRUCTION : {{triggerNode_1.output.instructions}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/agentic-generate-content_text.ts",
+        "messages": "@model-configs/agentic-generate-content_text.ts",
         "nodeName": "Text",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/agentic-generate-content_text.ts",
+        "credentials": "@model-configs/agentic-generate-content_text.ts",
+        "generativeModelName": "@model-configs/agentic-generate-content_text.ts"
       }
     },
     "type": "dynamicNode",
@@ -246,12 +253,12 @@ export const nodes = [
             "content": "GENERATE A JSON FOR THIS USER REQUEST : {{triggerNode_1.output.instructions}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/agentic-generate-content_json.ts",
+        "messages": "@model-configs/agentic-generate-content_json.ts",
         "nodeName": "JSON",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/agentic-generate-content_json.ts",
+        "credentials": "@model-configs/agentic-generate-content_json.ts",
+        "generativeModelName": "@model-configs/agentic-generate-content_json.ts"
       }
     },
     "type": "dynamicNode",
@@ -307,7 +314,7 @@ export const nodes = [
           }
         ],
         "nodeName": "Generate Image",
-        "imageGenModelName": ""
+        "imageGenModelName": "@model-configs/agentic-generate-content_generate-image.ts"
       }
     },
     "type": "dynamicNode",

@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"query\": \"string\",\n  \"research\": [\n    [\n      {\n        \"title\": \"string\",\n        \"link\": \"string\",\n        \"snippet\": \"string\",\n        \"date\": \"string\",\n        \"position\": \"string\"\n      }\n    ]\n  ]\n}",
-  "responseType": "realtime"
+  "advance_schema": "{\n  \"query\": \"string\",\n  \"research\": [\n    [\n      {\n        \"title\": \"string\",\n        \"link\": \"string\",\n        \"snippet\": \"string\",\n        \"date\": \"string\",\n        \"position\": \"string\"\n      }\n    ]\n  ]\n}",
+  "responeType": "realtime"
 };

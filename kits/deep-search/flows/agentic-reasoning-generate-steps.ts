@@ -1,5 +1,4 @@
 // Flow: agentic-reasoning-generate-steps
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -40,13 +39,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "generate_text_system": "@prompts/generate-text-system.md"
+  },
+  "modelConfigs": {
+    "agentic_reasoning_generate_steps_generate_text": "@model-configs/agentic-reasoning-generate-steps_generate-text.ts"
+  },
+  "triggers": {
+    "agentic_reasoning_generate_steps_api_request": "@triggers/webhooks/agentic-reasoning-generate-steps_api-request.ts"
   }
 };
 
@@ -68,9 +73,9 @@ export const nodes = [
         "headers": "",
         "retries": "0",
         "webhookUrl": "",
-        "responeType": "realtime",
+        "responeType": "@triggers/webhooks/agentic-reasoning-generate-steps_api-request.ts",
         "retry_deplay": "0",
-        "advance_schema": "{\n  \"query\": \"string\",\n  \"history\": [\n    {\n      \"role\": \"string\",\n      \"message\": \"string\"\n    }\n  ]\n}"
+        "advance_schema": "@triggers/webhooks/agentic-reasoning-generate-steps_api-request.ts"
       }
     }
   },
@@ -99,9 +104,9 @@ export const nodes = [
             "content": "USER QUERY : {{triggerNode_1.output.query}}"
           }
         ],
-        "memories": "[]",
-        "messages": "{{triggerNode_1.output.history}}",
-        "attachments": ""
+        "memories": "@model-configs/agentic-reasoning-generate-steps_generate-text.ts",
+        "messages": "@model-configs/agentic-reasoning-generate-steps_generate-text.ts",
+        "attachments": "@model-configs/agentic-reasoning-generate-steps_generate-text.ts"
       }
     }
   },

@@ -1,5 +1,4 @@
 // Flow: automation-hiring
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -82,13 +81,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "evaluate_candidate_system": "@prompts/evaluate-candidate-system.md"
+  },
+  "modelConfigs": {
+    "automation_hiring_evaluate_candidate": "@model-configs/automation-hiring_evaluate-candidate.ts"
+  },
+  "triggers": {
+    "automation_hiring_api_request": "@triggers/webhooks/automation-hiring_api-request.ts"
   }
 };
 
@@ -101,8 +106,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"name\": \"string\",\n  \"email\": \"string\",\n  \"job_description\": \"string\",\n  \"resume_url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/automation-hiring_api-request.ts",
+        "advance_schema": "@triggers/webhooks/automation-hiring_api-request.ts"
       },
       "trigger": true
     },
@@ -279,11 +284,11 @@ export const nodes = [
             "content": "CANDIDATE RESUME : {{codeNode_861.output}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/automation-hiring_evaluate-candidate.ts",
+        "messages": "@model-configs/automation-hiring_evaluate-candidate.ts",
         "nodeName": "Evaluate Candidate",
-        "attachments": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/automation-hiring_evaluate-candidate.ts",
+        "generativeModelName": "@model-configs/automation-hiring_evaluate-candidate.ts"
       }
     },
     "type": "dynamicNode",

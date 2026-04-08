@@ -1,5 +1,4 @@
 // Flow: candidate-screener
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,6 +21,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -29,6 +29,12 @@ export const references = {
   "prompts": {
     "candidate_screener_classifier_system": "@prompts/candidate-screener_classifier_system.md",
     "candidate_screener_generate_text_system": "@prompts/candidate-screener_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "candidate_screener_generate_text": "@model-configs/candidate-screener_generate-text.ts"
+  },
+  "triggers": {
+    "candidate_screener_api_request": "@triggers/webhooks/candidate-screener_api-request.ts"
   }
 };
 
@@ -46,8 +52,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\",\n  \"aboutYou\": \"string\",\n  \"email\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/candidate-screener_api-request.ts",
+        "advance_schema": "@triggers/webhooks/candidate-screener_api-request.ts"
       }
     }
   },
@@ -124,9 +130,9 @@ export const nodes = [
             "content": "@prompts/candidate-screener_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/candidate-screener_generate-text.ts",
+        "messages": "@model-configs/candidate-screener_generate-text.ts",
+        "generativeModelName": "@model-configs/candidate-screener_generate-text.ts"
       }
     }
   },
@@ -149,9 +155,9 @@ export const nodes = [
             "content": "@prompts/candidate-screener_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/candidate-screener_generate-text.ts",
+        "messages": "@model-configs/candidate-screener_generate-text.ts",
+        "generativeModelName": "@model-configs/candidate-screener_generate-text.ts"
       }
     }
   },
