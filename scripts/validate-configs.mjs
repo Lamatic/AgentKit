@@ -13,6 +13,8 @@
 //   7. Tags are clean (no emojis, lowercase)
 //   8. Author has name and email
 //   9. Cross-reference with original config.json to catch data loss
+//  10. lamatic.config.ts exists for every kit-like directory
+//  11. agent.md exists (generated with --fix if missing)
 //
 // Usage:
 //   node scripts/validate-configs.mjs           # validate all
@@ -44,6 +46,10 @@ let totalWarnings = 0;
 let totalErrors = 0;
 let totalFixed = 0;
 
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
 // ── Parse lamatic.config.ts (it's a TS file, not JSON) ──
 function parseConfig(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -66,6 +72,40 @@ function parseConfig(filePath) {
   } catch (e) {
     return null;
   }
+}
+
+// ── Check if a directory is a category directory (contains kit subdirs, not a kit itself) ──
+function isCategoryDir(dirPath) {
+  if (!fs.existsSync(dirPath)) return false;
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  // A category dir has NO flows/, apps/, app/, or lamatic.config.ts at its level
+  // but has subdirectories that look like kits
+  const hasFlows = entries.some(e => e.name === 'flows');
+  const hasApps = entries.some(e => e.name === 'apps');
+  const hasApp = entries.some(e => e.name === 'app');
+  const hasConfig = entries.some(e => e.name === 'lamatic.config.ts');
+  if (hasFlows || hasApps || hasApp || hasConfig) return false;
+
+  // Check if subdirectories contain kit-like structures
+  const subdirs = entries.filter(e => e.isDirectory());
+  for (const sub of subdirs) {
+    const subPath = path.join(dirPath, sub.name);
+    const subEntries = fs.readdirSync(subPath, { withFileTypes: true });
+    const subHasFlows = subEntries.some(e => e.name === 'flows');
+    const subHasApps = subEntries.some(e => e.name === 'apps' || e.name === 'app');
+    if (subHasFlows || subHasApps) return true;
+  }
+  return false;
+}
+
+// ── Check if a directory is a kit-like directory (has flows/, apps/, or app/) ──
+function isKitLikeDir(dirPath) {
+  if (!fs.existsSync(dirPath)) return false;
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  const hasFlows = entries.some(e => e.name === 'flows');
+  const hasApps = entries.some(e => e.name === 'apps');
+  const hasApp = entries.some(e => e.name === 'app');
+  return hasFlows || hasApps || hasApp;
 }
 
 // ── Find original config.json for cross-reference ──
@@ -105,6 +145,206 @@ function findOriginalConfig(kitName) {
   return null;
 }
 
+/**
+ * Generate agent.md content from available meta info.
+ */
+function generateAgentMd(kitName, kitDir) {
+  let name = kitName;
+  let description = '';
+  let type = 'kit';
+  let author = { name: '', email: '' };
+  let flows = [];
+
+  // Try to read lamatic.config.ts
+  const configPath = path.join(kitDir, 'lamatic.config.ts');
+  if (fs.existsSync(configPath)) {
+    const config = parseConfig(configPath);
+    if (config) {
+      name = config.name || kitName;
+      description = config.description || '';
+      type = config.type || 'kit';
+      author = config.author || author;
+    }
+  }
+
+  // Try to read flow info
+  const flowsDir = path.join(kitDir, 'flows');
+  if (fs.existsSync(flowsDir)) {
+    const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+    for (const file of flowFiles) {
+      const fname = file.replace('.ts', '');
+      const filePath = path.join(flowsDir, file);
+      let flowDesc = '';
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const descMatch = content.match(/"description":\s*"([^"]+)"/);
+        if (descMatch) flowDesc = descMatch[1];
+      } catch {}
+      flows.push({ name: fname, description: flowDesc || 'No description' });
+    }
+  }
+
+  // Try to get a summary from README
+  let whatThisDoes = description;
+  const readmePath = path.join(kitDir, 'README.md');
+  if (fs.existsSync(readmePath)) {
+    const readme = fs.readFileSync(readmePath, 'utf8');
+    const lines = readme.split('\n');
+    let summaryLines = [];
+    let pastTitle = false;
+    for (const line of lines) {
+      if (!pastTitle) {
+        if (line.startsWith('#')) { pastTitle = true; continue; }
+        continue;
+      }
+      if (line.trim() === '') {
+        if (summaryLines.length > 0) break;
+        continue;
+      }
+      if (line.startsWith('#')) break;
+      summaryLines.push(line.trim());
+    }
+    if (summaryLines.length > 0) {
+      whatThisDoes = summaryLines.join(' ');
+    }
+  }
+
+  let flowList = '';
+  if (flows.length > 0) {
+    flowList = flows.map(f => `- **${f.name}**: ${f.description}`).join('\n');
+  }
+
+  const authorStr = author?.name
+    ? `${author.name}${author.email ? ` (${author.email})` : ''}`
+    : 'Unknown';
+
+  return `# ${name}
+
+${description}
+
+## Type
+${type}
+
+## What This Does
+${whatThisDoes}
+
+## Flows
+${flowList || 'No flows documented.'}
+
+## Author
+${authorStr}
+`;
+}
+
+/**
+ * Generate a minimal lamatic.config.ts for a kit-like directory that's missing one.
+ */
+function generateMinimalConfig(kitName, kitDir) {
+  let name = kitName;
+  let description = '';
+  let author = { name: '', email: '' };
+  let type = 'kit';
+  let tags = [];
+
+  // Try to read README.md for info
+  const readmePath = path.join(kitDir, 'README.md');
+  if (fs.existsSync(readmePath)) {
+    const readme = fs.readFileSync(readmePath, 'utf8');
+    // Extract title
+    const titleMatch = readme.match(/^#\s+(.+)/m);
+    if (titleMatch) name = titleMatch[1].trim();
+    // Extract first paragraph as description
+    const lines = readme.split('\n');
+    let summaryLines = [];
+    let pastTitle = false;
+    for (const line of lines) {
+      if (!pastTitle) {
+        if (line.startsWith('#')) { pastTitle = true; continue; }
+        continue;
+      }
+      if (line.trim() === '') {
+        if (summaryLines.length > 0) break;
+        continue;
+      }
+      if (line.startsWith('#')) break;
+      summaryLines.push(line.trim());
+    }
+    if (summaryLines.length > 0) {
+      description = summaryLines.join(' ');
+    }
+  }
+
+  // Try to read flow meta for author info
+  const flowsDir = path.join(kitDir, 'flows');
+  if (fs.existsSync(flowsDir)) {
+    // Check for .ts files first (already flattened)
+    const tsFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+    // Check for flow subdirs with meta.json
+    const flowDirs = fs.readdirSync(flowsDir, { withFileTypes: true })
+      .filter(e => e.isDirectory());
+    for (const dir of flowDirs) {
+      const metaPath = path.join(flowsDir, dir.name, 'meta.json');
+      if (fs.existsSync(metaPath)) {
+        try {
+          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+          if (meta.author) author = meta.author;
+          if (meta.tags) {
+            const rawTags = Array.isArray(meta.tags) ? meta.tags : [meta.tags];
+            tags = rawTags.map(t =>
+              typeof t === 'string' ? t.replace(/^[^\w]+/, '').trim().toLowerCase() : String(t)
+            );
+          }
+          if (meta.description && !description) description = meta.description;
+        } catch {}
+      }
+    }
+  }
+
+  // Determine type
+  const hasApps = fs.existsSync(path.join(kitDir, 'apps'));
+  const hasApp = fs.existsSync(path.join(kitDir, 'app'));
+  if (!hasApps && !hasApp) {
+    const flowCount = fs.existsSync(flowsDir)
+      ? fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts')).length +
+        fs.readdirSync(flowsDir, { withFileTypes: true }).filter(e => e.isDirectory()).length
+      : 0;
+    if (flowCount <= 1) type = 'template';
+    else type = 'bundle';
+  }
+
+  // Build steps from flows
+  const steps = [];
+  if (fs.existsSync(flowsDir)) {
+    const tsFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+    const flowDirs = fs.readdirSync(flowsDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && fs.existsSync(path.join(flowsDir, e.name, 'config.json')));
+    const allFlows = [
+      ...tsFiles.map(f => f.replace('.ts', '')),
+      ...flowDirs.map(d => d.name),
+    ];
+    for (const flowId of allFlows) {
+      steps.push({ id: flowId, type: 'mandatory' });
+    }
+  }
+
+  const links = {
+    github: `https://github.com/Lamatic/AgentKit/tree/main/kits/${kitName}`,
+  };
+
+  const ts = `export default {
+  name: ${JSON.stringify(name)},
+  description: ${JSON.stringify(description)},
+  version: '1.0.0',
+  type: ${JSON.stringify(type)} as const,
+  author: ${JSON.stringify(author)},
+  tags: ${JSON.stringify(tags)},
+  steps: ${JSON.stringify(steps, null, 4)},
+  links: ${JSON.stringify(links, null, 4)},
+};
+`;
+  return ts;
+}
+
 // ── Validate a single kit ──
 function validateKit(kitName) {
   const kitDir = path.join(REPO_ROOT, 'kits', kitName);
@@ -122,15 +362,25 @@ function validateKit(kitName) {
 
   // ── Check 1: File exists ──
   if (!fs.existsSync(configPath)) {
-    fail('lamatic.config.ts does not exist');
-    totalChecked++;
-    checks.forEach(c => printCheck(c));
-    return;
+    if (AUTO_FIX && isKitLikeDir(kitDir)) {
+      // Generate a minimal lamatic.config.ts
+      const configContent = generateMinimalConfig(kitName, kitDir);
+      fs.writeFileSync(configPath, configContent);
+      fixed('lamatic.config.ts created (was missing)');
+      config = parseConfig(configPath);
+    } else {
+      fail('lamatic.config.ts does not exist');
+      totalChecked++;
+      checks.forEach(c => printCheck(c));
+      return;
+    }
   }
-  pass('lamatic.config.ts exists');
+  if (!checks.some(ch => ch.status === 'fixed' && ch.msg.includes('lamatic.config.ts created'))) {
+    pass('lamatic.config.ts exists');
+  }
 
   // ── Check 2: Parseable ──
-  config = parseConfig(configPath);
+  if (!config) config = parseConfig(configPath);
   if (!config) {
     fail('lamatic.config.ts could not be parsed');
     totalChecked++;
@@ -332,6 +582,19 @@ function validateKit(kitName) {
     warn('No original config found for cross-reference');
   }
 
+  // ── Check 13: agent.md exists ──
+  const agentMdPath = path.join(kitDir, 'agent.md');
+  if (fs.existsSync(agentMdPath)) {
+    pass('agent.md exists');
+  } else {
+    warn('agent.md is missing');
+    if (AUTO_FIX) {
+      const agentMd = generateAgentMd(kitName, kitDir);
+      fs.writeFileSync(agentMdPath, agentMd);
+      fixed('agent.md generated');
+    }
+  }
+
   // ── Auto-fix: rewrite file ──
   if (needsRewrite && AUTO_FIX) {
     rewriteConfig(configPath, config);
@@ -371,6 +634,36 @@ function rewriteConfig(filePath, config) {
   fs.writeFileSync(filePath, ts);
 }
 
+/**
+ * Recursively discover all kit-like directories under kits/.
+ * Skips category directories themselves but processes their children.
+ */
+function discoverKitDirs(baseDir) {
+  const results = [];
+  if (!fs.existsSync(baseDir)) return results;
+
+  const entries = fs.readdirSync(baseDir, { withFileTypes: true })
+    .filter(e => e.isDirectory())
+    .map(e => e.name)
+    .sort();
+
+  for (const name of entries) {
+    const fullPath = path.join(baseDir, name);
+    if (isCategoryDir(fullPath)) {
+      // Recurse into category directories
+      const subKits = discoverKitDirs(fullPath);
+      results.push(...subKits);
+    } else if (isKitLikeDir(fullPath) || fs.existsSync(path.join(fullPath, 'lamatic.config.ts'))) {
+      // Compute the relative kit name from the kits/ root
+      const kitsRoot = path.join(REPO_ROOT, 'kits');
+      const relName = path.relative(kitsRoot, fullPath);
+      results.push({ name: relName, path: fullPath });
+    }
+  }
+
+  return results;
+}
+
 // ── Main ──
 console.log('');
 console.log('╔══════════════════════════════════════════════════════╗');
@@ -381,18 +674,28 @@ console.log('╚═════════════════════�
 if (SINGLE) {
   validateKit(SINGLE);
 } else {
-  // Find all kits with lamatic.config.ts
   const kitsDir = path.join(REPO_ROOT, 'kits');
-  const entries = fs.readdirSync(kitsDir, { withFileTypes: true })
+
+  // Discover all kit-like directories (including nested under categories)
+  const allKits = discoverKitDirs(kitsDir);
+
+  // Also find top-level kits with lamatic.config.ts that might not have flows/apps
+  const topLevel = fs.readdirSync(kitsDir, { withFileTypes: true })
     .filter(e => e.isDirectory())
     .filter(e => fs.existsSync(path.join(kitsDir, e.name, 'lamatic.config.ts')))
-    .map(e => e.name)
-    .sort();
+    .map(e => ({ name: e.name, path: path.join(kitsDir, e.name) }));
 
-  console.log(`\nFound ${entries.length} kits with lamatic.config.ts`);
+  // Merge and deduplicate
+  const kitMap = new Map();
+  for (const kit of [...allKits, ...topLevel]) {
+    kitMap.set(kit.path, kit);
+  }
+  const kits = Array.from(kitMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-  for (const kitName of entries) {
-    validateKit(kitName);
+  console.log(`\nFound ${kits.length} kit(s) to validate`);
+
+  for (const kit of kits) {
+    validateKit(kit.name);
   }
 }
 

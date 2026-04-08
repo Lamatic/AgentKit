@@ -3,7 +3,8 @@
 // Script 2: migrate-flows.mjs
 // Converts flow folders → flat .ts files.
 // Merges config.json + meta.json + inputs.json → <flow-name>.ts
-// Extracts inline system prompts → prompts/<name>.md
+// Extracts inline prompts → prompts/<flow>_<node>_<role>.md
+// Extracts inline code   → scripts/<flow>_<node>.ts
 // Creates flows.md as human+agent readable index.
 //
 // Run AFTER migrate-apps.mjs on the new kits/<name>/ structure.
@@ -35,6 +36,7 @@ const errors = [];
 const warnings = [];
 let flowsConverted = 0;
 let promptsExtracted = 0;
+let codeExtracted = 0;
 
 function logInfo(msg)  { console.log(`${c.blue('[INFO]')} ${msg}`); }
 function logOk(msg)    { console.log(`${c.green('[OK]')} ${msg}`); }
@@ -42,9 +44,19 @@ function logWarn(msg)  { console.log(`${c.yellow('[WARN]')} ${msg}`); warnings.p
 function logErr(msg)   { console.log(`${c.red('[ERROR]')} ${msg}`); errors.push(msg); }
 function logDry(msg)   { console.log(`${c.yellow('[DRY-RUN]')} ${msg}`); }
 
-// ── Slugify a node name for prompt file naming ──
+// ── Slugify a node name for file naming ──
 function slugify(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/**
+ * Check if a prompt content is "real" (not just a template variable placeholder).
+ */
+function isRealPromptContent(content) {
+  if (!content || content.length <= 20) return false;
+  // Skip if it's just template variables like {{triggerNode_1.output.chatMessage}}
+  const stripped = content.replace(/\{\{[^}]+\}\}/g, '').trim();
+  return stripped.length > 20;
 }
 
 // ── Convert a single flow folder → flat .ts ──
@@ -65,14 +77,23 @@ function convertFlow(flowDir, kitDir) {
   try { meta = JSON.parse(fs.readFileSync(path.join(flowDir, 'meta.json'), 'utf8')); } catch {}
   try { inputs = JSON.parse(fs.readFileSync(path.join(flowDir, 'inputs.json'), 'utf8')); } catch {}
 
-  // Count inline system prompts
+  // Collect inline prompts (system, user, assistant) with real content
   let inlinePrompts = [];
   for (const node of (config.nodes || [])) {
     for (const prompt of (node.data?.values?.prompts || [])) {
-      if (prompt.role === 'system' && prompt.content && prompt.content.length > 50) {
+      if (['system', 'user', 'assistant'].includes(prompt.role) && isRealPromptContent(prompt.content)) {
         const nodeName = node.data?.values?.nodeName || node.id || 'prompt';
         inlinePrompts.push({ node, prompt, nodeName });
       }
+    }
+  }
+
+  // Collect inline code nodes
+  let codeNodes = [];
+  for (const node of (config.nodes || [])) {
+    if (node.data?.values?.code && node.data.values.code.length > 20) {
+      const nodeName = node.data?.values?.nodeName || node.id || 'code';
+      codeNodes.push({ node, nodeName });
     }
   }
 
@@ -82,9 +103,15 @@ function convertFlow(flowDir, kitDir) {
     logDry(`    inputs.json → merged into .ts`);
     logDry(`    config.json (${(config.nodes || []).length} nodes, ${(config.edges || []).length} edges) → merged into .ts`);
     if (inlinePrompts.length > 0) {
-      logDry(`    ${inlinePrompts.length} system prompt(s) → extracted to prompts/`);
+      logDry(`    ${inlinePrompts.length} prompt(s) → extracted to prompts/`);
       for (const p of inlinePrompts) {
-        logDry(`      "${p.nodeName}" → prompts/${slugify(p.nodeName)}-system.md`);
+        logDry(`      "${p.nodeName}" (${p.prompt.role}) → prompts/${flowName}_${slugify(p.nodeName)}_${p.prompt.role}.md`);
+      }
+    }
+    if (codeNodes.length > 0) {
+      logDry(`    ${codeNodes.length} code node(s) → extracted to scripts/`);
+      for (const cn of codeNodes) {
+        logDry(`      "${cn.nodeName}" → scripts/${flowName}_${slugify(cn.nodeName)}.ts`);
       }
     }
     logDry(`    flows/${flowName}/ folder → deleted`);
@@ -94,27 +121,48 @@ function convertFlow(flowDir, kitDir) {
 
   // ── Execute ──
   const promptsDir = path.join(kitDir, 'prompts');
+  const scriptsDir = path.join(kitDir, 'scripts');
   fs.mkdirSync(promptsDir, { recursive: true });
+  fs.mkdirSync(scriptsDir, { recursive: true });
 
   // Extract inline prompts
   const references = { constitutions: { default: '@constitutions/default.md' } };
   const promptRefs = {};
 
   for (const { node, prompt, nodeName } of inlinePrompts) {
-    const slug = slugify(nodeName);
-    const promptFileName = `${slug}-system.md`;
+    const nodeSlug = slugify(nodeName);
+    const promptFileName = `${flowName}_${nodeSlug}_${prompt.role}.md`;
     const promptPath = path.join(promptsDir, promptFileName);
 
     fs.writeFileSync(promptPath, prompt.content);
     promptsExtracted++;
 
-    const refKey = slug.replace(/-/g, '_') + '_system';
+    const refKey = `${flowName}_${nodeSlug}_${prompt.role}`.replace(/-/g, '_');
     promptRefs[refKey] = `@prompts/${promptFileName}`;
     prompt.content = `@prompts/${promptFileName}`;
   }
 
   if (Object.keys(promptRefs).length > 0) {
     references.prompts = promptRefs;
+  }
+
+  // Extract inline code
+  const scriptRefs = {};
+  for (const { node, nodeName } of codeNodes) {
+    const nodeSlug = slugify(nodeName);
+    const scriptFileName = `${flowName}_${nodeSlug}.ts`;
+    const scriptPath = path.join(scriptsDir, scriptFileName);
+
+    fs.writeFileSync(scriptPath, node.data.values.code);
+    codeExtracted++;
+
+    const refKey = `${flowName}_${nodeSlug}`.replace(/-/g, '_');
+    scriptRefs[refKey] = `@scripts/${scriptFileName}`;
+    node.data.values.code = `@scripts/${scriptFileName}`;
+  }
+
+  if (Object.keys(scriptRefs).length > 0) {
+    references.scripts = scriptRefs;
   }
 
   // Build .ts file
@@ -143,6 +191,9 @@ export default { meta, inputs, references, nodes, edges };
   logOk(`  ${flowName} → flows/${flowName}.ts`);
   if (inlinePrompts.length > 0) {
     logOk(`    ${inlinePrompts.length} prompt(s) extracted to prompts/`);
+  }
+  if (codeNodes.length > 0) {
+    logOk(`    ${codeNodes.length} code node(s) extracted to scripts/`);
   }
 
   // Delete old flow folder
@@ -292,6 +343,7 @@ console.log('');
 console.log('━'.repeat(50));
 console.log(`  Flows converted:    ${c.green(flowsConverted)}`);
 console.log(`  Prompts extracted:  ${c.green(promptsExtracted)}`);
+console.log(`  Code extracted:     ${c.green(codeExtracted)}`);
 console.log(`  Warnings:           ${c.yellow(warnings.length)}`);
 console.log(`  Errors:             ${c.red(errors.length)}`);
 console.log('━'.repeat(50));

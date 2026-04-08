@@ -8,9 +8,11 @@
 //   1. Creates kits/<name>/
 //   2. Creates kits/<name>/flows/<name>.ts (single file with
 //      meta + inputs + nodes + edges + references)
-//   3. Extracts inline system prompts → prompts/<name>.md
-//   4. Generates lamatic.config.ts from meta.json
-//   5. Creates flows.md, constitutions/default.md, .gitignore
+//   3. Extracts inline prompts → prompts/<flow>_<node>_<role>.md
+//   4. Extracts inline code  → scripts/<flow>_<node>.ts
+//   5. Generates lamatic.config.ts from meta.json
+//   6. Generates agent.md
+//   7. Creates flows.md, constitutions/default.md, .gitignore
 //
 // No need to run migrate-flows.mjs after — this script
 // already creates flat .ts files directly.
@@ -42,6 +44,7 @@ const warnings = [];
 let migrated = 0;
 let skipped = 0;
 let promptsExtracted = 0;
+let codeExtracted = 0;
 
 function logInfo(m) { console.log(`${c.blue('[INFO]')} ${m}`); }
 function logOk(m)   { console.log(`${c.green('[OK]')} ${m}`); }
@@ -62,6 +65,16 @@ function safeParseJSON(filePath) {
   catch { return null; }
 }
 
+/**
+ * Check if a prompt content is "real" (not just a template variable placeholder).
+ */
+function isRealPromptContent(content) {
+  if (!content || content.length <= 20) return false;
+  // Skip if it's just template variables like {{triggerNode_1.output.chatMessage}}
+  const stripped = content.replace(/\{\{[^}]+\}\}/g, '').trim();
+  return stripped.length > 20;
+}
+
 const CONSTITUTION = `# Default Constitution
 
 ## Identity
@@ -80,6 +93,61 @@ You are an AI assistant built on Lamatic.ai.
 - Professional, clear, and helpful
 - Adapt formality to context
 `;
+
+/**
+ * Generate agent.md content from available meta info.
+ */
+function generateAgentMd(name, description, type, flows, author, readmePath) {
+  let whatThisDoes = description || '';
+  if (readmePath && fs.existsSync(readmePath)) {
+    const readme = fs.readFileSync(readmePath, 'utf8');
+    // Try to extract a summary from the README — first paragraph after the title
+    const lines = readme.split('\n');
+    let summaryLines = [];
+    let pastTitle = false;
+    for (const line of lines) {
+      if (!pastTitle) {
+        if (line.startsWith('#')) { pastTitle = true; continue; }
+        continue;
+      }
+      if (line.trim() === '') {
+        if (summaryLines.length > 0) break;
+        continue;
+      }
+      if (line.startsWith('#')) break;
+      summaryLines.push(line.trim());
+    }
+    if (summaryLines.length > 0) {
+      whatThisDoes = summaryLines.join(' ');
+    }
+  }
+
+  let flowList = '';
+  if (Array.isArray(flows) && flows.length > 0) {
+    flowList = flows.map(f => `- **${f.name}**: ${f.description || 'No description'}`).join('\n');
+  }
+
+  const authorStr = author?.name
+    ? `${author.name}${author.email ? ` (${author.email})` : ''}`
+    : 'Unknown';
+
+  return `# ${name}
+
+${description || ''}
+
+## Type
+${type}
+
+## What This Does
+${whatThisDoes}
+
+## Flows
+${flowList || 'No flows documented.'}
+
+## Author
+${authorStr}
+`;
+}
 
 function migrateTemplate(templateName) {
   const srcPath = path.join(REPO_ROOT, 'templates', templateName);
@@ -111,14 +179,23 @@ function migrateTemplate(templateName) {
     return;
   }
 
-  // Count inline prompts
+  // Collect inline prompts (system, user, assistant) with real content
   let inlinePrompts = [];
   for (const node of (config.nodes || [])) {
     for (const prompt of (node.data?.values?.prompts || [])) {
-      if (prompt.role === 'system' && prompt.content && prompt.content.length > 50) {
+      if (['system', 'user', 'assistant'].includes(prompt.role) && isRealPromptContent(prompt.content)) {
         const nodeName = node.data?.values?.nodeName || node.id || 'prompt';
         inlinePrompts.push({ node, prompt, nodeName });
       }
+    }
+  }
+
+  // Collect inline code nodes
+  let codeNodes = [];
+  for (const node of (config.nodes || [])) {
+    if (node.data?.values?.code && node.data.values.code.length > 20) {
+      const nodeName = node.data?.values?.nodeName || node.id || 'code';
+      codeNodes.push({ node, nodeName });
     }
   }
 
@@ -126,12 +203,19 @@ function migrateTemplate(templateName) {
     logDry(`Would create: kits/${templateName}/`);
     logDry(`  flows/${templateName}.ts (${(config.nodes || []).length} nodes, ${(config.edges || []).length} edges)`);
     logDry(`  lamatic.config.ts (from meta.json)`);
+    logDry(`  agent.md`);
     logDry(`  flows/flows.md`);
     logDry(`  constitutions/default.md`);
     if (inlinePrompts.length > 0) {
       logDry(`  ${inlinePrompts.length} prompt(s) → prompts/`);
       for (const p of inlinePrompts) {
-        logDry(`    "${p.nodeName}" → prompts/${slugify(p.nodeName)}-system.md`);
+        logDry(`    "${p.nodeName}" (${p.prompt.role}) → prompts/${templateName}_${slugify(p.nodeName)}_${p.prompt.role}.md`);
+      }
+    }
+    if (codeNodes.length > 0) {
+      logDry(`  ${codeNodes.length} code node(s) → scripts/`);
+      for (const cn of codeNodes) {
+        logDry(`    "${cn.nodeName}" → scripts/${templateName}_${slugify(cn.nodeName)}.ts`);
       }
     }
     migrated++;
@@ -142,23 +226,40 @@ function migrateTemplate(templateName) {
   fs.mkdirSync(path.join(destPath, 'flows'), { recursive: true });
   fs.mkdirSync(path.join(destPath, 'prompts'), { recursive: true });
   fs.mkdirSync(path.join(destPath, 'constitutions'), { recursive: true });
+  fs.mkdirSync(path.join(destPath, 'scripts'), { recursive: true });
 
   // Extract inline prompts
   const references = { constitutions: { default: '@constitutions/default.md' } };
   const promptRefs = {};
 
   for (const { node, prompt, nodeName } of inlinePrompts) {
-    const slug = slugify(nodeName);
-    const promptFileName = `${slug}-system.md`;
+    const nodeSlug = slugify(nodeName);
+    const promptFileName = `${templateName}_${nodeSlug}_${prompt.role}.md`;
     fs.writeFileSync(path.join(destPath, 'prompts', promptFileName), prompt.content);
     promptsExtracted++;
-    const refKey = slug.replace(/-/g, '_') + '_system';
+    const refKey = `${templateName}_${nodeSlug}_${prompt.role}`.replace(/-/g, '_');
     promptRefs[refKey] = `@prompts/${promptFileName}`;
     prompt.content = `@prompts/${promptFileName}`;
   }
 
   if (Object.keys(promptRefs).length > 0) {
     references.prompts = promptRefs;
+  }
+
+  // Extract inline code
+  const scriptRefs = {};
+  for (const { node, nodeName } of codeNodes) {
+    const nodeSlug = slugify(nodeName);
+    const scriptFileName = `${templateName}_${nodeSlug}.ts`;
+    fs.writeFileSync(path.join(destPath, 'scripts', scriptFileName), node.data.values.code);
+    codeExtracted++;
+    const refKey = `${templateName}_${nodeSlug}`.replace(/-/g, '_');
+    scriptRefs[refKey] = `@scripts/${scriptFileName}`;
+    node.data.values.code = `@scripts/${scriptFileName}`;
+  }
+
+  if (Object.keys(scriptRefs).length > 0) {
+    references.scripts = scriptRefs;
   }
 
   // 1. Create flows/<name>.ts — single file with everything
@@ -239,10 +340,23 @@ export default { meta, inputs, references, nodes, edges };
       `# ${meta?.name || templateName}\n\n${meta?.description || ''}\n`);
   }
 
+  // 7. agent.md
+  const agentMd = generateAgentMd(
+    meta?.name || templateName,
+    meta?.description || '',
+    'template',
+    [{ name: templateName, description: flowDesc }],
+    meta?.author || { name: '', email: '' },
+    fs.existsSync(srcReadme) ? srcReadme : null
+  );
+  fs.writeFileSync(path.join(destPath, 'agent.md'), agentMd);
+  logOk(`  agent.md generated`);
+
   // Verify
   const flowFile = path.join(destPath, 'flows', `${templateName}.ts`);
   if (fs.existsSync(flowFile) && fs.existsSync(path.join(destPath, 'lamatic.config.ts'))) {
     if (inlinePrompts.length > 0) logOk(`  ${inlinePrompts.length} prompt(s) extracted`);
+    if (codeNodes.length > 0) logOk(`  ${codeNodes.length} code node(s) extracted`);
     logOk(`kits/${templateName} migrated`);
     migrated++;
   } else {
@@ -278,6 +392,7 @@ console.log('━'.repeat(50));
 console.log(`  Migrated:          ${c.green(migrated)}`);
 console.log(`  Skipped:           ${c.yellow(skipped)}`);
 console.log(`  Prompts extracted: ${c.green(promptsExtracted)}`);
+console.log(`  Code extracted:    ${c.green(codeExtracted)}`);
 console.log(`  Warnings:          ${c.yellow(warnings.length)}`);
 console.log(`  Errors:            ${c.red(errors.length)}`);
 console.log('━'.repeat(50));
