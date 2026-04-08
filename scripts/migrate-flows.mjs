@@ -267,14 +267,17 @@ function processKit(kitName) {
   let flowDirCount = 0;
 
   if (FORCE) {
-    // Try to find original source: check kits/<category>/<kitName>/flows/
-    // or if kit was already flat, we can't re-extract (flows are in .ts)
-    // Strategy: scan for original kit locations
+    // Try to find original source: check oldKits/<category>/<kitName>/flows/
+    // then kits/<category>/<kitName>/flows/ as fallback
     const possibleSources = [];
-    for (const cat of fs.readdirSync(path.join(REPO_ROOT, 'kits'), { withFileTypes: true })) {
-      if (!cat.isDirectory()) continue;
-      const nested = path.join(REPO_ROOT, 'kits', cat.name, kitName, 'flows');
-      if (fs.existsSync(nested)) possibleSources.push(nested);
+    for (const baseDir of ['oldKits', 'kits']) {
+      const basePath = path.join(REPO_ROOT, baseDir);
+      if (!fs.existsSync(basePath)) continue;
+      for (const cat of fs.readdirSync(basePath, { withFileTypes: true })) {
+        if (!cat.isDirectory()) continue;
+        const nested = path.join(basePath, cat.name, kitName, 'flows');
+        if (fs.existsSync(nested)) possibleSources.push(nested);
+      }
     }
 
     let sourceFlowsDir = null;

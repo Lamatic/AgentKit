@@ -163,7 +163,10 @@ function generateLamaticConfig(srcConfig, destConfig) {
 // ── Migrate a single kit ──
 function migrateKit(src) {
   const newName = KIT_MAP[src];
-  const srcPath = path.join(REPO_ROOT, 'kits', src);
+  // Check oldKits/ first (if user moved originals there), then kits/
+  const oldKitsPath = path.join(REPO_ROOT, 'oldKits', src);
+  const kitsPath = path.join(REPO_ROOT, 'kits', src);
+  const srcPath = fs.existsSync(oldKitsPath) ? oldKitsPath : kitsPath;
   const destPath = path.join(REPO_ROOT, 'kits', newName);
 
   logInfo('━'.repeat(50));
