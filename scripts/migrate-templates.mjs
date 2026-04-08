@@ -185,8 +185,10 @@ export default { meta, inputs, references, nodes, edges };
   logOk(`  flows/${templateName}.ts created`);
 
   // 2. Generate lamatic.config.ts from meta.json
-  const cleanTags = (meta?.tags || []).map(t =>
-    t.replace(/^[^\w]+/, '').trim().toLowerCase()
+  const rawTags = meta?.tags || [];
+  const tagsArray = Array.isArray(rawTags) ? rawTags : (typeof rawTags === 'string' ? [rawTags] : []);
+  const cleanTags = tagsArray.map(t =>
+    typeof t === 'string' ? t.replace(/^[^\w]+/, '').trim().toLowerCase() : String(t)
   );
 
   const links = {};
