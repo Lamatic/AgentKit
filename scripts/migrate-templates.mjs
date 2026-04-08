@@ -65,15 +65,8 @@ function safeParseJSON(filePath) {
   catch { return null; }
 }
 
-/**
- * Check if a prompt content is "real" (not just a template variable placeholder).
- */
-function isRealPromptContent(content) {
-  if (!content || content.length <= 20) return false;
-  // Skip if it's just template variables like {{triggerNode_1.output.chatMessage}}
-  const stripped = content.replace(/\{\{[^}]+\}\}/g, '').trim();
-  return stripped.length > 20;
-}
+// No filtering — extract ALL prompts and code, including {{variable}} references.
+// Lamatic resolves cross-node references at runtime when stitching back.
 
 const CONSTITUTION = `# Default Constitution
 
@@ -183,7 +176,7 @@ function migrateTemplate(templateName) {
   let inlinePrompts = [];
   for (const node of (config.nodes || [])) {
     for (const prompt of (node.data?.values?.prompts || [])) {
-      if (['system', 'user', 'assistant'].includes(prompt.role) && isRealPromptContent(prompt.content)) {
+      if (['system', 'user', 'assistant'].includes(prompt.role) && prompt.content) {
         const nodeName = node.data?.values?.nodeName || node.id || 'prompt';
         inlinePrompts.push({ node, prompt, nodeName });
       }
@@ -193,7 +186,7 @@ function migrateTemplate(templateName) {
   // Collect inline code nodes
   let codeNodes = [];
   for (const node of (config.nodes || [])) {
-    if (node.data?.values?.code && node.data.values.code.length > 20) {
+    if (node.data?.values?.code) {
       const nodeName = node.data?.values?.nodeName || node.id || 'code';
       codeNodes.push({ node, nodeName });
     }
