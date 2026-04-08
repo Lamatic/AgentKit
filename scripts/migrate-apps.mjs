@@ -208,10 +208,10 @@ function migrateKit(src) {
   // ── Execute ──
   const isRerun = FORCE && fs.existsSync(path.join(destPath, 'apps'));
   fs.mkdirSync(destPath, { recursive: true });
+  const appsDir = path.join(destPath, 'apps');
 
   if (!isRerun) {
     // 1. Copy everything into apps/ EXCEPT flows/, config.json, .env
-    const appsDir = path.join(destPath, 'apps');
     copyDir(srcPath, appsDir, ['flows', 'config.json', '.env', 'node_modules', '.next']);
     logOk(`  apps/ created (${fs.readdirSync(appsDir).length} items)`);
 
