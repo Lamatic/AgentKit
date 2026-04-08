@@ -1,7 +1,7 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import {config} from "../orchestrate.js"
+import config from "../../lamatic.config"
 
 type InputType = "text" | "image" | "json"
 
@@ -16,39 +16,27 @@ export async function generateContent(
   try {
     console.log("[v0] Generating content with:", { inputType, instructions })
 
-    // Get the first workflow from the config
-    const flows = config.flows
-    const firstFlowKey = Object.keys(flows)[0]
-
-    if (!firstFlowKey) {
-      throw new Error("No workflows found in configuration")
+    // Get the flow ID from lamatic.config.ts steps → envKey → env var
+    const step = config.steps[0]
+    if (!step?.envKey) {
+      throw new Error("No flow step found in lamatic.config.ts")
     }
 
-    // Fix: Add index signature to make TypeScript happy about accessing flows[firstFlowKey]
-    const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows];
-    console.log("[v0] Using workflow:", flow.name, flow.workflowId);
+    const workflowId = process.env[step.envKey]
+    if (!workflowId) {
+      throw new Error(`Flow ID not set. Add ${step.envKey} to your .env.local file.`)
+    }
 
-    // Prepare inputs based on the flow's input schema
+    console.log("[v0] Using workflow:", step.id, workflowId)
+
     const inputs: Record<string, any> = {
       mode: inputType,
       instructions,
     }
 
-    // Map to schema if needed
-    for (const inputKey of Object.keys(flow.inputSchema || {})) {
-      if (inputKey === "inputType" || inputKey === "type") {
-        inputs[inputKey] = inputType
-      } else if (inputKey === "instructions" || inputKey === "query") {
-        inputs[inputKey] = instructions
-      }
-    }
-
     console.log("[v0] Sending inputs:", inputs)
 
-    if(!flow.workflowId){
-      throw Error("Workflow not found in config.")
-    }
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    const resData = await lamaticClient.executeFlow(workflowId, inputs)
     console.log("[v0] Raw response:", resData)
 
     // Parse the answer from resData?.output.answer
