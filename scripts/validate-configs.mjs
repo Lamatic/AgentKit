@@ -444,7 +444,33 @@ function validateKit(kitName) {
 
   // ── Check 4: Name is non-empty ──
   if (!config.name || config.name === 'Unnamed' || config.name === 'Unnamed Kit') {
-    warn(`Name is placeholder: "${config.name}"`);
+    if (AUTO_FIX) {
+      // Try README title
+      const readmePath = path.join(kitDir, 'README.md');
+      let newName = kitName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      if (fs.existsSync(readmePath)) {
+        const readme = fs.readFileSync(readmePath, 'utf8');
+        const titleMatch = readme.match(/^#\s+(.+)/m);
+        if (titleMatch) newName = titleMatch[1].trim();
+      }
+      // Also try flow meta
+      const flowsDir2 = path.join(kitDir, 'flows');
+      if (fs.existsSync(flowsDir2)) {
+        for (const f of fs.readdirSync(flowsDir2).filter(f => f.endsWith('.ts'))) {
+          const content = fs.readFileSync(path.join(flowsDir2, f), 'utf8');
+          const nameMatch = content.match(/"name":\s*"([^"]+)"/);
+          if (nameMatch && nameMatch[1] && !nameMatch[1].startsWith('1.')) {
+            newName = nameMatch[1];
+            break;
+          }
+        }
+      }
+      config.name = newName;
+      needsRewrite = true;
+      fixed(`Name set to "${newName}"`);
+    } else {
+      warn(`Name is placeholder: "${config.name}"`);
+    }
   } else {
     pass(`Name: "${config.name}"`);
   }
@@ -565,15 +591,26 @@ function validateKit(kitName) {
 
   // ── Check 10: Tags are clean ──
   if (Array.isArray(config.tags)) {
+    // Check for comma-separated strings that should be split
+    const needsSplit = config.tags.some(t => typeof t === 'string' && t.includes(','));
+    if (needsSplit && AUTO_FIX) {
+      config.tags = config.tags.flatMap(t =>
+        typeof t === 'string' ? t.split(',').map(s => s.trim().toLowerCase().replace(/[^\w\s-]/g, '').trim()).filter(Boolean) : [String(t)]
+      );
+      needsRewrite = true;
+      fixed(`Tags split and cleaned: ${JSON.stringify(config.tags)}`);
+    }
+
     const dirtyTags = config.tags.filter(t => /[^\w\s-]/.test(t));
     if (dirtyTags.length > 0) {
-      warn(`Tags have non-alphanumeric chars: ${JSON.stringify(dirtyTags)}`);
       if (AUTO_FIX) {
         config.tags = config.tags.map(t =>
-          t.replace(/^[^\w]+/, '').trim().toLowerCase()
+          typeof t === 'string' ? t.replace(/^[^\w]+/, '').trim().toLowerCase() : String(t)
         );
         needsRewrite = true;
         fixed('Tags cleaned');
+      } else {
+        warn(`Tags have non-alphanumeric chars: ${JSON.stringify(dirtyTags)}`);
       }
     } else {
       pass(`Tags: ${JSON.stringify(config.tags)}`);
@@ -610,25 +647,42 @@ function validateKit(kitName) {
   const original = findOriginalConfig(kitName);
   if (original) {
     const orig = original.data;
-    // Check name wasn't lost
-    if (orig.name && config.name !== orig.name) {
-      // Allow for cleaned names
-      if (config.name === 'Unnamed' || config.name === 'Unnamed Kit') {
+    // Check and fix name
+    if (orig.name && (config.name === 'Unnamed' || config.name === 'Unnamed Kit' || !config.name)) {
+      if (AUTO_FIX) {
+        config.name = orig.name;
+        needsRewrite = true;
+        fixed(`Name restored from original: "${orig.name}"`);
+      } else {
         warn(`Name was lost during migration (original: "${orig.name}")`);
       }
     }
-    // Check deploy URL wasn't lost (for kits)
+    // Check and fix deploy URL
     const origDeploy = orig.deployUrl || orig.deploy;
     if (origDeploy && !config.links?.deploy) {
-      warn(`Deploy URL existed in original but missing in migrated config`);
+      if (AUTO_FIX) {
+        if (!config.links) config.links = {};
+        config.links.deploy = origDeploy;
+        needsRewrite = true;
+        fixed('Deploy URL restored from original');
+      } else {
+        warn('Deploy URL existed in original but missing in migrated config');
+      }
     }
-    // Check author wasn't lost
+    // Check and fix author
     if (orig.author?.name && !config.author?.name) {
-      warn(`Author name was lost (original: "${orig.author.name}")`);
+      if (AUTO_FIX) {
+        config.author = orig.author;
+        needsRewrite = true;
+        fixed(`Author restored from original: ${orig.author.name}`);
+      } else {
+        warn(`Author name was lost (original: "${orig.author.name}")`);
+      }
     }
     pass(`Cross-referenced with ${original.path}`);
   } else {
-    warn('No original config found for cross-reference');
+    // Not actionable — just informational, don't count as warning
+    pass('No original config found (OK for manually created entries)');
   }
 
   // ── Check 13: agent.md exists ──
