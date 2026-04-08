@@ -1,10 +1,8 @@
-// Trigger config: Chat Widget (widget)
+// Widget settings: Chat Widget (chat)
 // Flow: knowledge-chatbot
-// Type: chatTriggerNode
+// Widget UI/appearance — domains, colors, layout.
 
 export default {
-  "domains": [
-    "*"
-  ],
-  "chat": ""
+  "chatConfig": "",
+  "domains": []
 };

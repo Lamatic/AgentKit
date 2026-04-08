@@ -22,6 +22,7 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -47,15 +48,12 @@ export const references = {
     "hiring_agent_resume_projects_analyser": "@model-configs/hiring-agent_resume-projects-analyser.ts",
     "hiring_agent_insight_evaluator": "@model-configs/hiring-agent_insight-evaluator.ts"
   },
-  "triggers": {
-    "hiring_agent_api_request": "@triggers/webhooks/hiring-agent_api-request.ts"
-  },
   "tools": {
     "hiring_agent_github_projects_analyser_tools": "@tools/hiring-agent_github-projects-analyser_tools.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -73,9 +71,9 @@ export const nodes = [
         "headers": "",
         "retries": "0",
         "webhookUrl": "",
-        "responeType": "@triggers/webhooks/hiring-agent_api-request.ts",
+        "responeType": "realtime",
         "retry_deplay": "0",
-        "advance_schema": "@triggers/webhooks/hiring-agent_api-request.ts"
+        "advance_schema": ""
       }
     }
   },

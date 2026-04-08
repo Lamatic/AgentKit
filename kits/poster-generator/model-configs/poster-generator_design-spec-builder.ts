@@ -2,8 +2,8 @@
 // Flow: poster-generator
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/poster-generator_design-spec-builder.ts",
+  "memories": "@model-configs/poster-generator_design-spec-builder.ts",
+  "messages": "@model-configs/poster-generator_design-spec-builder.ts",
+  "attachments": "@model-configs/poster-generator_design-spec-builder.ts"
 };

@@ -1,5 +1,4 @@
 // Flow: onedrive
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -81,14 +80,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "onedrive_get_chunks": "@scripts/onedrive_get-chunks.ts",
+    "onedrive_transform_metadata": "@scripts/onedrive_transform-metadata.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -155,7 +159,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Get Chunks",
-        "code": "let docs =  {{chunkNode_318.output.chunks}}\n\nlet outputDocs = docs.map(doc => doc.pageContent);\nconsole.log(outputDocs)\noutput = outputDocs;"
+        "code": "@scripts/onedrive_get-chunks.ts"
       }
     }
   },
@@ -186,7 +190,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Transform Metadata",
-        "code": "let vectors = {{vectorizeNode_639.output.vectors}}\nlet metadataProps = [];\nlet texts = {{codeNode_254.output}};\n\nfor (const idx in vectors) {\n    let metadata = {}\n    metadata[\"content\"] = texts[idx];\n    metadata[\"title\"] = {{variablesNode_289.output.title}};\n    metadata[\"source\"] = {{variablesNode_289.output.source}};\n    metadata[\"last_modified\"] = {{variablesNode_289.output.last_modified}};\n    \n    metadataProps.push(metadata);\n}\n\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        "code": "@scripts/onedrive_transform-metadata.ts"
       }
     }
   },

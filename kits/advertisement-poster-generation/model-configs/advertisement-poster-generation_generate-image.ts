@@ -2,5 +2,5 @@
 // Flow: advertisement-poster-generation
 
 export default {
-  "imageGenModelName": ""
+  "imageGenModelName": "@model-configs/advertisement-poster-generation_generate-image.ts"
 };

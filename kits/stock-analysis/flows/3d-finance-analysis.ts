@@ -41,22 +41,24 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "generate_json_system": "@prompts/generate-json-system.md"
+    "generate_json_system": "@prompts/generate-json-system.md",
+    "3d_finance_analysis_generate_json_user": "@prompts/3d-finance-analysis_generate-json_user.md"
   },
   "modelConfigs": {
     "3d_finance_analysis_generate_json": "@model-configs/3d-finance-analysis_generate-json.ts"
   },
-  "triggers": {
-    "3d_finance_analysis_api_request": "@triggers/webhooks/3d-finance-analysis_api-request.ts"
+  "scripts": {
+    "3d_finance_analysis_collate_data": "@scripts/3d-finance-analysis_collate-data.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -65,8 +67,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/3d-finance-analysis_api-request.ts",
-        "advance_schema": "@triggers/webhooks/3d-finance-analysis_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -192,7 +194,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const oneYearAgo = new Date();\nconst fundamentals = {{flowNode_507.output.flowOutput.fundamental_data}};\nconst historicalStockData = {{flowNode_127.output.flowOutput.historic_data}};\nconst marketSentiment = {{flowNode_114.output.flowOutput.sentiment_data}};\n\noutput = {\n   \"date\" : oneYearAgo.toDateString(),\n   \"fundamentals\" : fundamentals,\n   \"historical_data\" : historicalStockData,\n   \"sentiment_data\" : marketSentiment   \n}",
+        "code": "@scripts/3d-finance-analysis_collate-data.ts",
         "nodeName": "Collate Data"
       }
     },
@@ -225,7 +227,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "DATE TODAY : {{codeNode_667.output.date}}\n\nCOMPANIES : {{triggerNode_1.output.companies}}\n\nCOMPANIES FUNDAMENTALS DATA : {{codeNode_667.output.fundamentals}}\n\nCOMPANIES HISTORIC STOCK DATA : {{codeNode_667.output.historical_data}}\n\nCOMPANIES SENTIMENT DATA : {{codeNode_667.output.sentiment_data}}"
+            "content": "@prompts/3d-finance-analysis_generate-json_user.md"
           }
         ],
         "memories": "@model-configs/3d-finance-analysis_generate-json.ts",

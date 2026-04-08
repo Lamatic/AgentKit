@@ -2,7 +2,7 @@
 // Flow: currency-converter
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/currency-converter_generate-text.ts",
+  "memories": "@model-configs/currency-converter_generate-text.ts",
+  "messages": "@model-configs/currency-converter_generate-text.ts"
 };

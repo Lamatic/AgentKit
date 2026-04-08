@@ -170,6 +170,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -180,7 +181,13 @@ export const references = {
     "generate_text_prompt_system": "@prompts/generate-text-prompt-system.md",
     "generate_text_system": "@prompts/generate-text-system.md",
     "summarisation_system": "@prompts/summarisation-system.md",
-    "categorise_system": "@prompts/categorise-system.md"
+    "categorise_system": "@prompts/categorise-system.md",
+    "embedded_sheets_generate_image_prompt_user": "@prompts/embedded-sheets_generate-image-prompt_user.md",
+    "embedded_sheets_generate_image_user": "@prompts/embedded-sheets_generate-image_user.md",
+    "embedded_sheets_generate_text_prompt_user": "@prompts/embedded-sheets_generate-text-prompt_user.md",
+    "embedded_sheets_generate_text_user": "@prompts/embedded-sheets_generate-text_user.md",
+    "embedded_sheets_summarisation_user": "@prompts/embedded-sheets_summarisation_user.md",
+    "embedded_sheets_categorise_user": "@prompts/embedded-sheets_categorise_user.md"
   },
   "modelConfigs": {
     "embedded_sheets_generate_image_prompt": "@model-configs/embedded-sheets_generate-image-prompt.ts",
@@ -190,12 +197,16 @@ export const references = {
     "embedded_sheets_summarisation": "@model-configs/embedded-sheets_summarisation.ts",
     "embedded_sheets_categorise": "@model-configs/embedded-sheets_categorise.ts"
   },
-  "triggers": {
-    "embedded_sheets_api_request": "@triggers/webhooks/embedded-sheets_api-request.ts"
+  "scripts": {
+    "embedded_sheets_finalise_generation_response": "@scripts/embedded-sheets_finalise-generation-response.ts",
+    "embedded_sheets_invalid_request": "@scripts/embedded-sheets_invalid-request.ts",
+    "embedded_sheets_finalise_summary_response": "@scripts/embedded-sheets_finalise-summary-response.ts",
+    "embedded_sheets_finalise_categorisation_response": "@scripts/embedded-sheets_finalise-categorisation-response.ts",
+    "embedded_sheets_finalise_response": "@scripts/embedded-sheets_finalise-response.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -204,8 +215,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/embedded-sheets_api-request.ts",
-        "advance_schema": "@triggers/webhooks/embedded-sheets_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -335,7 +346,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER REQUEST : {{triggerNode_1.output.instruction}}\n\nCONTEXT : {{triggerNode_1.output.data}}"
+            "content": "@prompts/embedded-sheets_generate-image-prompt_user.md"
           }
         ],
         "memories": "@model-configs/embedded-sheets_generate-image-prompt.ts",
@@ -374,7 +385,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "GIVE ME AN IMAGE OF THIS REQUEST : {{LLMNode_608.output.generatedResponse}}"
+            "content": "@prompts/embedded-sheets_generate-image_user.md"
           }
         ],
         "memories": "@model-configs/embedded-sheets_generate-image.ts",
@@ -413,7 +424,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER REQUEST : {{triggerNode_1.output.instruction}}\n\nCONTEXTS : {{triggerNode_1.output.data}}"
+            "content": "@prompts/embedded-sheets_generate-text-prompt_user.md"
           }
         ],
         "memories": "@model-configs/embedded-sheets_generate-text-prompt.ts",
@@ -452,7 +463,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER REQUEST : {{LLMNode_432.output.generatedResponse}}"
+            "content": "@prompts/embedded-sheets_generate-text_user.md"
           }
         ],
         "memories": "@model-configs/embedded-sheets_generate-text.ts",
@@ -481,7 +492,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "let response = \"\";\n\nif({{LLMNode_658.output}} && {{LLMNode_658.output.generatedResponse}}){\n  response = {{LLMNode_658.output.generatedResponse}};\n} else if({{LLMNode_533.output}} && {{LLMNode_533.output.images}}){\n  const images = {{LLMNode_533.output.images}};\n  response = images[0];\n}\n\noutput = response || \"No output generated\";",
+        "code": "@scripts/embedded-sheets_finalise-generation-response.ts",
         "nodeName": "Finalise Generation Response"
       }
     },
@@ -503,7 +514,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = \"Invalid Request\"",
+        "code": "@scripts/embedded-sheets_invalid-request.ts",
         "nodeName": "Invalid Request"
       }
     },
@@ -535,7 +546,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "SUMMARISE BASED ON THE USER REQUEST : {{triggerNode_1.output.instruction}}\n\nAND CONTEXT PARAMS : {{triggerNode_1.output.data}}"
+            "content": "@prompts/embedded-sheets_summarisation_user.md"
           }
         ],
         "memories": "@model-configs/embedded-sheets_summarisation.ts",
@@ -564,7 +575,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = {{LLMNode_588.output.generatedResponse}};",
+        "code": "@scripts/embedded-sheets_finalise-summary-response.ts",
         "nodeName": "Finalise Summary Response"
       }
     },
@@ -596,7 +607,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER REQUEST : {{triggerNode_1.output.instruction}}\n\nCATEGORISE THE INFORMATION : {{triggerNode_1.output.data}}"
+            "content": "@prompts/embedded-sheets_categorise_user.md"
           }
         ],
         "memories": "@model-configs/embedded-sheets_categorise.ts",
@@ -625,7 +636,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = {{LLMNode_447.output.generatedResponse}};",
+        "code": "@scripts/embedded-sheets_finalise-categorisation-response.ts",
         "nodeName": "Finalise Categorisation Response"
       }
     },
@@ -647,7 +658,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "let response = \"\";\n\nif({{LLMNode_658.output.generatedResponse}} || {{LLMNode_533.output.images}}){\n  response = {{codeNode_750.output}};\n}\nelse if({{LLMNode_588.output.generatedResponse}}){\n  response = {{codeNode_302.output}};\n}\nelse if({{LLMNode_447.output.generatedResponse}}){\n  response = {{codeNode_319.output}};\n}\nelse{\n  response = {{codeNode_494.output}};\n}\n\noutput = response;",
+        "code": "@scripts/embedded-sheets_finalise-response.ts",
         "nodeName": "Finalise Response"
       }
     },

@@ -53,6 +53,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -60,12 +61,12 @@ export const references = {
   "modelConfigs": {
     "blog_drafting_generate_blog_draft": "@model-configs/blog-drafting_generate-blog-draft.ts"
   },
-  "triggers": {
-    "blog_drafting_api_request": "@triggers/webhooks/blog-drafting_api-request.ts"
+  "prompts": {
+    "blog_drafting_generate_blog_draft_user": "@prompts/blog-drafting_generate-blog-draft_user.md"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -74,8 +75,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/blog-drafting_api-request.ts",
-        "advance_schema": "@triggers/webhooks/blog-drafting_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -102,7 +103,7 @@ export const nodes = [
           {
             "id": "draft_prompt_1",
             "role": "user",
-            "content": "Write a professional blog post about {{triggerNode_1.output.topic}}.\nUse these keywords naturally: {{triggerNode_1.output.keywords}}.\nFollow these instructions carefully: {{triggerNode_1.output.instructions}}."
+            "content": "@prompts/blog-drafting_generate-blog-draft_user.md"
           }
         ],
         "nodeName": "Generate Blog Draft",

@@ -2,18 +2,8 @@
 // Flow: localboost-ai
 
 export default {
-  "generativeModelName": [
-    {
-      "type": "generator/text",
-      "params": {},
-      "configName": "configA",
-      "model_name": "gpt-4o-mini",
-      "credentialId": "4afd5974-b7f1-4fc8-bf04-e8841720061b",
-      "provider_name": "openai",
-      "credential_name": "Lead inte"
-    }
-  ],
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/localboost-ai_generate-json.ts",
+  "memories": "@model-configs/localboost-ai_generate-json.ts",
+  "messages": "@model-configs/localboost-ai_generate-json.ts",
+  "attachments": "@model-configs/localboost-ai_generate-json.ts"
 };

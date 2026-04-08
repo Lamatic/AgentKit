@@ -2,7 +2,7 @@
 // Flow: caption-image
 
 export default {
-  "generativeModelName": {},
-  "messages": "[]",
-  "attachments": "{{triggerNode_1.output.photo}}"
+  "generativeModelName": "@model-configs/caption-image_multi-modal.ts",
+  "messages": "@model-configs/caption-image_multi-modal.ts",
+  "attachments": "@model-configs/caption-image_multi-modal.ts"
 };

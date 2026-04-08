@@ -16,16 +16,17 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "1_finance_select_stocks_api_request": "@triggers/webhooks/1-finance-select-stocks_api-request.ts"
+  "scripts": {
+    "1_finance_select_stocks_collate_suggestions": "@scripts/1-finance-select-stocks_collate-suggestions.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -34,8 +35,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/1-finance-select-stocks_api-request.ts",
-        "advance_schema": "@triggers/webhooks/1-finance-select-stocks_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -106,7 +107,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const results = {{apiNode_431.output}};\n\nlet sugestions;\nif(Array.isArray(results)){\n  sugestions = results;\n}\nelse{ \n  throw Error(\"Credits Over\");\n}\n\noutput = sugestions;",
+        "code": "@scripts/1-finance-select-stocks_collate-suggestions.ts",
         "nodeName": "Collate Suggestions"
       }
     },

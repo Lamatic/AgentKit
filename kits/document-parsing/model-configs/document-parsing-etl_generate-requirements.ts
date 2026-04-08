@@ -2,9 +2,9 @@
 // Flow: document-parsing-etl
 
 export default {
-  "generativeModelName": "",
-  "credentials": "",
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/document-parsing-etl_generate-requirements.ts",
+  "credentials": "@model-configs/document-parsing-etl_generate-requirements.ts",
+  "memories": "@model-configs/document-parsing-etl_generate-requirements.ts",
+  "messages": "@model-configs/document-parsing-etl_generate-requirements.ts",
+  "attachments": "@model-configs/document-parsing-etl_generate-requirements.ts"
 };

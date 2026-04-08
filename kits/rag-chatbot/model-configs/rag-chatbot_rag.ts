@@ -2,10 +2,10 @@
 // Flow: rag-chatbot
 
 export default {
-  "generativeModelName": {},
-  "embeddingModelName": {},
-  "limit": 5,
-  "certainty": "0.5",
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/rag-chatbot_rag.ts",
+  "embeddingModelName": "@model-configs/rag-chatbot_rag.ts",
+  "limit": "@model-configs/rag-chatbot_rag.ts",
+  "certainty": "@model-configs/rag-chatbot_rag.ts",
+  "memories": "@model-configs/rag-chatbot_rag.ts",
+  "messages": "@model-configs/rag-chatbot_rag.ts"
 };

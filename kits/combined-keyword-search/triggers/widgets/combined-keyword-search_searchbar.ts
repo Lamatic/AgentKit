@@ -1,6 +1,6 @@
-// Trigger config: SearchBar (widget)
+// Widget settings: SearchBar (search)
 // Flow: combined-keyword-search
-// Type: searchTriggerNode
+// Widget UI/appearance — domains, colors, layout.
 
 export default {
   "domains": []

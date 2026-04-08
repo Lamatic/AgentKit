@@ -47,16 +47,18 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "embedded_chatbot_resource_deletion_api_request": "@triggers/webhooks/embedded-chatbot-resource-deletion_api-request.ts"
+  "scripts": {
+    "embedded_chatbot_resource_deletion_finalise_output": "@scripts/embedded-chatbot-resource-deletion_finalise-output.ts",
+    "embedded_chatbot_resource_deletion_code": "@scripts/embedded-chatbot-resource-deletion_code.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "conditionNode_907",
@@ -124,7 +126,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "id": "codeNode_690",
-        "code": "let check = {}\n\nconst pdfSkipCheck = {\n  \"executionMsg\": \"Skipped the node execution\"\n}\n\nconst vectorOutput = typeof {{vectorNode_537.output}} === 'string' \n  ? JSON.parse({{vectorNode_537.output}}) \n  : {{vectorNode_537.output}};\n\nif(vectorOutput.executionMsg !== \"Skipped the node execution\"){\n  check = {\n    \"status\": vectorOutput\n  }\n}\nelse if({{codeNode_571.output}}){\n  check = {\n    \"status\": {{codeNode_571.output}}\n  }\n}\n\noutput = check;",
+        "code": "@scripts/embedded-chatbot-resource-deletion_finalise-output.ts",
         "nodeName": "Finalise Output"
       }
     },
@@ -226,8 +228,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/embedded-chatbot-resource-deletion_api-request.ts",
-        "advance_schema": "@triggers/webhooks/embedded-chatbot-resource-deletion_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -276,7 +278,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = \"Deleted All Records\";",
+        "code": "@scripts/embedded-chatbot-resource-deletion_code.ts",
         "nodeName": "Code"
       }
     },

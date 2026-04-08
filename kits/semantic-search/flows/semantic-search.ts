@@ -45,6 +45,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -57,7 +58,7 @@ export const references = {
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -73,7 +74,7 @@ export const nodes = [
       "values": {
         "domains": "@triggers/widgets/semantic-search_search-widget.ts",
         "nodeName": "Search Widget",
-        "search": "@triggers/widgets/semantic-search_search-widget.ts",
+        "search": "",
         "searchConfig": "@triggers/widgets/semantic-search_search-widget.ts"
       }
     }

@@ -67,22 +67,24 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "generate_json_system": "@prompts/generate-json-system.md"
+    "generate_json_system": "@prompts/generate-json-system.md",
+    "agentic_reasoning_data_source_generate_json_user": "@prompts/agentic-reasoning-data-source_generate-json_user.md"
   },
   "modelConfigs": {
     "agentic_reasoning_data_source_generate_json": "@model-configs/agentic-reasoning-data-source_generate-json.ts"
   },
-  "triggers": {
-    "agentic_reasoning_data_source_api_request": "@triggers/webhooks/agentic-reasoning-data-source_api-request.ts"
+  "scripts": {
+    "agentic_reasoning_data_source_collate_results": "@scripts/agentic-reasoning-data-source_collate-results.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -91,8 +93,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/agentic-reasoning-data-source_api-request.ts",
-        "advance_schema": "@triggers/webhooks/agentic-reasoning-data-source_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -125,7 +127,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "STEPS : {{triggerNode_1.output.steps}}"
+            "content": "@prompts/agentic-reasoning-data-source_generate-json_user.md"
           }
         ],
         "memories": "@model-configs/agentic-reasoning-data-source_generate-json.ts",
@@ -230,7 +232,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const researchArray = {{forLoopEndNode_384.output.loopOutput}};\n\nconst research = researchArray.flatMap((searchEntry) => {\n  const searchResults = searchEntry.searchNode_278.output.searchResults;\n  return searchResults.map((result)=>{\n    return result.content;\n  })\n});\n\nconst links = researchArray.flatMap((searchEntry) => {\n  const searchResults = searchEntry.searchNode_278.output.searchResults;\n  return searchResults.map((result)=>{\n    return result.source;\n  })\n});\n\noutput = {\n  research: research,\n  links: links\n};",
+        "code": "@scripts/agentic-reasoning-data-source_collate-results.ts",
         "nodeName": "Collate Results"
       }
     },

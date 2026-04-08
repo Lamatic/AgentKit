@@ -2,15 +2,10 @@
 // Flow: recipe-maker-with-memory
 
 export default {
-  "memoryCollection": "receipeTest",
-  "uniqueId": "{{triggerNode_1.output.id}}",
-  "sessionId": "",
-  "memoryValue": [
-    {
-      "role": "user",
-      "content": "{{triggerNode_1.output.query}}"
-    }
-  ],
-  "embeddingModelName": {},
-  "generativeModelName": {}
+  "memoryCollection": "@memory/recipe-maker-with-memory_memory-add.ts",
+  "uniqueId": "@memory/recipe-maker-with-memory_memory-add.ts",
+  "sessionId": "@memory/recipe-maker-with-memory_memory-add.ts",
+  "memoryValue": "@memory/recipe-maker-with-memory_memory-add.ts",
+  "embeddingModelName": "@memory/recipe-maker-with-memory_memory-add.ts",
+  "generativeModelName": "@memory/recipe-maker-with-memory_memory-add.ts"
 };

@@ -113,6 +113,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -121,7 +122,11 @@ export const references = {
     "bug_analysis_system": "@prompts/bug-analysis-system.md",
     "security_scan_system": "@prompts/security-scan-system.md",
     "style_check_system": "@prompts/style-check-system.md",
-    "final_merge_system": "@prompts/final-merge-system.md"
+    "final_merge_system": "@prompts/final-merge-system.md",
+    "code_review_agent_bug_analysis_user": "@prompts/code-review-agent_bug-analysis_user.md",
+    "code_review_agent_security_scan_user": "@prompts/code-review-agent_security-scan_user.md",
+    "code_review_agent_style_check_user": "@prompts/code-review-agent_style-check_user.md",
+    "code_review_agent_final_merge_user": "@prompts/code-review-agent_final-merge_user.md"
   },
   "modelConfigs": {
     "code_review_agent_bug_analysis": "@model-configs/code-review-agent_bug-analysis.ts",
@@ -129,12 +134,12 @@ export const references = {
     "code_review_agent_style_check": "@model-configs/code-review-agent_style-check.ts",
     "code_review_agent_final_merge": "@model-configs/code-review-agent_final-merge.ts"
   },
-  "triggers": {
-    "code_review_agent_webhook": "@triggers/webhooks/code-review-agent_webhook.ts"
+  "scripts": {
+    "code_review_agent_code": "@scripts/code-review-agent_code.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -204,7 +209,7 @@ export const nodes = [
       },
       "values": {
         "id": "codeNode_104",
-        "code": "const files = {{apiNode_688.output}};\nlet diff = \"\";\nfor (const file of files) {\n  diff += `File: ${file.filename}\\n${file.patch || \"\"}\\n\\n`;\n}\noutput = { diff: diff };",
+        "code": "@scripts/code-review-agent_code.ts",
         "nodeName": "Code"
       }
     },
@@ -238,7 +243,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "Analyze this PR diff for bugs and logic errors. Reference specific line numbers and code from the diff.\n{{codeNode_104.output.diff}}"
+            "content": "@prompts/code-review-agent_bug-analysis_user.md"
           }
         ],
         "memories": "@model-configs/code-review-agent_bug-analysis.ts",
@@ -278,7 +283,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "Analyze this PR diff for security vulnerabilities. Reference specific line numbers and code from the diff.\n{{codeNode_104.output.diff}}"
+            "content": "@prompts/code-review-agent_security-scan_user.md"
           }
         ],
         "memories": "@model-configs/code-review-agent_security-scan.ts",
@@ -318,7 +323,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "Analyze this PR diff for code style and readability issues. Reference specific line numbers and code from the diff. {{codeNode_104.output.diff}}"
+            "content": "@prompts/code-review-agent_style-check_user.md"
           }
         ],
         "memories": "@model-configs/code-review-agent_style-check.ts",
@@ -375,7 +380,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "BUGS: {{InstructorLLMNode_312.output.bugs}}\nSECURITY: {{InstructorLLMNode_549.output.security}}\nSTYLE: {{InstructorLLMNode_538.output.style}}\nBased on these three code review analyses, write a concise 2-3 sentence overall summary of the PR quality"
+            "content": "@prompts/code-review-agent_final-merge_user.md"
           }
         ],
         "memories": "@model-configs/code-review-agent_final-merge.ts",

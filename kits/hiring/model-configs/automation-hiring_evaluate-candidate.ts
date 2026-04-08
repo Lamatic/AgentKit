@@ -2,8 +2,8 @@
 // Flow: automation-hiring
 
 export default {
-  "generativeModelName": "",
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/automation-hiring_evaluate-candidate.ts",
+  "memories": "@model-configs/automation-hiring_evaluate-candidate.ts",
+  "messages": "@model-configs/automation-hiring_evaluate-candidate.ts",
+  "attachments": "@model-configs/automation-hiring_evaluate-candidate.ts"
 };

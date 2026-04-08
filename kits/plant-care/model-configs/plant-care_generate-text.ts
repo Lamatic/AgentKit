@@ -2,7 +2,7 @@
 // Flow: plant-care
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/plant-care_generate-text.ts",
+  "memories": "@model-configs/plant-care_generate-text.ts",
+  "messages": "@model-configs/plant-care_generate-text.ts"
 };

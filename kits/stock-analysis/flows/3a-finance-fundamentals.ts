@@ -16,16 +16,18 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "3a_finance_fundamentals_api_request": "@triggers/webhooks/3a-finance-fundamentals_api-request.ts"
+  "scripts": {
+    "3a_finance_fundamentals_collate_fundamentals": "@scripts/3a-finance-fundamentals_collate-fundamentals.ts",
+    "3a_finance_fundamentals_collate_results": "@scripts/3a-finance-fundamentals_collate-results.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -34,8 +36,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/3a-finance-fundamentals_api-request.ts",
-        "advance_schema": "@triggers/webhooks/3a-finance-fundamentals_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -254,7 +256,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = {\n  \"income_statement\" : {{apiNode_805.output}}[0],\n  \"balance_sheet\" : {{apiNode_845.output}}[0],\n  \"cash_flow_statement\" : {{apiNode_349.output}}[0],\n  \"key_metrics\" : {{apiNode_467.output}}[0]\n}",
+        "code": "@scripts/3a-finance-fundamentals_collate-fundamentals.ts",
         "nodeName": "Collate Fundamentals"
       }
     },
@@ -298,7 +300,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const loopOutput = {{forLoopEndNode_544.output.loopOutput}};\n\nlet fundamentals = [];\nloopOutput.forEach((fundamental)=>{\nconsole.log(fundamental);\n  fundamentals.push({\n    \"company\" : fundamental['codeNode_211']['output']['income_statement']['symbol'],\n    \"fundamentals\" : fundamental['codeNode_211']['output']\n  });\n})\n\noutput = fundamentals;",
+        "code": "@scripts/3a-finance-fundamentals_collate-results.ts",
         "nodeName": "Collate Results"
       }
     },

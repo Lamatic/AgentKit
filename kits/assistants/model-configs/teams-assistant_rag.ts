@@ -2,8 +2,8 @@
 // Flow: teams-assistant
 
 export default {
-  "limit": 20,
-  "certainty": "0.5",
-  "memories": "[]",
-  "messages": "[]"
+  "limit": "@model-configs/teams-assistant_rag.ts",
+  "certainty": "@model-configs/teams-assistant_rag.ts",
+  "memories": "@model-configs/teams-assistant_rag.ts",
+  "messages": "@model-configs/teams-assistant_rag.ts"
 };

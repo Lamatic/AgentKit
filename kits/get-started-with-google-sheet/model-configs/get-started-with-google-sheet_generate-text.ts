@@ -2,7 +2,7 @@
 // Flow: get-started-with-google-sheet
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/get-started-with-google-sheet_generate-text.ts",
+  "memories": "@model-configs/get-started-with-google-sheet_generate-text.ts",
+  "messages": "@model-configs/get-started-with-google-sheet_generate-text.ts"
 };

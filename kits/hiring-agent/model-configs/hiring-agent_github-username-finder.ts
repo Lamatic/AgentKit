@@ -2,8 +2,8 @@
 // Flow: hiring-agent
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]",
-  "attachments": ""
+  "generativeModelName": "@model-configs/hiring-agent_github-username-finder.ts",
+  "memories": "@model-configs/hiring-agent_github-username-finder.ts",
+  "messages": "@model-configs/hiring-agent_github-username-finder.ts",
+  "attachments": "@model-configs/hiring-agent_github-username-finder.ts"
 };

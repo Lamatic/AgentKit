@@ -1,23 +1,8 @@
-// Trigger config: Search Widget (widget)
+// Widget settings: Search Widget (search)
 // Flow: embedded-search-search
-// Type: searchTriggerNode
+// Widget UI/appearance — domains, colors, layout.
 
 export default {
-  "domains": [
-    "*"
-  ],
-  "search": "",
-  "searchConfig": {
-    "linkTarget": "_blank",
-    "showAllTab": true,
-    "staticTabs": [],
-    "hideBranding": false,
-    "primaryColor": "#007bff",
-    "enableGrouping": false,
-    "searchDebounce": 300,
-    "secondaryColor": "#666",
-    "showNavHelperText": true,
-    "showEscapeHelperText": true,
-    "searchPlaceholderText": "Search our knowledge base..."
-  }
+  "searchConfig": "",
+  "domains": []
 };

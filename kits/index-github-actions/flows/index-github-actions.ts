@@ -22,19 +22,17 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "scripts": {
     "index_github_actions_prepare_metadata": "@scripts/index-github-actions_prepare-metadata.ts"
-  },
-  "triggers": {
-    "index_github_actions_github_action_webhook": "@triggers/webhooks/index-github-actions_github-action-webhook.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",

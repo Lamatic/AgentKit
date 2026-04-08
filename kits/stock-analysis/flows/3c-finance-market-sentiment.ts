@@ -29,16 +29,18 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "3c_finance_market_sentiment_api_request": "@triggers/webhooks/3c-finance-market-sentiment_api-request.ts"
+  "scripts": {
+    "3c_finance_market_sentiment_fetch_socials": "@scripts/3c-finance-market-sentiment_fetch-socials.ts",
+    "3c_finance_market_sentiment_collate_results": "@scripts/3c-finance-market-sentiment_collate-results.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -47,8 +49,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/3c-finance-market-sentiment_api-request.ts",
-        "advance_schema": "@triggers/webhooks/3c-finance-market-sentiment_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -150,7 +152,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const searchOutput = {{webSearchNode_818.output.output.news}};\n\nlet socials = [];\nsearchOutput.forEach((newsItem)=>{\n  const social = {\n    \"title\" : newsItem['title'],\n    \"snippet\" : newsItem['snippet'],\n    \"link\" : newsItem['link'],\n    \"date\" : newsItem['date'],\n    \"source\" : newsItem['source']\n  }\n  socials.push(social);\n})\n\noutput = socials;",
+        "code": "@scripts/3c-finance-market-sentiment_fetch-socials.ts",
         "nodeName": "Fetch Socials"
       }
     },
@@ -194,7 +196,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const loopOutput = {{forLoopEndNode_544.output.loopOutput}};\n\nlet sentiments = [];\nloopOutput.forEach((sentiment)=>{\n  sentiments.push({\n    \"company\" : sentiment['webSearchNode_818']['output']['output']['searchParameters']['q'],\n    \"sentiment\" : sentiment['codeNode_159']['output']\n  });\n})\noutput = sentiments;",
+        "code": "@scripts/3c-finance-market-sentiment_collate-results.ts",
         "nodeName": "Collate Results"
       }
     },

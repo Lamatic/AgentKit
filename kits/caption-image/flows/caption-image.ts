@@ -22,19 +22,17 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "modelConfigs": {
     "caption_image_multi_modal": "@model-configs/caption-image_multi-modal.ts"
-  },
-  "triggers": {
-    "caption_image_caption_ss_trigger": "@triggers/webhooks/caption-image_caption-ss-trigger.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -48,8 +46,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Caption SS Trigger",
-        "responeType": "@triggers/webhooks/caption-image_caption-ss-trigger.ts",
-        "advance_schema": "@triggers/webhooks/caption-image_caption-ss-trigger.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       }
     }
   },

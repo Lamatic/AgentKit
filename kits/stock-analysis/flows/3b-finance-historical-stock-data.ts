@@ -16,16 +16,19 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "3b_finance_historical_stock_data_api_request": "@triggers/webhooks/3b-finance-historical-stock-data_api-request.ts"
+  "scripts": {
+    "3b_finance_historical_stock_data_one_year_ago_date": "@scripts/3b-finance-historical-stock-data_one-year-ago-date.ts",
+    "3b_finance_historical_stock_data_group_data": "@scripts/3b-finance-historical-stock-data_group-data.ts",
+    "3b_finance_historical_stock_data_collate_results": "@scripts/3b-finance-historical-stock-data_collate-results.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -34,8 +37,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/3b-finance-historical-stock-data_api-request.ts",
-        "advance_schema": "@triggers/webhooks/3b-finance-historical-stock-data_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -79,7 +82,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const oneYearAgo = new Date();\noneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);\n\nconst year = oneYearAgo.getFullYear();\nconst month = (oneYearAgo.getMonth() + 1).toString().padStart(2, '0');\nconst day = (oneYearAgo.getDate()-1).toString().padStart(2, '0');\n\noutput = `${day}-${month}-${year}`;",
+        "code": "@scripts/3b-finance-historical-stock-data_one-year-ago-date.ts",
         "nodeName": "One Year Ago Date"
       }
     },
@@ -156,7 +159,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const stockData = {{apiNode_336.output}};\n\nconst getMonthKey = (dateStr) => {\n  const d = new Date(dateStr);\n  if (isNaN(d)) return null; // handle invalid date\n  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, \"0\")}`;\n};\n\nconst getWeekOfMonth = (dateStr) => {\n  const date = new Date(dateStr);\n  if (isNaN(date)) return null;\n  return Math.ceil(date.getDate() / 7);\n};\n\nfunction groupStockDataByMonthAndWeek(data) {\n  if (!Array.isArray(data) || data.length === 0) return {};\n\n  // Ensure all entries have valid dates\n  const cleaned = data.filter((d) => d.date && !isNaN(new Date(d.date)));\n\n  const sorted = [...cleaned].sort((a, b) => new Date(a.date) - new Date(b.date));\n\n  const grouped = sorted.reduce((acc, entry) => {\n    const monthKey = getMonthKey(entry.date);\n    const week = getWeekOfMonth(entry.date);\n\n    if (!monthKey || !week) return acc; // skip invalids\n\n    const weekKey = `week${week}`;\n\n    acc[monthKey] ??= {};\n    acc[monthKey][weekKey] ??= [];\n    acc[monthKey][weekKey].push(entry);\n\n    return acc;\n  }, {});\n\n  const finalOutput = Object.entries(grouped).reduce((monthAcc, [month, weeks]) => {\n    monthAcc[month] = Object.entries(weeks).reduce((weekAcc, [weekKey, entries]) => {\n      const avg = (key) => {\n        const validEntries = entries.filter((e) => typeof e[key] === \"number\");\n        return validEntries.length\n          ? validEntries.reduce((sum, e) => sum + e[key], 0) / validEntries.length\n          : null;\n      };\n\n      weekAcc[weekKey] = {\n        open: avg(\"open\"),\n        high: avg(\"high\"),\n        low: avg(\"low\"),\n        close: avg(\"close\"),\n        volume: avg(\"volume\"),\n        change: avg(\"change\"),\n        changePercent: avg(\"changePercent\"),\n        vwap: avg(\"vwap\"),\n        startDate: entries[0]?.date || null,\n        endDate: entries[entries.length - 1]?.date || null,\n      };\n\n      return weekAcc;\n    }, {});\n\n    return monthAcc;\n  }, {});\n\n  return finalOutput;\n}\n\noutput = groupStockDataByMonthAndWeek(stockData);",
+        "code": "@scripts/3b-finance-historical-stock-data_group-data.ts",
         "nodeName": "Group Data"
       }
     },
@@ -200,7 +203,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const loopOutput = {{forLoopEndNode_544.output.loopOutput}};\n\nlet stocks = [];\nloopOutput.forEach((stock)=>{\n  stocks.push({\n    \"company\" : stock['apiNode_336']['output'][0]['symbol'],\n    \"stock_data\" : stock['codeNode_403']['output']\n  });\n})\n\noutput = stocks;",
+        "code": "@scripts/3b-finance-historical-stock-data_collate-results.ts",
         "nodeName": "Collate Results"
       }
     },

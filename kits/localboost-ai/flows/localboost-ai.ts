@@ -53,6 +53,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -63,13 +64,10 @@ export const references = {
   },
   "modelConfigs": {
     "localboost_ai_generate_json": "@model-configs/localboost-ai_generate-json.ts"
-  },
-  "triggers": {
-    "localboost_ai_api_request": "@triggers/webhooks/localboost-ai_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -79,8 +77,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/localboost-ai_api-request.ts",
-        "advance_schema": "@triggers/webhooks/localboost-ai_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },

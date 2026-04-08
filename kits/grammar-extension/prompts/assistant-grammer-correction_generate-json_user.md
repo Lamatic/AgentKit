@@ -1,0 +1,1 @@
+USER TEXT : {{triggerNode_1.output.text}}

@@ -43,22 +43,21 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "generate_json_system": "@prompts/generate-json-system.md"
+    "generate_json_system": "@prompts/generate-json-system.md",
+    "assistant_grammer_correction_generate_json_user": "@prompts/assistant-grammer-correction_generate-json_user.md"
   },
   "modelConfigs": {
     "assistant_grammer_correction_generate_json": "@model-configs/assistant-grammer-correction_generate-json.ts"
-  },
-  "triggers": {
-    "assistant_grammer_correction_api_request": "@triggers/webhooks/assistant-grammer-correction_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -68,8 +67,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/assistant-grammer-correction_api-request.ts",
-        "advance_schema": "@triggers/webhooks/assistant-grammer-correction_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -129,7 +128,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER TEXT : {{triggerNode_1.output.text}}"
+            "content": "@prompts/assistant-grammer-correction_generate-json_user.md"
           }
         ],
         "memories": "@model-configs/assistant-grammer-correction_generate-json.ts",

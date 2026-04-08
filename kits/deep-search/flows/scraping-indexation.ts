@@ -79,16 +79,18 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "scraping_indexation_api_request": "@triggers/webhooks/scraping-indexation_api-request.ts"
+  "scripts": {
+    "scraping_indexation_extract_chunks": "@scripts/scraping-indexation_extract-chunks.ts",
+    "scraping_indexation_transform_metadata": "@scripts/scraping-indexation_transform-metadata.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -102,8 +104,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/scraping-indexation_api-request.ts",
-        "advance_schema": "@triggers/webhooks/scraping-indexation_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       }
     }
   },
@@ -248,7 +250,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Extract Chunks",
-        "code": "let docs = {{ chunkNode_968.output.chunks }};\n\nlet outputDocs = docs.map((doc) => doc.pageContent)\n\nreturn outputDocs"
+        "code": "@scripts/scraping-indexation_extract-chunks.ts"
       }
     }
   },
@@ -281,7 +283,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Transform Metadata",
-        "code": "let vectors = {{ vectorizeNode_314.output.vectors }};\nlet metadataProps = [];\nlet texts = {{codeNode_794.output}};\n\nfor (const idx in vectors) {\n  let metadata = {}\n  metadata[\"content\"] = texts[idx];\n  metadata[\"title\"] = {{variablesNode_658.output.title}};\n  metadata[\"description\"] = {{variablesNode_658.output.description}};\n  metadata[\"source\"] = {{variablesNode_658.output.source}};\n  metadataProps.push(metadata)\n};\n\noutput = { \"metadata\": metadataProps, \"vectors\": vectors }"
+        "code": "@scripts/scraping-indexation_transform-metadata.ts"
       }
     }
   },

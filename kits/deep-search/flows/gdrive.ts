@@ -1,5 +1,4 @@
 // Flow: gdrive
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -106,14 +105,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "gdrive_extract_chunked_text": "@scripts/gdrive_extract-chunked-text.ts",
+    "gdrive_transform_metadata": "@scripts/gdrive_transform-metadata.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -169,7 +173,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Extract Chunked Text",
-        "code": "let docs =  {{chunkNode_934.output.chunks}};\n\nlet outputDocs = docs.map(doc => doc.pageContent);\n\noutput = outputDocs;"
+        "code": "@scripts/gdrive_extract-chunked-text.ts"
       }
     }
   },
@@ -200,7 +204,7 @@ export const nodes = [
       "nodeId": "codeNode",
       "values": {
         "nodeName": "Transform Metadata",
-        "code": "let vectors = {{vectorizeNode_623.output.vectors}};\nlet metadataProps = [];\nlet texts = {{codeNode_539.output}};\n\nfor (const idx in vectors) {\n    let metadata = {}\n    metadata[\"title\"] = {{variablesNode_272.output.title}};\n    metadata[\"content\"] = texts[idx];\n    metadata[\"source\"] = {{variablesNode_272.output.source}};\n    metadataProps.push(metadata);\n}\n\n\noutput = {\"metadata\": metadataProps, \"vectors\": vectors}"
+        "code": "@scripts/gdrive_transform-metadata.ts"
       }
     }
   },

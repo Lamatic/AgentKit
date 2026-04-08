@@ -2,7 +2,7 @@
 // Flow: recipe-maker-with-memory
 
 export default {
-  "generativeModelName": {},
-  "memories": "{{memoryRetrieveNode_711.output.memories}}",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/recipe-maker-with-memory_generate-text.ts",
+  "memories": "@model-configs/recipe-maker-with-memory_generate-text.ts",
+  "messages": "@model-configs/recipe-maker-with-memory_generate-text.ts"
 };

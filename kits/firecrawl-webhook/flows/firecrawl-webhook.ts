@@ -23,19 +23,17 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "scripts": {
     "firecrawl_webhook_code": "@scripts/firecrawl-webhook_code.ts"
-  },
-  "triggers": {
-    "firecrawl_webhook_webhook": "@triggers/webhooks/firecrawl-webhook_webhook.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",

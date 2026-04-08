@@ -46,6 +46,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -53,12 +54,12 @@ export const references = {
   "modelConfigs": {
     "blog_seo_seo_optimize_content": "@model-configs/blog-seo_seo-optimize-content.ts"
   },
-  "triggers": {
-    "blog_seo_api_request": "@triggers/webhooks/blog-seo_api-request.ts"
+  "prompts": {
+    "blog_seo_seo_optimize_content_user": "@prompts/blog-seo_seo-optimize-content_user.md"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_2",
@@ -67,8 +68,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/blog-seo_api-request.ts",
-        "advance_schema": "@triggers/webhooks/blog-seo_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -95,7 +96,7 @@ export const nodes = [
           {
             "id": "seo_prompt_1",
             "role": "user",
-            "content": "You are an SEO expert.\n\nTake the following blog post:\n{{triggerNode_2.output.draft}}\n\nOptimize it for search engines using these keywords:\n{{triggerNode_2.output.keywords}}\n\nRequirements:\n- Improve title and headings (H1, H2, H3)\n- Improve readability and structure\n- Use keywords naturally (no stuffing)\n- Keep the content factual and professional\n- Return the result in Markdown format"
+            "content": "@prompts/blog-seo_seo-optimize-content_user.md"
           }
         ],
         "nodeName": "SEO Optimize Content",

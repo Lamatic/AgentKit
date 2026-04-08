@@ -16,16 +16,18 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
-  "triggers": {
-    "2_finance_company_profiles_api_request": "@triggers/webhooks/2-finance-company-profiles_api-request.ts"
+  "scripts": {
+    "2_finance_company_profiles_check_data": "@scripts/2-finance-company-profiles_check-data.ts",
+    "2_finance_company_profiles_collate_results": "@scripts/2-finance-company-profiles_collate-results.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -34,8 +36,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/2-finance-company-profiles_api-request.ts",
-        "advance_schema": "@triggers/webhooks/2-finance-company-profiles_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -134,7 +136,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const results = {{apiNode_946.output}};\n\nlet companyProfile;\nif(Array.isArray(results)){\n  companyProfile = results;\n}\nelse{ \n  throw Error(\"Credits Over\");\n}\n\noutput = companyProfile;",
+        "code": "@scripts/2-finance-company-profiles_check-data.ts",
         "nodeName": "Check Data"
       }
     },
@@ -178,7 +180,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const loopOutput = {{forLoopEndNode_941.output.loopOutput}};\n\nlet profiles = [];\nloopOutput.forEach((profile)=>{\n  profiles.push(profile['codeNode_453']['output'][0]);\n})\n\noutput = profiles;",
+        "code": "@scripts/2-finance-company-profiles_collate-results.ts",
         "nodeName": "Collate Results"
       }
     },

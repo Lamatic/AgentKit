@@ -2,8 +2,8 @@
 // Flow: slack-ask-bot
 
 export default {
-  "generativeModelName": {},
-  "embeddingModelName": {},
-  "limit": 5,
-  "certainty": 0.7
+  "generativeModelName": "@model-configs/slack-ask-bot_rag.ts",
+  "embeddingModelName": "@model-configs/slack-ask-bot_rag.ts",
+  "limit": "@model-configs/slack-ask-bot_rag.ts",
+  "certainty": "@model-configs/slack-ask-bot_rag.ts"
 };

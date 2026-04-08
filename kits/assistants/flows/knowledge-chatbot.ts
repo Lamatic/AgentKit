@@ -61,6 +61,7 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -77,7 +78,7 @@ export const references = {
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -91,31 +92,9 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Chat Widget",
-        "chat": "@triggers/widgets/knowledge-chatbot_chat-widget.ts",
+        "chat": "",
         "domains": "@triggers/widgets/knowledge-chatbot_chat-widget.ts",
-        "chatConfig": {
-          "botName": "Lamatic Bot",
-          "imageUrl": "https://api.lamatic.ai/storage/v1/object/public/widget-avatar/LamaticShowcase/UrlScraperChatbot866/2bf0df6e-04b0-4392-8100-4c8a4d5eeb09/1749111185167.png",
-          "position": "right",
-          "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
-          "displayMode": "popup",
-          "placeholder": "Compose your message",
-          "suggestions": [],
-          "errorMessage": "Oops! Something went wrong. Please try again.",
-          "hideBranding": false,
-          "primaryColor": "#ef4444",
-          "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
-          "headerTextColor": "#FFFFFF",
-          "showEmojiButton": true,
-          "suggestionBgColor": "#f1f5f9",
-          "showAdvancedColors": true,
-          "userMessageBgColor": "#FEF2F2",
-          "agentMessageBgColor": "#f1f5f9",
-          "suggestionTextColor": "#334155",
-          "userMessageTextColor": "#d12323",
-          "agentMessageTextColor": "#334155"
-        }
+        "chatConfig": "@triggers/widgets/knowledge-chatbot_chat-widget.ts"
       }
     }
   },

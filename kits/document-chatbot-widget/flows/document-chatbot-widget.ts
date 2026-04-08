@@ -23,19 +23,17 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "modelConfigs": {
     "document_chatbot_widget_rag": "@model-configs/document-chatbot-widget_rag.ts"
-  },
-  "triggers": {
-    "document_chatbot_widget_chat_widget": "@triggers/widgets/document-chatbot-widget_chat-widget.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -49,7 +47,7 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Chat Widget",
-        "chat": "@triggers/widgets/document-chatbot-widget_chat-widget.ts"
+        "chat": ""
       }
     }
   },

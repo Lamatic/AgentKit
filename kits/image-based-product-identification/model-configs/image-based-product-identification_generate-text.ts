@@ -2,7 +2,7 @@
 // Flow: image-based-product-identification
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/image-based-product-identification_generate-text.ts",
+  "memories": "@model-configs/image-based-product-identification_generate-text.ts",
+  "messages": "@model-configs/image-based-product-identification_generate-text.ts"
 };

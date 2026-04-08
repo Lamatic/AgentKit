@@ -2,7 +2,7 @@
 // Flow: recipe-generation
 
 export default {
-  "generativeModelName": {},
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/recipe-generation_generate-text.ts",
+  "memories": "@model-configs/recipe-generation_generate-text.ts",
+  "messages": "@model-configs/recipe-generation_generate-text.ts"
 };

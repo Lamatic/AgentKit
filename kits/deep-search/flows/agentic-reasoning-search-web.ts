@@ -51,22 +51,24 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "generate_json_system": "@prompts/generate-json-system.md"
+    "generate_json_system": "@prompts/generate-json-system.md",
+    "agentic_reasoning_search_web_generate_json_user": "@prompts/agentic-reasoning-search-web_generate-json_user.md"
   },
   "modelConfigs": {
     "agentic_reasoning_search_web_generate_json": "@model-configs/agentic-reasoning-search-web_generate-json.ts"
   },
-  "triggers": {
-    "agentic_reasoning_search_web_api_request": "@triggers/webhooks/agentic-reasoning-search-web_api-request.ts"
+  "scripts": {
+    "agentic_reasoning_search_web_collate_research": "@scripts/agentic-reasoning-search-web_collate-research.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -81,8 +83,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/agentic-reasoning-search-web_api-request.ts",
-        "advance_schema": "@triggers/webhooks/agentic-reasoning-search-web_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       }
     }
   },
@@ -109,7 +111,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "STEPS : {{triggerNode_1.output.steps}}"
+            "content": "@prompts/agentic-reasoning-search-web_generate-json_user.md"
           }
         ],
         "memories": "@model-configs/agentic-reasoning-search-web_generate-json.ts",
@@ -191,7 +193,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Collate Research",
-        "code": "const researchArray = {{forLoopEndNode_366.output.loopOutput}};\n\nconst research = researchArray.flatMap((searchEntry) => {\n  return searchEntry.webSearchNode_441.output.output.organic;\n});\n\nconst links = research.map((item) => item.link);\n\noutput = {\n  research: research,\n  links: links\n};"
+        "code": "@scripts/agentic-reasoning-search-web_collate-research.ts"
       }
     }
   },

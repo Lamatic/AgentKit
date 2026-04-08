@@ -65,12 +65,14 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "rag_system": "@prompts/rag-system.md"
+    "rag_system": "@prompts/rag-system.md",
+    "embedded_chatbot_chatbot_rag_user": "@prompts/embedded-chatbot-chatbot_rag_user.md"
   },
   "modelConfigs": {
     "embedded_chatbot_chatbot_rag": "@model-configs/embedded-chatbot-chatbot_rag.ts"
@@ -80,7 +82,7 @@ export const references = {
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -88,32 +90,10 @@ export const nodes = [
       "nodeId": "chatTriggerNode",
       "values": {
         "id": "triggerNode_1",
-        "chat": "@triggers/widgets/embedded-chatbot-chatbot_chat-widget.ts",
+        "chat": "",
         "domains": "@triggers/widgets/embedded-chatbot-chatbot_chat-widget.ts",
         "nodeName": "Chat Widget",
-        "chatConfig": {
-          "botName": "Lamatic Bot",
-          "imageUrl": "https://api.lamatic.ai/storage/v1/object/public/widget-avatar/LamaticShowcase/UrlScraperChatbot866/2bf0df6e-04b0-4392-8100-4c8a4d5eeb09/1749111185167.png",
-          "position": "right",
-          "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
-          "displayMode": "dialog",
-          "placeholder": "Compose your message",
-          "suggestions": [],
-          "errorMessage": "Oops! Something went wrong. Please try again.",
-          "hideBranding": false,
-          "primaryColor": "#4b65d9",
-          "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
-          "headerTextColor": "#FFFFFF",
-          "showEmojiButton": true,
-          "suggestionBgColor": "#f1f5f9",
-          "showAdvancedColors": true,
-          "userMessageBgColor": "#faf5ff",
-          "agentMessageBgColor": "#f1f5f9",
-          "suggestionTextColor": "#334155",
-          "userMessageTextColor": "#092395",
-          "agentMessageTextColor": "#334155"
-        }
+        "chatConfig": "@triggers/widgets/embedded-chatbot-chatbot_chat-widget.ts"
       },
       "trigger": true
     },
@@ -168,7 +148,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER QUERY : {{triggerNode_1.output.chatMessage}} \n\nCURRENT CHAT HISTORY FOR CONTEXT : {{triggerNode_1.output.chatHistory}}"
+            "content": "@prompts/embedded-chatbot-chatbot_rag_user.md"
           }
         ],
         "memories": "@model-configs/embedded-chatbot-chatbot_rag.ts",

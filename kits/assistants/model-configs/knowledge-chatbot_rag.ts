@@ -2,10 +2,10 @@
 // Flow: knowledge-chatbot
 
 export default {
-  "generativeModelName": {},
-  "embeddingModelName": {},
-  "limit": 20,
-  "certainty": "0.5",
-  "memories": "[]",
-  "messages": "{{triggerNode_1.output.chatHistory}}"
+  "generativeModelName": "@model-configs/knowledge-chatbot_rag.ts",
+  "embeddingModelName": "@model-configs/knowledge-chatbot_rag.ts",
+  "limit": "@model-configs/knowledge-chatbot_rag.ts",
+  "certainty": "@model-configs/knowledge-chatbot_rag.ts",
+  "memories": "@model-configs/knowledge-chatbot_rag.ts",
+  "messages": "@model-configs/knowledge-chatbot_rag.ts"
 };

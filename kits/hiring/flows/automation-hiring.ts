@@ -82,22 +82,27 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "evaluate_candidate_system": "@prompts/evaluate-candidate-system.md"
+    "evaluate_candidate_system": "@prompts/evaluate-candidate-system.md",
+    "automation_hiring_evaluate_candidate_user": "@prompts/automation-hiring_evaluate-candidate_user.md"
   },
   "modelConfigs": {
     "automation_hiring_evaluate_candidate": "@model-configs/automation-hiring_evaluate-candidate.ts"
   },
-  "triggers": {
-    "automation_hiring_api_request": "@triggers/webhooks/automation-hiring_api-request.ts"
+  "scripts": {
+    "automation_hiring_prepare_receipt_email": "@scripts/automation-hiring_prepare-receipt-email.ts",
+    "automation_hiring_collate_resume_contents": "@scripts/automation-hiring_collate-resume-contents.ts",
+    "automation_hiring_prepare_selection_mail": "@scripts/automation-hiring_prepare-selection-mail.ts",
+    "automation_hiring_prepare_rejection_mail": "@scripts/automation-hiring_prepare-rejection-mail.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -106,8 +111,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "@triggers/webhooks/automation-hiring_api-request.ts",
-        "advance_schema": "@triggers/webhooks/automation-hiring_api-request.ts"
+        "responeType": "realtime",
+        "advance_schema": ""
       },
       "trigger": true
     },
@@ -161,7 +166,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const username = {{triggerNode_1.output.name}};\nconst template = `\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Application Received – Lamatic.ai</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f9fafb;\n      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      color: #111827;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n      overflow: hidden;\n    }\n    .header {\n      background-color: black;\n      padding: 20px 28px;\n      border-bottom: 1px solid #f1f5f9;\n    }\n    .header h2 {\n      color: #ffffff;\n      margin: 0;\n      font-size: 24px;\n      font-weight: 600;\n    }\n    .header img {\n      height: 28px;\n      display: block;\n    }\n    .content {\n      padding: 32px 28px;\n    }\n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 20px;\n      color: #111827;\n    }\n    p {\n      font-size: 15px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 18px;\n    }\n    .button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 10px 18px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n    }\n    .button:hover {\n      background-color: #dc2626;\n    }\na.button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    a.button:hover {\n      background-color: #dc2626;\n      color: #ffffff !important;\n    }\n    .footer {\n      background-color: #f9fafb;\n      text-align: center;\n      padding: 20px;\n      font-size: 13px;\n      color: #6b7280;\n      border-top: 1px solid #f1f5f9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Header -->\n    <div class=\"header\">\n      <h2>Lamatic.AI</h2>\n    </div>\n\n    <!-- Body -->\n    <div class=\"content\">\n      <h1>Dear ${username},</h1>\n\n      <p>Thank you for applying to <strong>Lamatic.ai</strong>! We've successfully received your application.</p>\n\n      <p>Our team will carefully review your profile, and if we find a strong match for the role, we'll reach out to schedule an interview. Please keep an eye on your inbox for any updates from us.</p>\n\n      <p>In the meantime, you can learn more about Lamatic.ai and our open roles here:</p>\n\n      <a href=\"https://lamatic.ai/docs/career\" class=\"button\" target=\"_blank\">View Open Roles</a>\n\n      <p>We appreciate your interest in joining our team and wish you the best of luck in your application process</p>\n\n      <p>Warm regards,<br><strong>Team Lamatic.ai</strong></p>\n    </div>\n\n    <!-- Footer -->\n    <div class=\"footer\">\n      © 2025 Lamatic.ai\n    </div>\n  </div>\n</body>\n</html>\n`;\n\noutput = template;",
+        "code": "@scripts/automation-hiring_prepare-receipt-email.ts",
         "nodeName": "Prepare Receipt Email"
       }
     },
@@ -209,7 +214,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "output = {{extractFromFileNode_376.output.files}}[0].data[0]",
+        "code": "@scripts/automation-hiring_collate-resume-contents.ts",
         "nodeName": "Collate Resume Contents"
       }
     },
@@ -281,7 +286,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "CANDIDATE RESUME : {{codeNode_861.output}}"
+            "content": "@prompts/automation-hiring_evaluate-candidate_user.md"
           }
         ],
         "memories": "@model-configs/automation-hiring_evaluate-candidate.ts",
@@ -342,7 +347,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const username = {{triggerNode_1.output.name}};\n\nconst template = `\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Congratulations – Round 1 Cleared | Lamatic.ai</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f9fafb;\n      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      color: #111827;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n      overflow: hidden;\n    }\n    .header {\n      background-color: black;\n      padding: 20px 28px;\n      border-bottom: 1px solid #f1f5f9;\n    }\n    .header h2 {\n      color: #ffffff;\n      margin: 0;\n      font-size: 24px;\n      font-weight: 600;\n    }\n    .header img {\n      height: 28px;\n      display: block;\n    }\n    .content {\n      padding: 32px 28px;\n    }\n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 20px;\n      color: #111827;\n    }\n    p {\n      font-size: 15px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 18px;\n    }\n    .button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    .button:hover {\n      background-color: #dc2626;\n    }\n    a.button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    a.button:hover {\n      background-color: #dc2626;\n      color: #ffffff !important;\n    }\n    a {\n      color: #ef4444;\n      text-decoration: none;\n    }\n    a:hover {\n      text-decoration: underline;\n    }\n    .footer {\n      background-color: #f9fafb;\n      text-align: center;\n      padding: 20px;\n      font-size: 13px;\n      color: #6b7280;\n      border-top: 1px solid #f1f5f9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Header -->\n    <div class=\"header\">\n      <h2>Lamatic.AI</h2>\n    </div>\n\n    <!-- Body -->\n    <div class=\"content\">\n      <h1>Congratulations, ${username}! 🎉</h1>\n\n      <p>We're excited to inform you that you've successfully cleared <strong>Round 1</strong> of our interview process at <strong>Lamatic.ai</strong>!</p>\n\n      <p>Your profile and skills have impressed our team, and we'd love to move forward with <strong>Round 2</strong> – a 30-minute conversation to dive deeper into your experience and discuss how you can contribute to our mission.</p>\n\n      <p>Please use the link below to schedule a convenient time for our call:</p>\n\n      <a href=\"https://calendly.com/dhruvp-lamatic/30min\" class=\"button\" target=\"_blank\">Schedule Your Round 2 Call</a>\n\n      <p>We're looking forward to speaking with you soon and learning more about your journey!</p>\n\n      <p>Warm regards,<br><strong>Team Lamatic.ai</strong></p>\n    </div>\n\n    <!-- Footer -->\n    <div class=\"footer\">\n      © 2025 Lamatic.ai\n    </div>\n  </div>\n</body>\n</html>\n`;\n\noutput = template;",
+        "code": "@scripts/automation-hiring_prepare-selection-mail.ts",
         "nodeName": "Prepare Selection Mail"
       }
     },
@@ -364,7 +369,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "const username = {{triggerNode_1.output.name}};\nconst strengths = {{InstructorLLMNode_145.output.strength}};\nconst weaknesses = {{InstructorLLMNode_145.output.weakness}};\n\nconst template = `\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Application Update – Lamatic.ai</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 0;\n      background-color: #f9fafb;\n      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      color: #111827;\n    }\n    .container {\n      max-width: 600px;\n      margin: 40px auto;\n      background: #ffffff;\n      border-radius: 12px;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.05);\n      overflow: hidden;\n    }\n    .header {\n      background-color: black;\n      padding: 20px 28px;\n      border-bottom: 1px solid #f1f5f9;\n    }\n    .header h2 {\n      color: #ffffff;\n      margin: 0;\n      font-size: 24px;\n      font-weight: 600;\n    }\n    .content {\n      padding: 32px 28px;\n    }\n    h1 {\n      font-size: 20px;\n      font-weight: 600;\n      margin-bottom: 20px;\n      color: #111827;\n    }\n    h3 {\n      font-size: 16px;\n      font-weight: 600;\n      margin-top: 24px;\n      margin-bottom: 12px;\n      color: #111827;\n    }\n    p {\n      font-size: 15px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 18px;\n    }\n    a.button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff !important;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    a.button:hover {\n      background-color: #dc2626;\n      color: #ffffff !important;\n    }\n    .feedback-section {\n      background-color: #f9fafb;\n      border-left: 4px solid #ef4444;\n      padding: 20px;\n      margin: 24px 0;\n      border-radius: 6px;\n    }\n    .feedback-section h3 {\n      margin-top: 0;\n      color: #111827;\n    }\n    .feedback-section ul {\n      margin: 8px 0;\n      padding-left: 20px;\n    }\n    .feedback-section li {\n      font-size: 14px;\n      line-height: 1.6;\n      color: #374151;\n      margin-bottom: 8px;\n    }\n    .button {\n      display: inline-block;\n      background-color: #ef4444;\n      color: #ffffff;\n      text-decoration: none;\n      font-weight: 600;\n      padding: 12px 24px;\n      border-radius: 6px;\n      margin: 8px 0 18px 0;\n      font-size: 15px;\n    }\n    .button:hover {\n      background-color: #dc2626;\n    }\n    a {\n      color: #ef4444;\n      text-decoration: none;\n    }\n    a:hover {\n      text-decoration: underline;\n    }\n    .footer {\n      background-color: #f9fafb;\n      text-align: center;\n      padding: 20px;\n      font-size: 13px;\n      color: #6b7280;\n      border-top: 1px solid #f1f5f9;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h2>Lamatic.AI</h2>\n    </div>\n\n    <div class=\"content\">\n      <h1>Dear ` + username + `,</h1>\n\n      <p>Thank you for taking the time to apply for a position at <strong>Lamatic.ai</strong> and for your interest in joining our team.</p>\n\n      <p>After careful consideration, we have decided to move forward with other candidates whose experience more closely aligns with the current requirements of this role.</p>\n\n      <p>We want to provide you with constructive feedback from our review. We hope this insight helps you in your continued professional growth:</p>\n\n      <div class=\"feedback-section\">\n        ` + strengths + `\n        ` + weaknesses + `\n      </div>\n\n      <p>Your skills and experience are impressive, and we encourage you to keep an eye on our careers page for future opportunities that may be a better fit.</p>\n\n      <a href=\"https://lamatic.ai/docs/career\" class=\"button\" target=\"_blank\">View Future Openings</a>\n\n      <p>We wish you the very best in your job search and future endeavors.</p>\n\n      <p>Warm regards,<br><strong>Team Lamatic.ai</strong></p>\n    </div>\n\n    <div class=\"footer\">\n      © 2025 Lamatic.ai\n    </div>\n  </div>\n</body>\n</html>\n`;\n\noutput = template;",
+        "code": "@scripts/automation-hiring_prepare-rejection-mail.ts",
         "nodeName": "Prepare Rejection Mail"
       }
     },

@@ -2,5 +2,5 @@
 // Flow: blog-seo
 
 export default {
-  "generativeModelName": ""
+  "generativeModelName": "@model-configs/blog-seo_seo-optimize-content.ts"
 };

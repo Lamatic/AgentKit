@@ -2,10 +2,10 @@
 // Flow: slack-assistant
 
 export default {
-  "generativeModelName": {},
-  "embeddingModelName": {},
-  "limit": 20,
-  "certainty": "0.5",
-  "memories": "[]",
-  "messages": "[]"
+  "generativeModelName": "@model-configs/slack-assistant_rag.ts",
+  "embeddingModelName": "@model-configs/slack-assistant_rag.ts",
+  "limit": "@model-configs/slack-assistant_rag.ts",
+  "certainty": "@model-configs/slack-assistant_rag.ts",
+  "memories": "@model-configs/slack-assistant_rag.ts",
+  "messages": "@model-configs/slack-assistant_rag.ts"
 };

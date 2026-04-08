@@ -22,6 +22,7 @@ export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -33,13 +34,10 @@ export const references = {
   "modelConfigs": {
     "advertisement_poster_generation_multi_modal": "@model-configs/advertisement-poster-generation_multi-modal.ts",
     "advertisement_poster_generation_generate_image": "@model-configs/advertisement-poster-generation_generate-image.ts"
-  },
-  "triggers": {
-    "advertisement_poster_generation_api_request": "@triggers/webhooks/advertisement-poster-generation_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -57,9 +55,9 @@ export const nodes = [
         "headers": "",
         "retries": "0",
         "webhookUrl": "",
-        "responeType": "@triggers/webhooks/advertisement-poster-generation_api-request.ts",
+        "responeType": "realtime",
         "retry_deplay": "0",
-        "advance_schema": "@triggers/webhooks/advertisement-poster-generation_api-request.ts"
+        "advance_schema": ""
       }
     }
   },

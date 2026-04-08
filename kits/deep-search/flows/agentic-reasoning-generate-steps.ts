@@ -40,22 +40,21 @@ export const inputs = {
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
+// NOTE: Trigger widget settings are saved to triggers/widgets/ but NOT cross-referenced here
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "generate_text_system": "@prompts/generate-text-system.md"
+    "generate_text_system": "@prompts/generate-text-system.md",
+    "agentic_reasoning_generate_steps_generate_text_user": "@prompts/agentic-reasoning-generate-steps_generate-text_user.md"
   },
   "modelConfigs": {
     "agentic_reasoning_generate_steps_generate_text": "@model-configs/agentic-reasoning-generate-steps_generate-text.ts"
-  },
-  "triggers": {
-    "agentic_reasoning_generate_steps_api_request": "@triggers/webhooks/agentic-reasoning-generate-steps_api-request.ts"
   }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
+// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -73,9 +72,9 @@ export const nodes = [
         "headers": "",
         "retries": "0",
         "webhookUrl": "",
-        "responeType": "@triggers/webhooks/agentic-reasoning-generate-steps_api-request.ts",
+        "responeType": "realtime",
         "retry_deplay": "0",
-        "advance_schema": "@triggers/webhooks/agentic-reasoning-generate-steps_api-request.ts"
+        "advance_schema": ""
       }
     }
   },
@@ -101,7 +100,7 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "USER QUERY : {{triggerNode_1.output.query}}"
+            "content": "@prompts/agentic-reasoning-generate-steps_generate-text_user.md"
           }
         ],
         "memories": "@model-configs/agentic-reasoning-generate-steps_generate-text.ts",
