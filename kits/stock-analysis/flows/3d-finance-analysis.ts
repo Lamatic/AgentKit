@@ -1,5 +1,4 @@
 // Flow: 3d-finance-analysis
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -41,13 +40,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "generate_json_system": "@prompts/generate-json-system.md"
+  },
+  "modelConfigs": {
+    "3d_finance_analysis_generate_json": "@model-configs/3d-finance-analysis_generate-json.ts"
+  },
+  "triggers": {
+    "3d_finance_analysis_api_request": "@triggers/webhooks/3d-finance-analysis_api-request.ts"
   }
 };
 
@@ -60,8 +65,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"companies\": \"[string]\"\n}"
+        "responeType": "@triggers/webhooks/3d-finance-analysis_api-request.ts",
+        "advance_schema": "@triggers/webhooks/3d-finance-analysis_api-request.ts"
       },
       "trigger": true
     },
@@ -223,11 +228,11 @@ export const nodes = [
             "content": "DATE TODAY : {{codeNode_667.output.date}}\n\nCOMPANIES : {{triggerNode_1.output.companies}}\n\nCOMPANIES FUNDAMENTALS DATA : {{codeNode_667.output.fundamentals}}\n\nCOMPANIES HISTORIC STOCK DATA : {{codeNode_667.output.historical_data}}\n\nCOMPANIES SENTIMENT DATA : {{codeNode_667.output.sentiment_data}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/3d-finance-analysis_generate-json.ts",
+        "messages": "@model-configs/3d-finance-analysis_generate-json.ts",
         "nodeName": "Generate JSON",
-        "attachments": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/3d-finance-analysis_generate-json.ts",
+        "generativeModelName": "@model-configs/3d-finance-analysis_generate-json.ts"
       }
     },
     "type": "dynamicNode",

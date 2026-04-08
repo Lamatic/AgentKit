@@ -1,5 +1,4 @@
 // Flow: plant-care
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,12 +21,19 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "plant_care_generate_text_system": "@prompts/plant-care_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "plant_care_generate_text": "@model-configs/plant-care_generate-text.ts"
+  },
+  "triggers": {
+    "plant_care_api_request": "@triggers/webhooks/plant-care_api-request.ts"
   }
 };
 
@@ -45,8 +51,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/plant-care_api-request.ts",
+        "advance_schema": "@triggers/webhooks/plant-care_api-request.ts"
       }
     }
   },
@@ -69,9 +75,9 @@ export const nodes = [
             "content": "@prompts/plant-care_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/plant-care_generate-text.ts",
+        "messages": "@model-configs/plant-care_generate-text.ts",
+        "generativeModelName": "@model-configs/plant-care_generate-text.ts"
       }
     }
   },

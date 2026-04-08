@@ -1,5 +1,4 @@
 // Flow: blog-seo
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -46,10 +45,16 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "modelConfigs": {
+    "blog_seo_seo_optimize_content": "@model-configs/blog-seo_seo-optimize-content.ts"
+  },
+  "triggers": {
+    "blog_seo_api_request": "@triggers/webhooks/blog-seo_api-request.ts"
   }
 };
 
@@ -62,8 +67,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"draft\": \"string\",\n  \"keywords\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/blog-seo_api-request.ts",
+        "advance_schema": "@triggers/webhooks/blog-seo_api-request.ts"
       },
       "trigger": true
     },
@@ -94,7 +99,7 @@ export const nodes = [
           }
         ],
         "nodeName": "SEO Optimize Content",
-        "generativeModelName": ""
+        "generativeModelName": "@model-configs/blog-seo_seo-optimize-content.ts"
       }
     },
     "type": "dynamicNode",

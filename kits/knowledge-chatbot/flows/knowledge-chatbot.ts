@@ -1,5 +1,4 @@
 // Flow: knowledge-chatbot
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -61,6 +60,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -68,6 +68,12 @@ export const references = {
   "prompts": {
     "knowledge_chatbot_rag_system": "@prompts/knowledge-chatbot_rag_system.md",
     "knowledge_chatbot_rag_user": "@prompts/knowledge-chatbot_rag_user.md"
+  },
+  "modelConfigs": {
+    "knowledge_chatbot_rag": "@model-configs/knowledge-chatbot_rag.ts"
+  },
+  "triggers": {
+    "knowledge_chatbot_chat_widget": "@triggers/widgets/knowledge-chatbot_chat-widget.ts"
   }
 };
 
@@ -85,10 +91,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Chat Widget",
-        "chat": "",
-        "domains": [
-          "*"
-        ],
+        "chat": "@triggers/widgets/knowledge-chatbot_chat-widget.ts",
+        "domains": "@triggers/widgets/knowledge-chatbot_chat-widget.ts",
         "chatConfig": {
           "botName": "Lamatic Bot",
           "imageUrl": "https://api.lamatic.ai/storage/v1/object/public/widget-avatar/LamaticShowcase/UrlScraperChatbot866/2bf0df6e-04b0-4392-8100-4c8a4d5eeb09/1749111185167.png",
@@ -127,7 +131,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "RAG",
-        "limit": 20,
+        "limit": "@model-configs/knowledge-chatbot_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -141,12 +145,12 @@ export const nodes = [
             "content": "@prompts/knowledge-chatbot_rag_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "{{triggerNode_1.output.chatHistory}}",
-        "certainty": "0.5",
+        "memories": "@model-configs/knowledge-chatbot_rag.ts",
+        "messages": "@model-configs/knowledge-chatbot_rag.ts",
+        "certainty": "@model-configs/knowledge-chatbot_rag.ts",
         "queryField": "{{triggerNode_1.output.chatMessage}}",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/knowledge-chatbot_rag.ts",
+        "generativeModelName": "@model-configs/knowledge-chatbot_rag.ts"
       }
     }
   },

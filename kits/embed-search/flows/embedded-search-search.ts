@@ -1,5 +1,4 @@
 // Flow: embedded-search-search
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -65,10 +64,13 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "triggers": {
+    "embedded_search_search_search_widget": "@triggers/widgets/embedded-search-search_search-widget.ts"
   }
 };
 
@@ -80,24 +82,10 @@ export const nodes = [
       "modes": {},
       "nodeId": "searchTriggerNode",
       "values": {
-        "search": "",
-        "domains": [
-          "*"
-        ],
+        "search": "@triggers/widgets/embedded-search-search_search-widget.ts",
+        "domains": "@triggers/widgets/embedded-search-search_search-widget.ts",
         "nodeName": "Search Widget",
-        "searchConfig": {
-          "linkTarget": "_blank",
-          "showAllTab": true,
-          "staticTabs": [],
-          "hideBranding": false,
-          "primaryColor": "#007bff",
-          "enableGrouping": false,
-          "searchDebounce": 300,
-          "secondaryColor": "#666",
-          "showNavHelperText": true,
-          "showEscapeHelperText": true,
-          "searchPlaceholderText": "Search our knowledge base..."
-        }
+        "searchConfig": "@triggers/widgets/embedded-search-search_search-widget.ts"
       },
       "trigger": true
     },

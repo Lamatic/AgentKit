@@ -1,5 +1,4 @@
 // Flow: semantic-search
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -45,12 +44,16 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "scripts": {
     "semantic_search_collate_results": "@scripts/semantic-search_collate-results.ts"
+  },
+  "triggers": {
+    "semantic_search_search_widget": "@triggers/widgets/semantic-search_search-widget.ts"
   }
 };
 
@@ -68,24 +71,10 @@ export const nodes = [
       "modes": {},
       "trigger": true,
       "values": {
-        "domains": [
-          "*"
-        ],
+        "domains": "@triggers/widgets/semantic-search_search-widget.ts",
         "nodeName": "Search Widget",
-        "search": "",
-        "searchConfig": {
-          "linkTarget": "_blank",
-          "showAllTab": true,
-          "staticTabs": [],
-          "hideBranding": false,
-          "primaryColor": "#007bff",
-          "enableGrouping": false,
-          "searchDebounce": 200,
-          "secondaryColor": "#666",
-          "showNavHelperText": true,
-          "showEscapeHelperText": true,
-          "searchPlaceholderText": "Search our knowledge base..."
-        }
+        "search": "@triggers/widgets/semantic-search_search-widget.ts",
+        "searchConfig": "@triggers/widgets/semantic-search_search-widget.ts"
       }
     }
   },

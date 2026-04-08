@@ -1,5 +1,4 @@
 // Flow: hiring-agent
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,6 +21,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -40,6 +40,18 @@ export const references = {
   },
   "scripts": {
     "hiring_agent_code": "@scripts/hiring-agent_code.ts"
+  },
+  "modelConfigs": {
+    "hiring_agent_github_username_finder": "@model-configs/hiring-agent_github-username-finder.ts",
+    "hiring_agent_github_projects_analyser": "@model-configs/hiring-agent_github-projects-analyser.ts",
+    "hiring_agent_resume_projects_analyser": "@model-configs/hiring-agent_resume-projects-analyser.ts",
+    "hiring_agent_insight_evaluator": "@model-configs/hiring-agent_insight-evaluator.ts"
+  },
+  "triggers": {
+    "hiring_agent_api_request": "@triggers/webhooks/hiring-agent_api-request.ts"
+  },
+  "tools": {
+    "hiring_agent_github_projects_analyser_tools": "@tools/hiring-agent_github-projects-analyser_tools.ts"
   }
 };
 
@@ -61,9 +73,9 @@ export const nodes = [
         "headers": "",
         "retries": "0",
         "webhookUrl": "",
-        "responeType": "realtime",
+        "responeType": "@triggers/webhooks/hiring-agent_api-request.ts",
         "retry_deplay": "0",
-        "advance_schema": "{\n  \"resume_url\": \"string\",\n  \"job_description\": \"string\"\n}"
+        "advance_schema": "@triggers/webhooks/hiring-agent_api-request.ts"
       }
     }
   },
@@ -185,10 +197,10 @@ export const nodes = [
             "content": "@prompts/hiring-agent_github-username-finder_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": "",
-        "generativeModelName": {}
+        "memories": "@model-configs/hiring-agent_github-username-finder.ts",
+        "messages": "@model-configs/hiring-agent_github-username-finder.ts",
+        "attachments": "@model-configs/hiring-agent_github-username-finder.ts",
+        "generativeModelName": "@model-configs/hiring-agent_github-username-finder.ts"
       }
     }
   },
@@ -231,9 +243,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Github Projects Analyser",
-        "tools": [
-          "2ee8a92d-e6d4-442c-9334-61bdf0e7d311"
-        ],
+        "tools": "@tools/hiring-agent_github-projects-analyser_tools.ts",
         "prompts": [
           {
             "id": "6c9c3e7c-bb64-4047-9cac-3089ff468d62",
@@ -246,10 +256,10 @@ export const nodes = [
             "content": "@prompts/hiring-agent_github-projects-analyser_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": "",
-        "generativeModelName": {}
+        "memories": "@model-configs/hiring-agent_github-projects-analyser.ts",
+        "messages": "@model-configs/hiring-agent_github-projects-analyser.ts",
+        "attachments": "@model-configs/hiring-agent_github-projects-analyser.ts",
+        "generativeModelName": "@model-configs/hiring-agent_github-projects-analyser.ts"
       }
     }
   },
@@ -294,10 +304,10 @@ export const nodes = [
             "content": "@prompts/hiring-agent_resume-projects-analyser_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": "",
-        "generativeModelName": {}
+        "memories": "@model-configs/hiring-agent_resume-projects-analyser.ts",
+        "messages": "@model-configs/hiring-agent_resume-projects-analyser.ts",
+        "attachments": "@model-configs/hiring-agent_resume-projects-analyser.ts",
+        "generativeModelName": "@model-configs/hiring-agent_resume-projects-analyser.ts"
       }
     }
   },
@@ -327,10 +337,10 @@ export const nodes = [
             "content": "@prompts/hiring-agent_insight-evaluator_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": "",
-        "generativeModelName": {}
+        "memories": "@model-configs/hiring-agent_insight-evaluator.ts",
+        "messages": "@model-configs/hiring-agent_insight-evaluator.ts",
+        "attachments": "@model-configs/hiring-agent_insight-evaluator.ts",
+        "generativeModelName": "@model-configs/hiring-agent_insight-evaluator.ts"
       }
     }
   },

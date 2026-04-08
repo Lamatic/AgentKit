@@ -1,5 +1,4 @@
 // Flow: slack-assistant
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -162,6 +161,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -169,6 +169,9 @@ export const references = {
   "prompts": {
     "slack_assistant_rag_system": "@prompts/slack-assistant_rag_system.md",
     "slack_assistant_rag_user": "@prompts/slack-assistant_rag_user.md"
+  },
+  "modelConfigs": {
+    "slack_assistant_rag": "@model-configs/slack-assistant_rag.ts"
   }
 };
 
@@ -206,7 +209,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "RAG",
-        "limit": 20,
+        "limit": "@model-configs/slack-assistant_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -220,12 +223,12 @@ export const nodes = [
             "content": "@prompts/slack-assistant_rag_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "certainty": "0.5",
+        "memories": "@model-configs/slack-assistant_rag.ts",
+        "messages": "@model-configs/slack-assistant_rag.ts",
+        "certainty": "@model-configs/slack-assistant_rag.ts",
         "queryField": "{{triggerNode_1.output.text}}",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/slack-assistant_rag.ts",
+        "generativeModelName": "@model-configs/slack-assistant_rag.ts"
       }
     }
   },

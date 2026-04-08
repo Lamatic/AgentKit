@@ -1,5 +1,4 @@
 // Flow: docs-ingestion
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -57,6 +56,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -64,6 +64,9 @@ export const references = {
   "scripts": {
     "docs_ingestion_extract_chunks": "@scripts/docs-ingestion_extract-chunks.ts",
     "docs_ingestion_transform_metadata": "@scripts/docs-ingestion_transform-metadata.ts"
+  },
+  "triggers": {
+    "docs_ingestion_api_request": "@triggers/webhooks/docs-ingestion_api-request.ts"
   }
 };
 
@@ -76,8 +79,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\",\n  \"filename\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/docs-ingestion_api-request.ts",
+        "advance_schema": "@triggers/webhooks/docs-ingestion_api-request.ts"
       },
       "trigger": true
     },

@@ -1,5 +1,4 @@
 // Flow: code-review-agent
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -113,7 +112,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -123,6 +122,15 @@ export const references = {
     "security_scan_system": "@prompts/security-scan-system.md",
     "style_check_system": "@prompts/style-check-system.md",
     "final_merge_system": "@prompts/final-merge-system.md"
+  },
+  "modelConfigs": {
+    "code_review_agent_bug_analysis": "@model-configs/code-review-agent_bug-analysis.ts",
+    "code_review_agent_security_scan": "@model-configs/code-review-agent_security-scan.ts",
+    "code_review_agent_style_check": "@model-configs/code-review-agent_style-check.ts",
+    "code_review_agent_final_merge": "@model-configs/code-review-agent_final-merge.ts"
+  },
+  "triggers": {
+    "code_review_agent_webhook": "@triggers/webhooks/code-review-agent_webhook.ts"
   }
 };
 
@@ -233,11 +241,11 @@ export const nodes = [
             "content": "Analyze this PR diff for bugs and logic errors. Reference specific line numbers and code from the diff.\n{{codeNode_104.output.diff}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/code-review-agent_bug-analysis.ts",
+        "messages": "@model-configs/code-review-agent_bug-analysis.ts",
         "nodeName": "Bug_Analysis",
-        "attachments": "",
-        "generativeModelName": "llama-3.3-70b-versatile"
+        "attachments": "@model-configs/code-review-agent_bug-analysis.ts",
+        "generativeModelName": "@model-configs/code-review-agent_bug-analysis.ts"
       }
     },
     "type": "dynamicNode",
@@ -273,11 +281,11 @@ export const nodes = [
             "content": "Analyze this PR diff for security vulnerabilities. Reference specific line numbers and code from the diff.\n{{codeNode_104.output.diff}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/code-review-agent_security-scan.ts",
+        "messages": "@model-configs/code-review-agent_security-scan.ts",
         "nodeName": "Security_Scan",
-        "attachments": "",
-        "generativeModelName": "llama-3.3-70b-versatile"
+        "attachments": "@model-configs/code-review-agent_security-scan.ts",
+        "generativeModelName": "@model-configs/code-review-agent_security-scan.ts"
       }
     },
     "type": "dynamicNode",
@@ -313,11 +321,11 @@ export const nodes = [
             "content": "Analyze this PR diff for code style and readability issues. Reference specific line numbers and code from the diff. {{codeNode_104.output.diff}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/code-review-agent_style-check.ts",
+        "messages": "@model-configs/code-review-agent_style-check.ts",
         "nodeName": "Style_Check",
-        "attachments": "",
-        "generativeModelName": "llama-3.3-70b-versatile"
+        "attachments": "@model-configs/code-review-agent_style-check.ts",
+        "generativeModelName": "@model-configs/code-review-agent_style-check.ts"
       }
     },
     "type": "dynamicNode",
@@ -370,11 +378,11 @@ export const nodes = [
             "content": "BUGS: {{InstructorLLMNode_312.output.bugs}}\nSECURITY: {{InstructorLLMNode_549.output.security}}\nSTYLE: {{InstructorLLMNode_538.output.style}}\nBased on these three code review analyses, write a concise 2-3 sentence overall summary of the PR quality"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/code-review-agent_final-merge.ts",
+        "messages": "@model-configs/code-review-agent_final-merge.ts",
         "nodeName": "Final_Merge",
-        "attachments": "",
-        "generativeModelName": "llama-3.3-70b-versatile"
+        "attachments": "@model-configs/code-review-agent_final-merge.ts",
+        "generativeModelName": "@model-configs/code-review-agent_final-merge.ts"
       }
     },
     "type": "dynamicNode",

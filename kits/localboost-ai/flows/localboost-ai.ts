@@ -1,5 +1,4 @@
 // Flow: localboost-ai
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -53,6 +52,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -60,6 +60,12 @@ export const references = {
   "prompts": {
     "localboost_ai_generate_json_system": "@prompts/localboost-ai_generate-json_system.md",
     "localboost_ai_generate_json_user": "@prompts/localboost-ai_generate-json_user.md"
+  },
+  "modelConfigs": {
+    "localboost_ai_generate_json": "@model-configs/localboost-ai_generate-json.ts"
+  },
+  "triggers": {
+    "localboost_ai_api_request": "@triggers/webhooks/localboost-ai_api-request.ts"
   }
 };
 
@@ -73,8 +79,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"business_name\": \"string\",\n  \"website\": \"string\",\n  \"instagram\": \"string\",\n  \"location\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/localboost-ai_api-request.ts",
+        "advance_schema": "@triggers/webhooks/localboost-ai_api-request.ts"
       },
       "trigger": true
     },
@@ -179,21 +185,11 @@ export const nodes = [
             "content": "@prompts/localboost-ai_generate-json_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/localboost-ai_generate-json.ts",
+        "messages": "@model-configs/localboost-ai_generate-json.ts",
         "nodeName": "Generate JSON",
-        "attachments": "",
-        "generativeModelName": [
-          {
-            "type": "generator/text",
-            "params": {},
-            "configName": "configA",
-            "model_name": "gpt-4o-mini",
-            "credentialId": "4afd5974-b7f1-4fc8-bf04-e8841720061b",
-            "provider_name": "openai",
-            "credential_name": "Lead inte"
-          }
-        ]
+        "attachments": "@model-configs/localboost-ai_generate-json.ts",
+        "generativeModelName": "@model-configs/localboost-ai_generate-json.ts"
       }
     },
     "type": "dynamicNode",

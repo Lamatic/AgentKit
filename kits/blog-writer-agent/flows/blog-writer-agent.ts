@@ -1,5 +1,4 @@
 // Flow: blog-writer-agent
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,6 +21,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -34,6 +34,12 @@ export const references = {
   "scripts": {
     "blog_writer_agent_extract_link": "@scripts/blog-writer-agent_extract-link.ts",
     "blog_writer_agent_extract_final_content": "@scripts/blog-writer-agent_extract-final-content.ts"
+  },
+  "modelConfigs": {
+    "blog_writer_agent_generate_text": "@model-configs/blog-writer-agent_generate-text.ts"
+  },
+  "triggers": {
+    "blog_writer_agent_api_request": "@triggers/webhooks/blog-writer-agent_api-request.ts"
   }
 };
 
@@ -51,8 +57,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"topic\": \"string\",\n  \"tone\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/blog-writer-agent_api-request.ts",
+        "advance_schema": "@triggers/webhooks/blog-writer-agent_api-request.ts"
       }
     }
   },
@@ -167,9 +173,9 @@ export const nodes = [
             "content": "@prompts/blog-writer-agent_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/blog-writer-agent_generate-text.ts",
+        "messages": "@model-configs/blog-writer-agent_generate-text.ts",
+        "generativeModelName": "@model-configs/blog-writer-agent_generate-text.ts"
       }
     }
   },
@@ -197,9 +203,9 @@ export const nodes = [
             "content": "@prompts/blog-writer-agent_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/blog-writer-agent_generate-text.ts",
+        "messages": "@model-configs/blog-writer-agent_generate-text.ts",
+        "generativeModelName": "@model-configs/blog-writer-agent_generate-text.ts"
       }
     }
   },

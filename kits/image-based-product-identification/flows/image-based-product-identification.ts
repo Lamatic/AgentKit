@@ -1,5 +1,4 @@
 // Flow: image-based-product-identification
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,6 +22,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -32,6 +32,12 @@ export const references = {
   },
   "scripts": {
     "image_based_product_identification_code": "@scripts/image-based-product-identification_code.ts"
+  },
+  "modelConfigs": {
+    "image_based_product_identification_generate_text": "@model-configs/image-based-product-identification_generate-text.ts"
+  },
+  "triggers": {
+    "image_based_product_identification_api_request": "@triggers/webhooks/image-based-product-identification_api-request.ts"
   }
 };
 
@@ -49,8 +55,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/image-based-product-identification_api-request.ts",
+        "advance_schema": "@triggers/webhooks/image-based-product-identification_api-request.ts"
       }
     }
   },
@@ -73,9 +79,9 @@ export const nodes = [
             "content": "@prompts/image-based-product-identification_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/image-based-product-identification_generate-text.ts",
+        "messages": "@model-configs/image-based-product-identification_generate-text.ts",
+        "generativeModelName": "@model-configs/image-based-product-identification_generate-text.ts"
       }
     }
   },

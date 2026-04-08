@@ -1,5 +1,4 @@
 // Flow: recipe-maker-with-memory
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,12 +22,23 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "recipe_maker_with_memory_generate_text_system": "@prompts/recipe-maker-with-memory_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "recipe_maker_with_memory_generate_text": "@model-configs/recipe-maker-with-memory_generate-text.ts"
+  },
+  "triggers": {
+    "recipe_maker_with_memory_api_request": "@triggers/webhooks/recipe-maker-with-memory_api-request.ts"
+  },
+  "memory": {
+    "recipe_maker_with_memory_memory_add": "@memory/recipe-maker-with-memory_memory-add.ts",
+    "recipe_maker_with_memory_memory_retrieve": "@memory/recipe-maker-with-memory_memory-retrieve.ts"
   }
 };
 
@@ -46,8 +56,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"query\": \"string\",\n  \"id\": \"int\"\n}"
+        "responeType": "@triggers/webhooks/recipe-maker-with-memory_api-request.ts",
+        "advance_schema": "@triggers/webhooks/recipe-maker-with-memory_api-request.ts"
       }
     }
   },
@@ -62,17 +72,12 @@ export const nodes = [
       "nodeId": "memoryNode",
       "values": {
         "nodeName": "Memory Add",
-        "uniqueId": "{{triggerNode_1.output.id}}",
-        "sessionId": "",
-        "memoryValue": [
-          {
-            "role": "user",
-            "content": "{{triggerNode_1.output.query}}"
-          }
-        ],
-        "memoryCollection": "receipeTest",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "uniqueId": "@memory/recipe-maker-with-memory_memory-add.ts",
+        "sessionId": "@memory/recipe-maker-with-memory_memory-add.ts",
+        "memoryValue": "@memory/recipe-maker-with-memory_memory-add.ts",
+        "memoryCollection": "@memory/recipe-maker-with-memory_memory-add.ts",
+        "embeddingModelName": "@memory/recipe-maker-with-memory_memory-add.ts",
+        "generativeModelName": "@memory/recipe-maker-with-memory_memory-add.ts"
       }
     }
   },
@@ -87,12 +92,12 @@ export const nodes = [
       "nodeId": "memoryRetrieveNode",
       "values": {
         "nodeName": "Memory Retrieve",
-        "limit": 10,
-        "filters": "[]",
-        "searchQuery": "What are the user preferences and what all have they told about their needs?",
-        "memoryCollection": "receipeTest",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "limit": "@memory/recipe-maker-with-memory_memory-retrieve.ts",
+        "filters": "@memory/recipe-maker-with-memory_memory-retrieve.ts",
+        "searchQuery": "@memory/recipe-maker-with-memory_memory-retrieve.ts",
+        "memoryCollection": "@memory/recipe-maker-with-memory_memory-retrieve.ts",
+        "embeddingModelName": "@memory/recipe-maker-with-memory_memory-retrieve.ts",
+        "generativeModelName": "@memory/recipe-maker-with-memory_memory-retrieve.ts"
       }
     }
   },
@@ -115,9 +120,9 @@ export const nodes = [
             "content": "@prompts/recipe-maker-with-memory_generate-text_system.md"
           }
         ],
-        "memories": "{{memoryRetrieveNode_711.output.memories}}",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/recipe-maker-with-memory_generate-text.ts",
+        "messages": "@model-configs/recipe-maker-with-memory_generate-text.ts",
+        "generativeModelName": "@model-configs/recipe-maker-with-memory_generate-text.ts"
       }
     }
   },

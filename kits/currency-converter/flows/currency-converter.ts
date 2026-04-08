@@ -1,5 +1,4 @@
 // Flow: currency-converter
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,12 +21,22 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "currency_converter_generate_text_system": "@prompts/currency-converter_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "currency_converter_generate_text": "@model-configs/currency-converter_generate-text.ts"
+  },
+  "triggers": {
+    "currency_converter_api_request": "@triggers/webhooks/currency-converter_api-request.ts"
+  },
+  "tools": {
+    "currency_converter_generate_text_tools": "@tools/currency-converter_generate-text_tools.ts"
   }
 };
 
@@ -45,8 +54,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"amount\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/currency-converter_api-request.ts",
+        "advance_schema": "@triggers/webhooks/currency-converter_api-request.ts"
       }
     }
   },
@@ -61,9 +70,7 @@ export const nodes = [
       "nodeId": "LLMNode",
       "values": {
         "nodeName": "Generate Text",
-        "tools": [
-          "882ec676-1b99-4a6b-ac2a-29e282bd4e72"
-        ],
+        "tools": "@tools/currency-converter_generate-text_tools.ts",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -71,9 +78,9 @@ export const nodes = [
             "content": "@prompts/currency-converter_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/currency-converter_generate-text.ts",
+        "messages": "@model-configs/currency-converter_generate-text.ts",
+        "generativeModelName": "@model-configs/currency-converter_generate-text.ts"
       }
     }
   },

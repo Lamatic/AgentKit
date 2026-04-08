@@ -1,5 +1,4 @@
 // Flow: search-widget
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,12 +21,19 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "search_widget_rag_system": "@prompts/search-widget_rag_system.md"
+  },
+  "modelConfigs": {
+    "search_widget_rag": "@model-configs/search-widget_rag.ts"
+  },
+  "triggers": {
+    "search_widget_search_widget": "@triggers/widgets/search-widget_search-widget.ts"
   }
 };
 
@@ -45,8 +51,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Search Widget",
-        "search": "",
-        "domains": []
+        "search": "@triggers/widgets/search-widget_search-widget.ts",
+        "domains": "@triggers/widgets/search-widget_search-widget.ts"
       }
     }
   },
@@ -61,7 +67,7 @@ export const nodes = [
       "nodeId": "RAGNode",
       "values": {
         "nodeName": "RAG",
-        "limit": 5,
+        "limit": "@model-configs/search-widget_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -70,13 +76,13 @@ export const nodes = [
             "content": "@prompts/search-widget_rag_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/search-widget_rag.ts",
+        "messages": "@model-configs/search-widget_rag.ts",
         "vectorDB": "",
-        "certainty": "0.5",
+        "certainty": "@model-configs/search-widget_rag.ts",
         "queryField": "{{triggerNode_1.output.searchQuery}}",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/search-widget_rag.ts",
+        "generativeModelName": "@model-configs/search-widget_rag.ts"
       }
     }
   },

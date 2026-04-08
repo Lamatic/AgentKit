@@ -1,5 +1,4 @@
 // Flow: vectorise-link
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,6 +22,7 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -30,6 +30,9 @@ export const references = {
   "scripts": {
     "vectorise_link_extract_chunks": "@scripts/vectorise-link_extract-chunks.ts",
     "vectorise_link_transform_metadata": "@scripts/vectorise-link_transform-metadata.ts"
+  },
+  "triggers": {
+    "vectorise_link_api_request": "@triggers/webhooks/vectorise-link_api-request.ts"
   }
 };
 
@@ -47,8 +50,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\",\n  \"filename\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/vectorise-link_api-request.ts",
+        "advance_schema": "@triggers/webhooks/vectorise-link_api-request.ts"
       }
     }
   },

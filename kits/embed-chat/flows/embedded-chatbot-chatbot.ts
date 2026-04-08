@@ -1,5 +1,4 @@
 // Flow: embedded-chatbot-chatbot
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -65,13 +64,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "rag_system": "@prompts/rag-system.md"
+  },
+  "modelConfigs": {
+    "embedded_chatbot_chatbot_rag": "@model-configs/embedded-chatbot-chatbot_rag.ts"
+  },
+  "triggers": {
+    "embedded_chatbot_chatbot_chat_widget": "@triggers/widgets/embedded-chatbot-chatbot_chat-widget.ts"
   }
 };
 
@@ -83,10 +88,8 @@ export const nodes = [
       "nodeId": "chatTriggerNode",
       "values": {
         "id": "triggerNode_1",
-        "chat": "",
-        "domains": [
-          "*"
-        ],
+        "chat": "@triggers/widgets/embedded-chatbot-chatbot_chat-widget.ts",
+        "domains": "@triggers/widgets/embedded-chatbot-chatbot_chat-widget.ts",
         "nodeName": "Chat Widget",
         "chatConfig": {
           "botName": "Lamatic Bot",
@@ -154,7 +157,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "RAGNode",
       "values": {
-        "limit": 20,
+        "limit": "@model-configs/embedded-chatbot-chatbot_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -168,14 +171,14 @@ export const nodes = [
             "content": "USER QUERY : {{triggerNode_1.output.chatMessage}} \n\nCURRENT CHAT HISTORY FOR CONTEXT : {{triggerNode_1.output.chatHistory}}"
           }
         ],
-        "memories": "[]",
-        "messages": "",
+        "memories": "@model-configs/embedded-chatbot-chatbot_rag.ts",
+        "messages": "@model-configs/embedded-chatbot-chatbot_rag.ts",
         "nodeName": "RAG",
         "vectorDB": "",
-        "certainty": "0.5",
+        "certainty": "@model-configs/embedded-chatbot-chatbot_rag.ts",
         "queryField": "{{triggerNode_1.output.chatMessage}}",
-        "embeddingModelName": "",
-        "generativeModelName": ""
+        "embeddingModelName": "@model-configs/embedded-chatbot-chatbot_rag.ts",
+        "generativeModelName": "@model-configs/embedded-chatbot-chatbot_rag.ts"
       }
     },
     "type": "dynamicNode",

@@ -1,5 +1,4 @@
 // Flow: assistant-grammer-correction
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -43,13 +42,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "generate_json_system": "@prompts/generate-json-system.md"
+  },
+  "modelConfigs": {
+    "assistant_grammer_correction_generate_json": "@model-configs/assistant-grammer-correction_generate-json.ts"
+  },
+  "triggers": {
+    "assistant_grammer_correction_api_request": "@triggers/webhooks/assistant-grammer-correction_api-request.ts"
   }
 };
 
@@ -63,8 +68,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"text\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/assistant-grammer-correction_api-request.ts",
+        "advance_schema": "@triggers/webhooks/assistant-grammer-correction_api-request.ts"
       },
       "trigger": true
     },
@@ -127,11 +132,11 @@ export const nodes = [
             "content": "USER TEXT : {{triggerNode_1.output.text}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/assistant-grammer-correction_generate-json.ts",
+        "messages": "@model-configs/assistant-grammer-correction_generate-json.ts",
         "nodeName": "Generate JSON",
-        "attachments": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/assistant-grammer-correction_generate-json.ts",
+        "generativeModelName": "@model-configs/assistant-grammer-correction_generate-json.ts"
       }
     },
     "type": "dynamicNode",

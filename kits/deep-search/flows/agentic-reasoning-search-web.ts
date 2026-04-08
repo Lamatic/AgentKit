@@ -1,5 +1,4 @@
 // Flow: agentic-reasoning-search-web
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -51,13 +50,19 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "generate_json_system": "@prompts/generate-json-system.md"
+  },
+  "modelConfigs": {
+    "agentic_reasoning_search_web_generate_json": "@model-configs/agentic-reasoning-search-web_generate-json.ts"
+  },
+  "triggers": {
+    "agentic_reasoning_search_web_api_request": "@triggers/webhooks/agentic-reasoning-search-web_api-request.ts"
   }
 };
 
@@ -76,8 +81,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"steps\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/agentic-reasoning-search-web_api-request.ts",
+        "advance_schema": "@triggers/webhooks/agentic-reasoning-search-web_api-request.ts"
       }
     }
   },
@@ -107,9 +112,9 @@ export const nodes = [
             "content": "STEPS : {{triggerNode_1.output.steps}}"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "attachments": ""
+        "memories": "@model-configs/agentic-reasoning-search-web_generate-json.ts",
+        "messages": "@model-configs/agentic-reasoning-search-web_generate-json.ts",
+        "attachments": "@model-configs/agentic-reasoning-search-web_generate-json.ts"
       }
     }
   },

@@ -1,5 +1,4 @@
 // Flow: document-parsing-etl
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -96,6 +95,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -111,6 +111,13 @@ export const references = {
     "document_parsing_etl_parse_json": "@scripts/document-parsing-etl_parse-json.ts",
     "document_parsing_etl_extract_chunks": "@scripts/document-parsing-etl_extract-chunks.ts",
     "document_parsing_etl_transform_metadata": "@scripts/document-parsing-etl_transform-metadata.ts"
+  },
+  "modelConfigs": {
+    "document_parsing_etl_generate_requirements": "@model-configs/document-parsing-etl_generate-requirements.ts",
+    "document_parsing_etl_generate_json": "@model-configs/document-parsing-etl_generate-json.ts"
+  },
+  "triggers": {
+    "document_parsing_etl_api_request": "@triggers/webhooks/document-parsing-etl_api-request.ts"
   }
 };
 
@@ -123,8 +130,8 @@ export const nodes = [
       "nodeId": "graphqlNode",
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"instructions\": \"string\",\n  \"document_url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/document-parsing-etl_api-request.ts",
+        "advance_schema": "@triggers/webhooks/document-parsing-etl_api-request.ts"
       },
       "trigger": true
     },
@@ -250,12 +257,12 @@ export const nodes = [
             "content": "@prompts/document-parsing-etl_generate-requirements_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/document-parsing-etl_generate-requirements.ts",
+        "messages": "@model-configs/document-parsing-etl_generate-requirements.ts",
         "nodeName": "Generate Requirements",
-        "attachments": "",
-        "credentials": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/document-parsing-etl_generate-requirements.ts",
+        "credentials": "@model-configs/document-parsing-etl_generate-requirements.ts",
+        "generativeModelName": "@model-configs/document-parsing-etl_generate-requirements.ts"
       }
     },
     "type": "dynamicNode",
@@ -415,11 +422,11 @@ export const nodes = [
             "content": "@prompts/document-parsing-etl_generate-json_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/document-parsing-etl_generate-json.ts",
+        "messages": "@model-configs/document-parsing-etl_generate-json.ts",
         "nodeName": "Generate JSON",
-        "attachments": "",
-        "generativeModelName": ""
+        "attachments": "@model-configs/document-parsing-etl_generate-json.ts",
+        "generativeModelName": "@model-configs/document-parsing-etl_generate-json.ts"
       }
     },
     "type": "dynamicNode",

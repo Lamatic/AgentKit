@@ -1,5 +1,4 @@
 // Flow: rag-chatbot
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,12 +22,19 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "rag_chatbot_rag_system": "@prompts/rag-chatbot_rag_system.md"
+  },
+  "modelConfigs": {
+    "rag_chatbot_rag": "@model-configs/rag-chatbot_rag.ts"
+  },
+  "triggers": {
+    "rag_chatbot_chat_widget": "@triggers/widgets/rag-chatbot_chat-widget.ts"
   }
 };
 
@@ -46,8 +52,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Chat Widget",
-        "chat": "",
-        "domains": []
+        "chat": "@triggers/widgets/rag-chatbot_chat-widget.ts",
+        "domains": "@triggers/widgets/rag-chatbot_chat-widget.ts"
       }
     }
   },
@@ -62,7 +68,7 @@ export const nodes = [
       "nodeId": "RAGNode",
       "values": {
         "nodeName": "RAG",
-        "limit": 5,
+        "limit": "@model-configs/rag-chatbot_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -71,13 +77,13 @@ export const nodes = [
             "content": "@prompts/rag-chatbot_rag_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/rag-chatbot_rag.ts",
+        "messages": "@model-configs/rag-chatbot_rag.ts",
         "vectorDB": "",
-        "certainty": "0.5",
+        "certainty": "@model-configs/rag-chatbot_rag.ts",
         "queryField": "{{triggerNode_1.output.chatMessage}}",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/rag-chatbot_rag.ts",
+        "generativeModelName": "@model-configs/rag-chatbot_rag.ts"
       }
     }
   },

@@ -1,5 +1,4 @@
 // Flow: document-chatbot-widget
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,9 +22,16 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "modelConfigs": {
+    "document_chatbot_widget_rag": "@model-configs/document-chatbot-widget_rag.ts"
+  },
+  "triggers": {
+    "document_chatbot_widget_chat_widget": "@triggers/widgets/document-chatbot-widget_chat-widget.ts"
   }
 };
 
@@ -43,7 +49,7 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "Chat Widget",
-        "chat": ""
+        "chat": "@triggers/widgets/document-chatbot-widget_chat-widget.ts"
       }
     }
   },
@@ -58,15 +64,15 @@ export const nodes = [
       "nodeId": "RAGNode",
       "values": {
         "nodeName": "RAG",
-        "limit": "3",
+        "limit": "@model-configs/document-chatbot-widget_rag.ts",
         "filters": "[]",
-        "messages": "{{triggerNode_1.output.chatHistory}}",
+        "messages": "@model-configs/document-chatbot-widget_rag.ts",
         "vectorDB": "",
-        "certainty": "0.7",
+        "certainty": "@model-configs/document-chatbot-widget_rag.ts",
         "queryField": "{{triggerNode_1.output.chatMessage}}",
         "systemPrompt": "You are a helpful AI assistant that answers user queries based on the context provided to you.",
-        "embeddingModelName": {},
-        "generativeModelName": {}
+        "embeddingModelName": "@model-configs/document-chatbot-widget_rag.ts",
+        "generativeModelName": "@model-configs/document-chatbot-widget_rag.ts"
       }
     }
   },

@@ -1,6 +1,5 @@
 // Model config: RAG (RAGNode)
 // Flow: document-chatbot-widget
-// Extracted from inline node values — edit here, referenced back in flow
 
 export default {
   "generativeModelName": {},

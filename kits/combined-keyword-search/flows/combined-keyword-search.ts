@@ -1,5 +1,4 @@
 // Flow: combined-keyword-search
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -22,12 +21,16 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "scripts": {
     "combined_keyword_search_combine_results": "@scripts/combined-keyword-search_combine-results.ts"
+  },
+  "triggers": {
+    "combined_keyword_search_searchbar": "@triggers/widgets/combined-keyword-search_searchbar.ts"
   }
 };
 
@@ -45,7 +48,7 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "SearchBar",
-        "domains": []
+        "domains": "@triggers/widgets/combined-keyword-search_searchbar.ts"
       }
     }
   },

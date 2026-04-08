@@ -1,5 +1,4 @@
 // Flow: teams-assistant
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -90,6 +89,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -97,6 +97,9 @@ export const references = {
   "prompts": {
     "teams_assistant_rag_system": "@prompts/teams-assistant_rag_system.md",
     "teams_assistant_rag_user": "@prompts/teams-assistant_rag_user.md"
+  },
+  "modelConfigs": {
+    "teams_assistant_rag": "@model-configs/teams-assistant_rag.ts"
   }
 };
 
@@ -135,7 +138,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "RAG",
-        "limit": 20,
+        "limit": "@model-configs/teams-assistant_rag.ts",
         "filters": "",
         "prompts": [
           {
@@ -149,9 +152,9 @@ export const nodes = [
             "content": "@prompts/teams-assistant_rag_user.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "certainty": "0.5",
+        "memories": "@model-configs/teams-assistant_rag.ts",
+        "messages": "@model-configs/teams-assistant_rag.ts",
+        "certainty": "@model-configs/teams-assistant_rag.ts",
         "queryField": "{{triggerNode_1.output.text}}"
       }
     }

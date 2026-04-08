@@ -1,5 +1,4 @@
 // Flow: firecrawl-scrapping
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,9 +22,13 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "triggers": {
+    "firecrawl_scrapping_api_request": "@triggers/webhooks/firecrawl-scrapping_api-request.ts"
   }
 };
 
@@ -43,8 +46,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/firecrawl-scrapping_api-request.ts",
+        "advance_schema": "@triggers/webhooks/firecrawl-scrapping_api-request.ts"
       }
     }
   },

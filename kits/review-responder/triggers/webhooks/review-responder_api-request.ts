@@ -3,6 +3,6 @@
 // Type: graphqlNode
 
 export default {
-  "schema": "{\n  \"review\": \"string\"\n}",
-  "responseType": "realtime"
+  "advance_schema": "{\n  \"review\": \"string\"\n}",
+  "responeType": "realtime"
 };

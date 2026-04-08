@@ -1,5 +1,4 @@
 // Flow: json-summariser
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -23,12 +22,19 @@ export const meta = {
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
   },
   "prompts": {
     "json_summariser_generate_text_system": "@prompts/json-summariser_generate-text_system.md"
+  },
+  "modelConfigs": {
+    "json_summariser_generate_text": "@model-configs/json-summariser_generate-text.ts"
+  },
+  "triggers": {
+    "json_summariser_api_request": "@triggers/webhooks/json-summariser_api-request.ts"
   }
 };
 
@@ -46,8 +52,8 @@ export const nodes = [
       "trigger": true,
       "values": {
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"url\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/json-summariser_api-request.ts",
+        "advance_schema": "@triggers/webhooks/json-summariser_api-request.ts"
       }
     }
   },
@@ -102,9 +108,9 @@ export const nodes = [
             "content": "@prompts/json-summariser_generate-text_system.md"
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
-        "generativeModelName": {}
+        "memories": "@model-configs/json-summariser_generate-text.ts",
+        "messages": "@model-configs/json-summariser_generate-text.ts",
+        "generativeModelName": "@model-configs/json-summariser_generate-text.ts"
       }
     }
   },

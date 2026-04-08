@@ -1,5 +1,4 @@
 // Flow: embedded-search-websites-indexation
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -75,10 +74,13 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "triggers": {
+    "embedded_search_websites_indexation_api_request": "@triggers/webhooks/embedded-search-websites-indexation_api-request.ts"
   }
 };
 
@@ -91,8 +93,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "async",
-        "advance_schema": "{\n  \"urls\": \"[string]\"\n}"
+        "responeType": "@triggers/webhooks/embedded-search-websites-indexation_api-request.ts",
+        "advance_schema": "@triggers/webhooks/embedded-search-websites-indexation_api-request.ts"
       },
       "trigger": true
     },

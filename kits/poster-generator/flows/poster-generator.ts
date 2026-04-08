@@ -1,5 +1,4 @@
 // Flow: poster-generator
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
@@ -89,7 +88,7 @@ export const inputs = {
 };
 
 // ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
+// Cross-references to extracted resources in their own directories
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -98,6 +97,14 @@ export const references = {
     "intent_parser_system": "@prompts/intent-parser-system.md",
     "design_spec_builder_system": "@prompts/design-spec-builder-system.md",
     "poster_code_generation_system": "@prompts/poster-code-generation-system.md"
+  },
+  "modelConfigs": {
+    "poster_generator_intent_parser": "@model-configs/poster-generator_intent-parser.ts",
+    "poster_generator_design_spec_builder": "@model-configs/poster-generator_design-spec-builder.ts",
+    "poster_generator_poster_code_generation": "@model-configs/poster-generator_poster-code-generation.ts"
+  },
+  "triggers": {
+    "poster_generator_api_request": "@triggers/webhooks/poster-generator_api-request.ts"
   }
 };
 
@@ -114,8 +121,8 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "realtime",
-        "advance_schema": "{\n  \"user_input\": \"string\"\n}"
+        "responeType": "@triggers/webhooks/poster-generator_api-request.ts",
+        "advance_schema": "@triggers/webhooks/poster-generator_api-request.ts"
       },
       "trigger": true
     },
@@ -153,11 +160,11 @@ export const nodes = [
             "content": "Transform the following raw poster idea into a fully resolved creative brief.\nUSER IDEA: {{triggerNode_1.output.user_input}}\nResolve every aspect completely. For any gap the user left open, make adecisive, well-reasoned creative choice. Think about:\nWhat is this poster actually for? (event, product, cause, art, announcement)\nWho will see it and where? (street, social media, gallery, venue wall)\nWhat is the single most important thing it must communicate?\nWhat should someone feel the instant they see it?\nWhat visual world does it belong to? (era, movement, aesthetic lineage)\nWhat words should be on it? Write the actual headline and supporting copy.\nBe decisive. Be specific. Be opinionated. A vague brief produces a genericposter. Fill every gap with intention."
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/poster-generator_intent-parser.ts",
+        "messages": "@model-configs/poster-generator_intent-parser.ts",
         "nodeName": "Intent Parser",
-        "attachments": "",
-        "generativeModelName": {}
+        "attachments": "@model-configs/poster-generator_intent-parser.ts",
+        "generativeModelName": "@model-configs/poster-generator_intent-parser.ts"
       }
     },
     "type": "dynamicNode",
@@ -194,11 +201,11 @@ export const nodes = [
             "content": "Produce a complete, exhaustive visual design specification from thisfully resolved creative brief.\nCREATIVE BRIEF:\n{{InstructorLLMNode_371.output.generatedResponse}}\nFor every decision, go one level deeper than obvious. Don't just say\"bold sans-serif headline\" — name the exact font, size, weight, tracking,color, and position. Don't just say \"decorative geometric shapes\" — describeeach shape's geometry, color, size, position, and animation behavior.\nThe developer building this has no design judgment — they will implementexactly what you specify and nothing more. Make every detail explicit."
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/poster-generator_design-spec-builder.ts",
+        "messages": "@model-configs/poster-generator_design-spec-builder.ts",
         "nodeName": "Design Spec Builder",
-        "attachments": "",
-        "generativeModelName": {}
+        "attachments": "@model-configs/poster-generator_design-spec-builder.ts",
+        "generativeModelName": "@model-configs/poster-generator_design-spec-builder.ts"
       }
     },
     "type": "dynamicNode",
@@ -235,11 +242,11 @@ export const nodes = [
             "content": "Build a complete, production-quality, self-contained HTML poster from\nthis exhaustive design specification.\nDESIGN SPECIFICATION:{{InstructorLLMNode_121.output.generatedResponse}}\nIMPLEMENTATION CHECKLIST — verify each before finalising:\n[ ] Poster dimensions match spec exactly\n[ ] All Google Fonts from spec are @imported and applied\n[ ] All hex colors from color_palette are used as specified\n[ ] Every content_block text appears verbatim at the correct position\n[ ] Every decorative_element from the spec is drawn as an inline SVG\n[ ] Every animation from the animations array is implemented\n[ ] No external image references anywhere in the file\n[ ] Poster is centered on the page with appropriate body background\n[ ] All text is legible — sufficient contrast, correct z-layer\n[ ] File is a single complete HTML document — nothing missing\nPush the visual quality. The spec is the floor, not the ceiling.\nIf the spec says \"starburst\", draw a beautiful starburst with considered\nproportions and stroke weight. If it says \"geometric border\", make it\nprecise and elegant. Craft every element as if it will be printed large."
           }
         ],
-        "memories": "[]",
-        "messages": "[]",
+        "memories": "@model-configs/poster-generator_poster-code-generation.ts",
+        "messages": "@model-configs/poster-generator_poster-code-generation.ts",
         "nodeName": "Poster Code Generation",
-        "attachments": "",
-        "generativeModelName": {}
+        "attachments": "@model-configs/poster-generator_poster-code-generation.ts",
+        "generativeModelName": "@model-configs/poster-generator_poster-code-generation.ts"
       }
     },
     "type": "dynamicNode",
