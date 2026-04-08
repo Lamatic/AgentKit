@@ -94,7 +94,26 @@ function generateLamaticConfig(srcConfig, destConfig) {
     return;
   }
 
-  const config = JSON.parse(fs.readFileSync(srcConfig, 'utf8'));
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(srcConfig, 'utf8'));
+  } catch (e) {
+    logWarn(`config.json has invalid JSON (${e.message}) — attempting repair`);
+    // Try to fix common issues: trailing commas, duplicate brackets
+    let raw = fs.readFileSync(srcConfig, 'utf8');
+    // Fix duplicate closing brackets: ]\n  ]  →  ]
+    raw = raw.replace(/\]\s*\n\s*\]/g, ']');
+    // Fix trailing commas before } or ]
+    raw = raw.replace(/,\s*([\]}])/g, '$1');
+    try {
+      config = JSON.parse(raw);
+      logOk(`  Repaired config.json successfully`);
+    } catch (e2) {
+      logErr(`config.json could not be repaired: ${e2.message}`);
+      // Create minimal config from what we can salvage
+      config = { name: 'Unknown', description: '', tags: [], steps: [], author: { name: '', email: '' } };
+    }
+  }
 
   // Clean emoji prefixes from tags
   const cleanTags = (config.tags || []).map(t =>
