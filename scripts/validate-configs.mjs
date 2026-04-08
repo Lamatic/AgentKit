@@ -110,24 +110,23 @@ function isKitLikeDir(dirPath) {
 
 // ── Find original config.json for cross-reference ──
 function findOriginalConfig(kitName) {
-  // Check old kit locations
-  const kitPaths = [
-    `kits/agentic/${kitName}/config.json`,
-    `kits/automation/${kitName}/config.json`,
-    `kits/embed/${kitName}/config.json`,
-    `kits/assistant/${kitName}/config.json`,
-    `kits/sample/${kitName}/config.json`,
-    `kits/special/${kitName}/config.json`,
-  ];
+  // Check old kit locations (both kits/ and oldKits/)
+  const categories = ['agentic', 'automation', 'embed', 'assistant', 'sample', 'special'];
+  const kitPaths = [];
+  for (const base of ['oldKits', 'kits']) {
+    for (const cat of categories) {
+      kitPaths.push(`${base}/${cat}/${kitName}/config.json`);
+    }
+  }
   // Handle renames
   const renameMap = {
-    'embed-chat': 'kits/embed/chat/config.json',
-    'embed-search': 'kits/embed/search/config.json',
-    'embed-sheets': 'kits/embed/sheets/config.json',
-    'content-generation': 'kits/sample/content-generation/config.json',
-    'halloween-costume-generator': 'kits/special/halloween-costume-generator/config.json',
+    'embed-chat': ['kits/embed/chat/config.json', 'oldKits/embed/chat/config.json'],
+    'embed-search': ['kits/embed/search/config.json', 'oldKits/embed/search/config.json'],
+    'embed-sheets': ['kits/embed/sheets/config.json', 'oldKits/embed/sheets/config.json'],
+    'content-generation': ['kits/sample/content-generation/config.json', 'oldKits/sample/content-generation/config.json'],
+    'halloween-costume-generator': ['kits/special/halloween-costume-generator/config.json', 'oldKits/special/halloween-costume-generator/config.json'],
   };
-  if (renameMap[kitName]) kitPaths.unshift(renameMap[kitName]);
+  if (renameMap[kitName]) kitPaths.unshift(...renameMap[kitName]);
 
   // Check bundle locations
   kitPaths.push(`bundles/${kitName}/config.json`);
@@ -592,6 +591,75 @@ function validateKit(kitName) {
       const agentMd = generateAgentMd(kitName, kitDir);
       fs.writeFileSync(agentMdPath, agentMd);
       fixed('agent.md generated');
+    }
+  }
+
+  // ── Check 14: flows/flows.md exists ──
+  const flowsMdPath = path.join(kitDir, 'flows', 'flows.md');
+  if (fs.existsSync(flowsMdPath)) {
+    pass('flows/flows.md exists');
+  } else {
+    warn('flows/flows.md is missing');
+  }
+
+  // ── Check 15: constitutions/default.md exists ──
+  const constitutionPath = path.join(kitDir, 'constitutions', 'default.md');
+  if (fs.existsSync(constitutionPath)) {
+    pass('constitutions/default.md exists');
+  } else {
+    warn('constitutions/default.md is missing');
+  }
+
+  // ── Check 16: Flow .ts files have correct exports ──
+  if (fs.existsSync(flowsDir)) {
+    const flowTsFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+    for (const file of flowTsFiles) {
+      const content = fs.readFileSync(path.join(flowsDir, file), 'utf8');
+      const hasMeta = content.includes('export const meta');
+      const hasInputs = content.includes('export const inputs');
+      const hasReferences = content.includes('export const references');
+      const hasNodes = content.includes('export const nodes');
+      const hasEdges = content.includes('export const edges');
+      const hasDefault = content.includes('export default');
+
+      if (hasMeta && hasInputs && hasReferences && hasNodes && hasEdges && hasDefault) {
+        pass(`flows/${file}: all exports present (meta, inputs, references, nodes, edges)`);
+      } else {
+        const missing = [];
+        if (!hasMeta) missing.push('meta');
+        if (!hasInputs) missing.push('inputs');
+        if (!hasReferences) missing.push('references');
+        if (!hasNodes) missing.push('nodes');
+        if (!hasEdges) missing.push('edges');
+        if (!hasDefault) missing.push('default export');
+        warn(`flows/${file}: missing exports: ${missing.join(', ')}`);
+      }
+    }
+  }
+
+  // ── Check 17: Prompts referenced in flows actually exist ──
+  if (fs.existsSync(flowsDir)) {
+    const flowTsFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+    for (const file of flowTsFiles) {
+      const content = fs.readFileSync(path.join(flowsDir, file), 'utf8');
+      const promptRefs = content.matchAll(/@prompts\/([^\s"']+)/g);
+      for (const match of promptRefs) {
+        const promptFile = path.join(kitDir, 'prompts', match[1]);
+        if (fs.existsSync(promptFile)) {
+          pass(`@prompts/${match[1]} exists`);
+        } else {
+          fail(`@prompts/${match[1]} referenced but file missing`);
+        }
+      }
+      const scriptRefs = content.matchAll(/@scripts\/([^\s"']+)/g);
+      for (const match of scriptRefs) {
+        const scriptFile = path.join(kitDir, 'scripts', match[1]);
+        if (fs.existsSync(scriptFile)) {
+          pass(`@scripts/${match[1]} exists`);
+        } else {
+          fail(`@scripts/${match[1]} referenced but file missing`);
+        }
+      }
     }
   }
 
