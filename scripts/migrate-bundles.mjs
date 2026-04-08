@@ -19,6 +19,7 @@
 //   node scripts/migrate-bundles.mjs --dry-run
 //   node scripts/migrate-bundles.mjs
 //   node scripts/migrate-bundles.mjs --bundle knowledge-chatbot
+//   node scripts/migrate-bundles.mjs --force    # re-extract prompts/code/flows for existing entries
 // ─────────────────────────────────────────────────────────────
 
 import fs from 'fs';
@@ -27,6 +28,7 @@ import path from 'path';
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
+const FORCE = args.includes('--force');
 const bundleIdx = args.indexOf('--bundle');
 const SINGLE = bundleIdx !== -1 ? args[bundleIdx + 1] : null;
 
@@ -257,7 +259,20 @@ function migrateBundle(bundleName, bundleSrcDir) {
   logInfo(`Migrating: ${path.relative(REPO_ROOT, bundleSrcDir)} → kits/${bundleName}`);
 
   if (!fs.existsSync(bundleSrcDir)) { logErr(`Source not found: ${bundleSrcDir}`); skipped++; return; }
-  if (fs.existsSync(destPath)) { logErr(`Destination exists: kits/${bundleName} — skipping`); skipped++; return; }
+  if (fs.existsSync(destPath)) {
+    if (!FORCE) {
+      logWarn(`Destination exists: kits/${bundleName} — use --force to re-extract`);
+      skipped++;
+      return;
+    }
+    logInfo(`  --force: re-extracting prompts/code/flows for existing kits/${bundleName}`);
+    const oldPrompts = path.join(destPath, 'prompts');
+    const oldScripts = path.join(destPath, 'scripts');
+    const oldFlows = path.join(destPath, 'flows');
+    if (fs.existsSync(oldPrompts)) fs.rmSync(oldPrompts, { recursive: true });
+    if (fs.existsSync(oldScripts)) fs.rmSync(oldScripts, { recursive: true });
+    if (fs.existsSync(oldFlows)) fs.rmSync(oldFlows, { recursive: true });
+  }
 
   const bundleConfig = safeParseJSON(path.join(bundleSrcDir, 'config.json'));
   if (!bundleConfig) { logErr(`${bundleName}: No valid config.json — skipping`); skipped++; return; }

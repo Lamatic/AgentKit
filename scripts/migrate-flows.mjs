@@ -13,6 +13,7 @@
 //   node scripts/migrate-flows.mjs --dry-run         # Preview
 //   node scripts/migrate-flows.mjs                   # Execute
 //   node scripts/migrate-flows.mjs --kit deep-search # One kit
+//   node scripts/migrate-flows.mjs --force           # Re-extract from original sources
 // ─────────────────────────────────────────────────────────────
 
 import fs from 'fs';
@@ -21,6 +22,7 @@ import path from 'path';
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
+const FORCE = args.includes('--force');
 const kitIdx = args.indexOf('--kit');
 const SINGLE_KIT = kitIdx !== -1 ? args[kitIdx + 1] : null;
 
@@ -260,19 +262,75 @@ function processKit(kitName) {
     return;
   }
 
-  // Find flow folders (directories with config.json)
-  const entries = fs.readdirSync(flowsDir, { withFileTypes: true });
+  // On --force: if flows/ only has .ts files (already converted), look for
+  // original source flow folders to re-extract from
   let flowDirCount = 0;
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const flowDir = path.join(flowsDir, entry.name);
-    if (!fs.existsSync(path.join(flowDir, 'config.json'))) continue;
-    convertFlow(flowDir, kitDir);
-    flowDirCount++;
+  if (FORCE) {
+    // Try to find original source: check kits/<category>/<kitName>/flows/
+    // or if kit was already flat, we can't re-extract (flows are in .ts)
+    // Strategy: scan for original kit locations
+    const possibleSources = [];
+    for (const cat of fs.readdirSync(path.join(REPO_ROOT, 'kits'), { withFileTypes: true })) {
+      if (!cat.isDirectory()) continue;
+      const nested = path.join(REPO_ROOT, 'kits', cat.name, kitName, 'flows');
+      if (fs.existsSync(nested)) possibleSources.push(nested);
+    }
+
+    let sourceFlowsDir = null;
+    if (possibleSources.length > 0) {
+      sourceFlowsDir = possibleSources[0];
+      logInfo(`  --force: found original source at ${path.relative(REPO_ROOT, sourceFlowsDir)}`);
+    }
+
+    // Also check if flowsDir itself still has unconverted folders
+    const hasFlowFolders = fs.readdirSync(flowsDir, { withFileTypes: true })
+      .some(e => e.isDirectory() && fs.existsSync(path.join(flowsDir, e.name, 'config.json')));
+
+    if (hasFlowFolders) {
+      sourceFlowsDir = flowsDir;
+    }
+
+    if (sourceFlowsDir) {
+      // Clean old extracted content
+      const oldPrompts = path.join(kitDir, 'prompts');
+      const oldScripts = path.join(kitDir, 'scripts');
+      if (!DRY_RUN) {
+        if (fs.existsSync(oldPrompts)) fs.rmSync(oldPrompts, { recursive: true });
+        if (fs.existsSync(oldScripts)) fs.rmSync(oldScripts, { recursive: true });
+        // Delete old .ts flow files (they'll be regenerated)
+        for (const f of fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'))) {
+          fs.unlinkSync(path.join(flowsDir, f));
+        }
+        // Delete flows.md too
+        const fmd = path.join(flowsDir, 'flows.md');
+        if (fs.existsSync(fmd)) fs.unlinkSync(fmd);
+      }
+
+      // Re-convert from source
+      for (const entry of fs.readdirSync(sourceFlowsDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        const flowDir = path.join(sourceFlowsDir, entry.name);
+        if (!fs.existsSync(path.join(flowDir, 'config.json'))) continue;
+        convertFlow(flowDir, kitDir);
+        flowDirCount++;
+      }
+    } else {
+      logWarn(`  --force: no original source found for ${kitName}, can't re-extract`);
+    }
+  } else {
+    // Normal mode: find flow folders in current location
+    const entries = fs.readdirSync(flowsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const flowDir = path.join(flowsDir, entry.name);
+      if (!fs.existsSync(path.join(flowDir, 'config.json'))) continue;
+      convertFlow(flowDir, kitDir);
+      flowDirCount++;
+    }
   }
 
-  if (flowDirCount === 0) {
+  if (flowDirCount === 0 && !FORCE) {
     logInfo(`  No flow folders to convert (may already be flat .ts files)`);
   }
 

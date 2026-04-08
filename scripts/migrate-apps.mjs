@@ -10,6 +10,7 @@
 //   node scripts/migrate-apps.mjs --dry-run        # Preview only
 //   node scripts/migrate-apps.mjs                  # Execute
 //   node scripts/migrate-apps.mjs --kit embed/chat # One kit only
+//   node scripts/migrate-apps.mjs --force         # Re-generate lamatic.config.ts + agent.md for existing
 // ─────────────────────────────────────────────────────────────
 
 import fs from 'fs';
@@ -19,6 +20,7 @@ import { execSync } from 'child_process';
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
+const FORCE = args.includes('--force');
 const kitIdx = args.indexOf('--kit');
 const SINGLE_KIT = kitIdx !== -1 ? args[kitIdx + 1] : null;
 
@@ -174,11 +176,15 @@ function migrateKit(src) {
     return;
   }
 
-  // Safety: don't overwrite if destination already exists (unless same path)
+  // Safety: don't overwrite if destination already exists (unless same path or --force)
   if (fs.existsSync(destPath) && srcPath !== destPath) {
-    logErr(`Destination already exists: kits/${newName} — skipping`);
-    skipped++;
-    return;
+    if (!FORCE) {
+      logWarn(`Destination already exists: kits/${newName} — use --force to re-generate config/agent.md`);
+      skipped++;
+      return;
+    }
+    logInfo(`  --force: re-generating lamatic.config.ts + agent.md for kits/${newName}`);
+    // Don't delete apps/ or flows/ — just re-generate config files
   }
 
   // Safety: check for committed .env
@@ -200,20 +206,25 @@ function migrateKit(src) {
   }
 
   // ── Execute ──
+  const isRerun = FORCE && fs.existsSync(path.join(destPath, 'apps'));
   fs.mkdirSync(destPath, { recursive: true });
 
-  // 1. Copy everything into apps/ EXCEPT flows/, config.json, .env
-  const appsDir = path.join(destPath, 'apps');
-  copyDir(srcPath, appsDir, ['flows', 'config.json', '.env', 'node_modules', '.next']);
-  logOk(`  apps/ created (${fs.readdirSync(appsDir).length} items)`);
+  if (!isRerun) {
+    // 1. Copy everything into apps/ EXCEPT flows/, config.json, .env
+    const appsDir = path.join(destPath, 'apps');
+    copyDir(srcPath, appsDir, ['flows', 'config.json', '.env', 'node_modules', '.next']);
+    logOk(`  apps/ created (${fs.readdirSync(appsDir).length} items)`);
 
-  // 2. Copy flows/ to root
-  const srcFlows = path.join(srcPath, 'flows');
-  if (fs.existsSync(srcFlows)) {
-    copyDir(srcFlows, path.join(destPath, 'flows'));
-    logOk(`  flows/ copied to root`);
+    // 2. Copy flows/ to root
+    const srcFlows = path.join(srcPath, 'flows');
+    if (fs.existsSync(srcFlows)) {
+      copyDir(srcFlows, path.join(destPath, 'flows'));
+      logOk(`  flows/ copied to root`);
+    } else {
+      logWarn(`  No flows/ directory in source`);
+    }
   } else {
-    logWarn(`  No flows/ directory in source`);
+    logInfo(`  Skipping apps/ and flows/ copy (--force rerun, already exist)`);
   }
 
   // 3. Generate lamatic.config.ts

@@ -21,6 +21,7 @@
 //   node scripts/migrate-templates.mjs --dry-run
 //   node scripts/migrate-templates.mjs
 //   node scripts/migrate-templates.mjs --template rag-chatbot
+//   node scripts/migrate-templates.mjs --force    # re-extract prompts/code/flows for existing entries
 // ─────────────────────────────────────────────────────────────
 
 import fs from 'fs';
@@ -29,6 +30,7 @@ import path from 'path';
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
+const FORCE = args.includes('--force');
 const tplIdx = args.indexOf('--template');
 const SINGLE = tplIdx !== -1 ? args[tplIdx + 1] : null;
 
@@ -156,9 +158,19 @@ function migrateTemplate(templateName) {
   }
 
   if (fs.existsSync(destPath)) {
-    logErr(`Destination exists: kits/${templateName} — skipping`);
-    skipped++;
-    return;
+    if (!FORCE) {
+      logWarn(`Destination exists: kits/${templateName} — use --force to re-extract`);
+      skipped++;
+      return;
+    }
+    logInfo(`  --force: re-extracting prompts/code/flows for existing kits/${templateName}`);
+    // Clean old extracted content so we can re-extract fresh
+    const oldPrompts = path.join(destPath, 'prompts');
+    const oldScripts = path.join(destPath, 'scripts');
+    const oldFlows = path.join(destPath, 'flows');
+    if (fs.existsSync(oldPrompts)) fs.rmSync(oldPrompts, { recursive: true });
+    if (fs.existsSync(oldScripts)) fs.rmSync(oldScripts, { recursive: true });
+    if (fs.existsSync(oldFlows)) fs.rmSync(oldFlows, { recursive: true });
   }
 
   // Read source files
