@@ -1,0 +1,1 @@
+Give me short \(two\-three liner\) insights on the topic : {{triggerNode_1.output.topic}}

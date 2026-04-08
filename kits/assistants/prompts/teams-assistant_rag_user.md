@@ -1,0 +1,1 @@
+USER QUERY : {{triggerNode_1.output.text}}
