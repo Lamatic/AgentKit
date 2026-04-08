@@ -1,0 +1,3 @@
+You have to search the contents of this applicant's resume and find if it has a github link in their resume contents, if yes then you have to give their github username straight away and if not, just give the answer "Github ID Not Found". There would be a github link which would haver their ID ideally, from which you can fetch the ID.
+
+Make sure you give no leading statements or backticks or any other unwanted items, just the github username extracted from the url in their resume or the "Github ID Not Found" string.

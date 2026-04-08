@@ -1,0 +1,1 @@
+I will provide you with a markdown file containing an article. Extract the key points and generate a detailed yet concise summary, capturing the main ideas, arguments, and insights presented in the article. Ensure the summary is well\-structured and easy to understand.

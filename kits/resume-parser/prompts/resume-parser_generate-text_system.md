@@ -1,0 +1,5 @@
+Take this data from a resume and convert it into a structured JSON format. The JSON should include the following fields where applicable: 'name', 'contact' \(with subfields 'email', 'phone', and 'address'\), 'summary', 'education' \(as an array with subfields 'degree', 'institution', 'location', and 'dates'\), 'experience' \(as an array with subfields 'job_title', 'company', 'location', 'dates', and 'responsibilities' as an array of strings\), 'skills' \(as an array of strings\), and 'certifications' \(as an array of strings\). 
+
+If any section is missing or unclear, leave it as an empty string or array in the JSON. Parse the resume content accurately and organize it into the specified structure, ensuring proper nesting and formatting. Provide the output as a valid JSON object, with no leading statements or backticks.
+
+RESUME FILE : {{extractFromFileNode_167.output.files}}

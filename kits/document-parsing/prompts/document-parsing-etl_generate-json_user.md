@@ -1,0 +1,1 @@
+TEXT : {{forLoopNode_180.output.currentValue}}

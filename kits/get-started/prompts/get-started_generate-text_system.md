@@ -1,0 +1,1 @@
+Give me insight on topic: {{triggerNode_1.output.topic}}
