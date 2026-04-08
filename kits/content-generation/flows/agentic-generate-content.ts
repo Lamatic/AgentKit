@@ -1,7 +1,5 @@
 // Flow: agentic-generate-content
-// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
 
-// ── Meta ──────────────────────────────────────────────
 export const meta = {
   "name": "1. Agentic Generation - Generate Content",
   "description": "",
@@ -15,7 +13,6 @@ export const meta = {
   "deployUrl": ""
 };
 
-// ── Inputs ────────────────────────────────────────────
 export const inputs = {
   "LLMNode_430": [
     {
@@ -83,20 +80,15 @@ export const inputs = {
   ]
 };
 
-// ── References ────────────────────────────────────────
-// Resources this flow depends on — each lives in its own directory
 export const references = {
   prompts: {
     textGenerationSystem: "@prompts/text-generation-system.md",
     jsonGenerationSystem: "@prompts/json-generation-system.md",
     imageGenerationSystem: "@prompts/image-generation-system.md"
   },
-  constitutions: {
-    default: "@constitutions/default.md"
-  }
+  constitutions: { default: "@constitutions/default.md" }
 };
 
-// ── Nodes & Edges (exact Lamatic Studio export) ───────
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -112,8 +104,14 @@ export const nodes = [
       "trigger": true
     },
     "type": "triggerNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 675, "y": 0 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 675,
+      "y": 0
+    },
     "selected": false
   },
   {
@@ -149,8 +147,14 @@ export const nodes = [
       }
     },
     "type": "conditionNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 675, "y": 150 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 675,
+      "y": 150
+    },
     "selected": false
   },
   {
@@ -165,8 +169,14 @@ export const nodes = [
       }
     },
     "type": "dynamicNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 900, "y": 450 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 900,
+      "y": 450
+    },
     "selected": false
   },
   {
@@ -198,8 +208,14 @@ export const nodes = [
       }
     },
     "type": "dynamicNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 0, "y": 450 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 0,
+      "y": 450
+    },
     "selected": true
   },
   {
@@ -231,8 +247,14 @@ export const nodes = [
       }
     },
     "type": "dynamicNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 450, "y": 300 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 450,
+      "y": 300
+    },
     "selected": false
   },
   {
@@ -247,8 +269,14 @@ export const nodes = [
       }
     },
     "type": "dynamicNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 450, "y": 450 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 450,
+      "y": 450
+    },
     "selected": false
   },
   {
@@ -275,8 +303,14 @@ export const nodes = [
       }
     },
     "type": "dynamicNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 1350, "y": 450 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 1350,
+      "y": 450
+    },
     "selected": false
   },
   {
@@ -291,8 +325,14 @@ export const nodes = [
       }
     },
     "type": "dynamicNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 675, "y": 600 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 675,
+      "y": 600
+    },
     "selected": false
   },
   {
@@ -310,8 +350,14 @@ export const nodes = [
       }
     },
     "type": "responseNode",
-    "measured": { "width": 218, "height": 95 },
-    "position": { "x": 675, "y": 750 },
+    "measured": {
+      "width": 218,
+      "height": 95
+    },
+    "position": {
+      "x": 675,
+      "y": 750
+    },
     "selected": false
   }
 ];
@@ -327,7 +373,10 @@ export const edges = [
   },
   {
     "id": "conditionNode_374-LLMNode_430-637",
-    "data": { "condition": "Condition 1", "branchName": "Condition 1" },
+    "data": {
+      "condition": "Condition 1",
+      "branchName": "Condition 1"
+    },
     "type": "conditionEdge",
     "source": "conditionNode_374",
     "target": "LLMNode_430",
@@ -336,7 +385,9 @@ export const edges = [
   },
   {
     "id": "conditionNode_374-LLMNode_255-708",
-    "data": { "condition": "Condition 3" },
+    "data": {
+      "condition": "Condition 3"
+    },
     "type": "conditionEdge",
     "source": "conditionNode_374",
     "target": "LLMNode_255",
@@ -353,7 +404,10 @@ export const edges = [
   },
   {
     "id": "conditionNode_374-codeNode_567-576",
-    "data": { "condition": "Else", "branchName": "Else" },
+    "data": {
+      "condition": "Else",
+      "branchName": "Else"
+    },
     "type": "conditionEdge",
     "source": "conditionNode_374",
     "target": "codeNode_567",
@@ -402,7 +456,9 @@ export const edges = [
   },
   {
     "id": "conditionNode_374-ImageGenNode_535-560",
-    "data": { "condition": "Condition 2" },
+    "data": {
+      "condition": "Condition 2"
+    },
     "type": "conditionEdge",
     "source": "conditionNode_374",
     "target": "ImageGenNode_535",
