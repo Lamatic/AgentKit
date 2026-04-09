@@ -1,0 +1,1 @@
+Startup idea: {{triggerNode_1.output.idea}}

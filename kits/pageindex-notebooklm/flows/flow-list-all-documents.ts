@@ -1,0 +1,152 @@
+// Flow: flow-list-all-documents
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
+
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "Flow List All Documents",
+  "description": "List all uploaded documents stored in Supabase, returning doc_id, file_name, file_url, tree_node_count, status, and created_at for each document.",
+  "tags": [
+    "list",
+    "documents",
+    "pageindex",
+    "notebooklm",
+    "supabase"
+  ],
+  "testInput": "{}",
+  "githubUrl": "https://github.com/Skt329/AgentKit",
+  "documentationUrl": "https://github.com/Skt329/AgentKit",
+  "deployUrl": "https://pageindex-notebooklm.vercel.app/"
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "postgresNode_831": [
+    {
+      "name": "credentials",
+      "label": "Credentials",
+      "description": "Select the credentials for postgres authentication.",
+      "type": "select",
+      "isCredential": true,
+      "required": true,
+      "defaultValue": "",
+      "isPrivate": true
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+// Resources this flow depends on — each lives in its own directory
+export const references = {
+  "constitutions": {
+    "default": "@constitutions/default.md"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
+  {
+    "id": "triggerNode_1",
+    "data": {
+      "modes": {},
+      "nodeId": "graphqlNode",
+      "values": {
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\"sampleInput\":\"string\"}"
+      },
+      "trigger": true
+    },
+    "type": "triggerNode",
+    "measured": {
+      "width": 216,
+      "height": 93
+    },
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "selected": false
+  },
+  {
+    "id": "postgresNode_831",
+    "data": {
+      "label": "dynamicNode node",
+      "logic": [],
+      "modes": {},
+      "nodeId": "postgresNode",
+      "values": {
+        "id": "postgresNode_831",
+        "query": "SELECT doc_id, file_name, file_url, tree_node_count, status, created_at FROM documents ORDER BY created_at DESC;",
+        "action": "runQuery",
+        "nodeName": "Postgres",
+        "credentials": ""
+      }
+    },
+    "type": "dynamicNode",
+    "measured": {
+      "width": 216,
+      "height": 93
+    },
+    "position": {
+      "x": 0,
+      "y": 130
+    },
+    "selected": false
+  },
+  {
+    "id": "responseNode_triggerNode_1",
+    "data": {
+      "label": "Response",
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "id": "responseNode_triggerNode_1",
+        "headers": "{\"content-type\":\"application/json\"}",
+        "retries": "0",
+        "nodeName": "API Response",
+        "webhookUrl": "",
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"documents\": \"{{postgresNode_831.output.queryResult}}\",\n  \"total\": \"{{postgresNode_831.output.queryResult.length}}\"\n}"
+      },
+      "isResponseNode": true
+    },
+    "type": "responseNode",
+    "measured": {
+      "width": 216,
+      "height": 93
+    },
+    "position": {
+      "x": 0,
+      "y": 260
+    },
+    "selected": true
+  }
+];
+
+export const edges = [
+  {
+    "id": "triggerNode_1-postgresNode_831",
+    "type": "defaultEdge",
+    "source": "triggerNode_1",
+    "target": "postgresNode_831",
+    "sourceHandle": "bottom",
+    "targetHandle": "top"
+  },
+  {
+    "id": "postgresNode_831-responseNode_triggerNode_1",
+    "type": "defaultEdge",
+    "source": "postgresNode_831",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top"
+  },
+  {
+    "id": "response-trigger_triggerNode_1",
+    "type": "responseEdge",
+    "source": "triggerNode_1",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger"
+  }
+];
+
+export default { meta, inputs, references, nodes, edges };

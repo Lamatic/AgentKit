@@ -1,0 +1,2 @@
+# GSheet
+A flow that ingests rows from a Google Sheet, converts them into embeddings, and indexes them into a vector database as one of the source-specific ingestion paths in the wider Semantic Search system.
