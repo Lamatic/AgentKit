@@ -1,0 +1,1 @@
+Retrieved document sections: {{codeNode_358.output.context}} User question: {{triggerNode_1.output.query}}

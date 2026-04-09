@@ -1,0 +1,1 @@
+Return the retrieved context exactly as-is. Do not summarize, rephrase, or add commentary. Output only the raw retrieved content.
