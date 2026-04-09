@@ -10,9 +10,8 @@ class CodeReviewer:
         Reviews a pull request and returns a summary of the changes.
         """
         diff = self._get_pr_diff(pr_url)
-        # In a real implementation, you would use an LLM to analyze the diff
-        # and provide a review.
-        return f"Code review for {pr_url}:\n\n{diff}"
+        review = self._get_llm_review(diff)
+        return f"Code review for {pr_url}:\n\n{review}"
 
     def _get_pr_diff(self, pr_url):
         """
@@ -28,6 +27,14 @@ class CodeReviewer:
             return stdout.decode("utf-8")
         except FileNotFoundError:
             raise Exception("The 'gh' command is not installed or not in your PATH.")
+
+    def _get_llm_review(self, diff):
+        """
+        Analyzes a diff and returns a code review.
+        """
+        # In a real implementation, you would use an LLM to analyze the diff
+        # and provide a review. For now, we'll just return a placeholder.
+        return "This is a placeholder code review. The code looks great!"
 
 if __name__ == "__main__":
     # Example usage:
