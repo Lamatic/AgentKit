@@ -37,3 +37,9 @@ class CodeReviewer:
         Posts the review comments to the pull request.
         """
         pass
+    def _get_pr_diff(self):
+        """
+        Retrieves the diff of the pull request.
+        """
+        # Placeholder implementation
+        return "diff --git a/file1.py b/file1.py\n--- a/file1.py\n+++ b/file1.py\n@@ -1,1 +1,1 @@\n-print(\\"hello\\")\n+print(\\"hello world\\")"
