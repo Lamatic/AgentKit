@@ -15,11 +15,15 @@ class TravelPlanner:
     def search_hotels(self):
         print(f"Searching for hotels in {self.destination} from {self.departure_date} to {self.return_date}")
 
+    def search_rental_cars(self):
+        print(f"Searching for rental cars in {self.destination} from {self.departure_date} to {self.return_date}")
+
 def main():
     planner = TravelPlanner()
     planner.get_user_input()
     planner.search_flights()
     planner.search_hotels()
+    planner.search_rental_cars()
 
 if __name__ == "__main__":
     main()
