@@ -1,5 +1,21 @@
+class TravelPlanner:
+    def __init__(self):
+        self.destination = None
+        self.departure_date = None
+        self.return_date = None
+
+    def get_user_input(self):
+        self.destination = input("Enter your destination: ")
+        self.departure_date = input("Enter your departure date (YYYY-MM-DD): ")
+        self.return_date = input("Enter your return date (YYYY-MM-DD): ")
+
+    def search_flights(self):
+        print(f"Searching for flights to {self.destination} from {self.departure_date} to {self.return_date}")
+
 def main():
-    print("Travel Planner Agent")
+    planner = TravelPlanner()
+    planner.get_user_input()
+    planner.search_flights()
 
 if __name__ == "__main__":
     main()
