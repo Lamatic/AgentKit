@@ -1,0 +1,12 @@
+{
+  "name": "smart-travel-flow",
+  "title": "Smart Travel Planner Flow",
+  "description": "Generates a complete AI travel itinerary",
+  "inputs": [
+    "destination",
+    "number_of_days",
+    "budget",
+    "travel_style"
+  ],
+  "output": "structured travel itinerary json"
+}
