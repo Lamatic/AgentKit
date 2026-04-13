@@ -21,6 +21,32 @@ const query = `
   }
 `
 
+type LamaticIssue = {
+  message?: string
+}
+
+type LamaticExecuteWorkflowResult = {
+  bugs?: unknown
+  security?: unknown
+  style?: unknown
+  summary?: unknown
+}
+
+type LamaticGraphqlResponse = {
+  data?: {
+    executeWorkflow?: {
+      result?: LamaticExecuteWorkflowResult
+    }
+  }
+  errors?: LamaticIssue[]
+  message?: string
+}
+
+function getGraphqlUrl(apiUrl: string) {
+  const trimmed = apiUrl.trim().replace(/\/+$/, "")
+  return trimmed.endsWith("/graphql") ? trimmed : `${trimmed}/graphql`
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -36,37 +62,50 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.LAMATIC_API_KEY) {
+    const lamaticApiKey = process.env.LAMATIC_API_KEY?.trim()
+    const lamaticApiUrl = process.env.LAMATIC_API_URL?.trim()
+    const lamaticProjectId = process.env.LAMATIC_PROJECT_ID?.trim()
+    const workflowId = process.env.AGENTIC_GENERATE_CONTENT?.trim()
+
+    const missingEnv = [
+      !lamaticApiKey && "LAMATIC_API_KEY",
+      !lamaticApiUrl && "LAMATIC_API_URL",
+      !lamaticProjectId && "LAMATIC_PROJECT_ID",
+      !workflowId && "AGENTIC_GENERATE_CONTENT",
+    ].filter(Boolean)
+
+    if (missingEnv.length > 0) {
       return NextResponse.json(
-        { error: "LAMATIC_API_KEY is not configured on the server." },
+        {
+          error: `Missing required Lamatic environment variables: ${missingEnv.join(
+            ", "
+          )}.`,
+        },
         { status: 500 }
       )
     }
 
-    const res = await fetch(
-      "https://soumiksorganization573-codereviewagent135.lamatic.dev/graphql",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.LAMATIC_API_KEY}`,
-          "Content-Type": "application/json",
-          "x-project-id": "4da47f5c-f38d-4519-89b3-82feda6e81ab",
+    const res = await fetch(getGraphqlUrl(lamaticApiUrl), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lamaticApiKey}`,
+        "Content-Type": "application/json",
+        "x-project-id": lamaticProjectId,
+      },
+      body: JSON.stringify({
+        query,
+        variables: {
+          workflowId,
+          owner,
+          repo,
+          pr_number,
         },
-        body: JSON.stringify({
-          query,
-          variables: {
-            workflowId: "597871bb-6b0b-4cef-9771-05514dee60cd",
-            owner,
-            repo,
-            pr_number,
-          },
-        }),
-      }
-    )
+      }),
+    })
 
     const raw = await res.text()
     const trimmed = raw.trim()
-    let data: any = null
+    let data: LamaticGraphqlResponse | null = null
 
     if (trimmed) {
       try {
@@ -78,7 +117,10 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const upstreamMessage =
-        data?.errors?.map((error: any) => error?.message).filter(Boolean).join("; ") ||
+        data?.errors
+          ?.map((error) => error.message)
+          .filter(Boolean)
+          .join("; ") ||
         data?.message ||
         (trimmed.startsWith("<")
           ? "Lamatic returned HTML instead of JSON."
@@ -108,7 +150,7 @@ export async function POST(req: NextRequest) {
 
     if (Array.isArray(data.errors) && data.errors.length > 0) {
       const message = data.errors
-        .map((error: any) => error?.message)
+        .map((error) => error.message)
         .filter(Boolean)
         .join("; ")
 

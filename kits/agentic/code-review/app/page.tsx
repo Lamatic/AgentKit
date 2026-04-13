@@ -11,6 +11,14 @@ type ReviewResult = {
   style: StyleItem[]
 }
 
+type ReviewApiResponse = {
+  error?: string
+  summary?: string
+  bugs?: Finding[]
+  security?: Finding[]
+  style?: StyleItem[]
+}
+
 export default function Home() {
   const [owner, setOwner] = useState("")
   const [repo, setRepo] = useState("")
@@ -33,7 +41,7 @@ export default function Home() {
 
       const raw = await res.text()
       const trimmed = raw.trim()
-      let data: any = null
+      let data: ReviewApiResponse | null = null
 
       if (trimmed) {
         try {
@@ -69,8 +77,8 @@ export default function Home() {
         security: Array.isArray(data.security) ? data.security : [],
         style: Array.isArray(data.style) ? data.style : [],
       })
-    } catch (e: any) {
-      setError(e.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "The review request failed.")
     } finally {
       setLoading(false)
     }
