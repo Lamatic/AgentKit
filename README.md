@@ -81,6 +81,7 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 | **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
 | **Deep Search Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/agentic/deep-search`](./kits/agentic/deep-search) |
 | **Generation Agent** | A Next.js starter kit for generating text/json/image content using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app) | [`/kits/agentic/generation`](./kits/agentic/generation) |
+| **Comparison Agent** | A Next.js starter kit for deep research and comparison between two entities. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-comparison.vercel.app) | [`/kits/agentic/comparison-engine`](./kits/agentic/comparison-engine) |
 ||
 | **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
