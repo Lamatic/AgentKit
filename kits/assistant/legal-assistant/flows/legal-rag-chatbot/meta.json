@@ -1,0 +1,13 @@
+{
+  "name": "Legal RAG Chatbot",
+  "description": "Answer legal research questions against a connected legal corpus and return an informational response with citations, next steps, and a non-advice disclaimer.",
+  "tags": ["⚖️ Legal", "📚 Research", "🧑‍💼 Assistant"],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "https://studio.lamatic.ai/template/rag-chatbot",
+  "author": {
+    "name": "jasperan",
+    "email": "ignacio.m.martinez@oracle.com"
+  }
+}
