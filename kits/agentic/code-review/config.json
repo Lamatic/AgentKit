@@ -26,7 +26,6 @@
       "type": "mandatory",
       "envKey": "AGENTIC_GENERATE_CONTENT"
     }
-  ]
   ],
   "integrations": ["GitHub", "Groq"],
   "demoUrl": "https://agent-kit-stk.vercel.app/",
