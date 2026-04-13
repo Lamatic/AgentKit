@@ -1,0 +1,22 @@
+{
+    "name": "Medical Assistant",
+    "description": "An AI-powered medical assistant chatbot that provides general medical information, symptom checks, and health guidance through a conversational interface built with Lamatic.ai.",
+    "tags": ["🏥 Medical", "💬 Chatbot", "🤖 Assistant"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "medical-assistant-chat",
+            "type": "mandatory",
+            "envKey": "MEDICAL_ASSISTANT_CHAT"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/medical-assistant",
+    "deployUrl": "",
+    "documentationUrl": ""
+}
