@@ -1,0 +1,13 @@
+{
+  "name": "Smart Travel Planner",
+  "description": "AI-powered travel planner that generates structured itineraries with maps, budget, food, and cultural insights.",
+  "tags": ["travel", "agent", "itinerary", "planner"],
+  "author": "sujalchettri",
+  "env": [
+    "LAMATIC_API_URL",
+    "LAMATIC_PROJECT_ID",
+    "LAMATIC_FLOW_URL",
+    "LAMATIC_API_KEY",
+    "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"
+  ]
+}
