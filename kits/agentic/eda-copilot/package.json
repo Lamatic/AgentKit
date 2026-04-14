@@ -21,6 +21,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lamatic": "^0.3.2",
     "lucide-react": "^0.469.0",
     "next": "15.2.4",
     "papaparse": "^5.4.1",

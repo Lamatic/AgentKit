@@ -1,45 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Lamatic } from "lamatic";
 
-const LAMATIC_API_URL = process.env.LAMATIC_API_URL!;
-const LAMATIC_API_KEY = process.env.LAMATIC_API_KEY!;
-const LAMATIC_PROJECT_ID = process.env.LAMATIC_PROJECT_ID!;
+// Lazy-init so the module can be imported at build time without real env vars
+function getLamatic() {
+  return new Lamatic({
+    endpoint: process.env.LAMATIC_API_URL!,
+    projectId: process.env.LAMATIC_PROJECT_ID!,
+    apiKey: process.env.LAMATIC_API_KEY!,
+  });
+}
 
 const FLOW_IDS = {
-  schema: process.env.EDA_SCHEMA_ANALYSIS_FLOW_ID!,
-  statistical: process.env.EDA_STATISTICAL_INSIGHTS_FLOW_ID!,
-  mlReadiness: process.env.EDA_ML_READINESS_FLOW_ID!,
+  schema: process.env.EDA_SCHEMA_ANALYSIS_FLOW_ID,
+  statistical: process.env.EDA_STATISTICAL_INSIGHTS_FLOW_ID,
+  mlReadiness: process.env.EDA_ML_READINESS_FLOW_ID,
 };
-
-/**
- * Calls a single Lamatic flow and returns the result.
- */
-async function callLamaticFlow(
-  flowId: string,
-  payload: Record<string, unknown>
-): Promise<unknown> {
-  const url = `${LAMATIC_API_URL}/flow/${flowId}/run`;
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${LAMATIC_API_KEY}`,
-      "X-Project-Id": LAMATIC_PROJECT_ID,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Lamatic flow ${flowId} failed: ${res.status} — ${errorText}`);
-  }
-
-  const data = await res.json();
-  return data;
-}
 
 export async function POST(req: NextRequest) {
   try {
+    const lamatic = getLamatic();
     const body = await req.json();
     const { datasetSummary, fileName, step } = body;
 
@@ -49,24 +28,38 @@ export async function POST(req: NextRequest) {
 
     // ── Step 1: Schema Analysis ────────────────────────────────────────────
     if (step === "schema") {
-      const result = await callLamaticFlow(FLOW_IDS.schema, {
+      const response = await lamatic.executeFlow(FLOW_IDS.schema!, {
         datasetSummary,
         fileName: fileName || "dataset.csv",
       });
-      return NextResponse.json({ success: true, step: "schema", result });
+
+      if (response.status !== "success") {
+        throw new Error(response.message || "Schema analysis flow failed");
+      }
+
+      return NextResponse.json({ success: true, step: "schema", result: response.result });
     }
 
     // ── Step 2: Statistical Insights ──────────────────────────────────────
     if (step === "statistical") {
       const { schemaInsights } = body;
       if (!schemaInsights) {
-        return NextResponse.json({ error: "schemaInsights required for step 2" }, { status: 400 });
+        return NextResponse.json(
+          { error: "schemaInsights is required for step 2" },
+          { status: 400 }
+        );
       }
-      const result = await callLamaticFlow(FLOW_IDS.statistical, {
+
+      const response = await lamatic.executeFlow(FLOW_IDS.statistical!, {
         datasetSummary,
         schemaInsights,
       });
-      return NextResponse.json({ success: true, step: "statistical", result });
+
+      if (response.status !== "success") {
+        throw new Error(response.message || "Statistical insights flow failed");
+      }
+
+      return NextResponse.json({ success: true, step: "statistical", result: response.result });
     }
 
     // ── Step 3: ML Readiness ──────────────────────────────────────────────
@@ -78,15 +71,24 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      const result = await callLamaticFlow(FLOW_IDS.mlReadiness, {
+
+      const response = await lamatic.executeFlow(FLOW_IDS.mlReadiness!, {
         datasetSummary,
         schemaInsights,
         statisticalInsights,
       });
-      return NextResponse.json({ success: true, step: "mlReadiness", result });
+
+      if (response.status !== "success") {
+        throw new Error(response.message || "ML readiness flow failed");
+      }
+
+      return NextResponse.json({ success: true, step: "mlReadiness", result: response.result });
     }
 
-    return NextResponse.json({ error: "Invalid step. Use: schema | statistical | mlReadiness" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid step. Use: schema | statistical | mlReadiness" },
+      { status: 400 }
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[EDA Copilot API Error]", message);
