@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "id": "eda-schema-analysis",
+    "name": "EDA Schema Analysis",
+    "description": "Analyzes column data types, detects data quality issues, and identifies problematic columns. Set this as your EDA_SCHEMA_ANALYSIS_FLOW_ID.",
+    "version": "1.0.0"
+  },
+  "inputs": {
+    "datasetSummary": {
+      "type": "object",
+      "description": "Computed dataset summary from the client-side EDA utility",
+      "required": true
+    },
+    "fileName": {
+      "type": "string",
+      "description": "Name of the uploaded CSV file",
+      "required": true
+    }
+  },
+  "config": {
+    "nodes": [
+      {
+        "id": "llm-schema",
+        "type": "llm",
+        "model": "gpt-4o-mini",
+        "systemPrompt": "You are an expert data scientist performing exploratory data analysis. Analyze the provided dataset summary and produce a clear, structured schema analysis report in Markdown.\n\nYour report must include:\n1. **Overview** — dataset shape, memory estimate, overall quality rating (Poor/Fair/Good/Excellent)\n2. **Column-by-Column Analysis** — for each column: inferred semantic type (e.g. ID, target, feature, date), data quality concerns, uniqueness observations\n3. **Data Quality Issues** — list specific problems: high cardinality categoricals, constant columns, potential duplicate rows, suspicious dtypes\n4. **Data Quality Score** — score 0–100 with a one-sentence justification\n\nBe concise but thorough. Use bullet points and tables where helpful.",
+        "userPromptTemplate": "File: {{fileName}}\n\nDataset Summary (JSON):\n{{datasetSummary}}\n\nProvide the schema analysis report."
+      }
+    ],
+    "output": "llm-schema.output"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "EDA Copilot",
+  "description": "AI-powered Exploratory Data Analysis agent. Upload any CSV and get instant statistical insights, distribution analysis, correlation detection, outlier flagging, and ML readiness assessment — all powered by Lamatic.ai flows.",
+  "tags": ["🤖 Agentic", "📊 Data Science", "🧠 Reasoning", "🔬 Analysis"],
+  "author": {
+    "name": "Abhay",
+    "email": "abhayabha003@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "eda-schema-analysis",
+      "type": "mandatory",
+      "envKey": "EDA_SCHEMA_ANALYSIS_FLOW_ID"
+    },
+    {
+      "id": "eda-statistical-insights",
+      "type": "mandatory",
+      "prerequisiteSteps": ["eda-schema-analysis"],
+      "envKey": "EDA_STATISTICAL_INSIGHTS_FLOW_ID"
+    },
+    {
+      "id": "eda-ml-readiness",
+      "type": "mandatory",
+      "prerequisiteSteps": ["eda-schema-analysis", "eda-statistical-insights"],
+      "envKey": "EDA_ML_READINESS_FLOW_ID"
+    }
+  ],
+  "integrations": [],
+  "features": [
+    "CSV file upload with drag-and-drop",
+    "Automatic schema detection and data type inference",
+    "Statistical summary (mean, std, quartiles, skewness)",
+    "Missing data analysis with heatmap visualization",
+    "Correlation matrix and pattern detection",
+    "Outlier detection and flagging",
+    "ML readiness score and preprocessing recommendations",
+    "Downloadable analysis report"
+  ],
+  "demoUrl": "https://agent-kit-eda-copilot.vercel.app",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/eda-copilot",
+  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/eda-copilot",
+  "documentationUrl": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-eda-copilot"
+}

@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "id": "eda-ml-readiness",
+    "name": "EDA ML Readiness Assessment",
+    "description": "Scores dataset ML readiness and generates actionable preprocessing recommendations. Set as EDA_ML_READINESS_FLOW_ID.",
+    "version": "1.0.0"
+  },
+  "inputs": {
+    "datasetSummary": {
+      "type": "object",
+      "description": "Computed dataset summary",
+      "required": true
+    },
+    "schemaInsights": {
+      "type": "string",
+      "description": "Output from Schema Analysis flow",
+      "required": true
+    },
+    "statisticalInsights": {
+      "type": "string",
+      "description": "Output from Statistical Insights flow",
+      "required": true
+    }
+  },
+  "config": {
+    "nodes": [
+      {
+        "id": "llm-ml",
+        "type": "llm",
+        "model": "gpt-4o-mini",
+        "systemPrompt": "You are a machine learning engineer assessing a dataset's readiness for ML modeling. Based on the schema analysis and statistical insights, generate a comprehensive ML Readiness Report in Markdown.\n\nYour report must include:\n1. **ML Readiness Score** — score 0–100, with a breakdown across dimensions: completeness, feature quality, class balance, volume adequacy\n2. **Suggested ML Tasks** — what ML problems could this dataset solve? (classification, regression, clustering, etc.)\n3. **Recommended Target Variable(s)** — which column(s) are likely the prediction target? Why?\n4. **Preprocessing Checklist** — ordered, actionable steps:\n   - Missing value imputation strategies (per column)\n   - Encoding recommendations (one-hot, label, target)\n   - Scaling/normalization needs\n   - Outlier handling\n   - Feature engineering opportunities\n5. **Potential Pitfalls** — leakage risks, class imbalance, multicollinearity, insufficient data\n6. **Suggested Next Steps** — concrete next actions for the data scientist\n\nBe specific and actionable. Reference actual column names from the data.",
+        "userPromptTemplate": "Schema Analysis:\n{{schemaInsights}}\n\nStatistical Insights:\n{{statisticalInsights}}\n\nDataset Summary (JSON):\n{{datasetSummary}}\n\nProvide the ML Readiness Assessment."
+      }
+    ],
+    "output": "llm-ml.output"
+  }
+}
