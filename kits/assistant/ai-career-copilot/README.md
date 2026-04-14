@@ -3,6 +3,9 @@
 An AI-powered career assistant that analyzes resumes and provides personalized career guidance including skill analysis, job recommendations, learning roadmaps, project suggestions, and interview preparation.
 
 ---
+## 🚀 Live Demo
+
+🔗 https://ai-career-copilot-green.vercel.app/
 
 ## ✨ Features
 
