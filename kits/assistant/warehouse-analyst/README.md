@@ -2,301 +2,272 @@
 
 # 🏭 Warehouse Analyst AI
 
-**Stop writing SQL. Start asking questions.**
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15-black?&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178c6?&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-336791?&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?&logo=supabase&logoColor=white" />
+  <img src="https://img.shields.io/badge/Lamatic.ai-0f766e?" />
+  <img src="https://img.shields.io/badge/Gemini_Flash-4285F4?&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38bdf8?&logo=tailwind-css&logoColor=white" />
+  <img src="https://img.shields.io/badge/ShadCN_UI-black?" />
+  <img src="https://img.shields.io/badge/Built_in-1_Day-ff6b6b?" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow?" />
+</p>
 
-
-*Your warehouse data, but make it conversational.*
+**Ask your warehouse data anything. In plain English. Get real answers.**
 
 </div>
 
-***
+---
 
-## 🤔 Ever had this problem?
+## The Problem 🤔
 
-Your warehouse manager walks up and asks *"Hey, how many products are low on stock right now?"*
+Non-technical warehouse staff ask simple questions every day:
 
-And you go: open pgAdmin → remember the table name → write `SELECT COUNT(*) FROM inventory WHERE quantity < reorder_level` → wait → read raw numbers → translate to human → respond.
+> *"How many products are low on stock?"*  
+> *"Is order ORD-2025-001 dispatched yet?"*  
+> *"Which warehouse has the most inventory?"*
 
-**That's 4 unnecessary steps.** Warehouse Analyst AI cuts it to one: **just ask.**
+Getting these answers requires SQL knowledge, database access, and time. Most people have none of those. So they ask a developer. Who has better things to do.
 
-***
+**This fixes that.**
 
-## ✨ What is this?
+---
 
-A natural language chatbot that connects directly to your PostgreSQL warehouse database and answers questions in plain English. No SQL knowledge required. No dashboards to learn. No BI tools to configure.
+## ✅ The Solution
 
-Just type *"Which warehouse has the most stock?"* and get a real answer from your live data. Instantly.
+A chat interface that converts plain English into SQL, runs it on your live database, and returns a human-readable answer. Instantly.
 
-Built with **Next.js** on the frontend and **Lamatic.ai** handling the AI orchestration magic in the middle.
-
-***
-
-## 🚀 Features
-
-- 💬 **Natural Language to SQL** — Ask anything about your warehouse in plain English
-- 🔄 **Conversation Memory** — Follow-up questions work! *"How many are there?"* after *"Show low stock items"* just works
-- 🏪 **Multi-table Intelligence** — Handles JOINs across products, inventory, orders, suppliers, warehouses automatically
-- ⚡ **Live Data** — Queries your actual database in real-time, not cached snapshots
-- 🔌 **Plug Any DB** — Works with any PostgreSQL database schema, not just warehouses
-- 🛡️ **Read-Only Safe** — AI is instructed to only run SELECT queries. Your data is safe
-- 🔁 **Auto Retry** — Handles AI overload (503/429) with automatic retries and graceful errors
-- 🎛️ **Custom DB Connection** — Connect your own database from the settings panel without touching code
-- 📊 **Live Stats Panel** — At-a-glance KPIs: total products, stock, warehouses, pending orders
-- 🌙 **Dark Mode UI** — Because we're developers and we have standards
-
-***
-
-## 🛠️ Tech Stack
-
-| Layer | Tech |
-|-------|------|
-| Frontend | Next.js 15 (App Router) + TypeScript |
-| UI | ShadCN UI + Tailwind CSS |
-| AI Orchestration | [Lamatic.ai](https://lamatic.ai) |
-| LLM | Gemini 2.0 Flash (via Lamatic) |
-| Database | PostgreSQL (via `pg` Pool) |
-| Deployment | Vercel |
-
-***
-
-## 📸 How it looks
-
-> Ask a question → get a real answer from your database. That's it.
-
-```
-You:  how many products do we have?
-Bot:  There are 248 products in the database.
-
-You:  which ones are low on stock?
+```txt
+You:  how many products are low on stock?
 Bot:  34 products are currently below their reorder level.
 
 You:  list them
-Bot:  Here are all the low stock items:
+Bot:  Here are all low stock items:
       1. Nike Air Max 90 — 3 units
       2. Adidas Ultraboost — 1 unit
       3. Puma RS-X — 5 units
-      ...
 ```
 
-***
+Zero SQL. Zero training. Zero nonsense.
 
-## ⚙️ Prerequisites
+---
 
-Before you start, make sure you have:
+## 🧠 The Approach
 
-- [Node.js](https://nodejs.org) **18+**
-- [npm](https://npmjs.com) **9+**
-- A [Lamatic.ai](https://lamatic.ai) account (free)
-- A PostgreSQL database (with some data in it)
-- A Gemini API key (or any LLM connected in Lamatic)
-
-***
-
-## 🏗️ Lamatic Flow Setup
-
-This app uses Lamatic as the AI brain. Set it up once and forget it.
-
-### 1. Create a Flow in Lamatic Studio
-
-Go to [studio.lamatic.ai](https://studio.lamatic.ai) → New Flow → Add these 3 nodes:
-
-```
-API Request → Generate Text → API Response
+```txt
+User Question
+     ↓
+Next.js API Route
+     ↓
+Fetch live DB schema (CREATE TABLE format)
+     ↓
+Send { question + schema + chat history } → Lamatic Flow
+     ↓
+Gemini Flash generates a safe SELECT query + response template
+     ↓
+Query runs on PostgreSQL
+     ↓
+Template filled with real data → English answer returned
 ```
 
-### 2. Configure the Generate Text node
+**Why this architecture?**
+- Schema is fetched dynamically → works with **any** database, any structure
+- Chat history (last 4 messages) is included → follow-up questions work naturally
+- Fixed SQL aliases (`value`, `subject`, `detail`) → template replacement never breaks
+- Lamatic handles AI orchestration → swap models without touching code
 
-- **Model:** `gemini-2.0-flash`
-- **Temperature:** `0`
-- **System Prompt:** *(paste the system prompt from below)*
-- **User Prompt:**
-```
-CONVERSATION HISTORY:
-{{nodes.apiRequest.output.context}}
+---
 
-SCHEMA:
-{{nodes.apiRequest.output.schema}}
+## 📊 The Result
 
-QUESTION:
-{{nodes.apiRequest.output.question}}
+| Without this | With this |
+|---|---|
+| Open pgAdmin | Open the chat |
+| Write SQL | Type your question |
+| Read raw data | Get a plain English answer |
+| Repeat for every question | Follow up naturally |
 
-Return raw JSON only. Use only "value", "subject", "detail" as SQL aliases.
-```
+---
 
-### 3. System Prompt
+## ⚖️ Tradeoffs & Assumptions
 
-<details>
-<summary>Click to expand the full system prompt</summary>
+| Decision | Reason |
+|---|---|
+| **Read-only SQL only** | Safety — AI cannot modify your data, ever |
+| **Supabase pooling URL** | Currently set up with Supabase connection pooling. Works with any PostgreSQL DB with a pooling URL. Other SQL databases need minor reconfiguration |
+| **Schema fetched per request** | Always fresh — no stale cache issues |
+| **Mocked user object** | Auth is mocked with a static user object. Replace with a real `users` DB table with the same shape to make it production-ready |
+| **Last 4 messages as context** | Enough for meaningful follow-ups, cheap on tokens |
+| **Gemini Flash over Pro** | Faster responses, better instruction following, far fewer rate limits |
 
-```
-YOU ARE A SQL GENERATOR FOR A WAREHOUSE DATABASE.
+---
 
-YOUR ONLY JOB: Read the schema. Read the question. Return JSON with a SQL query.
+## ✨ Features
 
-ALIAS RULES — ALWAYS USE THESE EXACT ALIAS NAMES IN YOUR SQL:
-- If the result is a COUNT or SUM or any number → alias it as "value"
-- If the result is a name, title, or main subject → alias it as "subject"
-- If the result is extra info (status, city, price, date) → alias it as "detail"
+<p>
+  <img src="https://img.shields.io/badge/Plain_English_Queries-4CAF50?" />
+  <img src="https://img.shields.io/badge/Conversation_Memory-2196F3?" />
+  <img src="https://img.shields.io/badge/Any_PostgreSQL_DB-9C27B0?" />
+  <img src="https://img.shields.io/badge/Read--Only_Safe-F44336?" />
+  <img src="https://img.shields.io/badge/Live_Data-FF9800?" />
+  <img src="https://img.shields.io/badge/Auto_Retry_on_503-607D8B?" />
+  <img src="https://img.shields.io/badge/Custom_DB_from_UI-00BCD4?" />
+  <img src="https://img.shields.io/badge/Live_Stats_Panel-8BC34A?" />
+  <img src="https://img.shields.io/badge/Dark_Mode-212121?" />
+  <img src="https://img.shields.io/badge/Easy to use and configure-ff6b6b?" />
+</p>
 
-OUTPUT FORMAT — RETURN EXACTLY THIS JSON, NOTHING ELSE:
-{"sql":"YOUR_SQL_HERE","template":"TEMPLATE_STRING","errorMessage":"Friendly no-results message"}
+---
 
-TEMPLATE RULES:
-- Use {value}, {subject}, {detail} as placeholders in the template string
-- Write the template as a natural English sentence
+## 🔧 Prerequisites
 
-EXAMPLES:
-Question: how many products do we have?
-{"sql":"SELECT COUNT(*) as value FROM products","template":"There are {value} products in the database.","errorMessage":"No products found."}
+<p>
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/npm-9+-CB3837?&logo=npm&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-any-336791?&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Lamatic.ai-free_account-0f766e?" />
+  <img src="https://img.shields.io/badge/Supabase-free_tier_ok-3FCF8E?&logo=supabase&logoColor=white" />
+</p>
 
-Question: what is the status of order ORD-2025-001?
-{"sql":"SELECT status as detail FROM orders WHERE order_number = 'ORD-2025-001'","template":"Order ORD-2025-001 is currently {detail}.","errorMessage":"Order not found."}
+---
 
-Question: which warehouse has the most stock?
-{"sql":"SELECT w.name as subject, SUM(i.quantity) as value FROM inventory i JOIN warehouses w ON i.warehouse_id = w.id GROUP BY w.name ORDER BY value DESC LIMIT 1","template":"{subject} has the most stock with {value} units.","errorMessage":"No stock data found."}
+## ⚡ Setup — 4 Steps, ~10 Minutes
 
-ONLY return null SQL if the question has ZERO relation to the database schema:
-{"sql":null,"template":null,"errorMessage":"That's outside my area! I only know about this database. Try asking about products, orders, or stock levels."}
-
-FINAL CHECKLIST:
-[ ] Used only "value", "subject", "detail" as aliases?
-[ ] Template only uses {value}, {subject}, {detail}?
-[ ] Output is pure raw JSON with no markdown or backticks?
-[ ] Only SELECT queries?
-```
-
-</details>
-
-### 4. Deploy the flow and copy your Flow ID
-
-***
-
-## 📦 Installation
+### Step 1 — Clone & Install
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/YOUR-USERNAME/warehouse-analyst-ai.git
-cd warehouse-analyst-ai
-
-# 2. Install dependencies
+git clone [URL-OF-THE-PROJECT]
+cd [CLONED-FOLDER]
 npm install
+```
 
-# 3. Set up environment variables
+### Step 2 — Environment Variables
+
+```bash
 cp .env.example .env.local
-# Fill in your values (see below)
+```
 
-# 4. Run it
+```env
+# Lamatic.ai → Settings → API Keys
+LAMATIC_API_KEY=your_api_key_here
+
+# Lamatic → Settings → API Docs → Endpoint
+LAMATIC_ENDPOINT=https://your-project.lamatic.ai/api/flows
+
+# Your deployed flow ID
+LAMATIC_FLOW_ID=your_flow_id_here
+
+# Supabase pooling URL (or any PostgreSQL connection string)
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+```
+
+### Step 3 — Lamatic Flow
+
+You can find the exported Lamatic Flow in the flows/warehouse-analyst directory. </br>
+Use the flow, set the credentials.
+
+Setup the details of flow to environment variables.
+
+The flow is ready to use now.
+
+### Step 4 — Run
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and start asking questions 🎉
+Open [http://localhost:3000](http://localhost:3000)
 
-***
+---
 
-## 🔐 Environment Variables
+## 💬 Try These
 
-Copy `.env.example` to `.env.local` and fill in your values:
-
-```env
-# Lamatic.ai Configuration
-LAMATIC_API_KEY=your_lamatic_api_key_here
-LAMATIC_ENDPOINT=https://your-project.lamatic.ai/api/flows
-LAMATIC_FLOW_ID=your_flow_id_here
-
-# PostgreSQL Database
-DATABASE_URL=postgresql://username:password@host:5432/database_name
+```txt
+how many products do we have?
+which warehouse has the most stock?
+show all pending orders
+how many items are low on stock?
+what is the status of order ORD-2025-001?
+list all suppliers
+what is the total inventory value?
 ```
 
-| Variable | Where to find it |
-|----------|-----------------|
-| `LAMATIC_API_KEY` | Lamatic Studio → Settings → API Keys |
-| `LAMATIC_ENDPOINT` | Lamatic Studio → Settings → API Docs → Endpoint |
-| `LAMATIC_FLOW_ID` | Your flow URL or Flow Details panel |
-| `DATABASE_URL` | Your PostgreSQL connection string |
+---
 
-> **Pro tip:** Users can also enter a custom database URL directly from the settings icon in the app — no code changes needed.
+## 🐛 Troubleshooting
 
-***
+### `503 — model experiencing high demand`
 
-## 💬 Example Questions to Try
+**Expected:** AI responds normally  
+**Actual:** Error after timeout
 
-Once running, try asking:
+**Cause:** Gemini Pro rate limits.
 
-```
-How many products do we have?
-Which warehouse has the most stock?
-Show me all pending orders
-How many items are low on stock?
-What is the status of order ORD-2025-001?
-List all product categories
-Which supplier has the most products?
-What's the total inventory value?
-```
+**Fix:** Switch to `gemini-2.0-flash`. The app already retries 3 times.
 
-***
+---
 
-## 🏛️ Architecture
+### `Could not connect to database`
 
-```
-User Question
-     │
-     ▼
-Next.js Frontend (page.tsx)
-     │  POST /api/chat { question, context, connectionUrl? }
-     ▼
-API Route (route.ts)
-     ├── 1. Connect to PostgreSQL
-     ├── 2. Fetch schema (CREATE TABLE format)
-     ├── 3. Call Lamatic with { question, schema, context }
-     │         └── Lamatic → Gemini Flash → JSON { sql, template, errorMessage }
-     ├── 4. Run the SQL query
-     └── 5. Fill template with real values → return answer
+**Expected:** Schema fetched, query runs  
+**Actual:** 500 error
+
+**Cause:** Wrong `DATABASE_URL` or wrong Supabase URL type.
+
+**Fix:** Use the **Supabase pooling connection URL**, not the direct one.
+
+```txt
+postgresql://username:password@host:5432/database_name
 ```
 
-***
+---
 
-## 📁 Project Structure
+## 🧪 Bug Report Template
 
-```
-warehouse-analyst-ai/
-├── app/
-│   ├── api/
-│   │   ├── chat/route.ts       # Main AI + DB logic
-│   │   └── stats/route.ts      # Stats panel data
-│   └── page.tsx                # Main chat UI
-├── components/
-│   ├── chat/
-│   │   ├── ChatArea.tsx        # Message bubbles
-│   │   └── ChatInput.tsx       # Input bar
-│   ├── layout/
-│   │   ├── AppSidebar.tsx      # Sidebar + DB settings
-│   │   └── TopBar.tsx          # Header
-│   └── stats/
-│       └── StatsPanel.tsx      # KPI cards
-├── lib/
-│   └── lamatic-client.ts       # Lamatic SDK wrapper
-├── .env.example
-└── README.md
+When reporting issues, include:
+
+### Steps to reproduce
+1. What you asked or clicked
+2. What happened
+3. How to trigger it again
+
+### Expected vs. actual behavior
+- **Expected:** what should happen
+- **Actual:** what happened instead
+
+### Environment
+```bash
+node --version
+npm --version
 ```
 
-***
+Also mention:
+- OS: macOS / Windows / Ubuntu
+- Browser: Chrome / Edge / Firefox
 
-## 🤝 Contributing
+### Relevant logs or screenshots
+- Paste terminal logs from `npm run dev`
+- Paste browser console errors
+- Add screenshots if UI breaks
 
-Part of the [Lamatic AgentKit Challenge](https://github.com/Lamatic/AgentKit). PRs welcome!
+---
 
-***
+## 🔮 Next Improvements
 
-## 📄 License
+- Replace mocked user object with a real `users` table
+- Add auth
+- Support MySQL and other SQL databases with minor reconfiguration
+- Save per-user DB connections
+- Store query history
 
-MIT — do whatever you want with it.
-
-***
+---
 
 <div align="center">
 
-Built with ☕ and way too many debugging sessions for the **Lamatic AgentKit Challenge**
+Built in **1 day** for the **Lamatic AgentKit Challenge**
 
-*If this saved you from writing SQL at 2am, consider giving it a ⭐*
+*If this saved you from writing SQL, give it a ⭐*
 
 </div>
