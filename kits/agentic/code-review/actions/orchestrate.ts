@@ -1,70 +1,58 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import config from "../config"
+import config from "../config.json"
 
-+export async function generateContent(
-+  prUrl: string,
-): Promise<{
+type FlowConfig = {
+  name: string
+  workflowId: string
+}
+
+type GenerateContentResult = {
   success: boolean
-  data?: any
+  data?: unknown
   error?: string
-}> {
-  try {
-    console.log("[v0] Generating content with:", { prUrl })
+}
 
-    // Get the first workflow from the config
-    const flows = config.flows
-    const firstFlowKey = Object.keys(flows)[0]
+const flows = config.flows as Record<string, FlowConfig>
+
+export async function generateContent(
+  prUrl: string
+): Promise<GenerateContentResult> {
+  try {
+    const [firstFlowKey] = Object.keys(flows)
 
     if (!firstFlowKey) {
-      throw new Error("No workflows found in configuration")
+      throw new Error("No workflows found in configuration.")
     }
 
-    // Fix: Add index signature to make TypeScript happy about accessing flows[firstFlowKey]
-    const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows];
-    console.log("[v0] Using workflow:", flow.name, flow.workflowId);
+    const flow = flows[firstFlowKey]
 
-   const inputs: Record<string, any> = { prUrl }
-    console.log("[v0] Sending inputs:", inputs)
-
-    if (!flow.workflowId) {
-      throw Error("Workflow not found in config.")
+    if (!flow?.workflowId) {
+      throw new Error("Workflow not found in config.")
     }
-     const workflowId = process.env[flow.workflowId]
-   if (!workflowId) {
-     throw new Error(`Missing environment variable for workflow ID key: ${flow.workflowId}`)
-   }
-   const resData = await lamaticClient.executeFlow(workflowId, inputs)
-    console.log("[v0] Raw response:", resData)
 
-const answer = resData?.result?.answer
+    const workflowId = process.env[flow.workflowId]
 
-    if (!answer) {
-      throw new Error("No answer found in response")
+    if (!workflowId) {
+      throw new Error(
+        `Missing environment variable for workflow ID key: ${flow.workflowId}`
+      )
     }
+
+    const response = await lamaticClient.executeFlow(workflowId, { prUrl })
 
     return {
       success: true,
-      data: answer,
+      data: response?.result ?? null,
     }
   } catch (error) {
-    console.error("[v0] Generation error:", error)
-
-    let errorMessage = "Unknown error occurred"
-    if (error instanceof Error) {
-      errorMessage = error.message
-      if (error.message.includes("fetch failed")) {
-        errorMessage =
-          "Network error: Unable to connect to the service. Please check your internet connection and try again."
-      } else if (error.message.includes("API key")) {
-        errorMessage = "Authentication error: Please check your API configuration."
-      }
-    }
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred."
 
     return {
       success: false,
-      error: errorMessage,
+      error: message,
     }
   }
 }

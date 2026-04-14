@@ -1,0 +1,227 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "chatTriggerNode",
+        "values": {
+          "chat": "",
+          "domains": [
+            "http://localhost:3000"
+          ],
+          "nodeName": "Chat Widget",
+          "chatConfig": {
+            "botName": "Legal Assistant Bot",
+            "imageUrl": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/kits/assistant/legal/public/icon-light-32x32.png",
+            "position": "right",
+            "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
+            "displayMode": "popup",
+            "placeholder": "Type your legal question",
+            "suggestions": [
+              "My landlord did not return my security deposit in Goa, India. what can I do",
+              "My employer in New York, USA has not paid salary for two months what are my options",
+              "I received a legal notice in Japan what should I do next"
+            ],
+            "errorMessage": "Oops something went wrong. Please try again. If it keeps happening, refresh the page and try once more.",
+            "hideBranding": false,
+            "primaryColor": "#ef4444",
+            "headerBgColor": "#000000",
+            "greetingMessage": "Hi, I am Legal Assistant Bot. I can share general legal information. Please tell me your country and state or province.",
+            "headerTextColor": "#FFFFFF",
+            "showEmojiButton": true,
+            "suggestionBgColor": "#f1f5f9",
+            "showAdvancedColors": true,
+            "userMessageBgColor": "#FEF2F2",
+            "agentMessageBgColor": "#f1f5f9",
+            "suggestionTextColor": "#334155",
+            "userMessageTextColor": "#d12323",
+            "agentMessageTextColor": "#334155"
+          }
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "variablesNode_566",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "variablesNode",
+        "values": {
+          "mapping": "{\n  \"user_message\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.chatMessage}}\"\n  },\n  \"user_id\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.userId}}\"\n  },\n  \"session_id\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.sessionId}}\"\n  }\n}",
+          "nodeName": "Variables"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_615",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_615",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an intake parser for an informational legal assistant chatbot.\n\nExtract only essential non sensitive details and safety signals.\n\nDo not include highly sensitive personal data such as full address, government ID numbers, bank account details, or medical records.\n\nIf the user included such data, ignore it and do not return it.\n\nOutput only valid JSON text. Do not call tools. Do not wrap in markdown. Do not add any commentary.\n\nReturn only valid JSON. No markdown. No trailing commas. Always close all braces."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User message:\n\n{{variablesNode_566.output.user_message}}\n\nReturn ONLY valid JSON. No markdown. No comments. Use double quotes for all keys and string values.\n\nReturn exactly this shape:\n\n{\n\n\"question\": \"\",\n\n\"country\": \"\",\n\n\"stateProvince\": \"\",\n\n\"timeline\": \"\",\n\n\"parties\": \"\",\n\n\"matterType\": \"\",\n\n\"immediacy\": {\n\n```\n\"immediateDanger\": false,\n\n\"domesticViolence\": false,\n\n\"selfHarm\": false,\n\n\"urgentCriminalRisk\": false\n\n```\n},\n\n\"wrongdoing\": {\n\n```\n\"evasion\": false,\n\n\"destroyEvidence\": false,\n\n\"fraud\": false,\n\n\"threats\": false\n\n```\n},\n\n\"needs\": {\n\n```\n\"missingJurisdiction\": false,\n\n\"missingStateProvince\": false,\n\n\"missingTimeline\": false,\n\n\"missingParties\": false,\n\n\"missingMatterType\": false\n\n```\n}\n\n}\n\nExtraction rules:\n- question: rewrite the user message as a short clear legal question\n- country: extract country if mentioned, including India\n- stateProvince: extract state or province if mentioned, including Maharashtra\n- timeline: extract time references if mentioned, else \"\"\n- parties: MUST be a single string like \"landlord\", \"employer\", \"seller\", else \"\"\n- matterType: set to \"landlord tenant\" for landlord deposit issues, else best match, else \"\"\n\nNeeds flags MUST be computed exactly:\n- missingJurisdiction = (country == \"\")\n- missingStateProvince = (stateProvince == \"\")\n- missingTimeline = (timeline == \"\")\n- missingParties = (parties == \"\")\n- missingMatterType = (matterType == \"\")"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_496",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_496",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a legal assistant chatbot. Informational only, not a lawyer, not legal advice.\n\nThe first line must always be exactly:\n\nDisclaimer informational only not legal advice\n\nFormatting rules:\n\n- Each heading must be on its own line.\n\n- Include one blank line between sections.\n\n- Do not leave any section empty.\n\nBehavior rules:\n\n- Never guarantee outcomes. Use conditional language.\n\n- If immediate danger, domestic violence, or self harm risk is present, prioritize safety and advise contacting local emergency services.\n\n- If wrongdoing is requested, refuse and provide lawful alternatives.\n\n- Always follow the parsed JSON exactly. Do not contradict it."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Parsed intake JSON:\n\n{{LLMNode_615.output.generatedResponse}}\n\nRead the parsed JSON carefully and follow these rules exactly.\n\nDecision rules:\n- If country is empty, jurisdiction is missing.\n- If country is not empty, jurisdiction is present.\n- If stateProvince is empty and the matter is landlord tenant, employment, family, consumer, or criminal, ask for state or province.\n- If country and stateProvince are both present, do not say jurisdiction is missing.\n\nBehavior rules:\n- You MUST produce all 6 headings exactly once.\n- Under each heading, write at least 2 complete sentences.\n- Do not leave any section empty.\n- Do not contradict the parsed JSON.\n- Keep the answer practical and easy to understand.\n- Do not say \"None at the moment\" in follow up questions. Always ask at least 2 useful questions unless immediate danger or wrongdoing applies.\n\nBranch behavior:\n1. If country is empty:\n- Say jurisdiction is unknown.\n- Do not list statutes.\n- In the statutes section write exactly:\n\nNo jurisdiction provided so section level citations not included\n- Ask for country and state or province in follow up questions.\n1. If country is present but stateProvince is empty and the issue is state specific:\n- Say country is known but state or province is still needed.\n- Do not list statutes.\n- Ask for state or province in follow up questions.\n1. If country and stateProvince are present:\n- Say the likely area and jurisdiction using the parsed values.\n- Give practical informational next steps.\n- Only mention statutes if you are confident.\n- If unsure, write exactly:\n\nI am not confident enough to cite a specific section without checking the exact local text.\n\nNow respond in exactly this format with one blank line between sections:\n\nDisclaimer informational only not legal advice\n\nDetected area and jurisdiction assumptions\n\nKey points summary\n\nRelevant statutes and references list with section numbers\n\nSuggested next steps checklist\n\nFollow up questions needed to be more accurate"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": true
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "chatResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "content": "{{LLMNode_496.output.generatedResponse}}",
+          "nodeName": "Chat Response",
+          "references": "",
+          "webhookUrl": "",
+          "webhookHeaders": ""
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-variablesNode_566",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "variablesNode_566",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "variablesNode_566-LLMNode_615",
+      "type": "defaultEdge",
+      "source": "variablesNode_566",
+      "target": "LLMNode_615",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_615-LLMNode_496",
+      "type": "defaultEdge",
+      "source": "LLMNode_615",
+      "target": "LLMNode_496",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_496-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_496",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
