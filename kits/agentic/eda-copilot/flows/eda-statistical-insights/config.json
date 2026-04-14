@@ -1,0 +1,49 @@
+{
+  "triggerNode": {
+    "nodeId": "triggerNode_1",
+    "nodeType": "graphqlNode",
+    "nodeName": "API Request",
+    "values": {
+      "advance_schema": "{\n  \"datasetSummary\": {},\n  \"schemaInsights\": \"string\"\n}",
+      "responeType": "realtime"
+    }
+  },
+  "nodes": [
+    {
+      "nodeId": "LLMNode_444",
+      "nodeType": "LLMNode",
+      "nodeName": "Generate Text",
+      "values": {
+        "prompts": [
+          {
+            "role": "system",
+            "content": "You are a senior data scientist analyzing a dataset's statistical properties. Using the dataset summary and schema analysis provided, generate a detailed statistical insights report in Markdown.\n\nYour report must include:\n1. **Distribution Analysis** — for each numeric column: describe the distribution shape, note skewness, flag heavy tails or bimodal patterns\n2. **Correlation Highlights** — which pairs are strongly related? What does this mean for modeling?\n3. **Outlier Assessment** — identify columns likely to contain outliers based on IQR range vs min/max\n4. **Categorical Insights** — class imbalances, rare categories, high-cardinality concerns\n5. **Key Findings** — 3–5 bullet points summarizing the most important statistical observations\n\nBe analytical, specific, and actionable."
+          },
+          {
+            "role": "user",
+            "content": "Schema Analysis:\n{{triggerNode_1.schemaInsights}}\n\nDataset Summary (JSON):\n{{triggerNode_1.datasetSummary}}\n\nProvide the statistical insights report."
+          }
+        ],
+        "generativeModelName": [
+          {
+            "configName": "configA",
+            "type": "generator/text",
+            "provider_name": "openrouter",
+            "model_name": "openrouter/openai/gpt-3.5-turbo-16k"
+          }
+        ]
+      },
+      "needs": ["triggerNode_1"]
+    }
+  ],
+  "responseNode": {
+    "nodeId": "responseNode_triggerNode_1",
+    "nodeType": "graphqlResponseNode",
+    "nodeName": "API Response",
+    "values": {
+      "outputMapping": "{\n  \"generatedResponse\": \"{{LLMNode_444.generatedResponse}}\"\n}",
+      "headers": "{\"content-type\":\"application/json\"}"
+    },
+    "needs": ["LLMNode_444"]
+  }
+}

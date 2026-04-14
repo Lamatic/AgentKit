@@ -1,0 +1,17 @@
+{
+  "datasetSummary": {
+    "type": "object",
+    "description": "Computed dataset summary from the client-side EDA utility.",
+    "required": true
+  },
+  "schemaInsights": {
+    "type": "string",
+    "description": "Markdown output from the eda-schema-analysis flow (Flow 1).",
+    "required": true
+  },
+  "statisticalInsights": {
+    "type": "string",
+    "description": "Markdown output from the eda-statistical-insights flow (Flow 2).",
+    "required": true
+  }
+}

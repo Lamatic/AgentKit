@@ -1,0 +1,49 @@
+{
+  "triggerNode": {
+    "nodeId": "triggerNode_1",
+    "nodeType": "graphqlNode",
+    "nodeName": "API Request",
+    "values": {
+      "advance_schema": "{\n  \"datasetSummary\": {},\n  \"schemaInsights\": \"string\",\n  \"statisticalInsights\": \"string\"\n}",
+      "responeType": "realtime"
+    }
+  },
+  "nodes": [
+    {
+      "nodeId": "LLMNode_446",
+      "nodeType": "LLMNode",
+      "nodeName": "Generate Text",
+      "values": {
+        "prompts": [
+          {
+            "role": "system",
+            "content": "You are a machine learning engineer assessing a dataset's readiness for ML modeling. Based on the schema analysis and statistical insights, generate a comprehensive ML Readiness Report in Markdown.\n\nYour report must include:\n1. **ML Readiness Score** — score 0–100, with a breakdown across dimensions: completeness, feature quality, class balance, volume adequacy\n2. **Suggested ML Tasks** — what ML problems could this dataset solve? (classification, regression, clustering, etc.)\n3. **Recommended Target Variable(s)** — which column(s) are likely the prediction target? Why?\n4. **Preprocessing Checklist** — ordered, actionable steps per column: missing value imputation, encoding recommendations, scaling needs, outlier handling, feature engineering opportunities\n5. **Potential Pitfalls** — leakage risks, class imbalance, multicollinearity, insufficient data\n6. **Suggested Next Steps** — concrete next actions for the data scientist\n\nBe specific and actionable. Reference actual column names from the data."
+          },
+          {
+            "role": "user",
+            "content": "Schema Analysis:\n{{triggerNode_1.schemaInsights}}\n\nStatistical Insights:\n{{triggerNode_1.statisticalInsights}}\n\nDataset Summary (JSON):\n{{triggerNode_1.datasetSummary}}\n\nProvide the ML Readiness Assessment."
+          }
+        ],
+        "generativeModelName": [
+          {
+            "configName": "configA",
+            "type": "generator/text",
+            "provider_name": "openrouter",
+            "model_name": "openrouter/openai/gpt-3.5-turbo-16k"
+          }
+        ]
+      },
+      "needs": ["triggerNode_1"]
+    }
+  ],
+  "responseNode": {
+    "nodeId": "responseNode_triggerNode_1",
+    "nodeType": "graphqlResponseNode",
+    "nodeName": "API Response",
+    "values": {
+      "outputMapping": "{\n  \"generatedResponse\": \"{{LLMNode_446.generatedResponse}}\"\n}",
+      "headers": "{\"content-type\":\"application/json\"}"
+    },
+    "needs": ["LLMNode_446"]
+  }
+}

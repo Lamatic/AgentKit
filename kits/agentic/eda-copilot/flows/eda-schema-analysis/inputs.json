@@ -1,0 +1,12 @@
+{
+  "datasetSummary": {
+    "type": "object",
+    "description": "Computed dataset summary from the client-side EDA utility. Includes rowCount, colCount, totalMissingPct, and per-column statistics.",
+    "required": true
+  },
+  "fileName": {
+    "type": "string",
+    "description": "Name of the uploaded CSV file (e.g. titanic.csv)",
+    "required": true
+  }
+}

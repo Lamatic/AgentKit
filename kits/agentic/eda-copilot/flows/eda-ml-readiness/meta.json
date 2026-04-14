@@ -1,0 +1,20 @@
+{
+  "id": "eda-ml-readiness",
+  "name": "EDA ML Readiness Assessment",
+  "description": "Scores a dataset's ML readiness (0-100) and produces an actionable preprocessing checklist including imputation strategies, encoding recommendations, scaling needs, and potential pitfall warnings.",
+  "author": {
+    "name": "Abhay",
+    "email": "abhayabha003@gmail.com"
+  },
+  "tags": ["eda", "machine-learning", "preprocessing", "feature-engineering", "data-science"],
+  "version": "1.0.0",
+  "testInputs": {
+    "datasetSummary": {
+      "rowCount": 891,
+      "colCount": 12,
+      "columns": []
+    },
+    "schemaInsights": "## Schema Analysis\n\n**Data Quality Score: 78/100**\n\nDataset has 891 rows and 12 columns...",
+    "statisticalInsights": "## Statistical Insights\n\n**Key Findings:**\n- Fare column is heavily right-skewed (skewness: 4.79), log transformation recommended\n- Strong negative correlation between Pclass and Survived (-0.34)..."
+  }
+}

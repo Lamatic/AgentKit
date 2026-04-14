@@ -1,0 +1,26 @@
+{
+  "id": "eda-schema-analysis",
+  "name": "EDA Schema Analysis",
+  "description": "Analyzes CSV dataset column types, detects data quality issues, and produces a structured schema report with a data quality score (0-100).",
+  "author": {
+    "name": "Abhay",
+    "email": "abhayabha003@gmail.com"
+  },
+  "tags": ["eda", "data-science", "schema", "data-quality"],
+  "version": "1.0.0",
+  "testInputs": {
+    "datasetSummary": {
+      "rowCount": 891,
+      "colCount": 12,
+      "totalMissing": 866,
+      "totalMissingPct": 8.12,
+      "columns": [
+        { "name": "PassengerId", "type": "numeric", "count": 891, "missing": 0, "missingPct": 0, "unique": 891, "mean": 446, "std": 257.35 },
+        { "name": "Survived", "type": "numeric", "count": 891, "missing": 0, "missingPct": 0, "unique": 2 },
+        { "name": "Age", "type": "numeric", "count": 891, "missing": 177, "missingPct": 19.87, "unique": 88, "mean": 29.7, "std": 14.53 },
+        { "name": "Embarked", "type": "categorical", "count": 891, "missing": 2, "missingPct": 0.22, "unique": 3 }
+      ]
+    },
+    "fileName": "titanic.csv"
+  }
+}
