@@ -1,0 +1,28 @@
+{
+  "name": "Changelog Generator",
+  "description": "AI-powered changelog generator that takes a GitHub repository URL and date range, then produces a professional, well-structured changelog with sections for features, bug fixes, improvements, and breaking changes.",
+  "tags": ["🤖 Agentic", "⚙️ Automation", "🛠️ Dev Tools"],
+  "author": {
+    "name": "Rohan Bera",
+    "email": "rohanbera2019@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "changelog-flow",
+      "type": "mandatory",
+      "envKey": "LAMATIC_FLOW_ID"
+    }
+  ],
+  "integrations": [],
+  "features": [
+    "Generate professional changelogs from GitHub repo activity",
+    "Structured sections: Features, Bug Fixes, Improvements, Breaking Changes",
+    "Plain English summary for non-technical stakeholders",
+    "One-click markdown copy",
+    "Powered by Groq LLaMA via Lamatic Flows"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/changelog-generator",
+  "deployUrl": "",
+  "documentationUrl": ""
+}

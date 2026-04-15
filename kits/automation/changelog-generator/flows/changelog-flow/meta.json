@@ -1,0 +1,9 @@
+{
+  "name": "changelog-flow",
+  "description": "Generates a structured markdown changelog from a GitHub repo URL and date range.",
+  "tags": "changelog,github,automation,llm",
+  "testInput": "{\"repo_url\":\"https://github.com/Lamatic/AgentKit\",\"date_from\":\"2026-03-01\",\"date_to\":\"2026-03-15\"}",
+  "githubUrl": "https://github.com/Lamatic/AgentKit",
+  "documentationUrl": "https://docs.lamatic.ai",
+  "deployUrl": "https://agent-kit-sable.vercel.app"
+}
