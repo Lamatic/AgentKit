@@ -1,0 +1,397 @@
+{
+    "triggerNode": {
+        "nodeId": "triggerNode_1",
+        "nodeType": "graphqlNode",
+        "nodeName": "API Request",
+        "values": {
+            "responeType": "realtime",
+            "advance_schema": "{\n  \"destination\": \"string\",\n  \"no_of_days\": \"int\",\n  \"budget\": \"int\",\n  \"destination_type\": \"string\"\n}"
+        },
+        "modes": {},
+        "allConfigs": {
+            "Config A": {
+                "id": "triggerNode_1",
+                "nodeName": "API Request",
+                "responeType": "realtime",
+                "advance_schema": "{\n  \"destination\": \"string\",\n  \"no_of_days\": \"int\",\n  \"budget\": \"int\",\n  \"destination_type\": \"string\"\n}"
+            }
+        },
+        "schema": {
+            "sampleOutput": "string"
+        }
+    },
+    "nodes": [
+        {
+            "nodeId": "codeNode_779",
+            "nodeType": "codeNode",
+            "nodeName": "Code",
+            "values": {
+                "code": "let body = {\n  destination: {{triggerNode_1.output.destination}},\n  days: {{triggerNode_1.output.days}},\n  budget: {{triggerNode_1.output.budget}},\n  destination_type: {{triggerNode_1.output.destination_type}}\n};\n\nconst destination = body?.destination || \"\";\nconst days = Number(body?.days || 0);\nconst budget = Number(body?.budget || 0);\nconst destination_type = body?.destination_type || \"\";\n\noutput = {\n  body,\n  destination,\n  days,\n  budget,\n  destination_type,\n  success: !!(destination && days && budget && destination_type)\n};"
+            },
+            "modes": {},
+            "needs": [
+                "triggerNode_1"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "id": "codeNode_779",
+                    "code": "let body = {\n  destination: {{triggerNode_1.output.destination}},\n  days: {{triggerNode_1.output.days}},\n  budget: {{triggerNode_1.output.budget}},\n  destination_type: {{triggerNode_1.output.destination_type}}\n};\n\nconst destination = body?.destination || \"\";\nconst days = Number(body?.days || 0);\nconst budget = Number(body?.budget || 0);\nconst destination_type = body?.destination_type || \"\";\n\noutput = {\n  body,\n  destination,\n  days,\n  budget,\n  destination_type,\n  success: !!(destination && days && budget && destination_type)\n};",
+                    "nodeName": "Code"
+                }
+            },
+            "schema": {
+                "body": "object",
+                "days": "number",
+                "budget": "number",
+                "success": "boolean",
+                "destination": "string",
+                "destination_type": "string"
+            },
+            "logic": []
+        },
+        {
+            "nodeId": "LLMNode_574",
+            "nodeType": "LLMNode",
+            "nodeName": "Generate Itenary",
+            "values": {
+                "tools": [],
+                "prompts": [
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                        "role": "system",
+                        "content": "You are an expert travel planner AI.\nGenerate a detailed travel itinerary based on the following user inputs. Return ONLY valid JSON. Use this exact structure:\n{\"destination\": \"string\",\n\"country\": \"string\",\n\"introduction\": \"string\",\n\"best_time_to_visit\": \"string\",\n\"estimated_budget\": \"string\"\n,\"highlights\": [{\"name\": \"string\",\"description\": \"string\"}],\n\"food\": [{\"name\": \"string\",\"description\": \"string\"}],\n\"culture\": [\"string\"],\"travel_tips\": [\"string\"],\n\"days\": {\"day\": 1,\"title\": \"string\",\"morning\": \"string\",\"afternoon\": \"string\",\"evening\": \"string\",\"morning_location\": \"string\",\"afternoon_location\": \"string\",\"evening_location\": \"string\",\"food_recommendation\": \"string\",\"stay_suggestion\": \"string\",\"estimated_day_cost\": \"string\",\"notes\": \"string\"}\nRules:\nGenerate exactly destination and days.\n{{codeNode_779.output.destination}}{{codeNode_779.output.days}}\nIf {{codeNode_779.output.days}} then return the total no of days those are been in input\nDo NOT return only one day. Do NOT summarize multiple days into one.\nEach day must include a real place in the \"place\" field. Keep the plan realistic according to the budget.\nInclude sightseeing, food, and culture.\nMake each day different..JSON must be valid. No markdown.\nNo explanation outside JSON.\nExample:\n{\n\"day\": 1,\n\"title\": \"Exploring Delhi\",\n\"morning\": \"Visit India Gate and take a stroll in Rashtrapati Bhavan.\",\n\"afternoon\": \"Explore Humayun's Tomb and do some shopping at Connaught Place.\",\n\"evening\": \"Enjoy a traditional Indian meal in Paharganj.\",\n\"morning_location\": \"India Gate, Delhi\",\n\"afternoon_location\": \"Humayun's Tomb, Delhi\",\n\"evening_location\": \"Paharganj, Delhi\",\n\"food_recommendation\": \"Biryani at Karim's in Jama Masjid area.\",\n\"stay_suggestion\": \"Hotel Ajanta, close to railway station.\",\n\"estimated_day_cost\": \"$100\",\n\"notes\": \"Be prepared for traffic; use the Metro for faster commutes.\"\n}"
+                    },
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                        "role": "user",
+                        "content": ""
+                    }
+                ],
+                "memories": "[]",
+                "messages": "[]",
+                "attachments": "",
+                "credentials": "",
+                "generativeModelName": [
+                    {
+                        "type": "generator/text",
+                        "params": {},
+                        "configName": "configA",
+                        "model_name": "gpt-4o-mini",
+                        "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                        "provider_name": "openai",
+                        "credential_name": "open ai"
+                    }
+                ]
+            },
+            "modes": {},
+            "needs": [
+                "codeNode_779"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "id": "LLMNode_574",
+                    "tools": [],
+                    "prompts": [
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                            "role": "system",
+                            "content": "You are an expert travel planner AI.\nGenerate a detailed travel itinerary based on the following user inputs. Return ONLY valid JSON. Use this exact structure:\n{\"destination\": \"string\",\n\"country\": \"string\",\n\"introduction\": \"string\",\n\"best_time_to_visit\": \"string\",\n\"estimated_budget\": \"string\"\n,\"highlights\": [{\"name\": \"string\",\"description\": \"string\"}],\n\"food\": [{\"name\": \"string\",\"description\": \"string\"}],\n\"culture\": [\"string\"],\"travel_tips\": [\"string\"],\n\"days\": {\"day\": 1,\"title\": \"string\",\"morning\": \"string\",\"afternoon\": \"string\",\"evening\": \"string\",\"morning_location\": \"string\",\"afternoon_location\": \"string\",\"evening_location\": \"string\",\"food_recommendation\": \"string\",\"stay_suggestion\": \"string\",\"estimated_day_cost\": \"string\",\"notes\": \"string\"}\nRules:\nGenerate exactly destination and days.\n{{codeNode_779.output.destination}}{{codeNode_779.output.days}}\nIf {{codeNode_779.output.days}} then return the total no of days those are been in input\nDo NOT return only one day. Do NOT summarize multiple days into one.\nEach day must include a real place in the \"place\" field. Keep the plan realistic according to the budget.\nInclude sightseeing, food, and culture.\nMake each day different..JSON must be valid. No markdown.\nNo explanation outside JSON.\nExample:\n{\n\"day\": 1,\n\"title\": \"Exploring Delhi\",\n\"morning\": \"Visit India Gate and take a stroll in Rashtrapati Bhavan.\",\n\"afternoon\": \"Explore Humayun's Tomb and do some shopping at Connaught Place.\",\n\"evening\": \"Enjoy a traditional Indian meal in Paharganj.\",\n\"morning_location\": \"India Gate, Delhi\",\n\"afternoon_location\": \"Humayun's Tomb, Delhi\",\n\"evening_location\": \"Paharganj, Delhi\",\n\"food_recommendation\": \"Biryani at Karim's in Jama Masjid area.\",\n\"stay_suggestion\": \"Hotel Ajanta, close to railway station.\",\n\"estimated_day_cost\": \"$100\",\n\"notes\": \"Be prepared for traffic; use the Metro for faster commutes.\"\n}"
+                        },
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                            "role": "user",
+                            "content": ""
+                        }
+                    ],
+                    "memories": "[]",
+                    "messages": "[]",
+                    "nodeName": "Generate Itenary",
+                    "attachments": "",
+                    "credentials": "",
+                    "generativeModelName": [
+                        {
+                            "type": "generator/text",
+                            "params": {},
+                            "configName": "configA",
+                            "model_name": "gpt-4o-mini",
+                            "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                            "provider_name": "openai",
+                            "credential_name": "open ai"
+                        }
+                    ]
+                }
+            },
+            "schema": {
+                "generatedResponse": "string",
+                "_meta": "object",
+                "tool_calls": "object",
+                "images": "array"
+            }
+        },
+        {
+            "nodeId": "conditionNode_895",
+            "nodeType": "conditionNode",
+            "condition": [
+                {
+                    "label": "Condition 1",
+                    "value": "LLMNode_852"
+                },
+                {
+                    "label": "Else",
+                    "value": "LLMNode_249"
+                }
+            ],
+            "nodeName": "Condition",
+            "values": {
+                "conditions": [
+                    {
+                        "label": "Condition 1",
+                        "value": "conditionNode_895-addNode_342",
+                        "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_574.output.generatedResponse.destination}}\",\n      \"operator\": \"!=\",\n      \"value\": \"\"\n    }\n  ]\n}"
+                    },
+                    {
+                        "label": "Else",
+                        "value": "conditionNode_895-addNode_435",
+                        "condition": {}
+                    }
+                ],
+                "allowMultipleConditionExecution": false
+            },
+            "modes": [],
+            "needs": [
+                "LLMNode_574"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "nodeName": "Condition",
+                    "conditions": [
+                        {
+                            "label": "Condition 1",
+                            "value": "conditionNode_895-addNode_342",
+                            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{LLMNode_574.output.generatedResponse.destination}}\",\n      \"operator\": \"!=\",\n      \"value\": \"\"\n    }\n  ]\n}"
+                        },
+                        {
+                            "label": "Else",
+                            "value": "conditionNode_895-addNode_435",
+                            "condition": {}
+                        }
+                    ],
+                    "allowMultipleConditionExecution": false
+                }
+            },
+            "schema": {
+                "sampleOutput": "string"
+            }
+        },
+        {
+            "nodeId": "LLMNode_852",
+            "nodeType": "LLMNode",
+            "nodeName": "Refine Generate Text",
+            "values": {
+                "tools": [],
+                "prompts": [
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                        "role": "system",
+                        "content": "You are a JSON formatter and itinerary refiner.\nTake the travel itinerary JSON below and improve its clarity, consistency, and completeness without changing the meaning.\nInput:\n{{input}}\nReturn ONLY valid JSON in this exact format:\n{\n\"destination\": \"string\",\n\"country\": \"string\",\n\"introduction\": \"string\",\n\"best_time_to_visit\": \"string\",\n\"estimated_budget\": \"string\",\n\"highlights\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"food\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"culture\": [\n\"string\"\n],\n\"travel_tips\": [\n\"string\"\n],\n\"days\": [\n{\n{\"day\": 1,\"title\": \"string\",\"morning\": \"string\",\"afternoon\": \"string\",\"evening\": \"string\",\"morning_location\": \"string\",\"afternoon_location\": \"string\",\"evening_location\": \"string\",\"food_recommendation\": \"string\",\"stay_suggestion\": \"string\",\"estimated_day_cost\": \"string\",\"notes\": \"string\"}}\n]\n}\nRules:\n1. Preserve the original meaning of the itinerary.\n2. if {{days}} then return the total no of days those are been in input\n3. Do not remove any day if the input already contains {{days}} days.\n4. If a day is incomplete, improve it without changing the trip meaning.\n5. Ensure all top-level fields are present.\n6. Ensure every day object contains:\n\"day\", \"title\", \"place\", \"morning\", \"afternoon\", \"evening\", \"food_recommendation\", \"stay_suggestion\", \"estimated_day_cost\", \"notes\".\n7. Ensure day numbers run sequentially from 1 to {{days}}.\n8. Keep the output travel-focused and budget-aware.\n9. Fix formatting, spelling, and consistency issues.\n10. Return JSON only.\n11. Do not add markdown.\nGenerate exactly destination{{LLMNode_574.output.generatedResponse}}\n. If {{days}} then return only till the no of days given\nDo NOT return only one day.\nDo NOT summarize multiple days into one.\nEach day must include a real place in the \"place\" field.\nKeep the plan realistic according to the budget.\nInclude sightseeing, food, and culture.\nMake each day different..JSON must be valid. No markdown.\nNo explanation outside JSON."
+                    },
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                        "role": "user",
+                        "content": ""
+                    }
+                ],
+                "memories": "[]",
+                "messages": "[]",
+                "attachments": "",
+                "credentials": "",
+                "generativeModelName": [
+                    {
+                        "type": "generator/text",
+                        "params": {},
+                        "configName": "configA",
+                        "model_name": "gpt-4o-mini",
+                        "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                        "provider_name": "openai",
+                        "credential_name": "open ai"
+                    }
+                ]
+            },
+            "modes": {},
+            "needs": [
+                "conditionNode_895"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "id": "LLMNode_852",
+                    "tools": [],
+                    "prompts": [
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                            "role": "system",
+                            "content": "You are a JSON formatter and itinerary refiner.\nTake the travel itinerary JSON below and improve its clarity, consistency, and completeness without changing the meaning.\nInput:\n{{input}}\nReturn ONLY valid JSON in this exact format:\n{\n\"destination\": \"string\",\n\"country\": \"string\",\n\"introduction\": \"string\",\n\"best_time_to_visit\": \"string\",\n\"estimated_budget\": \"string\",\n\"highlights\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"food\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"culture\": [\n\"string\"\n],\n\"travel_tips\": [\n\"string\"\n],\n\"days\": [\n{\n{\"day\": 1,\"title\": \"string\",\"morning\": \"string\",\"afternoon\": \"string\",\"evening\": \"string\",\"morning_location\": \"string\",\"afternoon_location\": \"string\",\"evening_location\": \"string\",\"food_recommendation\": \"string\",\"stay_suggestion\": \"string\",\"estimated_day_cost\": \"string\",\"notes\": \"string\"}}\n]\n}\nRules:\n1. Preserve the original meaning of the itinerary.\n2. if {{days}} then return the total no of days those are been in input\n3. Do not remove any day if the input already contains {{days}} days.\n4. If a day is incomplete, improve it without changing the trip meaning.\n5. Ensure all top-level fields are present.\n6. Ensure every day object contains:\n\"day\", \"title\", \"place\", \"morning\", \"afternoon\", \"evening\", \"food_recommendation\", \"stay_suggestion\", \"estimated_day_cost\", \"notes\".\n7. Ensure day numbers run sequentially from 1 to {{days}}.\n8. Keep the output travel-focused and budget-aware.\n9. Fix formatting, spelling, and consistency issues.\n10. Return JSON only.\n11. Do not add markdown.\nGenerate exactly destination{{LLMNode_574.output.generatedResponse}}\n. If {{days}} then return only till the no of days given\nDo NOT return only one day.\nDo NOT summarize multiple days into one.\nEach day must include a real place in the \"place\" field.\nKeep the plan realistic according to the budget.\nInclude sightseeing, food, and culture.\nMake each day different..JSON must be valid. No markdown.\nNo explanation outside JSON."
+                        },
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                            "role": "user",
+                            "content": ""
+                        }
+                    ],
+                    "memories": "[]",
+                    "messages": "[]",
+                    "nodeName": "Refine Generate Text",
+                    "attachments": "",
+                    "credentials": "",
+                    "generativeModelName": [
+                        {
+                            "type": "generator/text",
+                            "params": {},
+                            "configName": "configA",
+                            "model_name": "gpt-4o-mini",
+                            "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                            "provider_name": "openai",
+                            "credential_name": "open ai"
+                        }
+                    ]
+                }
+            },
+            "schema": {
+                "generatedResponse": "string",
+                "_meta": "object",
+                "tool_calls": "object",
+                "images": "array"
+            }
+        },
+        {
+            "nodeId": "LLMNode_249",
+            "nodeType": "LLMNode",
+            "nodeName": "Fallback Generate Text",
+            "values": {
+                "tools": [],
+                "prompts": [
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                        "role": "system",
+                        "content": "You are a backup travel itinerary generator.\nGenerate a simple but valid travel itinerary using the following inputs:\nDestination: {{destination}}\nNumber of days: {{days}}\nBudget: {{budget}}\nDestination type: {{destination_type}}\nReturn ONLY valid JSON in this exact format:\n{\n\"destination\": \"string\",\n\"country\": \"string\",\n\"introduction\": \"string\",\n\"best_time_to_visit\": \"string\",\n\"estimated_budget\": \"string\",\n\"highlights\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"food\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"culture\": [\n\"string\"\n],\n\"travel_tips\": [\n\"string\"\n],\n\"days\": [\n{\n{\"day\": 1,\"title\": \"string\",\"morning\": \"string\",\"afternoon\": \"string\",\"evening\": \"string\",\"morning_location\": \"string\",\"afternoon_location\": \"string\",\"evening_location\": \"string\",\"food_recommendation\": \"string\",\"stay_suggestion\": \"string\",\"estimated_day_cost\": \"string\",\"notes\": \"string\"}}\n]\n}\nRules:\nGenerate exactly destination and days.\n.{{LLMNode_574.output.generatedResponse}}\nIf {{days}} then return the total no of days those are been in input\nDo NOT return only one day. Do NOT summarize multiple days into one. Each day must include a real place in the \"place\" field. Keep the plan realistic according to the budget. Include sightseeing, food, and culture. Make each day different..JSON must be valid. No markdown. No explanation outside JSON"
+                    },
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                        "role": "user",
+                        "content": ""
+                    }
+                ],
+                "memories": "[]",
+                "messages": "[]",
+                "attachments": "",
+                "credentials": "",
+                "generativeModelName": [
+                    {
+                        "type": "generator/text",
+                        "params": {},
+                        "configName": "configA",
+                        "model_name": "gpt-4o-mini",
+                        "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                        "provider_name": "openai",
+                        "credential_name": "open ai"
+                    }
+                ]
+            },
+            "modes": {},
+            "needs": [
+                "conditionNode_895"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "id": "LLMNode_249",
+                    "tools": [],
+                    "prompts": [
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                            "role": "system",
+                            "content": "You are a backup travel itinerary generator.\nGenerate a simple but valid travel itinerary using the following inputs:\nDestination: {{destination}}\nNumber of days: {{days}}\nBudget: {{budget}}\nDestination type: {{destination_type}}\nReturn ONLY valid JSON in this exact format:\n{\n\"destination\": \"string\",\n\"country\": \"string\",\n\"introduction\": \"string\",\n\"best_time_to_visit\": \"string\",\n\"estimated_budget\": \"string\",\n\"highlights\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"food\": [\n{\n\"name\": \"string\",\n\"description\": \"string\"\n}\n],\n\"culture\": [\n\"string\"\n],\n\"travel_tips\": [\n\"string\"\n],\n\"days\": [\n{\n{\"day\": 1,\"title\": \"string\",\"morning\": \"string\",\"afternoon\": \"string\",\"evening\": \"string\",\"morning_location\": \"string\",\"afternoon_location\": \"string\",\"evening_location\": \"string\",\"food_recommendation\": \"string\",\"stay_suggestion\": \"string\",\"estimated_day_cost\": \"string\",\"notes\": \"string\"}}\n]\n}\nRules:\nGenerate exactly destination and days.\n.{{LLMNode_574.output.generatedResponse}}\nIf {{days}} then return the total no of days those are been in input\nDo NOT return only one day. Do NOT summarize multiple days into one. Each day must include a real place in the \"place\" field. Keep the plan realistic according to the budget. Include sightseeing, food, and culture. Make each day different..JSON must be valid. No markdown. No explanation outside JSON"
+                        },
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                            "role": "user",
+                            "content": ""
+                        }
+                    ],
+                    "memories": "[]",
+                    "messages": "[]",
+                    "nodeName": "Fallback Generate Text",
+                    "attachments": "",
+                    "credentials": "",
+                    "generativeModelName": [
+                        {
+                            "type": "generator/text",
+                            "params": {},
+                            "configName": "configA",
+                            "model_name": "gpt-4o-mini",
+                            "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                            "provider_name": "openai",
+                            "credential_name": "open ai"
+                        }
+                    ]
+                }
+            },
+            "schema": {
+                "generatedResponse": "string",
+                "_meta": "object",
+                "tool_calls": "object",
+                "images": "array"
+            }
+        },
+        {
+            "nodeId": "codeNode_157",
+            "nodeType": "codeNode",
+            "nodeName": "code2",
+            "values": {
+                "code": "let data = null;\n\n// 1) Try refined output first\ntry {\n  data = {{LLMNode_852.output.generatedResponse}};\n} catch (e) {}\n\n// 2) If refined is empty, try fallback\nif (!data) {\n  try {\n    data = {{LLMNode_249.output.generatedResponse}};\n  } catch (e) {}\n}\n\n// 3) Nothing found\nif (!data) {\n  output = {\n    result: {\n      success: false,\n      error: \"No data received from Refine or Fallback node\",\n      raw: null\n    }\n  };\n} else {\n  // 4) If string, clean markdown fences\n  if (typeof data === \"string\") {\n    data = data\n      .replace(/^```json\\s*/i, \"\")\n      .replace(/^```\\s*/i, \"\")\n      .replace(/\\s*```$/i, \"\")\n      .trim();\n\n    try {\n      data = JSON.parse(data);\n    } catch (e) {\n      output = {\n        result: {\n          success: false,\n          error: \"Invalid JSON returned from AI nodes\",\n          raw: data\n        }\n      };\n    }\n  }\n\n  // 5) Final structure check\n  if (data && data.days && Array.isArray(data.days) && data.days.length > 0) {\n    output = {\n      result: {\n        success: true,\n        destination: data.destination || \"\",\n        country: data.country || \"\",\n        introduction: data.introduction || \"\",\n        best_time_to_visit: data.best_time_to_visit || \"\",\n        estimated_budget: data.estimated_budget || \"\",\n        highlights: data.highlights || [],\n        food: data.food || [],\n        culture: data.culture || [],\n        travel_tips: data.travel_tips || [],\n        days: data.days || []\n      }\n    };\n  } else {\n    output = {\n      result: {\n        success: false,\n        error: \"Lamatic returned JSON, but not in expected itinerary format.\",\n        raw: data\n      }\n    };\n  }\n}"
+            },
+            "modes": {},
+            "needs": [
+                "LLMNode_852",
+                "LLMNode_249"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "id": "codeNode_157",
+                    "code": "let data = null;\n\n// 1) Try refined output first\ntry {\n  data = {{LLMNode_852.output.generatedResponse}};\n} catch (e) {}\n\n// 2) If refined is empty, try fallback\nif (!data) {\n  try {\n    data = {{LLMNode_249.output.generatedResponse}};\n  } catch (e) {}\n}\n\n// 3) Nothing found\nif (!data) {\n  output = {\n    result: {\n      success: false,\n      error: \"No data received from Refine or Fallback node\",\n      raw: null\n    }\n  };\n} else {\n  // 4) If string, clean markdown fences\n  if (typeof data === \"string\") {\n    data = data\n      .replace(/^```json\\s*/i, \"\")\n      .replace(/^```\\s*/i, \"\")\n      .replace(/\\s*```$/i, \"\")\n      .trim();\n\n    try {\n      data = JSON.parse(data);\n    } catch (e) {\n      output = {\n        result: {\n          success: false,\n          error: \"Invalid JSON returned from AI nodes\",\n          raw: data\n        }\n      };\n    }\n  }\n\n  // 5) Final structure check\n  if (data && data.days && Array.isArray(data.days) && data.days.length > 0) {\n    output = {\n      result: {\n        success: true,\n        destination: data.destination || \"\",\n        country: data.country || \"\",\n        introduction: data.introduction || \"\",\n        best_time_to_visit: data.best_time_to_visit || \"\",\n        estimated_budget: data.estimated_budget || \"\",\n        highlights: data.highlights || [],\n        food: data.food || [],\n        culture: data.culture || [],\n        travel_tips: data.travel_tips || [],\n        days: data.days || []\n      }\n    };\n  } else {\n    output = {\n      result: {\n        success: false,\n        error: \"Lamatic returned JSON, but not in expected itinerary format.\",\n        raw: data\n      }\n    };\n  }\n}",
+                    "nodeName": "code2"
+                }
+            },
+            "schema": {
+                "result": "object"
+            },
+            "logic": []
+        }
+    ],
+    "responseNode": {
+        "nodeId": "responseNode_triggerNode_1",
+        "nodeType": "graphqlResponseNode",
+        "nodeName": "API Response",
+        "values": {
+            "headers": "{\"content-type\":\"application/json\"}",
+            "retries": "0",
+            "webhookUrl": "",
+            "retry_delay": "0",
+            "outputMapping": "{\n  \"result\": \"{{codeNode_157.output}}\"\n}"
+        },
+        "needs": [
+            "codeNode_157"
+        ],
+        "modes": {},
+        "allConfigs": {
+            "Config A": {
+                "id": "responseNode_triggerNode_1",
+                "headers": "{\"content-type\":\"application/json\"}",
+                "retries": "0",
+                "nodeName": "API Response",
+                "webhookUrl": "",
+                "retry_delay": "0",
+                "outputMapping": "{\n  \"result\": \"{{codeNode_157.output}}\"\n}"
+            }
+        },
+        "schema": {}
+    }
+}

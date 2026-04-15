@@ -1,0 +1,13 @@
+{
+  "examples": [
+    {
+      "message": "I want to visit Bali, suggest me some of the places to visit"
+    },
+    {
+      "message": "Give me some of the best hotels in Bali"
+    },
+      {
+      "message": "What are the best foods to have in Bali"
+    }
+  ]
+}
