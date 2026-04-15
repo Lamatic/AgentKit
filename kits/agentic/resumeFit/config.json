@@ -1,0 +1,22 @@
+{
+    "name": "Resume Fit Agent",
+    "description": "An intelligent resume screening assistant that evaluates candidates against job requirements and provides structured hiring insights.This agent takes a candidate’s resume and a job description as input, and generates a clear hiring recommendation along with a score, strengths, weaknesses, and a concise summary — helping recruiters make faster and more consistent decisions.",
+    "tags": ["🤖 Agentic"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "resume-fit-flow",
+            "type": "mandatory",
+            "envKey": "RESUME_FIT_FLOW"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "",
+    "deployUrl": "",
+    "documentationUrl": ""
+}

@@ -1,0 +1,435 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "chatTriggerNode",
+        "values": {
+          "chat": "",
+          "domains": [
+            "*"
+          ],
+          "nodeName": "Chat Widget",
+          "chatConfig": {
+            "botName": "Lamatic Bot",
+            "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
+            "position": "right",
+            "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
+            "displayMode": "popup",
+            "placeholder": "Compose your message",
+            "suggestions": [
+              "What is lamatic?",
+              "How do I add data to my chatbot?",
+              "Explain this product to me"
+            ],
+            "errorMessage": "Oops! Something went wrong. Please try again.",
+            "hideBranding": false,
+            "primaryColor": "#ef4444",
+            "headerBgColor": "#000000",
+            "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+            "headerTextColor": "#FFFFFF",
+            "showEmojiButton": true,
+            "suggestionBgColor": "#f1f5f9",
+            "userMessageBgColor": "#FEF2F2",
+            "agentMessageBgColor": "#f1f5f9",
+            "suggestionTextColor": "#334155",
+            "userMessageTextColor": "#d12323",
+            "agentMessageTextColor": "#334155"
+          }
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_139",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_139",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert recruiter.\nFrom the given input, extract structured candidate resume data.\nReturn ONLY valid JSON:\n{\n  \"skills\": [],\n  \"years_of_experience\": \"\",\n  \"tech_stack\": [],\n  \"roles\": [],\n  \"projects\": []\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Input JSON: {{triggerNode_1.output.chatMessage}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Node 2",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_102",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_102",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert recruiter.\nExtract job requirements from the job description.\nReturn ONLY valid JSON:\n{\n  \"required_skills\": [],\n  \"preferred_skills\": [],\n  \"experience_level\": \"\",\n  \"key_responsibilities\": []\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Input JSON: {{triggerNode_1.output.chatMessage}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Node 3",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_512",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_512",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a hiring expert.\nCompare candidate skills with required skills.\nGive:\n- score (0-100)\n- justification (1 line)\nReturn ONLY JSON:\n{\n\"tech_score\": ,\n\"reason\": \"\"\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Candidate:\n{{LLMNode_139.output.generatedResponse}}\nJob:\n{{LLMNode_102.output.generatedResponse}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Node 4A",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_418",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_418",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a hiring expert.\nEvaluate experience match between candidate and job. Return score on a scale of 0 to 100, Also return 1 line reason.\nReturn:\n{\n\"experience_score\": ,\n\"reason\": \"\"\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Candidate:\n{{LLMNode_139.output.generatedResponse}}\nJob:\n{{LLMNode_102.output.generatedResponse}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Node 4B",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_847",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_847",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a hiring expert.\nEvaluate how well candidate roles/projects align with job responsibilities. Return score on a scale of 0 to 100, Also return 1 line reason\nReturn:\n{\n\"role_score\": ,\n\"reason\": \"\"\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Candidate:\n{{LLMNode_139.output.generatedResponse}}\nJob:\n{{LLMNode_102.output.generatedResponse}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Node 4C",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_931",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_931",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a hiring system.\nCombine the following scores:\n- tech_score\n- experience_score\n- role_score\nCalculate:\n- final_score (0-100)\nAlso summarize:\n- strengths\n- weaknesses\nReturn ONLY JSON:\n{\n  \"final_score\": ,\n  \"strengths\": [],\n  \"weaknesses\": []\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Tech:{{LLMNode_512.output.generatedResponse}}\nExperience:{{LLMNode_418.output.generatedResponse}}\nRole:{{LLMNode_847.output.generatedResponse}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Aggregator",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_380",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_380",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a hiring manager.\nBased on \"final_score\" from the Input JSON:\n- >75 → Strong Hire\n- 60–75 → Hire\n- 40–60 → Maybe\n- <40 → Reject\nUsing the provided strengths and weaknesses:\n- Write a short, clear summary explaining the decision.\n- Do NOT add new information.\n- Do NOT hallucinate.\n- Use only given data.\nNow return the result in STRICT JSON format:\n{\n  \"decision\": string,\n  \"summary\": string,\n  \"fscore\": number,\n  \"strengths\": string,\n  \"weaknesses\": string\n}\nRules:\n- \"fscore\" must be the same as final_score (number, not string)\n- Convert strengths array → comma-separated string\n- Convert weaknesses array → comma-separated string\n- Keep output concise and clean\n- Do NOT include markdown (no ```json)\n- Do NOT include extra text before or after JSON\n- If any field is missing, return empty string instead of guessing"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Input JSON:{{LLMNode_931.output.generatedResponse}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Node 6",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 910
+      },
+      "selected": true
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "chatResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "content": "Final Hiring Decision:{{LLMNode_380.output.generatedResponse}}",
+          "nodeName": "Chat Response",
+          "references": "",
+          "webhookUrl": "",
+          "webhookHeaders": ""
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 1040
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_139",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_139",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_139-LLMNode_102",
+      "type": "defaultEdge",
+      "source": "LLMNode_139",
+      "target": "LLMNode_102",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_102-LLMNode_512",
+      "type": "defaultEdge",
+      "source": "LLMNode_102",
+      "target": "LLMNode_512",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_512-LLMNode_418",
+      "type": "defaultEdge",
+      "source": "LLMNode_512",
+      "target": "LLMNode_418",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_418-LLMNode_847",
+      "type": "defaultEdge",
+      "source": "LLMNode_418",
+      "target": "LLMNode_847",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_847-LLMNode_931",
+      "type": "defaultEdge",
+      "source": "LLMNode_847",
+      "target": "LLMNode_931",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_931-LLMNode_380",
+      "type": "defaultEdge",
+      "source": "LLMNode_931",
+      "target": "LLMNode_380",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_380-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_380",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
