@@ -1,0 +1,61 @@
+{
+  "flowId": "89a0f4dc-3a9d-46c2-acdf-167ed4194583",
+  "trigger": {
+    "type": "API Request",
+    "schema": {
+      "jobDescription": "string",
+      "resume": "string",
+      "userAnswer": "string"
+    }
+  },
+  "nodes": [
+    {
+      "nodeName": "Behaviour_Prep",
+      "type": "InstructorLLMNode",
+      "model": "groq/llama-3.1-8b-instant",
+      "provider": "groq",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "number", "required": true },
+          "strengths": { "type": "array", "items": { "type": "string" } },
+          "improvements": { "type": "array", "items": { "type": "string" } },
+          "better_answer": { "type": "string", "required": true }
+        }
+      },
+      "prompts": {
+        "system": "You are a senior hiring manager evaluating a job candidate's interview answer. Give honest, specific, and constructive feedback. Always respond in valid JSON.",
+        "user": "Evaluate this interview answer and provide structured feedback.\nQuestion: {{trigger.jobDescription}}\nCandidate Answer: {{trigger.userAnswer}}\nReturn a JSON object with this exact structure:\n{\n  \"score\": 7,\n  \"strengths\": [\"point1\", \"point2\"],\n  \"improvements\": [\"point1\", \"point2\"],\n  \"better_answer\": \"A more complete answer would be...\"\n}"
+      }
+    },
+    {
+      "nodeName": "Technical_Prep",
+      "type": "InstructorLLMNode",
+      "model": "groq/llama-3.1-8b-instant",
+      "provider": "groq",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "number", "required": true },
+          "strengths": { "type": "array", "items": { "type": "string" } },
+          "improvements": { "type": "array", "items": { "type": "string" } },
+          "better_answer": { "type": "string", "required": true }
+        }
+      },
+      "prompts": {
+        "system": "You are a senior hiring manager evaluating a job candidate's interview answer. Give honest, specific, and constructive feedback. Always respond in valid JSON.",
+        "user": "Evaluate this interview answer and provide structured feedback.\nQuestion: {{trigger.jobDescription}}\nCandidate Answer: {{trigger.userAnswer}}\nReturn a JSON object with this exact structure:\n{\n  \"score\": 7,\n  \"strengths\": [\"point1\", \"point2\"],\n  \"improvements\": [\"point1\", \"point2\"],\n  \"better_answer\": \"A more complete answer would be...\"\n}"
+      }
+    }
+  ],
+  "response": {
+    "behavioral_score": "{{Behaviour_Prep.score}}",
+    "behavioral_strengths": "{{Behaviour_Prep.strengths}}",
+    "behavioral_improvements": "{{Behaviour_Prep.improvements}}",
+    "behavioral_better_answer": "{{Behaviour_Prep.better_answer}}",
+    "technical_score": "{{Technical_Prep.score}}",
+    "technical_strengths": "{{Technical_Prep.strengths}}",
+    "technical_improvements": "{{Technical_Prep.improvements}}",
+    "technical_better_answer": "{{Technical_Prep.better_answer}}"
+  }
+}
