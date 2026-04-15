@@ -1,5 +1,9 @@
 #  Smart Travel Planner
 
+## Live Demo
+
+https://ai-travel-one-black.vercel.appcd..
+
 > An **Agentic AI-powered** travel planning platform built with **Next.js** and **Lamatic AI** that generates complete, structured travel itineraries with maps, photos, local food, cultural highlights, and an interactive chatbot.
 
 ---
