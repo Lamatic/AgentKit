@@ -1,0 +1,773 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\"sampleInput\":\"string\"}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "agentClassifierNode_876",
+      "data": {
+        "label": "Agent Classifier",
+        "modes": [],
+        "nodeId": "agentClassifierNode",
+        "values": {
+          "id": "agentClassifierNode_876",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a strict classifier.\nClassify the input into exactly ONE of the following:\n- Classifier 2 → if the input is a Python requirements.txt file (lines like package==version)\n- Classifier 3 → if the input is a Node.js package.json file (JSON format with dependencies object)\nRules:\n- If the input contains \"==\" → it is Classifier 2\n- If the input contains \"{\" or \"dependencies\" → it is Classifier 3\nReturn ONLY:\nClassifier 2 or Classifier 3"
+            },
+            {
+              "id": "0ab6361d-7c9c-496e-a53c-cbdfb2ca7b2f",
+              "role": "user",
+              "content": "Classify this dependency file content:\n{{triggerNode_1.output.file_content}}"
+            }
+          ],
+          "nodeName": "Classifier",
+          "classifier": [
+            {
+              "label": "Classifier 3",
+              "value": "agentClassifierNode_876-plus-node-addNode_430898-807",
+              "description": "Node.js package.json file. Contains JSON format with dependencies object like express, react"
+            },
+            {
+              "label": "Classifier 2",
+              "value": "agentClassifierNode_876-addNode_451",
+              "description": "Python requirements.txt file. Contains package names with version pins like flask==2.3.2, requests==2.31.0"
+            }
+          ],
+          "generativeModelName": ""
+        },
+        "classifier": [
+          {
+            "label": "Classifier 3",
+            "value": "agentClassifierNode_876-plus-node-addNode_430898-807"
+          },
+          {
+            "label": "Classifier 1",
+            "value": "agentClassifierNode_876-addNode_451"
+          }
+        ]
+      },
+      "type": "agentClassifierNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_637",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "packages": "array"
+        },
+        "values": {
+          "id": "codeNode_637",
+          "code": "const pkg = {{triggerNode_1.output.file_content}};\n\nconst deps = {\n  ...(pkg.dependencies || {}),\n  ...(pkg.devDependencies || {})\n};\n\nconst packages = Object.entries(deps).map(([name, version]) => ({\n  name: String(name),\n  version: String(version).replace(/[\\^~]/g, \"\")  // removes ^ and ~ from version\n}));\n\nreturn {\n  packages\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopNode_330",
+      "data": {
+        "label": "forLoopNode node",
+        "modes": {},
+        "nodeId": "forLoopNode",
+        "values": {
+          "id": "forLoopNode_330",
+          "wait": 0,
+          "endValue": "10",
+          "nodeName": "Loop",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_732",
+          "iterateOver": "list",
+          "iteratorValue": "{{codeNode_637.output.packages}}"
+        }
+      },
+      "type": "forLoopNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_851",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_851",
+          "url": "https://registry.npmjs.org/{{forLoopNode_330.output.currentValue.name}}/latest",
+          "body": "",
+          "method": "GET",
+          "headers": "",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_948",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_948",
+          "url": "https://api.osv.dev/v1/query",
+          "body": "{\n  \"version\": \"{{forLoopNode_330.output.currentValue.version}}\",\n  \"package\": {\n    \"name\": \"{{forLoopNode_330.output.currentValue.name}}\",\n    \"ecosystem\": \"npm\"\n  }\n}",
+          "method": "POST",
+          "headers": "",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_674",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "details": "object",
+          "package": "string",
+          "version": "string",
+          "riskFlags": "array",
+          "riskLevel": "string",
+          "riskScore": "number"
+        },
+        "values": {
+          "id": "codeNode_674",
+          "code": "const allNpmData = {{apiNode_851.output}};\nconst packageName = {{forLoopNode_330.output.currentValue.name}};\nconst packageVersion = {{forLoopNode_330.output.currentValue.version}};\nconst osvData = {{apiNode_948.output}};\n\n// Find the correct package from the array by matching name\nconst npmData = Array.isArray(allNpmData) \n  ? allNpmData.find(p => p.name === packageName) \n  : allNpmData;\n\n// 1. ABANDONMENT CHECK\nconst tmpField = npmData?._npmOperationalInternal?.tmp || \"\";\nconst tsMatch = tmpField.match(/_(\\d{13})_/);\nconst lastPublished = tsMatch ? new Date(parseInt(tsMatch[1])) : null;\n\nconst daysSinceUpdate = lastPublished\n  ? Math.floor((Date.now() - lastPublished.getTime()) / (1000 * 60 * 60 * 24))\n  : 9999;\n\nconst isAbandoned = daysSinceUpdate > 365;\n\n// 2. MAINTAINER CHECK\nconst maintainers = npmData?.maintainers || [];\nconst maintainerCount = maintainers.length;\nconst singleMaintainer = maintainerCount === 1;\n\n// 3. CVE CHECK\nconst vulns = osvData?.vulns || [];\nconst vulnCount = vulns.length;\nconst hasVulns = vulnCount > 0;\n\nconst vulnDetails = vulns.map(v => ({\n  id: v.id,\n  summary: v.summary || \"No summary available\",\n  severity: v.database_specific?.severity || \"UNKNOWN\"\n}));\n\n// 4. LICENSE CHECK\nconst license = npmData?.license || \"UNKNOWN\";\nconst riskyLicenses = [\"GPL-2.0\", \"GPL-3.0\", \"AGPL-3.0\", \"LGPL-2.1\"];\nconst hasRiskyLicense = riskyLicenses.includes(license);\n\n// 5. RISK SCORE\nlet riskScore = 0;\nconst riskFlags = [];\n\nif (isAbandoned) {\n  riskScore += 30;\n  riskFlags.push(`Abandoned — last updated ${daysSinceUpdate} days ago`);\n}\nif (singleMaintainer) {\n  riskScore += 20;\n  riskFlags.push(`Single maintainer (bus factor = 1)`);\n}\nif (hasVulns) {\n  riskScore += vulnCount * 15;\n  riskFlags.push(`${vulnCount} known CVE(s) found`);\n}\nif (hasRiskyLicense) {\n  riskScore += 20;\n  riskFlags.push(`Risky license: ${license}`);\n}\n\nriskScore = Math.min(riskScore, 100);\n\n// 6. RISK LEVEL\nlet riskLevel;\nif (riskScore >= 70) riskLevel = \"CRITICAL\";\nelse if (riskScore >= 40) riskLevel = \"HIGH\";\nelse if (riskScore >= 20) riskLevel = \"MEDIUM\";\nelse riskLevel = \"LOW\";\n\nreturn {\n  package: packageName,\n  version: packageVersion,\n  riskScore,\n  riskLevel,\n  riskFlags,\n  details: {\n    lastPublished: lastPublished?.toISOString() || \"Unknown\",\n    daysSinceUpdate,\n    maintainerCount,\n    license,\n    vulnCount,\n    vulns: vulnDetails\n  }\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopEndNode_732",
+      "data": {
+        "label": "forLoopEndNode node",
+        "modes": {},
+        "nodeId": "forLoopEndNode",
+        "values": {
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_330"
+        }
+      },
+      "type": "forLoopEndNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 910
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_107",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_107",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a dependency security analyst. Use ONLY the data provided to you. Never invent, hallucinate, or add example packages, fake CVEs, or placeholder data. If data is missing, say \"No issues found\"."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Here are the REAL dependency risk analysis results as JSON. Use ONLY this data, do not invent any packages or CVEs:\n{{forLoopEndNode_732.output.loopOutput}}\nGenerate a markdown report with:\n## 1. Executive Summary\nOverall project risk in 2-3 sentences based on the data above.\n## 2. Dependency Risk Table\n| Package | Version | Risk Level | Risk Score | Issues |\n|---------|---------|------------|------------|--------|\n(use exact package names, versions, riskLevel, riskScore and riskFlags from the JSON above)\n## 3. Vulnerabilities Found\nList only the real CVEs from the JSON above with their actual severity and summary.\n## 4. Recommendations\nBased only on the real findings above, give top 3 fixes."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 1040
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_170",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "executionMsg": "string"
+        },
+        "values": {
+          "id": "codeNode_170",
+          "code": "const pkg = {{triggerNode_1.output.file_content}};\nconst fileType = {{agentClassifierNode_876.output.class}};\n\nlet packages = [];\n\nif (fileType === \"npm\" || typeof pkg === \"object\") {\n  // npm package.json\n  const deps = {\n    ...(pkg.dependencies || {}),\n    ...(pkg.devDependencies || {})\n  };\n  packages = Object.entries(deps).map(([name, version]) => ({\n    name: String(name),\n    version: String(version).replace(/[\\^~]/g, \"\")\n  }));\n\n} else if (fileType === \"pip\" || typeof pkg === \"string\") {\n  // requirements.txt - comes as plain text\n  packages = pkg\n    .split(\"\\n\")\n    .map(line => line.trim())\n    .filter(line => line && !line.startsWith(\"#\"))\n    .map(line => {\n      const [name, version] = line.split(\"==\");\n      return {\n        name: name.trim(),\n        version: version ? version.trim() : \"latest\"\n      };\n    });\n}\n\nreturn { packages, fileType };",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopNode_951",
+      "data": {
+        "label": "forLoopNode node",
+        "modes": {},
+        "nodeId": "forLoopNode",
+        "values": {
+          "id": "forLoopNode_951",
+          "wait": 0,
+          "endValue": "10",
+          "nodeName": "Loop",
+          "increment": "1",
+          "connectedTo": "forLoopEndNode_848",
+          "iterateOver": "list",
+          "iteratorValue": "{{codeNode_170.output.packages}}"
+        }
+      },
+      "type": "forLoopNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_934",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_934",
+          "url": "https://pypi.org/pypi/{{forLoopNode_951.output.currentValue.name}}/{{forLoopNode_951.output.currentValue.version}}/json",
+          "body": "",
+          "method": "GET",
+          "headers": "",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_470",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_470",
+          "url": "https://api.osv.dev/v1/query",
+          "body": "{\n  \"version\": \"{{forLoopNode_951.output.currentValue.version}}\",\n  \"package\": {\n    \"name\": \"{{forLoopNode_951.output.currentValue.name}}\",\n    \"ecosystem\": \"PyPI\"\n  }\n}",
+          "method": "POST",
+          "headers": "{\"Content-Type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_318",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "vulns": "array",
+          "package": "string",
+          "version": "string",
+          "riskFlags": "array",
+          "riskLevel": "string",
+          "riskScore": "number"
+        },
+        "values": {
+          "id": "codeNode_318",
+          "code": "const allPypiData = {{apiNode_934.output}};\nconst packageName = {{forLoopNode_951.output.currentValue.name}};\nconst packageVersion = {{forLoopNode_951.output.currentValue.version}};\nconst osvData = {{apiNode_470.output}};\n\n// Find correct package from array\nconst pypiData = Array.isArray(allPypiData)\n  ? allPypiData.find(p => \n      p?.info?.name?.toLowerCase() === packageName.toLowerCase()\n    )\n  : allPypiData;\n\n// 1. ABANDONMENT CHECK\nconst uploadTime = pypiData?.urls?.[0]?.upload_time;\nconst lastPublished = uploadTime ? new Date(uploadTime) : null;\nconst daysSinceUpdate = lastPublished\n  ? Math.floor((Date.now() - lastPublished.getTime()) / (1000 * 60 * 60 * 24))\n  : 9999;\nconst isAbandoned = daysSinceUpdate > 365;\n\n// 2. MAINTAINER CHECK\nconst maintainer = pypiData?.info?.maintainer || \"\";\nconst maintainerCount = maintainer ? 1 : 0;\nconst singleMaintainer = maintainerCount === 1;\n\n// 3. CVE CHECK\nconst vulns = osvData?.vulns || [];\nconst vulnCount = vulns.length;\nconst hasVulns = vulnCount > 0;\nconst vulnDetails = vulns.map(v => ({\n  id: v.id,\n  summary: v.summary || \"No summary available\",\n  severity: v.database_specific?.severity || \"UNKNOWN\"\n}));\n\n// 4. LICENSE CHECK\nconst license = pypiData?.info?.license || \"UNKNOWN\";\nconst riskyLicenses = [\"GPL-2.0\", \"GPL-3.0\", \"AGPL-3.0\", \"LGPL-2.1\"];\nconst hasRiskyLicense = riskyLicenses.includes(license);\n\n// 5. RISK SCORE\nlet riskScore = 0;\nconst riskFlags = [];\n\nif (isAbandoned) {\n  riskScore += 30;\n  riskFlags.push(`Abandoned — last updated ${daysSinceUpdate} days ago`);\n}\nif (singleMaintainer) {\n  riskScore += 20;\n  riskFlags.push(`Single maintainer (bus factor = 1)`);\n}\nif (hasVulns) {\n  riskScore += vulnCount * 15;\n  riskFlags.push(`${vulnCount} known CVE(s) found`);\n}\nif (hasRiskyLicense) {\n  riskScore += 20;\n  riskFlags.push(`Risky license: ${license}`);\n}\n\nriskScore = Math.min(riskScore, 100);\n\n// 6. RISK LEVEL\nlet riskLevel;\nif (riskScore >= 70) riskLevel = \"CRITICAL\";\nelse if (riskScore >= 40) riskLevel = \"HIGH\";\nelse if (riskScore >= 20) riskLevel = \"MEDIUM\";\nelse riskLevel = \"LOW\";\n\n// ... keep all your existing logic above ...\n\n// Return ONLY what the LLM needs - nothing extra\nreturn {\n  package: packageName,\n  version: packageVersion,\n  riskScore,\n  riskLevel,\n  riskFlags,  // already a small array of strings\n  vulns: vulnDetails.map(v => ({\n    id: v.id,\n    severity: v.severity,\n    summary: v.summary.slice(0, 100)  // truncate long summaries\n  }))\n};\n",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "forLoopEndNode_848",
+      "data": {
+        "label": "forLoopEndNode node",
+        "modes": {},
+        "nodeId": "forLoopEndNode",
+        "values": {
+          "nodeName": "Loop End",
+          "connectedTo": "forLoopNode_951"
+        }
+      },
+      "type": "forLoopEndNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 910
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_946",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_946",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a dependency security analyst. Use ONLY the data provided. Never invent packages, CVEs, or placeholder data. If no issues found, say so clearly."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Analyze these dependency risks and generate a markdown report.\nUse ONLY this data, do not invent anything:\n{{forLoopEndNode_848.output.loopOutput}}\nGenerate:\n## 1. Executive Summary\nOverall project risk in 2-3 sentences.\n## 2. Dependency Risk Table\n| Package | Version | Risk Level | Risk Score | Issues |\n|---------|---------|------------|------------|--------|\n## 3. Vulnerabilities Found\nList only real CVEs with severity and summary.\n## 4. Recommendations\nTop 3 actionable fixes."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 1040
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_154",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "report": "string"
+        },
+        "values": {
+          "id": "codeNode_154",
+          "code": "const npmReport = {{LLMNode_107.output.generatedResponse}};\nconst pipReport = {{LLMNode_946.output.generatedResponse}};\n\n// Whichever one ran will have content, the other will be empty/undefined\nconst report = npmReport || pipReport;\n\nreturn {\n  report\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 1170
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"Report\": \"{{codeNode_154.output.report}}\"\n}"
+        },
+        "condition": "Classifier 2",
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 1300
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-agentClassifierNode_876",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "agentClassifierNode_876",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentClassifierNode_876-codeNode_637-544",
+      "data": {
+        "condition": "Classifier 3"
+      },
+      "type": "agentClassifierEdge",
+      "source": "agentClassifierNode_876",
+      "target": "codeNode_637",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_637-forLoopNode_330-685",
+      "type": "defaultEdge",
+      "source": "codeNode_637",
+      "target": "forLoopNode_330",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_330-apiNode_851-828",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "forLoopNode_330",
+      "target": "apiNode_851",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_851-apiNode_948",
+      "type": "defaultEdge",
+      "source": "apiNode_851",
+      "target": "apiNode_948",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_948-codeNode_674",
+      "type": "defaultEdge",
+      "source": "apiNode_948",
+      "target": "codeNode_674",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_674-forLoopEndNode_732",
+      "type": "defaultEdge",
+      "source": "codeNode_674",
+      "target": "forLoopEndNode_732",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_732-LLMNode_107",
+      "type": "defaultEdge",
+      "source": "forLoopEndNode_732",
+      "target": "LLMNode_107",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "agentClassifierNode_876-codeNode_170-918",
+      "data": {
+        "condition": "Classifier 2",
+        "branchName": "Classifier 1"
+      },
+      "type": "agentClassifierEdge",
+      "source": "agentClassifierNode_876",
+      "target": "codeNode_170",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_170-forLoopNode_951-354",
+      "type": "defaultEdge",
+      "source": "codeNode_170",
+      "target": "forLoopNode_951",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_951-apiNode_934-535",
+      "data": {
+        "condition": "Loop Start",
+        "invisible": true
+      },
+      "type": "conditionEdge",
+      "source": "forLoopNode_951",
+      "target": "apiNode_934",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_934-apiNode_470",
+      "type": "defaultEdge",
+      "source": "apiNode_934",
+      "target": "apiNode_470",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_470-codeNode_318",
+      "type": "defaultEdge",
+      "source": "apiNode_470",
+      "target": "codeNode_318",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_848-LLMNode_946",
+      "type": "defaultEdge",
+      "source": "forLoopEndNode_848",
+      "target": "LLMNode_946",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_318-forLoopEndNode_848-300",
+      "type": "defaultEdge",
+      "source": "codeNode_318",
+      "target": "forLoopEndNode_848",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_107-codeNode_154-816",
+      "type": "defaultEdge",
+      "source": "LLMNode_107",
+      "target": "codeNode_154",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_946-codeNode_154-396",
+      "type": "defaultEdge",
+      "source": "LLMNode_946",
+      "target": "codeNode_154",
+      "selected": false,
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_154-responseNode_triggerNode_1-200",
+      "type": "defaultEdge",
+      "source": "codeNode_154",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    },
+    {
+      "id": "forLoopNode_330-forLoopEndNode_732-863",
+      "data": {
+        "condition": "Loop"
+      },
+      "type": "loopEdge",
+      "source": "forLoopNode_330",
+      "target": "forLoopEndNode_732",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_732-forLoopNode_330-774",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_732",
+      "target": "forLoopNode_330",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopNode_951-forLoopEndNode_848-651",
+      "data": {
+        "condition": "Loop"
+      },
+      "type": "loopEdge",
+      "source": "forLoopNode_951",
+      "target": "forLoopEndNode_848",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "forLoopEndNode_848-forLoopNode_951-235",
+      "data": {
+        "condition": "Loop",
+        "invisible": true
+      },
+      "type": "loopEdge",
+      "source": "forLoopEndNode_848",
+      "target": "forLoopNode_951",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    }
+  ]
+}
