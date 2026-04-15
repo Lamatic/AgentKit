@@ -1,3 +1,8 @@
+/*
+ * # Document Parsing - Agent Kit
+ * This flow ingests a document from a URL, derives a structured extraction schema from the provided instructions, chunks and embeds the document, and indexes enriched metadata into a vector database as the ingestion stage of the wider document-to-RAG system.
+ */
+
 // Flow: document-parsing-etl
 
 // ── Meta ──────────────────────────────────────────────

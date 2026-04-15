@@ -1,2 +1,0 @@
-# GDrive
-A flow that incrementally ingests documents from a Google Drive folder, converts them into vector embeddings, and writes them into the shared semantic-search index used by the wider retrieval system.

@@ -1,3 +1,8 @@
+/*
+ * # Reddit Scout
+ * A retrieval-and-synthesis flow that turns a user-provided product or topic query into a structured Reddit-based review summary, serving as the primary end-to-end execution path in the broader Reddit Scout system.
+ */
+
 // Flow: reddit-scout
 
 // ── Meta ──────────────────────────────────────────────
