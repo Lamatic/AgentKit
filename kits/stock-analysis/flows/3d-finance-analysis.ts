@@ -1,3 +1,8 @@
+/*
+ * # 3D. Finance - Analysis
+ * A flow that orchestrates finance data retrieval across multiple subflows, collates the results, and generates a structured comparative analysis payload for the wider stock research pipeline.
+ */
+
 // Flow: 3d-finance-analysis
 
 // ── Meta ──────────────────────────────────────────────
