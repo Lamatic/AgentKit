@@ -1,0 +1,49 @@
+{
+  "triggerNode": {
+    "nodeId": "triggerNode_1",
+    "nodeType": "graphqlNode",
+    "nodeName": "API Request",
+    "values": {
+      "advance_schema": "{\n  \"datasetSummary\": {},\n  \"fileName\": \"string\"\n}",
+      "responeType": "realtime"
+    }
+  },
+  "nodes": [
+    {
+      "nodeId": "LLMNode_445",
+      "nodeType": "LLMNode",
+      "nodeName": "Generate Text",
+      "values": {
+        "prompts": [
+          {
+            "role": "system",
+            "content": "You are an expert data scientist performing exploratory data analysis. Analyze the provided dataset summary and produce a clear, structured schema analysis report in Markdown.\n\nYour report must include:\n1. **Overview** — dataset shape, memory estimate, overall quality rating (Poor/Fair/Good/Excellent)\n2. **Column-by-Column Analysis** — for each column: inferred semantic type (e.g. ID, target, feature, date), data quality concerns, uniqueness observations\n3. **Data Quality Issues** — list specific problems: high cardinality categoricals, constant columns, potential duplicate rows, suspicious dtypes\n4. **Data Quality Score** — score 0–100 with a one-sentence justification\n\nBe concise but thorough. Use bullet points and tables where helpful."
+          },
+          {
+            "role": "user",
+            "content": "File: {{triggerNode_1.fileName}}\n\nDataset Summary (JSON):\n{{triggerNode_1.datasetSummary}}\n\nProvide the schema analysis report."
+          }
+        ],
+        "generativeModelName": [
+          {
+            "configName": "configA",
+            "type": "generator/text",
+            "provider_name": "openrouter",
+            "model_name": "openrouter/openai/gpt-3.5-turbo-16k"
+          }
+        ]
+      },
+      "needs": ["triggerNode_1"]
+    }
+  ],
+  "responseNode": {
+    "nodeId": "responseNode_triggerNode_1",
+    "nodeType": "graphqlResponseNode",
+    "nodeName": "API Response",
+    "values": {
+      "outputMapping": "{\n  \"generatedResponse\": \"{{LLMNode_445.generatedResponse}}\"\n}",
+      "headers": "{\"content-type\":\"application/json\"}"
+    },
+    "needs": ["LLMNode_445"]
+  }
+}

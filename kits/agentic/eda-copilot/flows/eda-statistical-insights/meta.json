@@ -1,0 +1,26 @@
+{
+  "id": "eda-statistical-insights",
+  "name": "EDA Statistical Insights",
+  "description": "Interprets statistical distributions, highlights key correlations, flags outlier-prone columns, and analyses categorical imbalances from a dataset summary.",
+  "author": {
+    "name": "Abhay",
+    "email": "abhayabha003@gmail.com"
+  },
+  "tags": ["eda", "statistics", "correlations", "outliers", "data-science"],
+  "version": "1.0.0",
+  "testInputs": {
+    "datasetSummary": {
+      "rowCount": 891,
+      "colCount": 12,
+      "columns": [
+        { "name": "Age", "type": "numeric", "mean": 29.7, "std": 14.53, "min": 0.42, "max": 80, "q25": 20, "median": 28, "q75": 38, "skewness": 0.39 },
+        { "name": "Fare", "type": "numeric", "mean": 32.2, "std": 49.69, "min": 0, "max": 512.33, "skewness": 4.79 }
+      ],
+      "correlationHints": [
+        { "col1": "Survived", "col2": "Fare", "correlation": 0.2573 },
+        { "col1": "Survived", "col2": "Pclass", "correlation": -0.3385 }
+      ]
+    },
+    "schemaInsights": "## Schema Analysis\n\n**Data Quality Score: 78/100**\n\nDataset has 891 rows and 12 columns. Key issue: Age column has 19.87% missing values..."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "datasetSummary": {
+    "type": "object",
+    "description": "Computed dataset summary including per-column stats, skewness, and correlation hints.",
+    "required": true
+  },
+  "schemaInsights": {
+    "type": "string",
+    "description": "Markdown output from the eda-schema-analysis flow (Flow 1).",
+    "required": true
+  }
+}
