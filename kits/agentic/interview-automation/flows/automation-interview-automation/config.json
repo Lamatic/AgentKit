@@ -1,0 +1,107 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"transcript\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": { "width": 218, "height": 95 },
+      "position": { "x": 675, "y": 0 },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_interview",
+      "data": {
+        "label": "Analyze Transcript",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "tools": [],
+          "prompts": [
+            {
+              "id": "prompt-system-interview",
+              "role": "system",
+              "content": "You are an expert interview analyst. Given an interview transcript, return a structured JSON object with exactly these fields:\n- summary: a 2-3 sentence overview of the candidate's performance\n- keySignals: notable positive or negative signals observed\n- followUps: 2-3 suggested follow-up questions for the interviewer\n- recommendation: one of 'Strong Hire', 'Hire', 'No Hire', 'Strong No Hire' with a brief rationale\n\nReturn ONLY valid JSON. No preamble, no markdown, no code fences."
+            },
+            {
+              "id": "prompt-user-interview",
+              "role": "user",
+              "content": "INTERVIEW TRANSCRIPT:\n{{triggerNode_1.output.transcript}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Interview Analyst",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": { "width": 218, "height": 95 },
+      "position": { "x": 675, "y": 175 },
+      "selected": false
+    },
+    {
+      "id": "codeNode_parse",
+      "data": {
+        "label": "Parse Output",
+        "modes": {},
+        "nodeId": "codeNode",
+        "values": {
+          "nodeName": "Parse Output",
+          "code": "let parsed = {};\ntry {\n  parsed = JSON.parse({{LLMNode_interview.output.generatedResponse}});\n} catch(e) {\n  parsed = { summary: {{LLMNode_interview.output.generatedResponse}}, keySignals: '', followUps: '', recommendation: '' };\n}\noutput = parsed;"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": { "width": 218, "height": 95 },
+      "position": { "x": 675, "y": 350 },
+      "selected": false
+    },
+    {
+      "id": "responseNode_1",
+      "data": {
+        "label": "Response",
+        "modes": {},
+        "nodeId": "responseNode",
+        "values": {
+          "nodeName": "Response",
+          "response": "{\n  \"summary\": \"{{codeNode_parse.output.summary}}\",\n  \"keySignals\": \"{{codeNode_parse.output.keySignals}}\",\n  \"followUps\": \"{{codeNode_parse.output.followUps}}\",\n  \"recommendation\": \"{{codeNode_parse.output.recommendation}}\"\n}"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": { "width": 218, "height": 95 },
+      "position": { "x": 675, "y": 525 },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "triggerNode_1",
+      "target": "LLMNode_interview",
+      "type": "customEdge"
+    },
+    {
+      "id": "e2",
+      "source": "LLMNode_interview",
+      "target": "codeNode_parse",
+      "type": "customEdge"
+    },
+    {
+      "id": "e3",
+      "source": "codeNode_parse",
+      "target": "responseNode_1",
+      "type": "customEdge"
+    }
+  ]
+}
