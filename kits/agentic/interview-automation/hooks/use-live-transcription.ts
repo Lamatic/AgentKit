@@ -51,10 +51,8 @@ export function useLiveTranscription() {
       let interimChunk = ""
 
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        // console.log("[v0] Recognition result:", event.results[index])
         const result = event.results[index]
         const text = result[0]?.transcript || ""
-        // console.log(`[v0] Recognized text (final: ${result.isFinal}):`, text)
 
         if (result.isFinal) {
           finalChunk += `${text} `

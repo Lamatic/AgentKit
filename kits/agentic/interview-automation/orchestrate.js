@@ -1,7 +1,7 @@
 export const config = {
-    "type": "atomic",
-    "flows": {
-    "interviewAnalysis" : {
+  "type": "atomic",
+  "flows": {
+  "interviewAnalysis" : {
       "name": "Interview Transcript Analysis",
           "type" : "graphQL",
       "workflowId": process.env.AUTOMATION_INTERVIEW_AUTOMATION,
@@ -18,7 +18,7 @@ export const config = {
               "recommendation": "string"
           },
           "mode": "sync",
-          "polling" : "false"
+          "polling" : false
       }
     },
     "api": {

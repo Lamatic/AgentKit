@@ -4,10 +4,7 @@ import { useMemo, useState } from "react"
 import { analyzeInterviewTranscript } from "@/actions/orchestrate"
 import { useCameraPreview } from "@/hooks/use-camera-preview"
 import { useLiveTranscription } from "@/hooks/use-live-transcription"
-
-type AnalysisResult = {
-  summary: string
-}
+import type { AnalysisResult } from "@/lib/analysis-result"
 
 export default function InterviewAutomationPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -223,6 +220,27 @@ export default function InterviewAutomationPage() {
                     <p className="mb-1 text-xs uppercase tracking-wide text-zinc-400">Summary</p>
                     <p className="text-zinc-100">{analysisResult.summary}</p>
                   </div>
+
+                  {analysisResult.keySignals && (
+                    <div>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-zinc-400">Key Signals</p>
+                      <p className="whitespace-pre-wrap text-zinc-100">{analysisResult.keySignals}</p>
+                    </div>
+                  )}
+
+                  {analysisResult.followUps && (
+                    <div>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-zinc-400">Follow-Ups</p>
+                      <p className="whitespace-pre-wrap text-zinc-100">{analysisResult.followUps}</p>
+                    </div>
+                  )}
+
+                  {analysisResult.recommendation && (
+                    <div>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-zinc-400">Recommendation</p>
+                      <p className="whitespace-pre-wrap text-zinc-100">{analysisResult.recommendation}</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-zinc-400">Run transcript analysis to see the output here.</p>
