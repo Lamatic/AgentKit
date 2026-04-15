@@ -1,0 +1,28 @@
+{
+  "name": "GitHub Auto Fix Agent",
+  "description": "An agentic system that analyzes GitHub issues, generates minimal code fixes, and prepares pull requests automatically using Lamatic workflows.",
+  "tags": ["🤖 Agentic", "🛠 Developer Tools", "⚡ Automation"],
+  "author": {
+    "name": "Ritabrata Ghosh",
+    "email": "ritabrataghosh09@gmail.com"
+  },
+  "steps": [
+    {
+      "id": "github-auto-fix",
+      "type": "mandatory",
+      "envKey": "GITHUB_AUTO_FIX"
+    }
+  ],
+  "integrations": [],
+  "features": [
+    "Analyze GitHub issues using AI",
+    "Identify root cause of bugs",
+    "Generate minimal code fixes",
+    "Prepare PR title, body, and branch",
+    "One-click pull request creation"
+  ],
+  "demoUrl": "https://agent-kit-beta.vercel.app/",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/github-auto-fix-agent",
+  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/github-auto-fix-agent",
+  "documentationUrl": ""
+}
