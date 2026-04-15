@@ -1,0 +1,22 @@
+{
+    "name": "Interview Automation",
+    "description": "Real-time interview transcription with post-interview AI analysis powered by Lamatic workflows.",
+    "tags": ["⚡ Automation", "🎙️ Realtime", "🧠 Interview"],
+    "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+    },
+    "steps": [
+        {
+            "id": "automation-interview-automation",
+            "type": "mandatory",
+            "envKey": "AUTOMATION_INTERVIEW_AUTOMATION"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/interview-automation",
+    "deployUrl": "",
+    "documentationUrl": ""
+}
