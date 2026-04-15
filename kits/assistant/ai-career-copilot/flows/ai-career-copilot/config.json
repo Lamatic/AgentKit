@@ -1,0 +1,397 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"resume_text\": \"string\",\n  \"domain\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_872",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "domain": "string",
+          "skills": "array"
+        },
+        "values": {
+          "id": "codeNode_872",
+          "code": "const resume_text = {{triggerNode_1.output.resume_text}};\nconst domain = {{triggerNode_1.output.domain}};\n\nconst inputText = (resume_text || \"\").toLowerCase();\n\n// Skill database\nconst skillDatabase = [\n  \"html\", \"css\", \"javascript\", \"react\", \"node.js\",\n  \"mongodb\", \"sql\", \"python\", \"java\",\n  \"communication\", \"teamwork\", \"problem solving\"\n];\n\n// Function for exact word match\nconst hasSkill = (text, skill) => {\n  const regex = new RegExp(`\\\\b${skill}\\\\b`, \"i\");\n  return regex.test(text);\n};\n\n// Extract skills safely\nconst extractedSkills = skillDatabase.filter(skill => {\n  return hasSkill(inputText, skill);\n});\n\nreturn {\n  skills: extractedSkills,\n  domain: domain\n};",
+          "nodeName": "Skills Extraction"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_991",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_991",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"missing_skills\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert career assistant.\nYour task is to identify missing skills based on a user's current skills and their target domain.\nOnly suggest relevant technical skills for the given domain.\nDo not suggest unrelated fields.\nReturn ONLY valid JSON."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User skills:\n{{codeNode_872.output.skills}}\nTarget domain:\n{{codeNode_872.output.domain}}\nCompare the user's skills with industry-required skills for this domain.\nReturn JSON in this format:\n{\n\"missing_skills\": []\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Missing Skills",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_559",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_559",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"roles\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert career advisor.\nYour task is to suggest relevant job roles based on a user's skills and target domain.\nOnly suggest realistic entry-level or beginner-friendly roles.\nDo not suggest unrelated domains.\nReturn ONLY valid JSON."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User skills:\n{{codeNode_872.output.skills}}\nTarget domain:\n{{codeNode_872.output.domain}}\nSuggest suitable job roles for this user.\nReturn JSON in this format:\n{\n  \"roles\": []\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Career Role Suggestion",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_409",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_409",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"readiness_score\": {\n      \"type\": \"number\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert career evaluator.\nYour task is to calculate how ready a user is for a job role based on their current skills and missing skills.\nReturn ONLY JSON."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User skills:\n{{codeNode_872.output.skills}}\nMissing skills:\n{{InstructorLLMNode_991.output.missing_skills}}\nTarget domain:\n{{triggerNode_1.output.domain}}\nEstimate a readiness score from 0 to 100.\nRules:\n- More missing skills = lower score\n- Fewer missing skills = higher score\n- Beginner with some skills = 40–70 range\nReturn JSON:\n{\n\"readiness_score\": number\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Readiness Score",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_134",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_134",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"roadmap\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert career mentor.\nYour task is to create a structured learning roadmap for a user based on their current skills, missing skills, and target domain.\nThe roadmap should be practical, beginner-friendly, and step-by-step.\nReturn ONLY valid JSON."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User skills:\n{{codeNode_872.output.skills}}\nMissing skills:\n{{InstructorLLMNode_991.output.missing_skills}}\nTarget domain:\n{{codeNode_872.output.domain}}\nCreate a step-by-step roadmap to help the user become job-ready.\nRules:\n- Keep steps clear and actionable\n- Focus on most important skills first\n- Limit to 5–7 steps\n- Keep each step short (1 line)\nReturn JSON:\n{\n  \"roadmap\": []\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Roadmap",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_248",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_248",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"projects\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert software mentor.\nYour task is to suggest practical projects based on a user's current skills, missing skills, and target domain.\nProjects should help the user become job-ready.\nReturn ONLY valid JSON."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User skills:\n{{codeNode_872.output.skills}}\nMissing skills:\n{{InstructorLLMNode_991.output.missing_skills}}\nTarget domain:\n{{triggerNode_1.output.domain}}\nSuggest 3 to 5 practical projects.\nRules:\n- Projects should be beginner to intermediate level\n- Relevant to the domain\n- Help cover missing skills\n- Keep project names short\nReturn JSON:\n{\n  \"projects\": []\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Projects",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_755",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_755",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"questions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a technical interviewer.\nYour task is to generate interview questions based on a user's skills and target domain.\nReturn ONLY valid JSON."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "User skills:\n{{codeNode_872.output.skills}}\nTarget domain:\n{{codeNode_872.output.domain}}\nGenerate 5 interview questions.\nRules:\n- Questions should be beginner to intermediate level\n- Relevant to skills and domain\n- Keep them short\nReturn JSON:\n{\n\"questions\": []\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Interview Questions",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 910
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"skills\": \"{{codeNode_872.output.skills}}\",\n  \"missing_skills\": \"{{InstructorLLMNode_991.output.missing_skills}}\",\n  \"roles\": \"{{InstructorLLMNode_559.output.roles}}\",\n  \"readiness_score\": \"{{InstructorLLMNode_409.output.readiness_score}}\",\n  \"roadmap\": \"{{InstructorLLMNode_134.output.roadmap}}\",\n  \"projects\": \"{{InstructorLLMNode_248.output.projects}}\",\n  \"interview_questions\": \"{{InstructorLLMNode_755.output.questions}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 1040
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-codeNode_872",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "codeNode_872",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_872-InstructorLLMNode_991",
+      "type": "defaultEdge",
+      "source": "codeNode_872",
+      "target": "InstructorLLMNode_991",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_991-InstructorLLMNode_559",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_991",
+      "target": "InstructorLLMNode_559",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_559-InstructorLLMNode_409",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_559",
+      "target": "InstructorLLMNode_409",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_409-InstructorLLMNode_134",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_409",
+      "target": "InstructorLLMNode_134",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_134-InstructorLLMNode_248",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_134",
+      "target": "InstructorLLMNode_248",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_248-InstructorLLMNode_755",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_248",
+      "target": "InstructorLLMNode_755",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_755-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_755",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
