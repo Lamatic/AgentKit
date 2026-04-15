@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "competitors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "properties": {
+            "org_name": { "type": "string" },
+            "url": { "type": "string", "format": "uri" }
+        },
+        "required": ["org_name", "url"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["competitors"]
+}

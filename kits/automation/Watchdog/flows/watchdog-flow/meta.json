@@ -1,0 +1,7 @@
+{
+  "name": "Intelligent Watchdog Flow",
+  "description": "Extracts web data, compares it to historical baselines, and generates a sales battle card.",
+  "icon": "ShieldCheck",
+  "category": "Sales",
+  "complexity": "Intermediate"
+}

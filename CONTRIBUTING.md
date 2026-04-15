@@ -1,6 +1,6 @@
 # Contributing to Lamatic AgentKit
 
-Thank you for your interest in improving AgentKit! This guide walks you through building flows in Lamatic, exporting them, and contributing kits, bundles, or templates to the repository.
+Thank you for your interest in improving AgentKit! This guide walks you through building a kit in Lamatic, exporting it, and contributing it to the repository.
 
 ---
 
@@ -9,12 +9,14 @@ Thank you for your interest in improving AgentKit! This guide walks you through 
 - [Quick Start (TL;DR)](#quick-start-tldr)
 - [Prerequisites](#prerequisites)
 - [Step 1: Fork the Repository](#step-1-fork-the-repository)
-- [Step 2: Build Your Flow in Lamatic](#step-2-build-your-flow-in-lamatic)
-- [Step 3: Export Your Flow](#step-3-export-your-flow)
-- [Choose Your Contribution Type](#choose-your-contribution-type)
+- [Step 2: Build Your Kit in Lamatic](#step-2-build-your-kit-in-lamatic)
+- [Step 3: Export Your Kit](#step-3-export-your-kit)
+- [Step 4: Create Your Kit Folder](#step-4-create-your-kit-folder)
+- [Step 5: Run and Test Locally](#step-5-run-and-test-locally)
+- [Step 6: Deploy to Vercel](#step-6-deploy-to-vercel)
+- [Step 7: Open a Pull Request](#step-7-open-a-pull-request)
 - [Examples & References](#examples--references)
 - [Troubleshooting](#troubleshooting)
-- [General Guidelines](#general-guidelines)
 - [Community & Support](#community--support)
 
 ---
@@ -24,8 +26,8 @@ Thank you for your interest in improving AgentKit! This guide walks you through 
 1. **Fork** the [AgentKit repository](https://github.com/Lamatic/AgentKit)
 2. **Build & Deploy** your flow in [Lamatic Studio](https://studio.lamatic.ai)
 3. **Export** your flow files and API keys
-4. **Follow** the guide for your contribution type: [Kit](contributing/kit-contribution.md) · [Bundle](contributing/bundle-contribution.md) · [Template](contributing/template-contribution.md)
-5. **Test** your contribution, then **submit a PR**
+4. **Create** your kit folder using the sample template
+5. **Test locally**, then **submit a PR**
 
 ---
 
@@ -38,9 +40,7 @@ Thank you for your interest in improving AgentKit! This guide walks you through 
 | Git | Latest | [git-scm.com](https://git-scm.com) |
 | GitHub Account | - | [github.com](https://github.com) |
 | Lamatic Account | - | [lamatic.ai](https://lamatic.ai) |
-| Vercel Account | - | [vercel.com](https://vercel.com) *(optional, for kit deployment)* |
-
-> Node.js and npm are only required for **kit** contributions. Bundles and templates are flow-only.
+| Vercel Account | - | [vercel.com](https://vercel.com) *(optional, for deployment)* |
 
 ---
 
@@ -71,7 +71,7 @@ git remote add upstream https://github.com/Lamatic/AgentKit.git
 
 ---
 
-## Step 2: Build Your Flow in Lamatic
+## Step 2: Build Your Kit in Lamatic
 
 ### 2.1 Sign In to Lamatic Studio
 
@@ -121,7 +121,7 @@ Choose your starting point:
 
 ---
 
-## Step 3: Export Your Flow
+## Step 3: Export Your Kit
 
 ### 3.1 Get Your API Keys
 
@@ -162,19 +162,277 @@ You should receive files like:
 
 ---
 
-## Choose Your Contribution Type
+## Step 4: Create Your Kit Folder
 
-Now that you've forked the repo, built your flow, and exported your files, follow the guide for your contribution type.
+### 4.1 Decide Your Contribution Type
 
-> Not sure which type to choose? Read the [Quickstart Guide](contributing/quickstart.md) for a detailed comparison and decision guide.
+| Type | When to Use | Folder Location |
+|------|-------------|-----------------|
+| **Kit** | Full project with UI, backend, configs | `kits/<category>/<kit-name>/` |
+| **Bundle** | Multiple flows working together | `bundles/<bundle-name>/` |
+| **Template** | Single flow, minimal setup | `templates/<template-name>/` |
 
-| Type | What it is | When to Use | Guide |
-|------|-----------|-------------|-------|
-| **Kit** | Full project with UI + flows | You built a complete Next.js app with one or more Lamatic flows | [Kit Contribution Guide](contributing/kit-contribution.md) |
-| **Bundle** | Multiple related flows | You have several flows that work together (no web app) | [Bundle Contribution Guide](contributing/bundle-contribution.md) |
-| **Template** | Single flow export | You have one flow to share with the community | [Template Contribution Guide](contributing/template-contribution.md) |
+### 4.2 Copy the Sample Template
 
-Each guide covers folder structure, required files, configuration, and PR checklists specific to that contribution type.
+For **Kits** (most common):
+
+```bash
+# Create your kit folder
+mkdir -p kits/<category>/<kit-name>
+
+# Copy the sample template
+cp -R kits/sample/content-generation/* kits/<category>/<kit-name>/
+```
+
+**Categories:** `agentic`, `assistant`, `automation`, `embed`, or create a new relevant category.
+
+### 4.3 Required Folder Structure (Kits)
+
+Your kit folder should look like this:
+
+```
+kits/<category>/<kit-name>/
+├── .env.example           # Environment variables template (NO SECRETS!)
+├── .gitignore             # Git ignore rules
+├── README.md              # Setup & usage instructions
+├── config.json            # Kit metadata for the platform
+├── package.json           # Dependencies & scripts
+├── actions/
+│   └── orchestrate.ts     # Server action calling Lamatic flows
+├── app/
+│   └── page.tsx           # Main UI page
+├── components/
+│   └── ...                # React components
+├── flows/
+│   └── <flow-name>/       # Exported flow from Lamatic
+│       ├── config.json    # Flow configuration
+│       ├── inputs.json    # Input schema
+│       ├── meta.json      # Flow metadata
+│       └── README.md      # Flow documentation
+└── lib/
+    └── lamatic-client.ts  # Lamatic SDK client
+```
+
+### 4.4 Update Required Files
+
+#### `.env.example` — Environment template (commit this, NO secrets)
+
+```env
+AGENTIC_GENERATE_CONTENT = "YOUR_FLOW_ID"
+LAMATIC_API_URL = "YOUR_API_ENDPOINT"
+LAMATIC_PROJECT_ID = "YOUR_PROJECT_ID"
+LAMATIC_API_KEY = "YOUR_API_KEY"
+```
+
+> 📎 **See example:** [kits/sample/content-generation/.env.example](./kits/sample/content-generation/.env.example)
+
+#### `config.json` — Kit metadata
+
+```json
+{
+    "name": "Your Kit Name",
+    "description": "Brief description of what your kit does.",
+    "tags": ["🤖 Agentic", "✨ Generative"],
+    "author": {
+        "name": "Your Name",
+        "email": "your@email.com"
+    },
+    "steps": [
+        {
+            "id": "your-flow-id",
+            "type": "mandatory",
+            "envKey": "AGENTIC_GENERATE_CONTENT"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "https://your-demo.vercel.app/",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/<category>/<kit-name>",
+    "deployUrl": "",
+    "documentationUrl": ""
+}
+```
+
+> 📎 **See example:** [kits/sample/content-generation/config.json](./kits/sample/content-generation/config.json)
+
+#### `README.md` — Setup instructions
+
+Your README should include:
+- What the kit does and the problem it solves
+- Prerequisites and required providers
+- Environment variables needed
+- Setup and run instructions
+- Usage examples
+- Screenshots/GIFs (optional but recommended)
+
+> 📎 **See example:** [kits/sample/content-generation/README.md](./kits/sample/content-generation/README.md)
+
+### 4.5 Add Your Exported Flows
+
+1. Create the flows directory:
+   ```bash
+   mkdir -p kits/<category>/<kit-name>/flows/<flow-name>
+   ```
+
+2. Copy your exported flow files into this folder:
+   ```bash
+   cp -R ~/Downloads/exported-flow/* kits/<category>/<kit-name>/flows/<flow-name>/
+   ```
+
+---
+
+## Step 5: Run and Test Locally
+
+> **ℹ️ This step applies to Kits only.** Bundles and Templates only contain flows—skip to Step 7.
+
+### 5.1 Install Dependencies
+
+```bash
+cd kits/<category>/<kit-name>
+npm install
+```
+
+### 5.2 Set Up Environment Variables
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your actual values
+nano .env   # or use any text editor
+```
+
+Fill in your actual values from Step 3:
+```env
+AGENTIC_GENERATE_CONTENT = "your-actual-flow-id"
+LAMATIC_API_URL = "https://api.lamatic.ai/v1/..."
+LAMATIC_PROJECT_ID = "proj_xxxxxxxxxxxx"
+LAMATIC_API_KEY = "lam_xxxxxxxxxxxx"
+```
+
+### 5.3 Start Development Server
+
+```bash
+npm run dev
+```
+
+### 5.4 Test Your Kit
+
+1. Open [http://localhost:3000](http://localhost:3000) in your browser
+2. Test all functionality end-to-end
+3. Verify your flow is being called correctly
+
+---
+
+## Step 6: Deploy to Vercel
+
+> **ℹ️ This step applies to Kits only.**
+
+### 6.1 Push Your Branch
+
+```bash
+git checkout -b feat/<kit-name>
+git add .
+git commit -m "feat: Add <kit-name> AgentKit"
+git push origin feat/<kit-name>
+```
+
+### 6.2 Import to Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign in
+2. Click **"Add New..."** → **"Project"**
+3. Select your forked repository
+
+### 6.3 Configure Root Directory
+
+**Important:** Set the root directory to your kit folder.
+
+Navigate: **Configure Project → Root Directory**
+
+Enter: `kits/<category>/<kit-name>`
+
+### 6.4 Add Environment Variables
+
+Navigate: **Configure Project → Environment Variables**
+
+Add each variable from your `.env.example`:
+
+| Name | Value |
+|------|-------|
+| `AGENTIC_GENERATE_CONTENT` | Your flow ID |
+| `LAMATIC_API_URL` | Your API endpoint |
+| `LAMATIC_PROJECT_ID` | Your project ID |
+| `LAMATIC_API_KEY` | Your API key |
+
+### 6.5 Deploy
+
+1. Click **"Deploy"**
+2. Wait for the build to complete
+3. Test your live preview URL
+
+---
+
+## Step 7: Open a Pull Request
+
+### 7.1 Create Your PR
+
+1. Go to [github.com/Lamatic/AgentKit](https://github.com/Lamatic/AgentKit)
+2. Click **"New Pull Request"**
+3. Select your fork and branch
+4. Add a clear title: `feat: Add <kit-name> AgentKit`
+
+### 7.2 PR Description Template
+
+```markdown
+## What This Kit Does
+Brief description of the kit's purpose and the problem it solves.
+
+## Providers & Prerequisites
+- List any external providers (e.g., OpenAI, Anthropic)
+- Note any special setup required
+
+## How to Run Locally
+1. `cd kits/<category>/<kit-name>`
+2. `npm install`
+3. `cp .env.example .env` and fill in values
+4. `npm run dev`
+
+## Live Preview
+https://your-kit.vercel.app
+
+## Lamatic Flow
+Flow ID: `your-flow-id`
+```
+
+### 7.3 PR Checklist
+
+#### For Kits:
+```markdown
+- [ ] Kit runs locally with `npm run dev`
+- [ ] `.env.example` has no secrets, only placeholders
+- [ ] `README.md` documents setup and usage
+- [ ] Folder structure follows `kits/<category>/<kit-name>/`
+- [ ] `config.json` is present and valid
+- [ ] All flows exported in `flows/` folder
+- [ ] Vercel deployment works
+- [ ] Live preview URL works end-to-end
+```
+
+#### For Bundles:
+```markdown
+- [ ] Folder structure follows `bundles/<bundle-name>/`
+- [ ] `README.md` documents what the bundle does
+- [ ] `config.json` is present with correct flow references
+- [ ] All flows exported in `flows/` folder
+- [ ] No secrets committed
+```
+
+#### For Templates:
+```markdown
+- [ ] Folder structure follows `templates/<template-name>/`
+- [ ] All flow files from Lamatic export are present
+- [ ] No secrets committed
+```
 
 ---
 
@@ -182,26 +440,16 @@ Each guide covers folder structure, required files, configuration, and PR checkl
 
 ### Sample Kit
 
-| Resource | Description |
-|----------|-------------|
-| [Sample Kit Folder](./kits/sample/content-generation/) | Complete working kit example |
-| [Kit config.json](./kits/sample/content-generation/config.json) | Kit metadata format |
+The best way to understand the expected structure is to explore the sample kit:
+
+| File | Description |
+|------|-------------|
+| [Sample Kit Folder](./kits/sample/content-generation/) | Complete working example |
+| [config.json](./kits/sample/content-generation/config.json) | Kit metadata format |
 | [.env.example](./kits/sample/content-generation/.env.example) | Environment variables template |
+| [README.md](./kits/sample/content-generation/README.md) | Documentation template |
 | [orchestrate.ts](./kits/sample/content-generation/actions/orchestrate.ts) | Flow orchestration example |
-
-### Sample Bundle
-
-| Resource | Description |
-|----------|-------------|
-| [Sample Bundle Folder](./bundles/sample/chatbot/) | Complete working bundle example |
-| [Bundle config.json](./bundles/sample/chatbot/config.json) | Bundle metadata with step types |
-
-### Sample Template
-
-| Resource | Description |
-|----------|-------------|
-| [Get Started Template](./templates/get-started/) | Basic single-flow example |
-| [Template meta.json](./templates/get-started/meta.json) | Flow metadata format |
+| [flows/](./kits/sample/content-generation/flows/) | Exported flow structure |
 
 ---
 
@@ -235,7 +483,7 @@ Each guide covers folder structure, required files, configuration, and PR checkl
 - Add comments for complex logic
 
 ### Before You Contribute
-- Check if a similar kit/bundle/template already exists
+- Check if a similar kit already exists
 - Search open issues to avoid duplicates
 - Review this guide completely
 
@@ -256,4 +504,4 @@ Include:
 
 ---
 
-We appreciate your contributions to Lamatic AgentKit!
+We appreciate your contributions to Lamatic AgentKit! 🚀

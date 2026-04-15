@@ -1,0 +1,40 @@
+{
+  "name": "intelligent-watchdog",
+  "author": {
+    "name": "Agent Harsh",
+    "email": "maneharsh513@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HarshM1010/AgentKit/tree/feat/Add-Intelligent-Watchdog-automation-kit-for-competitor-intelligence/kits/automation/Watchdog"
+  },
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "4.2.2",
+    "@tailwindcss/typography": "0.5.19",
+    "@upstash/ratelimit": "2.0.8",
+    "@upstash/redis": "1.37.0",
+    "dotenv": "17.3.1",
+    "lamatic": "0.3.2",
+    "lucide-react": "1.6.0",
+    "next": "16.2.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "25.5.0",
+    "@types/react": "19.2.14",
+    "autoprefixer": "10.4.27",
+    "postcss": "8.5.8",
+    "tailwindcss": "4.2.2",
+    "typescript": "6.0.2"
+  }
+}

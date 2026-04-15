@@ -17,7 +17,7 @@
   </a>
 </p>
 
-<h2 align="center">Stack to Build Reliable AI Agents</h2>
+<h2 align="center">Stack to Build Agentic SaaS → 10x faster</h2>
   <br/>
   <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
 <p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
@@ -32,11 +32,11 @@
 <a href="https://github.com/Lamatic/AgentKit/network/members">
   <img src="https://img.shields.io/github/forks/Lamatic/AgentKit?logo=github" alt="GitHub Forks" />
 </a>
-<!-- <a href="https://github.com/Lamatic/AgentKit/actions">
+<a href="https://github.com/Lamatic/AgentKit/actions">
   <img src="https://img.shields.io/github/actions/workflow/status/Lamatic/AgentKit/ci.yml?branch=main" alt="CI/CD Status" />
-</a>   -->
-<img src="https://img.shields.io/coderabbit/prs/github/Lamatic/AgentKit?utm_source=oss&utm_medium=github&utm_campaign=Lamatic%2FAgentKit&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews">
-<img src="https://github.com/Lamatic/AgentKit/actions/workflows/review-challenge-prs.yml/badge.svg">
+</a>
+
+<br/>
 
 ## ✨ About AgentKit
 
