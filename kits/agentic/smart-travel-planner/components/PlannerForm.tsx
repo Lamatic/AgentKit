@@ -2,6 +2,31 @@
 
 import { useState } from "react";
 
+export type ItineraryData = {
+  destination: string;
+  country: string;
+  introduction: string;
+  best_time_to_visit: string;
+  estimated_budget: string;
+  highlights: { name: string; description: string }[];
+  food: { name: string; description: string }[];
+  culture: string[];
+  travel_tips: string[];
+  days: {
+    day: number;
+    title: string;
+    morning: string;
+    afternoon: string;
+    evening: string;
+    food_recommendation: string;
+    stay_suggestion: string;
+    estimated_day_cost: string;
+    notes: string;
+  }[];
+};
+
+
+
 type Highlight = { name: string; description: string };
 type DayPlan = {
   day: number;

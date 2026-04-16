@@ -1,6 +1,7 @@
 import DayCard from "./DayCard";
 import type { ItineraryData } from "./PlannerForm";
 
+
 export default function ItineraryDisplay({ data }: { data: ItineraryData }) {
   return (
     <section className="space-y-8">
