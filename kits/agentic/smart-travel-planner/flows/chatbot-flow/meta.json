@@ -1,0 +1,8 @@
+{
+  "name": "Travel Chatbot Flow",
+  "description": "An AI-powered conversational assistant that helps users plan trips, explore destinations, get itinerary suggestions, and receive travel-related guidance using Lamatic flows.",
+  "author": "Sujal",
+  "version": "1.0.0",
+  "tags": ["chatbot", "travel", "ai", "assistant", "itinerary"],
+  "use_case": "Travel planning assistant for generating itineraries, answering destination queries, and suggesting food, culture, and travel tips."
+}
