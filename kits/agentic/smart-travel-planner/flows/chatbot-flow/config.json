@@ -1,0 +1,132 @@
+{
+    "triggerNode": {
+        "nodeId": "triggerNode_1",
+        "nodeType": "graphqlNode",
+        "nodeName": "API Request",
+        "values": {
+            "responeType": "realtime",
+            "advance_schema": "{\n  \"message\": \"string\"\n}"
+        },
+        "modes": {},
+        "allConfigs": {
+            "Config A": {
+                "id": "triggerNode_1",
+                "nodeName": "API Request",
+                "responeType": "realtime",
+                "advance_schema": "{\n  \"message\": \"string\"\n}"
+            }
+        },
+        "schema": {
+            "sampleOutput": "string"
+        }
+    },
+    "nodes": [
+        {
+            "nodeId": "LLMNode_890",
+            "nodeType": "LLMNode",
+            "nodeName": "Generate Text",
+            "values": {
+                "tools": [],
+                "prompts": [
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                        "role": "system",
+                        "content": "You are a friendly travel assistant.\nOnly answer questions related to travel.\nTravel topics include:\n- destinations\n- places to visit\n- itineraries\n- description of the place or destination\n- hotels\n- transport\n- food during travel\n- culture and traditions of places\n- travel budget\n- weather for travel planning\n- best time to visit\n- travel tips\nRules:\n- If the user's question is about travel, answer clearly and naturally.\n- If the user sends only a place name like \"Goa\" or \"Kashmir\", treat it as a travel-related query and ask a useful follow-up.\n- If the user asks about food, budget, weather, or itinerary, answer only in a travel context.\n- If the message is not related to travel, politely say that you only help with travel-related questions.\n- Keep replies concise, helpful, and conversational.\n- Do not give generic assistant replies.\n- Return plain text only.\n- Do not return JSON.\n- Do not use markdown.\nIMPORTANT FORMATTING RULES:\n- Always add a blank line after the introduction sentence.\n- Always put each place on a new line.\n- Always add one empty line between numbered points.\n- Do not write everything in one paragraph.\n- Keep responses visually spaced for chat UI.\n- Use short readable lines.\n- Each numbered point must start on a new line.\nFormatting rules:\n- Use new lines for each point\n- Each item must start on a new line\n- Use numbered list format\n- Do not return everything in one paragraph\nExample:\nAlways format responses like this:\n1. Place name - description\n2. Place name - description\n3. Place name - description\nEach point MUST start on a new line.\nUser message:\nUser message: {{triggerNode_1.output.message}}"
+                    },
+                    {
+                        "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                        "role": "user",
+                        "content": "{{triggerNode_1.output.message}}I want to visit Bali suggst me some places"
+                    }
+                ],
+                "memories": "[]",
+                "messages": "[]",
+                "attachments": "",
+                "credentials": "",
+                "generativeModelName": [
+                    {
+                        "type": "generator/text",
+                        "params": {},
+                        "configName": "configA",
+                        "model_name": "gpt-4o-mini",
+                        "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                        "provider_name": "openai",
+                        "credential_name": "open ai"
+                    }
+                ]
+            },
+            "modes": {},
+            "needs": [
+                "triggerNode_1"
+            ],
+            "allConfigs": {
+                "Config A": {
+                    "id": "LLMNode_890",
+                    "tools": [],
+                    "prompts": [
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+                            "role": "system",
+                            "content": "You are a friendly travel assistant.\nOnly answer questions related to travel.\nTravel topics include:\n- destinations\n- places to visit\n- itineraries\n- description of the place or destination\n- hotels\n- transport\n- food during travel\n- culture and traditions of places\n- travel budget\n- weather for travel planning\n- best time to visit\n- travel tips\nRules:\n- If the user's question is about travel, answer clearly and naturally.\n- If the user sends only a place name like \"Goa\" or \"Kashmir\", treat it as a travel-related query and ask a useful follow-up.\n- If the user asks about food, budget, weather, or itinerary, answer only in a travel context.\n- If the message is not related to travel, politely say that you only help with travel-related questions.\n- Keep replies concise, helpful, and conversational.\n- Do not give generic assistant replies.\n- Return plain text only.\n- Do not return JSON.\n- Do not use markdown.\nIMPORTANT FORMATTING RULES:\n- Always add a blank line after the introduction sentence.\n- Always put each place on a new line.\n- Always add one empty line between numbered points.\n- Do not write everything in one paragraph.\n- Keep responses visually spaced for chat UI.\n- Use short readable lines.\n- Each numbered point must start on a new line.\nFormatting rules:\n- Use new lines for each point\n- Each item must start on a new line\n- Use numbered list format\n- Do not return everything in one paragraph\nExample:\nAlways format responses like this:\n1. Place name - description\n2. Place name - description\n3. Place name - description\nEach point MUST start on a new line.\nUser message:\nUser message: {{triggerNode_1.output.message}}"
+                        },
+                        {
+                            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+                            "role": "user",
+                            "content": "{{triggerNode_1.output.message}}I want to visit Bali suggst me some places"
+                        }
+                    ],
+                    "memories": "[]",
+                    "messages": "[]",
+                    "nodeName": "Generate Text",
+                    "attachments": "",
+                    "credentials": "",
+                    "generativeModelName": [
+                        {
+                            "type": "generator/text",
+                            "params": {},
+                            "configName": "configA",
+                            "model_name": "gpt-4o-mini",
+                            "credentialId": "734e2a64-643d-41ce-b2c0-b7669a4c13d5",
+                            "provider_name": "openai",
+                            "credential_name": "open ai"
+                        }
+                    ]
+                }
+            },
+            "schema": {
+                "generatedResponse": "string",
+                "_meta": "object",
+                "tool_calls": "object",
+                "images": "array"
+            }
+        }
+    ],
+    "responseNode": {
+        "nodeId": "responseNode_triggerNode_1",
+        "nodeType": "graphqlResponseNode",
+        "nodeName": "API Response",
+        "values": {
+            "headers": "{\"content-type\":\"application/json\"}",
+            "retries": "0",
+            "webhookUrl": "",
+            "retry_delay": "0",
+            "outputMapping": "{\n  \"result\": \"{{LLMNode_890.output.generatedResponse}}\"\n}"
+        },
+        "needs": [
+            "LLMNode_890"
+        ],
+        "modes": {},
+        "allConfigs": {
+            "Config A": {
+                "id": "responseNode_triggerNode_1",
+                "headers": "{\"content-type\":\"application/json\"}",
+                "retries": "0",
+                "nodeName": "API Response",
+                "webhookUrl": "",
+                "retry_delay": "0",
+                "outputMapping": "{\n  \"result\": \"{{LLMNode_890.output.generatedResponse}}\"\n}"
+            }
+        },
+        "schema": {}
+    }
+}
