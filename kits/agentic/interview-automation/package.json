@@ -1,0 +1,36 @@
+{
+  "name": "agent-kit-interview-automation",
+  "author": "Lamatic AI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/interview-automation"
+  },
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "eslint .",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@vercel/analytics": "latest",
+    "geist": "latest",
+    "lamatic": "latest",
+    "next": "15.2.4",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.9",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.2.4",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
+    "tw-animate-css": "1.3.3",
+    "typescript": "^5"
+  }
+}

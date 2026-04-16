@@ -1,0 +1,12 @@
+{
+  "name": "Interview Transcript Analysis",
+  "description": "Analyzes a live interview transcript and returns actionable interviewer insights including a summary, key signals, follow-up questions, and a hiring recommendation.",
+  "author": {
+    "name": "Lamatic AI",
+    "email": "info@lamatic.ai"
+  },
+  "tags": ["interview", "analysis", "transcript", "hiring", "automation"],
+  "testInputs": {
+    "transcript": "The candidate described their experience leading a cross-functional team of 8 engineers. They mentioned using Agile sprints and weekly stand-ups. When asked about handling conflict, they gave an example of mediating a disagreement between a product manager and a backend engineer by aligning both sides on user impact."
+  }
+}
