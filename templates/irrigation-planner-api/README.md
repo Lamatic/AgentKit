@@ -32,11 +32,12 @@ This flow requires configuration for **1 node(s)** with private inputs (credenti
 The API takes three main inputs:
 * A list of plant types in list of string
 * Location information
-* A target start date
+* A target start date 
 
 ### Output
 The system produces structured JSON Object including:
-* 7-day irrigation schedule including daily watering durations
+* 7-day irrigation schedule including date and daily watering durations.
+    * Date formatted as MM/DD/YYYY. Duration is in minutes.
 * A reasoning behind the plan
 * A brief reasoning summary for decisions
 
