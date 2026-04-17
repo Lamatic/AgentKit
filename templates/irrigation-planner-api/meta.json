@@ -1,0 +1,12 @@
+{
+  "name": "Irrigation Planner API",
+  "description": "Lamatic Agent API to automate irrigation planning using an LLM",
+  "tags": [],
+  "testInput": "",
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "N-han"
+  }
+}
