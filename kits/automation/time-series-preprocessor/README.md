@@ -131,7 +131,7 @@ print(df.head())
 
 ## Project Structure
 
-```text
+````text
 time-series-preprocessor/
 ├── actions/
 │   └── orchestrate.ts       # Server action calling the Lamatic flow
@@ -149,7 +149,7 @@ time-series-preprocessor/
 ├── .env.example             # Environment variable template
 ├── config.json              # Kit metadata
 └── README.md
-```
+````
 
 ---
 
