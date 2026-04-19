@@ -122,7 +122,7 @@ export default function Home() {
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
             {FEATURES.map(item => (
               <div key={item.title} style={{ display: "flex", gap: "12px", alignItems: "flex-start", padding: "0.8rem 1rem", background: "#f9f9f9", borderRadius: "10px", border: "1px solid #f0f0f0" }}>
-                <span style={{ fontSize: "1.1rem", marginTop: "1px" }}>{item.icon}</span>
+                
                 <div>
                   <span style={{ fontWeight: 700, fontSize: "0.85rem", color: "#111" }}>{item.title}</span>
                   <span style={{ color: "#777", fontSize: "0.85rem" }}> — {item.desc}</span>

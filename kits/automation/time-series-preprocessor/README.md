@@ -131,7 +131,7 @@ print(df.head())
 
 ## Project Structure
 
-```
+```text
 time-series-preprocessor/
 ├── actions/
 │   └── orchestrate.ts       # Server action calling the Lamatic flow
@@ -159,4 +159,4 @@ Contributions are welcome. Open an issue or pull request in the [AgentKit reposi
 
 ## License
 
-MIT License — see [LICENSE](../../../../LICENSE).
+MIT License — see [LICENSE](../../../LICENSE).
