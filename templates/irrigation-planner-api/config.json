@@ -1,0 +1,123 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"plants\": [\n    {}\n  ],\n  \"day\": \"string\",\n  \"location\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_862",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_862",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"watering data\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"reasoning summary\": {\n      \"type\": \"string\",\n      \"required\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert irrigation planning assistant. You have a strong background in horticulture."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Generate a weekly irrigation plan in JSON format based on the provided inputs.\nYour task is to generate a weekly irrigation plan using the provided inputs.\nInputs:\n\\- {{triggerNode_1.output.plants}}\n\\- {{triggerNode_1.output.day}}\n\\- {{triggerNode_1.output.location}}\nThe output must include:\n\\- \"watering_data\":An array containing information for all 7 days of the week in chronological order.Each element must be an object with:\n\"day\": The date of the watering day, starting from the given day, formatted as MM/DD/YYYY.\n\"duration\": The watering duration (in minutes) for that day. If no watering is needed, the value must be 0.\n\\- \"reasoning\":A detailed explanation of how plant types and weather conditions influenced the irrigation plan.\n\\- \"reasoning_summary\":A short and concise summary of the reasoning.\nYou must:\nConsider plant types and the weekly weather forecast for the given location when planning irrigation.\nAdjust watering dynamically:\nReduce watering on rainy days\nIncrease watering on hot or dry days\nEnsure the plan is reasonable and consistent with both plant needs and weather conditions."
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"watering data\": \"{{InstructorLLMNode_862.output.watering data}}\",\n  \"reasoning\": \"{{InstructorLLMNode_862.output.reasoning}}\",\n  \"reasoning summary\": \"{{InstructorLLMNode_862.output.reasoning summary}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_862",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_862",
+      "selected": false,
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_862-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_862",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "selected": false,
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
