@@ -89,7 +89,7 @@ ${colorConfig
   .map(([key, itemConfig]) => {
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
+      (itemConfig.color && /^(#|rgb|hsl|[a-z])/.test(itemConfig.color) ? itemConfig.color : 'inherit')
     return color ? `  --color-${key}: ${color};` : null
   })
   .join('\n')}
