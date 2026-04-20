@@ -1,5 +1,5 @@
 export default {
-  name: "2. Finance - Company Profiles",
+  name: "Stock Analysis Kit",
   description: "",
   version: "1.0.0",
   type: "kit" as const,
