@@ -10,7 +10,7 @@
       <!-- Dark mode: keep existing white SVG -->
       <source media="(prefers-color-scheme: dark)" srcset="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
       <!-- Light mode -->
-      <source media="(prefers-color-scheme: light)" srcset="https://github.com/Lamatic/AgentKit/raw/main/kits/agentic/deep-search/public/lamatic-logo.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://github.com/Lamatic/AgentKit/raw/main/kits/deep-search/apps/public/lamatic-logo.png">
       <!-- Fallback -->
       <img width="300" alt="Lamatic.ai" src="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
     </picture>
@@ -44,56 +44,113 @@ Deploy intelligent AI agents in minutes with enterprise-grade security, scalable
 
 ***
 
-<table>
-  <tr>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/agentic.png" alt="Agentic Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Agentic</h3>
-  <p style="font-size: 15px;">Intelligent agents that can reason, plan, and execute complex tasks autonomously</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/embed.png" alt="Embed Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Embed</h3>
-  <p style="font-size: 15px;">Seamlessly integrate AI capabilities into your existing applications and workflows</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/assistant.png" alt="Assistant Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Assistant</h3>
-  <p style="font-size: 15px;">Smart assistants that help users with tasks, answer questions, and provide support</p>
-    </td>
-    <td align="center" width="25%" style="vertical-align:top; padding: 16px;">
-      <img src="https://github.com/Lamatic/Lamatic-Docs/raw/main/public/images/agentkitsmeta/automation.png" alt="Automation Icon" width="64" style="margin-bottom: 12px;" />
-  <h3>Automation</h3>
-  <p style="font-size: 15px;">Automate repetitive tasks and streamline business processes with AI-powered workflows</p>
-    </td>
-  </tr>
-</table>
-
-***
-
 ### 📦 Available Kits
 
-Explore ready-to-deploy agent kits and templates built on Lamatic’s AgentKit framework.  
-Each kit includes configuration instructions, environment variables/lamatic-config.json, and a 1-click Vercel deploy button.
+All contributions live in a flat [`kits/`](./kits) directory. Each entry is a **template** (single flow), **bundle** (multi-flow, no UI), or **kit** (flows + runnable Next.js app) — distinguished by the `type` field in its `lamatic.config.ts`.
 
-| Kit Name | Description | Status | Live Demo | Path |
-|-----------|--------------|--------|--------------|------|
-| **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
-| **Deep Search Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/agentic/deep-search`](./kits/agentic/deep-search) |
-| **Generation Agent** | A Next.js starter kit for generating text/json/image content using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app) | [`/kits/agentic/generation`](./kits/agentic/generation) |
-||
-| **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
-| **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
-||
-| **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
-| **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
-||
-| **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/kits/embed`](./kits/embed) |
-| **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/chat`](./kits/embed/chat) |
-| **Search** | A Next.js starter kit for searchbot Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/search`](./kits/embed/search) |
-| **Sheets** | A Next.js starter kit for sheets using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/kits/embed/sheets`](./kits/embed/sheets) |
+The section below is **auto-generated from [`registry.json`](./registry.json)**. To refresh it: `node scripts/update-readme.mjs`.
 
-> 💡 Each kit folder includes its own README with specific setup steps, required keys, and example Lamatic flows.
+<!-- REGISTRY:START -->
+<!-- Auto-generated by scripts/update-readme.mjs from registry.json. Do not edit by hand. -->
+
+**Total:** 70 entries  
+• **22** kits (full apps)  
+• **6** bundles (multi-flow pipelines)  
+• **42** templates (single flows)
+
+---
+
+#### 🚀 Kits (22)
+
+| Name | Description | Author | Live Demo | Path |
+|---|---|---|---|---|
+| **AI Support Triage Engine** | Automated triage system that categorizes, analyzes sentiment, and drafts responses for customer support tickets. | Yash Singhal | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-git-feat-suppo-3f22fd-yash-singhals-projects-d43367ba.vercel.app/) | [`/kits/support-triage`](./kits/support-triage) |
+| **ai-career-copilot** | AI-powered career assistant that analyzes resumes and provides personalized career guidance including skill analysis, job recommendations, learning roadmaps, project suggestions, and interview preparation. | Durvankur Joshi | — | [`/kits/ai-career-copilot`](./kits/ai-career-copilot) |
+| **Blog Writing Automation** | Automate blog post generation and publishing via webhooks or schedules. Includes SEO optimization and CMS integration steps. | Lamatic AI | — | [`/kits/blog-automation`](./kits/blog-automation) |
+| **Code Review Agent** | Analyzes GitHub PRs for bugs, security vulnerabilities, and style issues using multi-step agentic reasoning. | Soumik | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-stk.vercel.app/) | [`/kits/code-review`](./kits/code-review) |
+| **Deep Research** | Customized agentic deep research across both internal and external data sources. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/deep-search`](./kits/deep-search) |
+| **Embedded Chat** | It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed-chat`](./kits/embed-chat) |
+| **Embedded Search** | It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-search.vercel.app) | [`/kits/embed-search`](./kits/embed-search) |
+| **Embedded Sheets** | It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-sheets.vercel.app) | [`/kits/embed-sheets`](./kits/embed-sheets) |
+| **Founder Lens** | Powerful 7-phase agentic startup research agent. Submit a startup idea and get a brutally honest investor-grade brief built from real web data — market size, competitors, customer complaints, dead startup postmortems, and a contrarian VC take. Then chat with your analysis using RAG-powered persistent memory. | Andrew Dosumu | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://founder-lens-agentkit.vercel.app/) | [`/kits/founder-lens`](./kits/founder-lens) |
+| **Generative AI** | It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app/) | [`/kits/content-generation`](./kits/content-generation) |
+| **Generative AI** | Generate text, JSON, or images intelligently based on the given context. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app/) | [`/kits/generation`](./kits/generation) |
+| **Grammar Assistant** | It allows you to select any text on any webpage and get real-time grammar corrections and suggestions through an elegant side panel interface. | Lamatic AI | — | [`/kits/grammar-extension`](./kits/grammar-extension) |
+| **Hiring Automation** | It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface. | Lamatic AI | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/hiring`](./kits/hiring) |
+| **Hiring Copilot Agent** | AI-powered recruiter assistant that screens candidates, analyzes resumes, and suggests hiring decisions reducing manual efforts. | Anurag Bhoite | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://hiring-copilot-agent.vercel.app) | [`/kits/hiring-copilot-agent`](./kits/hiring-copilot-agent) |
+| **Legal Assistant** | A legal assistant chatbot that summarizes legal context, provides references, and suggests next steps for informational use. | Lamatic AI | — | [`/kits/legal`](./kits/legal) |
+| **Legal Assistant** | Ask legal research questions against your Lamatic-connected legal corpus and get an informational answer with citations, next steps, and a standing disclaimer. | jasperan | — | [`/kits/legal-assistant`](./kits/legal-assistant) |
+| **Medical Assistant** | An AI-powered medical assistant chatbot that provides general medical information, symptom checks, and health guidance through a conversational interface built with Lamatic.ai. | Lamatic AI | — | [`/kits/medical-assistant`](./kits/medical-assistant) |
+| **PageIndex NotebookLM — Vectorless Tree-Structured RAG** | Upload any PDF and chat with it using vectorless, tree-structured RAG powered entirely by Lamatic AI flows. No vector database, no external Python server, no chunking — just a hierarchical document index built from the table of contents. | Saurabh Tiwari | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://pageindex-notebooklm.vercel.app/) | [`/kits/pageindex-notebooklm`](./kits/pageindex-notebooklm) |
+| **Poster Generation** | — | Naitik Kapadia | — | [`/kits/poster-generator`](./kits/poster-generator) |
+| **Reddit Scout** | Search Reddit for real product reviews and opinions. Get structured summaries of what real users are saying about any product or topic. | Reddit Scout | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://reddit-scout-tawny.vercel.app/) | [`/kits/reddit-scout`](./kits/reddit-scout) |
+| **Stock Analysis Kit** | — | Naitik Kapadia | — | [`/kits/stock-analysis`](./kits/stock-analysis) |
+| **System Design Analyzer** | AI-powered system design analyzer that identifies architectural issues and provides recommendations for scalable, resilient systems. | Lamatic.ai | — | [`/kits/system-design-analyzer`](./kits/system-design-analyzer) |
+
+#### 📦 Bundles (6)
+
+| Name | Description | Author | Live Demo | Path |
+|---|---|---|---|---|
+| **Document Parsing** | Extract valuable insights from documents and unstructured information at scale. | Naitik Kapadia | — | [`/kits/document-parsing`](./kits/document-parsing) |
+| **GitHub Manager** | Extract information from the repository docs and use that to answer questions related to the project, automate issue triaging | Vasistha Yadav | — | [`/kits/github-manager`](./kits/github-manager) |
+| **Internal Assistant** | Build an internal chatbot that finds precise answers within your company’s knowledge base. | Naitik Kapadia | — | [`/kits/assistants`](./kits/assistants) |
+| **Knowledge Chatbot** | A chat bundle that combines data source indexing with a knowledge chatbot interface. | Naitik Kapadia | — | [`/kits/sample-chatbot`](./kits/sample-chatbot) |
+| **RAG (Retrieval-Augmented Generation)** | Generate accurate responses using large volumes of structured and unstructured data | Naitik Kapadia | — | [`/kits/knowledge-chatbot`](./kits/knowledge-chatbot) |
+| **Semantic Search** | Perform natural language search ( aka vector search ) across structured and unstructured data effortlessly. | Naitik Kapadia | — | [`/kits/semantic-search`](./kits/semantic-search) |
+
+#### 🧩 Templates (42)
+
+| Name | Description | Author | Live Demo | Path |
+|---|---|---|---|---|
+| **Advertisement Poster Generation** | This intakes an image to provide analysis and advertisement poster as the output using multimodal and image generation models | Naitik Kapadia | — | [`/kits/advertisement-poster-generation`](./kits/advertisement-poster-generation) |
+| **Article Summariser** | This workflow automates summarizing articles. It takes URLs, extracts content using Firecrawl, and generates concise summaries using an LLM, making it easier to quickly understand key points of long articles. | Naitik Kapadia | — | [`/kits/article-summariser`](./kits/article-summariser) |
+| **Blog Writer Agent** | This automation generates a blog on any given topic by searching the internet for the most relevant source, then writing the blog in the user's desired tone. | Naitik Kapadia | — | [`/kits/blog-writer-agent`](./kits/blog-writer-agent) |
+| **Candidate Screener** | This AI-powered GitHub profile screening system automatically analyzes candidates' repositories, matches their experience and skills to job requirements, and generates personalized email responses - congratulating qualified candidates or providing feedback to those who don't meet the criteria. | Naitik Kapadia | — | [`/kits/candidate-screener`](./kits/candidate-screener) |
+| **Caption Image** | This API accepts an image and metadata, then uses the image content to generate a caption. It enables systematic, consistent, and efficient captioning of large numbers of photographs, screenshots, or other images. | Naitik Kapadia | — | [`/kits/caption-image`](./kits/caption-image) |
+| **Combined Keyword Search** | This flow adds keyword search (BM25 Search) to your website. It combines results from different vector databases, runs parallel searches, and returns the combined results to users. | Naitik Kapadia | — | [`/kits/combined-keyword-search`](./kits/combined-keyword-search) |
+| **Currency Converter** | This flow builds a currency converter that fetches real-time exchange rates, enabling users to accurately convert between any currencies. | Naitik Kapadia | — | [`/kits/currency-converter`](./kits/currency-converter) |
+| **Custom Media Chatbot** | This flow builds a custom media-based chatbot that can answer questions based on your media file content in a ready-made chat interface, supporting text, JSON, HTML, and/or PDF files. | Naitik Kapadia | — | [`/kits/custom-media-chatbot`](./kits/custom-media-chatbot) |
+| **Document Chatbot** | This flow integrates a chatbot widget into your local application, enabling users to get answers based on provided documents or media. | Naitik Kapadia | — | [`/kits/document-chatbot`](./kits/document-chatbot) |
+| **Document Chatbot (Widget)** | A conversational AI chat widget that engages users with interactive discussions about content from a connected vector database. Easily deployable to applications and websites, ideal for user documentation, release notes, and more. | Naitik Kapadia | — | [`/kits/document-chatbot-widget`](./kits/document-chatbot-widget) |
+| **Email Summariser** | This N8N workflow builds an AI-powered email summarization tool that automatically processes incoming emails, extracts key insights, and generates concise summaries, enabling users to quickly understand important information. | Naitik Kapadia | — | [`/kits/email-summariser`](./kits/email-summariser) |
+| **Event Insights** | This AI-powered event data processing system collects event data, passes it to a text generation node, and enables users to ask questions to receive AI-generated insights, enabling efficient event analysis and real-time information retrieval. | Naitik Kapadia | — | [`/kits/event-insights`](./kits/event-insights) |
+| **Execute Flow** | This flow introduces the execute flow function, which allows executing another flow and passing required variables. | Naitik Kapadia | — | [`/kits/execute-flow`](./kits/execute-flow) |
+| **Firecrawl Scrapping** | This flow allows the user to start the crawling process of a webpage and send its pages to a webhook flow to commence indexing the document. | Naitik Kapadia | — | [`/kits/firecrawl-scrapping`](./kits/firecrawl-scrapping) |
+| **Firecrawl Webhook** | This flow fetches pages from a crawler API, extracts only the page contents, and prepares to index them in a vector database, effectively indexing all the pages. | Naitik Kapadia | — | [`/kits/firecrawl-webhook`](./kits/firecrawl-webhook) |
+| **Get Started** | This flow introduces Lamatic AI and demonstrates how to fetch output from an LLM node. It provides a basic example of integrating an LLM into an automation workflow. | Naitik Kapadia | — | [`/kits/get-started`](./kits/get-started) |
+| **Get Started with Google Sheet** | This flow introduces the Google Sheets trigger node and a RAG node which helps users ask questions and perform analysis on a Google Sheet. The flow guides users through the process of connecting to Google Sheets and leveraging the RAG node for interactive data exploration. | Naitik Kapadia | — | [`/kits/get-started-with-google-sheet`](./kits/get-started-with-google-sheet) |
+| **Hiring Agent** | This template allows you to analyse an input resume and gives detailed analysis of selection/rejection | Naitik Kapadia | — | [`/kits/hiring-agent`](./kits/hiring-agent) |
+| **Image-Based Product Identification** | This flow builds an AI-powered product identification system that processes image links, identifies products, and generates a structured JSON output with product name, description, and shopping link, enabling seamless analysis and data extraction from images. | Naitik Kapadia | — | [`/kits/image-based-product-identification`](./kits/image-based-product-identification) |
+| **Index GitHub Actions** | Vectorizes GitHub Actions data and loads it into a vector database. Enables fast, accurate search and RAG Flows using the contextual data. | Naitik Kapadia | — | [`/kits/index-github-actions`](./kits/index-github-actions) |
+| **Introduction to RAG** | This flow acts as an introduction to RAG, where you can ask a query based on a given text and get your answers from that specific knowledge base. | Naitik Kapadia | — | [`/kits/introduction-to-rag`](./kits/introduction-to-rag) |
+| **Invoice Summariser** | This AI-powered invoice summarization workflow processes invoices, extracts key details like total amounts, due dates, and vendor information, and generates structured JSON output. | Naitik Kapadia | — | [`/kits/invoice-summariser`](./kits/invoice-summariser) |
+| **JSON Summariser** | This workflow builds a JSON summarization system. It takes a URL of a JSON file as input, processes the data using a Generate Text node, and produces a concise summary of the key information, enabling efficient data analysis and easier extraction of insights from complex JSON structures. | Naitik Kapadia | — | [`/kits/json-summariser`](./kits/json-summariser) |
+| **Linkedin Post Generator** | This flow builds an AI-powered LinkedIn post automation system. It fetches newsletter emails via API, extracts key content, and generates engaging LinkedIn posts. | Naitik Kapadia | — | [`/kits/linkedin-post-generator`](./kits/linkedin-post-generator) |
+| **LocalBoost AI – Lead Intelligence** | AI-powered lead analysis and outreach generation for local businesses using real website data. | Naitik Kapadia | — | [`/kits/localboost-ai`](./kits/localboost-ai) |
+| **Meeting Notes to Action Items** | — | — | — | [`/kits/meeting-notes-to-action-items`](./kits/meeting-notes-to-action-items) |
+| **Multi Vector Search** | This flow integrates vector search into your website, allowing you to combine results from multiple vector databases and run parallel searches. It then consolidates the results and returns them to users. | Naitik Kapadia | — | [`/kits/multi-vector-search`](./kits/multi-vector-search) |
+| **Plant Care** | This AI-powered plant identification system processes user-provided image links, identifies plants, and generates structured output, enabling seamless analysis and data extraction from images. | Naitik Kapadia | — | [`/kits/plant-care`](./kits/plant-care) |
+| **Postgres Index** | This template indexes data from a PostgresDB, periodically running a cron job to check for new files. It helps teams set up automatic data pipelines from Postgres, vectorizing and indexing data to Lamatic. | Naitik Kapadia | — | [`/kits/postgres-index`](./kits/postgres-index) |
+| **RAG Chatbot** | This flow builds a chatbot that answers questions based on a context database containing all relevant information. User queries are answered using the existing documentation. | Naitik Kapadia | — | [`/kits/rag-chatbot`](./kits/rag-chatbot) |
+| **Recipe Generation** | This AI-powered recipe generation system processes user-provided image links, identifies food items, and generates structured output, enabling seamless analysis and recipe ideation from food images. | Naitik Kapadia | — | [`/kits/recipe-generation`](./kits/recipe-generation) |
+| **Recipe Maker with Memory** | This AI-powered recipe generation system retains user preferences, dietary restrictions, and past interactions to generate personalised recipes with customised cooking instructions tailored to individual needs. | Naitik Kapadia | — | [`/kits/recipe-maker-with-memory`](./kits/recipe-maker-with-memory) |
+| **Resume Parser** | This AI-powered resume parsing system takes a resume as input, extracts key details like name, experience, skills, and education, and converts the information into structured JSON format, enabling efficient candidate profiling and integration into hiring workflows. | Naitik Kapadia | — | [`/kits/resume-parser`](./kits/resume-parser) |
+| **Review Responder** | This AI-powered review analysis and response system automatically classifies customer reviews, analyzes sentiment, and generates personalized email responses tailored to your needs. | Naitik Kapadia | — | [`/kits/review-responder`](./kits/review-responder) |
+| **Search Widget** | This flow builds a search widget that retrieves data from a vector database and a RAG Node, presenting the information in the ideal widget format. | Naitik Kapadia | — | [`/kits/search-widget`](./kits/search-widget) |
+| **Slack Ask Bot** | Delivers instant answers through Slack using the /Ask command by running a RAG retrieval on vectorized data. Provides quick answers to audiences already using Slack. | Naitik Kapadia | — | [`/kits/slack-ask-bot`](./kits/slack-ask-bot) |
+| **Topic Insights** | This flow provides a concise topic overview and demonstrates generic text generation capabilities. Users can gain insights on any chosen subject through a succinct 150-character description. | Naitik Kapadia | — | [`/kits/topic-insights`](./kits/topic-insights) |
+| **Vectorise Link** | This automation allows you to scrape webpage content, vectorize it, and store it in a context store. The vectorized content can then be used to chat with and answer questions about the webpage. | Naitik Kapadia | — | [`/kits/vectorise-link`](./kits/vectorise-link) |
+| **Vectorise S3** | This flow vectorizes S3 data and loads it into a vector database, enabling fast, accurate search and RAG flows grounded in the context of your data. | Naitik Kapadia | — | [`/kits/vectorise-s3`](./kits/vectorise-s3) |
+| **Vectorize Google Drive** | Vectorizes Google Drive data and loads it into a vector database. Enables fast, accurate search and RAG Flows grounded in the context of your data. | Naitik Kapadia | — | [`/kits/vectorize-google-drive`](./kits/vectorize-google-drive) |
+| **Vectorize Google Sheets** | This flow vectorizes Google Sheets data and loads it into a vector database, enabling fast, accurate search and RAG flows grounded in the context of your data. | Naitik Kapadia | — | [`/kits/vectorize-google-sheets`](./kits/vectorize-google-sheets) |
+| **Webpage QA** | This AI-powered system scrapes data from a website, processes it using AI, and enables users to ask questions based on the extracted information. | Naitik Kapadia | — | [`/kits/webpage-qa`](./kits/webpage-qa) |
+
+---
+
+_Generated from [`registry.json`](./registry.json) • Last updated: 2026-04-20_
+<!-- REGISTRY:END -->
+
+> 💡 Each kit folder includes its own `README.md` with specific setup steps, required keys, and example Lamatic flows.
 
 ## 🏛️ Architecture Overview
 
@@ -121,23 +178,23 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
    cd AgentKit
    ```
 
-2. **Select Your AgentKit**
-   - Browse `/kits` for runnable starters, `/bundles` for multi-flow packs, and `/templates` for single-flow exports.
-   - Example:
+2. **Select a Kit**
+   - Browse [`/kits`](./kits) — each entry is a template, bundle, or kit (see `type` in its `lamatic.config.ts`).
+   - Example (running a kit with a Next.js app):
      ```sh
-     cd kits/agentic/deep-search
+     cd kits/deep-search/apps
      ```
 
 3. **Configure Integrations**
-   - Enter API keys, endpoints, and credentials in `.env` or `.env.local` (based on the selected kit). Setup details are documented in each kit/template `README.md`.
+   - Copy `.env.example` → `.env.local` (in the `apps/` directory for kits, in the kit root for bundles). Fill in your Lamatic API key, flow IDs, and any service credentials. Setup details are in each kit's `README.md`.
 
 4. **Run Locally**
-   - From the selected kit directory:
+   - For kits (from `kits/<name>/apps/`):
      ```sh
      npm install
      npm run dev
      ```
-   - For hosted deployment, use the kit-specific Vercel button/config in that kit `README.md`.
+   - For hosted deployment, click the Vercel deploy button in the kit's `README.md`.
 
 5. **Monitor & Scale**
    - Dashboard live at `studio.lamatic.ai`
