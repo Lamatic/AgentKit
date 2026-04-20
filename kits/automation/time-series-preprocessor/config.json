@@ -1,0 +1,22 @@
+{
+    "name": "Time-Series Preprocessor",
+    "description": "An AI-powered assistant that analyzes time-series dataset schemas and generates ready-to-run Python preprocessing pipelines using pandas and scikit-learn.",
+    "tags": ["preprocessing", "Data Engineering"],
+    "author": {
+        "name": "Siddhant Bagga",
+        "email": "siddhantbagga02@gmail.com"
+    },
+    "steps": [
+        {
+            "id": "time-series-preprocessor",
+            "type": "mandatory",
+            "envKey": "TIME_SERIES_PREPROCESSOR"
+        }
+    ],
+    "integrations": [],
+    "features": [],
+    "demoUrl": "",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/time-series-preprocessor",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/automation/time-series-preprocessor&env=TIME_SERIES_PREPROCESSOR,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY",
+    "documentationUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/time-series-preprocessor#readme"
+}

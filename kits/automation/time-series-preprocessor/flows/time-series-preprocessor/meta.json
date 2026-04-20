@@ -1,0 +1,12 @@
+{
+  "name": "Time-Series Preprocessor",
+  "description": "Analyzes a dataset schema and generates a production-ready Python preprocessing pipeline using pandas and scikit-learn.",
+  "tags": [
+    "700b21a3-1ca4-45d4-8b41-89cd91f4f891",
+    "966d123f-da3b-4235-b5a1-1a557646177d"
+  ],
+  "testInput": "",
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}
