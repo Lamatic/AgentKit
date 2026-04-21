@@ -1,0 +1,27 @@
+{
+    "name": "Meeting Intelligence Agent",
+    "description": "Transform chaotic meeting notes into structured action items, decisions, and follow-ups — delivered straight to your inbox.",
+    "tags": ["🤖 Automation", "✨ Generative"],
+    "author": {
+        "name": "Anurag Dubey",
+        "email": "anuragdubey0729@gmail.com"
+    },
+    "steps": [
+        {
+            "id": "meeting-notes-extractor",
+            "type": "mandatory",
+            "envKey": "LAMATIC_FLOW_ID"
+        }
+    ],
+    "integrations": ["groq", "smtp"],
+    "features": [
+        "Extracts action items with owner, deadline, and priority",
+        "Sends formatted email report automatically",
+        "Works with any meeting notes format",
+        "Copy all results to clipboard"
+    ],
+    "demoUrl": "https://meeting-intelligence-tau.vercel.app/",
+    "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/automation/meeting-intelligence",
+    "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/AnuragDubey007/AgentKit",
+    "documentationUrl": ""
+}
