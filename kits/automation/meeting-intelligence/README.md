@@ -191,7 +191,7 @@ kits/automation/meeting-intelligence/
 ## Contributing
 
 This kit is part of [Lamatic AgentKit](https://github.com/Lamatic/AgentKit).  
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](../../../CONTRIBUTING.md) for guidelines.
 
 ---
 
