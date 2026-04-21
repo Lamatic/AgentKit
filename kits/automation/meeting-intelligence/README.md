@@ -92,11 +92,6 @@ The entire intelligence pipeline runs inside Lamatic — 5 nodes, zero backend s
 
 ### 1. Clone and install
 
-```bash
-git clone https://github.com/AnuragDubey007/meeting-intelligence
-cd meeting-intelligence
-npm install
-```
 
 ### 2. Set up environment variables
 
