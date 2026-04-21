@@ -1,0 +1,5 @@
+{
+  "name": "Support Triage",
+  "description": "Analyzes customer sentiment and categorizes support tickets.",
+  "version": "1.0.0"
+}

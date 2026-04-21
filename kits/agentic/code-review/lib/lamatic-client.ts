@@ -1,18 +1,17 @@
-import { Lamatic } from "lamatic";
-import {config} from '../orchestrate.js'
+import { Lamatic } from "lamatic"
 
-import { Lamatic } from "lamatic";
+const lamaticApiUrl = process.env.LAMATIC_API_URL?.trim()
+const lamaticProjectId = process.env.LAMATIC_PROJECT_ID?.trim()
+const lamaticApiKey = process.env.LAMATIC_API_KEY?.trim()
 
-if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
-
-if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
+if (!lamaticApiUrl || !lamaticProjectId || !lamaticApiKey) {
   throw new Error(
-    "All API Credentials in environment variable are not set. Please add it to your .env.local file."
-  );
+    "All Lamatic API credentials must be set in the environment before the client can be created."
+  )
 }
 
 export const lamaticClient = new Lamatic({
-  endpoint: process.env.LAMATIC_API_URL ?? "",
-  projectId: process.env.LAMATIC_PROJECT_ID ?? null,
-  apiKey: process.env.LAMATIC_API_KEY ?? ""
-});
+  endpoint: lamaticApiUrl,
+  projectId: lamaticProjectId,
+  apiKey: lamaticApiKey,
+})

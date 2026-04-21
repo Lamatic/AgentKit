@@ -1,0 +1,22 @@
+{
+  "name": "Legal Assistant",
+  "description": "A legal assistant chatbot that summarizes legal context, provides references, and suggests next steps for informational use.",
+  "tags": ["Assistant", "Legal", "Compliance"],
+  "author": {
+    "name": "Lamatic AI",
+    "email": "info@lamatic.ai"
+  },
+  "steps": [
+    {
+      "id": "assistant-legal-advisor",
+      "type": "mandatory",
+      "envKey": "ASSISTANT_LEGAL_ADVISOR"
+    }
+  ],
+  "integrations": [],
+  "features": [],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/legal",
+  "deployUrl": "",
+  "documentationUrl": ""
+}
