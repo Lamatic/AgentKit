@@ -1,0 +1,19 @@
+{
+  "name": "Warehouse Analyst AI",
+  "description": "Ask your PostgreSQL warehouse database anything in plain English. No SQL queries required.",
+  "tags": [
+    "assistant",
+    "postgresql",
+    "natural-language",
+    "warehouse",
+    "chatbot",
+    "lamatic.ai"
+  ],
+  "author": "kapvm4444",
+  "env": [
+    "LAMATIC_API_KEY",
+    "LAMATIC_ENDPOINT",
+    "LAMATIC_FLOW_ID",
+    "DATABASE_URL"
+  ]
+}

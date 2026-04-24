@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background rounded square with primary teal -->
+  <rect width="32" height="32" rx="7" fill="#0d9488"/>
+
+  <!-- Warehouse building shape (simplified) -->
+  <!-- Roof / top triangle ridge -->
+  <polygon points="4,14 16,6 28,14" fill="#ccfbf1" opacity="0.95"/>
+
+  <!-- Main body -->
+  <rect x="6" y="14" width="20" height="13" rx="0.5" fill="#99f6e4" opacity="0.9"/>
+
+  <!-- Left window -->
+  <rect x="8" y="17" width="5" height="4" rx="0.5" fill="#0d9488"/>
+
+  <!-- Right window -->
+  <rect x="19" y="17" width="5" height="4" rx="0.5" fill="#0d9488"/>
+
+  <!-- Door / entrance -->
+  <rect x="13" y="20" width="6" height="7" rx="0.5" fill="#0d9488"/>
+
+  <!-- Small dot accent (AI indicator) -->
+  <circle cx="25" cy="8" r="3" fill="#f0fdf4"/>
+  <circle cx="25" cy="8" r="1.5" fill="#0d9488"/>
+</svg>
