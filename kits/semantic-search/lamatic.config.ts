@@ -7,7 +7,7 @@ export default {
   tags: ["document","support"],
   steps: [
     {
-        "id": "data-source",
+        "id": "data_source",
         "type": "any-of",
         "options": [
             {
@@ -42,7 +42,7 @@ export default {
         "id": "semantic-search",
         "type": "mandatory",
         "prerequisiteSteps": [
-            "data-source"
+            "data_source"
         ]
     }
 ],
