@@ -37,6 +37,11 @@ export default {
     {
         "id": "data_source_prerequisite",
         "type": "any-of",
+        "appearsIf": {
+            "selectedStepIds": [
+                "agentic-reasoning-data-source"
+            ]
+        },
         "options": [
             {
                 "id": "gdrive",

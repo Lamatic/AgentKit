@@ -14,7 +14,7 @@ export default {
         "id": "chatbot-widget",
         "type": "mandatory",
         "prerequisiteSteps": [
-            "data-source"
+            "data_source"
         ]
     }
 ],

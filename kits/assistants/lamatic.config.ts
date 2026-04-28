@@ -7,7 +7,7 @@ export default {
   tags: ["startup","document"],
   steps: [
     {
-        "id": "data-source",
+        "id": "data_source",
         "type": "any-of",
         "options": [
             {
@@ -53,7 +53,7 @@ export default {
             }
         ],
         "prerequisiteSteps": [
-            "data-source"
+            "data_source"
         ],
         "minSelection": 1,
         "maxSelection": 1

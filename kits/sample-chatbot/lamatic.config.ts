@@ -7,7 +7,7 @@ export default {
   tags: ["support","document"],
   steps: [
     {
-        "id": "data-source",
+        "id": "data_source",
         "type": "any-of",
         "options": [
             {
@@ -42,7 +42,7 @@ export default {
         "id": "knowledge-chatbot",
         "type": "mandatory",
         "prerequisiteSteps": [
-            "data-source"
+            "data_source"
         ]
     }
 ],

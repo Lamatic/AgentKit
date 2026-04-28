@@ -9,22 +9,26 @@ export default {
     {
         "id": "flow-1-upload-pdf-build-tree-save",
         "type": "mandatory",
-        "envKey": "FLOW_ID_UPLOAD"
+        "envKey": "FLOW_ID_UPLOAD",
+        "description": "Upload PDF → build hierarchical tree index → save to Supabase"
     },
     {
         "id": "chat-with-pdf",
         "type": "mandatory",
-        "envKey": "FLOW_ID_CHAT"
+        "envKey": "FLOW_ID_CHAT",
+        "description": "Tree-navigated search → page content fetch → LLM answer"
     },
     {
         "id": "flow-list-all-documents",
         "type": "mandatory",
-        "envKey": "FLOW_ID_LIST"
+        "envKey": "FLOW_ID_LIST",
+        "description": "List all uploaded documents from Supabase"
     },
     {
         "id": "flow-4-get-tree-structure",
         "type": "mandatory",
-        "envKey": "FLOW_ID_TREE"
+        "envKey": "FLOW_ID_TREE",
+        "description": "Get full tree JSON for a document or delete a document"
     }
 ],
   links: {
