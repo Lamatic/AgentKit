@@ -1,0 +1,704 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
+  "version": "1.0.0",
+  "generated": "2026-04-28T15:56:57.428Z",
+  "repository": "https://github.com/Lamatic/AgentKit",
+  "count": 10,
+  "typeCounts": {
+    "kit": 4,
+    "bundle": 3,
+    "template": 3
+  },
+  "entries": [
+    {
+      "slug": "deep-search",
+      "name": "Deep Research",
+      "description": "Customized agentic deep research across both internal and external data sources.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "agentic",
+        "reasoning",
+        "growth"
+      ],
+      "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "agentic-reasoning-generate-steps",
+          "type": "mandatory",
+          "envKey": "AGENTIC_REASONING_GENERATE_STEPS"
+        },
+        {
+          "id": "step2",
+          "type": "any-of",
+          "options": [
+            {
+              "id": "agentic-reasoning-search-web",
+              "prerequisiteSteps": [
+                "agentic-reasoning-generate-steps"
+              ],
+              "envKey": "AGENTIC_REASONING_SEARCH_WEB"
+            },
+            {
+              "id": "agentic-reasoning-data-source",
+              "prerequisiteSteps": [
+                "agentic-reasoning-generate-steps",
+                "data_source_prerequisite"
+              ],
+              "envKey": "AGENTIC_REASONING_DATA_SOURCE"
+            }
+          ],
+          "minSelection": 1,
+          "maxSelection": 2
+        },
+        {
+          "id": "data_source_prerequisite",
+          "type": "any-of",
+          "options": [
+            {
+              "id": "gdrive",
+              "envKey": "AGENTIC_REASONING_GDRIVE"
+            },
+            {
+              "id": "gsheet",
+              "envKey": "AGENTIC_REASONING_GSHEET"
+            },
+            {
+              "id": "onedrive",
+              "envKey": "AGENTIC_REASONING_ONEDRIVE"
+            },
+            {
+              "id": "postgres",
+              "envKey": "AGENTIC_REASONING_POSTGRES"
+            },
+            {
+              "id": "s3",
+              "envKey": "AGENTIC_REASONING_S3"
+            },
+            {
+              "id": "scraping-indexation",
+              "envKey": "AGENTIC_REASONING_SCRAPING_INDEXATION"
+            },
+            {
+              "id": "sharepoint",
+              "envKey": "AGENTIC_REASONING_SHAREPOINT"
+            }
+          ],
+          "minSelection": 1,
+          "maxSelection": 1
+        },
+        {
+          "id": "agentic-reasoning-final",
+          "type": "mandatory",
+          "envKey": "AGENTIC_REASONING_FINAL",
+          "prerequisiteSteps": [
+            "step2"
+          ]
+        }
+      ],
+      "links": {
+        "demo": "https://agent-kit-reasoning.vercel.app",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/deep-search",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fdeep-search%2Fapps",
+        "docs": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-deep-search"
+      },
+      "path": "kits/deep-search",
+      "flows": {
+        "count": 12,
+        "names": [
+          "agentic-reasoning-data-source",
+          "agentic-reasoning-final",
+          "agentic-reasoning-generate-steps",
+          "agentic-reasoning-search-web",
+          "crawling-indexation",
+          "gdrive",
+          "gsheet",
+          "onedrive",
+          "postgres",
+          "s3",
+          "scraping-indexation",
+          "sharepoint"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 19,
+        "modelConfigs": 4,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "content-generation",
+      "name": "Generative AI",
+      "description": "It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "agentic",
+        "generative"
+      ],
+      "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "agentic-generate-content",
+          "type": "mandatory",
+          "envKey": "AGENTIC_GENERATE_CONTENT"
+        }
+      ],
+      "links": {
+        "demo": "https://agent-kit-generation.vercel.app/",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/content-generation",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fcontent-generation%2Fapps&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation",
+        "docs": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+      },
+      "path": "kits/content-generation",
+      "flows": {
+        "count": 1,
+        "names": [
+          "agentic-generate-content"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 3,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "embed-chat",
+      "name": "Embedded Chat",
+      "description": "It uses intelligent workflows to index PDFs and webpages, then provides an interactive chat interface where users can ask questions about their documents through a modern Next.js interface.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "embedded",
+        "support"
+      ],
+      "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "embedded-chatbot-pdf-indexation",
+          "type": "mandatory",
+          "envKey": "EMBEDDED_CHATBOT_PDF_INDEXATION"
+        },
+        {
+          "id": "embedded-chatbot-websites-indexation",
+          "type": "mandatory",
+          "envKey": "EMBEDDED_CHATBOT_WEBSITES_INDEXATION"
+        },
+        {
+          "id": "embedded-chatbot-chatbot",
+          "type": "mandatory",
+          "envKey": "EMBEDDED_CHATBOT_CHATBOT"
+        },
+        {
+          "id": "embedded-chatbot-resource-deletion",
+          "type": "mandatory",
+          "envKey": "EMBEDDED_CHATBOT_RESOURCE_DELETION"
+        }
+      ],
+      "links": {
+        "demo": "https://agent-kit-embedded-chat.vercel.app",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/embed-chat",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fembed-chat%2Fapps&env=EMBEDDED_CHATBOT_PDF_INDEXATION,EMBEDDED_CHATBOT_WEBSITES_INDEXATION,EMBEDDED_CHATBOT_RESOURCE_DELETION,EMBEDDED_CHATBOT_CHATBOT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Config%Embedded%20Chat%20keys%20and%20Blob%20token%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat",
+        "docs": "https://lamatic.ai/templates/agentkits/embed/agent-kit-embed-chat"
+      },
+      "path": "kits/embed-chat",
+      "flows": {
+        "count": 4,
+        "names": [
+          "embedded-chatbot-chatbot",
+          "embedded-chatbot-pdf-indexation",
+          "embedded-chatbot-resource-deletion",
+          "embedded-chatbot-websites-indexation"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 7,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 1,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": true,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "hiring",
+      "name": "Hiring Automation",
+      "description": "It uses intelligent workflows to analyze resumes, match candidates to job requirements, and provide detailed hiring recommendations through a modern Next.js interface.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "automation",
+        "apps",
+        "startup"
+      ],
+      "author": {
+        "name": "Lamatic AI",
+        "email": "info@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "automation-hiring",
+          "type": "mandatory",
+          "envKey": "AUTOMATION_HIRING"
+        }
+      ],
+      "links": {
+        "demo": "https://agent-kit-hiring.vercel.app",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/hiring",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fhiring%2Fapps&env=AUTOMATION_HIRING,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Config%20Hiring%20key%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring",
+        "docs": "https://lamatic.ai/templates/agentkits/automation/agent-kit-hiring"
+      },
+      "path": "kits/hiring",
+      "flows": {
+        "count": 1,
+        "names": [
+          "automation-hiring"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 4,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "knowledge-chatbot",
+      "name": "RAG (Retrieval-Augmented Generation)",
+      "description": "Generate accurate responses using large volumes of structured and unstructured data",
+      "version": "1.0.0",
+      "type": "bundle",
+      "tags": [
+        "support",
+        "document"
+      ],
+      "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "data-source",
+          "type": "any-of",
+          "options": [
+            {
+              "id": "gdrive"
+            },
+            {
+              "id": "gsheet"
+            },
+            {
+              "id": "onedrive"
+            },
+            {
+              "id": "postgres"
+            },
+            {
+              "id": "s3"
+            },
+            {
+              "id": "scraping-indexation"
+            },
+            {
+              "id": "sharepoint"
+            },
+            {
+              "id": "crawling-indexation"
+            }
+          ],
+          "minSelection": 1,
+          "maxSelection": 1
+        },
+        {
+          "id": "knowledge-chatbot",
+          "type": "mandatory",
+          "prerequisiteSteps": [
+            "data-source"
+          ]
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/knowledge-chatbot"
+      },
+      "path": "kits/knowledge-chatbot",
+      "flows": {
+        "count": 9,
+        "names": [
+          "crawling-indexation",
+          "gdrive",
+          "gsheet",
+          "knowledge-chatbot",
+          "onedrive",
+          "postgres",
+          "s3",
+          "scraping-indexation",
+          "sharepoint"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 17,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 1,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": true,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "semantic-search",
+      "name": "Semantic Search",
+      "description": "Perform natural language search ( aka vector search ) across structured and unstructured data effortlessly.",
+      "version": "1.0.0",
+      "type": "bundle",
+      "tags": [
+        "document",
+        "support"
+      ],
+      "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "data-source",
+          "type": "any-of",
+          "options": [
+            {
+              "id": "gdrive"
+            },
+            {
+              "id": "gsheet"
+            },
+            {
+              "id": "onedrive"
+            },
+            {
+              "id": "postgres"
+            },
+            {
+              "id": "s3"
+            },
+            {
+              "id": "scraping-indexation"
+            },
+            {
+              "id": "sharepoint"
+            },
+            {
+              "id": "crawling-indexation"
+            }
+          ],
+          "minSelection": 1,
+          "maxSelection": 1
+        },
+        {
+          "id": "semantic-search",
+          "type": "mandatory",
+          "prerequisiteSteps": [
+            "data-source"
+          ]
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/semantic-search"
+      },
+      "path": "kits/semantic-search",
+      "flows": {
+        "count": 9,
+        "names": [
+          "crawling-indexation",
+          "gdrive",
+          "gsheet",
+          "onedrive",
+          "postgres",
+          "s3",
+          "scraping-indexation",
+          "semantic-search",
+          "sharepoint"
+        ]
+      },
+      "resources": {
+        "prompts": 0,
+        "scripts": 18,
+        "modelConfigs": 0,
+        "constitutions": 1,
+        "triggers": 1,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": true
+      }
+    },
+    {
+      "slug": "document-parsing",
+      "name": "Document Parsing",
+      "description": "Extract valuable insights from documents and unstructured information at scale.",
+      "version": "1.0.0",
+      "type": "bundle",
+      "tags": [
+        "document",
+        "generative"
+      ],
+      "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "document-parsing-etl",
+          "type": "mandatory"
+        },
+        {
+          "id": "chatbot-widget",
+          "type": "mandatory",
+          "prerequisiteSteps": [
+            "data-source"
+          ]
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/document-parsing"
+      },
+      "path": "kits/document-parsing",
+      "flows": {
+        "count": 2,
+        "names": [
+          "chatbot-widget",
+          "document-parsing-etl"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 4,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 1,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": true,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "rag-chatbot",
+      "name": "RAG Chatbot",
+      "description": "This flow builds a chatbot that answers questions based on a context database containing all relevant information. User queries are answered using the existing documentation.",
+      "version": "1.0.0",
+      "type": "template",
+      "tags": [
+        "support",
+        "startup"
+      ],
+      "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "rag-chatbot",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "deploy": "https://studio.lamatic.ai/template/rag-chatbot",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/rag-chatbot"
+      },
+      "path": "kits/rag-chatbot",
+      "flows": {
+        "count": 1,
+        "names": [
+          "rag-chatbot"
+        ]
+      },
+      "resources": {
+        "prompts": 1,
+        "scripts": 0,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 1,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": true,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "article-summariser",
+      "name": "Article Summariser",
+      "description": "This workflow automates summarizing articles. It takes URLs, extracts content using Firecrawl, and generates concise summaries using an LLM, making it easier to quickly understand key points of long articles.",
+      "version": "1.0.0",
+      "type": "template",
+      "tags": [
+        "generative",
+        "support"
+      ],
+      "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "article-summariser",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "deploy": "https://studio.lamatic.ai/template/article-summariser",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/article-summariser"
+      },
+      "path": "kits/article-summariser",
+      "flows": {
+        "count": 1,
+        "names": [
+          "article-summariser"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 0,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "blog-writer-agent",
+      "name": "Blog Writer Agent",
+      "description": "This automation generates a blog on any given topic by searching the internet for the most relevant source, then writing the blog in the user's desired tone.",
+      "version": "1.0.0",
+      "type": "template",
+      "tags": [
+        "generative"
+      ],
+      "author": {
+        "name": "Naitik Kapadia",
+        "email": "naitikk@lamatic.ai"
+      },
+      "steps": [
+        {
+          "id": "blog-writer-agent",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "deploy": "https://studio.lamatic.ai/template/blog-writer-agent",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/blog-writer-agent"
+      },
+      "path": "kits/blog-writer-agent",
+      "flows": {
+        "count": 1,
+        "names": [
+          "blog-writer-agent"
+        ]
+      },
+      "resources": {
+        "prompts": 3,
+        "scripts": 2,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    }
+  ]
+}
