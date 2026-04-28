@@ -121,26 +121,24 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
+// Deployer-configurable fields, keyed by node ID (matches deep-search pattern).
+// Payload fields (draft, keywords) come in via the trigger's `advance_schema`
+// and are NOT part of `inputs` — those are runtime args, not pre-deployment config.
 export const inputs = {
-  "inputs": [
+  "LLMNode_seo": [
     {
-      "name": "draft",
-      "type": "string",
+      "mode": "chat",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
       "required": true,
-      "description": "The blog post draft to optimize"
-    },
-    {
-      "name": "keywords",
-      "type": "string",
-      "required": true,
-      "description": "Target keywords for SEO optimization"
-    }
-  ],
-  "outputs": [
-    {
-      "name": "generatedResponse",
-      "type": "string",
-      "description": "The SEO-optimized blog post in Markdown format"
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model used to SEO-optimize the blog draft.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
     }
   ]
 };

@@ -117,32 +117,25 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
+// Deployer-configurable fields, keyed by node ID (matches deep-search pattern).
+// Payload fields (topic, keywords, instructions) come in via the trigger's
+// `advance_schema` and are NOT part of `inputs` — those are runtime args, not
+// pre-deployment configuration.
 export const inputs = {
-  "inputs": [
+  "LLMNode_drafting": [
     {
-      "name": "topic",
-      "type": "string",
+      "mode": "chat",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
       "required": true,
-      "description": "The topic or title for the blog post"
-    },
-    {
-      "name": "keywords",
-      "type": "string",
-      "required": true,
-      "description": "Comma-separated keywords to include in the blog post"
-    },
-    {
-      "name": "instructions",
-      "type": "string",
-      "required": false,
-      "description": "Additional instructions for the AI (tone, length, style, etc.)"
-    }
-  ],
-  "outputs": [
-    {
-      "name": "generatedResponse",
-      "type": "string",
-      "description": "The generated blog post draft"
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model to draft the blog post.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
     }
   ]
 };

@@ -94,12 +94,15 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
-export const inputs = {
-  "ticket_text": {
-    "type": "string",
-    "description": "The inbound customer ticket text"
-  }
-};
+// Deployer-configurable fields, keyed by node ID (matches deep-search pattern).
+// This flow is a SCAFFOLD — `nodes` and `edges` are empty arrays awaiting a
+// proper Studio export. Once nodes are added (LLMNode for triage, etc.), this
+// object should declare each node's required `generativeModelName` etc.
+//
+// `ticket_text` is the trigger payload field (runtime arg), NOT a deployer
+// input — it should live in the trigger node's `advance_schema` once the flow
+// graph is exported.
+export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Resources this flow depends on — each lives in its own directory
