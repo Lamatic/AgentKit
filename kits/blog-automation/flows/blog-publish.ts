@@ -110,39 +110,12 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
-export const inputs = {
-  "inputs": [
-    {
-      "name": "title",
-      "type": "string",
-      "required": true,
-      "description": "The title of the blog post"
-    },
-    {
-      "name": "content",
-      "type": "string",
-      "required": true,
-      "description": "The blog post content to publish"
-    }
-  ],
-  "outputs": [
-    {
-      "name": "url",
-      "type": "string",
-      "description": "The URL of the published blog post"
-    },
-    {
-      "name": "status",
-      "type": "string",
-      "description": "The publish status (publish, draft, etc.)"
-    },
-    {
-      "name": "id",
-      "type": "number",
-      "description": "The ID of the published post"
-    }
-  ]
-};
+// Deployer-configurable fields, keyed by node ID (matches deep-search pattern).
+// This flow only contains a graphqlNode + apiNode + graphqlResponseNode — none
+// of which require pre-deployment configuration via `inputs`. Title/content come
+// in via the trigger's `advance_schema` (runtime payload, not deployer config).
+// The CMS endpoint and credentials live on the apiNode itself.
+export const inputs = {};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories

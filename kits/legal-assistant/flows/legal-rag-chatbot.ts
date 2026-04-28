@@ -131,7 +131,53 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
-export const inputs = {};
+// Deployer-configurable fields, keyed by node ID (matches deep-search pattern).
+// The RAG node needs three pieces of configuration before it can run:
+// the vector DB to query, the embedding model, and the generative model.
+export const inputs = {
+  "RAGNode_919": [
+    {
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Vector DB",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database holding the indexed legal corpus.",
+      "typeOptions": {
+        "loadOptionsMethod": "listVectorDBs"
+      },
+      "defaultValue": ""
+    },
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedding",
+      "description": "Select the embedding model used when querying the vector DB.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    },
+    {
+      "mode": "chat",
+      "name": "generativeModelName",
+      "type": "model",
+      "label": "Generative Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "generator/text",
+      "description": "Select the model that generates the final answer with citations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
 
 // ── References ────────────────────────────────────────
 // Cross-references to extracted resources in their own directories
