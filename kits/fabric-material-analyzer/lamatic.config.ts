@@ -1,5 +1,5 @@
 export default {
-  name: "FabLens",
+  name: "fablens",
   description: "Analyzes clothing product URLs to identify materials and provide factual environmental and skin safety insights.",
   version: "1.0.0",
   type: "kit" as const,
