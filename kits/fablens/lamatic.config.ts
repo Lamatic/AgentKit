@@ -13,7 +13,6 @@ export default {
     {
       id: "fabric-material-analyzer",
       type: "mandatory" as const,
-      envKey: "FABLENS_WORKFLOW_ID",
     },
   ],
   links: {
