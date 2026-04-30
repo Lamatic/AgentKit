@@ -1,22 +1,42 @@
-import { materialDB } from '../../../lib/materialDB';
+import { materialDB } from "../../../lib/materialDB";
 
 function normalizeMaterial(raw: string): string {
   return raw
     .toLowerCase()
-    .replace(/\d+%\s*/g, '')
-    .replace(/recycled\s*/g, '')
+    .replace(/\d+%\s*/g, "")
+    .replace(/recycled\s*/g, "")
     .trim();
+}
+
+function safeJSONParse(raw: any) {
+  try {
+    if (typeof raw === "object") return raw;
+    return JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    return null;
+  }
+}
+
+function splitCompound(mat: string): string[] {
+  const compounds: Record<string, string[]> = {
+    "viscose rayon": ["viscose", "rayon"],
+    "rayon viscose": ["viscose", "rayon"],
+  };
+  return compounds[mat] || [mat];
 }
 
 export async function POST(req: Request) {
   try {
     if (!process.env.LAMATIC_API_KEY) {
-      return Response.json({ materials: [], note: "Missing API key." }, { status: 500 });
+      return Response.json(
+        { materials: [], note: "Missing API key." },
+        { status: 500 }
+      );
     }
 
     const { url } = await req.json();
 
-    // scrape and extract materials via Lamatic flow
+    // -------- PRIMARY AI CALL --------
     const response = await fetch(
       "https://yashasvisorganization952-yashasvisproject443.lamatic.dev/graphql",
       {
@@ -41,43 +61,57 @@ export async function POST(req: Request) {
       }
     );
 
-    const data = await response.json();
-    const workflowResult = data?.data?.executeWorkflow?.result;
-    let raw = workflowResult?.answer ?? workflowResult?.output ?? workflowResult;
-
-    if (!raw) return Response.json({ materials: [], note: "No response from AI" });
-
-    let parsed: any;
-    if (typeof raw === "object") {
-      parsed = raw;
-    } else {
-      parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    if (!response.ok) {
+      throw new Error("Primary API request failed");
     }
 
-    const rawMaterials: string[] = parsed.materials || [];
+    const data = await response.json();
+    const workflowResult = data?.data?.executeWorkflow?.result;
+
+    let raw =
+      workflowResult?.answer ??
+      workflowResult?.output ??
+      workflowResult;
+
+    if (!raw) {
+      return Response.json({
+        materials: [],
+        note: "No response from AI",
+      });
+    }
+
+    const parsed = safeJSONParse(raw);
+
+    if (!parsed) {
+      return Response.json({
+        materials: [],
+        note: "Failed to parse AI response",
+      });
+    }
+
+    const rawMaterials: string[] =
+      parsed.materials ||
+      parsed.fabric ||
+      parsed.textiles ||
+      [];
 
     if (rawMaterials.length === 0) {
       return Response.json({
         materials: [],
-        note: parsed.note || "This manufacturer has not disclosed the materials used in this product.",
+        note:
+          parsed.note ||
+          "This manufacturer has not disclosed materials.",
       });
     }
 
-    // normalize material names
-
-    function splitCompound(mat: string): string[] {
-      const compounds: Record<string, string[]> = {
-        "viscose rayon": ["viscose", "rayon"],
-        "rayon viscose": ["viscose", "rayon"],
-      };
-      return compounds[mat] || [mat];
-    }
+    // -------- NORMALIZATION --------
     const normalized = rawMaterials.map(normalizeMaterial);
-    const displayMaterials = [...new Set(normalized.flatMap(splitCompound))];
+    const displayMaterials = [
+      ...new Set(normalized.flatMap(splitCompound)),
+    ];
 
-    // split into known (in DB) and unknown
-    const known = displayMaterials.filter(m => materialDB[m]);
-    const unknown = displayMaterials.filter(m => !materialDB[m]);
+    const known = displayMaterials.filter((m) => materialDB[m]);
+    const unknown = displayMaterials.filter((m) => !materialDB[m]);
 
     let ecoScore = 0;
     let skinScore = 0;
@@ -85,7 +119,7 @@ export async function POST(req: Request) {
     let skinReasons: string[] = [];
     let negatives: string[] = [];
 
-    // score known materials from DB
+    // -------- KNOWN MATERIAL SCORING --------
     known.forEach((mat) => {
       const m = materialDB[mat];
       if (!m) return;
@@ -98,25 +132,27 @@ export async function POST(req: Request) {
       }
 
       if (m.waterUsage === "low") ecoScore += 10;
-      else if (m.waterUsage === "high") negatives.push(`${mat} requires high water usage in production`);
+      else if (m.waterUsage === "high")
+        negatives.push(`${mat} uses high water`);
 
       if (m.chemicalUse === "low") ecoScore += 10;
-      else if (m.chemicalUse === "high") negatives.push(`${mat} involves heavy chemical processing`);
+      else if (m.chemicalUse === "high")
+        negatives.push(`${mat} uses heavy chemicals`);
 
       if (m.breathability === "high") {
         skinScore += 30;
-        skinReasons.push(`${mat} is highly breathable`);
+        skinReasons.push(`${mat} is breathable`);
       }
 
       if (m.irritationRisk === "low") {
         skinScore += 30;
-        skinReasons.push(`${mat} has low irritation risk`);
+        skinReasons.push(`${mat} is skin-safe`);
       } else if (m.irritationRisk === "high") {
-        negatives.push(`${mat} has high skin irritation risk`);
+        negatives.push(`${mat} may irritate skin`);
       }
     });
 
-    // AI fallback for unknown materials
+    // -------- AI FALLBACK FOR UNKNOWN --------
     if (unknown.length > 0) {
       try {
         const aiRes = await fetch(
@@ -135,41 +171,39 @@ export async function POST(req: Request) {
                 }
               }`,
               variables: {
-                workflowId: "55a58aab-872b-463f-94b1-e0fbfc1c2056",
-                question: `Analyze these textile materials for environmental and skin impact: ${unknown.join(", ")}.
-Return ONLY this JSON with no explanation:
-{
-  "ecoScore": <number 0-50>,
-  "skinScore": <number 0-60>,
-  "ecoReasons": ["reason1"],
-  "skinReasons": ["reason1"],
-  "negatives": ["concern1"]
-}`,
+                workflowId:
+                  "55a58aab-872b-463f-94b1-e0fbfc1c2056",
+                question: `Analyze these materials: ${unknown.join(
+                  ", "
+                )}. Return JSON only.`,
               },
             }),
           }
         );
 
-        const aiData = await aiRes.json();
-        let aiRaw = aiData?.data?.executeWorkflow?.result?.answer;
+        if (aiRes.ok) {
+          const aiData = await aiRes.json();
+          let aiRaw =
+            aiData?.data?.executeWorkflow?.result?.answer;
 
-        if (aiRaw) {
-          if (typeof aiRaw !== "object") {
-            aiRaw = JSON.parse(aiRaw.replace(/```json|```/g, "").trim());
+          const parsedAI = safeJSONParse(aiRaw);
+
+          if (parsedAI) {
+            ecoScore += parsedAI.ecoScore || 0;
+            skinScore += parsedAI.skinScore || 0;
+            ecoReasons.push(...(parsedAI.ecoReasons || []));
+            skinReasons.push(...(parsedAI.skinReasons || []));
+            negatives.push(...(parsedAI.negatives || []));
           }
-          ecoScore += aiRaw.ecoScore || 0;
-          skinScore += aiRaw.skinScore || 0;
-          ecoReasons.push(...(aiRaw.ecoReasons || []));
-          skinReasons.push(...(aiRaw.skinReasons || []));
-          negatives.push(...(aiRaw.negatives || []));
         }
-      } catch { }
+      } catch (err) {
+        console.error("AI fallback failed:", err);
+      }
     }
 
-    // normalize scores
-    const total = known.length + unknown.length || 1;
-    ecoScore = Math.min(100, Math.round(ecoScore / total));
-    skinScore = Math.min(100, Math.round(skinScore / total));
+    // -------- FINAL NORMALIZATION --------
+    ecoScore = Math.min(100, ecoScore);
+    skinScore = Math.min(100, skinScore);
 
     return Response.json({
       materials: displayMaterials,
@@ -179,9 +213,11 @@ Return ONLY this JSON with no explanation:
       skinReasons,
       negatives,
     });
-
-  } catch (e) {
-    console.error(e);
-    return Response.json({ materials: [], note: "Internal server error" }, { status: 500 });
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return Response.json(
+      { materials: [], note: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
