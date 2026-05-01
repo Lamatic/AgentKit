@@ -42,27 +42,26 @@ export default function ExportButton({ targetId, filename }: Props) {
       // 3. Restore original responsive styles
       element.style.cssText = originalStyle;
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      // 2. Configure jsPDF
+      // A4 dimensions: 210mm x 297mm
+      const pdf = new jsPDF({
+        orientation: "p",
+        unit: "mm",
+        format: "a4",
+      });
 
-      // Handle multi-page
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      let heightLeft = pdfHeight;
-      let position = 0;
+      // 3. Use the modern .html() method which handles pagination/clipping much better
+      await pdf.html(element, {
+        callback: function (doc) {
+          doc.save(`${filename}.pdf`);
+        },
+        x: 10,
+        y: 10,
+        width: 190, // Target width in mm (A4 is 210mm, giving us 10mm margins)
+        windowWidth: 800, // Render at our standard 800px width
+        autoPaging: "text", // This is the magic that prevents clipping lines
+      });
 
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`${filename}.pdf`);
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err) {
