@@ -22,12 +22,25 @@ export default function ExportButton({ targetId, filename }: Props) {
       const element = document.getElementById(targetId);
       if (!element) throw new Error("Document element not found");
 
+      // 1. Store original styles to restore later
+      const originalStyle = element.style.cssText;
+      
+      // 2. Force a standard A4-friendly width for the capture
+      // This prevents the PDF from depending on the current device width
+      element.style.width = "800px";
+      element.style.minWidth = "800px";
+      element.style.maxWidth = "800px";
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#fafaf8",
+        width: 800, // Explicitly tell html2canvas to use this width
       });
+
+      // 3. Restore original responsive styles
+      element.style.cssText = originalStyle;
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
