@@ -182,7 +182,7 @@ kits/forge/
 1. Push your branch to GitHub:
    ```bash
    git checkout -b feat/forge
-   git add kits/agentic/forge/
+   git add kits/forge/
    git commit -m "feat: Add Forge - AI Contract & Invoice Generator"
    git push origin feat/forge
    ```
