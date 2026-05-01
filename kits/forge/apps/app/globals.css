@@ -434,17 +434,3 @@ textarea:focus {
   position: relative;
   z-index: 10;
 }
-/* --- ERROR SPRITE ANIMATION --- */
-.error-sprite {
-  width: 160px;
-  height: 160px;
-  background-image: url('/error-sprite.png');
-  background-size: 400% 100%;
-  image-rendering: pixelated; /* Keeps it sharp if it's pixel art style */
-  animation: sprite-animation 1s steps(4) infinite;
-}
-
-@keyframes sprite-animation {
-  from { background-position: 0% 0; }
-  to { background-position: 100% 0; }
-}

@@ -9,9 +9,18 @@ interface GalaxyButtonProps {
   text: string;
   onClick?: () => void;
   disabled?: boolean;
+  icon?: React.ReactNode;
+  showArrow?: boolean;
 }
 
-export function GalaxyButton({ href, text, onClick, disabled }: GalaxyButtonProps) {
+export function GalaxyButton({ 
+  href, 
+  text, 
+  onClick, 
+  disabled, 
+  icon, 
+  showArrow = true 
+}: GalaxyButtonProps) {
   // Deterministic pseudo-random generator based on index to avoid hydration mismatch
   const pseudoRandom = (seed: number, min: number, max: number) => {
     const x = Math.sin(seed++) * 10000;
@@ -85,8 +94,9 @@ export function GalaxyButton({ href, text, onClick, disabled }: GalaxyButtonProp
         </span>
         
         <span className="galaxy-text flex items-center gap-2">
+          {icon}
           {text}
-          <ArrowRight className="w-5 h-5 text-current opacity-80" />
+          {showArrow && <ArrowRight className="w-5 h-5 text-current opacity-80" />}
         </span>
       </button>
   );

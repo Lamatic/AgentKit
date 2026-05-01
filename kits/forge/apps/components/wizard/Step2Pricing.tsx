@@ -25,6 +25,8 @@ export default function Step2Pricing({ onComplete, onBack }: Props) {
     setLoading(true);
     setError("");
     try {
+      // SIMULATED ERROR FOR TESTING:
+      throw new Error("Simulated connection error. The AI engine is currently under maintenance.");
       const session = getSession();
       const pd = session.projectDetails;
       if (!pd) throw new Error("Project details not found. Please go back.");
