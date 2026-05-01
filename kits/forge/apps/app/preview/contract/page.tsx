@@ -50,7 +50,7 @@ export default function ContractPreviewPage() {
       <main className="min-h-screen px-6 py-10 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="mb-10 animate-fade-in">
+          <div className="mb-10 animate-fade-in no-print">
             <h1 className="text-[clamp(1.8rem,4vw,2.8rem)] font-light tracking-[-0.04em] mb-2 text-white">
               Contract <span className="font-medium text-gradient-animate">Preview</span>
             </h1>
@@ -71,7 +71,7 @@ export default function ContractPreviewPage() {
           </div>
 
           {/* Action Panel */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
+          <div className="lg:sticky lg:top-24 lg:self-start no-print">
             <div className="feature-card-glow p-8 space-y-6 relative overflow-hidden group" style={{background: 'linear-gradient(#0a0a10, #0a0a10) padding-box, linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)) border-box'}}>
               <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none blur-2xl" />
               
