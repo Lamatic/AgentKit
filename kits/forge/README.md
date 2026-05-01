@@ -5,11 +5,11 @@
 ![Built with Lamatic](https://img.shields.io/badge/Built%20with-Lamatic-5B21B6?style=flat-square)
 ![Next.js 14](https://img.shields.io/badge/Next.js-14-000000?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square)
-![agentkit-challenge](https://img.shields.io/badge/challenge-agentkit-F59E0B?style=flat-square)
+![mission-possible](https://img.shields.io/badge/challenge-mission-possible-F59E0B?style=flat-square)
 
 [**Live Demo →**](#) _(deploy to Vercel and update this link)_
 
-![Forge Screenshot](public/screenshot.png)
+![Forge Screenshot](apps/public/screenshot.png)
 
 ---
 
