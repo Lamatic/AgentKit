@@ -434,3 +434,48 @@ textarea:focus {
   position: relative;
   z-index: 10;
 }
+
+/* --- PRINT STYLES (Nuclear Fix) --- */
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Show only the document and its children */
+  .document-surface, .document-surface * {
+    visibility: visible;
+  }
+
+  .document-surface {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20mm !important; /* Standard print margin */
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Force page breaks for signatures */
+  #signatures-section {
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-top: 0 !important;
+    padding-top: 20mm !important;
+  }
+
+  /* Hide any no-print elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure background colors are printed */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
