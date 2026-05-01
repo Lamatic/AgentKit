@@ -86,7 +86,7 @@ By the end of a Forge session, a freelancer has a professional contract and a ma
 |---|---|---|
 | Lamatic AgentKit | Orchestrates the 4 document/pricing flows | `NEXT_PUBLIC_FLOW_...` |
 | LLM Provider | Synthesis of pricing, tradeoffs, and legal text | Configured in Lamatic Studio |
-| PDF Engine | Client-side export of documents | `jsPDF` + `html2canvas` |
+| PDF Engine | Browser's native print engine (`window.print()`) | Native |
 | Storage | Session management | `localStorage` |
 
 ---
@@ -108,7 +108,7 @@ By the end of a Forge session, a freelancer has a professional contract and a ma
 |---|---|---|
 | "Failed to generate pricing" | Invalid field or missing country data | Ensure all Step 1 fields are filled. |
 | "Governing law options empty" | Unsupported jurisdiction pair | Select a more standard country or manually input law. |
-| PDF exports looking cut off | High resolution or layout shift during render | Ensure the preview container is fully loaded before clicking export. |
+| PDF exports looking cut off | Layout shift or incorrect @media print settings | Our custom `@media print` CSS in `globals.css` handles this by isolating the document surface. |
 | 401 Unauthorized | Server-side proxy missing API Key | Check `LAMATIC_API_KEY` in `.env.local` or Vercel settings. |
 
 ---
