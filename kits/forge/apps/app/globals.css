@@ -460,27 +460,20 @@ textarea:focus {
     display: none !important;
   }
 
-  /* Collapse wrapper padding so the document starts at the top */
-  main {
+  /* Collapse ALL wrapper spacing so the document starts at the very top */
+  main,
+  main > div,
+  main > div > div {
     min-height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
-  }
-
-  main > div {
     max-width: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Collapse the grid layout */
-  main [class*="grid"] {
-    display: block !important;
     gap: 0 !important;
+    display: block !important;
   }
 
-  /* The document itself — full width, proper fonts, no decorations */
+  /* The document itself — full width, pure white, no decorations */
   .document-surface {
     width: 100% !important;
     margin: 0 !important;
@@ -488,7 +481,7 @@ textarea:focus {
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
-    background: white !important;
+    background: #ffffff !important;
     color: #1a1a1a !important;
     font-family: 'Lora', serif !important;
     line-height: 1.8 !important;
@@ -500,6 +493,11 @@ textarea:focus {
     font-family: 'DM Sans', sans-serif !important;
     font-weight: 600 !important;
     color: #111 !important;
+  }
+
+  /* Preserve grids INSIDE the document (e.g. signatures side by side) */
+  .document-surface .grid {
+    display: grid !important;
   }
 
   /* Keep signatures together — avoid splitting, don't force a new page */
