@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, Check, FileText, Receipt, AlertTriangle } from "luc
 import { getSession, updateSession } from "@/lib/storage";
 import { callFlow } from "@/lib/lamatic";
 import { GalaxyButton } from "@/components/GalaxyButton";
+import ErrorState from "@/components/ErrorState";
 
 interface Props {
   onBack: () => void;
@@ -175,15 +176,15 @@ export default function Step4Generate({ onBack }: Props) {
       )}
 
       {/* Error */}
-      {error && (
-        <div className="flex items-start gap-3 p-5 bg-rose-400/10 border border-rose-400/20 rounded-2xl max-w-xl mx-auto backdrop-blur-md">
-          <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-rose-400/90 leading-relaxed">{error}</p>
-        </div>
+      {error && !generating && (
+        <ErrorState 
+          message={error} 
+          onRetry={handleGenerate} 
+        />
       )}
 
       {/* Actions */}
-      {!generating && (
+      {!generating && !error && (
         <div className="flex flex-col sm:flex-row gap-4 pt-6 justify-center items-center">
           <button
             onClick={onBack}
@@ -196,18 +197,6 @@ export default function Step4Generate({ onBack }: Props) {
           <div className="w-full sm:w-auto flex justify-center">
             <GalaxyButton onClick={handleGenerate} text="Forge Documents" />
           </div>
-        </div>
-      )}
-
-      {/* Retry if error and not generating */}
-      {error && !generating && (
-        <div className="flex justify-center pt-4">
-          <button
-            onClick={handleGenerate}
-            className="px-8 py-3 liquid-glass-pill text-white/90 hover:text-white transition-all duration-300"
-          >
-            Try Again
-          </button>
         </div>
       )}
     </div>

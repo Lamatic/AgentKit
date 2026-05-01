@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Loader2, Info, Plus, Trash2 } from "lucide-react
 import { getSession, updateSession } from "@/lib/storage";
 import { callFlow } from "@/lib/lamatic";
 import type { PricingResult, PricingLineItem } from "@/lib/types";
+import ErrorState from "@/components/ErrorState";
 
 interface Props {
   onComplete: () => void;
@@ -132,15 +133,10 @@ export default function Step2Pricing({ onComplete, onBack }: Props) {
   // Error state
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 space-y-6 text-center">
-        <p className="text-red-400/90 text-lg">{error}</p>
-        <button
-          onClick={fetchPricing}
-          className="px-8 py-3 liquid-glass-pill hover:bg-white/10 text-white font-medium transition-all duration-300"
-        >
-          Try Again
-        </button>
-      </div>
+      <ErrorState 
+        message={error} 
+        onRetry={fetchPricing} 
+      />
     );
   }
 
