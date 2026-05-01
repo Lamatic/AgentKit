@@ -20,7 +20,14 @@ export default function ExportButton({ targetId, filename }: Props) {
 
     try {
       const element = document.getElementById(targetId);
+      const sigSection = document.getElementById("signatures-section");
       if (!element) throw new Error("Document element not found");
+
+      // Force page-break-before to signatures section
+      if (sigSection) {
+        sigSection.style.pageBreakBefore = "always";
+        sigSection.style.breakBefore = "page";
+      }
 
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -33,42 +40,75 @@ export default function ExportButton({ targetId, filename }: Props) {
         removeContainer: true,
         onclone: (clonedDoc) => {
           const docEl = clonedDoc.getElementById(targetId);
+          const sig = clonedDoc.getElementById("signatures-section");
           if (docEl) {
-            // Fix clippings by stripping shadows and subpixel smoothing
             docEl.style.textShadow = "none";
             docEl.style.webkitFontSmoothing = "none";
-            
-            // Standardize width in the clone
             docEl.style.width = "800px";
             docEl.style.minWidth = "800px";
             docEl.style.maxWidth = "800px";
           }
-        }
+          if (sig) {
+            sig.style.pageBreakBefore = "always";
+            sig.style.breakBefore = "page";
+          }
+        },
       });
 
-      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      // Handle multi-page
+      const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      let heightLeft = pdfHeight;
-      let position = 0;
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
+      // Manual canvas slicing for clean page breaks
+      let yOffset = 0;
+      let remainingHeight = imgHeight;
 
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+      while (remainingHeight > 0) {
+        if (yOffset > 0) pdf.addPage();
+
+        const sourceY = (yOffset / imgHeight) * canvas.height;
+        const sliceHeight = Math.min(pageHeight, remainingHeight);
+        const sourceHeight = (sliceHeight / imgHeight) * canvas.height;
+
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+        const ctx = pageCanvas.getContext("2d");
+        ctx?.drawImage(
+          canvas,
+          0,
+          sourceY,
+          canvas.width,
+          sourceHeight,
+          0,
+          0,
+          canvas.width,
+          sourceHeight
+        );
+
+        pdf.addImage(
+          pageCanvas.toDataURL("image/png"),
+          "PNG",
+          0,
+          0,
+          pageWidth,
+          sliceHeight
+        );
+        yOffset += pageHeight;
+        remainingHeight -= pageHeight;
       }
 
       pdf.save(`${filename}.pdf`);
       setDone(true);
       setTimeout(() => setDone(false), 3000);
+
+      // Clean up styles
+      if (sigSection) {
+        sigSection.style.pageBreakBefore = "";
+        sigSection.style.breakBefore = "";
+      }
     } catch (err) {
       console.error("PDF export failed:", err);
     } finally {
