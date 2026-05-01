@@ -442,48 +442,29 @@ textarea:focus {
 }
 
 @media print {
-  /* Force white on everything at the page level */
-  html, body, body > div, body > div > div {
-    background: #ffffff !important;
-    background-image: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    min-height: auto !important;
-    isolation: auto !important;
-  }
-
-  /* Kill anything tagged no-print */
+  /* Kill everything */
   .no-print {
     display: none !important;
   }
 
-  /* Kill ALL absolute/fixed overlays (orbs, noise, glows) */
-  main ~ div,
-  [class*="absolute"][class*="inset"],
-  [class*="pointer-events-none"],
-  [id="interactive-orb"] {
-    display: none !important;
-  }
-
-  /* Collapse ALL wrappers between body and the document */
-  main,
-  main > div,
-  main > div > div,
-  main > div > div > div {
-    min-height: auto !important;
-    padding: 0 !important;
+  /* White page */
+  html, body {
+    background: #ffffff !important;
     margin: 0 !important;
-    background: transparent !important;
-    background-image: none !important;
-    max-width: none !important;
-    gap: 0 !important;
-    display: block !important;
-    box-shadow: none !important;
-    border: none !important;
-    filter: none !important;
+    padding: 0 !important;
   }
 
-  /* The document — pure white, proper fonts, zero decorations */
+  /* The print wrapper breaks out of the hidden main and renders cleanly */
+  .print-document-wrapper {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  /* The document itself */
   .document-surface {
     width: 100% !important;
     margin: 0 !important;
@@ -516,7 +497,6 @@ textarea:focus {
     break-inside: avoid !important;
   }
 
-  /* Print colors accurately */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
