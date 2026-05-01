@@ -442,29 +442,38 @@ textarea:focus {
 }
 
 @media print {
-  /* Kill everything */
-  .no-print {
-    display: none !important;
-  }
-
-  /* White page */
+  /* White background, strip all spacing from html/body */
   html, body {
-    background: #ffffff !important;
+    background: white !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  /* The print wrapper breaks out of the hidden main and renders cleanly */
-  .print-document-wrapper {
-    display: block !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    background: #ffffff !important;
+  /* Kill anything tagged no-print (header, sidebar, buttons) */
+  .no-print {
+    display: none !important;
   }
 
-  /* The document itself */
+  /* Kill aurora background and its canvas */
+  .aurora-bg,
+  .aurora-bg canvas {
+    display: none !important;
+  }
+
+  /* Collapse ALL wrapper spacing so the document starts at the very top */
+  main,
+  main > div,
+  main > div > div {
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    max-width: none !important;
+    gap: 0 !important;
+    display: block !important;
+  }
+
+  /* The document itself — full width, pure white, no decorations */
   .document-surface {
     width: 100% !important;
     margin: 0 !important;
@@ -486,17 +495,24 @@ textarea:focus {
     color: #111 !important;
   }
 
-  /* Preserve grids INSIDE the document (signatures side by side) */
+  /* Preserve grids INSIDE the document (e.g. signatures side by side) */
   .document-surface .grid {
     display: grid !important;
   }
 
-  /* Keep signatures together */
+  /* Keep signatures together — avoid splitting, don't force a new page */
   #signatures-section {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
+  /* Prevent invoice table rows from being clipped across pages */
+  .document-surface tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Print colors accurately */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
