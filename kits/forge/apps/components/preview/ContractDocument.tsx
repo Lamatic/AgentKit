@@ -65,7 +65,7 @@ export default function ContractDocument({
       })}
 
       {/* Signatures — interactive UI (LLM signatures section is skipped above) */}
-      <div className="mt-12 pt-8 border-t border-gray-300">
+      <div id="signatures-section" className="mt-12 pt-8 border-t border-gray-300">
         <h2 className="text-base font-bold text-gray-800 mb-6 uppercase tracking-wide">
           Signatures
         </h2>

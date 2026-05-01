@@ -160,7 +160,7 @@ export default function InvoiceDocument({
       )}
 
       {/* Signature */}
-      <div className="mt-12 pt-8 border-t border-gray-300">
+      <div id="signatures-section" className="mt-12 pt-8 border-t border-gray-300">
         <div className="max-w-[250px]">
           <p className="text-sm font-semibold text-gray-700 mb-3">
             {invoice.freelancer.name}
