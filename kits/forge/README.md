@@ -7,7 +7,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square)
 ![mission-possible](https://img.shields.io/badge/challenge-mission-possible-F59E0B?style=flat-square)
 
-[**Live Demo →**](#) _(deploy to Vercel and update this link)_
+[**Live Demo →**](https://forge-wheat-one.vercel.app/)
 
 ![Forge Screenshot](apps/public/screenshot.png)
 

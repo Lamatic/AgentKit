@@ -31,7 +31,7 @@ export default {
     }
   ],
   links: {
-    "demo": "",
+    "demo": "https://forge-wheat-one.vercel.app/",
     "github": "https://github.com/cyber-turtle/AgentKit/tree/main/kits/forge",
     "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/cyber-turtle/AgentKit&root-directory=kits/forge/apps"
   },
