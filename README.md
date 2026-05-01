@@ -9,15 +9,15 @@
     <picture>
       <!-- Dark mode: keep existing white SVG -->
       <source media="(prefers-color-scheme: dark)" srcset="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
-      <!-- Light mode: use the black PNG you found -->
-      <source media="(prefers-color-scheme: light)" srcset="https://github.com/Lamatic/AgentKit/raw/main/templates/agentic/reasoning/public/lamatic-logo.png">
+      <!-- Light mode -->
+      <source media="(prefers-color-scheme: light)" srcset="https://github.com/Lamatic/AgentKit/raw/main/kits/agentic/deep-search/public/lamatic-logo.png">
       <!-- Fallback -->
       <img width="300" alt="Lamatic.ai" src="https://cdn.prod.website-files.com/65ef2805bd1160e6402b86cd/6620e093fe2e54612a3f5843_Logo%20white.svg">
     </picture>
   </a>
 </p>
 
-<h2 align="center">Stack to Build Agentic SaaS → 10x faster</h2>
+<h2 align="center">Stack to Build Reliable AI Agents</h2>
   <br/>
   <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
 <p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
@@ -32,11 +32,11 @@
 <a href="https://github.com/Lamatic/AgentKit/network/members">
   <img src="https://img.shields.io/github/forks/Lamatic/AgentKit?logo=github" alt="GitHub Forks" />
 </a>
-<a href="https://github.com/Lamatic/AgentKit/actions">
+<!-- <a href="https://github.com/Lamatic/AgentKit/actions">
   <img src="https://img.shields.io/github/actions/workflow/status/Lamatic/AgentKit/ci.yml?branch=main" alt="CI/CD Status" />
-</a>
-
-<br/>
+</a>   -->
+<img src="https://img.shields.io/coderabbit/prs/github/Lamatic/AgentKit?utm_source=oss&utm_medium=github&utm_campaign=Lamatic%2FAgentKit&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews">
+<img src="https://github.com/Lamatic/AgentKit/actions/workflows/review-challenge-prs.yml/badge.svg">
 
 ## ✨ About AgentKit
 
@@ -81,12 +81,15 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
 | **🧠 Agentic Kits** | Advanced self-directed, reasoning agents for goal-driven operations |  |  | [`/kits/agentic`](./kits/agentic) |
 | **Deep Search Agent** | A Next.js starter kit for goal-driven reasoning agents using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-reasoning.vercel.app) | [`/kits/agentic/deep-search`](./kits/agentic/deep-search) |
 | **Generation Agent** | A Next.js starter kit for generating text/json/image content using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-generation.vercel.app) | [`/kits/agentic/generation`](./kits/agentic/generation) |
+| **Code Review Agent** | Reviews public GitHub PRs for bugs, security issues, and style risks using Lamatic flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-stk.vercel.app) | [`/kits/agentic/code-review`](./kits/agentic/code-review) |
 ||
 | **🤖 Automation Kits** | Automate complex business processes with robust and flexible agent workflows |  |  | [`/kits/automation`](./kits/automation) |
 | **Hiring Automation** | A Next.js starter kit for hiring automation using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-hiring.vercel.app) | [`/kits/automation/hiring`](./kits/automation/hiring) |
+| **Blog Writing Automation** | Generates, optimizes, and publishes blog posts from webhook or scheduler triggers. | Available |  | [`/kits/automation/blog-automation`](./kits/automation/blog-automation) |
 ||
 | **🧑‍💼 Assistant Kits** | Create context-aware helpers for users, customers, and team members |  |  | [`/kits/assistant`](./kits/assistant) |
 | **Grammar Assistant** | A chrome extension to check grammar corrections across your selection. | Available | | [`/kits/assistant/grammar-extension`](./kits/assistant/grammar-extension) |
+| **Legal Assistant** | A Next.js legal assistant chatbot that returns informational summaries, references, next steps, and a legal disclaimer. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://legal-drab-three.vercel.app/) | [`/kits/assistant/legal`](./kits/assistant/legal) |
 ||
 | **💬 Embed Kits** | Seamlessly integrate AI agents into apps, websites, and workflows |  |  | [`/kits/embed`](./kits/embed) |
 | **Chatbot** | A Next.js starter kit for chatbot using Lamatic Flows. | Available | [![Live Demo](https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge)](https://agent-kit-embedded-chat.vercel.app) | [`/kits/embed/chat`](./kits/embed/chat) |
@@ -122,20 +125,22 @@ Each kit includes configuration instructions, environment variables/lamatic-conf
    ```
 
 2. **Select Your AgentKit**
-   - Browse `/templates` for available kits.
+   - Browse `/kits` for runnable starters, `/bundles` for multi-flow packs, and `/templates` for single-flow exports.
    - Example:
      ```sh
-     cd templates/agentic/reasoning
+     cd kits/agentic/deep-search
      ```
 
 3. **Configure Integrations**
-   - Enter API keys, endpoints, and credentials in `.env` or `/config`. The setup and configurations for the integration will be defined in that repo itself in it's ReadME.
+   - Enter API keys, endpoints, and credentials in `.env` or `.env.local` (based on the selected kit). Setup details are documented in each kit/template `README.md`.
 
-4. **Deploy**
-   - Run the agent locally with : 
+4. **Run Locally**
+   - From the selected kit directory:
      ```sh
-     npm run deploy
+     npm install
+     npm run dev
      ```
+   - For hosted deployment, use the kit-specific Vercel button/config in that kit `README.md`.
 
 5. **Monitor & Scale**
    - Dashboard live at `studio.lamatic.ai`

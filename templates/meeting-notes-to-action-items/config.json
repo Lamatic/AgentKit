@@ -1,0 +1,194 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"meeting_notes\": \"string\",\n  \"participants\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": true
+    },
+    {
+      "id": "InstructorLLMNode_954",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_954",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"meeting_notes\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"participants\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an expert meeting productivity assistant.\nFrom the meeting notes, extract ALL action items as structured JSON.\nFor each task output:\n- description (clear, actionable)\n- owner (exact name from participants or \"Unassigned\")\n- deadline (if mentioned → exact date; else infer reasonable one like \"EOD tomorrow\" or \"ASAP\"; format as \"2026-04-15\" or natural language)\n- priority (\"High\", \"Medium\", \"Low\")\nAlso summarize the meeting in 2-3 sentences.\nReturn JSON with this exact structure:\n{\n  \"summary\": \"...\",\n  \"tasks\": [\n    {\n      \"description\": \"...\",\n      \"owner\": \"...\",\n      \"deadline\": \"...\",\n      \"priority\": \"...\"\n    }\n  ]\n}"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Meeting Notes:\n{{triggerNode_1.output.meeting_notes}}\nParticipants: {{triggerNode_1.output.participants}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "gemini/gemini-2.5-flash",
+              "credentialId": "97785606-db41-4aca-890c-b14e410c2eff",
+              "provider_name": "gemini",
+              "credential_name": "My Model"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_456",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_456",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "Write a professional, friendly follow-up email based on the meeting summary and tasks provided.\nRequirements:\n- Include a clear subject line\n- Address all participants\n- Briefly summarize the meeting\n- List action items in bullet points with owner and deadline\n- Keep tone professional and concise\n- End with a polite closing\nUse only the provided data. Do not invent new tasks."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Meeting Summary: {{InstructorLLMNode_954.output.summary}}\nTasks: {{InstructorLLMNode_954.output.tasks}}\nParticipants: {{triggerNode_1.output.participants}}"
+            }
+            
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": [
+            {
+              "type": "generator/text",
+              "params": {},
+              "configName": "configA",
+              "model_name": "gemini/gemini-2.5-flash",
+              "credentialId": "97785606-db41-4aca-890c-b14e410c2eff",
+              "provider_name": "gemini",
+              "credential_name": "My Model"
+            }
+          ]
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "needs": [
+                   "LLMNode_456"
+                   ],
+          "outputMapping": "{\n  \"report\": \"{{LLMNode_456.output.generatedResponse}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_954-795",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_954",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_954-LLMNode_456-123",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_954",
+      "target": "LLMNode_456",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_456-responseNode_triggerNode_1-550",
+      "type": "defaultEdge",
+      "source": "LLMNode_456",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "selected": false,
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

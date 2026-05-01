@@ -1,0 +1,363 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "webhookTriggerNode",
+        "schema": {
+          "body": "string",
+          "title": "string",
+          "issue_number": "number",
+          "repo_full_name": "string"
+        },
+        "values": {
+          "nodeName": "Webhook"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 0
+      },
+      "selected": true
+    },
+    {
+      "id": "LLMNode_400",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_400",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a GitHub repository triage assistant. Your job is to classify incoming issues into one of two categories:\nBUG: Use this if the user is reporting an error, a crash, a visual glitch, or something not working as expected.\nDOCS: Use this if the user is asking a \"how-to\" question, needs help with setup, or is asking for an explanation of how a feature works.\nIssue Title: {{triggerNode_1.output.title}} Issue Body: {{triggerNode_1.output.body}}\nConstraint: You must respond with ONLY the word \"BUG\" or the word \"DOCS\". Do not include periods, quotes, or any extra explanation.\"Respond with exactly one word: DOCS or BUG. Do not use Markdown, do not add a period, and do not add spaces.\""
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": ""
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "conditionNode_731",
+      "data": {
+        "label": "Condition",
+        "modes": {},
+        "nodeId": "conditionNode",
+        "values": {
+          "nodeName": "Condition",
+          "conditions": [
+            {
+              "label": "Condition 1",
+              "value": "conditionNode_731-addNode_120",
+              "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{RAGNode_463.output.modelResponse}}\",\n      \"operator\": \"ilike\",\n      \"value\": \"DOCS\"\n    }\n  ]\n}"
+            },
+            {
+              "label": "Else",
+              "value": "conditionNode_731-addNode_225",
+              "condition": {}
+            }
+          ],
+          "allowMultipleConditionExecution": false
+        }
+      },
+      "type": "conditionNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 225,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "searchNode_852",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "searchNode",
+        "values": {
+          "id": "searchNode_852",
+          "limit": 3,
+          "filters": "[]",
+          "nodeName": "Vector Search",
+          "vectorDB": "",
+          "certainty": "0.85",
+          "searchQuery": "{{triggerNode_1.output.title}}      {{triggerNode_1.output.body}}",
+          "embeddingModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_972",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_972",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are an AI Support Assistant for this software project. Using the provided documentation context, answer the user's question or explain the feature they are asking about.\nDocumentation Context: {{searchNode_852.output.searchResults}}.User's Issue: Title: {{triggerNode_1.output.title}}Body: {{triggerNode_1.output.body}}\nInstructions:\nIf the answer is in the documentation, provide a clear, 2-3 sentence explanation.\nIf the documentation doesn't cover it, politely say you couldn't find a specific answer but will notify the maintainers.\nKeep the tone helpful and professional.\nOutput: Provide the explanation directly"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Write your prompt here"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_451",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_451",
+          "url": "https://api.github.com/repos/{{triggerNode_1.output.repo_full_name}}/issues/{{triggerNode_1.output.issue_number}}/labels ",
+          "body": "{\"labels\": [\"documentation\"]}",
+          "method": "POST",
+          "headers": "{\"Accept\":\"application/vnd.github+json\",\"X-GitHub-Api-Version\":\"2022-11-28\",\"User-Agent\":\"Lamatic-App\",\"Authorization\":\"Bearer {{secrets.project.GITHUB_TOKEN}}\"}",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_453",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_453",
+          "url": "https://api.github.com/repos/{{triggerNode_1.output.repo_full_name}}/issues/{{triggerNode_1.output.issue_number}}/comments ",
+          "body": "{\n  \"body\": \"{{LLMNode_972.output.generatedResponse}}\"\n}",
+          "method": "POST",
+          "headers": "{\"Accept\":\"application/vnd.github+json\",\"X-GitHub-Api-Version\":\"2022-11-28\",\"User-Agent\":\"Lamatic-App\",\"Authorization\":\"Bearer {{secrets.project.GITHUB_TOKEN}}\"}",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "apiNode_342",
+      "data": {
+        "label": "New",
+        "logic": [],
+        "modes": {},
+        "nodeId": "apiNode",
+        "values": {
+          "id": "apiNode_342",
+          "url": "https://api.github.com/repos/{{triggerNode_1.output.repo_full_name}}/issues/{{triggerNode_1.output.issue_number}}/labels ",
+          "body": "{\n  \"labels\": [\"bug\"]\n}",
+          "method": "POST",
+          "headers": "{\"Accept\":\"application/vnd.github+json\",\"X-GitHub-Api-Version\":\"2022-11-28\",\"User-Agent\":\"Lamatic-App\",\"Authorization\":\"Bearer {{secrets.project.GITHUB_TOKEN}}\"}",
+          "retries": "0",
+          "nodeName": "API",
+          "retry_deplay": "0",
+          "convertXmlResponseToJson": false
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    },
+    {
+      "id": "plus-node-addNode_517437",
+      "data": {
+        "label": "+",
+        "nodeId": "addNode",
+        "values": {}
+      },
+      "type": "addNode",
+      "measured": {
+        "width": 216,
+        "height": 100
+      },
+      "position": {
+        "x": 225,
+        "y": 910
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "conditionNode_731-searchNode_852-953",
+      "data": {
+        "condition": "Condition 1"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_731",
+      "target": "searchNode_852",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "searchNode_852-LLMNode_972",
+      "type": "defaultEdge",
+      "source": "searchNode_852",
+      "target": "LLMNode_972",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "conditionNode_731-apiNode_342-143",
+      "data": {
+        "condition": "Else"
+      },
+      "type": "conditionEdge",
+      "source": "conditionNode_731",
+      "target": "apiNode_342",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_972-apiNode_451",
+      "type": "defaultEdge",
+      "source": "LLMNode_972",
+      "target": "apiNode_451",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_451-apiNode_453",
+      "type": "defaultEdge",
+      "source": "apiNode_451",
+      "target": "apiNode_453",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_400-conditionNode_731",
+      "type": "defaultEdge",
+      "source": "LLMNode_400",
+      "target": "conditionNode_731",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_342-plus-node-addNode_517437-497",
+      "type": "defaultEdge",
+      "source": "apiNode_342",
+      "target": "plus-node-addNode_517437",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "apiNode_453-plus-node-addNode_517437-147",
+      "type": "defaultEdge",
+      "source": "apiNode_453",
+      "target": "plus-node-addNode_517437",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "triggerNode_1-LLMNode_400-640",
+      "data": {},
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "LLMNode_400",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    }
+  ]
+}

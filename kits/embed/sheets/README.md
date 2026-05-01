@@ -25,7 +25,7 @@ Pre: Build in Lamatic
 1. Sign in or sign up at https://lamatic.ai  
 2. Create a project (if you don’t have one yet)  
 3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Generation' agent kit
+4. Select the 'Sheets' agent kit
 5. Configure providers/tools/inputs as prompted  
 6. Deploy the kit in Lamatic and obtain your .env keys
 7. Copy the keys from your studio
@@ -48,7 +48,7 @@ Notes
 ## 🔑 Setup
 ## Required Keys and Config
 
-You’ll need two things to run this project locally:  
+You’ll need one thing to run this project locally:  
 
 1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
 
@@ -63,7 +63,7 @@ Create `.env` with:
 
 ```
 # Lamatic
-EMBEDDED_SHEETS = "AUTOMATION_HIRING Flow ID"
+EMBEDDED_SHEETS = "EMBEDDED_SHEETS Flow ID"
 LAMATIC_API_URL = "LAMATIC_API_URL"
 LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
 LAMATIC_API_KEY = "LAMATIC_API_KEY"
@@ -137,4 +137,4 @@ We welcome contributions! Open an issue or PR in this repo.
 
 ## 📜 License
 
-MIT License – see [LICENSE](./LICENSE).
+MIT License – see [LICENSE](../../../LICENSE).

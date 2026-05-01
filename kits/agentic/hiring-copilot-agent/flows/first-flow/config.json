@@ -1,0 +1,245 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "Initial Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"job_description\": \"string\",\n  \"name\": \"string\",\n  \"certificates\": \"[string]\",\n  \"education\": \"string\",\n  \"experience_years\": \"int\",\n  \"projects\": \"[string]\",\n  \"skills\": \"[string]\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_277",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_277",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"role\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"skills_required\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"experience_level\": {\n      \"type\": \"number\"\n    },\n    \"tools\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"nice_to_have\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Return ONLY valid JSON. No explanation.\nYou are a deterministic hiring requirement extractor.\nSTRICT RULES:\n- ONLY extract from the given job description\n- DO NOT assume or hallucinate any requirements\n- If something is not mentioned → return empty array or null\n- Normalize all skills to lowercase strings\n- Remove duplicates\n- Keep skills concise (e.g., \"react\", not \"react.js framework\")\nINPUT:\nJob Description:\n{{triggerNode_1.output.job_description}}\nTASK:\nExtract structured hiring requirements.\nOUTPUT FORMAT (STRICT):\n{\n\"role\": string | null,\n\"skills_required\": string[],\n\"experience_level\": number,\n\"tools\": string[],\n\"nice_to_have\": string[]\n}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "JD Analyzer Agent",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": true
+    },
+    {
+      "id": "InstructorLLMNode_582",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_582",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"skill_match\": {\n      \"type\": \"number\",\n      \"description\": \"0-100\"\n    },\n    \"experience_match\": {\n      \"type\": \"number\",\n      \"description\": \"0-100\"\n    },\n    \"project_relevance\": {\n      \"type\": \"number\",\n      \"description\": \"0-100\"\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Return ONLY valid JSON. No explanation.\nYou are a deterministic matching engine.\nSTRICT RULES:\n- ONLY use the provided data\n- DO NOT assume or infer anything not present\n- If any field is missing → treat it as empty\n- All scores MUST be between 0 and 100 (integer only)\n- No randomness, no guessing\nINPUT:\nJob Requirements:\n- Role: {{InstructorLLMNode_277.output.role}}\n- Skills Required: {{InstructorLLMNode_277.output.skills_required}}\n- Experience Required: {{InstructorLLMNode_277.output.experience_level}}\n- Tools: {{InstructorLLMNode_277.output.tools}}\nCandidate:- Name: {{triggerNode_1.output.name}}\n- Skills: {{triggerNode_1.output.skills}}\n- Experience: {{triggerNode_1.output.experience_years}}\n- Projects: {{triggerNode_1.output.projects}}\n- Certificates: {{triggerNode_1.output.certificates}}\n---TASK:1. SKILL MATCH:- Compare overlap between \"Skills Required\" and \"Candidate Skills\"- Formula: skill_match = (matched_skills / total_required_skills) * 100- If no required skills → return 0- Case insensitive matching---2. EXPERIENCE MATCH:- Compare candidate experience with required experience- Rules: - If experience_required is null → return 0 - If candidate >= required → 100 - Else → (candidate / required) * 100---3. PROJECT RELEVANCE:- Projects are provided as strings- Extract skills/keywords from each project string- Compare against: - skills required - tools - role- A project is relevant if it contains ANY matching keyword---OUTPUT (STRICT JSON):{ \"skill_match\": number, \"experience_match\": number, \"project_relevance\": number}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Matching Agent",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_264",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_264",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"final_score\": {\n      \"type\": \"number\"\n    },\n    \"verdict\": {\n      \"type\": \"string\"\n    },\n    \"breakdown\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"skill_match\": {\n          \"type\": \"number\"\n        },\n        \"experience_match\": {\n          \"type\": \"number\"\n        },\n        \"project_relevance\": {\n          \"type\": \"number\"\n        }\n      },\n      \"additionalProperties\": true\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Return ONLY valid JSON. No explanation.\nYou are a deterministic hiring evaluator.\nSTRICT RULES:\n- ONLY use the provided input values\n- DO NOT assume, infer, or hallucinate anything\n- If any value is missing or null → treat it as 0\n- All outputs MUST be integers between 0 and 100\n- No randomness, no variation\nINPUT:\n- Skill Match: {{InstructorLLMNode_582.output.skill_match}}\n- Experience Match: {{InstructorLLMNode_582.output.experience_match}}\n- Project Relevance: {{InstructorLLMNode_582.output.project_relevance}}\n---TASK:1. NORMALIZE INPUTS:- Ensure all inputs are numbers between 0 and 100- If not → clamp to valid range---2. CALCULATE FINAL SCORE:final_score = (0.5 * Skill Match) + (0.3 * Experience Match) + (0.2 * Project Relevance)- Round final_score to nearest integer---3. ASSIGN VERDICT (STRICT RULES):- final_score >= 95 → \"Perfect Fit\"- final_score >= 85 → \"Strong Fit\"- final_score >= 70 → \"Good Fit\"- else → \"Weak Fit\"---OUTPUT (STRICT JSON):{ \"final_score\": number, \"verdict\": \"Perfect Fit\" | \"Strong Fit\" | \"Good Fit\" | \"Weak Fit\", \"breakdown\": { \"skill_match\": number, \"experience_match\": number, \"project_relevance\": number }}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Scoring Agent",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "LLMNode_982",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_982",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Return ONLY valid JSON. No explanation.\nYou are a hiring reasoning assistant.\nSTRICT RULES:\n- ONLY use the provided inputs\n- DO NOT assume or hallucinate any new information\n- DO NOT introduce skills not present in inputs\n- Keep response concise (maximum 3 sentences total)\n- Be professional and direct\n- If any field is missing → ignore it, do not guess\nINPUT:\nJob Details:\n- Role: {{InstructorLLMNode_277.output.role}}\n- Skills Required: {{InstructorLLMNode_277.output.skills_required}}\n- Experience Required: {{InstructorLLMNode_277.output.experience_level}}\nCandidate Scoring Details:- Final Score: {{InstructorLLMNode_264.output.final_score}}\n- Verdict: {{InstructorLLMNode_264.output.verdict}}\n- Breakdown: {{InstructorLLMNode_264.output.breakdown}}\n---TASK:Explain why the candidate is suitable or not.You MUST include:- Strengths (based on high scores)- Weaknesses (based on low scores)- Missing skills (based on skills_required vs match)---OUTPUT FORMAT (STRICT JSON):{ \"reasoning\": \"string (max 3 sentences, must include strengths, weaknesses, and missing skills)\"}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "[]",
+          "nodeName": "Reasoning Agent",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"candidate\": {\n    \"name\": \"{{triggerNode_1.output.name}}\",\n    \"skills\": \"{{triggerNode_1.output.skills}}\",\n    \"experience\": \"{{triggerNode_1.output.experience_years}}\"\n  },\n  \"evaluation\": {\n    \"final_score\": \"{{InstructorLLMNode_264.output.final_score}}\",\n    \"verdict\": \"{{InstructorLLMNode_264.output.verdict}}\",\n    \"breakdown\": {\n      \"skill_match\": \"{{InstructorLLMNode_582.output.skill_match}}\",\n      \"experience_match\": \"{{InstructorLLMNode_582.output.experience_match}}\",\n      \"project_relevance\": \"{{InstructorLLMNode_582.output.project_relevance}}\"\n    }\n  },\n  \"reasoning\": \"{{LLMNode_982.output.generatedResponse}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-InstructorLLMNode_277",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "InstructorLLMNode_277",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_582-InstructorLLMNode_264",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_582",
+      "target": "InstructorLLMNode_264",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_264-LLMNode_982",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_264",
+      "target": "LLMNode_982",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_982-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_982",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_277-InstructorLLMNode_582-455",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_277",
+      "target": "InstructorLLMNode_582",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

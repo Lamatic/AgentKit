@@ -1,0 +1,276 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"doc_id\": \"string\",\n  \"query\": \"string\",\n  \"messages\": \"string\"\n}"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "postgresNode_817",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "postgresNode",
+        "values": {
+          "id": "postgresNode_817",
+          "query": "SELECT tree, raw_text, file_name FROM documents WHERE doc_id = '{{triggerNode_1.output.doc_id}}' LIMIT 1;",
+          "action": "runQuery",
+          "nodeName": "Postgres",
+          "credentials": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 130
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_429",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "toc_json": "string",
+          "node_count": "number"
+        },
+        "values": {
+          "id": "codeNode_429",
+          "code": "const tree = {{postgresNode_817.output.queryResult[0].tree}};\n\n// tree.nodes are string IDs, not objects — just pass them as-is\nfunction stripToTOC(nodes, depth = 0) {\n  return nodes.map(node => ({\n    node_id: node.node_id,\n    title: node.title,\n    start_index: node.start_index,\n    end_index: node.end_index,\n    description: node.summary,\n    children: node.nodes && node.nodes.length > 0\n      ? stripToTOC(node.nodes, depth + 1)\n      : []\n  }));\n}\n\noutput = {\n  toc_json: JSON.stringify(stripToTOC(tree)),\n  node_count: tree.length\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 260
+      },
+      "selected": false
+    },
+    {
+      "id": "InstructorLLMNode_432",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "InstructorLLMNode_432",
+          "tools": [],
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"thinking\": {\n      \"type\": \"string\"\n    },\n    \"node_list\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a document retrieval expert using tree-based reasoning. Your job is to identify which sections of a document tree are most relevant to answer the user's query.\nIMPORTANT RULES:\n- Always prefer LEAF nodes (nodes where \"children\" is an empty array [])\n- Never select root or parent nodes that span many pages\n- Select 2-3 most specific nodes that directly answer the query\n- A good node covers 1-3 pages maximum"
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "You are given a query and a document table of contents (TOC).\nNavigate the TOC structure and find which LEAF sections (children: []) likely contain the answer.\nQuery: {{triggerNode_1.output.query}}\nDocument TOC (titles and structure only): {{codeNode_429.output.toc_json}}\nEach node has start_index and end_index showing which pages it covers.\nONLY select nodes where children is [] (leaf nodes, not parent sections).\nReply with:\n- thinking: your reasoning about which specific leaf sections contain the answer\n- node_list: array of 2-3 leaf node_ids most likely to contain the answer"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{triggerNode_1.output.messages}}",
+          "nodeName": "Generate JSON",
+          "attachments": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false
+    },
+    {
+      "id": "codeNode_358",
+      "data": {
+        "label": "dynamicNode node",
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "context": "string",
+          "total_chars": "number",
+          "retrieved_nodes": "array"
+        },
+        "values": {
+          "id": "codeNode_358",
+          "code": "const tree = {{postgresNode_817.output.queryResult[0].tree}};\nconst rawTextRaw = {{postgresNode_817.output.queryResult[0].raw_text}};\nconst nodeList = {{InstructorLLMNode_432.output.node_list}};\n\nconst pages = typeof rawTextRaw === \"string\" ? JSON.parse(rawTextRaw) : rawTextRaw;\n\n// ── Detect page offset ────────────────────────────────────────────────────────\n// The tree uses PRINTED page numbers from the TOC.\n// The pages array uses PHYSICAL page indices (0-based).\n// Books with roman-numeral front matter have an offset between the two.\n//\n// Strategy: find the first chapter node in the tree (depth 1, lowest start_index).\n// Search physical pages for that chapter's title text.\n// offset = physical_page_found - tree_start_index\n\nfunction detectOffset(tree, pages) {\n  // Get all top-level nodes sorted by start_index\n  const topLevel = [...tree].sort((a, b) => (a.start_index || 0) - (b.start_index || 0));\n  \n  for (const node of topLevel) {\n    const printedPage = node.start_index;\n    if (!printedPage || !node.title) continue;\n    \n    const titleLower = node.title.toLowerCase().replace(/chapter-?\\d+[-:\\s]*/i, \"\").trim();\n    if (titleLower.length < 3) continue;\n\n    // Search physical pages around where we expect to find it\n    // Front matter is rarely more than 40 pages\n    for (let physIdx = 0; physIdx < Math.min(pages.length, 60); physIdx++) {\n      const pageText = (pages[physIdx] || \"\").toLowerCase();\n      if (pageText.includes(titleLower)) {\n        const offset = physIdx - (printedPage - 1); // physIdx is 0-based, printedPage is 1-based\n        if (offset !== 0) {\n          console.log(`[offset] \"${node.title}\" TOC page ${printedPage} → physical index ${physIdx} → offset +${offset}`);\n        }\n        return offset;\n      }\n    }\n  }\n  return 0; // no offset detected\n}\n\nconst pageOffset = detectOffset(tree, pages);\n\n// ── Flatten tree recursively ──────────────────────────────────────────────────\nfunction flattenTree(nodes, map = {}) {\n  for (const n of nodes) {\n    map[n.node_id] = n;\n    if (n.nodes && n.nodes.length > 0) flattenTree(n.nodes, map);\n  }\n  return map;\n}\nconst nodeMap = flattenTree(tree);\nconst selectedNodes = nodeList.map(id => nodeMap[id]).filter(Boolean);\n\nconst MAX_PAGES_PER_NODE = 2;\nconst MAX_CHARS_PER_PAGE = 2000;\n\nconst retrieved = selectedNodes.map(node => {\n  // Apply offset: convert printed page number → physical array index (0-based)\n  const startPhysIdx = (node.start_index || 1) - 1 + pageOffset;\n  const endPhysIdx   = (node.end_index   || node.start_index || 1) - 1 + pageOffset;\n\n  const cappedEnd = Math.min(endPhysIdx, startPhysIdx + MAX_PAGES_PER_NODE - 1, pages.length - 1);\n\n  const pageSlices = pages\n    .slice(startPhysIdx, cappedEnd + 1)\n    .map(p => p && p.length > MAX_CHARS_PER_PAGE ? p.slice(0, MAX_CHARS_PER_PAGE) + \"...\" : (p || \"\"));\n\n  const pageContent = pageSlices.join(\"\\n\\n\").trim();\n\n  return {\n    node_id:     node.node_id,\n    title:       node.title,\n    start_index: node.start_index,\n    end_index:   node.end_index,\n    summary:     node.summary,\n    page_content: pageContent || node.summary,\n  };\n});\n\nconst context = retrieved\n  .map(n => `[Section: \"${n.title}\" | Pages: ${n.start_index}–${n.end_index}]\\n${n.page_content}`)\n  .join(\"\\n\\n---\\n\\n\");\n\noutput = {\n  context,\n  retrieved_nodes: retrieved,\n  total_chars: context.length,\n  page_offset_detected: pageOffset,\n};",
+          "nodeName": "Code"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 520
+      },
+      "selected": true
+    },
+    {
+      "id": "LLMNode_392",
+      "data": {
+        "label": "dynamicNode node",
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "LLMNode_392",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+              "role": "system",
+              "content": "You are a research assistant. Answer questions based ONLY on the retrieved document sections. Always cite the section title and page number in your answer. If the answer is not found in the provided sections, say so clearly — do not guess."
+            },
+            {
+              "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+              "role": "user",
+              "content": "Retrieved document sections: {{codeNode_358.output.context}} User question: {{triggerNode_1.output.query}}"
+            }
+          ],
+          "memories": "[]",
+          "messages": "{{triggerNode_1.output.messages}}",
+          "nodeName": "Generate Text",
+          "attachments": "",
+          "credentials": "",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 650
+      },
+      "selected": false
+    },
+    {
+      "id": "responseNode_triggerNode_1",
+      "data": {
+        "label": "Response",
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "id": "responseNode_triggerNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "retries": "0",
+          "nodeName": "API Response",
+          "webhookUrl": "",
+          "retry_delay": "0",
+          "outputMapping": "{\n  \"answer\": \"{{LLMNode_392.output.generatedResponse}}\",\n  \"messages\": \"{{LLMNode_392.output.messages}}\",\n  \"retrieved_nodes\": \"{{codeNode_358.output.retrieved_nodes}}\",\n  \"thinking\": \"{{InstructorLLMNode_432.output.thinking}}\",\n  \"doc_id\": \"{{triggerNode_1.output.doc_id}}\"\n}"
+        },
+        "isResponseNode": true
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 780
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-postgresNode_817",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "postgresNode_817",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "InstructorLLMNode_432-codeNode_358",
+      "type": "defaultEdge",
+      "source": "InstructorLLMNode_432",
+      "target": "codeNode_358",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "postgresNode_817-codeNode_429",
+      "type": "defaultEdge",
+      "source": "postgresNode_817",
+      "target": "codeNode_429",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_429-InstructorLLMNode_432",
+      "type": "defaultEdge",
+      "source": "codeNode_429",
+      "target": "InstructorLLMNode_432",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "codeNode_358-LLMNode_392",
+      "type": "defaultEdge",
+      "source": "codeNode_358",
+      "target": "LLMNode_392",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "LLMNode_392-responseNode_triggerNode_1",
+      "type": "defaultEdge",
+      "source": "LLMNode_392",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger_triggerNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_triggerNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}
