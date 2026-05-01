@@ -17,7 +17,17 @@ export default function ExportButton({ targetId, filename }: Props) {
     setDone(false);
 
     try {
+      // Set document title to the desired filename so the print dialog uses it
+      const originalTitle = document.title;
+      document.title = filename;
+
+      // Note: targetId is currently handled via CSS @media print in globals.css
+      // which isolates the document surface for the print engine.
       window.print();
+
+      // Restore original title
+      document.title = originalTitle;
+      
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err) {

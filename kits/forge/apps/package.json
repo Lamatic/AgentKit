@@ -17,8 +17,6 @@
     "tailwind-merge": "^2.3.0",
     "lucide-react": "^0.400.0",
     "react-markdown": "^9.0.0",
-    "jspdf": "^2.5.1",
-    "html2canvas": "^1.4.1",
     "react-signature-canvas": "^1.0.7"
   },
   "devDependencies": {

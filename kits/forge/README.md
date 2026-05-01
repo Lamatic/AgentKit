@@ -52,7 +52,7 @@ A freelancer fills out one form, waits ~60 seconds, and receives a contract and 
 **Tradeoffs:**
 - **No persistent storage:** All state lives in `localStorage`. Closing the browser loses the session. This keeps the architecture simple (no database, no auth) but means the tool is session-based.
 - **API key security vs. simplicity:** Flow IDs use `NEXT_PUBLIC_` prefix (visible to the browser) since they aren't secrets. The actual `LAMATIC_API_KEY` stays server-side and is proxied through `/api/flow`.
-- **PDF quality:** We use `html2canvas` + `jsPDF` for export. This produces good results for most documents but isn't pixel-perfect like a server-side PDF engine (e.g., Puppeteer). The tradeoff is zero server infrastructure.
+- **PDF fidelity:** We use the browser's native print engine (`window.print()`) for exports. This ensures perfect A4 pagination, vector-sharp text, and zero section clipping, surpassing typical canvas-based libraries. The tradeoff is that it opens a system print dialog rather than a direct background download.
 
 **Assumptions:**
 - The user is a freelancer doing remote/digital work (code, design, writing, consulting). Physical trades or heavily regulated industries may need more specialised contract language.
@@ -67,7 +67,7 @@ A freelancer fills out one form, waits ~60 seconds, and receives a contract and 
 | Flow orchestration | **Lamatic.ai** (4 flows) |
 | Frontend | **Next.js 14** (App Router, TypeScript) |
 | Styling | **Tailwind CSS** |
-| PDF export | **jsPDF** + **html2canvas** |
+| PDF export | **Browser Native** (`window.print()`) |
 | E-signature | **react-signature-canvas** |
 | Icons | **lucide-react** |
 
