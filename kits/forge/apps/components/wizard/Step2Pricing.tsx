@@ -87,6 +87,7 @@ export default function Step2Pricing({ onComplete, onBack }: Props) {
       quantity: "1",
       rate: "0",
       amount: "0.00",
+      currency: pricing.currency,
       justification: ""
     };
     const updated = [...pricing.line_items, newItem];
