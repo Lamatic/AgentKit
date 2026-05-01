@@ -22,46 +22,51 @@ export default function ExportButton({ targetId, filename }: Props) {
       const element = document.getElementById(targetId);
       if (!element) throw new Error("Document element not found");
 
-      // 1. Store original styles to restore later
-      const originalStyle = element.style.cssText;
-      
-      // 2. Force a standard A4-friendly width for the capture
-      // This prevents the PDF from depending on the current device width
-      element.style.width = "800px";
-      element.style.minWidth = "800px";
-      element.style.maxWidth = "800px";
-
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#fafaf8",
-        width: 800, // Explicitly tell html2canvas to use this width
+        width: 800,
+        letterRendering: true,
+        foreignObjectRendering: false,
+        removeContainer: true,
+        onclone: (clonedDoc) => {
+          const docEl = clonedDoc.getElementById(targetId);
+          if (docEl) {
+            // Fix clippings by stripping shadows and subpixel smoothing
+            docEl.style.textShadow = "none";
+            docEl.style.webkitFontSmoothing = "none";
+            
+            // Standardize width in the clone
+            docEl.style.width = "800px";
+            docEl.style.minWidth = "800px";
+            docEl.style.maxWidth = "800px";
+          }
+        }
       });
 
-      // 3. Restore original responsive styles
-      element.style.cssText = originalStyle;
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // 2. Configure jsPDF
-      // A4 dimensions: 210mm x 297mm
-      const pdf = new jsPDF({
-        orientation: "p",
-        unit: "mm",
-        format: "a4",
-      });
+      // Handle multi-page
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let heightLeft = pdfHeight;
+      let position = 0;
 
-      // 3. Use the modern .html() method which handles pagination/clipping much better
-      await pdf.html(element, {
-        callback: function (doc) {
-          doc.save(`${filename}.pdf`);
-        },
-        x: 10,
-        y: 10,
-        width: 190, // Target width in mm (A4 is 210mm, giving us 10mm margins)
-        windowWidth: 800, // Render at our standard 800px width
-        autoPaging: "text", // This is the magic that prevents clipping lines
-      });
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
 
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${filename}.pdf`);
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err) {
