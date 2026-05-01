@@ -47,7 +47,7 @@ export default function InvoicePreviewPage() {
 
   return (
     <AuroraBackground>
-      <main className="min-h-screen px-6 py-10 relative z-10 no-print">
+      <main className="min-h-screen px-6 py-10 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-10 animate-fade-in no-print">
@@ -62,14 +62,12 @@ export default function InvoicePreviewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] gap-8">
           {/* Document */}
           <div className="animate-fade-in">
-            <div className="print-document-wrapper">
             <InvoiceDocument
               invoice={invoice}
               signature={signature}
               invoiceNumber={invoiceNumber}
               currency={currency}
             />
-            </div>
           </div>
 
           {/* Action Panel */}
