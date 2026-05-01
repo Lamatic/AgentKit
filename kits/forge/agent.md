@@ -115,5 +115,6 @@ By the end of a Forge session, a freelancer has a professional contract and a ma
 
 ## Notes
 - This is a **Kit** contribution (`type: kit`) with a complete Next.js UI in the `apps/` directory.
+- Live demo is linked in `lamatic.config.ts`: `https://forge-wheat-one.vercel.app/`
 - All AI logic is externalized into Lamatic flows to keep the frontend light and maintainable.
 - Future improvements include persistent document storage and automated email delivery of signed PDFs.
