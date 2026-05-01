@@ -442,38 +442,48 @@ textarea:focus {
 }
 
 @media print {
-  /* White background, strip all spacing from html/body */
-  html, body {
-    background: white !important;
+  /* Force white on everything at the page level */
+  html, body, body > div, body > div > div {
+    background: #ffffff !important;
+    background-image: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    min-height: auto !important;
+    isolation: auto !important;
   }
 
-  /* Kill anything tagged no-print (header, sidebar, buttons) */
+  /* Kill anything tagged no-print */
   .no-print {
     display: none !important;
   }
 
-  /* Kill aurora background and its canvas */
-  .aurora-bg,
-  .aurora-bg canvas {
+  /* Kill ALL absolute/fixed overlays (orbs, noise, glows) */
+  main ~ div,
+  [class*="absolute"][class*="inset"],
+  [class*="pointer-events-none"],
+  [id="interactive-orb"] {
     display: none !important;
   }
 
-  /* Collapse ALL wrapper spacing so the document starts at the very top */
+  /* Collapse ALL wrappers between body and the document */
   main,
   main > div,
-  main > div > div {
+  main > div > div,
+  main > div > div > div {
     min-height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
+    background-image: none !important;
     max-width: none !important;
     gap: 0 !important;
     display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    filter: none !important;
   }
 
-  /* The document itself — full width, pure white, no decorations */
+  /* The document — pure white, proper fonts, zero decorations */
   .document-surface {
     width: 100% !important;
     margin: 0 !important;
@@ -495,12 +505,12 @@ textarea:focus {
     color: #111 !important;
   }
 
-  /* Preserve grids INSIDE the document (e.g. signatures side by side) */
+  /* Preserve grids INSIDE the document (signatures side by side) */
   .document-surface .grid {
     display: grid !important;
   }
 
-  /* Keep signatures together — avoid splitting, don't force a new page */
+  /* Keep signatures together */
   #signatures-section {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
