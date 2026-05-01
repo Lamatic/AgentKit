@@ -435,67 +435,82 @@ textarea:focus {
   z-index: 10;
 }
 
-/* --- PRINT STYLES (Nuclear Fix) --- */
-@media print {
-  @page {
-    size: A4;
-    margin: 20mm;
-  }
+/* --- PRINT STYLES --- */
+@page {
+  size: A4;
+  margin: 12mm;
+}
 
-  /* Global Reset */
+@media print {
+  /* White background, strip all spacing from html/body */
   html, body {
     background: white !important;
-    color: black !important;
     margin: 0 !important;
     padding: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Hide Aurora Background effects and base color */
-  div.bg-\[\#050508\], .aurora-bg {
-    background: white !important;
-    min-height: auto !important;
-  }
-
-  /* Hide everything except the document container */
-  body > * {
+  /* Kill anything tagged no-print (header, sidebar, buttons) */
+  .no-print {
     display: none !important;
   }
 
-  /* Re-show the main content area but surgically */
-  #contract-document, 
-  #contract-document *,
-  #invoice-document,
-  #invoice-document * {
-    visibility: visible !important;
-    display: block !important;
+  /* Kill aurora background and its canvas */
+  .aurora-bg,
+  .aurora-bg canvas {
+    display: none !important;
   }
 
-  /* Force the document to be a clean sheet */
+  /* Collapse wrapper padding so the document starts at the top */
+  main {
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  main > div {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Collapse the grid layout */
+  main [class*="grid"] {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  /* The document itself — full width, proper fonts, no decorations */
   .document-surface {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: white !important;
-    color: black !important;
     box-shadow: none !important;
     border: none !important;
-    z-index: 9999 !important;
+    border-radius: 0 !important;
+    background: white !important;
+    color: #1a1a1a !important;
+    font-family: 'Lora', serif !important;
+    line-height: 1.8 !important;
   }
 
-  /* Handle signatures break */
+  .document-surface h1,
+  .document-surface h2,
+  .document-surface h3 {
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    color: #111 !important;
+  }
+
+  /* Keep signatures together — avoid splitting, don't force a new page */
   #signatures-section {
-    page-break-before: always !important;
-    break-before: page !important;
-    margin-top: 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  /* Hide any non-essential elements inside the document if any */
-  .no-print, button, .lg\:sticky {
-    display: none !important;
+  /* Print colors accurately */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
