@@ -38,9 +38,9 @@ export function AuroraBackground({ children }: { children: React.ReactNode }) {
   }, [mousePos]);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#050508] isolate">
-      {/* Background Liquid Orbs */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none filter blur-[100px] opacity-60">
+    <div className="relative min-h-screen w-full bg-[#050508] isolate print:bg-transparent print:min-h-0">
+      {/* Background Liquid Orbs — hidden in print */}
+      <div className="no-print absolute inset-0 z-0 overflow-hidden pointer-events-none filter blur-[100px] opacity-60">
         {/* Orb 1: Floating top right */}
         <div 
           className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-600/30 animate-[spin_20s_linear_infinite]"
@@ -60,16 +60,16 @@ export function AuroraBackground({ children }: { children: React.ReactNode }) {
         />
       </div>
       
-      {/* Dark noise overlay for texture */}
+      {/* Dark noise overlay — hidden in print */}
       <div 
-        className="absolute inset-0 z-[1] opacity-20 pointer-events-none mix-blend-overlay"
+        className="no-print absolute inset-0 z-[1] opacity-20 pointer-events-none mix-blend-overlay"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}
       />
       
       {/* Content Layer */}
-      <div className="relative z-10 w-full h-full">
+      <div className="relative z-10 w-full h-full print:z-auto">
         {children}
       </div>
     </div>
