@@ -1,0 +1,11 @@
+{
+  "name": "Medical Assistant Chat",
+  "description": "A conversational medical assistant that provides general health information, symptom guidance, and wellness tips. Always includes disclaimers and recommends professional medical consultation.",
+  "tags": ["medical", "chatbot", "health", "assistant"],
+  "testInput": {
+    "query": "What are the common symptoms of the flu?"
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}

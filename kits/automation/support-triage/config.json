@@ -1,0 +1,32 @@
+{
+    "name": "AI Support Triage Engine",
+    "description": "Automated triage system that categorizes, analyzes sentiment, and drafts responses for customer support tickets.",
+    "tags": ["🤖 Automation", "💬 Assistant"],
+    "author": {
+        "name": "Yash Singhal",
+        "email": "yashjee979@gmail.com",
+        "url": "https://github.com/VITianYash42"
+    },
+    "steps": [
+        {
+            "id": "your-flow-id",
+            "type": "mandatory",
+            "envKey": "NEXT_PUBLIC_LAMATIC_FLOW_ID"
+        }
+    ],
+    "integrations": [
+        {
+            "name": "Lamatic Studio Flow",
+            "type": "AI Framework"
+        },
+        {
+            "name": "Gemini Free Tier",
+            "type": "LLM"
+        }
+    ],
+    "features": ["Sentiment Analysis", "Auto-Drafting", "Urgency Detection"],
+    "demoUrl": "https://agent-kit-git-feat-suppo-3f22fd-yash-singhals-projects-d43367ba.vercel.app/",
+    "githubUrl": "https://github.com/VITianYash42/AgentKit/tree/feat/support-triage/kits/automation/support-triage",
+    "deployUrl": "",
+    "documentationUrl": ""
+}

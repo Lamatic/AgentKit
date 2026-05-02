@@ -1,0 +1,10 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradUI" x1="0" y1="0" x2="100" y2="100">
+      <stop offset="0%" stopColor="#6366f1" /> <!-- Indigo -->
+      <stop offset="100%" stopColor="#06b6d4" /> <!-- Cyan -->
+    </linearGradient>
+  </defs>
+  <path d="M50 15 L85 50 L50 85 L15 50 Z" stroke="url(#logoGradUI)" stroke-width="8" stroke-linejoin="round" />
+  <path d="M50 35 L65 50 L50 65 L35 50 Z" stroke="url(#logoGradUI)" stroke-width="4" stroke-linejoin="round" opacity="0.6" />
+</svg>

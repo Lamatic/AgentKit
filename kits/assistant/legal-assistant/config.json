@@ -1,0 +1,27 @@
+{
+  "name": "Legal Assistant",
+  "description": "Ask legal research questions against your Lamatic-connected legal corpus and get an informational answer with citations, next steps, and a standing disclaimer.",
+  "tags": ["🧑‍💼 Assistant", "⚖️ Legal", "📚 RAG"],
+  "author": {
+    "name": "jasperan",
+    "email": "ignacio.m.martinez@oracle.com"
+  },
+  "steps": [
+    {
+      "id": "legal-rag-chatbot",
+      "type": "mandatory",
+      "envKey": "ASSISTANT_LEGAL_CHATBOT"
+    }
+  ],
+  "integrations": ["Lamatic", "Vector Database"],
+  "features": [
+    "Jurisdiction-aware intake",
+    "Research-oriented answers",
+    "Citation-first guidance",
+    "Always-on non-advice disclaimer"
+  ],
+  "demoUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/legal-assistant",
+  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/assistant/legal-assistant&env=ASSISTANT_LEGAL_CHATBOT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY",
+  "documentationUrl": ""
+}

@@ -1,0 +1,45 @@
+{
+  "name": "ai-career-copilot",
+  "version": "1.0.0",
+  "description": "AI-powered career assistant that analyzes resumes and provides personalized career guidance",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@radix-ui/react-accordion": "1.1.2",
+    "@radix-ui/react-collapsible": "1.0.3",
+    "@radix-ui/react-separator": "1.0.3",
+    "@radix-ui/react-tabs": "1.0.4",
+    "axios": "1.6.0",
+    "class-variance-authority": "0.7.0",
+    "clsx": "2.0.0",
+    "dotenv": "17.3.1",
+    "lamatic": "0.3.2",
+    "lucide-react": "0.294.0",
+    "next": "14.2.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.72.1",
+    "react-markdown": "9.0.0",
+    "tailwind-merge": "2.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.2.2",
+    "@types/node": "20.0.0",
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "autoprefixer": "10.4.0",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.35",
+    "postcss": "8.4.0",
+    "tailwindcss": "4.2.2",
+    "typescript": "5.4.5"
+  }
+}

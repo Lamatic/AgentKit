@@ -1,0 +1,547 @@
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlNode",
+        "schema": {
+          "sampleOutput": "string"
+        },
+        "values": {
+          "id": "triggerNode_1",
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": "{\n  \"system_design\": \"string\"\n}\n"
+        },
+        "trigger": true
+      },
+      "type": "triggerNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 685,
+        "y": 0
+      },
+      "selected": false
+    },
+    {
+      "id": "classifier",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "classifier",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"primary_domain\": { \"type\": \"string\" },\n    \"scale_tier\": { \"type\": \"string\" },\n    \"consistency_requirement\": { \"type\": \"string\" },\n    \"latency_sensitivity\": { \"type\": \"string\" },\n    \"availability_requirement\": { \"type\": \"string\" },\n    \"key_constraints\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"architectural_style\": { \"type\": \"string\" }\n  },\n  \"required\": [\"primary_domain\", \"scale_tier\"]\n}\n",
+          "prompts": [
+            {
+              "id": "classifier-system",
+              "role": "system",
+              "content": "Extract system metadata. Return JSON only.\n\nIdentify:\n1. PRIMARY DOMAIN: what is the core function?\n2. SCALE TIER: startup/hypergrowth/enterprise/global?\n3. CONSISTENCY: strong/eventual/causal/weak?\n4. LATENCY: how fast must operations be?\n5. AVAILABILITY: what uptime is required?\n6. ARCHITECTURAL STYLE: monolith/microservices/P2P/serverless/event-driven?\n\nExtract exact constraints: QPSs, user counts, latency targets, regions, data retention.\nIf unspecified, use \"unknown\".\n\nReturn JSON only. No preamble.\n"
+            },
+            {
+              "id": "classifier-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nClassify this system.\n"
+            }
+          ],
+          "nodeName": "System Classifier",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 460,
+        "y": 260
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "component_parser",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "component_parser",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"components\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"data_flow\": { \"type\": \"string\" },\n    \"critical_paths\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"failure_domains\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"explicit_gaps\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"components\", \"data_flow\"]\n}\n",
+          "prompts": [
+            {
+              "id": "parser-system",
+              "role": "system",
+              "content": "Parse architecture structure.\n\nExtract:\n1. COMPONENTS: all services, databases, caches, queues, load balancers, etc.\n2. DATA FLOW: how requests move through the system\n3. CRITICAL PATHS: operations that must be fast or atomic\n4. FAILURE DOMAINS: what fails together? what independently?\n5. EXPLICIT GAPS: what is NOT specified\n\nBe precise. If not mentioned, say \"unspecified\" not \"assume X\".\n\nReturn JSON only.\n"
+            },
+            {
+              "id": "parser-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nParse the architecture.\n"
+            }
+          ],
+          "nodeName": "Component Parser",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 1125,
+        "y": 260
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "performance_agent",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "performance_agent",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"bottlenecks\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"bottlenecks\"]\n}\n",
+          "prompts": [
+            {
+              "id": "perf-system",
+              "role": "system",
+              "content": "You are a PERFORMANCE SPECIALIST. Find bottlenecks GROUNDED in this design.\n\nThink independently based on DOMAIN:\n\n**Cache systems (100K+ QPS):**\n- Serialization overhead at stated QPS? (protobuf vs JSON, encoding cost)\n- Connection pool saturation (concurrent clients vs pool size)\n- Cache miss amplification (all QPSs hit origin when cache clears?)\n- TTL trade-off (short TTL = high miss rate, long TTL = stale data)\n- Eviction overhead (is LRU/LFU scanning expensive at scale?)\n\n**Real-time collab (millions of users):**\n- Conflict resolution latency (CRDT merge time, OT transformation time)\n- Presence fan-out (every user update broadcasts to all peers = O(N²) messages)\n- Document snapshot size (does 1MB doc snapshot block new joins?)\n- Cursor/edit broadcast latency (can user see their cursor move instantly?)\n- Subscription overhead (millions of active subscriptions on server)\n\n**Streaming/video (real-time delivery):**\n- Codec transcoding latency (hardware vs software encoding)\n- ABR (adaptive bitrate) decision time (stalls waiting for decision?)\n- Segment generation vs delivery (live delay, buffer underruns)\n- Manifest update frequency (is live manifest stale?)\n\n**Financial systems:**\n- Transaction log write amplification (every txn = multiple writes)\n- Settlement frequency vs throughput (batch vs real-time trade-off)\n- Balance update latency (strong consistency = slow writes)\n- Reconciliation overhead (comparing state across regions)\n\n**Multi-region systems:**\n- Write latency (do all writes go to primary? lag to secondaries?)\n- Replication lag under peak (how far behind are replicas?)\n- Failover detection time (heartbeat frequency + detection threshold)\n- Consensus overhead (Raft election time, quorum commit cost)\n\nRULES:\n- Reference actual components and constraints from the design\n- If scale numbers exist (100K QPS, millions of users), use them\n- If scale is unspecified, say: \"Cannot assess bottleneck X without scale target\"\n- Never invent components\n\nReturn JSON only. Each bottleneck is 1-2 sentences.\n"
+            },
+            {
+              "id": "perf-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nDomain: {{classifier.output.primary_domain}}\nScale Tier: {{classifier.output.scale_tier}}\nLatency Target: {{classifier.output.latency_sensitivity}}\nConstraints: {{classifier.output.key_constraints}}\nComponents: {{component_parser.output.components}}\nCritical Paths: {{component_parser.output.critical_paths}}\n\nIdentify performance bottlenecks for this specific domain.\n"
+            }
+          ],
+          "nodeName": "Performance Agent",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 0,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "reliability_agent",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "reliability_agent",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"failure_scenarios\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"failure_scenarios\"]\n}\n",
+          "prompts": [
+            {
+              "id": "rel-system",
+              "role": "system",
+              "content": "You are a RELIABILITY ENGINEER. Identify failure modes GROUNDED in this design.\n\nThink independently based on DOMAIN:\n\n**Cache/session systems:**\n- Single cache node failure → is traffic redirected or does origin get hammered?\n- Entire cache layer down → does app fallback to origin? How long?\n- Cache coherency loss (corruption in transit) → does stale data get served?\n- Thundering herd (all clients retry origin on cache miss) → does origin collapse?\n\n**Real-time collab:**\n- Client connection loss → does user resume from last op? Or restart?\n- Server crash mid-merge → are concurrent edits lost or can they reconcile?\n- Split-brain (two servers claim authority for same doc) → which wins? Data loss?\n- Operation log corruption → can clients re-sync? Is history lost?\n- Snapshot mismatch (server snapshot ≠ client state) → can it recover?\n\n**Streaming systems:**\n- Encoder crash → buffered segments are lost, viewers see stall\n- Manifest server down → cannot advertise segment URLs to viewers\n- Segment storage failure → viewers cannot fetch segments\n- CDN node failure → geographic region loses video\n\n**Financial systems:**\n- Transaction in-flight during node crash → is it rolled back or committed?\n- Settlement failure (one region settles, others don't) → inconsistent state\n- Audit trail loss → cannot prove what happened\n- Primary region down → can secondaries promote and take writes safely?\n\n**Multi-region:**\n- Network partition (region A can't talk to region B) → which is authoritative?\n- Quorum loss (3-node Raft, 2 fail) → system is down\n- Failover (region promoted but region A comes back) → split-brain risk\n- Cascade failures (one region down causes others to fail)\n\nRULES:\n- Only flag failures relevant to stated availability target\n- If 99.9% required, minutes-scale outages matter; seconds don't\n- If redundancy unspecified for a component, say so\n- Reference actual components from the design\n\nReturn JSON only. Each scenario is 1-2 sentences.\n"
+            },
+            {
+              "id": "rel-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nDomain: {{classifier.output.primary_domain}}\nAvailability Target: {{classifier.output.availability_requirement}}\nFailure Domains: {{component_parser.output.failure_domains}}\n\nIdentify failure scenarios for this domain.\n"
+            }
+          ],
+          "nodeName": "Reliability Agent",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 450,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "consistency_agent",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "consistency_agent",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"consistency_issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"consistency_issues\"]\n}\n",
+          "prompts": [
+            {
+              "id": "cons-system",
+              "role": "system",
+              "content": "You are a CONSISTENCY ARCHITECT. Identify consistency risks GROUNDED in this design.\n\nThink independently based on DOMAIN:\n\n**Real-time collab claiming strong consistency:**\n- Multi-region writes require consensus (is 2PC used? Cost/latency?)\n- Design says \"always consistent\" but specs eventual replication → contradiction\n- Concurrent edits (two users edit same line) → merge strategy? Last-write-wins loses data\n- Operation causal order (does user A's op happen before user B's?)\n\n**Cache systems claiming consistency:**\n- Cache miss → stale value served from origin (not fresh read)\n- Cache TTL → data is intentionally stale (stale-while-revalidate?)\n- Invalidation strategy (how do updates propagate to cache?)\n- Bypass timing (how long before cache reflects origin change?)\n\n**Distributed systems with eventual consistency:**\n- Consistency window (how long until all replicas agree?)\n- Divergence window (can users see conflicting state simultaneously?)\n- Conflict resolution (CRDTs? Last-write-wins? Manual merge?)\n- Read-your-writes (can user see their own write on replica?)\n\n**Financial systems:**\n- Race condition (two concurrent balance updates) → both applied or one lost?\n- Replication lag (user sees old balance on replica, new on primary) → risk?\n- Settlement atomicity (partial settlements visible? Half-settled state?)\n- Double-spend (can user transfer same money twice before debit clears?)\n\n**Streaming systems:**\n- Manifest consistency (viewers see different segments on failover?)\n- ABR consistency (different profiles see different quality)\n- Live latency consistency (viewers see different frames)\n\nRULES:\n- If design states consistency model, check if architecture supports it\n- If unspecified, say: \"Consistency model not specified for X\"\n- Flag contradictions: \"Claims eventual but requires strong\"\n- Reference actual replication/merge strategy from design\n\nReturn JSON only. Each issue is 1-2 sentences.\n"
+            },
+            {
+              "id": "cons-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nStated Consistency: {{classifier.output.consistency_requirement}}\nReplication Strategy: {{component_parser.output.data_flow}}\n\nIdentify consistency risks for this domain.\n"
+            }
+          ],
+          "nodeName": "Consistency Agent",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 900,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "security_agent",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "security_agent",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"security_risks\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"security_risks\"]\n}\n",
+          "prompts": [
+            {
+              "id": "sec-system",
+              "role": "system",
+              "content": "You are a SECURITY AUDITOR. Identify security risks GROUNDED in this design.\n\nThink independently based on DOMAIN:\n\n**Cache systems:**\n- Unauthorized cache bypass (unauthenticated users → origin DB?)\n- Cache poisoning (corrupted value = all clients affected)\n- Key namespace collisions (user A's key overlaps user B's key?)\n- Cache invalidation (can attacker prevent updates to cached data?)\n\n**Real-time collab:**\n- Presence leaks (user list reveals who's online = deanonymization risk)\n- Operation log exposure (user can read others' edits before publish?)\n- Permission bypass (can user edit docs they don't own?)\n- Replay attacks (can old ops be reapplied to new state?)\n- Snapshot poisoning (malicious snapshot sent to client)\n\n**Streaming systems:**\n- Source authentication (is encoder origin verified?)\n- Segment tampering (can attacker modify segments in transit?)\n- Manifest forgery (fake manifest redirects viewers to attacker content)\n- CDN bypass (can viewer bypass CDN to origin?)\n\n**Financial systems:**\n- Race conditions on balance (transfer twice, debit once = money duplication)\n- Settlement visibility (can user see others' pending transfers?)\n- Audit trail tampering (can past transactions be deleted/edited?)\n- PII exposure (payment data in logs/caches?)\n- Double-spend (spend money, then chargeback, reclaim money)\n\n**Multi-region/distributed:**\n- MitM between regions (is replication encrypted?)\n- Region privilege escalation (different trust levels in regions?)\n- Failover privilege (does secondary assume all permissions?)\n- Partition attacks (attacker isolates region, claims authority)\n\nRULES:\n- Only mention risks PRESENT in the design or missing protections\n- If auth is unspecified, say: \"Authentication strategy unspecified\"\n- Don't say \"add encryption\" → say \"Replication unencrypted (risk: MitM)\"\n- Focus on domain-specific risks, not generic checklist\n\nReturn JSON only. Each risk is 1-2 sentences.\n"
+            },
+            {
+              "id": "sec-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nDomain: {{classifier.output.primary_domain}}\nScale: {{classifier.output.scale_tier}}\nReplication: {{component_parser.output.data_flow}}\n\nIdentify security risks for this domain.\n"
+            }
+          ],
+          "nodeName": "Security Agent",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 1350,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "cost_agent",
+      "data": {
+        "modes": {},
+        "nodeId": "LLMNode",
+        "values": {
+          "id": "cost_agent",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"cost_issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"cost_issues\"]\n}\n",
+          "prompts": [
+            {
+              "id": "cost-system",
+              "role": "system",
+              "content": "You are a COST ANALYST. Identify cost drivers GROUNDED in this design.\n\nThink independently based on DOMAIN:\n\n**Cache systems (100K+ QPS):**\n- Instance count (N nodes at $0.5/hr each = $X/month spend)\n- Memory per node (1TB Redis = expensive vs 100GB)\n- Cross-region replication (data transfer egress cost)\n- Eviction policy overhead (LRU scanning = CPU cost)\n\n**Real-time collab (millions of users):**\n- WebSocket connections (expensive per-connection cost, scales O(N))\n- Presence broadcasts (every user update fan-out = bandwidth cost)\n- Snapshot storage (full snapshots created how often? = storage cost)\n- Indexing operations (full-text search index = compute/storage)\n\n**Streaming systems (live video):**\n- Encoding/transcoding (compute cost scales with bitrates)\n- Segment storage (retention policy = how much on-disk storage?)\n- CDN egress (bandwidth cost, scales with viewers)\n- Live manifest updates (frequency = API calls)\n\n**Financial systems:**\n- Settlement compute (batch processing cost vs real-time)\n- Replication overhead (triple vs double = +50% compute/storage)\n- Audit log retention (5-year retention = storage explodes)\n- Reconciliation (batch job frequency/size)\n\n**Multi-region:**\n- Compute in each region (cost × regions multiplier)\n- Cross-region data transfer (egress is expensive)\n- Replication volume (how much data replicated?)\n- Failover detection (heartbeat overhead)\n\nRULES:\n- Be concrete: \"$X/month for Y component\"\n- Only mention costs evident in the design\n- If frequency unspecified, say so\n- Focus on TOP 2-3 cost drivers\n\nReturn JSON only. Each issue is 1-2 sentences.\n"
+            },
+            {
+              "id": "cost-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nDomain: {{classifier.output.primary_domain}}\nScale: {{classifier.output.scale_tier}}\nConstraints: {{classifier.output.key_constraints}}\n\nIdentify the biggest cost drivers.\n"
+            }
+          ],
+          "nodeName": "Cost Agent",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 1810,
+        "y": 390
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "judge_agent",
+      "data": {
+        "modes": {},
+        "nodeId": "InstructorLLMNode",
+        "values": {
+          "id": "judge_agent",
+          "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"critical_issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"top_recommendations\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"summary\": { \"type\": \"string\" }\n  },\n  \"required\": [\"critical_issues\", \"summary\"]\n}\n",
+          "prompts": [
+            {
+              "id": "judge-system",
+              "role": "system",
+              "content": "You are the FINAL JUDGE. Your job: synthesize all agent findings into one report.\n\nDO NOT RE-ANALYZE. Only filter, deduplicate, and rank.\n\nTASK:\n1. Read all agent outputs\n2. Deduplicate: merge similar findings (performance bottleneck + reliability failure under that bottleneck = ONE issue)\n3. Rank by impact:\n   - CRITICAL: data loss, unavailability at stated scale, security breach, cannot meet consistency requirement\n   - MEDIUM: performance degradation, reliability concerns under failure\n   - LOW: cost optimizations, nice-to-haves\n4. For each critical issue, suggest ONE concrete fix\n5. Produce 2-3 sentence summary: what is this system? Is it ready?\n\nOUTPUT (SAME FORMAT AS REQUESTED):\n{\n  \"critical_issues\": [\"issue 1 (1-2 sentences)\", \"issue 2\", ...] (max 8),\n  \"top_recommendations\": [\"fix 1 (be concrete)\", \"fix 2\", ...] (mapped to issues),\n  \"summary\": \"2-3 sentences: system purpose, readiness verdict, key risks\"\n}\n\nVALIDATION RULES:\n- Only include issues found by agents (don't invent new ones)\n- Only flag issues relevant to stated constraints\n- If agents disagreed, explain the contradiction\n- If design unspecified something critical, flag the gap\n\nReturn JSON only.\n"
+            },
+            {
+              "id": "judge-user",
+              "role": "user",
+              "content": "System Design:\n{{preprocess.output.design}}\n\nCLASSIFICATION:\nDomain: {{classifier.output.primary_domain}}\nScale: {{classifier.output.scale_tier}}\nConsistency: {{classifier.output.consistency_requirement}}\nLatency: {{classifier.output.latency_sensitivity}}\nAvailability: {{classifier.output.availability_requirement}}\n\nALL AGENT FINDINGS:\nPerformance Issues: {{performance_agent.output.bottlenecks}}\nReliability Issues: {{reliability_agent.output.failure_scenarios}}\nConsistency Issues: {{consistency_agent.output.consistency_issues}}\nSecurity Issues: {{security_agent.output.security_risks}}\nCost Issues: {{cost_agent.output.cost_issues}}\n\nProduce final report: critical_issues, top_recommendations, summary.\n"
+            }
+          ],
+          "nodeName": "Judge Agent",
+          "generativeModelName": ""
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 675,
+        "y": 520
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "preprocess",
+      "data": {
+        "logic": [],
+        "modes": {},
+        "nodeId": "codeNode",
+        "schema": {
+          "design": "string",
+          "line_count": "number",
+          "word_count": "number",
+          "mentions_geo": "boolean",
+          "has_scale_numbers": "boolean",
+          "mentions_realtime": "boolean",
+          "mentions_financial": "boolean"
+        },
+        "values": {
+          "id": "preprocess",
+          "code": "const input = {{triggerNode_1.output.system_design}} || \"\";\nconst trimmed = input.trim();\nconst lines = trimmed.split('\\n');\nconst hasNumbers = /(\\d+[KMG]?\\s*(QPS|users|req|ms|sec|GB|TB|ops))/.test(trimmed);\nconst hasGeo = /(multi-region|cross-region|distributed|global|failover|datacenter)/.test(trimmed.toLowerCase());\nconst hasRealtime = /(real-time|realtime|live|WebSocket|streaming|subscription|cursor|presence)/.test(trimmed.toLowerCase());\nconst hasFinance = /(payment|transaction|settlement|balance|financial|money)/.test(trimmed.toLowerCase());\n\noutput = {\n  design: trimmed.slice(0, 4000),\n  word_count: trimmed.split(/\\s+/).length,\n  has_scale_numbers: hasNumbers,\n  mentions_geo: hasGeo,\n  mentions_realtime: hasRealtime,\n  mentions_financial: hasFinance,\n  line_count: lines.length\n};\n",
+          "nodeName": "Clean & Extract Metadata"
+        }
+      },
+      "type": "dynamicNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 685,
+        "y": 130
+      },
+      "selected": false,
+      "draggable": false
+    },
+    {
+      "id": "responseNode_1",
+      "data": {
+        "modes": {},
+        "nodeId": "graphqlResponseNode",
+        "schema": {},
+        "values": {
+          "id": "responseNode_1",
+          "headers": "{\"content-type\":\"application/json\"}",
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"issues\": \"{{judge_agent.output.critical_issues}}\",\n  \"recommendations\": \"{{judge_agent.output.top_recommendations}}\",\n  \"summary\": \"{{judge_agent.output.summary}}\"\n}"
+        }
+      },
+      "type": "responseNode",
+      "measured": {
+        "width": 216,
+        "height": 93
+      },
+      "position": {
+        "x": 675,
+        "y": 650
+      },
+      "selected": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-preprocess",
+      "type": "defaultEdge",
+      "source": "triggerNode_1",
+      "target": "preprocess",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "preprocess-classifier",
+      "type": "defaultEdge",
+      "source": "preprocess",
+      "target": "classifier",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "preprocess-component_parser",
+      "type": "defaultEdge",
+      "source": "preprocess",
+      "target": "component_parser",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "classifier-performance_agent",
+      "type": "defaultEdge",
+      "source": "classifier",
+      "target": "performance_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "component_parser-performance_agent",
+      "type": "defaultEdge",
+      "source": "component_parser",
+      "target": "performance_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "classifier-reliability_agent",
+      "type": "defaultEdge",
+      "source": "classifier",
+      "target": "reliability_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "component_parser-reliability_agent",
+      "type": "defaultEdge",
+      "source": "component_parser",
+      "target": "reliability_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "classifier-consistency_agent",
+      "type": "defaultEdge",
+      "source": "classifier",
+      "target": "consistency_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "component_parser-consistency_agent",
+      "type": "defaultEdge",
+      "source": "component_parser",
+      "target": "consistency_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "classifier-security_agent",
+      "type": "defaultEdge",
+      "source": "classifier",
+      "target": "security_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "component_parser-security_agent",
+      "type": "defaultEdge",
+      "source": "component_parser",
+      "target": "security_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "classifier-cost_agent",
+      "type": "defaultEdge",
+      "source": "classifier",
+      "target": "cost_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "component_parser-cost_agent",
+      "type": "defaultEdge",
+      "source": "component_parser",
+      "target": "cost_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "classifier-judge_agent",
+      "type": "defaultEdge",
+      "source": "classifier",
+      "target": "judge_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "performance_agent-judge_agent",
+      "type": "defaultEdge",
+      "source": "performance_agent",
+      "target": "judge_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "reliability_agent-judge_agent",
+      "type": "defaultEdge",
+      "source": "reliability_agent",
+      "target": "judge_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "consistency_agent-judge_agent",
+      "type": "defaultEdge",
+      "source": "consistency_agent",
+      "target": "judge_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "security_agent-judge_agent",
+      "type": "defaultEdge",
+      "source": "security_agent",
+      "target": "judge_agent",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "cost_agent-judge_agent",
+      "type": "defaultEdge",
+      "source": "cost_agent",
+      "target": "judge_agent",
+      "selected": false,
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "judge_agent-responseNode_1",
+      "type": "defaultEdge",
+      "source": "judge_agent",
+      "target": "responseNode_1",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-responseNode_1",
+      "type": "responseEdge",
+      "source": "triggerNode_1",
+      "target": "responseNode_1",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ]
+}

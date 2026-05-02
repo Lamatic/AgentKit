@@ -1,0 +1,13 @@
+{
+  "name": "Founder Lens - Chat",
+  "description": "RAG-powered interactive chat that answers founder questions using the analyzed brief and semantic memory.",
+  "tags": ["💬 Chat", "🧠 RAG", "💾 Memory"],
+  "testInput": "{\"message\":\"What's the fatal flaw?\",\"userId\":\"test-user-001\",\"sessionId\":\"test-session-001\"}",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/founder-lens/flows/chat",
+  "documentationUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/founder-lens#chat-flow",
+  "deployUrl": "",
+  "author": {
+    "name": "Andrew Dosumu",
+    "email": "dev@andrewdosumu.com"
+  }
+}
