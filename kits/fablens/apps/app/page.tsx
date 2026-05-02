@@ -1,5 +1,8 @@
 'use client';
+
 import { useState } from 'react';
+import Image from 'next/image';
+import { Leaf, Droplet } from 'lucide-react';
 
 type AnalyzeResponse = {
   materials?: string[];
@@ -25,18 +28,36 @@ export default function Home() {
     setLoading(true);
     setData(null);
 
+    // reset UI state
+    setShowEco(false);
+    setShowSkin(false);
+    setShowNeg(false);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
 
+      if (!res.ok) {
+        throw new Error('API error');
+      }
+
       const result: AnalyzeResponse = await res.json();
       setData(result);
-    } catch {
-      setData({ note: 'Something went wrong' });
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        setData({ note: 'Request timed out' });
+      } else {
+        setData({ note: 'Something went wrong' });
+      }
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
@@ -45,10 +66,12 @@ export default function Home() {
     <main className="min-h-screen bg-[#e9e4d1] px-6 py-8 flex flex-col items-center">
       
       <div className="mb-16">
-        <img
-          className="w-60 h-auto border-[#587c47] border-2 rounded-xl"
+        <Image
           src="/logo.png"
           alt="fablens-logo"
+          width={240}
+          height={240}
+          className="border-[#587c47] border-2 rounded-xl"
         />
       </div>
 
@@ -56,11 +79,17 @@ export default function Home() {
         paste a product URL in the input to check how friendly it is with your skin and the planet
       </p>
 
+      <label htmlFor="url-input" className="sr-only">
+        Product URL
+      </label>
+
       <input
+        id="url-input"
         type="text"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         className="w-full max-w-3xl border border-gray-300 bg-white rounded-lg px-4 py-3 text-gray-800 mb-4 focus:outline-none focus:ring-2 focus:ring-[#587c47]"
+        placeholder="Enter product URL..."
       />
 
       <button
@@ -87,7 +116,9 @@ export default function Home() {
 
           {typeof data.ecoScore === 'number' && (
             <div>
-              <p className="font-medium text-lg">🌱 Eco Friendly: {data.ecoScore}%</p>
+              <p className="font-medium text-lg flex items-center gap-2">
+                <Leaf size={18} /> Eco Friendly: {data.ecoScore}%
+              </p>
 
               {data.ecoReasons?.length ? (
                 <>
@@ -112,7 +143,9 @@ export default function Home() {
 
           {typeof data.skinScore === 'number' && (
             <div>
-              <p className="font-medium text-lg">🧴 Skin Friendly: {data.skinScore}%</p>
+              <p className="font-medium text-lg flex items-center gap-2">
+                <Droplet size={18} /> Skin Friendly: {data.skinScore}%
+              </p>
 
               {data.skinReasons?.length ? (
                 <>

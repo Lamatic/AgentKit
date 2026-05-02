@@ -34,14 +34,25 @@ function splitCompound(mat: string): string[] {
 }
 
 async function callLamatic(question: string, url?: string) {
-  return fetch(
-    "https://yashasvisorganization952-yashasvisproject443.lamatic.dev/graphql",
-    {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  const host = process.env.LAMATIC_HOST;
+  const projectId = process.env.LAMATIC_PROJECT_ID;
+  const workflowId = process.env.LAMATIC_WORKFLOW_ID;
+
+  if (!host || !projectId || !workflowId) {
+    throw new Error("Missing Lamatic env configuration");
+  }
+
+  try {
+    return await fetch(host, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${process.env.LAMATIC_API_KEY}`,
         "Content-Type": "application/json",
-        "x-project-id": "f16d4f23-0c7a-42df-b553-b41b1f166670",
+        "x-project-id": projectId,
       },
       body: JSON.stringify({
         query: `query ExecuteWorkflow($workflowId: String!, $question: String, $url: String) {
@@ -50,13 +61,15 @@ async function callLamatic(question: string, url?: string) {
           }
         }`,
         variables: {
-          workflowId: "55a58aab-872b-463f-94b1-e0fbfc1c2056",
+          workflowId,
           question,
           url,
         },
       }),
-    }
-  );
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function POST(req: Request) {
@@ -69,9 +82,16 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null);
-    const url = body?.url;
+    const inputUrl = body?.url;
 
-    if (!url) {
+    // ✅ URL validation (SSRF protection basic)
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(inputUrl);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        throw new Error();
+      }
+    } catch {
       return Response.json(
         { materials: [], note: "Invalid URL input" },
         { status: 400 }
@@ -79,7 +99,7 @@ export async function POST(req: Request) {
     }
 
     // -------- PRIMARY CALL --------
-    const response = await callLamatic("extract materials", url);
+    const response = await callLamatic("extract materials", parsedUrl.href);
 
     if (!response.ok) {
       throw new Error("Primary API request failed");
@@ -102,11 +122,24 @@ export async function POST(req: Request) {
       });
     }
 
-    const rawMaterials: string[] =
-      parsed.materials ||
-      parsed.fabric ||
-      parsed.textiles ||
-      [];
+    // ✅ SAFE MATERIAL EXTRACTION
+    let rawMaterials: string[] = [];
+
+    const candidates = [
+      parsed.materials,
+      parsed.fabric,
+      parsed.textiles,
+    ];
+
+    for (const c of candidates) {
+      if (Array.isArray(c)) {
+        rawMaterials = c;
+        break;
+      } else if (typeof c === "string") {
+        rawMaterials = c.split(",").map((s) => s.trim());
+        break;
+      }
+    }
 
     if (rawMaterials.length === 0) {
       return Response.json({
@@ -170,7 +203,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // -------- AI FALLBACK --------
+    // -------- AI FALLBACK (SAFE VERSION) --------
     if (unknown.length > 0) {
       try {
         const aiRes = await callLamatic(
