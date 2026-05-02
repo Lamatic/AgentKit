@@ -2,6 +2,7 @@
 
 import { lamaticClient } from "@/lib/lamatic-client"
 import { config } from "../orchestrate.js"
+import { z } from "zod"
 
 export async function generateQuestions(
   jobTitle: string,
@@ -27,16 +28,27 @@ export async function generateQuestions(
       jobDesc
     }
 
+    const inputSchema = z.object({
+      jobTitle: z.string().min(1, "Job title is required"),
+      yearsOfExp: z.number().min(0, "Years of experience must be a valid number"),
+      jobDesc: z.string().optional()
+    })
+
+    inputSchema.parse(inputs)
+
     // console.log(`[v0] Executing flow: ${flow.workflowId}`)
 
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
     // console.log("[v0] Flow execution completed")
 
-    const questions = resData?.result?.data
+    const responseSchema = z.object({
+      result: z.object({
+        data: z.array(z.string()).min(1, "No questions found in response")
+      })
+    })
 
-    if (!questions || !Array.isArray(questions) || questions.length === 0) {
-      throw new Error("No questions found in response")
-    }
+    const validatedResponse = responseSchema.parse(resData)
+    const questions = validatedResponse.result.data
 
     return {
       success: true,
@@ -46,7 +58,9 @@ export async function generateQuestions(
     console.error("[v0] Generation error:", error)
 
     let errorMessage = "Unknown error occurred"
-    if (error instanceof Error) {
+    if (error instanceof z.ZodError) {
+      errorMessage = "Validation error: Invalid data format."
+    } else if (error instanceof Error) {
       errorMessage = error.message
       if (error.message.includes("fetch failed")) {
         errorMessage =
@@ -84,22 +98,38 @@ export async function evaluateAnswers(
       candidateResponses
     }
 
+    const inputSchema = z.object({
+      candidateResponses: z.array(
+        z.object({
+          question: z.string(),
+          answers: z.string()
+        })
+      ).min(1, "At least one candidate response is required")
+    })
+
+    inputSchema.parse(inputs)
+
     // console.log(`[v0] Executing flow: ${flow.workflowId}`)
 
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
     console.log("[v0] Flow execution completed")
 
-    const result = resData?.result
+    const responseSchema = z.object({
+      result: z.object({
+        positives: z.array(z.string()).optional().default([]),
+        negatives: z.array(z.string()).optional().default([]),
+        rating: z.number()
+      })
+    })
 
-    if (!result || typeof result.rating !== 'number') {
-      throw new Error("No feedback found in response")
-    }
+    const validatedResponse = responseSchema.parse(resData)
+    const result = validatedResponse.result
 
     return {
       success: true,
       feedback: {
-        positives: result.positives || [],
-        negatives: result.negatives || [],
+        positives: result.positives,
+        negatives: result.negatives,
         rating: result.rating
       },
     }
@@ -107,7 +137,9 @@ export async function evaluateAnswers(
     console.error("[v0] Evaluation error:", error)
 
     let errorMessage = "Unknown error occurred"
-    if (error instanceof Error) {
+    if (error instanceof z.ZodError) {
+      errorMessage = "Validation error: Invalid data format."
+    } else if (error instanceof Error) {
       errorMessage = error.message
       if (error.message.includes("fetch failed")) {
         errorMessage =
