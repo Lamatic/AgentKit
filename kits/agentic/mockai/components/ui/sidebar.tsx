@@ -96,6 +96,12 @@ function SidebarProvider({
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      const isEditable =
+        !!target?.closest('input, textarea, select, [contenteditable="true"]') ||
+        target?.isContentEditable
+
+      if (isEditable) return;
       if (
         event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
         (event.metaKey || event.ctrlKey)
@@ -284,6 +290,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 
   return (
     <button
+      type="button"
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label="Toggle Sidebar"
@@ -423,6 +430,7 @@ function SidebarGroupAction({
 
   return (
     <Comp
+      {...(!asChild ? { type: 'button' as const } : {})}
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
       className={cn(
@@ -513,6 +521,7 @@ function SidebarMenuButton({
 
   const button = (
     <Comp
+      {...(!asChild ? { type: 'button' as const } : {})}
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
@@ -558,6 +567,7 @@ function SidebarMenuAction({
 
   return (
     <Comp
+      {...(!asChild ? { type: 'button' as const } : {})}
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
       className={cn(
