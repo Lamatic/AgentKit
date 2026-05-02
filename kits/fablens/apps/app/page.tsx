@@ -1,22 +1,29 @@
 'use client';
 import { useState } from 'react';
 
+type AnalyzeResponse = {
+  materials?: string[];
+  ecoScore?: number;
+  skinScore?: number;
+  ecoReasons?: string[];
+  skinReasons?: string[];
+  negatives?: string[];
+  note?: string;
+};
+
 export default function Home() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [showEco, setShowEco] = useState(false);
   const [showSkin, setShowSkin] = useState(false);
   const [showNeg, setShowNeg] = useState(false);
 
   const analyze = async () => {
-    if (!url) return;
+    if (!url.trim()) return;
 
     setLoading(true);
     setData(null);
-    setShowEco(false);
-    setShowSkin(false);
-    setShowNeg(false);
 
     try {
       const res = await fetch('/api/analyze', {
@@ -25,18 +32,17 @@ export default function Home() {
         body: JSON.stringify({ url }),
       });
 
-      const result = await res.json();
+      const result: AnalyzeResponse = await res.json();
       setData(result);
     } catch {
       setData({ note: 'Something went wrong' });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <main className="min-h-screen bg-[#e9e4d1] px-6 py-8 flex flex-col items-center">
-      
       
       <div className="mb-16">
         <img
@@ -47,7 +53,7 @@ export default function Home() {
       </div>
 
       <p className="text-gray-600 mb-8 text-center">
-        paste in the input, the URL of the clothing product and see how good a friend it is of your skin and the planet
+        paste a product URL in the input to check how friendly it is with your skin and the planet
       </p>
 
       <input
@@ -59,98 +65,95 @@ export default function Home() {
 
       <button
         onClick={analyze}
-        disabled={loading}
-        style={{ backgroundColor: '#587c47' }}
-        className="w-100 max-w-xl text-white py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 cursor-pointer text-lg"
+        disabled={loading || !url.trim()}
+        className="w-full max-w-xl text-white py-3 rounded-lg font-medium cursor-pointer hover:opacity-90 transition disabled:opacity-50 text-lg bg-[var(--color-primary)]"
       >
         {loading ? 'analyzing...' : 'analyze'}
       </button>
 
-      
       {data && (
         <div className="mt-10 w-full max-w-2xl bg-white/70 p-6 rounded-xl shadow space-y-6">
 
-          
-          {data.materials?.length > 0 && (
+          {data.materials?.length ? (
             <div>
               <h2 className="font-semibold mb-2 text-lg">Materials</h2>
               <ul className="list-disc pl-5 text-gray-700">
-                {data.materials.map((m: string, i: number) => (
+                {data.materials.map((m, i) => (
                   <li key={i} className="capitalize">{m}</li>
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
 
-          
-          {data.ecoScore !== undefined && (
+          {typeof data.ecoScore === 'number' && (
             <div>
               <p className="font-medium text-lg">🌱 Eco Friendly: {data.ecoScore}%</p>
 
-              {data.ecoScore > 0 && data.ecoReasons?.length > 0 && (
-                <button
-                  onClick={() => setShowEco(!showEco)}
-                  className="text-blue-600 text-sm mt-1 cursor-pointer hover:underline"
-                >
-                  {showEco ? 'Hide details' : 'Learn more'}
-                </button>
-              )}
+              {data.ecoReasons?.length ? (
+                <>
+                  <button
+                    onClick={() => setShowEco(!showEco)}
+                    className="text-blue-600 text-sm mt-1 hover:underline"
+                  >
+                    {showEco ? 'Hide details' : 'Learn more'}
+                  </button>
 
-              {showEco && (
-                <ul className="text-sm mt-2 text-gray-600 space-y-1">
-                  {data.ecoReasons.map((r: string, i: number) => (
-                    <li key={i}>• {r}</li>
-                  ))}
-                </ul>
-              )}
+                  {showEco && (
+                    <ul className="text-sm mt-2 text-gray-600 space-y-1">
+                      {data.ecoReasons.map((r, i) => (
+                        <li key={i}>• {r}</li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              ) : null}
             </div>
           )}
 
-          
-          {data.skinScore !== undefined && (
+          {typeof data.skinScore === 'number' && (
             <div>
               <p className="font-medium text-lg">🧴 Skin Friendly: {data.skinScore}%</p>
 
-              {data.skinScore > 0 && data.skinReasons?.length > 0 && (
-                <button
-                  onClick={() => setShowSkin(!showSkin)}
-                  className="text-blue-600 text-sm mt-1 cursor-pointer hover:underline"
-                >
-                  {showSkin ? 'Hide details' : 'Learn more'}
-                </button>
-              )}
+              {data.skinReasons?.length ? (
+                <>
+                  <button
+                    onClick={() => setShowSkin(!showSkin)}
+                    className="text-blue-600 text-sm mt-1 hover:underline"
+                  >
+                    {showSkin ? 'Hide details' : 'Learn more'}
+                  </button>
 
-              {showSkin && (
-                <ul className="text-sm mt-2 text-gray-600 space-y-1">
-                  {data.skinReasons.map((r: string, i: number) => (
-                    <li key={i}>• {r}</li>
-                  ))}
-                </ul>
-              )}
+                  {showSkin && (
+                    <ul className="text-sm mt-2 text-gray-600 space-y-1">
+                      {data.skinReasons.map((r, i) => (
+                        <li key={i}>• {r}</li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              ) : null}
             </div>
           )}
 
-          
-          {data.negatives?.length > 0 && (
+          {data.negatives?.length ? (
             <div>
               <button
                 onClick={() => setShowNeg(!showNeg)}
-                className="text-red-600 text-sm cursor-pointer hover:underline"
+                className="text-red-600 text-sm hover:underline"
               >
                 {showNeg ? 'Hide negatives' : 'Show negatives'}
               </button>
 
               {showNeg && (
                 <ul className="text-sm mt-2 text-red-500 space-y-1">
-                  {data.negatives.map((n: string, i: number) => (
+                  {data.negatives.map((n, i) => (
                     <li key={i}>• {n}</li>
                   ))}
                 </ul>
               )}
             </div>
-          )}
+          ) : null}
 
-          
           {data.note && (
             <p className="text-gray-500 text-sm">{data.note}</p>
           )}

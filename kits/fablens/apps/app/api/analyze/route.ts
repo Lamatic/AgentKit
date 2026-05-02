@@ -8,10 +8,18 @@ function normalizeMaterial(raw: string): string {
     .trim();
 }
 
-function safeJSONParse(raw: any) {
+function safeJSONParse(raw: unknown) {
+  if (!raw) return null;
+
   try {
     if (typeof raw === "object") return raw;
-    return JSON.parse(raw.replace(/```json|```/g, "").trim());
+
+    if (typeof raw === "string") {
+      const cleaned = raw.replace(/```json|```/g, "").trim();
+      return JSON.parse(cleaned);
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -25,6 +33,32 @@ function splitCompound(mat: string): string[] {
   return compounds[mat] || [mat];
 }
 
+async function callLamatic(question: string, url?: string) {
+  return fetch(
+    "https://yashasvisorganization952-yashasvisproject443.lamatic.dev/graphql",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.LAMATIC_API_KEY}`,
+        "Content-Type": "application/json",
+        "x-project-id": "f16d4f23-0c7a-42df-b553-b41b1f166670",
+      },
+      body: JSON.stringify({
+        query: `query ExecuteWorkflow($workflowId: String!, $question: String, $url: String) {
+          executeWorkflow(workflowId: $workflowId payload: { question: $question url: $url }) {
+            status result
+          }
+        }`,
+        variables: {
+          workflowId: "55a58aab-872b-463f-94b1-e0fbfc1c2056",
+          question,
+          url,
+        },
+      }),
+    }
+  );
+}
+
 export async function POST(req: Request) {
   try {
     if (!process.env.LAMATIC_API_KEY) {
@@ -34,32 +68,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const { url } = await req.json();
+    const body = await req.json().catch(() => null);
+    const url = body?.url;
 
-    // -------- PRIMARY AI CALL --------
-    const response = await fetch(
-      "https://yashasvisorganization952-yashasvisproject443.lamatic.dev/graphql",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.LAMATIC_API_KEY}`,
-          "Content-Type": "application/json",
-          "x-project-id": "f16d4f23-0c7a-42df-b553-b41b1f166670",
-        },
-        body: JSON.stringify({
-          query: `query ExecuteWorkflow($workflowId: String!, $question: String, $url: String) {
-            executeWorkflow(workflowId: $workflowId payload: { question: $question url: $url }) {
-              status result
-            }
-          }`,
-          variables: {
-            workflowId: "55a58aab-872b-463f-94b1-e0fbfc1c2056",
-            question: "extract materials",
-            url,
-          },
-        }),
-      }
-    );
+    if (!url) {
+      return Response.json(
+        { materials: [], note: "Invalid URL input" },
+        { status: 400 }
+      );
+    }
+
+    // -------- PRIMARY CALL --------
+    const response = await callLamatic("extract materials", url);
 
     if (!response.ok) {
       throw new Error("Primary API request failed");
@@ -68,17 +88,10 @@ export async function POST(req: Request) {
     const data = await response.json();
     const workflowResult = data?.data?.executeWorkflow?.result;
 
-    let raw =
+    const raw =
       workflowResult?.answer ??
       workflowResult?.output ??
       workflowResult;
-
-    if (!raw) {
-      return Response.json({
-        materials: [],
-        note: "No response from AI",
-      });
-    }
 
     const parsed = safeJSONParse(raw);
 
@@ -105,9 +118,12 @@ export async function POST(req: Request) {
     }
 
     // -------- NORMALIZATION --------
-    const normalized = rawMaterials.map(normalizeMaterial);
     const displayMaterials = [
-      ...new Set(normalized.flatMap(splitCompound)),
+      ...new Set(
+        rawMaterials
+          .map(normalizeMaterial)
+          .flatMap(splitCompound)
+      ),
     ];
 
     const known = displayMaterials.filter((m) => materialDB[m]);
@@ -115,14 +131,14 @@ export async function POST(req: Request) {
 
     let ecoScore = 0;
     let skinScore = 0;
-    let ecoReasons: string[] = [];
-    let skinReasons: string[] = [];
-    let negatives: string[] = [];
+    const ecoReasons: string[] = [];
+    const skinReasons: string[] = [];
+    const negatives: string[] = [];
 
-    // -------- KNOWN MATERIAL SCORING --------
-    known.forEach((mat) => {
+    // -------- KNOWN MATERIALS --------
+    for (const mat of known) {
       const m = materialDB[mat];
-      if (!m) return;
+      if (!m) continue;
 
       if (m.biodegradable) {
         ecoScore += 30;
@@ -132,11 +148,11 @@ export async function POST(req: Request) {
       }
 
       if (m.waterUsage === "low") ecoScore += 10;
-      else if (m.waterUsage === "high")
+      if (m.waterUsage === "high")
         negatives.push(`${mat} uses high water`);
 
       if (m.chemicalUse === "low") ecoScore += 10;
-      else if (m.chemicalUse === "high")
+      if (m.chemicalUse === "high")
         negatives.push(`${mat} uses heavy chemicals`);
 
       if (m.breathability === "high") {
@@ -147,43 +163,23 @@ export async function POST(req: Request) {
       if (m.irritationRisk === "low") {
         skinScore += 30;
         skinReasons.push(`${mat} is skin-safe`);
-      } else if (m.irritationRisk === "high") {
+      }
+
+      if (m.irritationRisk === "high") {
         negatives.push(`${mat} may irritate skin`);
       }
-    });
+    }
 
-    // -------- AI FALLBACK FOR UNKNOWN --------
+    // -------- AI FALLBACK --------
     if (unknown.length > 0) {
       try {
-        const aiRes = await fetch(
-          "https://yashasvisorganization952-yashasvisproject443.lamatic.dev/graphql",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.LAMATIC_API_KEY}`,
-              "Content-Type": "application/json",
-              "x-project-id": "f16d4f23-0c7a-42df-b553-b41b1f166670",
-            },
-            body: JSON.stringify({
-              query: `query ExecuteWorkflow($workflowId: String!, $question: String) {
-                executeWorkflow(workflowId: $workflowId payload: { question: $question }) {
-                  status result
-                }
-              }`,
-              variables: {
-                workflowId:
-                  "55a58aab-872b-463f-94b1-e0fbfc1c2056",
-                question: `Analyze these materials: ${unknown.join(
-                  ", "
-                )}. Return JSON only.`,
-              },
-            }),
-          }
+        const aiRes = await callLamatic(
+          `Analyze these materials: ${unknown.join(", ")}. Return JSON only.`
         );
 
         if (aiRes.ok) {
           const aiData = await aiRes.json();
-          let aiRaw =
+          const aiRaw =
             aiData?.data?.executeWorkflow?.result?.answer;
 
           const parsedAI = safeJSONParse(aiRaw);
@@ -201,14 +197,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // -------- FINAL NORMALIZATION --------
-    ecoScore = Math.min(100, ecoScore);
-    skinScore = Math.min(100, skinScore);
-
     return Response.json({
       materials: displayMaterials,
-      ecoScore,
-      skinScore,
+      ecoScore: Math.min(100, ecoScore),
+      skinScore: Math.min(100, skinScore),
       ecoReasons,
       skinReasons,
       negatives,
