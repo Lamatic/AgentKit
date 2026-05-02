@@ -89,14 +89,14 @@ export default function Home() {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         className="w-full max-w-3xl border border-gray-300 bg-white rounded-lg px-4 py-3 text-gray-800 mb-4 focus:outline-none focus:ring-2 focus:ring-[#587c47]"
-        placeholder="Enter product URL..."
       />
 
       <button
         onClick={analyze}
         disabled={loading || !url.trim()}
-        className="w-full max-w-xl text-white py-3 rounded-lg font-medium cursor-pointer hover:opacity-90 transition disabled:opacity-50 text-lg bg-[var(--color-primary)]"
-      >
+        className="w-full max-w-xl text-white py-3 rounded-lg font-medium cursor-pointer hover:opacity-90 transition disabled:opacity-50 text-lg"
+style={{ backgroundColor: '#587c47' }}
+>
         {loading ? 'analyzing...' : 'analyze'}
       </button>
 
