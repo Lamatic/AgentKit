@@ -13,7 +13,7 @@ export async function generateQuestions(
   error?: string
 }> {
   try {
-    console.log("[v0] Generating questions with:", { jobTitle, yearsOfExp, jobDesc })
+    // console.log("[v0] Generating questions - Flow started")
 
     const flow = config.flows.question
 
@@ -27,10 +27,10 @@ export async function generateQuestions(
       jobDesc
     }
 
-    console.log("[v0] Sending inputs:", inputs)
+    // console.log(`[v0] Executing flow: ${flow.workflowId}`)
 
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
-    console.log("[v0] Raw response:", resData)
+    // console.log("[v0] Flow execution completed")
 
     const questions = resData?.result?.data
 
@@ -71,7 +71,7 @@ export async function evaluateAnswers(
   error?: string
 }> {
   try {
-    console.log("[v0] Evaluating answers with:", { candidateResponses })
+    // console.log("[v0] Evaluating answers - Flow started", { count: candidateResponses.length })
 
     const flow = config.flows.feedback
 
@@ -84,10 +84,10 @@ export async function evaluateAnswers(
       candidateResponses
     }
 
-    console.log("[v0] Sending inputs:", JSON.stringify(inputs))
+    // console.log(`[v0] Executing flow: ${flow.workflowId}`)
 
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
-    console.log("[v0] Raw response:", resData)
+    console.log("[v0] Flow execution completed")
 
     const result = resData?.result
 
