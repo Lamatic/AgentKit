@@ -8,17 +8,17 @@
     "start": "next start"
   },
   "dependencies": {
-    "lucide-react": "^1.14.0",
+    "lucide-react": "1.14.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@tailwindcss/postcss": "4.0.0",
+    "@types/node": "20.11.30",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "tailwindcss": "4.0.0",
+    "typescript": "5.4.5"
   }
 }

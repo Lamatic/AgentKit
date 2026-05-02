@@ -51,6 +51,7 @@ npm run dev
 | `LAMATIC_HOST` | Your Lamatic GraphQL endpoint (e.g. https://<org>.lamatic.dev/graphql) |
 
 ## Supported Sites
+
 Works best with product pages that clearly list materials:
 
 - BIBA
@@ -58,6 +59,7 @@ Works best with product pages that clearly list materials:
 - Independent/D2C brands
 
 ## Future Plans
+
 - Percentage-weighted scoring
 - Improved compound material handling
 - Expanded material database
@@ -65,6 +67,7 @@ Works best with product pages that clearly list materials:
 - Image-based material detection
 
 ## Limitations
+
 - Sites with bot protection (e.g. H&M, Amazon) may fail
 - Missing material data → no analysis
 - Compound materials (e.g. polycotton) may not always resolve accurately
