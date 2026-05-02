@@ -1,0 +1,66 @@
+{
+  "LLMNode_430": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
+      "required": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "isPrivate": true
+    }
+  ],
+  "LLMNode_255": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model",
+      "modelType": "generator/text",
+      "mode": "chat",
+      "description": "Select the model to generate text based on the prompt.",
+      "required": true,
+      "defaultValue": [
+        {
+          "configName": "configA",
+          "type": "generator/text",
+          "provider_name": "",
+          "credential_name": "",
+          "params": {}
+        }
+      ],
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "isPrivate": true
+    }
+  ],
+  "ImageGenNode_535": [
+    {
+      "name": "imageGenModelName",
+      "label": "Image Model Name",
+      "type": "model",
+      "mode": "image_generation",
+      "description": "Select the image generation model to use based on the prompt.",
+      "modelType": "generator/image",
+      "required": true,
+      "defaultValue": "",
+      "isPrivate": true,
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      }
+    }
+  ]
+}

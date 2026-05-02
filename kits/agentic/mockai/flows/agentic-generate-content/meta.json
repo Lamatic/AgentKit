@@ -1,0 +1,12 @@
+{
+  "name": "1. Agentic Generation - Generate Content",
+  "description": "",
+  "tags": [],
+  "testInput": {
+    "mode": "text",
+    "instructions": "write me a poem on AI"
+  },
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": ""
+}
