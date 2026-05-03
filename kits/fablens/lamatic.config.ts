@@ -17,5 +17,6 @@ export default {
   ],
   links: {
     github: "https://github.com/yashasvij-19/AgentKit/tree/main/kits/fablens",
+    deploy : "https://fablens-13b6jz8jl-yashasvij-19s-projects.vercel.app/"
   },
 };
