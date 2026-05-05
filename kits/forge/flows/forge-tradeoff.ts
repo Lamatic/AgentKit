@@ -79,7 +79,7 @@ export const meta = {
   "description": "Analyses both parties' countries and the freelancer's primary concern to provide 3 governing law options with pros, cons, and a recommendation.",
   "tags": ["legal", "cross-border", "recommendations"],
   "testInput": "{\"freelancer_country\":\"Nigeria\",\"client_country\":\"United Kingdom\",\"freelancer_primary_concern\":\"Getting paid on time\"}",
-  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/forge/flows/forge-tradeoff",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/forge/flows/forge-tradeoff",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

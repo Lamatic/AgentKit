@@ -81,7 +81,7 @@ export const meta = {
   "description": "Generates a professional invoice with confirmed line items, freelancer/client details, and payment instructions.",
   "tags": ["finance", "invoicing", "generative"],
   "testInput": "{\"project_title\":\"E-commerce Website\",\"freelancer_name\":\"John Doe\",\"client_name\":\"Acme Corp\",\"total_amount\":\"5000\",\"currency\":\"USD\",\"line_items\":\"[{\\\"description\\\":\\\"Development\\\",\\\"amount\\\":5000}]\"}",
-  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/forge/flows/forge-invoice",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/forge/flows/forge-invoice",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

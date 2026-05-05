@@ -16,23 +16,22 @@ export default function ExportButton({ targetId, filename }: Props) {
     setExporting(true);
     setDone(false);
 
-    try {
-      // Set document title to the desired filename so the print dialog uses it
-      const originalTitle = document.title;
-      document.title = filename;
+    // Set document title to the desired filename so the print dialog uses it
+    const originalTitle = document.title;
+    document.title = filename;
 
+    try {
       // Note: targetId is currently handled via CSS @media print in globals.css
       // which isolates the document surface for the print engine.
       window.print();
 
-      // Restore original title
-      document.title = originalTitle;
-      
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err) {
       console.error("Print failed:", err);
     } finally {
+      // Restore original title even if print throws or is cancelled
+      document.title = originalTitle;
       setExporting(false);
     }
   };

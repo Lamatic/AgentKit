@@ -199,7 +199,9 @@ kits/forge/
 
 ## Live Preview
 
-_Coming soon_
+[**Open the live demo →**](https://forge-wheat-one.vercel.app/)
+
+![Forge Screenshot](apps/public/screenshot.png)
 
 ---
 
