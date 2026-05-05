@@ -327,9 +327,11 @@ export default function Step1ProjectDetails({ onComplete }: Props) {
             required
             rows={3}
             className={inputClass + " resize-none"}
-            placeholder="Separate each deliverable with a comma"
+            placeholder="Enter one deliverable per line"
             value={form.deliverables}
-            onChange={(e) => set("deliverables", e.target.value)}
+            onChange={(e) =>
+              set("deliverables", e.target.value.replace(/\s*,\s*/g, "\n"))
+            }
           />
         </div>
 

@@ -73,8 +73,8 @@ export const meta = {
   "name": "Forge Pricing",
   "description": "Analyses the freelancer's field, experience level, country, and deliverables against market data to return AI-calibrated per-item pricing with market context.",
   "tags": ["agentic", "pricing", "Market Analysis"],
-  "testInput": "{\"field\":\"Software Engineering\",\"experience_level\":\"Senior\",\"country\":\"Nigeria\",\"deliverables\":\"1. Landing Page\\n2. Auth System\\n3. Database Schema\"}",
-  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/forge/flows/forge-pricing",
+  "testInput": "{\"work_type\":\"code\",\"field\":\"Software Engineering\",\"experience_level\":\"Senior\",\"years_of_experience\":\"5\",\"deliverables\":\"Landing Page\\nAuth System\\nDatabase Schema\",\"payment_structure\":\"fixed\",\"currency\":\"USD\",\"freelancer_country\":\"Nigeria\",\"client_country\":\"United Kingdom\"}",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/forge/flows/forge-pricing",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

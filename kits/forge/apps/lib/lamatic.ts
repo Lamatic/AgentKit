@@ -4,6 +4,17 @@ export async function callFlow(flowId: string, payload: Record<string, string>) 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ flowId, payload }),
   });
-  if (!res.ok) throw new Error('Flow call failed');
+  if (!res.ok) {
+    let message = 'Flow call failed';
+    try {
+      const body = await res.json();
+      if (body && typeof body.error === 'string' && body.error.trim()) {
+        message = `Flow call failed: ${body.error}`;
+      }
+    } catch {
+      // Ignore parse errors and keep the generic fallback message.
+    }
+    throw new Error(message);
+  }
   return res.json();
 }

@@ -80,7 +80,7 @@ export const meta = {
   "description": "Generates a full 13-section services agreement based on project details, confirmed pricing, and chosen governing law.",
   "tags": ["legal", "contract", "generative"],
   "testInput": "{\"project_title\":\"E-commerce Website\",\"freelancer_name\":\"John Doe\",\"client_name\":\"Acme Corp\",\"payment_amount\":\"5000\",\"payment_currency\":\"USD\",\"chosen_governing_law\":\"English Law\"}",
-  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agentic/forge/flows/forge-contract",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/forge/flows/forge-contract",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

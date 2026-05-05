@@ -41,6 +41,9 @@ export default function Step4Generate({ onBack }: Props) {
         throw new Error("Flow IDs not configured.");
       }
 
+      // Single source of truth: user-selected currency from project details
+      const currency = pd.payment_currency;
+
       // Build payloads
       const contractPayload = {
         freelancer_name: pd.freelancer_name,
@@ -56,10 +59,10 @@ export default function Step4Generate({ onBack }: Props) {
         timeline_start: pd.timeline_start,
         timeline_end: pd.timeline_end,
         payment_amount: pricing.total_amount,
-        payment_currency: pd.payment_currency,
+        payment_currency: currency,
         payment_structure: pd.payment_structure,
         work_type: pd.work_type,
-        chosen_governing_law: `${gov.option_name} — ${gov.explanation}`,
+        chosen_governing_law: gov.option_name,
       };
 
       const invoicePayload = {
@@ -76,7 +79,7 @@ export default function Step4Generate({ onBack }: Props) {
         due_date: pd.timeline_start,
         project_title: pd.project_title,
         line_items: JSON.stringify(pricing.line_items),
-        currency: pricing.currency,
+        currency,
         total_amount: pricing.total_amount,
         payment_instructions: `Please send payment via ${pd.freelancer_payment_method} to: ${pd.freelancer_payment_details}`,
         notes: `This invoice relates to the services agreement dated ${new Date().toISOString().split("T")[0]}.`,
@@ -104,17 +107,21 @@ export default function Step4Generate({ onBack }: Props) {
         setInvoiceDone(true);
       }
 
-      // Navigate if contract succeeded
+      // Navigate if contract succeeded; otherwise reset loading state so error UI can render
       if (contractResult.status === "fulfilled") {
         if (invoiceResult.status === "rejected") {
           setError("Contract generated, but invoice failed. You can regenerate it later.");
+          setGenerating(false);
           setTimeout(() => router.push("/preview/contract"), 2000);
         } else {
+          // Keep generating true while navigating to the preview
           router.push("/preview/contract");
         }
       } else if (invoiceResult.status === "fulfilled") {
         setError("Invoice generated, but contract failed. Please try again.");
+        setGenerating(false);
       } else {
+        setGenerating(false);
         throw new Error("Both document generations failed. Please try again.");
       }
     } catch (err) {
