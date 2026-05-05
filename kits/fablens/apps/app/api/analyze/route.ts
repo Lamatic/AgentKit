@@ -71,7 +71,10 @@ async function callLamatic(question: string, url?: string) {
     clearTimeout(timeout);
   }
 }
-
+/**
+ * Analyzes a clothing product URL for material composition,
+ * environmental impact, and skin safety using Lamatic AI and Firecrawl.
+ */
 export async function POST(req: Request) {
   try {
     if (!process.env.LAMATIC_API_KEY) {

@@ -13,6 +13,10 @@ type AnalyzeResponse = {
   negatives?: string[];
   note?: string;
 };
+/**
+ * FabLens home page — accepts a product URL and displays
+ * material analysis results including eco and skin scores.
+ */
 
 export default function Home() {
   const [url, setUrl] = useState('');
