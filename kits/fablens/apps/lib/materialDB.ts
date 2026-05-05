@@ -5,7 +5,10 @@ export type MaterialData = {
   breathability: 'low' | 'medium' | 'high';
   irritationRisk: 'low' | 'medium' | 'high';
 };
-
+/**
+ * Local database of common textile materials with environmental
+ * and skin safety properties for scoring.
+ */
 export const materialDB: Record<string, MaterialData> = {
   cotton: {
     biodegradable: true,
