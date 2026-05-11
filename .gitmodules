@@ -1,0 +1,3 @@
+[submodule "kits/sales-to-cs-handoff-automation/frontend"]
+	path = kits/sales-to-cs-handoff-automation/frontend
+	url = https://github.com/paarths-collab/sales-to-cs-handoff-automation.git
