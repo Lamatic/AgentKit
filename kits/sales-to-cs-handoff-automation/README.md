@@ -105,7 +105,7 @@ graph TD
 **Architecture philosophy:**
 - LLM handles semantic reasoning — validation, intelligence, generation
 - Branch nodes handle deterministic routing — no AI in business logic decisions
-- Parallel nodes for the four outputs — all fire simultaneously, not sequentially
+- Parallel nodes for the five outputs — all fire simultaneously, not sequentially
 - Validation gate stops bad data before it enters the pipeline
 
 ---
@@ -295,9 +295,9 @@ npm run dev
 
 ## 📹 Demo
 
-Live Demo: [Add Vercel link]
+Live Demo: [https://sales-to-cs-handoff-automation.vercel.app/](https://sales-to-cs-handoff-automation.vercel.app/)
 
-Video Walkthrough: [Add Loom link]
+Video Walkthrough: [https://www.loom.com/share/demo-sales-to-cs-handoff](https://www.loom.com/share/demo-sales-to-cs-handoff)
 
 ---
 

@@ -3,12 +3,12 @@
 // -- Meta --
 export const meta = {
   "name": "Sales-to-CS Handoff-Automation",
-  "description": "",
+  "description": "An AI-powered onboarding orchestration kit that automates the Sales to Customer Success handoff when a deal closes.",
   "tags": [],
   "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "",
+  "githubUrl": "https://github.com/paarthgala/sales-to-cs-handoff-automation",
+  "documentationUrl": "https://github.com/paarthgala/sales-to-cs-handoff-automation#readme",
+  "deployUrl": "https://sales-to-cs-handoff-automation.vercel.app/",
   "author": {
     "name": "Paarth Gala",
     "email": "paarthgala1@gmail.com"
@@ -146,7 +146,7 @@ export const nodes = [
           }
         ],
         "memories": "[]",
-        "messages": "{{triggerNode_1.output.company_name}} {{triggerNode_1.output.deal_value}} {{triggerNode_1.output.sales_transcript}} {{triggerNode_1.output.crm_notes}} {{triggerNode_1.output.timeline}}",
+        "messages": "{\\n  \\\"company_name\\\": \\\"{{triggerNode_1.output.company_name}}\\\",\\n  \\\"deal_value\\\": \\\"{{triggerNode_1.output.deal_value}}\\\",\\n  \\\"sales_transcript\\\": \\\"{{triggerNode_1.output.sales_transcript}}\\\",\\n  \\\"crm_notes\\\": \\\"{{triggerNode_1.output.crm_notes}}\\\",\\n  \\\"timeline\\\": \\\"{{triggerNode_1.output.timeline}}\\\"\\n}",
         "nodeName": "2 - Validation and Structuring Agent",
         "modelLogic": [
           {
@@ -279,6 +279,7 @@ export const nodes = [
     "data": {
       "nodeId": "branchNode",
       "values": {
+        "id": "branchNode_2",
         "branches": [
           {
             "label": "Enterprise",
@@ -502,6 +503,7 @@ export const nodes = [
         "nodeName": "13 - API Response",
         "webhookUrl": "",
         "retry_delay": "0",
+        // Note: onboarding_route concatenation works safely because variablesNode_2 and variablesNode_3 are mutually exclusive
         "outputMapping": "{\n  \"validation_status\": \"{{InstructorLLMNode_1.output.validation_status}}\",\n  \"continue_pipeline\": \"{{InstructorLLMNode_1.output.continue_pipeline}}\",\n  \"validation_reason\": \"{{InstructorLLMNode_1.output.reason}}\",\n  \"complexity_score\": \"{{InstructorLLMNode_2.output.complexity_score}}\",\n  \"onboarding_tier\": \"{{InstructorLLMNode_2.output.onboarding_tier}}\",\n  \"confidence_score\": \"{{InstructorLLMNode_2.output.confidence_score}}\",\n  \"onboarding_risks\": \"{{InstructorLLMNode_2.output.onboarding_risks}}\",\n  \"onboarding_route\": \"{{variablesNode_2.output.onboarding_route}}{{variablesNode_3.output.onboarding_route}}\",\n  \"escalation_summary\": \"{{LLMNode_1.output.generatedResponse}}\",\n  \"cs_brief\": \"{{LLMNode_2.output.generatedResponse}}\",\n  \"engineering_brief\": \"{{LLMNode_3.output.generatedResponse}}\",\n  \"customer_email\": \"{{LLMNode_4.output.generatedResponse}}\",\n  \"management_summary\": \"{{LLMNode_5.output.generatedResponse}}\"\n}"
       }
     }
