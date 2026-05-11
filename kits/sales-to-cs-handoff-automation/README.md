@@ -1,8 +1,8 @@
 # 🚀 AI Sales → Customer Success Handoff Orchestrator
 
-[![Challenge](https://img.shields.io/badge/Challenge-Internship%20Submission-blueviolet)](#)
-[![Built with Lamatic](https://img.shields.io/badge/Built%20with-Lamatic.ai-0f766e)](#)
-[![Model](https://img.shields.io/badge/Model-Groq%20Llama%203.3%2070B-orange)](#)
+![Challenge](https://img.shields.io/badge/Challenge-Internship%20Submission-blueviolet)
+![Built with Lamatic](https://img.shields.io/badge/Built%20with-Lamatic.ai-0f766e)
+![Model](https://img.shields.io/badge/Model-Groq%20Llama%203.3%2070B-orange)
 
 An AI-powered onboarding orchestration kit built on Lamatic that automates the Sales → Customer Success handoff the moment a deal closes.
 
@@ -14,7 +14,7 @@ Paste raw deal data — sales transcript, CRM notes, integration requirements, p
 
 **Try it now:** https://sales-to-cs-handoff-automation.vercel.app/
 
-Deploy your own with one click using Vercel — all environment variables are server-side protected.
+Deploy your own with one click using Vercel. Note: `NEXT_PUBLIC_` variables are exposed to the browser; ensure your Lamatic API key has appropriate scoping.
 
 ---
 
@@ -89,10 +89,16 @@ graph TD
     G -->|Enterprise| H
     G -->|Standard| I
     H --> J
+    H --> K
+    H --> L
+    H --> M
     I --> J
-    J --> K
-    K --> L
-    L --> M
+    I --> K
+    I --> L
+    I --> M
+    J --> N
+    K --> N
+    L --> N
     M --> N
     
     style A fill:#0f766e

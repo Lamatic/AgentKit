@@ -289,7 +289,7 @@ export const nodes = [
           {
             "label": "Standard",
             "value": "variablesNode_3",
-            "condition": "true"
+            "condition": "{{InstructorLLMNode_2.output.complexity_score}} <= 7"
           }
         ],
         "nodeName": "7 - Routing Logic"
