@@ -303,7 +303,9 @@ npm run dev
 
 Live Demo: [https://sales-to-cs-handoff-automation.vercel.app/](https://sales-to-cs-handoff-automation.vercel.app/)
 
-Video Walkthrough: Coming soon
+Video Walkthrough: 
+
+<video src="frontend/public/videos/walkthrough.mp4" width="100%" controls></video>
 
 ---
 
