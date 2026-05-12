@@ -305,7 +305,7 @@ Live Demo: [https://sales-to-cs-handoff-automation.vercel.app/](https://sales-to
 
 Video Walkthrough: 
 
-![NovaPay Walkthrough](https://github.com/paarths-collab/sales-to-cs-handoff-automation/raw/main/public/videos/walkthrough.mp4)
+![NovaPay Walkthrough](https://sales-to-cs-handoff-automation.vercel.app/videos/walkthrough.mp4)
 
 ---
 
