@@ -305,7 +305,9 @@ Live Demo: [https://sales-to-cs-handoff-automation.vercel.app/](https://sales-to
 
 Video Walkthrough: 
 
-<video src="frontend/public/videos/walkthrough.mp4" width="100%" controls></video>
+Video Walkthrough: 
+
+<video src="https://github.com/paarths-collab/sales-to-cs-handoff-automation/raw/main/public/videos/walkthrough.mp4" width="100%" controls></video>
 
 ---
 
