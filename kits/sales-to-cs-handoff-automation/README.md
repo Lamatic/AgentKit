@@ -174,7 +174,7 @@ From an actual test run with a $120,000 fintech deal (NovaPay Financial):
 - Third-party QSA scoping call required before implementation can begin — not communicated to customer
 
 **Execution metrics (from actual API response `_meta`):**
-```
+```text
 cs_brief total_time:          2.107 seconds   cost: $0.00071
 engineering_brief total_time: 1.828 seconds   cost: $0.00062
 customer_email total_time:    1.413 seconds   cost: $0.00052
@@ -303,7 +303,7 @@ npm run dev
 
 Live Demo: [https://sales-to-cs-handoff-automation.vercel.app/](https://sales-to-cs-handoff-automation.vercel.app/)
 
-Video Walkthrough: [https://www.loom.com/share/demo-sales-to-cs-handoff](https://www.loom.com/share/demo-sales-to-cs-handoff)
+Video Walkthrough: Coming soon
 
 ---
 
