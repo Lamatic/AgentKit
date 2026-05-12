@@ -222,8 +222,8 @@ Built as an operational onboarding dashboard — not a chatbot UI.
 
 - Deal intake form with all five input fields
 - Left panel: validation status, onboarding route badge, complexity and confidence score bars, risk flags
-- Right panel: five tabbed outputs with one-click copy
-- Pipeline halt alert when validation fails
+- Right panel: Dynamic tabbed outputs (Briefs for successful validation, Escalation Hub for failures)
+- Pipeline halt alert and auto-switching to Escalation tab when validation fails
 
 **Stack:** Next.js 14, TypeScript, Tailwind CSS
 
