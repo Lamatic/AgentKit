@@ -46,3 +46,47 @@ It then returns a structured match decision with a score, reasoning, verificatio
   "lost_date": "2026-05-10",
   "found_date": "2026-05-10"
 }
+```
+
+## Output
+
+```json
+{
+  "match_score": 85,
+  "decision": "Likely Match",
+  "reason": "Both reports describe a dark wallet found near similar academic locations and mention an ID card.",
+  "matching_signals": [
+    "Both reports mention a wallet",
+    "Both reports mention a dark or black color",
+    "Both reports mention an ID card",
+    "The locations are similar"
+  ],
+  "conflicting_signals": [
+    "The found report does not mention cash"
+  ],
+  "verification_questions": [
+    "What name is written on the ID card?",
+    "How much cash was inside?",
+    "Does the wallet have any brand or unique mark?"
+  ],
+  "next_action": "Send this case to an admin for manual verification before returning the item."
+}
+```
+
+## Use Cases
+
+- Campus lost and found desks
+- Airport lost property departments
+- Metro station lost and found counters
+- Mall and hotel security teams
+- Lost and found management platforms
+
+## Why this matters
+
+The agent does not replace human verification. It helps admins quickly prioritize likely matches and reduce manual effort.
+
+## Assumptions
+
+- The match score is a recommendation, not a final ownership decision.
+- Valuable or sensitive items should always be manually verified.
+- The quality of the result depends on the quality of the descriptions provided.
