@@ -1,0 +1,6 @@
+{
+  "model": "gpt-4o-mini",
+  "temperature": 0.2,
+  "response_format": "json",
+  "purpose": "Generate a structured lost-and-found match recommendation using item descriptions, locations, dates, and verification signals."
+}
