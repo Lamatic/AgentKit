@@ -1,0 +1,19 @@
+{
+  "name": "LostFound Match Agent",
+  "slug": "lostfound-match-agent",
+  "description": "Compares lost item reports with found item reports and returns a structured match recommendation with score, reasoning, verification questions, and next action.",
+  "category": "workflow-automation",
+  "tags": [
+    "lost-and-found",
+    "matching",
+    "automation",
+    "json",
+    "admin"
+  ],
+  "author": {
+    "name": "Rewant Anand",
+    "github": "Rewant05"
+  },
+  "version": "1.0.0",
+  "type": "template"
+}
