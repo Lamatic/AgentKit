@@ -1,3 +1,6 @@
+/**
+ * Configuration metadata for the DebugPilot AI kit.
+ */
 export default {
   name: "DebugPilot AI",
   description: "AI-powered debugging workflow for root cause analysis.",
