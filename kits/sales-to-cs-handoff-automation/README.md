@@ -111,7 +111,7 @@ graph TD
 **Architecture philosophy:**
 - LLM handles semantic reasoning — validation, intelligence, generation
 - Branch nodes handle deterministic routing — no AI in business logic decisions
-- Parallel nodes for the five outputs — all fire simultaneously, not sequentially
+- Parallel nodes for the four success-path outputs — all fire simultaneously; escalation is emitted only on validation failure
 - Validation gate stops bad data before it enters the pipeline
 
 ---
