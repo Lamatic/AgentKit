@@ -305,9 +305,9 @@ Live Demo: [https://sales-to-cs-handoff-automation.vercel.app/](https://sales-to
 
 Video Walkthrough: 
 
-![NovaPay Walkthrough](https://sales-to-cs-handoff-automation.vercel.app/videos/walkthrough.mp4)
+[Watch the NovaPay Walkthrough](https://sales-to-cs-handoff-automation.vercel.app/videos/walkthrough.mp4)
 
-*Alternative Link (Google Drive):(https://drive.google.com/file/d/1-MCkSm8aelJTa17lu0NIF0VxZ1IXr-YA/view?usp=sharing)*
+*Alternative Link (Google Drive): [Watch on Google Drive](https://drive.google.com/file/d/1-MCkSm8aelJTa17lu0NIF0VxZ1IXr-YA/view?usp=sharing)*
 
 ---
 
