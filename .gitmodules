@@ -1,4 +1,4 @@
-[submodule "kits/sales-to-cs-handoff-automation/frontend"]
-	path = kits/sales-to-cs-handoff-automation/frontend
+[submodule "kits/sales/sales-to-cs-handoff-automation/frontend"]
+	path = kits/sales/sales-to-cs-handoff-automation/frontend
 	url = https://github.com/LamaticHQ/sales-to-cs-handoff-automation.git
 	branch = main
