@@ -168,9 +168,9 @@ From an actual test run with a $120,000 fintech deal (NovaPay Financial):
 ```
 
 **Risk flags detected from transcript:**
-- PCI-DSS configuration timeline conflict — 4 to 6 weeks required, 45 day total window
+- PCI-DSS configuration timeline conflict — 4 to 6 weeks required, 45-day total window
 - Unanswered follow-up email from CTO — active promise gap
-- Custom dashboard complexity not scoped — typically 6 to 8 week professional services engagement
+- Custom dashboard complexity not scoped — typically 6-to-8-week professional services engagement
 - Third-party QSA scoping call required before implementation can begin — not communicated to customer
 
 **Execution metrics (from actual API response `_meta`):**
