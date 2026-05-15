@@ -1,7 +1,9 @@
 /**
- * Primary debugging workflow configuration.
+ * Primary debugging workflow configuration for DebugPilot AI.
  */
-export const debugpilotFlow = {
-  id: "debugpilot-flow",
-  name: "DebugPilot Root Cause Analysis Flow"
-};
+export function getDebugPilotFlow() {
+  return {
+    id: "debugpilot-flow",
+    name: "DebugPilot Root Cause Analysis Flow"
+  };
+}
