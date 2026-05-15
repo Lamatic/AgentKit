@@ -1,0 +1,13 @@
+{
+  "name": "Sales-to-CS Handoff Automation",
+  "description": "An AI-powered onboarding orchestration kit that automates the Sales to Customer Success handoff when a deal closes. Validates input, scores deal complexity, routes to enterprise or standard onboarding, and generates four role-specific outputs in parallel.",
+  "tags": ["sales", "customer-success", "onboarding", "automation", "handoff", "b2b"],
+  "testInput": null,
+  "githubUrl": "https://github.com/paarths-collab/sales-to-cs-handoff-automation",
+  "documentationUrl": "https://github.com/paarths-collab/AgentKit/tree/main/kits/sales/sales-to-cs-handoff-automation#readme",
+  "deployUrl": "https://sales-to-cs-handoff-automation.vercel.app/",
+  "author": {
+    "name": "Paarth Gala",
+    "email": "paarthgala1@gmail.com"
+  }
+}

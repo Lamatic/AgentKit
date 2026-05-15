@@ -1,0 +1,33 @@
+{
+  "name": "Sales-to-CS Handoff Automation",
+  "description": "An AI-powered onboarding orchestration kit that automates the Sales to Customer Success handoff when a deal closes. Validates input, scores deal complexity, routes to enterprise or standard onboarding, and generates four role-specific outputs in parallel.",
+  "version": "1.0.0",
+  "type": "kit",
+  "author": {
+    "name": "Paarth Gala",
+    "email": "paarthgala1@gmail.com"
+  },
+  "tags": ["sales", "customer-success", "onboarding", "automation", "handoff", "b2b"],
+  "steps": [
+    {
+      "id": "sales-to-cs-handoff-automation",
+      "type": "mandatory"
+    }
+  ],
+  "env": [
+    {
+      "key": "NEXT_PUBLIC_LAMATIC_API_URL",
+      "description": "Your Lamatic GraphQL endpoint URL",
+      "required": true
+    },
+    {
+      "key": "NEXT_PUBLIC_LAMATIC_API_KEY",
+      "description": "Your Lamatic API key",
+      "required": true
+    }
+  ],
+  "links": {
+    "deploy": "https://sales-to-cs-handoff-automation.vercel.app/",
+    "github": "https://github.com/paarths-collab/sales-to-cs-handoff-automation"
+  }
+}
