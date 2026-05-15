@@ -160,13 +160,16 @@ DebugPilot AI can analyze:
 ## 🖼️ Screenshots
 
 ### Landing Interface
+
 <img width="1460" height="938" alt="Screenshot 2026-05-12 at 6 44 22 PM" src="https://github.com/user-attachments/assets/ee3064e8-cccf-4c86-a0a1-31e6b9e9ee13" />
 
 ### Structured Debugging Report
+
 <img width="627" height="844" alt="Screenshot 2026-05-12 at 6 42 01 PM" src="https://github.com/user-attachments/assets/f27df661-4068-4d05-b192-fd7f8f033aee" />
 <img width="602" height="511" alt="Screenshot 2026-05-12 at 6 43 03 PM" src="https://github.com/user-attachments/assets/03c3765a-748c-49f2-9300-dad122c4321c" />
 
 ### Deployment Failure Analysis
+
 <img width="1470" height="956" alt="Screenshot 2026-05-12 at 6 45 46 PM" src="https://github.com/user-attachments/assets/c8d453f2-2130-4ba9-a63e-338264a0d0f4" />
 
 ---
