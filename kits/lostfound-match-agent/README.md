@@ -90,3 +90,42 @@ The agent does not replace human verification. It helps admins quickly prioritiz
 - The match score is a recommendation, not a final ownership decision.
 - Valuable or sensitive items should always be manually verified.
 - The quality of the result depends on the quality of the descriptions provided.
+
+## Setup
+
+This is a Lamatic AgentKit template for a single flow. It does not include a frontend app or local runtime.
+
+To use this template:
+
+1. Open Lamatic Studio.
+2. Create a new project or open an existing project.
+3. Import or recreate the flow using the files in this template.
+4. Configure the LLM/model provider inside Lamatic Studio.
+5. Deploy the flow from Lamatic Studio.
+6. Test the flow using the sample input shown below.
+
+No local `npm install` or `npm run dev` step is required because this is a flow-only template, not a full kit with a Next.js app.
+
+## Environment Variables
+
+This template does not require any environment variables in the repository.
+
+Any required model/API credentials should be configured securely inside Lamatic Studio or the connected provider settings.
+
+Do not commit real API keys or secrets to this repository.
+
+## Usage
+
+Send a lost item report and a found item report to the flow.
+
+Example input:
+
+```json
+{
+  "lost_item_description": "Black leather wallet lost near library. It had my student ID card and some cash.",
+  "found_item_description": "Dark wallet found near reading room with a college ID card inside.",
+  "lost_location": "Library",
+  "found_location": "Reading room",
+  "lost_date": "2026-05-10",
+  "found_date": "2026-05-10"
+}
