@@ -6,7 +6,7 @@ export default {
   type: "template" as const,
   author: {
     name: "Rewant Anand",
-    github: "Rewant05",
+    email: "rewant23429@iiitd.ac.in",
   },
   tags: ["lost-and-found", "matching", "workflow", "automation", "json"],
   steps: [
@@ -15,4 +15,8 @@ export default {
       type: "mandatory" as const,
     },
   ],
+  links: {
+    github:
+      "https://github.com/Lamatic/AgentKit/tree/main/kits/lostfound-match-agent",
+  },
 };
