@@ -47,37 +47,27 @@ export async function runInterviewCoach(
     return { success: false, error: `Lamatic flow error: ${e}` }
   }
 
-  // Try all possible response structures
   const resultData =
     (raw?.result as Record<string, unknown>)?.output ??
     raw?.result ??
     raw?.output ??
     raw
 
-  if (resultData && typeof resultData === 'object') {
-    return { success: true, data: resultData as InterviewCoachResult }
-  }
+  const safe = (resultData ?? {}) as Partial<InterviewCoachResult>
 
-  // Fallback: try parsing as string
-  const outputText =
-    (raw?.result as string) ??
-    (raw?.output as string) ??
-    JSON.stringify(raw)
-
-  let parsed: InterviewCoachResult
-  try {
-    const cleaned = outputText.replace(/```json|```/g, '').trim()
-    parsed = JSON.parse(cleaned)
-  } catch {
-    parsed = {
-      technicalQuestions: [],
-      behavioralQuestions: [],
-      answerTips: [],
-      companyInsights: [],
-      ninetyDayPlan: { first30: [], next30: [], final30: [] },
-      quickSummary: String(outputText),
+  return {
+    success: true,
+    data: {
+      quickSummary: safe.quickSummary ?? '',
+      technicalQuestions: safe.technicalQuestions ?? [],
+      behavioralQuestions: safe.behavioralQuestions ?? [],
+      answerTips: safe.answerTips ?? [],
+      companyInsights: safe.companyInsights ?? [],
+      ninetyDayPlan: {
+        first30: safe.ninetyDayPlan?.first30 ?? [],
+        next30: safe.ninetyDayPlan?.next30 ?? [],
+        final30: safe.ninetyDayPlan?.final30 ?? [],
+      }
     }
   }
-
-  return { success: true, data: parsed }
 }
