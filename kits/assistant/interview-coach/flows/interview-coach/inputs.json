@@ -1,0 +1,29 @@
+{
+  "inputs": [
+    {
+      "key": "jobRole",
+      "type": "string",
+      "required": true,
+      "description": "The target job role, e.g. Frontend Developer, ML Engineer"
+    },
+    {
+      "key": "company",
+      "type": "string",
+      "required": true,
+      "description": "The target company name, e.g. Google, Lamatic.ai"
+    },
+    {
+      "key": "background",
+      "type": "string",
+      "required": true,
+      "description": "Candidate's skills, projects, and experience summary"
+    },
+    {
+      "key": "experienceLevel",
+      "type": "string",
+      "required": true,
+      "enum": ["fresher", "junior", "mid", "senior"],
+      "description": "Candidate's experience level"
+    }
+  ]
+}
