@@ -13,15 +13,19 @@ type AnalyzeResponse = {
   negatives?: string[];
   note?: string;
 };
+
 /**
  * FabLens home page — accepts a product URL and displays
  * material analysis results including eco and skin scores.
  */
-
 export default function Home() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<AnalyzeResponse | null>(null);
+
+  const [data, setData] = useState<AnalyzeResponse | null>(
+    null
+  );
+
   const [showEco, setShowEco] = useState(false);
   const [showSkin, setShowSkin] = useState(false);
   const [showNeg, setShowNeg] = useState(false);
@@ -38,13 +42,18 @@ export default function Home() {
     setShowNeg(false);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 10000);
 
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         signal: controller.signal,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ url }),
       });
 
@@ -53,12 +62,17 @@ export default function Home() {
       }
 
       const result: AnalyzeResponse = await res.json();
+
       setData(result);
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        setData({ note: 'Request timed out' });
+        setData({
+          note: 'Request timed out',
+        });
       } else {
-        setData({ note: 'Something went wrong' });
+        setData({
+          note: 'Something went wrong',
+        });
       }
     } finally {
       clearTimeout(timeout);
@@ -68,7 +82,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#e9e4d1] px-6 py-8 flex flex-col items-center">
-      
       <div className="mb-16">
         <Image
           src="/logo.png"
@@ -80,10 +93,14 @@ export default function Home() {
       </div>
 
       <p className="text-gray-600 mb-8 text-center">
-        paste a product URL in the input to check how friendly it is with your skin and the planet
+        paste a product URL in the input to check how
+        friendly it is with your skin and the planet
       </p>
 
-      <label htmlFor="url-input" className="sr-only">
+      <label
+        htmlFor="url-input"
+        className="sr-only"
+      >
         Product URL
       </label>
 
@@ -99,20 +116,27 @@ export default function Home() {
         onClick={analyze}
         disabled={loading || !url.trim()}
         className="w-full max-w-xl text-white py-3 rounded-lg font-medium cursor-pointer hover:opacity-90 transition disabled:opacity-50 text-lg"
-style={{ backgroundColor: '#587c47' }}
->
+        style={{ backgroundColor: '#587c47' }}
+      >
         {loading ? 'analyzing...' : 'analyze'}
       </button>
 
       {data && (
         <div className="mt-10 w-full max-w-2xl bg-white/70 p-6 rounded-xl shadow space-y-6">
-
           {data.materials?.length ? (
             <div>
-              <h2 className="font-semibold mb-2 text-lg">Materials</h2>
+              <h2 className="font-semibold mb-2 text-lg">
+                Materials
+              </h2>
+
               <ul className="list-disc pl-5 text-gray-700">
                 {data.materials.map((m, i) => (
-                  <li key={i} className="capitalize">{m}</li>
+                  <li
+                    key={i}
+                    className="capitalize"
+                  >
+                    {m}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -121,16 +145,22 @@ style={{ backgroundColor: '#587c47' }}
           {typeof data.ecoScore === 'number' && (
             <div>
               <p className="font-medium text-lg flex items-center gap-2">
-                <Leaf size={18} /> Eco Friendly: {data.ecoScore}%
+                <Leaf size={18} />
+                Eco Friendly: {data.ecoScore}%
               </p>
 
               {data.ecoReasons?.length ? (
                 <>
                   <button
-                    onClick={() => setShowEco(!showEco)}
+                    onClick={() =>
+                      setShowEco(!showEco)
+                    }
+                    aria-expanded={showEco}
                     className="text-blue-600 text-sm mt-1 hover:underline"
                   >
-                    {showEco ? 'Hide details' : 'Learn more'}
+                    {showEco
+                      ? 'Hide details'
+                      : 'Learn more'}
                   </button>
 
                   {showEco && (
@@ -148,16 +178,22 @@ style={{ backgroundColor: '#587c47' }}
           {typeof data.skinScore === 'number' && (
             <div>
               <p className="font-medium text-lg flex items-center gap-2">
-                <Droplet size={18} /> Skin Friendly: {data.skinScore}%
+                <Droplet size={18} />
+                Skin Friendly: {data.skinScore}%
               </p>
 
               {data.skinReasons?.length ? (
                 <>
                   <button
-                    onClick={() => setShowSkin(!showSkin)}
+                    onClick={() =>
+                      setShowSkin(!showSkin)
+                    }
+                    aria-expanded={showSkin}
                     className="text-blue-600 text-sm mt-1 hover:underline"
                   >
-                    {showSkin ? 'Hide details' : 'Learn more'}
+                    {showSkin
+                      ? 'Hide details'
+                      : 'Learn more'}
                   </button>
 
                   {showSkin && (
@@ -175,10 +211,15 @@ style={{ backgroundColor: '#587c47' }}
           {data.negatives?.length ? (
             <div>
               <button
-                onClick={() => setShowNeg(!showNeg)}
+                onClick={() =>
+                  setShowNeg(!showNeg)
+                }
+                aria-expanded={showNeg}
                 className="text-red-600 text-sm hover:underline"
               >
-                {showNeg ? 'Hide negatives' : 'Show negatives'}
+                {showNeg
+                  ? 'Hide negatives'
+                  : 'Show negatives'}
               </button>
 
               {showNeg && (
@@ -192,7 +233,9 @@ style={{ backgroundColor: '#587c47' }}
           ) : null}
 
           {data.note && (
-            <p className="text-gray-500 text-sm">{data.note}</p>
+            <p className="text-gray-500 text-sm">
+              {data.note}
+            </p>
           )}
         </div>
       )}
