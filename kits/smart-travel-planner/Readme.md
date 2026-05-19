@@ -2,7 +2,7 @@
 
 ## Live Demo
 
-https://ai-travel-one-black.vercel.app
+https://ai-travel-indol.vercel.app/
 
 > An **Agentic AI-powered** travel planning platform built with **Next.js** and **Lamatic AI** that generates complete, structured travel itineraries with maps, photos, local food, cultural highlights, and an interactive chatbot.
 
@@ -39,37 +39,42 @@ https://ai-travel-one-black.vercel.app
 ##  Project Structure
 
 ```
-smart-travel/
-├── actions/
-│   └── orchestrate.ts          # Lamatic AI workflow runners (GraphQL calls)
-├── app/
-│   ├── api/
-│   │   ├── chatbot/
-│   │   │   └── route.ts        # POST /api/chatbot → runs chatbot flow
-│   │   ├── geocode/
-│   │   │   └── route.ts        # GET /api/geocode?query= → lat/lng
-│   │   ├── map-test/
-│   │   │   └── route.ts        # Map sandbox/testing endpoint
-│   │   ├── places/
-│   │   │   └── route.ts        # GET /api/places?query= → photos[]
-│   │   └── travel/
-│   │       └── route.ts        # POST /api/travel → full itinerary
-│   ├── map-test/
-│   │   └── page.tsx            # Map test/debug page
-│   ├── globals.css             # Global styles
-│   ├── layout.tsx              # Root layout
-│   └── page.tsx                # Home page
-├── components/
-│   ├── PlannerForm.tsx          # Main form + full itinerary UI
-│   ├── FloatingChatbot.tsx      # Floating AI chat widget
-│   ├── ItineraryDisplay.tsx     # Itinerary display component
-│   └── DayCard.tsx              # Single day card component
-├── lib/                         # Shared utilities
-├── public/                      # Static assets
-├── .env.local                   # Environment variables (not committed)
-└── .gitignore
+smart-travel-planner/
+├── apps/
+│   ├── actions/
+│   │   └── orchestrate.ts         # Lamatic AI workflow runners
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── chatbot/route.ts   # POST /api/chatbot
+│   │   │   ├── geocode/route.ts   # GET /api/geocode
+│   │   │   ├── places/route.ts    # GET /api/places
+│   │   │   └── travel/route.ts    # POST /api/travel
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── DayCard.tsx
+│   │   ├── FloatingChatbot.tsx
+│   │   ├── ItineraryDisplay.tsx
+│   │   └── PlannerForm.tsx
+│   ├── lib/
+│   │   ├── lamatic-client.ts      # Lamatic SDK client
+│   │   └── utils.ts
+│   ├── public/
+│   │   └── logo.png
+│   ├── .env.example
+│   ├── next.config.ts
+│   ├── package.json
+│   └── tsconfig.json
+├── constitutions/
+│   └── default.md                 # Agent guardrails
+├── flows/
+│   ├── chatbot-flow.ts            # Chatbot Lamatic flow
+│   └── travel-flow.ts             # Travel itinerary Lamatic flow
+├── agent.md                       # Agent identity doc
+├── lamatic.config.ts              # Kit metadata
+└── Readme.md
 ```
-
 ---
 
 ##  Lamatic AI Agent Flows
