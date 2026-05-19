@@ -1,0 +1,43 @@
+# dependencies
+/node_modules
+
+# next
+/.next
+/out
+/build
+
+# env
+.env.local
+.env
+
+# logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+# curl -X POST https://sujalsorganization722-sujalsproject384.lamatic.dev/graphql \
+#   -H "Authorization: Bearer lt-8264c32200a2522f111a37a4fb7b252c" \
+#   -H "Content-Type: application/json" \
+#   -H "x-project-id: a645c6d6-58b3-459b-af94-7c9062de9f2f" \
+#   -d '{
+#      "query": "query Execute($workflowId: String!, $destination: String!, $days: Int!, $budget: Int!, $destination_type: String!) { executeWorkflow(workflowId: $workflowId, payload: { destination: $destination, days: $days, budget: $budget, destination_type: $destination_type }) { status result } }",
+#      "variables": {
+#       "workflowId": "a536ce2e-3b77-482f-9980-523830dffdc5",
+#       "destination": "Bali",
+#       "days": 3,
+#       "budget": 1000,
+#       "destination_type": "beach"
+#     }
+#   }'
+
+
+
+# curl -X POST https://edge.lamatic.ai/flow/b1c8e567-44e8-4b16-ad3b-38910d493bb3 \
+#   -H "Authorization: Bearer lt-8264c32200a2522f111a37a4fb7b252c" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "message": "What are the best places to visit in Bali?"
+#   }'
