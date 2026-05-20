@@ -71,10 +71,10 @@ Navigate to **Settings** in Lamatic Studio:
 
 | Variable | Where to find it |
 |---|---|
-| `LAMATIC_API_KEY` | Settings → API Keys → Copy |
+| `LAMATIC_PROJECT_API_KEY` | Settings → API Keys → Copy |
 | `LAMATIC_PROJECT_ID` | Settings → Project → Project ID |
-| `LAMATIC_API_URL` | Settings → API Docs → Endpoint |
-| `INTERVIEW_COACH_FLOW_ID` | Flow Editor → three-dot menu → Copy Flow ID |
+| `LAMATIC_PROJECT_ENDPOINT` | Settings → API Docs → App Frameworks → Endpoint |
+| `LAMATIC_FLOW_ID` | Flow Editor → three-dot menu → Copy Flow ID |
 
 ### Step 3 — Run Locally
 

@@ -240,7 +240,7 @@ export default function InterviewCoach() {
                     Behavioral Questions + STAR Answer Tips
                   </h3>
                   <BulletList items={result.behavioralQuestions} />
-                  {result.answerTips.length > 0 && (
+                  {(result.answerTips?.length ?? 0) > 0 && (
                     <>
                       <h4 className="font-medium text-slate-700 mt-4">
                         💡 Answer Tips
