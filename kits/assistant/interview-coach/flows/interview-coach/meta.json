@@ -1,8 +1,0 @@
-{
-  "id": "interview-coach-flow",
-  "name": "Interview Coach Flow",
-  "description": "Takes job role, company, background, and experience level as inputs. Returns a structured JSON with technical questions, behavioral questions, answer tips, company insights, and a 30-60-90 day plan.",
-  "version": "1.0.0",
-  "trigger": "api",
-  "author": "Piyush Kumar Singh"
-}

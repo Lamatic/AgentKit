@@ -4,7 +4,7 @@
 > company, and background — and get tailored technical questions, behavioral Q&A,
 > company insights, and a 30-60-90 day plan.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit/tree/main/kits/assistant/interview-coach)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit/tree/main/kits/interview-coach)
 
 ---
 
@@ -60,7 +60,7 @@ engineer at Google.
    - `company` (string)
    - `background` (string)
    - `experienceLevel` (string)
-4. Add an **LLM Node** — copy the prompts from `flows/interview-coach/FLOW_SETUP.md`
+4. Add an **LLM Node** — copy system and user prompts from `prompts/interview-coach-flow_system.md` and `prompts/interview-coach-flow_user.md`
 5. Add an **API Response** node connected to the LLM output
 6. Click **Deploy** and wait for green status
 7. Copy the **Flow ID** from the three-dot menu
@@ -81,7 +81,7 @@ Navigate to **Settings** in Lamatic Studio:
 ```bash
 # Clone the AgentKit repo
 git clone https://github.com/YOUR-USERNAME/AgentKit.git
-cd AgentKit/kits/assistant/interview-coach
+cd AgentKit/kits/interview-coach/apps
 
 # Install dependencies
 npm install
@@ -100,7 +100,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 1. Push your branch to GitHub
 2. Go to [vercel.com](https://vercel.com) → Import project
-3. Set **Root Directory** to `kits/assistant/interview-coach`
+3. Set **Root Directory** to `kits/interview-coach/apps`
 4. Add all environment variables from your `.env` file
 5. Click **Deploy**
 
@@ -127,24 +127,32 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ```
 interview-coach/
-├── actions/
-│   └── orchestrate.ts      # Server action — calls Lamatic flow
-├── app/
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── components/
-│   └── InterviewCoach.tsx  # Full UI with tabs
+├── constitutions/
+│   └── default.md          # Guardrails / safety rules for the flow
 ├── flows/
-│   └── interview-coach/
-│       ├── meta.json
-│       ├── inputs.json
-│       └── FLOW_SETUP.md   # Copy-paste prompts for Lamatic Studio
-├── lib/
-│   └── lamatic-client.ts   # Lamatic API wrapper
-├── .env.example
-├── config.json
-└── README.md
+│   └── interview-coach-flow.ts # Lamatic flow layout definition
+├── model-configs/
+│   └── interview-coach-flow_llm.ts # Model settings
+├── prompts/
+│   ├── interview-coach-flow_system.md # LLM system prompt
+│   └── interview-coach-flow_user.md   # LLM user prompt
+├── scripts/
+│   └── interview-coach-flow_parse-json.ts # Parser script for LLM output
+├── lamatic.config.ts       # Project metadata
+├── README.md
+└── apps/                   # Next.js UI Application
+    ├── actions/
+    │   └── orchestrate.ts  # Server action — calls Lamatic flow
+    ├── app/
+    │   ├── layout.tsx
+    │   ├── page.tsx
+    │   └── globals.css
+    ├── components/
+    │   └── InterviewCoach.tsx # UI component
+    ├── lib/
+    │   └── lamatic-client.ts # Lamatic client configuration
+    ├── package.json
+    └── tsconfig.json
 ```
 
 ---
