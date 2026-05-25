@@ -1,7 +1,10 @@
 name: Validate PR — Studio runtime check (Phase 2)
 
 # Phase 2 — Lamatic Studio runtime validation.
-# Runs automatically after Phase 1 (validate-pr.yml) passes.
+# Triggers:
+#   1. Automatically after Phase 1 (validate-pr.yml) passes on a PR
+#   2. When a maintainer comments /validate on any open PR
+#
 # Bundles each changed kit into a payload and POSTs it to the
 # Lamatic Studio validation endpoint. If the endpoint returns
 # status: invalid, the job fails and errors are posted as a PR comment.
@@ -10,22 +13,54 @@ on:
   workflow_run:
     workflows: ['Validate PR Contribution']
     types: [completed]
+  issue_comment:
+    types: [created]
 
 jobs:
   studio-check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '/validate'))
     permissions:
       contents: read
       pull-requests: write
       issues: write
 
     steps:
+      - name: Get PR details (for comment trigger)
+        id: pr_info
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          PR_DATA=$(gh api "repos/$REPO/pulls/$PR_NUMBER")
+          HEAD_SHA=$(echo "$PR_DATA" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).head.sha));")
+          BASE_REF=$(echo "$PR_DATA" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).base.ref));")
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Post acknowledgement comment (for comment trigger)
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --method POST \
+            -f body=":satellite: Running Studio validation — results will appear here shortly." || true
+
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
       - name: Setup Node
@@ -36,7 +71,7 @@ jobs:
       - name: Detect changed kits
         id: detect
         env:
-          BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref || 'main' }}
+          BASE_REF: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.base_ref || github.event.workflow_run.pull_requests[0].base.ref || 'main' }}
         run: |
           git fetch origin "$BASE_REF"
           MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD)
@@ -70,7 +105,7 @@ jobs:
         id: studio
         env:
           LAMATIC_VALIDATION_ENDPOINT: 'https://studio.lamatic.ai/api/agentkit/validate-pr'
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_SHA: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
         run: |
           KITS="${{ steps.detect.outputs.kits }}"
           if [ -z "$KITS" ]; then
@@ -96,7 +131,6 @@ jobs:
             SLUG=$(basename "$KIT_PATH")
             export KIT_PATH SLUG TYPE
 
-            # Build payload using Node
             node -e "
               const fs = require('fs');
               const path = require('path');
@@ -142,7 +176,6 @@ jobs:
 
             echo "Sending payload to Studio endpoint..."
 
-            # POST to real endpoint — no auth header per engineer spec
             RESPONSE=$(curl -s -w "\n%{http_code}" \
               -X POST "$LAMATIC_VALIDATION_ENDPOINT" \
               -H "Content-Type: application/json" \
@@ -157,17 +190,13 @@ jobs:
             echo "Response HTTP $HTTP_CODE"
             echo "Response body: $BODY"
 
-            # Save response for comment step
             echo "$BODY" > /tmp/response_$SLUG.json
 
-            # Parse the status from the response
             STATUS=$(echo "$BODY" | node -e "
               let d=''; process.stdin.on('data',c=>d+=c);
               process.stdin.on('end',()=>{
-                try {
-                  const r = JSON.parse(d);
-                  console.log(r.status || 'unknown');
-                } catch { console.log('parse-error'); }
+                try { const r=JSON.parse(d); console.log(r.status||'unknown'); }
+                catch { console.log('parse-error'); }
               });
             ")
 
@@ -175,22 +204,14 @@ jobs:
 
             if [ "$STATUS" != "valid" ]; then
               VALIDATION_FAILED=true
-              # Format errors for the comment
               ERRORS=$(echo "$BODY" | node -e "
                 let d=''; process.stdin.on('data',c=>d+=c);
                 process.stdin.on('end',()=>{
                   try {
-                    const r = JSON.parse(d);
-                    const errors = r.errors || [];
-                    if (errors.length === 0) {
-                      console.log('- No specific errors returned.');
-                    } else {
-                      errors.forEach(e => {
-                        const flow = e.flow ? 'Flow: ' + e.flow : '';
-                        const node = e.node ? ' | Node: ' + e.node : '';
-                        console.log('- ' + flow + node + ' — ' + e.message);
-                      });
-                    }
+                    const r=JSON.parse(d);
+                    const errors=r.errors||[];
+                    if(errors.length===0){ console.log('- No specific errors returned.'); }
+                    else { errors.forEach(e=>{ const flow=e.flow?'Flow: '+e.flow:''; const node=e.node?' | Node: '+e.node:''; console.log('- '+flow+node+' — '+e.message); }); }
                   } catch { console.log('- Could not parse error details.'); }
                 });
               ")
@@ -198,12 +219,10 @@ jobs:
             fi
           done
 
-          # Save results for the comment step
           echo "validation_failed=$VALIDATION_FAILED" >> "$GITHUB_OUTPUT"
           printf "%b" "$ALL_ERRORS" > /tmp/all_errors.txt
           echo "skipped=false" >> "$GITHUB_OUTPUT"
 
-          # Fail the job if any kit failed validation
           if [ "$VALIDATION_FAILED" = "true" ]; then
             echo "::error::Studio validation failed — see PR comment for details."
             exit 1
@@ -213,7 +232,7 @@ jobs:
         if: always() && steps.studio.outputs.skipped != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PR_NUMBER: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.pr_number || github.event.workflow_run.pull_requests[0].number }}
           REPO: ${{ github.repository }}
           VALIDATION_FAILED: ${{ steps.studio.outputs.validation_failed }}
         run: |
@@ -245,7 +264,6 @@ jobs:
               > /tmp/studio_comment.md
           fi
 
-          # Find existing bot comment and update it, or post new
           COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
             --jq '.[] | select(.user.type == "Bot" and (.body | contains("Studio Runtime Validation"))) | .id' \
             | head -1)
