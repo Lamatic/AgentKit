@@ -9,7 +9,17 @@ An AI-powered kit that takes any academic PDF URL and returns a structured break
 - **Plain English Summary** — jargon-free explanation for non-specialists
 - **Follow-up Questions** — ideas for future research directions
 
-Built on [Lamatic.ai](https://lamatic.ai) with a Next.js + React frontend (JavaScript/JSX).
+Built on [Lamatic.ai](https://lamatic.ai) with a **FastAPI** backend and a **React + Vite** frontend (JavaScript/JSX).
+
+---
+
+## Architecture
+
+```
+React (Vite/JSX)  →  FastAPI (Python)  →  Lamatic Flow  →  LLM
+   frontend              backend            orchestration
+ localhost:5173       localhost:8000
+```
 
 ---
 
@@ -17,24 +27,28 @@ Built on [Lamatic.ai](https://lamatic.ai) with a Next.js + React frontend (JavaS
 
 ### 1. Deploy the Flow in Lamatic Studio
 
-1. Go to [studio.lamatic.ai](https://studio.lamatic.ai) and create a new project
-2. Create a new flow named `research-paper-analyzer`
-3. Add nodes in this order:
+1. Go to [studio.lamatic.ai](https://studio.lamatic.ai) → New Project → New Flow
+2. Add nodes in this order:
    - **API Trigger** — input schema: `{ pdf_url: string }`
    - **Extract From File** — file URL: `{{trigger.pdf_url}}`
    - **LLM Node** — use prompt from `prompts/analyze-paper.md`, structured JSON output
    - **API Response** — output: `{{LLMNode.output}}`
-4. Deploy the flow and copy the **Flow ID** from Settings
+3. Deploy the flow and copy the **Flow ID** from Settings
 
-### 2. Set Up Environment Variables
+### 2. Start the FastAPI Backend
 
 ```bash
-cd apps
-cp .env.example .env.local
+cd apps/backend
+cp .env.example .env
+# Fill in your Flow ID and Lamatic credentials in .env
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-Fill in `.env.local`:
+Backend runs at [http://localhost:8000](http://localhost:8000).  
+Check [http://localhost:8000/docs](http://localhost:8000/docs) for the auto-generated API docs.
 
+`.env` values to fill in:
 ```
 RESEARCH_PAPER_ANALYZER_FLOW_ID=<your-flow-id>
 LAMATIC_API_URL=<from Lamatic Settings>
@@ -42,21 +56,16 @@ LAMATIC_PROJECT_ID=<from Lamatic Settings>
 LAMATIC_API_KEY=<from Lamatic Settings>
 ```
 
-### 3. Run Locally
+### 3. Start the React Frontend
 
 ```bash
-cd apps
+cd apps/frontend
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
----
-
-## Deploy to Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit/tree/main/kits/research-paper-analyzer/apps&env=RESEARCH_PAPER_ANALYZER_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&root-directory=kits/research-paper-analyzer/apps)
+Frontend runs at [http://localhost:5173](http://localhost:5173).  
+Vite proxies `/analyze` → FastAPI automatically, so no CORS issues in dev.
 
 ---
 
@@ -65,7 +74,7 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Paste any publicly accessible PDF URL (e.g., an arXiv paper)
 2. Click **Analyze Paper**
 3. Browse the structured breakdown — expand/collapse each section
-4. Copy the full JSON output with the **JSON** button
+4. Click **JSON** to copy the raw JSON output
 
 ### Example URLs to try
 
@@ -74,34 +83,45 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Flow Architecture
+## API Reference
 
+### `POST /analyze`
+
+**Request:**
+```json
+{ "pdf_url": "https://arxiv.org/pdf/2303.08774.pdf" }
 ```
-[API Trigger]
-     |
-     v
-[Extract From File]  ← downloads & parses PDF text
-     |
-     v
-[LLM Node]           ← structured analysis via analyze-paper prompt
-     |
-     v
-[API Response]       ← returns JSON
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "title": "...",
+    "authors": ["..."],
+    "year": 2023,
+    "problem_statement": "...",
+    "methodology": "...",
+    "key_findings": ["..."],
+    "limitations": ["..."],
+    "plain_english_summary": "...",
+    "follow_up_questions": ["..."]
+  }
+}
 ```
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 (App Router), React.js, JavaScript/JSX, Tailwind CSS
+- **Backend**: FastAPI, Python, httpx, Pydantic, python-dotenv
+- **Frontend**: React.js, Vite, JavaScript/JSX, Tailwind CSS, Lucide React
 - **AI Orchestration**: Lamatic.ai flows
-- **Deployment**: Vercel
 
 ---
 
 ## Requirements
 
-- Node.js 18+
-- npm 9+
+- Python 3.10+
+- Node.js 18+, npm 9+
 - Lamatic.ai account ([sign up free](https://lamatic.ai))
-- Vercel account (for deployment)
