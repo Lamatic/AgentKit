@@ -1,0 +1,5 @@
+.env
+.env.local
+apps/node_modules
+apps/.next
+apps/.vercel
