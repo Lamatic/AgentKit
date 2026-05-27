@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from urllib.parse import urlparse
+import ipaddress
 import httpx
 import os
 from dotenv import load_dotenv
@@ -32,8 +34,39 @@ app.add_middleware(
 )
 
 
+_BLOCKED_RANGES = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),  # link-local / cloud IMDS
+    ipaddress.ip_network("0.0.0.0/8"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+]
+
+
 class AnalyzeRequest(BaseModel):
     pdf_url: str
+
+    @field_validator("pdf_url")
+    @classmethod
+    def validate_pdf_url(cls, v: str) -> str:
+        parsed = urlparse(v)
+        if parsed.scheme not in {"https"}:
+            raise ValueError("Only HTTPS URLs are accepted.")
+        hostname = parsed.hostname or ""
+        if not hostname:
+            raise ValueError("URL must contain a valid hostname.")
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if any(ip in net for net in _BLOCKED_RANGES):
+                raise ValueError("URL resolves to a private or reserved address.")
+        except ValueError as exc:
+            if "private or reserved" in str(exc):
+                raise
+            # hostname is a domain name — pass through
+        return v
 
 
 @app.get("/health")
