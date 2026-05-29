@@ -48,10 +48,10 @@ https://drive.google.com/drive/folders/1YLd4u_XkBqnM8fNEL1oRq1vPPDRlCTNg?usp=dri
 ## Screenshots
 
 ### Home Screen
-![Home Screen](screenshots/home.png)
+![Home Screen](../../screenshots/home.png)
 
 ### Skill Gap Analysis
-![Skill Gap Analysis](screenshots/skill_gap.png)
+![Skill Gap Analysis](../../screenshots/skill_gap.png)
 
 ### Results
-![Results](screenshots/result.png)
+![Results](../../screenshots/result.png)
