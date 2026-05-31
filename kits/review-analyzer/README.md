@@ -5,6 +5,16 @@ An AI-powered Chrome Extension that scrapes product reviews from e-commerce site
 ## 🚀 Overview
 Review Analyzer is built with Next.js and Tailwind CSS, communicating with a Lamatic AI flow backend. By loading the Chrome Extension, users can trigger review scraping with a single click. The scraped data is securely passed to a Next.js server, which runs the reasoning agent workflow on Lamatic AI to generate the summary dashboard.
 
+### 🎯 The Problem (AgentKit Challenge)
+Online shoppers are overwhelmed by hundreds of reviews per product, many of which are fake, low-effort, or artificially inflated. It takes too much time to read through them to find the true consensus, pros, and cons. 
+
+### 💡 The Value & Solution
+This extension solves the problem by providing a simple, one-click solution. It scrapes the reviews and uses a Lamatic AI agent to:
+- Save time by summarizing the overall sentiment.
+- Extract a clean list of the top Pros and Cons.
+- Calculate a **Trust Score (0-100)** to identify suspicious, fake, or duplicate reviews.
+This makes e-commerce research faster, safer, and entirely automated.
+
 ## 🛠️ Folder Structure
 ```
 kits/review-analyzer/

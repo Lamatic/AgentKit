@@ -58,8 +58,10 @@ export default function PopupPage() {
     try {
       const response = await analyzeReviews(reviewsData)
       if (response.success && response.data) {
-        // Parse the LLM JSON response
-        const parsed = JSON.parse(response.data) as AnalysisResult
+        // Parse the LLM JSON response (or use directly if Lamatic already parsed it)
+        const parsed = (typeof response.data === "string" 
+          ? JSON.parse(response.data) 
+          : response.data) as AnalysisResult
         setResult(parsed)
       } else {
         setError(response.error || "Failed to analyze reviews.")
