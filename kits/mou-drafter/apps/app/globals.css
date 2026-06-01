@@ -126,17 +126,17 @@
 }
 
 .glass-card {
-  background: rgba(10, 11, 15, 0.4) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.04) !important;
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2) !important;
+  background: rgba(18, 20, 29, 0.85) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.4) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(12, 13, 18, 0.45) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.3) !important;
+  background: rgba(22, 24, 35, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5) !important;
 }
 
 .dark-glow-bg {

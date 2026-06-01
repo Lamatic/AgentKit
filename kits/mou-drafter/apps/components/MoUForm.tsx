@@ -87,6 +87,7 @@ function FormSelect({
   labels,
   control,
   error,
+  required,
 }: {
   id: string;
   label: string;
@@ -94,10 +95,14 @@ function FormSelect({
   labels: Record<string, string>;
   control: any;
   error?: string;
+  required?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
       <Controller
         name={id as any}
         control={control}
@@ -173,15 +178,20 @@ function FormField({
   id,
   label,
   error,
+  required,
   ...props
 }: {
   id: string;
   label: string;
   error?: string;
+  required?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
       <Input id={id} {...props} />
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
@@ -213,6 +223,7 @@ function PartyFields({
           id={`${prefix}.name`}
           label="Name"
           placeholder="Acme Corp"
+          required
           error={e.name?.message}
           {...register(`${prefix}.name`)}
         />
@@ -236,6 +247,7 @@ function PartyFields({
           id={`${prefix}.address`}
           label="Address"
           placeholder="123 Main St, Bangalore, Karnataka, India"
+          required
           error={e.address?.message}
           {...register(`${prefix}.address`)}
         />
@@ -244,6 +256,7 @@ function PartyFields({
           label="Email"
           type="email"
           placeholder="contact@acme.com"
+          required
           error={e.email?.message}
           {...register(`${prefix}.email`)}
         />
@@ -251,6 +264,7 @@ function PartyFields({
           id={`${prefix}.signatory`}
           label="Signatory name"
           placeholder="Priya Sharma"
+          required
           error={e.signatory?.message}
           {...register(`${prefix}.signatory`)}
         />
@@ -258,6 +272,7 @@ function PartyFields({
           id={`${prefix}.signatoryRole`}
           label="Signatory role"
           placeholder="Managing Director"
+          required
           error={e.signatoryRole?.message}
           {...register(`${prefix}.signatoryRole`)}
         />
@@ -360,6 +375,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               id="agreementTitle"
               label="Agreement title"
               placeholder="Catering Services MoU — AEON 2025"
+              required
               error={errors.agreementTitle?.message}
               {...register("agreementTitle")}
             />
@@ -367,6 +383,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               id="effectiveDate"
               label="Effective date"
               type="date"
+              required
               error={errors.effectiveDate?.message}
               {...register("effectiveDate")}
             />
@@ -377,6 +394,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
             options={ENGAGEMENT_TYPES}
             labels={ENGAGEMENT_LABELS}
             control={control}
+            required
             error={errors.engagementType?.message}
           />
         </CardContent>
@@ -413,7 +431,10 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="scopeOfWork">Scope of work</Label>
+            <Label htmlFor="scopeOfWork">
+              Scope of work
+              <span className="text-destructive ml-1">*</span>
+            </Label>
             <Textarea
               id="scopeOfWork"
               placeholder="Describe the services, goods, or engagement in detail..."
@@ -451,6 +472,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
                   id={`deliverables.${index}.label`}
                   label="Deliverable"
                   placeholder="Menu planning"
+                  required
                   error={
                     errors.deliverables?.[index]?.label?.message
                   }
@@ -460,6 +482,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
                   id={`deliverables.${index}.dueDate`}
                   label="Due date"
                   type="date"
+                  required
                   error={
                     errors.deliverables?.[index]?.dueDate?.message
                   }
@@ -469,6 +492,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
                   id={`deliverables.${index}.acceptanceCriteria`}
                   label="Acceptance criteria"
                   placeholder="Approved by event coordinator"
+                  required
                   error={
                     errors.deliverables?.[index]?.acceptanceCriteria?.message
                   }
@@ -505,6 +529,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               label="Total fee"
               type="number"
               placeholder="100000"
+              required
               error={errors.totalFeeAmount?.message}
               {...register("totalFeeAmount")}
             />
@@ -601,6 +626,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               id="governingLaw"
               label="Governing law"
               placeholder="Karnataka, India"
+              required
               error={errors.governingLaw?.message}
               {...register("governingLaw")}
             />
@@ -608,6 +634,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               id="disputeVenue"
               label="Dispute venue"
               placeholder="Bangalore"
+              required
               error={errors.disputeVenue?.message}
               {...register("disputeVenue")}
             />
