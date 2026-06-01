@@ -4,7 +4,7 @@ import { lamaticClient } from "@/lib/lamatic-client";
 import { config } from "../orchestrate.js";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
 
-const TIMEOUT_MS = 120000; // 2 minutes — the LLM generates ~4K tokens of clause JSON
+const TIMEOUT_MS = 180000; // 3 minutes — the LLM generates ~4K tokens of clause JSON
 
 async function withTimeout<T>(
   promise: Promise<T>,
@@ -66,9 +66,29 @@ function flattenFormToTrigger(form: MoUFormData): Record<string, unknown> {
     customDepositPct: form.customDepositPct ?? 30,
     customPaymentDays: form.customPaymentDays ?? 15,
 
-    // Event dates
+    // Event dates / time / venue
     eventStart: form.eventStart ?? "",
     eventEnd: form.eventEnd ?? "",
+    eventStartTime: form.eventStartTime ?? "",
+    eventEndTime: form.eventEndTime ?? "",
+    eventVenue: form.eventVenue ?? "",
+
+    // Payment timing & taxes
+    paymentTiming: form.paymentTiming,
+    paymentTimingCustom: form.paymentTimingCustom ?? "",
+    taxesIncluded: form.taxesIncluded,
+    taxRatePct: form.taxRatePct,
+    lateFeePctPerMonth: form.lateFeePctPerMonth,
+
+    // Cancellation
+    cancellationPolicy: form.cancellationPolicy,
+    cancellationTerms: form.cancellationTerms ?? "",
+
+    // Catering-specific
+    guestCountFinalDate: form.guestCountFinalDate ?? "",
+    extraGuestRate: form.extraGuestRate ?? 0,
+    foodSafetyRequired: form.foodSafetyRequired,
+    allergyHandlingRequired: form.allergyHandlingRequired,
 
     // Risk & protection
     confidentialityRequired: form.confidentialityRequired,

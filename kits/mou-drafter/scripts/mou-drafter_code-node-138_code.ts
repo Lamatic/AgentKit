@@ -378,7 +378,13 @@ function texEscapeModelProse(text) {
 // condition here, you MUST update the prompt's pattern checklist to match,
 // and vice versa. See PLAN.md §8 for the canonical table.
 let PATTERN_ALL = [
+  'event-logistics',
   'payment-milestones',
+  'taxes-and-fees',
+  'cancellation-charges',
+  'guest-count-adjustments',
+  'food-safety-compliance',
+  'allergen-handling',
   'acceptance-window',
   'liquidated-damages',
   'indemnity-mutual-cap',
@@ -405,6 +411,7 @@ function computeExpectedPatterns(p) {
   expected['force-majeure-carveouts'] = 1;
   expected['modifications-in-writing'] = 1;
   expected['governing-law-venue-severability'] = 1;
+  expected['taxes-and-fees'] = 1; // always — every contract has tax treatment
   // payment-milestones: applies if schedule != lump-sum
   if (p.paymentSchedule !== 'lump-sum') expected['payment-milestones'] = 1;
   // liquidated-damages: only us-canada jurisdiction family
@@ -421,6 +428,21 @@ function computeExpectedPatterns(p) {
   if (p.dataProtectionRequired) expected['data-protection-dpa-lite'] = 1;
   // no-publicity: when no-publicity required
   if (p.noPublicityRequired) expected['no-publicity'] = 1;
+  // cancellation-charges: any policy other than 'none'
+  if (p.cancellationPolicy && p.cancellationPolicy !== 'none') expected['cancellation-charges'] = 1;
+  // guest-count-adjustments: catering with either a final-date or extra-guest rate
+  if (p.engagementType === 'catering' && (p.guestCountFinalDate || (p.extraGuestRate && p.extraGuestRate > 0))) {
+    expected['guest-count-adjustments'] = 1;
+  }
+  // food-safety-compliance
+  if (p.foodSafetyRequired) expected['food-safety-compliance'] = 1;
+  // allergen-handling
+  if (p.allergyHandlingRequired) expected['allergen-handling'] = 1;
+  // event-logistics: event-type engagements with at least a start date or venue
+  let eventTypes = { 'venue': 1, 'catering': 1, 'av-equipment': 1, 'photography': 1 };
+  if (eventTypes[p.engagementType] && (p.eventStart || p.eventVenue)) {
+    expected['event-logistics'] = 1;
+  }
   let arr = [];
   for (let k in expected) { arr.push(k); }
   return arr;
@@ -432,7 +454,13 @@ let expectedPatterns = computeExpectedPatterns(v);
 function clauseTitleFromAnchor(anchor) {
   // Friendly fallback titles if the model didn't supply a title key
   let map = {
+    'event-logistics': 'Event Logistics',
     'payment-milestones': 'Payment and Milestones',
+    'taxes-and-fees': 'Taxes and Late Payment',
+    'cancellation-charges': 'Cancellation Charges',
+    'guest-count-adjustments': 'Guest Count Adjustments',
+    'food-safety-compliance': 'Food Safety and Licensing',
+    'allergen-handling': 'Allergen and Dietary Handling',
     'acceptance-window': 'Acceptance Criteria',
     'liquidated-damages': 'Late Delivery Credits',
     'indemnity-mutual-cap': 'Mutual Indemnification',
@@ -537,6 +565,25 @@ if (!recitals) {
   recitals = 'The parties wish to set out the terms on which Vendor will provide the services described herein to Engager.';
 }
 
+// Commercial terms (lump-sum standalone paragraph). Empty string for milestone-based.
+let commercialTermsRaw = String((clauseJson && clauseJson.commercialTerms) || '');
+let commercialTerms = commercialTermsRaw.trim()
+  ? texEscapeModelProse(scrubModelLatex(commercialTermsRaw))
+  : '';
+
+// If lump-sum was chosen but the LLM didn't emit commercialTerms, flag it.
+if (v.paymentSchedule === 'lump-sum' && !commercialTerms) {
+  warnings.push(
+    'paymentSchedule is lump-sum but the model did not emit a `commercialTerms` paragraph. ' +
+    'The rendered document will have no operative payment-timing clause. Regenerate or fill manually.'
+  );
+}
+
+// Build the LaTeX block for commercial terms (only when populated).
+let commercialTermsBlock = commercialTerms
+  ? '\\section{Commercial Terms}\n' + commercialTerms + '\n'
+  : '';
+
 // Always use the script-controlled signature block. Model-generated signature
 // blocks have proven unreliable: contradictory escape levels produce malformed
 // LaTeX where names get corrupted (e.g. "Rohith Banoth" renders as "nRohith
@@ -546,56 +593,56 @@ if (!recitals) {
 // The system prompt instructs the model to always emit `""` for signatureBlock,
 // but even if the model disobeys, this code discards the value.
 let signatureBlock =
-  '\\vspace{3em}\n' +
+  '\\vspace{2em}\n' +
   '\\noindent\\begin{minipage}[t]{0.45\\textwidth}\n' +
-  '\\textbf{For <<PARTY_A_NAME>>}\\\\[2.5em]\n' +
-  '\\rule{\\linewidth}{0.4pt}\\\\\n' +
-  'By: <<PARTY_A_SIGNATORY>>\\\\\n' +
-  'Title: <<PARTY_A_SIGNATORY_ROLE>>\\\\\n' +
-  'Date: \\rule{8em}{0.4pt}\\\\\n' +
-  'Place: \\rule{8em}{0.4pt}\n' +
+  '\\textbf{For <<PARTY_A_NAME>>}\\\\[1em]\n' +
+  'Signature: \\rule{14em}{0.4pt}\\\\[1.2em]\n' +
+  'Name: <<PARTY_A_SIGNATORY>>\\\\[0.4em]\n' +
+  'Title: <<PARTY_A_SIGNATORY_ROLE>>\\\\[0.4em]\n' +
+  'Date: \\rule{10em}{0.4pt}\\\\[0.4em]\n' +
+  'Place: \\rule{10em}{0.4pt}\n' +
   '\\end{minipage}\\hfill\n' +
-  '\\noindent\\begin{minipage}[t]{0.45\\textwidth}\n' +
-  '\\textbf{For <<PARTY_B_NAME>>}\\\\[2.5em]\n' +
-  '\\rule{\\linewidth}{0.4pt}\\\\\n' +
-  'By: <<PARTY_B_SIGNATORY>>\\\\\n' +
-  'Title: <<PARTY_B_SIGNATORY_ROLE>>\\\\\n' +
-  'Date: \\rule{8em}{0.4pt}\\\\\n' +
-  'Place: \\rule{8em}{0.4pt}\n' +
+  '\\begin{minipage}[t]{0.45\\textwidth}\n' +
+  '\\textbf{For <<PARTY_B_NAME>>}\\\\[1em]\n' +
+  'Signature: \\rule{14em}{0.4pt}\\\\[1.2em]\n' +
+  'Name: <<PARTY_B_SIGNATORY>>\\\\[0.4em]\n' +
+  'Title: <<PARTY_B_SIGNATORY_ROLE>>\\\\[0.4em]\n' +
+  'Date: \\rule{10em}{0.4pt}\\\\[0.4em]\n' +
+  'Place: \\rule{10em}{0.4pt}\n' +
   '\\end{minipage}\n' +
-  '\\\\\n\\vspace{3em}\n' +
+  '\\par\\vspace*{4em}\n' +
   '\\noindent\\begin{minipage}[t]{0.45\\textwidth}\n' +
-  '\\textbf{Witness 1:}\\\\[1.5em]\n' +
-  'Signature: \\rule{12em}{0.4pt}\\\\\n' +
-  'Name: \\rule{12em}{0.4pt}\n' +
+  '\\textbf{Witness 1}\\\\[1em]\n' +
+  'Signature: \\rule{14em}{0.4pt}\\\\[1.2em]\n' +
+  'Name: \\rule{14em}{0.4pt}\n' +
   '\\end{minipage}\\hfill\n' +
-  '\\noindent\\begin{minipage}[t]{0.45\\textwidth}\n' +
-  '\\textbf{Witness 2:}\\\\[1.5em]\n' +
-  'Signature: \\rule{12em}{0.4pt}\\\\\n' +
-  'Name: \\rule{12em}{0.4pt}\n' +
+  '\\begin{minipage}[t]{0.45\\textwidth}\n' +
+  '\\textbf{Witness 2}\\\\[1em]\n' +
+  'Signature: \\rule{14em}{0.4pt}\\\\[1.2em]\n' +
+  'Name: \\rule{14em}{0.4pt}\n' +
   '\\end{minipage}';
 
 let disclaimer = (clauseJson && clauseJson.metadata && clauseJson.metadata.disclaimer)
   ? String(clauseJson.metadata.disclaimer)
   : 'This draft is a starting point produced by software. It is not legal advice. Have it reviewed by a qualified attorney in your jurisdiction before signing.';
 
-// ── Warnings banner (visible in PDF) ────────────────────────────────────
-let warningsBanner = '';
-if (warnings.length > 0) {
-  let warningItems = warnings.map(function (w) { return '  \\item ' + texEscape(w); }).join('\n');
-  warningsBanner =
-    '\\begin{quote}\n' +
-    '\\textbf{Drafting notes for human review} (does not appear in a signed copy --- delete before signature):\n' +
-    '\\begin{itemize}[leftmargin=1.2em]\n' +
-    warningItems + '\n' +
-    '\\end{itemize}\n' +
-    '\\end{quote}';
-}
+// Drafting-warnings used to be rendered into the PDF as a visible banner.
+// They are now surfaced only through the API response (`warnings[]`), where
+// the UI shows them as an "out-of-document" note. Keeping the PDF clean means
+// it is ready to send/sign without needing manual scrubbing of internal notes.
 
 // ── LaTeX template (inlined per PLAN.md §18 risk #2 fallback) ───────────
+// Layout intent:
+//   - All major headings use unnumbered `\section*{}` for uniform look
+//     (Parties / Recitals / Definitions / Commercial Terms / Clauses /
+//     Signatures). Numbered enumeration inside individual clauses is OK.
+//   - Generous spacing before headings so they don't feel cramped.
+//   - Slightly larger bottom margin (1.1in) so the footer has breathing room.
+//   - Signature block: explicit \vspace*{} between signatory minipages and
+//     witness minipages so witnesses never sit on top of the Place field.
 let TEMPLATE =
   '\\documentclass[11pt,letterpaper]{article}\n' +
-  '\\usepackage[margin=1in]{geometry}\n' +
+  '\\usepackage[top=1in,bottom=1.1in,left=1in,right=1in]{geometry}\n' +
   '\\usepackage{parskip}\n' +
   '\\usepackage{enumitem}\n' +
   '\\usepackage{titlesec}\n' +
@@ -603,6 +650,7 @@ let TEMPLATE =
   '\n' +
   '\\pagestyle{fancy}\n' +
   '\\fancyhf{}\n' +
+  '\\setlength{\\footskip}{36pt}\n' +
   '\\renewcommand{\\headrulewidth}{0pt}\n' +
   '\\renewcommand{\\footrulewidth}{0.4pt}\n' +
   '\\lfoot{\\footnotesize\\itshape CONFIDENTIAL}\n' +
@@ -610,7 +658,7 @@ let TEMPLATE =
   '\\rfoot{\\footnotesize Page \\thepage}\n' +
   '\n' +
   '\\titleformat{\\section}{\\normalsize\\bfseries\\uppercase}{\\thesection.}{0.6em}{}\n' +
-  '\\titlespacing*{\\section}{0pt}{1.2em}{0.4em}\n' +
+  '\\titlespacing*{\\section}{0pt}{2.2em}{0.8em}\n' +
   '\n' +
   '\\title{<<AGREEMENT_TITLE>>}\n' +
   '\\date{}\n' +
@@ -621,20 +669,20 @@ let TEMPLATE =
   '\\textit{Effective <<EFFECTIVE_DATE>>}\n' +
   '\\end{center}\n' +
   '\n' +
-  '<<WARNINGS_BANNER>>\n' +
-  '\n' +
-  '\\section*{Parties}\n' +
+  '\\section{Parties}\n' +
   'This <<AGREEMENT_TITLE>> (the ``Agreement\'\') is entered into as of <<EFFECTIVE_DATE>> between:\n' +
   '\\begin{itemize}[leftmargin=1.2em]\n' +
   '\\item \\textbf{<<PARTY_A_NAME>>} (``Engager\'\'), <<PARTY_A_TYPE>>, principal address <<PARTY_A_ADDRESS>>, represented by <<PARTY_A_SIGNATORY>>, <<PARTY_A_SIGNATORY_ROLE>>; and\n' +
   '\\item \\textbf{<<PARTY_B_NAME>>} (``Vendor\'\'), <<PARTY_B_TYPE>>, principal address <<PARTY_B_ADDRESS>>, represented by <<PARTY_B_SIGNATORY>>, <<PARTY_B_SIGNATORY_ROLE>>.\n' +
   '\\end{itemize}\n' +
   '\n' +
-  '\\section*{Recitals}\n' +
+  '\\section{Recitals}\n' +
   '<<RECITALS>>\n' +
   '\n' +
-  '\\section*{Definitions}\n' +
+  '\\section{Definitions}\n' +
   '<<DEFINITIONS_BLOCK>>\n' +
+  '\n' +
+  '<<COMMERCIAL_TERMS_BLOCK>>\n' +
   '\n' +
   '<<CLAUSES_BLOCK>>\n' +
   '\n' +
@@ -665,10 +713,10 @@ let tokens = {
   'PARTY_B_SIGNATORY_ROLE': texEscape(v.partyBSignatoryRole),
   'RECITALS': recitals,
   'DEFINITIONS_BLOCK': definitionsBlock,
+  'COMMERCIAL_TERMS_BLOCK': commercialTermsBlock,
   'CLAUSES_BLOCK': clausesBlock,
   'SIGNATURE_BLOCK': signatureBlock,
-  'DISCLAIMER': texEscape(disclaimer),
-  'WARNINGS_BANNER': warningsBanner
+  'DISCLAIMER': texEscape(disclaimer)
 };
 
 // Two-pass replacement: signatureBlock may itself contain <<PARTY_*>> tokens
