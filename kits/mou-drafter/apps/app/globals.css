@@ -126,11 +126,17 @@
 }
 
 .glass-card {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  background: rgba(10, 11, 15, 0.4) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(12, 13, 18, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.3) !important;
 }
 
 .dark-glow-bg {
@@ -154,14 +160,4 @@ input:focus, textarea:focus, [data-slot="select-trigger"]:focus {
   border-color: rgba(255, 255, 255, 0.15) !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.03) !important;
   outline: none !important;
-}
-
-/* Style default card headers to have nice spacing in flat layout */
-[data-slot="card-header"] {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-[data-slot="card-content"] {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
 }
