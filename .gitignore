@@ -3,6 +3,6 @@
 .env
 .claude
 REFACTOR_PLAN.md
-scripts
+/scripts
 .remember
 plan.md

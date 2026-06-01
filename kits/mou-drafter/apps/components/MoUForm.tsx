@@ -466,7 +466,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="grid grid-cols-1 md:grid-cols-[1fr_140px_1fr_auto] gap-2 items-end p-3 rounded-md border bg-muted/30"
+                className="deliverable-row grid grid-cols-1 md:grid-cols-[1fr_140px_1fr_auto] gap-2 items-end p-3"
               >
                 <FormField
                   id={`deliverables.${index}.label`}

@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -40,38 +39,33 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: #08080a;
+  --foreground: oklch(0.92 0 0);
+  --card: transparent;
+  --card-foreground: oklch(0.92 0 0);
+  --popover: #111114;
+  --popover-foreground: oklch(0.92 0 0);
+  --primary: oklch(0.92 0 0);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: oklch(0.55 0 0);
+  --accent: rgba(255, 255, 255, 0.06);
+  --accent-foreground: oklch(0.92 0 0);
+  --destructive: oklch(0.45 0.18 25);
+  --destructive-foreground: oklch(0.85 0.12 25);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.06);
+  --ring: rgba(255, 255, 255, 0.2);
+  --sidebar: #0e0e10;
+  --sidebar-foreground: oklch(0.92 0 0);
+  --sidebar-primary: oklch(0.92 0 0);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: oklch(0.92 0 0);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: rgba(255, 255, 255, 0.2);
 }
 
 @theme inline {
@@ -125,39 +119,112 @@
   }
 }
 
-.glass-card {
-  background: #020203 !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.4) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card:hover {
-  background: #000000 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5) !important;
-}
-
+/* ── Site background: very dark with subtle crosshatch grid ─────────── */
 .dark-glow-bg {
-  background-color: #0b0c10 !important;
-  background-image: 
-    radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px) !important;
-  background-size: 28px 28px !important;
+  background-color: #08080a;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 40px 40px;
   background-attachment: fixed;
 }
 
-/* Custom styled minimal inputs */
-input, textarea, [data-slot="select-trigger"] {
-  background-color: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  border-radius: 6px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+/* ── Glass cards: transparent + big border + deep shadow for depth ───── */
+.glass-card {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 20px 60px rgba(0, 0, 0, 0.35) !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-input:focus, textarea:focus, [data-slot="select-trigger"]:focus {
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.52) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 2px 4px rgba(0, 0, 0, 0.65),
+    0 10px 30px rgba(0, 0, 0, 0.55),
+    0 24px 70px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Inputs & textareas ─────────────────────────────────────────────── */
+input,
+textarea {
   background-color: rgba(255, 255, 255, 0.04) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: inherit;
+  transition: border-color 0.2s ease, background-color 0.2s ease !important;
+}
+
+input:focus,
+textarea:focus {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04) !important;
   outline: none !important;
+}
+
+/* ── Custom Select trigger (Radix) ──────────────────────────────────── */
+[data-slot="select-trigger"] {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  transition: border-color 0.2s ease, background-color 0.2s ease !important;
+}
+
+[data-slot="select-trigger"]:hover {
+  background-color: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-slot="select-trigger"][data-state="open"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ── Select dropdown content ────────────────────────────────────────── */
+[data-slot="select-content"] {
+  background-color: #111114 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+[data-slot="select-item"] {
+  border-radius: 6px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+[data-slot="select-item"]:hover,
+[data-slot="select-item"][data-highlighted] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-slot="select-item"][data-state="checked"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  font-weight: 500;
+}
+
+/* ── Deliverable row cards ───────────────────────────────────────────── */
+.deliverable-row {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+/* ── Toggle switch ──────────────────────────────────────────────────── */
+button[role="switch"] {
+  transition: background-color 0.2s ease !important;
+}
+
+/* ── Separator ──────────────────────────────────────────────────────── */
+[data-slot="separator"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }

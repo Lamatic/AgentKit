@@ -19,6 +19,8 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export default function Page() {
@@ -27,6 +29,14 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(true);
   const [showLatexSource, setShowLatexSource] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  function handleCopyError() {
+    if (!error) return;
+    navigator.clipboard.writeText(error);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   async function handleSubmit(data: MoUFormData) {
     setIsSubmitting(true);
@@ -55,22 +65,60 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-10">
         {/* ── Header ─────────────────────────────────────────── */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">MoU Drafter</h1>
-          <p className="text-muted-foreground mt-1">
-            Draft a vendor MoU from structured input. First draft for human
-            review — not legal advice.
+        <div className="mb-10">
+          <span className="inline-block text-[10px] font-semibold tracking-[0.18em] uppercase text-muted-foreground border border-white/10 rounded-full px-3 py-1 mb-4">
+            Lamatic Agent Kit
+          </span>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">MoU Drafter</h1>
+          <p className="text-muted-foreground mt-2 text-sm leading-relaxed max-w-xl">
+            Draft a vendor Memorandum of Understanding from structured input.
+            AI-generated first draft for human review — not legal advice.
           </p>
         </div>
 
         {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="mb-8 p-5 border border-destructive/30 rounded-xl bg-destructive/5 space-y-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-destructive">
+                  Generation Failed
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  The Lamatic flow or LLM took too long to respond. The system may be overloaded. Please wait a minute and try clicking the <strong>Generate MoU Draft</strong> button again.
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">Error Details</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleCopyError}
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1 border border-white/5"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3 w-3 text-green-500" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span>Copy Details</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              <pre className="text-[11px] font-mono text-destructive/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[150px] overflow-y-auto">
+                {error}
+              </pre>
+            </div>
+          </div>
         )}
 
         {/* ── Form ────────────────────────────────────────────── */}
@@ -204,7 +252,7 @@ export default function Page() {
                     LaTeX source
                   </button>
                   {showLatexSource && (
-                    <pre className="mt-3 p-4 bg-muted rounded-md overflow-x-auto text-xs font-mono leading-relaxed max-h-[500px] overflow-y-auto">
+                    <pre className="mt-3 p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed max-h-[500px] overflow-y-auto" style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)'}}>
                       {result.latex}
                     </pre>
                   )}
