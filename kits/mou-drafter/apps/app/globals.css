@@ -126,7 +126,7 @@
 }
 
 .glass-card {
-  background: rgba(18, 20, 29, 0.85) !important;
+  background: #020203 !important;
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.4) !important;
@@ -134,13 +134,13 @@
 }
 
 .glass-card:hover {
-  background: rgba(22, 24, 35, 0.9) !important;
+  background: #000000 !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5) !important;
 }
 
 .dark-glow-bg {
-  background-color: #06070a !important;
+  background-color: #0b0c10 !important;
   background-image: 
     radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px) !important;
   background-size: 28px 28px !important;
