@@ -263,7 +263,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
     control,
     formState: { errors },
   } = useForm<MoUFormData>({
-    resolver: zodResolver(mouFormSchema),
+    resolver: zodResolver(mouFormSchema) as any,
     defaultValues: {
       agreementTitle: "",
       effectiveDate: "",
