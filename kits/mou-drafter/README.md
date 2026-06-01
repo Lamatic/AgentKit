@@ -54,6 +54,7 @@ LAMATIC_API_KEY = "YOUR_LAMATIC_API_KEY"
 ### 2. Run Locally
 
 ```bash
+# Make sure you have MiKTeX on Windows, TeX Live elsewhere, etc. installed locally to enable pdf preview
 cd kits/mou-drafter/apps
 npm install
 npm run dev
