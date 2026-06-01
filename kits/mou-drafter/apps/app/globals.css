@@ -228,3 +228,42 @@ button[role="switch"] {
 [data-slot="separator"] {
   background-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ── Cursor: pointer on every interactable element ──────────────────── */
+button:not(:disabled),
+a,
+summary,
+[role="button"],
+[role="switch"],
+[role="tab"],
+[role="menuitem"],
+[role="option"],
+[data-slot="select-trigger"],
+[data-slot="select-item"],
+[data-slot="select-scroll-up-button"],
+[data-slot="select-scroll-down-button"],
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="reset"],
+input[type="button"],
+input[type="file"],
+input[type="color"],
+input[type="range"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Date/time inputs: the field itself is text-entry, but the picker icon
+   should feel clickable. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}

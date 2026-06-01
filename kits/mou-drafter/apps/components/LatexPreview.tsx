@@ -1,49 +1,83 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { compileLatex, pdfBlobUrl } from "@/lib/swiftlatex";
-import { AlertTriangle, FileDown } from "lucide-react";
+import { AlertTriangle, ExternalLink, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { openInOverleaf, downloadTexFile } from "@/lib/overleaf";
 import ShinyText from "@/components/ShinyText";
+
+// Real PDF preview via a server-side pdflatex compile.
+//
+//   client → POST /api/compile-latex { latex }
+//          ← 200 application/pdf       (success)
+//          ← 422 { ok:false, log }     (compile failed; show log)
+//          ← 500 { ok:false, error }   (route blew up)
+//
+// We display the returned PDF in an <iframe> via a blob URL so the
+// browser's native PDF viewer handles paging/scroll/zoom — no JS PDF
+// renderer needed. Blob URL is revoked when this prop changes or the
+// component unmounts.
 
 interface LatexPreviewProps {
   latex: string;
 }
 
 type Phase =
-  | { kind: "idle" }
   | { kind: "loading"; message: string }
   | { kind: "ready"; url: string }
-  | { kind: "error"; friendly: string; details?: string; log?: string };
+  | { kind: "error"; message: string; log?: string };
 
 export default function LatexPreview({ latex }: LatexPreviewProps) {
-  const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const [phase, setPhase] = useState<Phase>({
+    kind: "loading",
+    message: "Compiling your PDF",
+  });
   const [showLog, setShowLog] = useState(false);
   const lastUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setPhase({ kind: "loading", message: "Warming up the renderer" });
+    setPhase({ kind: "loading", message: "Compiling your PDF" });
 
     (async () => {
       try {
+        const res = await fetch("/api/compile-latex", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ latex }),
+        });
         if (cancelled) return;
-        setPhase({ kind: "loading", message: "Rendering your PDF" });
-        const res = await compileLatex(latex);
-        if (cancelled) return;
-        const url = pdfBlobUrl(res.pdf);
-        if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
-        lastUrlRef.current = url;
-        setPhase({ kind: "ready", url });
+
+        const ct = res.headers.get("content-type") || "";
+        if (res.ok && ct.includes("application/pdf")) {
+          const blob = await res.blob();
+          if (cancelled) return;
+          const url = URL.createObjectURL(blob);
+          if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
+          lastUrlRef.current = url;
+          setPhase({ kind: "ready", url });
+          return;
+        }
+
+        // Non-PDF response: try to read the structured error.
+        let message = `Compile failed (HTTP ${res.status}).`;
+        let log: string | undefined;
+        try {
+          const body = (await res.json()) as { error?: string; log?: string };
+          if (body.error) message = body.error;
+          log = body.log;
+        } catch {
+          // Fall through with generic message.
+        }
+        setPhase({ kind: "error", message, log });
       } catch (err) {
         if (cancelled) return;
-        const e = err as Error & { log?: string };
         setPhase({
           kind: "error",
-          friendly:
-            "We couldn't render the PDF in your browser. You can still download the .tex file or open it in Overleaf.",
-          details: e.message,
-          log: e.log,
+          message:
+            err instanceof Error
+              ? `Network error: ${err.message}`
+              : "Network error contacting the compile route.",
         });
       }
     })();
@@ -59,13 +93,11 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
     };
   }, []);
 
-  if (phase.kind === "loading" || phase.kind === "idle") {
-    const message = phase.kind === "loading" ? phase.message : "Getting ready";
+  if (phase.kind === "loading") {
     return (
       <div className="flex items-center justify-center h-[600px] rounded-lg border border-white/10 bg-black/20">
         <ShinyText
-          key={message}
-          text={message}
+          text={phase.message}
           speed={2.4}
           color="#7a7a85"
           shineColor="#ffffff"
@@ -82,32 +114,43 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
       <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-5 space-y-3">
         <div className="flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0 flex-1">
             <p className="text-sm font-medium text-destructive">
-              Preview not available
+              Couldn&apos;t compile the PDF
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {phase.friendly}
+              {phase.message}
             </p>
           </div>
         </div>
-        {(phase.details || phase.log) && (
+
+        {phase.log && (
           <div>
             <button
               type="button"
               className="text-xs text-muted-foreground hover:text-foreground underline"
               onClick={() => setShowLog((s) => !s)}
             >
-              {showLog ? "Hide" : "Show"} technical details
+              {showLog ? "Hide" : "Show"} pdflatex log
             </button>
             {showLog && (
-              <pre className="mt-2 p-3 rounded bg-black/40 border border-white/5 text-[11px] font-mono text-destructive/80 overflow-x-auto max-h-[300px] overflow-y-auto whitespace-pre-wrap">
-                {phase.details}
-                {phase.log ? "\n\n" + phase.log : ""}
+              <pre className="mt-2 p-3 rounded bg-black/40 border border-white/5 text-[11px] font-mono text-destructive/80 overflow-x-auto max-h-[320px] overflow-y-auto whitespace-pre-wrap">
+                {phase.log}
               </pre>
             )}
           </div>
         )}
+
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => openInOverleaf(latex)}>
+            <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+            Open in Overleaf
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => downloadTexFile(latex)}>
+            <FileDown className="h-3.5 w-3.5 mr-1.5" />
+            Download .tex
+          </Button>
+        </div>
       </div>
     );
   }
@@ -117,7 +160,7 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
       <iframe
         title="MoU PDF preview"
         src={phase.url}
-        className="w-full h-[800px] rounded-lg border border-white/10 bg-white"
+        className="w-full h-[900px] rounded-lg border border-white/10 bg-white"
       />
       <div className="flex justify-end">
         <Button asChild variant="outline" size="sm">
