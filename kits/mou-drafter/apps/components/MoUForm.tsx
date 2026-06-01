@@ -1,7 +1,14 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   mouFormSchema,
   type MoUFormData,
@@ -72,35 +79,46 @@ const DISPUTE_LABELS: Record<string, string> = {
   courts: "Courts",
 };
 
-// ── Select helper (native HTML select, no Radix overhead) ─────────────
+// ── Select helper (custom Radix Select with Controller) ───────────────
 function FormSelect({
   id,
   label,
   options,
   labels,
+  control,
   error,
-  ...props
 }: {
   id: string;
   label: string;
   options: readonly string[];
   labels: Record<string, string>;
+  control: any;
   error?: string;
-} & React.SelectHTMLAttributes<HTMLSelectElement>) {
+}) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        {...props}
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {labels[opt] || opt}
-          </option>
-        ))}
-      </select>
+      <Controller
+        name={id as any}
+        control={control}
+        render={({ field }) => (
+          <Select
+            onValueChange={field.onChange}
+            value={field.value?.toString() || ""}
+          >
+            <SelectTrigger id={id} className="w-full">
+              <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((opt) => (
+                <SelectItem key={opt} value={opt}>
+                  {labels[opt] || opt}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      />
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
@@ -175,11 +193,13 @@ function PartyFields({
   prefix,
   title,
   register,
+  control,
   errors,
 }: {
   prefix: "partyA" | "partyB";
   title: string;
   register: any;
+  control: any;
   errors: any;
 }) {
   const e = errors?.[prefix] || {};
@@ -196,22 +216,22 @@ function PartyFields({
           error={e.name?.message}
           {...register(`${prefix}.name`)}
         />
-        <div className="space-y-1.5">
-          <Label htmlFor={`${prefix}.type`}>Entity type</Label>
-          <select
-            id={`${prefix}.type`}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            {...register(`${prefix}.type`)}
-          >
-            <option value="org">Organisation</option>
-            <option value="individual">Individual</option>
-            <option value="corp">Corporation</option>
-            <option value="llc">LLC</option>
-            <option value="llp">LLP</option>
-            <option value="partnership">Partnership</option>
-            <option value="trust">Trust</option>
-          </select>
-        </div>
+        <FormSelect
+          id={`${prefix}.type`}
+          label="Entity type"
+          options={["org", "individual", "corp", "llc", "llp", "partnership", "trust"]}
+          labels={{
+            org: "Organisation",
+            individual: "Individual",
+            corp: "Corporation",
+            llc: "LLC",
+            llp: "LLP",
+            partnership: "Partnership",
+            trust: "Trust",
+          }}
+          control={control}
+          error={e.type?.message}
+        />
         <FormField
           id={`${prefix}.address`}
           label="Address"
@@ -330,7 +350,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* ── Section 1: Agreement Basics ────────────────────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Agreement Basics</CardTitle>
         </CardHeader>
@@ -356,14 +376,14 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
             label="Engagement type"
             options={ENGAGEMENT_TYPES}
             labels={ENGAGEMENT_LABELS}
+            control={control}
             error={errors.engagementType?.message}
-            {...register("engagementType")}
           />
         </CardContent>
       </Card>
 
       {/* ── Section 2: Parties ─────────────────────────────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Parties</CardTitle>
         </CardHeader>
@@ -372,6 +392,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
             prefix="partyA"
             title="Party A — Engager"
             register={register}
+            control={control}
             errors={errors}
           />
           <Separator />
@@ -379,13 +400,14 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
             prefix="partyB"
             title="Party B — Vendor"
             register={register}
+            control={control}
             errors={errors}
           />
         </CardContent>
       </Card>
 
       {/* ── Section 3: Scope & Deliverables ────────────────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Scope & Deliverables</CardTitle>
         </CardHeader>
@@ -472,7 +494,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
       </Card>
 
       {/* ── Section 4: Commercials ─────────────────────────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Commercials</CardTitle>
         </CardHeader>
@@ -499,8 +521,8 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               label="Payment schedule"
               options={PAYMENT_SCHEDULES}
               labels={PAYMENT_SCHEDULE_LABELS}
+              control={control}
               error={errors.paymentSchedule?.message}
-              {...register("paymentSchedule")}
             />
           </div>
 
@@ -521,8 +543,8 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
                 label="Payment terms"
                 options={PAYMENT_PRESETS}
                 labels={PAYMENT_PRESET_LABELS}
+                control={control}
                 error={errors.paymentPreset?.message}
-                {...register("paymentPreset")}
               />
               {paymentPreset === "custom" && (
                 <>
@@ -569,7 +591,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
       </Card>
 
       {/* ── Section 5: Jurisdiction ────────────────────────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Jurisdiction</CardTitle>
         </CardHeader>
@@ -595,14 +617,14 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
             label="Dispute resolution"
             options={DISPUTE_RESOLUTION_OPTIONS}
             labels={DISPUTE_LABELS}
+            control={control}
             error={errors.disputeResolution?.message}
-            {...register("disputeResolution")}
           />
         </CardContent>
       </Card>
 
       {/* ── Section 6: Risk & Protection (collapsible) ─────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader
           className="pb-4 cursor-pointer select-none"
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -648,7 +670,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               label="IP ownership"
               options={IP_OWNERSHIP_OPTIONS}
               labels={IP_LABELS}
-              {...register("ipOwnership")}
+              control={control}
             />
             <FormToggle
               id="ipPortfolioRights"
@@ -665,7 +687,7 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
               label="Termination terms"
               options={TERMINATION_PRESETS}
               labels={TERMINATION_LABELS}
-              {...register("terminationPreset")}
+              control={control}
             />
 
             <Separator />
@@ -722,26 +744,24 @@ export default function MoUForm({ onSubmit, isSubmitting }: MoUFormProps) {
 
             <Separator />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="liabilityCapMultiplier">
-                Liability cap multiplier
-              </Label>
-              <select
-                id="liabilityCapMultiplier"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                {...register("liabilityCapMultiplier")}
-              >
-                <option value={1}>1× total fee</option>
-                <option value={2}>2× total fee</option>
-                <option value={3}>3× total fee</option>
-              </select>
-            </div>
+            <FormSelect
+              id="liabilityCapMultiplier"
+              label="Liability cap multiplier"
+              options={["1", "2", "3"]}
+              labels={{
+                "1": "1× total fee",
+                "2": "2× total fee",
+                "3": "3× total fee",
+              }}
+              control={control}
+              error={errors.liabilityCapMultiplier?.message}
+            />
           </CardContent>
         )}
       </Card>
 
       {/* ── Section 7: Additional Context ──────────────────────── */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Additional Notes</CardTitle>
         </CardHeader>
