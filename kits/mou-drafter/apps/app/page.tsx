@@ -116,7 +116,7 @@ export default function Page() {
             {/* Pattern report */}
             {(result.patternReport.missing.length > 0 ||
               result.patternReport.unexpected.length > 0) && (
-              <Card>
+              <Card className="glass-card">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">
                     Pattern Verification
@@ -159,7 +159,7 @@ export default function Page() {
             )}
 
             {/* Download actions */}
-            <Card>
+            <Card className="glass-card">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <FileText className="h-4 w-4" />
