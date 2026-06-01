@@ -126,24 +126,42 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.015) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .dark-glow-bg {
-  background-color: #030712 !important;
+  background-color: #06070a !important;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px) !important;
-  background-size: 40px 40px !important;
+    radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
   background-attachment: fixed;
+}
+
+/* Custom styled minimal inputs */
+input, textarea, [data-slot="select-trigger"] {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 6px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+input:focus, textarea:focus, [data-slot="select-trigger"]:focus {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.03) !important;
+  outline: none !important;
+}
+
+/* Style default card headers to have nice spacing in flat layout */
+[data-slot="card-header"] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+[data-slot="card-content"] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
