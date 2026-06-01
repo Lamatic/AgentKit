@@ -126,24 +126,24 @@
 }
 
 .glass-card {
-  background: rgba(25, 27, 38, 0.55) !important;
-  backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(30, 33, 47, 0.6) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35) !important;
 }
 
 .dark-glow-bg {
-  background-color: #0b0c10 !important;
+  background-color: #030712 !important;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
+    linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px) !important;
   background-size: 40px 40px !important;
   background-attachment: fixed;
 }
