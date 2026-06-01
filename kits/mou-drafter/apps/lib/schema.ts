@@ -58,6 +58,21 @@ export const DISPUTE_RESOLUTION_OPTIONS = [
   "courts",
 ] as const;
 
+export const PAYMENT_TIMING_OPTIONS = [
+  "advance-full",          // full payment before event
+  "advance-partial",       // deposit before, balance after
+  "after-event",           // full payment after completion
+  "milestone-tied",        // tied to milestone acceptance (milestone-based default)
+  "custom",
+] as const;
+
+export const CANCELLATION_POLICY_OPTIONS = [
+  "none",
+  "sliding-scale",         // % of fee forfeit on tiered windows (>30d, 15-30d, <15d, <7d)
+  "flat-fee",              // fixed cancellation fee
+  "custom",
+] as const;
+
 // ── Main form schema ─────────────────────────────────────────────────────
 // This is the UI-facing shape. The server action flattens it to the flat
 // trigger field names validate-input.ts expects.
@@ -95,9 +110,31 @@ export const mouFormSchema = z.object({
   customDepositPct: z.coerce.number().min(1).max(100).optional(),
   customPaymentDays: z.coerce.number().min(1).max(180).optional(),
 
-  // Event dates (conditional on engagement type)
+  // Event dates / venue (conditional on engagement type)
   eventStart: z.string().optional().default(""),
   eventEnd: z.string().optional().default(""),
+  eventStartTime: z.string().optional().default(""),
+  eventEndTime: z.string().optional().default(""),
+  eventVenue: z.string().optional().default(""),
+
+  // Payment timing & taxes
+  paymentTiming: z.enum(PAYMENT_TIMING_OPTIONS).default("milestone-tied"),
+  paymentTimingCustom: z.string().optional().default(""),
+  taxesIncluded: z.boolean().default(false),
+  taxRatePct: z.coerce.number().min(0).max(100).default(0),
+  lateFeePctPerMonth: z.coerce.number().min(0).max(100).default(0),
+
+  // Cancellation
+  cancellationPolicy: z
+    .enum(CANCELLATION_POLICY_OPTIONS)
+    .default("none"),
+  cancellationTerms: z.string().optional().default(""),
+
+  // Catering-specific (only used when engagementType === "catering")
+  guestCountFinalDate: z.string().optional().default(""),
+  extraGuestRate: z.coerce.number().min(0).optional().default(0),
+  foodSafetyRequired: z.boolean().default(false),
+  allergyHandlingRequired: z.boolean().default(false),
 
   // Risk & protection toggles
   confidentialityRequired: z.boolean().default(true),

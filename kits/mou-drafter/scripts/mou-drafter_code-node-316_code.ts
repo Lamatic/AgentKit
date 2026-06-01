@@ -73,6 +73,22 @@ let additionalContext            = {{triggerNode_1.output.additionalContext}};
 let customDepositPct             = {{triggerNode_1.output.customDepositPct}};
 let customPaymentDays            = {{triggerNode_1.output.customPaymentDays}};
 
+// New fields — event timing/venue, payment timing, taxes, cancellation, catering
+let eventStartTime               = {{triggerNode_1.output.eventStartTime}};
+let eventEndTime                 = {{triggerNode_1.output.eventEndTime}};
+let eventVenue                   = {{triggerNode_1.output.eventVenue}};
+let paymentTiming                = {{triggerNode_1.output.paymentTiming}};
+let paymentTimingCustom          = {{triggerNode_1.output.paymentTimingCustom}};
+let taxesIncluded                = {{triggerNode_1.output.taxesIncluded}};
+let taxRatePct                   = {{triggerNode_1.output.taxRatePct}};
+let lateFeePctPerMonth           = {{triggerNode_1.output.lateFeePctPerMonth}};
+let cancellationPolicy           = {{triggerNode_1.output.cancellationPolicy}};
+let cancellationTerms            = {{triggerNode_1.output.cancellationTerms}};
+let guestCountFinalDate          = {{triggerNode_1.output.guestCountFinalDate}};
+let extraGuestRate               = {{triggerNode_1.output.extraGuestRate}};
+let foodSafetyRequired           = {{triggerNode_1.output.foodSafetyRequired}};
+let allergyHandlingRequired      = {{triggerNode_1.output.allergyHandlingRequired}};
+
 let warnings = [];
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -114,6 +130,27 @@ partyBType          = trimStr(partyBType) || 'org';
 partyBAddress       = trimStr(partyBAddress);
 partyBSignatory     = trimStr(partyBSignatory);
 partyBSignatoryRole = trimStr(partyBSignatoryRole);
+
+// ── Defensive: signatory name and role must differ ──────────────────────
+// A bug observed during testing: the role token in the rendered document
+// printed the signatory name twice ("represented by Rohan Verma, Rohan Verma"
+// and "Title: Rohan Verma"). The only path that produces this is a mapping
+// collision upstream of validate-input — either the trigger schema is
+// missing partyASignatoryRole, or the form / orchestrate layer is sending
+// the name in both fields. Flag it so the next run produces a clear signal
+// instead of silently rendering wrong data.
+if (partyASignatory && partyASignatory === partyASignatoryRole) {
+  warnings.push(
+    'Party A signatory name and signatory role are identical ("' + partyASignatory + '"). ' +
+    'This usually means the trigger schema is missing partyASignatoryRole or the form is sending the same value for both fields. The Parties paragraph and signature title will both show the name.'
+  );
+}
+if (partyBSignatory && partyBSignatory === partyBSignatoryRole) {
+  warnings.push(
+    'Party B signatory name and signatory role are identical ("' + partyBSignatory + '"). ' +
+    'Check the trigger schema and the orchestrate layer for partyBSignatoryRole.'
+  );
+}
 partyBEmail         = trimStr(partyBEmail).toLowerCase();
 
 // ── Map partyAType / partyBType to a pre-articled entity phrase ──────────
@@ -175,6 +212,30 @@ subcontractingAllowed        = asBool(subcontractingAllowed);
 noPublicityRequired          = asBool(noPublicityRequired);
 liabilityCapMultiplier       = asNum(liabilityCapMultiplier, 1);
 additionalContext            = trimStr(additionalContext);
+
+// ── Normalise new fields ─────────────────────────────────────────────────
+eventStartTime          = trimStr(eventStartTime);
+eventEndTime            = trimStr(eventEndTime);
+eventVenue              = trimStr(eventVenue);
+paymentTiming           = enforceEnum('paymentTiming', trimStr(paymentTiming), ['advance-full', 'advance-partial', 'after-event', 'milestone-tied', 'custom'], 'milestone-tied');
+paymentTimingCustom     = trimStr(paymentTimingCustom);
+taxesIncluded           = asBool(taxesIncluded);
+taxRatePct              = asNum(taxRatePct, 0);
+lateFeePctPerMonth      = asNum(lateFeePctPerMonth, 0);
+cancellationPolicy      = enforceEnum('cancellationPolicy', trimStr(cancellationPolicy), ['none', 'sliding-scale', 'flat-fee', 'custom'], 'none');
+cancellationTerms       = trimStr(cancellationTerms);
+guestCountFinalDate     = trimStr(guestCountFinalDate);
+extraGuestRate          = asNum(extraGuestRate, 0);
+foodSafetyRequired      = asBool(foodSafetyRequired);
+allergyHandlingRequired = asBool(allergyHandlingRequired);
+
+// ── Derive default paymentTiming when missing ───────────────────────────
+// If the form sent 'milestone-tied' but paymentSchedule is 'lump-sum',
+// flip to 'advance-partial' since milestone-tied makes no sense without milestones.
+if (paymentSchedule === 'lump-sum' && paymentTiming === 'milestone-tied') {
+  paymentTiming = 'advance-partial';
+  warnings.push('paymentTiming was milestone-tied but paymentSchedule is lump-sum. Defaulted to advance-partial; verify in the rendered Commercial Terms section.');
+}
 
 if (!Array.isArray(deliverables)) {
   // Tolerate a JSON-stringified array if Studio's schema UI forced flattening.
@@ -371,6 +432,21 @@ output = {
   noPublicityRequired: noPublicityRequired,
   liabilityCapMultiplier: liabilityCapMultiplier,
   additionalContext: additionalContext,
+  // new event/payment/tax/cancellation/catering fields
+  eventStartTime: eventStartTime,
+  eventEndTime: eventEndTime,
+  eventVenue: eventVenue,
+  paymentTiming: paymentTiming,
+  paymentTimingCustom: paymentTimingCustom,
+  taxesIncluded: taxesIncluded,
+  taxRatePct: taxRatePct,
+  lateFeePctPerMonth: lateFeePctPerMonth,
+  cancellationPolicy: cancellationPolicy,
+  cancellationTerms: cancellationTerms,
+  guestCountFinalDate: guestCountFinalDate,
+  extraGuestRate: extraGuestRate,
+  foodSafetyRequired: foodSafetyRequired,
+  allergyHandlingRequired: allergyHandlingRequired,
   // derived
   depositPct: depositPct,
   paymentDays: paymentDays,
