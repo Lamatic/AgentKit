@@ -5,7 +5,7 @@ import MoUForm from "@/components/MoUForm";
 import LatexPreview from "@/components/LatexPreview";
 import ShinyText from "@/components/ShinyText";
 import { generateMoU } from "@/actions/orchestrate";
-import { downloadTexFile, buildOverleafUrl } from "@/lib/overleaf";
+import { downloadTexFile, openInOverleaf } from "@/lib/overleaf";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,18 +26,31 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-const TIMEOUT_SECONDS = 180; // matches actions/orchestrate.ts
+const TIMEOUT_SECONDS = 240; // matches actions/orchestrate.ts
 
 // Rotating loading messages — index advances every ~12s.
 const LOADING_MESSAGES = [
-  "Drafting your MoU",
-  "Setting up the parties and recitals",
-  "Working through each clause",
-  "Aligning numbers across the document",
-  "Checking jurisdiction-specific rules",
-  "Tightening the language",
-  "Cross-checking everything",
-  "Putting on the finishing touches",
+  "Understanding what you actually need from this agreement",
+  "Identifying the parties and making sure nobody's misrepresented",
+  "Drafting the recitals — the 'here's why we're all here' section",
+  "Setting out the purpose and scope before things get assumed",
+  "Allocating obligations clearly, so there's no room for selective memory",
+  "Making sure both sides have skin in the game",
+  "Locking down confidentiality before something leaks",
+  "Sorting out IP ownership before it becomes a conversation nobody wants",
+  "Drafting the exit clauses — optimistic to need them, wise to have them",
+  "Working through dispute resolution, just in case civility doesn't hold",
+  "Tightening the termination clause — it always matters eventually",
+  "Making sure the numbers are consistent throughout",
+  "Checking for anything that quietly contradicts itself",
+  "Removing language vague enough to mean anything, which means nothing",
+  "Ensuring neither party accidentally committed to something unreasonable",
+  "Cross-referencing definitions — tedious, but it earns its keep",
+  "Confirming governing law and jurisdiction before someone asks",
+  "Reviewing the signature blocks — yes, even those",
+  "Reading this back the way a cautious counterparty would",
+  "Final pass before this goes anywhere near a desk",
+  "Your draft MoU is ready — give it a proper read before it moves forward",
 ];
 
 type Phase =
@@ -114,7 +127,7 @@ export default function Page() {
   const loadingMessage = useMemo(() => {
     const idx = Math.min(
       LOADING_MESSAGES.length - 1,
-      Math.floor(elapsed / 12)
+      Math.floor(elapsed / 8)
     );
     return LOADING_MESSAGES[idx];
   }, [elapsed]);
@@ -334,18 +347,26 @@ export default function Page() {
                 </Card>
               )}
 
-            {/* In-browser PDF preview */}
-            <Card className="glass-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Your draft
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LatexPreview latex={phase.data.latex} />
-              </CardContent>
-            </Card>
+            {/* In-browser PDF preview — dev-only.
+                Vercel can't run pdflatex (no apt-get, no persistent
+                binaries), so in production the preview card is omitted
+                entirely and users go straight to Overleaf / .tex download
+                in the next card. NODE_ENV is inlined by Next.js at build
+                time so this whole subtree is tree-shaken out of the
+                production bundle. */}
+            {process.env.NODE_ENV === "development" && (
+              <Card className="glass-card">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Your draft
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LatexPreview latex={phase.data.latex} />
+                </CardContent>
+              </Card>
+            )}
 
             {/* Download actions */}
             <Card className="glass-card">
@@ -365,10 +386,7 @@ export default function Page() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      const url = buildOverleafUrl(phase.data.latex);
-                      window.open(url, "_blank", "noopener,noreferrer");
-                    }}
+                    onClick={() => openInOverleaf(phase.data.latex)}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Open in Overleaf

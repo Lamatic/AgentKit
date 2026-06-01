@@ -4,7 +4,7 @@ import { lamaticClient } from "@/lib/lamatic-client";
 import { config } from "../orchestrate.js";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
 
-const TIMEOUT_MS = 180000; // 3 minutes — the LLM generates ~4K tokens of clause JSON
+const TIMEOUT_MS = 240000; // 4 minutes — the LLM generates ~4K tokens of clause JSON
 
 async function withTimeout<T>(
   promise: Promise<T>,

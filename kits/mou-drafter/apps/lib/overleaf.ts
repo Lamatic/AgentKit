@@ -1,33 +1,48 @@
 /**
- * Build an Overleaf "Open in Overleaf" URL from raw LaTeX source.
+ * Open the given LaTeX source in Overleaf via a POST form.
  *
- * Overleaf accepts a base64-encoded LaTeX snippet via its /docs endpoint:
- *   https://www.overleaf.com/docs?snip_uri=data:application/x-tex;base64,<base64>
+ * Why POST and not `?snip_uri=data:...base64,...`:
+ *   - Overleaf's `snip_uri` parameter packs the entire document into the URL.
+ *     For non-trivial MoUs the encoded URL exceeds Overleaf's nginx URI
+ *     limit (~8 KB on the way in) and returns "414 Request-URI Too Large".
+ *   - `POST https://www.overleaf.com/docs` with a `snip` form field has no
+ *     such limit — it's how Overleaf's own "Open in Overleaf" buttons handle
+ *     anything larger than a code snippet.
  *
- * For large documents (>8KB of base64), Overleaf's snip_uri may hit URL
- * length limits in some browsers. The fallback is to download the .tex
- * and upload manually. We encode anyway — a typical MoU is ~6KB raw,
- * ~8KB base64, which is within limits for all modern browsers.
+ * Implementation: build a hidden form, append it to <body>, submit it with
+ * target=_blank, then remove it. Browsers treat this as a user-initiated
+ * navigation in the new tab.
  */
-export function buildOverleafUrl(latex: string): string {
-  // btoa() works on Latin-1. LaTeX is ASCII, so this is safe.
-  // If someone puts UTF-8 in party names, we need the TextEncoder path.
-  let base64: string;
-  try {
-    base64 = btoa(latex);
-  } catch {
-    // Fallback for non-Latin-1 characters
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(latex);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    base64 = btoa(binary);
-  }
+export function openInOverleaf(latex: string): void {
+  const form = document.createElement("form");
+  form.action = "https://www.overleaf.com/docs";
+  form.method = "POST";
+  form.target = "_blank";
+  form.rel = "noopener noreferrer";
+  form.style.display = "none";
 
-  const dataUri = `data:application/x-tex;base64,${base64}`;
-  return `https://www.overleaf.com/docs?snip_uri=${encodeURIComponent(dataUri)}`;
+  const snip = document.createElement("input");
+  snip.type = "hidden";
+  snip.name = "snip";
+  snip.value = latex;
+  form.appendChild(snip);
+
+  // Hint Overleaf about the engine and name so the new project lands sane.
+  const engine = document.createElement("input");
+  engine.type = "hidden";
+  engine.name = "engine";
+  engine.value = "pdflatex";
+  form.appendChild(engine);
+
+  const name = document.createElement("input");
+  name.type = "hidden";
+  name.name = "snip_name";
+  name.value = "MoU Draft";
+  form.appendChild(name);
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
 }
 
 /**

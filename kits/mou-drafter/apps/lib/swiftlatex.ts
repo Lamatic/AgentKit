@@ -67,20 +67,41 @@ export interface CompileResult {
   status: number;
 }
 
+// The SwiftLaTeX worker handles ONE compile at a time. Calling
+// engine.compileLaTeX() while another compile is in flight throws
+// "Engine is still spinning or not ready yet!" from checkEngineStatus,
+// because the worker status is Busy, not Ready.
+//
+// React StrictMode in dev runs the LatexPreview useEffect twice in quick
+// succession, so two compiles can race. We serialize through a single
+// promise chain so the second call simply waits for the first.
+let compileChain: Promise<unknown> = Promise.resolve();
+
 export async function compileLatex(latex: string): Promise<CompileResult> {
-  const engine = await getEngine();
-  engine.writeMemFSFile("main.tex", latex);
-  engine.setEngineMainFile("main.tex");
-  const res = await engine.compileLaTeX();
-  if (!res || !res.pdf || res.status !== 0) {
-    const err = new Error(
-      `LaTeX compile failed (status ${res?.status ?? "?"}). See log for details.`
-    ) as Error & { log?: string; status?: number };
-    err.log = res?.log ?? "";
-    err.status = res?.status ?? -1;
-    throw err;
+  const wait = compileChain.catch(() => {});
+  let release!: () => void;
+  compileChain = new Promise<void>((r) => {
+    release = r;
+  });
+
+  try {
+    await wait;
+    const engine = await getEngine();
+    engine.writeMemFSFile("main.tex", latex);
+    engine.setEngineMainFile("main.tex");
+    const res = await engine.compileLaTeX();
+    if (!res || !res.pdf || res.status !== 0) {
+      const err = new Error(
+        `LaTeX compile failed (status ${res?.status ?? "?"}). See log for details.`
+      ) as Error & { log?: string; status?: number };
+      err.log = res?.log ?? "";
+      err.status = res?.status ?? -1;
+      throw err;
+    }
+    return { pdf: res.pdf, log: res.log ?? "", status: res.status };
+  } finally {
+    release();
   }
-  return { pdf: res.pdf, log: res.log ?? "", status: res.status };
 }
 
 export function pdfBlobUrl(pdf: Uint8Array): string {
