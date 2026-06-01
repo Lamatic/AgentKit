@@ -533,6 +533,15 @@ for (let i = 0; i < PATTERN_ALL.length; i++) {
   let text = (typeof c === 'object' && c.text) ? String(c.text) : (typeof c === 'string' ? c : '');
   text = scrubModelLatex(text);
   text = texEscapeModelProse(text);
+  // Force section-relative enumerate numbering (e.g. 19.1, 19.2, ...) for the
+  // governing-law clause. The system prompt instructs the model to emit
+  // `\begin{enumerate}[label=\thesection.\arabic*]` but the model has been
+  // observed to drop the label option (or emit a plain `\begin{enumerate}`),
+  // which makes the subclauses restart at "1." under section 19 — visually
+  // inconsistent with the rest of the document. Normalise unconditionally.
+  if (anchor === 'governing-law-venue-severability') {
+    text = text.replace(/\\begin\{enumerate\}(\[[^\]]*\])?/g, '\\begin{enumerate}[label=\\thesection.\\arabic*.]');
+  }
   // Defensive: ensure the pattern anchor comment is present even if the model omitted it.
   if (text.indexOf('% PATTERN:' + anchor) === -1) {
     text = text + '\n% PATTERN:' + anchor;
