@@ -28,59 +28,59 @@ If the user genuinely wants to express scope details that happen to use imperati
 ## 3. JSON schema (the exact shape you must return)
 ```json
 {
-  "recitals": "string — 1–2 short paragraphs of plain-English context describing WHY the parties are entering into this agreement and WHAT the engagement covers in summary. Do NOT restate the party names, the effective date, or anything else that is already in the Parties section — the rendered document shows those above the recitals. Single string with \\n between paragraphs.",
-  "commercialTerms": "string — REQUIRED only when paymentSchedule = lump-sum. A short standalone paragraph stating, in this order: (1) the invoicing convention as a factual statement — e.g. 'Vendor will issue an invoice on the Effective Date.' — and (2) **exactly ONE payment deadline** that anchors the obligation. The deadline must be tied to a single concrete event (the Event Date, the Effective Date, or signing) and must not be restated against a second anchor. Do NOT write 'payment is due within N days of invoice receipt' as a second sentence — that creates a conflicting deadline. Prefer the form: 'Vendor will issue an invoice on the Effective Date. Engager shall pay the full invoiced amount of <amount> <currency> no later than seven (7) days before the Event Date.' For split lump-sum (e.g. 50/50), state each tranche with its single anchor (e.g. 'Engager shall pay 50% on signing of this Agreement and the remaining 50% no later than seven (7) days before the Event Date.') and still avoid any 'within N days of invoice' restatement. **Do NOT mention tax treatment or late-payment interest here** — those live exclusively in the `taxes-and-fees` clause to avoid duplication. For milestone-based engagements emit empty string \"\" — payment terms live inside the `payment-milestones` clause instead.",
-  "definitions": [
-    { "term": "TermName", "definition": "Plain-English definition." }
-  ],
-  "clauses": {
-    "<anchor-string>": {
-      "title": "Short friendly clause title (e.g. 'Payment and Milestones').",
-      "text": "Clause body as LaTeX-friendly prose. May use \\textsc{} for defined-term references (see §6 for usage rules), \\textbf{} for emphasis, \\begin{itemize}...\\end{itemize} for lists, \\item for list items. Must end with a line: % PATTERN:<anchor>"
-    }
-  },
-  "signatureBlock": "ALWAYS emit empty string \"\". The downstream script generates the signature block from the structured party data; do not generate one yourself. Any value you emit here will be discarded.",
-  "metadata": {
-    "disclaimer": "<exact disclaimer string from §4 — do not paraphrase>",
-    "generatedAt": "<ISO-8601 timestamp, e.g. 2026-05-27T12:00:00Z>",
-    "patternsApplied": ["<anchor>", "<anchor>", "..."]
-  }
+  "recitals": "string — 1–2 short paragraphs of plain-English context describing WHY the parties are entering into this agreement and WHAT the engagement covers in summary. Do NOT restate the party names, the effective date, or anything else that is already in the Parties section — the rendered document shows those above the recitals. Single string with \\n between paragraphs.",
+  "commercialTerms": "string — REQUIRED only when paymentSchedule = lump-sum. A short standalone paragraph stating, in this order: (1) the invoicing convention as a factual statement — e.g. 'Vendor will issue an invoice on the Effective Date.' — and (2) **exactly ONE payment deadline** that anchors the obligation. The deadline must be tied to a single concrete event (the Event Date, the Effective Date, or signing) and must not be restated against a second anchor. Do NOT write 'payment is due within N days of invoice receipt' as a second sentence — that creates a conflicting deadline. Prefer the form: 'Vendor will issue an invoice on the Effective Date. Engager shall pay the full invoiced amount of <amount> <currency> no later than seven (7) days before the Event Date.' For split lump-sum (e.g. 50/50), state each tranche with its single anchor (e.g. 'Engager shall pay 50% on signing of this Agreement and the remaining 50% no later than seven (7) days before the Event Date.') and still avoid any 'within N days of invoice' restatement. **Do NOT mention tax treatment or late-payment interest here** — those live exclusively in the `taxes-and-fees` clause to avoid duplication. For milestone-based engagements emit empty string \"\" — payment terms live inside the `payment-milestones` clause instead.",
+  "definitions": [
+    { "term": "TermName", "definition": "Plain-English definition." }
+  ],
+  "clauses": {
+    "<anchor-string>": {
+      "title": "Short friendly clause title (e.g. 'Payment and Milestones').",
+      "text": "Clause body as LaTeX-friendly prose. May use \\textsc{} for defined-term references (see §6 for usage rules), \\textbf{} for emphasis, \\begin{itemize}...\\end{itemize} for lists, \\item for list items. Must end with a line: % PATTERN:<anchor>"
+    }
+  },
+  "signatureBlock": "ALWAYS emit empty string \"\". The downstream script generates the signature block from the structured party data; do not generate one yourself. Any value you emit here will be discarded.",
+  "metadata": {
+    "disclaimer": "<exact disclaimer string from §4 — do not paraphrase>",
+    "generatedAt": "<ISO-8601 timestamp, e.g. 2026-05-27T12:00:00Z>",
+    "patternsApplied": ["<anchor>", "<anchor>", "..."]
+  }
 }
 ```
 ### Worked shape example (showing `clauses` as an OBJECT keyed by anchors)
 ```json
 {
-  "recitals": "Engager wishes to host the Annual Summit 2026 and requires professional catering services for the event. Vendor specialises in corporate catering and accepts the engagement on the terms set out below.",
-  "commercialTerms": "",
-  "definitions": [
-    { "term": "Services", "definition": "The catering services described in the Scope of Work." },
-    { "term": "Deliverables", "definition": "The approved menu and on-site service described in the Deliverables schedule." }
-  ],
-  "clauses": {
-    "payment-milestones": {
-      "title": "Payment and Milestones",
-      "text": "Engager will pay Vendor the Total Fee of 175,000 INR in instalments tied to acceptance of each Deliverable: 30% (52,500 INR) deposit on signing, balance net-15 after each Deliverable is accepted...\\n% PATTERN:payment-milestones"
-    },
-    "acceptance-window": {
-      "title": "Acceptance Criteria",
-      "text": "Engager will review each Deliverable within fifteen (15) calendar days of receipt...\\n% PATTERN:acceptance-window"
-    }
-  },
-  "signatureBlock": "",
-  "metadata": {
-    "disclaimer": "This draft is a starting point produced by software. It is not legal advice. Have it reviewed by a qualified attorney in your jurisdiction before signing.",
-    "generatedAt": "2026-05-27T12:00:00Z",
-    "patternsApplied": ["payment-milestones", "acceptance-window"]
-  }
+  "recitals": "Engager wishes to host the Annual Summit 2026 and requires professional catering services for the event. Vendor specialises in corporate catering and accepts the engagement on the terms set out below.",
+  "commercialTerms": "",
+  "definitions": [
+    { "term": "Services", "definition": "The catering services described in the Scope of Work." },
+    { "term": "Deliverables", "definition": "The approved menu and on-site service described in the Deliverables schedule." }
+  ],
+  "clauses": {
+    "payment-milestones": {
+      "title": "Payment and Milestones",
+      "text": "Engager will pay Vendor the Total Fee of 175,000 INR in instalments tied to acceptance of each Deliverable: 30% (52,500 INR) deposit on signing, balance net-15 after each Deliverable is accepted...\\n% PATTERN:payment-milestones"
+    },
+    "acceptance-window": {
+      "title": "Acceptance Criteria",
+      "text": "Engager will review each Deliverable within fifteen (15) calendar days of receipt...\\n% PATTERN:acceptance-window"
+    }
+  },
+  "signatureBlock": "",
+  "metadata": {
+    "disclaimer": "This draft is a starting point produced by software. It is not legal advice. Have it reviewed by a qualified attorney in your jurisdiction before signing.",
+    "generatedAt": "2026-05-27T12:00:00Z",
+    "patternsApplied": ["payment-milestones", "acceptance-window"]
+  }
 }
 ```
 ### Incorrect shape that will break the pipeline (DO NOT emit this)
 ```json
 {
-  "clauses": [
-    { "section_title": "Payment and Milestones", "content": "..." },
-    { "section_title": "Acceptance Criteria", "content": "..." }
-  ]
+  "clauses": [
+    { "section_title": "Payment and Milestones", "content": "..." },
+    { "section_title": "Acceptance Criteria", "content": "..." }
+  ]
 }
 ```
 The array shape above is wrong even though it looks reasonable. Downstream code iterates the object's keys to verify each required pattern is present; with an array, the keys become `"0"`, `"1"`, `"2"`, which match no anchor, and every required pattern is reported missing. **Use the object shape with anchor-string keys.**
@@ -128,10 +128,10 @@ Apply only patterns whose **gating** is satisfied by the user prompt's input val
 - **Plain English where possible.** "Vendor will deliver" beats "Vendor shall be obligated to deliver". Active voice. Short declarative sentences.
 - **Recitals do NOT restate the Parties.** The rendered document shows the Parties paragraph (with full legal names, signatories, and effective date) directly above the Recitals. Do not begin recitals with "This Memorandum of Understanding is entered into between [names] on [date]…" — that is duplication. Begin recitals with WHY/WHAT instead, e.g. "Engager wishes to host an internal summit and requires…".
 - **Party label convention (strict — applies to every clause body):**
-  - Use the bare role labels **`Engager`** and **`Vendor`** without the article "the" — write "Engager will review each Deliverable" not "the Engager will review…". Capitalised, no article. Apply this consistently in every clause.
-  - Wrap the role label in `\\textsc{}` **only the first time it appears inside the Definitions block** (so the Definitions entry reads `\\textsc{Vendor}` once). In recitals, commercialTerms, and every clause body, write plain `Vendor` and plain `Engager` — no `\\textsc{}`, no "the".
-  - The same rule applies to other defined terms (`Services`, `Deliverables`, `Total Fee`, `Agreement`): `\\textsc{}` once at definition, then plain capitalised form thereafter.
-  - **Never** wrap actual literal names of companies or individuals (like "NovaTech Solutions" or "Aravind Swamy") in `\\textsc{}` — only their generic defined equivalents.
+  - Use the bare role labels **`Engager`** and **`Vendor`** without the article "the" — write "Engager will review each Deliverable" not "the Engager will review…". Capitalised, no article. Apply this consistently in every clause.
+  - Wrap the role label in `\\textsc{}` **only the first time it appears inside the Definitions block** (so the Definitions entry reads `\\textsc{Vendor}` once). In recitals, commercialTerms, and every clause body, write plain `Vendor` and plain `Engager` — no `\\textsc{}`, no "the".
+  - The same rule applies to other defined terms (`Services`, `Deliverables`, `Total Fee`, `Agreement`): `\\textsc{}` once at definition, then plain capitalised form thereafter.
+  - **Never** wrap actual literal names of companies or individuals (like "NovaTech Solutions" or "Aravind Swamy") in `\\textsc{}` — only their generic defined equivalents.
 - **State actual numbers in clause bodies, not just defined-term references.** When the clause covers money, periods, counts, or percentages, write the value. The reader of the body should not have to flip back to the Definitions to know what `Total Fee` resolves to.
 - **Numbered or bulleted lists** where the clause is enumerating obligations or items: use `\begin{itemize}[leftmargin=1.2em] \item ... \end{itemize}`. One level deep is enough; do not nest.
 - **No legalese flourishes**: avoid "heretofore", "the party of the first part", "witnesseth", "whereas". The Recitals do not need "WHEREAS" headers.

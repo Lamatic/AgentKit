@@ -5,13 +5,13 @@ export default {
     {
       "type": "generator/text",
       "params": {
-        "temperature": 0.3
+        "temperature": 0.4
       },
       "configName": "configA",
-      "model_name": "gemini-3-flash-preview",
-      "credentialId": "ca9ba6f5-37a6-41be-b701-367abd293efc",
-      "provider_name": "gemini",
-      "credential_name": "MyGeminiSecure"
+      "model_name": "deepseek-v4-pro",
+      "credentialId": "00bccb62-5b79-4265-b269-e8f0f2f88c5d",
+      "provider_name": "deepseek",
+      "credential_name": "DeepSeek Custom"
     }
   ]
 };
