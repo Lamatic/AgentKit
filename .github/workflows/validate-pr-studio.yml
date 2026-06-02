@@ -1,0 +1,329 @@
+name: Validate PR — Studio runtime check (Phase 2, testing)
+
+# Phase 2 — Lamatic Studio runtime validation.
+# Triggers:
+#   1. Automatically after Phase 1 (validate-pr.yml) passes on a PR
+#   2. When a maintainer comments /validate on any open PR
+#
+# Sends the full kit payload including raw .ts flow file contents
+# to the Studio validation endpoint.
+#
+# Current test setup:
+#   Endpoint: https://webhook.site/7fb70d29-b1d2-4610-bfac-8118bb73852b
+
+on:
+  workflow_run:
+    workflows: ['Validate PR Contribution']
+    types: [completed]
+  issue_comment:
+    types: [created]
+
+jobs:
+  studio-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '/validate'))
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Get PR details (for comment trigger)
+        id: pr_info
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          PR_DATA=$(gh api "repos/$REPO/pulls/$PR_NUMBER")
+          HEAD_SHA=$(echo "$PR_DATA" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).head.sha));")
+          BASE_REF=$(echo "$PR_DATA" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).base.ref));")
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Post acknowledgement comment (for comment trigger)
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --method POST \
+            -f body=":satellite: Running Studio validation — results will appear here shortly." || true
+
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Detect changed kits
+        id: detect
+        env:
+          BASE_REF: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.base_ref || github.event.workflow_run.pull_requests[0].base.ref || 'main' }}
+        run: |
+          git fetch origin "$BASE_REF"
+          MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD)
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRD "$MERGE_BASE"...HEAD || true)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Extract unique kit paths — flat structure kits/<name>/
+          KITS=()
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if [[ "$file" == kits/* ]]; then
+              path=$(echo "$file" | cut -d/ -f1-2)
+              KITS+=("$path")
+            fi
+          done <<< "$CHANGED_FILES"
+
+          UNIQUE_KITS=($(printf '%s\n' "${KITS[@]}" | sort -u))
+
+          if [ ${#UNIQUE_KITS[@]} -eq 0 ]; then
+            echo "No kit changes detected."
+            echo "kits=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Detected kits: ${UNIQUE_KITS[*]}"
+            echo "kits=${UNIQUE_KITS[*]}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build payload and POST to endpoint
+        id: studio
+        env:
+          LAMATIC_VALIDATION_ENDPOINT: 'https://studio.lamatic.ai/api/agentkit/validate-pr'
+          HEAD_SHA: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
+        run: |
+          KITS="${{ steps.detect.outputs.kits }}"
+          if [ -z "$KITS" ]; then
+            echo "No kits detected — skipping Studio check."
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          VALIDATION_FAILED=false
+          ALL_ERRORS=""
+
+          for KIT_PATH in $KITS; do
+            echo "--- Processing $KIT_PATH ---"
+
+            # Determine type from lamatic.config.ts
+            if [ -f "$KIT_PATH/lamatic.config.ts" ]; then
+              if grep -q '"kit"' "$KIT_PATH/lamatic.config.ts"; then
+                TYPE="kit"
+              elif grep -q '"bundle"' "$KIT_PATH/lamatic.config.ts"; then
+                TYPE="bundle"
+              else
+                TYPE="template"
+              fi
+            else
+              TYPE="unknown"
+            fi
+
+            SLUG=$(basename "$KIT_PATH")
+            export KIT_PATH SLUG TYPE
+
+            # Build payload using Node
+            node -e "
+              const fs = require('fs');
+              const path = require('path');
+              const kitPath = process.env.KIT_PATH;
+
+              const readSafe = (p) => {
+                try { return fs.readFileSync(p, 'utf8'); } catch { return null; }
+              };
+
+              // Read lamatic.config.ts as raw string
+              const lamaticConfig = readSafe(path.join(kitPath, 'lamatic.config.ts'));
+
+              // Read agent.md
+              const agentMd = readSafe(path.join(kitPath, 'agent.md'));
+
+              // Read README.md
+              const readme = readSafe(path.join(kitPath, 'README.md'));
+
+              // Read constitutions/default.md
+              const constitution = readSafe(path.join(kitPath, 'constitutions', 'default.md'));
+
+              // Bundle all .ts flow files as raw strings
+              const flows = [];
+              const flowsDir = path.join(kitPath, 'flows');
+              if (fs.existsSync(flowsDir)) {
+                const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+                for (const flowFile of flowFiles) {
+                  const flowName = flowFile.replace('.ts', '');
+                  const flowContent = readSafe(path.join(flowsDir, flowFile));
+                  flows.push({
+                    name: flowName,
+                    flow_ts: flowContent
+                  });
+                }
+              }
+
+              // Read optional reference directories
+              const readDir = (dirName) => {
+                const dir = path.join(kitPath, dirName);
+                if (!fs.existsSync(dir)) return null;
+                const files = {};
+                const walk = (d, prefix) => {
+                  fs.readdirSync(d).forEach(f => {
+                    const full = path.join(d, f);
+                    const key = prefix ? prefix + '/' + f : f;
+                    if (fs.statSync(full).isDirectory()) {
+                      walk(full, key);
+                    } else {
+                      files[key] = readSafe(full);
+                    }
+                  });
+                };
+                walk(dir, '');
+                return Object.keys(files).length > 0 ? files : null;
+              };
+
+              const payload = {
+                slug: process.env.SLUG,
+                type: process.env.TYPE,
+                kitPath,
+                lamaticConfig,
+                agentMd,
+                readme,
+                constitution,
+                flows,
+                references: {
+                  prompts: readDir('prompts'),
+                  scripts: readDir('scripts'),
+                  modelConfigs: readDir('model-configs'),
+                  triggers: readDir('triggers'),
+                  memory: readDir('memory'),
+                  tools: readDir('tools')
+                },
+                meta: {
+                  repository: process.env.GITHUB_REPOSITORY,
+                  sha: process.env.HEAD_SHA,
+                  submitted_at: new Date().toISOString()
+                }
+              };
+
+              fs.writeFileSync('/tmp/payload.json', JSON.stringify(payload, null, 2));
+              console.log('Payload written — flows found: ' + flows.length);
+            "
+
+            echo "Payload preview (first 500 chars):"
+            head -c 500 /tmp/payload.json
+
+            # POST to endpoint
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST "$LAMATIC_VALIDATION_ENDPOINT" \
+              -H "Content-Type: application/json" \
+              -H "X-AgentKit-Kit: $SLUG" \
+              -H "X-AgentKit-Type: $TYPE" \
+              --data @/tmp/payload.json \
+              --max-time 30)
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | head -n -1)
+
+            echo "Response HTTP $HTTP_CODE"
+            echo "Response body: $BODY"
+
+            echo "$BODY" > /tmp/response_$SLUG.json
+
+            # Parse status from response
+            STATUS=$(echo "$BODY" | node -e "
+              let d=''; process.stdin.on('data',c=>d+=c);
+              process.stdin.on('end',()=>{
+                try { const r=JSON.parse(d); console.log(r.status||'unknown'); }
+                catch { console.log('parse-error'); }
+              });
+            ")
+
+            echo "Validation status for $SLUG: $STATUS"
+
+            if [ "$STATUS" != "valid" ]; then
+              VALIDATION_FAILED=true
+              ERRORS=$(echo "$BODY" | node -e "
+                let d=''; process.stdin.on('data',c=>d+=c);
+                process.stdin.on('end',()=>{
+                  try {
+                    const r=JSON.parse(d);
+                    const errors=r.errors||[];
+                    if(errors.length===0){ console.log('- No specific errors returned.'); }
+                    else { errors.forEach(e=>{ const flow=e.flow?'Flow: '+e.flow:''; const node=e.node?' | Node: '+e.node:''; console.log('- '+flow+node+' — '+e.message); }); }
+                  } catch { console.log('- Could not parse error details.'); }
+                });
+              ")
+              ALL_ERRORS="$ALL_ERRORS\n### $SLUG\n$ERRORS"
+            fi
+          done
+
+          echo "validation_failed=$VALIDATION_FAILED" >> "$GITHUB_OUTPUT"
+          printf "%b" "$ALL_ERRORS" > /tmp/all_errors.txt
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
+          if [ "$VALIDATION_FAILED" = "true" ]; then
+            echo "::error::Studio validation failed — see PR comment for details."
+            exit 1
+          fi
+
+      - name: Post Studio verdict as PR comment
+        if: always() && steps.studio.outputs.skipped != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.pr_number || github.event.workflow_run.pull_requests[0].number }}
+          REPO: ${{ github.repository }}
+          VALIDATION_FAILED: ${{ steps.studio.outputs.validation_failed }}
+        run: |
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "0" ]; then
+            echo "No PR number found — skipping comment."
+            exit 0
+          fi
+
+          if [ "$VALIDATION_FAILED" = "true" ]; then
+            ERRORS_CONTENT=$(cat /tmp/all_errors.txt 2>/dev/null || echo "- No error details available.")
+            printf '%s\n' \
+              "## Studio Runtime Validation (Phase 2)" \
+              "" \
+              ":x: **Studio validation failed.** The kit was rejected by Lamatic Studio." \
+              "" \
+              "### Errors" \
+              "$ERRORS_CONTENT" \
+              "" \
+              "Please fix the errors above and push a new commit to re-run validation." \
+              "Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) for guidance." \
+              > /tmp/studio_comment.md
+          else
+            printf '%s\n' \
+              "## Studio Runtime Validation (Phase 2)" \
+              "" \
+              ":white_check_mark: **Studio validation passed.** The kit loaded successfully in Lamatic Studio." \
+              "" \
+              "This PR is ready for final review and merge." \
+              > /tmp/studio_comment.md
+          fi
+
+          COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --jq '.[] | select(.user.type == "Bot" and (.body | contains("Studio Runtime Validation"))) | .id' \
+            | head -1)
+
+          if [ -n "$COMMENT_ID" ]; then
+            gh api "repos/$REPO/issues/comments/$COMMENT_ID" \
+              --method PATCH \
+              -f body="$(cat /tmp/studio_comment.md)" || true
+          else
+            gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+              --method POST \
+              -f body="$(cat /tmp/studio_comment.md)" || true
+          fi
