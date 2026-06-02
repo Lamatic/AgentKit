@@ -129,42 +129,6 @@ export const nodes = [
         "references": ""
       }
     }
-  },
-  {
-    "id": "sticky-note-724",
-    "type": "stickyNoteNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "stickyNoteNode",
-      "values": {
-        "text": "",
-        "color": "blue",
-        "nodeId": "stickyNoteNode",
-        "nodeName": "Sticky Note",
-        "nodeType": "stickyNoteNode"
-      }
-    }
-  },
-  {
-    "id": "sticky-note-391",
-    "type": "stickyNoteNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "stickyNoteNode",
-      "values": {
-        "text": "",
-        "color": "blue",
-        "nodeId": "stickyNoteNode",
-        "nodeName": "Sticky Note",
-        "nodeType": "stickyNoteNode"
-      }
-    }
   }
 ];
 
