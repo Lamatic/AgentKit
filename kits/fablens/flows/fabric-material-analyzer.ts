@@ -90,7 +90,7 @@ export const nodes = [
         ],
         "includeTags": [],
         "onlyMainContent": true,
-        "skipTLsVerification": true
+        "skipTLsVerification": false
       }
     }
   },

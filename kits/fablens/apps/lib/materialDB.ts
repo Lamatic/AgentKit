@@ -83,11 +83,11 @@ export const materialDB: Record<string, MaterialData> = {
   },
 
   rayon: {
-  biodegradable: true,
-  waterUsage: 'medium',
-  chemicalUse: 'high',
-  breathability: 'medium',
-  irritationRisk: 'medium',
-}
+    biodegradable: true,
+    waterUsage: 'medium',
+    chemicalUse: 'high',
+    breathability: 'medium',
+    irritationRisk: 'medium',
+  }
 
 };
