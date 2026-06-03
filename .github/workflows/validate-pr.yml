@@ -1,8 +1,31 @@
 name: Validate PR Contribution
 
+# Phase 1 — structural validation.
+# Runs on every PR that touches kits/. Posts a single auto-updating comment
+# with errors/warnings/info, and manages the following labels:
+#   - passing-checks         → zero errors found
+#   - requested-improvements → warnings present but no hard errors
+#   - failing-checks         → one or more hard errors found
+#   - agentkit-challenge     → applied to every PR that touches kits/
+#
+# Structure validated against CONTRIBUTING.md and CLAUDE.md:
+#
+#   kits/<name>/                        ← FLAT — no category subdirectory
+#     lamatic.config.ts                 ← REQUIRED (all types)
+#     agent.md                          ← REQUIRED (all types)
+#     README.md                         ← REQUIRED (all types)
+#     constitutions/default.md          ← REQUIRED (all types)
+#     flows/<flow-name>.ts              ← REQUIRED — one .ts file per flow
+#     .env.example                      ← REQUIRED (bundles + kits)
+#     apps/package.json                 ← REQUIRED (kits only)
+#     apps/.env.example                 ← REQUIRED (kits only)
+
 on:
   pull_request_target:
-    types: [opened, edited, synchronize]
+    types: [opened, edited, synchronize, reopened]
+    paths:
+      - 'kits/**'
+      - '.github/workflows/validate-pr.yml'
 
 jobs:
   validate:
@@ -13,8 +36,9 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+
     steps:
-      - name: Checkout
+      - name: Checkout PR head
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -32,19 +56,18 @@ jobs:
 
           ERRORS=()
           WARNINGS=()
-          NEW_PROJECTS=()
+          NEW_KITS=()
           EXISTING_MODIFIED=()
 
-          # --- A. Compute diff and classify changed files ---
+          # --- A. Compute diff ---
 
           MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD)
           CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRD "$MERGE_BASE"...HEAD || true)
 
           if [ -z "$CHANGED_FILES" ]; then
-            echo "No changed files detected."
             SUMMARY_FILE="/tmp/pr_validation_summary.md"
             {
-              echo "## PR Validation Results"
+              echo "## :robot_face: AgentKit Structural Validation"
               echo ""
               echo "No contribution files detected in this PR."
             } > "$SUMMARY_FILE"
@@ -52,207 +75,192 @@ jobs:
             exit 0
           fi
 
-          # Known exceptions to skip
-          SKIP_PATHS=("templates/indexation" "kits/agentic/stock-analysis")
+          # --- B. Extract unique kit paths (flat — kits/<name>/) ---
 
-          should_skip() {
-            local path="$1"
-            for skip in "${SKIP_PATHS[@]}"; do
-              if [ "$path" = "$skip" ]; then
-                return 0
-              fi
-            done
-            return 1
-          }
-
-          # Extract project path from a file path
-          get_project_path() {
-            local file="$1"
-            if [[ "$file" == kits/* ]]; then
-              # kits/<category>/<kit-name>/... → 3 levels
-              echo "$file" | cut -d/ -f1-3
-            elif [[ "$file" == bundles/* ]]; then
-              # bundles/<bundle-name>/... → 2 levels
-              # Handle nested bundles like bundles/sample/chatbot
-              local second
-              second=$(echo "$file" | cut -d/ -f2)
-              if [ "$second" = "sample" ]; then
-                echo "$file" | cut -d/ -f1-3
-              else
-                echo "$file" | cut -d/ -f1-2
-              fi
-            elif [[ "$file" == templates/* ]]; then
-              # templates/<template-name>/... → 2 levels
-              echo "$file" | cut -d/ -f1-2
-            else
-              echo ""
-            fi
-          }
-
-          # Get contribution type from project path
-          get_type() {
-            local path="$1"
-            if [[ "$path" == kits/* ]]; then
-              echo "kit"
-            elif [[ "$path" == bundles/* ]]; then
-              echo "bundle"
-            elif [[ "$path" == templates/* ]]; then
-              echo "template"
-            fi
-          }
-
-          # Collect unique project paths
-          declare -A PROJECT_MAP
+          declare -A KIT_MAP
           OTHER_FILES=()
 
           while IFS= read -r file; do
             [ -z "$file" ] && continue
-            project_path=$(get_project_path "$file")
-            if [ -z "$project_path" ]; then
-              OTHER_FILES+=("$file")
+            if [[ "$file" == kits/* ]]; then
+              # Flat structure: kits/<name>/... → 2 levels
+              kit_path=$(echo "$file" | cut -d/ -f1-2)
+              KIT_MAP["$kit_path"]=1
             else
-              PROJECT_MAP["$project_path"]=1
+              OTHER_FILES+=("$file")
             fi
           done <<< "$CHANGED_FILES"
 
-          # --- B. Check 1: No edits to existing projects ---
+          # --- C. Check 1: No edits to existing kits ---
 
           CHECK1_PASS=true
 
-          for project_path in "${!PROJECT_MAP[@]}"; do
-            if should_skip "$project_path"; then
-              continue
-            fi
-
-            # Check if the project existed at the merge base
-            if git ls-tree --name-only "$MERGE_BASE" -- "$project_path" 2>/dev/null | grep -q .; then
-              EXISTING_MODIFIED+=("$project_path")
-              ERRORS+=("Existing project modified: $project_path — feat: PRs should only add new contributions")
+          for kit_path in "${!KIT_MAP[@]}"; do
+            if git ls-tree --name-only "$MERGE_BASE" -- "$kit_path" 2>/dev/null | grep -q .; then
+              EXISTING_MODIFIED+=("$kit_path")
+              ERRORS+=("Existing kit modified: $kit_path — feat: PRs should only add new contributions")
               CHECK1_PASS=false
             else
-              NEW_PROJECTS+=("$project_path")
+              NEW_KITS+=("$kit_path")
             fi
           done
 
-          # --- C. Check 2: Root file presence ---
+          # --- D. Check 2: Required root files ---
 
           CHECK2_PASS=true
 
-          for project_path in "${NEW_PROJECTS[@]}"; do
-            if should_skip "$project_path"; then
-              continue
+          for kit_path in "${NEW_KITS[@]}"; do
+            # Required for ALL types
+            for req in lamatic.config.ts agent.md README.md; do
+              if [ ! -f "$kit_path/$req" ]; then
+                ERRORS+=("Missing $req in $kit_path")
+                CHECK2_PASS=false
+              fi
+            done
+
+            # Required constitutions/default.md for ALL types
+            if [ ! -f "$kit_path/constitutions/default.md" ]; then
+              ERRORS+=("Missing constitutions/default.md in $kit_path")
+              CHECK2_PASS=false
             fi
 
-            ptype=$(get_type "$project_path")
-
-            case "$ptype" in
-              kit)
-                for req in config.json README.md; do
-                  if [ ! -f "$project_path/$req" ]; then
-                    ERRORS+=("Missing $req in $project_path")
-                    CHECK2_PASS=false
-                  fi
-                done
-                if [ ! -d "$project_path/flows" ]; then
-                  ERRORS+=("Missing flows/ directory in $project_path")
-                  CHECK2_PASS=false
-                fi
-                ;;
-              bundle)
-                for req in config.json README.md; do
-                  if [ ! -f "$project_path/$req" ]; then
-                    ERRORS+=("Missing $req in $project_path")
-                    CHECK2_PASS=false
-                  fi
-                done
-                if [ ! -d "$project_path/flows" ]; then
-                  ERRORS+=("Missing flows/ directory in $project_path")
-                  CHECK2_PASS=false
-                fi
-                ;;
-              template)
-                for req in config.json inputs.json meta.json README.md; do
-                  if [ ! -f "$project_path/$req" ]; then
-                    ERRORS+=("Missing $req in $project_path")
-                    CHECK2_PASS=false
-                  fi
-                done
-                ;;
-            esac
+            # flows/ directory must exist
+            if [ ! -d "$kit_path/flows" ]; then
+              ERRORS+=("Missing flows/ directory in $kit_path")
+              CHECK2_PASS=false
+            fi
           done
 
-          # --- D. Check 3: Flow folder validation ---
+          # --- E. Check 3: Flow files must be .ts files ---
 
           CHECK3_PASS=true
-          FLOW_REQUIRED=(config.json inputs.json meta.json README.md)
 
-          for project_path in "${NEW_PROJECTS[@]}"; do
-            if should_skip "$project_path"; then
+          for kit_path in "${NEW_KITS[@]}"; do
+            if [ ! -d "$kit_path/flows" ]; then
               continue
             fi
 
-            ptype=$(get_type "$project_path")
-
-            # Only kits and bundles require flows/ validation
-            if [ "$ptype" = "template" ]; then
-              continue
-            fi
-
-            if [ ! -d "$project_path/flows" ]; then
-              # Already caught in Check 2
-              continue
-            fi
-
-            # Check at least one flow exists
             flow_count=0
-            for flow_dir in "$project_path/flows"/*/; do
-              [ -d "$flow_dir" ] || continue
+            for flow_file in "$kit_path/flows"/*.ts; do
+              [ -f "$flow_file" ] || continue
               flow_count=$((flow_count + 1))
-
-              for req in "${FLOW_REQUIRED[@]}"; do
-                if [ ! -f "$flow_dir$req" ]; then
-                  ERRORS+=("Missing $req in $flow_dir")
-                  CHECK3_PASS=false
-                fi
-              done
             done
 
             if [ "$flow_count" -eq 0 ]; then
-              ERRORS+=("No flow subdirectories found in $project_path/flows/ — at least one flow is required")
+              ERRORS+=("No .ts flow files found in $kit_path/flows/ — each flow must be a .ts file exported from Lamatic Studio")
               CHECK3_PASS=false
+            fi
+
+            # Warn if old-style flow subdirectories exist (json-based structure)
+            for flow_dir in "$kit_path/flows"/*/; do
+              [ -d "$flow_dir" ] || continue
+              WARNINGS+=("Old-style flow subdirectory found: $flow_dir — flows should be .ts files, not folders. Re-export from Lamatic Studio.")
+            done
+          done
+
+          # --- F. Check 4: lamatic.config.ts must declare type ---
+
+          CHECK4_PASS=true
+
+          for kit_path in "${NEW_KITS[@]}"; do
+            config_file="$kit_path/lamatic.config.ts"
+            if [ ! -f "$config_file" ]; then
+              continue
+            fi
+
+            # Check type field is present
+            if ! grep -q '"kit"\|"bundle"\|"template"' "$config_file"; then
+              ERRORS+=("lamatic.config.ts in $kit_path is missing a valid type field (\"kit\", \"bundle\", or \"template\")")
+              CHECK4_PASS=false
+              continue
+            fi
+
+            # Determine type
+            if grep -q '"kit"' "$config_file"; then
+              KIT_TYPE="kit"
+            elif grep -q '"bundle"' "$config_file"; then
+              KIT_TYPE="bundle"
+            else
+              KIT_TYPE="template"
+            fi
+
+            # Kits require apps/package.json and apps/.env.example
+            if [ "$KIT_TYPE" = "kit" ]; then
+              if [ ! -f "$kit_path/apps/package.json" ]; then
+                ERRORS+=("Kit $kit_path is missing apps/package.json — kits must include a Next.js app")
+                CHECK4_PASS=false
+              fi
+              if [ ! -f "$kit_path/apps/.env.example" ]; then
+                ERRORS+=("Kit $kit_path is missing apps/.env.example")
+                CHECK4_PASS=false
+              fi
+            fi
+
+            # Bundles and kits require .env.example at root
+            if [ "$KIT_TYPE" = "kit" ] || [ "$KIT_TYPE" = "bundle" ]; then
+              if [ ! -f "$kit_path/.env.example" ]; then
+                WARNINGS+=("$kit_path is missing .env.example — bundles and kits should include one")
+              fi
+            fi
+
+            # Check links.github points to kits/<name>
+            kit_name=$(basename "$kit_path")
+            if ! grep -q "kits/$kit_name" "$config_file"; then
+              WARNINGS+=("lamatic.config.ts in $kit_path — links.github should point to kits/$kit_name")
             fi
           done
 
-          # --- E. Check 4: Warn on changes outside contribution dirs ---
+          # --- G. Check 5: Warn on changes outside kits/ ---
 
-          CHECK4_WARN=false
+          CHECK5_WARN=false
           if [ ${#OTHER_FILES[@]} -gt 0 ]; then
-            CHECK4_WARN=true
+            CHECK5_WARN=true
             for f in "${OTHER_FILES[@]}"; do
-              WARNINGS+=("File outside kits/bundles/templates modified: $f")
+              WARNINGS+=("File outside kits/ modified: $f")
             done
           fi
 
-          # --- F. Output results to job summary ---
+          # --- H. Check 6: No committed .env files ---
+
+          for kit_path in "${NEW_KITS[@]}"; do
+            for env_file in "$kit_path/.env" "$kit_path/.env.local" "$kit_path/apps/.env" "$kit_path/apps/.env.local"; do
+              if [ -f "$env_file" ]; then
+                ERRORS+=("Committed env file found: $env_file — never commit .env or .env.local, only .env.example")
+              fi
+            done
+          done
+
+          # --- I. Build summary ---
 
           SUMMARY_FILE="/tmp/pr_validation_summary.md"
           {
-            echo "## PR Validation Results"
+            echo "## :robot_face: AgentKit Structural Validation"
             echo ""
 
-            if [ ${#NEW_PROJECTS[@]} -gt 0 ]; then
+            if [ ${#NEW_KITS[@]} -gt 0 ]; then
               echo "### New Contributions Detected"
-              for p in "${NEW_PROJECTS[@]}"; do
-                ptype=$(get_type "$p")
-                echo "- **${ptype^}**: \`$p\`"
+              for k in "${NEW_KITS[@]}"; do
+                kit_name=$(basename "$k")
+                if [ -f "$k/lamatic.config.ts" ]; then
+                  if grep -q '"kit"' "$k/lamatic.config.ts"; then
+                    ktype="Kit"
+                  elif grep -q '"bundle"' "$k/lamatic.config.ts"; then
+                    ktype="Bundle"
+                  else
+                    ktype="Template"
+                  fi
+                else
+                  ktype="Unknown"
+                fi
+                echo "- **$ktype**: \`$k\`"
               done
               echo ""
             fi
 
             if [ ${#EXISTING_MODIFIED[@]} -gt 0 ]; then
-              echo "### Existing Projects Modified (not allowed in feat: PRs)"
-              for p in "${EXISTING_MODIFIED[@]}"; do
-                echo "- \`$p\`"
+              echo "### Existing Kits Modified (not allowed in feat: PRs)"
+              for k in "${EXISTING_MODIFIED[@]}"; do
+                echo "- \`$k\`"
               done
               echo ""
             fi
@@ -262,46 +270,28 @@ jobs:
             echo "| Check | Status |"
             echo "|-------|--------|"
 
-            if [ "$CHECK1_PASS" = true ]; then
-              echo "| No edits to existing projects | :white_check_mark: Pass |"
-            else
-              echo "| No edits to existing projects | :x: Fail |"
-            fi
-
-            if [ "$CHECK2_PASS" = true ]; then
-              echo "| Required root files present | :white_check_mark: Pass |"
-            else
-              echo "| Required root files present | :x: Fail |"
-            fi
-
-            if [ "$CHECK3_PASS" = true ]; then
-              echo "| Flow folder structure valid | :white_check_mark: Pass |"
-            else
-              echo "| Flow folder structure valid | :x: Fail |"
-            fi
-
-            if [ "$CHECK4_WARN" = true ]; then
-              echo "| No changes outside contribution dirs | :warning: Warning |"
-            else
-              echo "| No changes outside contribution dirs | :white_check_mark: Pass |"
-            fi
+            [ "$CHECK1_PASS" = true ] && echo "| No edits to existing kits | :white_check_mark: Pass |" || echo "| No edits to existing kits | :x: Fail |"
+            [ "$CHECK2_PASS" = true ] && echo "| Required root files present | :white_check_mark: Pass |" || echo "| Required root files present | :x: Fail |"
+            [ "$CHECK3_PASS" = true ] && echo "| Flow .ts files present | :white_check_mark: Pass |" || echo "| Flow .ts files present | :x: Fail |"
+            [ "$CHECK4_PASS" = true ] && echo "| lamatic.config.ts valid | :white_check_mark: Pass |" || echo "| lamatic.config.ts valid | :x: Fail |"
+            [ "$CHECK5_WARN" = false ] && echo "| No changes outside kits/ | :white_check_mark: Pass |" || echo "| No changes outside kits/ | :warning: Warning |"
 
             echo ""
 
             if [ ${#ERRORS[@]} -gt 0 ]; then
-              echo "### Errors"
+              echo "### :x: Errors"
               echo ""
               for err in "${ERRORS[@]}"; do
-                echo "- :x: $err"
+                echo "- $err"
               done
               echo ""
             fi
 
             if [ ${#WARNINGS[@]} -gt 0 ]; then
-              echo "### Warnings"
+              echo "### :warning: Warnings"
               echo ""
               for warn in "${WARNINGS[@]}"; do
-                echo "- :warning: $warn"
+                echo "- $warn"
               done
               echo ""
             fi
@@ -319,17 +309,13 @@ jobs:
 
           cat "$SUMMARY_FILE" >> "$GITHUB_STEP_SUMMARY"
 
-          # Print to logs as well
           if [ ${#ERRORS[@]} -gt 0 ]; then
-            echo ""
-            echo "=== VALIDATION FAILED ==="
             for err in "${ERRORS[@]}"; do
               echo "::error::$err"
             done
             exit 1
           fi
 
-          echo ""
           echo "=== ALL CHECKS PASSED ==="
 
       - name: Post validation results as PR comment
@@ -346,9 +332,8 @@ jobs:
             exit 0
           fi
 
-          # Find an existing bot comment that starts with the validation header
           COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
-            --jq '.[] | select(.user.type == "Bot" and (.body | startswith("## PR Validation Results"))) | .id' \
+            --jq '.[] | select(.user.type == "Bot" and (.body | startswith("## :robot_face: AgentKit Structural Validation"))) | .id' \
             | head -1)
 
           if [ -n "$COMMENT_ID" ]; then
@@ -361,32 +346,81 @@ jobs:
               -f body="$(cat "$SUMMARY_FILE")"
           fi
 
-      - name: Apply passing-checks label
+      - name: Ensure all required labels exist in repo
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          declare -A LABELS
+          LABELS["passing-checks"]="0e8a16:All structural validation checks passed"
+          LABELS["requested-improvements"]="e4a11b:Validation passed with warnings — improvements requested"
+          LABELS["failing-checks"]="d73a4a:One or more structural validation checks failed"
+          LABELS["agentkit-challenge"]="1d76db:Submitted as part of the AgentKit Challenge"
+          LABELS["challenge-failed"]="b60205:Challenge deadline exceeded with unresolved failures"
+
+          for LABEL in "${!LABELS[@]}"; do
+            IFS=':' read -r COLOR DESCRIPTION <<< "${LABELS[$LABEL]}"
+            if ! gh api "repos/$REPO/labels/$LABEL" --silent 2>/dev/null; then
+              gh api "repos/$REPO/labels" \
+                --method POST \
+                -f name="$LABEL" \
+                -f color="$COLOR" \
+                -f description="$DESCRIPTION" 2>/dev/null || true
+            fi
+          done
+
+      - name: Manage labels and reviewer
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           REPO="${{ github.repository }}"
-          LABEL="passing-checks"
+          OUTCOME="${{ steps.validate.outcome }}"
+          WARN_COUNT=$(grep -c "^- " /tmp/pr_validation_summary.md 2>/dev/null | head -1 || echo "0")
 
-          # Ensure the label exists in the repo
-          if ! gh api "repos/$REPO/labels/$LABEL" --silent 2>/dev/null; then
-            if gh api "repos/$REPO/labels" \
-              --method POST \
-              -f name="$LABEL" \
-              -f color="0e8a16" \
-              -f description="All validation checks passed" 2>/dev/null; then
-              echo "Created label '$LABEL'"
+          # Always apply agentkit-challenge
+          gh pr edit "$PR_NUMBER" --add-label "agentkit-challenge" --repo "$REPO" || true
+
+          if [ "$OUTCOME" = "success" ]; then
+            if grep -q ":warning: Warnings" /tmp/pr_validation_summary.md 2>/dev/null; then
+              gh pr edit "$PR_NUMBER" --add-label "requested-improvements" --repo "$REPO" || true
+              gh pr edit "$PR_NUMBER" --remove-label "passing-checks" --repo "$REPO" 2>/dev/null || true
+              gh pr edit "$PR_NUMBER" --remove-label "failing-checks" --repo "$REPO" 2>/dev/null || true
             else
-              echo "Warning: Could not create label '$LABEL' (insufficient permissions or network error)"
+              gh pr edit "$PR_NUMBER" --add-label "passing-checks" --repo "$REPO" || true
+              gh pr edit "$PR_NUMBER" --remove-label "failing-checks" --repo "$REPO" 2>/dev/null || true
+              gh pr edit "$PR_NUMBER" --remove-label "requested-improvements" --repo "$REPO" 2>/dev/null || true
+            fi
+          else
+            gh pr edit "$PR_NUMBER" --add-label "failing-checks" --repo "$REPO" || true
+            gh pr edit "$PR_NUMBER" --remove-label "passing-checks" --repo "$REPO" 2>/dev/null || true
+            gh pr edit "$PR_NUMBER" --remove-label "requested-improvements" --repo "$REPO" 2>/dev/null || true
+
+            # Assign reviewer
+            gh api "repos/$REPO/pulls/$PR_NUMBER/requested_reviewers" \
+              --method POST \
+              -f 'reviewers[]=amanintech' 2>/dev/null || true
+
+            # Record failure timestamp for expiry workflow
+            FAIL_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            EXISTING=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+              --jq '.[] | select(.body | contains("agentkit-challenge-failed-at")) | .id' \
+              | head -1)
+
+            if [ -z "$EXISTING" ]; then
+              printf "%s\n" "<!-- agentkit-challenge-failed-at: $FAIL_TIMESTAMP -->" "" "Failure recorded at $FAIL_TIMESTAMP UTC. If this PR is not fixed within 4 weeks it will be automatically closed." > /tmp/fail_comment.md
+              gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+                --method POST \
+                -f body="$(cat /tmp/fail_comment.md)" || true
             fi
           fi
 
-          if [ "${{ steps.validate.outcome }}" = "success" ]; then
-            gh pr edit "$PR_NUMBER" --add-label "$LABEL" --repo "$REPO"
-            echo "Added '$LABEL' label to PR #$PR_NUMBER"
-          else
-            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" --repo "$REPO" 2>/dev/null || true
-            echo "Removed '$LABEL' label from PR #$PR_NUMBER (validation failed)"
+      - name: Fail job if validation errored
+        if: always()
+        run: |
+          if [ "${{ steps.validate.outcome }}" != "success" ]; then
+            echo "::error::Structural validation reported errors. See the PR comment for the full list."
+            exit 1
           fi
