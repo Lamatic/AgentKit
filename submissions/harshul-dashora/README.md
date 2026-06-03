@@ -2,56 +2,65 @@
 
 ## Problem
 
-Preparing for interviews requires candidates to manually analyze job descriptions, identify skill gaps, prepare interview questions, and create study plans.
+Candidates often prepare for interviews using generic questions that do not match their resume or the requirements of a specific job description.
+
+This leads to inefficient preparation and missed opportunities to identify important skill gaps.
 
 ## Solution
 
-AI Interview Preparation Agent automates interview preparation by analyzing resumes and job descriptions and generating:
+AI Interview Preparation Agent analyzes a candidate's resume together with a job description and generates:
 
-* Job Description Analysis
-* Skill Gap Analysis
-* Technical Interview Questions
-* Behavioral Interview Questions
-* Project-Specific Questions
-* Personalized Study Plans
-
-## Links
-
-### Source Code
-
-https://github.com/harshuldashora/InterviewPrepAgent
-
-### Live Demo
-
-https://interviewprepagent-fzdjebk3zs3erwbfs6kcje.streamlit.app/
-
-### Video Walkthrough
-
-https://drive.google.com/drive/folders/1YLd4u_XkBqnM8fNEL1oRq1vPPDRlCTNg?usp=drive_link
+* Strength analysis
+* Skill gap analysis
+* Personalized interview questions
+* Ideal answer guidance
 
 ## Features
 
-* Resume PDF Parsing
-* Job Description Analysis
-* Skill Gap Detection
-* Interview Question Generation
-* Study Plan Generation
+### Resume Analysis
 
-## Tech Stack
+Extracts candidate strengths and relevant experience.
 
-* Python
-* Streamlit
-* Groq API
-* pdfplumber
+### Skill Gap Detection
 
+Compares resume content against job requirements.
 
-## Screenshots
+### Tailored Interview Questions
 
-### Home Screen
-![Home Screen](../../screenshots/home.png)
+Generates role-specific technical and behavioral questions.
 
-### Skill Gap Analysis
-![Skill Gap Analysis](../../screenshots/skill_gap.png)
+### Interview Preparation Guidance
 
-### Results
-![Results](../../screenshots/result.png)
+Provides ideal answer directions for each question.
+
+## Input
+
+```json
+{
+  "resumeText": "...",
+  "jobDescription": "..."
+}
+```
+
+## Output
+
+```json
+{
+  "strengths": [],
+  "gaps": [],
+  "questions": []
+}
+```
+
+## Technology
+
+* Lamatic AgentKit
+* Gemini / LLM models
+* Structured JSON output
+
+## Example Use Cases
+
+* AI Internship Preparation
+* Software Engineering Interviews
+* Resume Screening
+* Technical Assessment Preparation
