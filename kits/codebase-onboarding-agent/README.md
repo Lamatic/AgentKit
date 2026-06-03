@@ -10,14 +10,25 @@ This kit contains a Next.js application (located in the `apps` directory) which 
 
 ### Prerequisites
 
-You will need to configure environment variables for Lamatic integration. Create a `.env.local` or `.env` file in the `apps` directory:
+To run this kit, you must configure environment variables for Lamatic integration. Create a `.env.local` or `.env` file in the `apps` directory (you can copy `.env.example`):
 
 ```env
 LAMATIC_PROJECT_API_KEY=your_lamatic_api_key_here
-LAMATIC_API_URL=your_lamatic_endpoint_here
+LAMATIC_PROJECT_ENDPOINT=your_lamatic_endpoint_here
 LAMATIC_PROJECT_ID=your_project_id_here
 LAMATIC_FLOW_ID=your_flow_id_here
 ```
+
+## Environment Variables
+
+This kit requires the following environment variables to authenticate and communicate with your deployed Lamatic flow:
+
+| Variable | Description | Where to Find It |
+|----------|-------------|------------------|
+| `LAMATIC_PROJECT_API_KEY` | Your Lamatic API Key | Lamatic Studio: **Settings → API Keys** |
+| `LAMATIC_PROJECT_ENDPOINT` | Your Lamatic GraphQL endpoint | Lamatic Studio: **Settings → API Docs Button → API → Endpoint** |
+| `LAMATIC_PROJECT_ID` | Your unique Lamatic project ID | Lamatic Studio: **Settings → Project → Project ID** |
+| `LAMATIC_FLOW_ID` | The ID of the deployed repo-analyzer flow | Lamatic Studio: **Flow → Details Panel → Flow ID** |
 
 ### Running the Application
 
