@@ -61,13 +61,13 @@ export const nodes = [
         "askConfig": {
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
           "suggestions": [
-            "How do I get started with Lamatic.ai?",
-            "How do I create my first AI flow?",
-            "How do I use the Studio interface?",
-            "How do I use the VectorDB feature?",
-            "How do I add custom context to my agents?",
-            "How do I integrate with external APIs?"
-          ],
+          "Prepare me for a Software Engineer interview at Google",
+          "Help me practice behavioral interview questions",
+          "Create a 30-minute interview preparation plan",
+          "Generate Backend Developer interview questions",
+          "What questions should I ask my interviewer?",
+          "Prepare me for a Product Manager interview"
+        ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
           "primaryColor": "#ef4444",
