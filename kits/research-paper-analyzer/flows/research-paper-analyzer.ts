@@ -47,141 +47,83 @@ export const references = {
 
 export const nodes = [
   {
-    id: "triggerNode_1",
-    type: "triggerNode",
-    position: { x: 0, y: 0 },
+    id: "apiTriggerNode_1",
+    type: "apiTriggerNode",
     data: {
-      nodeId: "graphqlNode",
-      trigger: true,
-      values: {
-        nodeName: "API Request",
-        responeType: "realtime",
-        advance_schema: JSON.stringify({
-          type: "object",
-          properties: {
-            pdf_url: {
-              type: "string",
-              description: "Publicly accessible URL of the academic PDF to analyze",
-            },
+      inputSchema: {
+        type: "object",
+        properties: {
+          pdf_url: {
+            type: "string",
+            description: "Publicly accessible URL of the academic PDF to analyze",
           },
-          required: ["pdf_url"],
-        }),
+        },
+        required: ["pdf_url"],
       },
     },
+    position: { x: 100, y: 100 },
   },
   {
-    id: "fileExtractorNode_1",
-    type: "dynamicNode",
-    position: { x: 0, y: 160 },
+    id: "extractFromFileNode_1",
+    type: "extractFromFileNode",
     data: {
-      nodeId: "fileExtractorNode",
-      values: {
-        nodeName: "Extract PDF Text",
-        fileUrl: "{{triggerNode_1.output.pdf_url}}",
-        outputKey: "paper_text",
-      },
+      fileUrl: "{{apiTriggerNode_1.pdf_url}}",
+      outputKey: "paper_text",
     },
+    position: { x: 100, y: 260 },
   },
   {
     id: "LLMNode_1",
-    type: "dynamicNode",
-    position: { x: 0, y: 320 },
+    type: "LLMNode",
     data: {
-      nodeId: "LLMNode",
-      values: {
-        nodeName: "Analyze Paper",
-        tools: [],
-        prompts: [
-          {
-            id: "analyze-paper-system",
-            role: "system",
-            content: "@constitutions/default.md",
-          },
-          {
-            id: "analyze-paper-user",
-            role: "user",
-            content: "@prompts/analyze-paper.md",
-          },
+      model: "gpt-4o",
+      systemPrompt: "@constitutions/default.md",
+      userPrompt: "@prompts/analyze-paper.md",
+      variables: {
+        paper_text: "{{extractFromFileNode_1.paper_text}}",
+      },
+      outputSchema: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          authors: { type: "array", items: { type: "string" } },
+          year: { type: ["number", "null"] },
+          problem_statement: { type: "string" },
+          methodology: { type: "string" },
+          key_findings: { type: "array", items: { type: "string" } },
+          limitations: { type: "array", items: { type: "string" } },
+          plain_english_summary: { type: "string" },
+          follow_up_questions: { type: "array", items: { type: "string" } },
+        },
+        required: [
+          "title",
+          "authors",
+          "year",
+          "problem_statement",
+          "methodology",
+          "key_findings",
+          "limitations",
+          "plain_english_summary",
+          "follow_up_questions",
         ],
-        memories: null,
-        messages: null,
-        generativeModelName: "gpt-4o",
-        outputSchema: JSON.stringify({
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            authors: { type: "array", items: { type: "string" } },
-            year: { type: ["number", "null"] },
-            problem_statement: { type: "string" },
-            methodology: { type: "string" },
-            key_findings: { type: "array", items: { type: "string" } },
-            limitations: { type: "array", items: { type: "string" } },
-            plain_english_summary: { type: "string" },
-            follow_up_questions: { type: "array", items: { type: "string" } },
-          },
-          required: [
-            "title",
-            "authors",
-            "year",
-            "problem_statement",
-            "methodology",
-            "key_findings",
-            "limitations",
-            "plain_english_summary",
-            "follow_up_questions",
-          ],
-        }),
       },
     },
+    position: { x: 100, y: 420 },
   },
   {
-    id: "graphqlResponseNode_1",
-    type: "dynamicNode",
-    position: { x: 0, y: 480 },
+    id: "apiResponseNode_1",
+    type: "apiResponseNode",
     data: {
-      nodeId: "graphqlResponseNode",
-      values: {
-        nodeName: "API Response",
-        outputMapping:
-          '{\n  "analysis": "{{LLMNode_1.output.generatedResponse}}"\n}',
-      },
+      output: "{{LLMNode_1.output}}",
     },
+    position: { x: 100, y: 580 },
   },
 ];
 
 export const edges = [
-  {
-    id: "triggerNode_1-fileExtractorNode_1",
-    source: "triggerNode_1",
-    target: "fileExtractorNode_1",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge",
-  },
-  {
-    id: "fileExtractorNode_1-LLMNode_1",
-    source: "fileExtractorNode_1",
-    target: "LLMNode_1",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge",
-  },
-  {
-    id: "LLMNode_1-graphqlResponseNode_1",
-    source: "LLMNode_1",
-    target: "graphqlResponseNode_1",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge",
-  },
-  {
-    id: "response-graphqlResponseNode_1",
-    source: "triggerNode_1",
-    target: "graphqlResponseNode_1",
-    sourceHandle: "to-response",
-    targetHandle: "from-trigger",
-    type: "responseEdge",
-  },
+  { id: "e1", source: "apiTriggerNode_1", target: "extractFromFileNode_1" },
+  { id: "e2", source: "extractFromFileNode_1", target: "LLMNode_1" },
+  { id: "e3", source: "LLMNode_1", target: "apiResponseNode_1" },
 ];
 
 export default { meta, inputs, references, nodes, edges };
