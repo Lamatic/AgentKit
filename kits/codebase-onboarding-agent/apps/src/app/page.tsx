@@ -10,7 +10,7 @@ import { Loader2, GitBranch } from "lucide-react";
 import {
   OnboardingReportView,
   parseOnboardingReport,
-} from "@/components/onboarding-report";
+} from "@/components/OnboardingReport";
 
 type RunState =
   | { kind: "idle" }
