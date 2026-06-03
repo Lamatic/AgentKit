@@ -26,11 +26,20 @@ export default function Index() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const trimmedRepoUrl = repoUrl.trim();
+    const trimmedRole = role.trim();
+
+    if (!trimmedRepoUrl || !trimmedRole) {
+      setState({ kind: "error", message: "Repository URL and Developer role are required." });
+      return;
+    }
+
     setState({ kind: "loading" });
     try {
       const res = await runOnboardingAgent({
-        repo_url: repoUrl.trim(),
-        developer_role: role.trim(),
+        repo_url: trimmedRepoUrl,
+        developer_role: trimmedRole,
         ...(token.trim() ? { github_token: token.trim() } : {}),
       });
       if (res.ok) {

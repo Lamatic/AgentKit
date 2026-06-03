@@ -25,6 +25,7 @@ function unwrapResult(value: unknown): unknown {
   return value;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function waitForCompletedFlow(lamaticClient: Lamatic, requestId: string): Promise<any> {
   const checker = lamaticClient.checkStatus?.bind(lamaticClient);
 
@@ -66,6 +67,7 @@ export async function runOnboardingAgent(input: z.infer<typeof schema>) {
       ...(data.github_token ? { github_token: data.github_token } : {}),
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resData: any = await lamaticClient.executeFlow(WORKFLOW_ID, inputs);
 
 
