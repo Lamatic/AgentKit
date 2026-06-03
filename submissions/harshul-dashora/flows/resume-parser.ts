@@ -108,7 +108,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"interviewPlan\": \"{{LLMNode_139.output.generatedResponse}}\"\n}"
+        "outputMapping": "{\n  \"strengths\": \"{{LLMNode_139.output.generatedResponse.strengths}}\",\n  \"gaps\": \"{{LLMNode_139.output.generatedResponse.gaps}}\",\n  \"questions\": \"{{LLMNode_139.output.generatedResponse.questions}}\"\n}"
       }
     }
   }
