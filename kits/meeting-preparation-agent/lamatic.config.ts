@@ -7,7 +7,13 @@ export default {
     "name": "tiyajain28102005",
     "email": "tiyajain28102005@gmail.com"
   },
-  "tags": [],
+  "tags": [
+  "interview",
+  "career",
+  "job-preparation",
+  "ai-assistant",
+  "template"
+]
   "steps": [
     {
       "id": "meeting-preparation-agent",
