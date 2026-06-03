@@ -7,9 +7,9 @@ export default {
       "params": {},
       "configName": "configA",
       "model_name": "openrouter/openai/gpt-3.5-turbo",
-      "credentialId": "37b9d79c-644d-4bcf-a84d-c83aa4e0fc6f",
+      "credentialId": "dc0dc2e4-0093-4dfe-99ef-86186798eea5",
       "provider_name": "openrouter",
-      "credential_name": "Codebase onboarding agent creds"
+      "credential_name": "Model2"
     }
   ]
 };

@@ -10,7 +10,7 @@ You will need a `.env.local` file in the root of your project with the following
 
 ```env
 LAMATIC_PROJECT_API_KEY=your_lamatic_api_key_here
-LAMATIC_API_URL=your_lamatic_endpoint_here
+LAMATIC_PROJECT_ENDPOINT=your_lamatic_endpoint_here
 LAMATIC_PROJECT_ID=your_project_id_here
 LAMATIC_FLOW_ID=your_flow_id_here
 ```

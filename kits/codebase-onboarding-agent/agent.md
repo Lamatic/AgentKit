@@ -25,4 +25,4 @@ To successfully integrate and run this agent, the host application requires the 
 - `LAMATIC_PROJECT_API_KEY`: The API key used to authenticate with Lamatic.
 - `LAMATIC_PROJECT_ID`: The ID of the Lamatic project hosting the agent.
 - `LAMATIC_FLOW_ID`: The ID of the specific workflow that executes the repository analysis.
-- `LAMATIC_API_URL`: The endpoint URL for the Lamatic service.
+- `LAMATIC_PROJECT_ENDPOINT`: The endpoint URL for the Lamatic service.
