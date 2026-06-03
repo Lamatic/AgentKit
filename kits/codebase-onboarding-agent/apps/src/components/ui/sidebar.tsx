@@ -97,6 +97,15 @@ const SidebarProvider = React.forwardRef<
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
+          const target = event.target as HTMLElement;
+          if (
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.tagName === "SELECT" ||
+            target.isContentEditable
+          ) {
+            return;
+          }
           event.preventDefault();
           toggleSidebar();
         }
@@ -188,18 +197,23 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent
-            ref={ref}
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            className={cn(
+              "w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden",
+              className
+            )}
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+                ...props.style,
               } as React.CSSProperties
             }
             side={side}
+            ref={ref}
+            {...props}
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Sidebar</SheetTitle>
