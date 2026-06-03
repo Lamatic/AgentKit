@@ -1,5 +1,3 @@
-// Model config: llmnode-300 (LLMNode)
-
 export default {
   "generativeModelName": [
     {
