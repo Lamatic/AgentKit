@@ -199,6 +199,9 @@ const Sidebar = React.forwardRef<
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent
+            {...props}
+            ref={ref}
+            side={side}
             data-sidebar="sidebar"
             data-mobile="true"
             className={cn(
@@ -211,9 +214,6 @@ const Sidebar = React.forwardRef<
                 ...props.style,
               } as React.CSSProperties
             }
-            side={side}
-            ref={ref}
-            {...props}
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Sidebar</SheetTitle>
