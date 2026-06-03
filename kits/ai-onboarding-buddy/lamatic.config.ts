@@ -10,6 +10,6 @@ export default {
   ],
   links: {
     deploy: "https://studio.lamatic.ai/template/ai-onboarding-buddy",
-    github: "https://github.com/geeked-anshuk666/AgentKit/tree/main/kits/ai-onboarding-buddy"
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-onboarding-buddy"
   }
 };
