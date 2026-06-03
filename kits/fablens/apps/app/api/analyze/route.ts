@@ -186,14 +186,17 @@ export async function POST(req: Request) {
       }
     }
 
-    if (rawMaterials.length === 0) {
-      return Response.json({
-        materials: [],
-        note:
-          parsed.note ||
-          "This manufacturer has not disclosed materials.",
-      });
-    }
+ if (rawMaterials.length === 0) {
+  const note =
+    typeof parsed.note === "string" && parsed.note.trim()
+      ? parsed.note
+      : "This manufacturer has not disclosed materials.";
+
+  return Response.json({
+    materials: [],
+    note,
+  });
+}
 
     // -------- NORMALIZATION --------
     const displayMaterials = [
