@@ -1,1 +1,83 @@
-{}
+{
+  "nodes": [
+    {
+      "id": "triggerNode_1",
+      "type": "triggerNode",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "nodeId": "graphqlNode",
+        "trigger": true,
+        "values": {
+          "nodeName": "API Request",
+          "responeType": "realtime",
+          "advance_schema": ""
+        }
+      }
+    },
+    {
+      "id": "LLMNode_160",
+      "type": "dynamicNode",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "nodeId": "LLMNode",
+        "values": {
+          "nodeName": "Generate Text",
+          "tools": [],
+          "prompts": [
+            {
+              "id": "user-prompt-1",
+              "role": "user",
+              "content": "@prompts/review-analyzer_llm-node_user.md"
+            },
+            {
+              "id": "system-prompt-1",
+              "role": "system",
+              "content": "@prompts/review-analyzer_llm-node_system.md"
+            }
+          ],
+          "memories": "@model-configs/review-analyzer_llm-node.ts",
+          "messages": "@model-configs/review-analyzer_llm-node.ts",
+          "generativeModelName": "@model-configs/review-analyzer_llm-node.ts"
+        }
+      }
+    },
+    {
+      "id": "graphqlResponseNode_651",
+      "type": "dynamicNode",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "nodeId": "graphqlResponseNode",
+        "values": {
+          "nodeName": "API Response",
+          "outputMapping": "{\n  \"result\": \"{{LLMNode_160.output.generatedResponse}}\"\n}"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "triggerNode_1-LLMNode_160",
+      "source": "triggerNode_1",
+      "target": "LLMNode_160",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "LLMNode_160-graphqlResponseNode_651",
+      "source": "LLMNode_160",
+      "target": "graphqlResponseNode_651",
+      "sourceHandle": "bottom",
+      "targetHandle": "top",
+      "type": "defaultEdge"
+    },
+    {
+      "id": "response-graphqlResponseNode_651",
+      "source": "triggerNode_1",
+      "target": "graphqlResponseNode_651",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger",
+      "type": "responseEdge"
+    }
+  ]
+}
