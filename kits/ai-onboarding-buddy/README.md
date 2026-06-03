@@ -31,11 +31,19 @@ Traditional onboarding plans are generic. This kit is not. Given a new hire's pr
 ### Step 2: Retrieve the API Endpoint
 After deploying your flow, open your Trigger Node (API Request) to copy your GraphQL trigger endpoint URL and Bearer token.
 
+### Environment Variables
+
+When invoking this kit outside Lamatic Studio, configure:
+
+- `LAMATIC_GRAPHQL_ENDPOINT` - your deployed Trigger Node GraphQL URL.
+- `LAMATIC_BEARER_TOKEN` - Bearer token from the Trigger Node.
+- `LLM_API_KEY` - provider key configured in Lamatic **Settings → Secrets**.
+
 ### Step 3: Call the API
 ```bash
-curl -X POST https://your-lamatic-endpoint.lamatic.ai/graphql \
+curl -X POST "$LAMATIC_GRAPHQL_ENDPOINT" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_LAMATIC_TOKEN" \
+  -H "Authorization: Bearer $LAMATIC_BEARER_TOKEN" \
   -d '{
     "candidateProfile": "Jane Doe. Senior Frontend Engineer with 6 years experience in React and TypeScript. No Next.js or server-side rendering exposure.",
     "jobDescription": "Build high-performance, SEO-friendly SSR/ISR pages in Next.js 14.",
@@ -74,9 +82,9 @@ kits/ai-onboarding-buddy/
 To test the deployed flow, run a POST request using `curl` with your payload:
 
 ```bash
-curl -X POST https://your-lamatic-endpoint.lamatic.ai/graphql \
+curl -X POST "$LAMATIC_GRAPHQL_ENDPOINT" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_LAMATIC_TOKEN" \
+  -H "Authorization: Bearer $LAMATIC_BEARER_TOKEN" \
   -d '{
     "candidateProfile": "Jane Doe. Senior Frontend Engineer with 6 years experience in React and TypeScript.",
     "jobDescription": "Build high-performance, SEO-friendly SSR/ISR pages in Next.js 14.",
