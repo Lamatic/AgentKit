@@ -71,14 +71,16 @@ kits/ai-onboarding-buddy/
 
 ## Testing
 
-To run schema validation tests:
+To test the deployed flow, run a POST request using `curl` with your payload:
 
 ```bash
-# 1. Run local offline verification
-node tests/validate_output_schema.js
-
-# 2. Run live integration test against deployed flow
-export LAMATIC_ENDPOINT="https://your-endpoint.lamatic.ai/graphql"
-export LAMATIC_TOKEN="your-bearer-token"
-node tests/validate_output_schema.js
+curl -X POST https://your-lamatic-endpoint.lamatic.ai/graphql \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_LAMATIC_TOKEN" \
+  -d '{
+    "candidateProfile": "Jane Doe. Senior Frontend Engineer with 6 years experience in React and TypeScript.",
+    "jobDescription": "Build high-performance, SEO-friendly SSR/ISR pages in Next.js 14.",
+    "companyContext": "B2B SaaS product built entirely on Next.js 14 and hosted on Vercel."
+  }'
 ```
+
