@@ -55,8 +55,21 @@ Provides ideal answer directions for each question.
 ## Technology
 
 * Lamatic AgentKit
-* Gemini / LLM models
-* Structured JSON output
+* Gemini / LLM Models
+* Structured JSON Output
+
+## Demo Video
+
+Watch the demo here:
+
+https://drive.google.com/file/d/1Da8nCZi_T6x1yJvCoDAsLesAXbICV1mh/view?usp=drive_link
+
+## Screenshots
+
+### Home Screen
+
+![deployed](../../screenshots/deployed.png)
+
 
 ## Example Use Cases
 
