@@ -124,7 +124,7 @@ export const nodes = [
       "nodeId": "askResponseNode",
       "values": {
         "id": "responseNode_triggerNode_1",
-        "content": "LLMNode_668.generatedResponse",
+        "content": "LLMNode_300.generatedResponse",
         "nodeName": "Ask Response",
         "references": ""
       }
