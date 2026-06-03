@@ -1,6 +1,6 @@
 export default {
   "name": "meeting-preparation-agent",
-  "description": "",
+  "description": "AI-powered meeting preparation assistant that generates company research, interview preparation guidance, technical and behavioral questions, and quick prep plans to help users prepare for interviews.",
   "version": "1.0.0",
   "type": "template",
   "author": {
