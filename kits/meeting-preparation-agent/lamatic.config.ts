@@ -2,7 +2,7 @@ export default {
   "name": "meeting-preparation-agent",
   "description": "",
   "version": "1.0.0",
-  "type": "kit",
+  "type": "template",
   "author": {
     "name": "tiyajain28102005",
     "email": "tiyajain28102005@gmail.com"
