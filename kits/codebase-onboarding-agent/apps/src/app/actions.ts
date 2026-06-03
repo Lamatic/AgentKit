@@ -8,7 +8,15 @@ const PROJECT_ID = process.env.LAMATIC_PROJECT_ID;
 const WORKFLOW_ID = process.env.LAMATIC_FLOW_ID;
 
 const schema = z.object({
-  repo_url: z.string().url().includes("github.com", { message: "Must be a valid GitHub URL" }).max(500),
+  repo_url: z
+    .string()
+    .url()
+    .max(500)
+    .refine((value) => {
+      const url = new URL(value);
+      const segments = url.pathname.replace(/\/+$/, "").split("/").filter(Boolean);
+      return url.hostname.toLowerCase() === "github.com" && segments.length === 2;
+    }, { message: "Must be a valid GitHub repository URL" }),
   developer_role: z.string().trim().min(1).max(200),
   github_token: z.string().max(500).optional(),
 });
