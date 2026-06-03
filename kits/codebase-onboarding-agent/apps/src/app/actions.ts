@@ -8,8 +8,8 @@ const PROJECT_ID = process.env.LAMATIC_PROJECT_ID;
 const WORKFLOW_ID = process.env.LAMATIC_FLOW_ID;
 
 const schema = z.object({
-  repo_url: z.string().url().min(1).max(500),
-  developer_role: z.string().min(1).max(200),
+  repo_url: z.string().url().includes("github.com", { message: "Must be a valid GitHub URL" }).max(500),
+  developer_role: z.string().trim().min(1).max(200),
   github_token: z.string().max(500).optional(),
 });
 

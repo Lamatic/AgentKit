@@ -27,6 +27,8 @@ export default function Index() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    if (state.kind === "loading") return;
+
     const trimmedRepoUrl = repoUrl.trim();
     const trimmedRole = role.trim();
 
