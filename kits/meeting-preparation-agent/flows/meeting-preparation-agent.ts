@@ -1,10 +1,12 @@
-// Flow: meeting-preparation-agent
-
-// -- Meta --
 export const meta = {
   "name": "meeting-preparation-agent",
-  "description": "",
-  "tags": [],
+  "description": "AI-powered interview preparation assistant that generates personalized interview preparation guides based on company and role information.",
+  "tags": [
+    "interview",
+    "career",
+    "job-preparation",
+    "ai-assistant"
+  ],
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
@@ -15,7 +17,6 @@ export const meta = {
   }
 };
 
-// -- Inputs --
 export const inputs = {
   "LLMNode_300": [
     {
@@ -26,7 +27,6 @@ export const inputs = {
   ]
 };
 
-// -- References --
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
@@ -40,7 +40,7 @@ export const references = {
   }
 };
 
-// -- Nodes & Edges --
+
 export const nodes = [
   {
     "id": "triggerNode_1",
