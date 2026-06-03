@@ -40,6 +40,7 @@ When invoking this kit outside Lamatic Studio, configure:
 - `LLM_API_KEY` - provider key configured in Lamatic **Settings → Secrets**.
 
 ### Step 3: Call the API
+
 ```bash
 curl -X POST "$LAMATIC_GRAPHQL_ENDPOINT" \
   -H "Content-Type: application/json" \
