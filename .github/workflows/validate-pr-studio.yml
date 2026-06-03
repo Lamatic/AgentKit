@@ -1,13 +1,15 @@
-name: Validate PR — Studio runtime check (Phase 2)
+name: Validate PR — Studio runtime check (Phase 2, testing)
 
 # Phase 2 — Lamatic Studio runtime validation.
 # Triggers:
 #   1. Automatically after Phase 1 (validate-pr.yml) passes on a PR
 #   2. When a maintainer comments /validate on any open PR
 #
-# Bundles each changed kit into a payload and POSTs it to the
-# Lamatic Studio validation endpoint. If the endpoint returns
-# status: invalid, the job fails and errors are posted as a PR comment.
+# Sends the full kit payload including raw .ts flow file contents
+# to the Studio validation endpoint.
+#
+# Current test setup:
+#   Endpoint: https://webhook.site/7fb70d29-b1d2-4610-bfac-8118bb73852b
 
 on:
   workflow_run:
@@ -78,23 +80,21 @@ jobs:
           CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRD "$MERGE_BASE"...HEAD || true)
           echo "Changed files:"
           echo "$CHANGED_FILES"
+
+          # Extract unique kit paths — flat structure kits/<name>/
           KITS=()
           while IFS= read -r file; do
             [ -z "$file" ] && continue
             if [[ "$file" == kits/* ]]; then
-              path=$(echo "$file" | cut -d/ -f1-3)
-            elif [[ "$file" == bundles/* ]]; then
               path=$(echo "$file" | cut -d/ -f1-2)
-            elif [[ "$file" == templates/* ]]; then
-              path=$(echo "$file" | cut -d/ -f1-2)
-            else
-              continue
+              KITS+=("$path")
             fi
-            KITS+=("$path")
           done <<< "$CHANGED_FILES"
+
           UNIQUE_KITS=($(printf '%s\n' "${KITS[@]}" | sort -u))
+
           if [ ${#UNIQUE_KITS[@]} -eq 0 ]; then
-            echo "No kit/bundle/template changes detected."
+            echo "No kit changes detected."
             echo "kits=" >> "$GITHUB_OUTPUT"
           else
             echo "Detected kits: ${UNIQUE_KITS[*]}"
@@ -119,63 +119,112 @@ jobs:
 
           for KIT_PATH in $KITS; do
             echo "--- Processing $KIT_PATH ---"
-            if [[ "$KIT_PATH" == kits/* ]]; then
-              TYPE="kit"
-            elif [[ "$KIT_PATH" == bundles/* ]]; then
-              TYPE="bundle"
-            elif [[ "$KIT_PATH" == templates/* ]]; then
-              TYPE="template"
+
+            # Determine type from lamatic.config.ts
+            if [ -f "$KIT_PATH/lamatic.config.ts" ]; then
+              if grep -q '"kit"' "$KIT_PATH/lamatic.config.ts"; then
+                TYPE="kit"
+              elif grep -q '"bundle"' "$KIT_PATH/lamatic.config.ts"; then
+                TYPE="bundle"
+              else
+                TYPE="template"
+              fi
             else
               TYPE="unknown"
             fi
+
             SLUG=$(basename "$KIT_PATH")
             export KIT_PATH SLUG TYPE
 
+            # Build payload using Node
             node -e "
               const fs = require('fs');
               const path = require('path');
               const kitPath = process.env.KIT_PATH;
-              const flowsDir = path.join(kitPath, 'flows');
+
+              const readSafe = (p) => {
+                try { return fs.readFileSync(p, 'utf8'); } catch { return null; }
+              };
+
+              // Read lamatic.config.ts as raw string
+              const lamaticConfig = readSafe(path.join(kitPath, 'lamatic.config.ts'));
+
+              // Read agent.md
+              const agentMd = readSafe(path.join(kitPath, 'agent.md'));
+
+              // Read README.md
+              const readme = readSafe(path.join(kitPath, 'README.md'));
+
+              // Read constitutions/default.md
+              const constitution = readSafe(path.join(kitPath, 'constitutions', 'default.md'));
+
+              // Bundle all .ts flow files as raw strings
               const flows = [];
+              const flowsDir = path.join(kitPath, 'flows');
               if (fs.existsSync(flowsDir)) {
-                const flowDirs = fs.readdirSync(flowsDir).filter(f =>
-                  fs.statSync(path.join(flowsDir, f)).isDirectory()
-                );
-                for (const flowName of flowDirs) {
-                  const flowPath = path.join(flowsDir, flowName);
-                  const flow = { name: flowName };
-                  for (const file of ['config.json', 'inputs.json', 'meta.json', 'README.md']) {
-                    const filePath = path.join(flowPath, file);
-                    if (fs.existsSync(filePath)) {
-                      const content = fs.readFileSync(filePath, 'utf8');
-                      const key = file.replace('.', '_').toLowerCase();
-                      try { flow[key] = JSON.parse(content); } catch { flow[key] = content; }
-                    }
-                  }
-                  flows.push(flow);
+                const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+                for (const flowFile of flowFiles) {
+                  const flowName = flowFile.replace('.ts', '');
+                  const flowContent = readSafe(path.join(flowsDir, flowFile));
+                  flows.push({
+                    name: flowName,
+                    flow_ts: flowContent
+                  });
                 }
               }
-              const readSafe = (p) => { try { return fs.readFileSync(p,'utf8'); } catch { return null; } };
-              const parseSafe = (p) => { try { return JSON.parse(fs.readFileSync(p,'utf8')); } catch { return null; } };
+
+              // Read optional reference directories
+              const readDir = (dirName) => {
+                const dir = path.join(kitPath, dirName);
+                if (!fs.existsSync(dir)) return null;
+                const files = {};
+                const walk = (d, prefix) => {
+                  fs.readdirSync(d).forEach(f => {
+                    const full = path.join(d, f);
+                    const key = prefix ? prefix + '/' + f : f;
+                    if (fs.statSync(full).isDirectory()) {
+                      walk(full, key);
+                    } else {
+                      files[key] = readSafe(full);
+                    }
+                  });
+                };
+                walk(dir, '');
+                return Object.keys(files).length > 0 ? files : null;
+              };
+
               const payload = {
                 slug: process.env.SLUG,
                 type: process.env.TYPE,
                 kitPath,
-                config: parseSafe(path.join(kitPath,'config.json')),
-                readme: readSafe(path.join(kitPath,'README.md')),
+                lamaticConfig,
+                agentMd,
+                readme,
+                constitution,
                 flows,
+                references: {
+                  prompts: readDir('prompts'),
+                  scripts: readDir('scripts'),
+                  modelConfigs: readDir('model-configs'),
+                  triggers: readDir('triggers'),
+                  memory: readDir('memory'),
+                  tools: readDir('tools')
+                },
                 meta: {
                   repository: process.env.GITHUB_REPOSITORY,
                   sha: process.env.HEAD_SHA,
                   submitted_at: new Date().toISOString()
                 }
               };
+
               fs.writeFileSync('/tmp/payload.json', JSON.stringify(payload, null, 2));
-              console.log('Payload written.');
+              console.log('Payload written — flows found: ' + flows.length);
             "
 
-            echo "Sending payload to Studio endpoint..."
+            echo "Payload preview (first 500 chars):"
+            head -c 500 /tmp/payload.json
 
+            # POST to endpoint
             RESPONSE=$(curl -s -w "\n%{http_code}" \
               -X POST "$LAMATIC_VALIDATION_ENDPOINT" \
               -H "Content-Type: application/json" \
@@ -192,6 +241,7 @@ jobs:
 
             echo "$BODY" > /tmp/response_$SLUG.json
 
+            # Parse status from response
             STATUS=$(echo "$BODY" | node -e "
               let d=''; process.stdin.on('data',c=>d+=c);
               process.stdin.on('end',()=>{
