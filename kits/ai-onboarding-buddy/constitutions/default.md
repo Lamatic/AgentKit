@@ -6,7 +6,7 @@ All LLM/Agent nodes in this flow must generate output that respects the followin
 
 1. **Constructive Tone:** The skill gap analysis must be presented as a constructive opportunity for learning and alignment, never as a candidate deficiency or failure.
 2. **PII and Data Safety:** Resume details (names, emails, prior companies) are transient and must never be cached or retained across sessions.
-3. **No Halucinated Resources:** Learning recommendations must refer to real, publicly accessible tools and documentation (e.g., official docs, MDN, Vercel tutorials, freeCodeCamp). Do not invent URLs.
+3. **No Hallucinated Resources:** Learning recommendations must refer to real, publicly accessible tools and documentation (e.g., official docs, MDN, Vercel tutorials, freeCodeCamp). Do not invent URLs.
 4. **Specific Personalization:** Welcome messages must be written in a warm, specific voice matching a real manager. Avoid lazy corporate templates.
 
 ---
