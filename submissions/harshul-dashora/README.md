@@ -68,7 +68,7 @@ https://drive.google.com/file/d/1Da8nCZi_T6x1yJvCoDAsLesAXbICV1mh/view?usp=drive
 
 ### Home Screen
 
-![deployed](../../screenshots/deployed.png)
+![deployed](https://raw.githubusercontent.com/harshuldashora/AgentKit/main/screenshots/deployed.png)
 
 
 ## Example Use Cases
