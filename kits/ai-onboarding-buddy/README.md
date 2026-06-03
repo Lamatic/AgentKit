@@ -3,8 +3,8 @@
 > A Lamatic AgentKit template that generates a **personalized 30/60/90-day onboarding plan** and a manager welcome message for new employees - tailored to their specific background and skill gaps relative to the role.
 
 [![AgentKit Challenge](https://img.shields.io/badge/agentkit-challenge-blue)](https://github.com/Lamatic/AgentKit/pulls?q=is:open+is:pr+label:agentkit-challenge)
-[![Kit Type](https://img.shields.io/badge/type-template-green)](https://github.com/Lamatic/AgentKit)
-[![Flow Count](https://img.shields.io/badge/flows-1-orange)](https://github.com/Lamatic/AgentKit)
+[![Kit Type](https://img.shields.io/badge/type-template-green)](https://github.com/Lamatic/AgentKit/tree/main/kits/ai-onboarding-buddy)
+[![Flow Count](https://img.shields.io/badge/flows-1-orange)](https://github.com/Lamatic/AgentKit/tree/main/kits/ai-onboarding-buddy/flows)
 
 ---
 

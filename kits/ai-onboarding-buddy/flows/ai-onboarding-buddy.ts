@@ -39,7 +39,7 @@ export const meta = {
     "Generative",
     "Support"
   ],
-  "testInput": null,
+  "testInput": "{\n  \"candidateProfile\": \"Anshuk Jirli. Senior Frontend Engineer with 6 years experience in React and TypeScript.\",\n  \"jobDescription\": \"Build high-performance SSR/ISR pages in Next.js 14.\",\n  \"companyContext\": \"B2B SaaS product built entirely on Next.js 14.\"\n}",
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": "https://studio.lamatic.ai/template/ai-onboarding-buddy",
@@ -81,7 +81,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\n  \"candidateProfile\": \"string\",\n  \"jobDescription\": \"string\",\n  \"companyContext\": \"string\"\n}"
       }
     }
   },
