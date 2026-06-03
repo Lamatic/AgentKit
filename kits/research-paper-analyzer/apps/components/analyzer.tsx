@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   FileText,
@@ -11,42 +13,29 @@ import {
   Loader2,
   RotateCcw,
 } from "lucide-react";
+import { analyzePaper, type PaperAnalysis } from "@/actions/analyze";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
-
-async function callAnalyze(pdfUrl) {
-  const res = await fetch(`${BACKEND_URL}/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pdf_url: pdfUrl }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.detail || "Server error");
-  return json.data;
-}
-
-export default function App() {
+export function Analyzer() {
   const [pdfUrl, setPdfUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
+  const [result, setResult] = useState<PaperAnalysis | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [expanded, setExpanded] = useState({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!pdfUrl.trim()) return;
     setLoading(true);
     setError(null);
     setResult(null);
-    try {
-      const data = await callAnalyze(pdfUrl.trim());
-      setResult(data);
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
+    const res = await analyzePaper(pdfUrl.trim());
+    if (res.success && res.data) {
+      setResult(res.data);
+    } else {
+      setError(res.error ?? "Something went wrong.");
     }
+    setLoading(false);
   }
 
   function copyJson() {
@@ -55,7 +44,7 @@ export default function App() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function toggle(key) {
+  function toggle(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
@@ -69,8 +58,6 @@ export default function App() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white px-4 py-12">
       <div className="max-w-3xl mx-auto space-y-8">
-
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1 text-sm text-blue-300">
             <BookOpen size={14} />
@@ -84,7 +71,6 @@ export default function App() {
           </p>
         </div>
 
-        {/* Input form */}
         {!result && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
@@ -121,7 +107,6 @@ export default function App() {
           </form>
         )}
 
-        {/* Error */}
         {error && (
           <div className="flex items-start gap-3 bg-red-500/10 border border-red-400/30 rounded-xl p-4 text-red-300">
             <AlertCircle size={18} className="mt-0.5 shrink-0" />
@@ -129,11 +114,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Results */}
         {result && (
           <div className="space-y-4">
-
-            {/* Title bar */}
             <div className="flex items-start justify-between gap-4 bg-white/5 border border-white/10 rounded-xl p-5">
               <div>
                 <h2 className="text-xl font-bold">{result.title}</h2>
@@ -160,14 +142,12 @@ export default function App() {
               </div>
             </div>
 
-            {/* Plain English — always open */}
             <Section
               title="Plain English Summary"
               emoji="💡"
               content={result.plain_english_summary}
               alwaysOpen
             />
-
             <Section
               title="Problem Statement"
               emoji="❓"
@@ -210,7 +190,21 @@ export default function App() {
   );
 }
 
-function Section({ title, emoji, content, alwaysOpen, open, onToggle }) {
+function Section({
+  title,
+  emoji,
+  content,
+  alwaysOpen,
+  open,
+  onToggle,
+}: {
+  title: string;
+  emoji: string;
+  content: string;
+  alwaysOpen?: boolean;
+  open?: boolean;
+  onToggle?: () => void;
+}) {
   const isOpen = alwaysOpen || open;
   return (
     <div
@@ -225,8 +219,11 @@ function Section({ title, emoji, content, alwaysOpen, open, onToggle }) {
         disabled={alwaysOpen}
         className="w-full flex items-center justify-between px-5 py-4 text-left"
       >
-        <span className="font-semibold">{emoji} {title}</span>
-        {!alwaysOpen && (open ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+        <span className="font-semibold">
+          {emoji} {title}
+        </span>
+        {!alwaysOpen &&
+          (open ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
       </button>
       {isOpen && (
         <p className="px-5 pb-5 text-slate-300 leading-relaxed">{content}</p>
@@ -235,14 +232,28 @@ function Section({ title, emoji, content, alwaysOpen, open, onToggle }) {
   );
 }
 
-function ListSection({ title, emoji, items, open, onToggle }) {
+function ListSection({
+  title,
+  emoji,
+  items,
+  open,
+  onToggle,
+}: {
+  title: string;
+  emoji: string;
+  items: string[];
+  open?: boolean;
+  onToggle: () => void;
+}) {
   return (
     <div className="border border-white/10 bg-white/5 rounded-xl overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between px-5 py-4 text-left"
       >
-        <span className="font-semibold">{emoji} {title}</span>
+        <span className="font-semibold">
+          {emoji} {title}
+        </span>
         {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {open && (
