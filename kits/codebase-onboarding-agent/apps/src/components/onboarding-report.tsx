@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { z } from "zod";
 import {
   BookOpen,
   Layers,
@@ -11,15 +12,32 @@ import {
   GraduationCap,
 } from "lucide-react";
 
-export type OnboardingReport = {
-  projectOverview?: string;
-  techStack?: string[];
-  folderStructure?: Array<{ path: string; description: string } & Record<string, unknown>>;
-  keyFiles?: Array<{ file: string; whyImportant: string } & Record<string, unknown>>;
-  setupSteps?: string[];
-  architectureNotes?: string;
-  quiz?: Array<{ question: string; answer: string } & Record<string, unknown>>;
-};
+const folderEntrySchema = z.object({
+  path: z.string(),
+  description: z.string(),
+}).passthrough();
+
+const keyFileEntrySchema = z.object({
+  file: z.string(),
+  whyImportant: z.string(),
+}).passthrough();
+
+const quizEntrySchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+}).passthrough();
+
+const onboardingReportSchema = z.object({
+  projectOverview: z.string().optional(),
+  techStack: z.array(z.string()).optional(),
+  folderStructure: z.array(folderEntrySchema).optional(),
+  keyFiles: z.array(keyFileEntrySchema).optional(),
+  setupSteps: z.array(z.string()).optional(),
+  architectureNotes: z.string().optional(),
+  quiz: z.array(quizEntrySchema).optional(),
+});
+
+export type OnboardingReport = z.infer<typeof onboardingReportSchema>;
 
 function Section({
   icon: Icon,
@@ -144,14 +162,8 @@ export function parseOnboardingReport(raw: unknown): OnboardingReport | null {
   if (v.output && typeof v.output === "object") return parseOnboardingReport(v.output);
   if (v.generatedResponse) return parseOnboardingReport(v.generatedResponse);
 
-  const hasAny =
-    "projectOverview" in v ||
-    "techStack" in v ||
-    "folderStructure" in v ||
-    "keyFiles" in v ||
-    "setupSteps" in v ||
-    "architectureNotes" in v ||
-    "quiz" in v;
-  if (!hasAny) return null;
-  return v as OnboardingReport;
+  const parsed = onboardingReportSchema.safeParse(v);
+  if (parsed.success) return parsed.data;
+  console.warn("Onboarding report shape mismatch:", parsed.error.issues);
+  return null;
 }

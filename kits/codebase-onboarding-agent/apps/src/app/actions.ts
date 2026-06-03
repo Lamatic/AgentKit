@@ -3,9 +3,9 @@
 import { z } from "zod";
 import { Lamatic } from "lamatic";
 
-const ENDPOINT = "https://himanshusorganization969-codebaseonboardingagent753.lamatic.dev";
-const PROJECT_ID = "c2fd5cee-b61c-41a5-9f77-e2ab1b60e9a5";
-const WORKFLOW_ID = "71d0e3b2-63df-4b85-8a0d-c1f6d6b8c064";
+const ENDPOINT = process.env.LAMATIC_PROJECT_ENDPOINT;
+const PROJECT_ID = process.env.LAMATIC_PROJECT_ID;
+const WORKFLOW_ID = process.env.LAMATIC_FLOW_ID;
 
 const schema = z.object({
   repo_url: z.string().url().min(1).max(500),
@@ -44,10 +44,19 @@ export async function runOnboardingAgent(input: z.infer<typeof schema>) {
     if (!apiKey) {
       return { ok: false as const, error: "LAMATIC_PROJECT_API_KEY is not configured on the server." };
     }
+    if (!ENDPOINT) {
+      return { ok: false as const, error: "LAMATIC_PROJECT_ENDPOINT is not configured on the server." };
+    }
+    if (!PROJECT_ID) {
+      return { ok: false as const, error: "LAMATIC_PROJECT_ID is not configured on the server." };
+    }
+    if (!WORKFLOW_ID) {
+      return { ok: false as const, error: "LAMATIC_FLOW_ID is not configured on the server." };
+    }
 
     const lamaticClient = new Lamatic({
-      endpoint: process.env.LAMATIC_API_URL ?? ENDPOINT,
-      projectId: process.env.LAMATIC_PROJECT_ID ?? PROJECT_ID,
+      endpoint: ENDPOINT,
+      projectId: PROJECT_ID,
       apiKey: apiKey,
     });
 
@@ -57,9 +66,8 @@ export async function runOnboardingAgent(input: z.infer<typeof schema>) {
       ...(data.github_token ? { github_token: data.github_token } : {}),
     };
 
-    console.log("Executing Lamatic flow with inputs:", inputs);
     const resData: any = await lamaticClient.executeFlow(WORKFLOW_ID, inputs);
-    console.log("Lamatic response:", resData);
+
 
     if (!resData) {
       return { ok: false as const, error: "No response from Lamatic API" };
@@ -75,9 +83,7 @@ export async function runOnboardingAgent(input: z.infer<typeof schema>) {
         : undefined;
 
     if (requestId) {
-      console.log('[Flow] Async request accepted, waiting for completion:', { requestId });
       const statusResponse = await waitForCompletedFlow(lamaticClient, requestId);
-      console.log('[Flow] Status response:', statusResponse);
 
       if (statusResponse?.status === 'error') {
         return { ok: false as const, error: statusResponse.error || statusResponse.message || 'The async flow failed' };
