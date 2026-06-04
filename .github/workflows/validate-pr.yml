@@ -169,16 +169,16 @@ jobs:
             fi
 
             # Check type field is present
-            if ! grep -q '"kit"\|"bundle"\|"template"' "$config_file"; then
+            if ! grep -qE '"kit"|'\''kit'\''|"bundle"|'\''bundle'\''|"template"|'\''template'\''' "$config_file"; then
               ERRORS+=("lamatic.config.ts in $kit_path is missing a valid type field (\"kit\", \"bundle\", or \"template\")")
               CHECK4_PASS=false
               continue
             fi
 
             # Determine type
-            if grep -q '"kit"' "$config_file"; then
+            if grep -qE '"kit"|'\''kit'\''' "$config_file"; then
               KIT_TYPE="kit"
-            elif grep -q '"bundle"' "$config_file"; then
+            elif grep -qE '"bundle"|'\''bundle'\''' "$config_file"; then
               KIT_TYPE="bundle"
             else
               KIT_TYPE="template"
