@@ -113,18 +113,6 @@ export const nodes = [
     }
   },
   {
-    "id": "addNode_513",
-    "type": "addNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "addNode",
-      "values": {}
-    }
-  },
-  {
     "id": "agentClassifierNode_801",
     "type": "agentClassifierNode",
     "position": {
@@ -149,69 +137,33 @@ export const nodes = [
         ],
         "classifier": [
           {
-            "label": "Classifier 5",
-            "value": "agentClassifierNode_801-plus-node-addNode_884262-739",
-            "description": "Authentication Error"
-          },
-          {
-            "label": "Classifier 4",
-            "value": "agentClassifierNode_801-plus-node-addNode_399403-279",
-            "description": "Database Error "
-          },
-          {
-            "label": "Classifier 3",
-            "value": "agentClassifierNode_801-plus-node-addNode_687967-919",
-            "description": "API Error "
-          },
-          {
             "label": "Classifier 1",
-            "value": "agentClassifierNode_801-addNode_867",
+            "value": "agentClassifierNode_801-LLMNode_211-155",
             "description": "Runtime Error"
           },
           {
             "label": "Classifier 2",
-            "value": "agentClassifierNode_801-addNode_513",
+            "value": "agentClassifierNode_801-LLMNode_211-155",
             "description": "Deployment Failure"
+          },
+          {
+            "label": "Classifier 3",
+            "value": "agentClassifierNode_801-LLMNode_211-155",
+            "description": "API Error"
+          },
+          {
+            "label": "Classifier 4",
+            "value": "agentClassifierNode_801-LLMNode_211-155",
+            "description": "Database Error"
+          },
+          {
+            "label": "Classifier 5",
+            "value": "agentClassifierNode_801-LLMNode_211-155",
+            "description": "Authentication Error"
           }
         ],
         "generativeModelName": "@model-configs/debugpilot-flow_agent-classifier-node-801_generative-model-name.ts"
       }
-    }
-  },
-  {
-    "id": "plus-node-addNode_884262",
-    "type": "addNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "addNode",
-      "values": {}
-    }
-  },
-  {
-    "id": "plus-node-addNode_399403",
-    "type": "addNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "addNode",
-      "values": {}
-    }
-  },
-  {
-    "id": "plus-node-addNode_687967",
-    "type": "addNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "addNode",
-      "values": {}
     }
   },
   {
@@ -285,22 +237,6 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "agentClassifierNode_801-addNode_513",
-    "source": "agentClassifierNode_801",
-    "target": "addNode_513",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "agentClassifierEdge"
-  },
-  {
-    "id": "addNode_513-responseNode_triggerNode_1",
-    "source": "addNode_513",
-    "target": "responseNode_triggerNode_1",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
     "id": "agentClassifierNode_801-LLMNode_211-155",
     "source": "agentClassifierNode_801",
     "target": "LLMNode_211",
@@ -311,54 +247,6 @@ export const edges = [
   {
     "id": "LLMNode_211-responseNode_triggerNode_1-342",
     "source": "LLMNode_211",
-    "target": "responseNode_triggerNode_1",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "agentClassifierNode_801-plus-node-addNode_687967-919",
-    "source": "agentClassifierNode_801",
-    "target": "plus-node-addNode_687967",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "agentClassifierEdge"
-  },
-  {
-    "id": "plus-node-addNode_687967-responseNode_triggerNode_1-314",
-    "source": "plus-node-addNode_687967",
-    "target": "responseNode_triggerNode_1",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "agentClassifierNode_801-plus-node-addNode_399403-279",
-    "source": "agentClassifierNode_801",
-    "target": "plus-node-addNode_399403",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "agentClassifierEdge"
-  },
-  {
-    "id": "plus-node-addNode_399403-responseNode_triggerNode_1-149",
-    "source": "plus-node-addNode_399403",
-    "target": "responseNode_triggerNode_1",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "agentClassifierNode_801-plus-node-addNode_884262-739",
-    "source": "agentClassifierNode_801",
-    "target": "plus-node-addNode_884262",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "agentClassifierEdge"
-  },
-  {
-    "id": "plus-node-addNode_884262-responseNode_triggerNode_1-698",
-    "source": "plus-node-addNode_884262",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
