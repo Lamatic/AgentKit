@@ -60,7 +60,7 @@ Click the deploy button in `lamatic.config.ts` (or click "Deploy" on the kit pag
 
 ## Project structure
 
-```
+```text
 kits/weekly-routine-coach/
 ├── lamatic.config.ts          # kit metadata + flow → envKey mapping
 ├── agent.md                   # agent identity + capability doc

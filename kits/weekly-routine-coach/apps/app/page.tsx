@@ -41,6 +41,15 @@ const HOUR_START = 6;
 const HOUR_END = 24;
 const HOUR_PX = 44;
 
+// Format a Date as YYYY-MM-DD in the user's local time zone.
+// Avoids the UTC roll-over that toISOString() introduces for offsets behind/ahead of UTC.
+function toLocalISODate(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const t = (lang: "pt-BR" | "en") => ({
   title: lang === "pt-BR" ? "Weekly Routine Coach" : "Weekly Routine Coach",
   intakePlaceholder:
@@ -96,7 +105,7 @@ export default function Home() {
     setPending(true);
     setError(null);
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = toLocalISODate(new Date());
       const res = await callIntake({
         message: userMsg,
         today,
@@ -122,7 +131,7 @@ export default function Home() {
       const diff = (day === 0 ? -6 : 1) - day;
       const monday = new Date(today);
       monday.setDate(today.getDate() + diff);
-      const weekStart = monday.toISOString().slice(0, 10);
+      const weekStart = toLocalISODate(monday);
 
       const res = await callGenerateWeek({
         week_start_date: weekStart,

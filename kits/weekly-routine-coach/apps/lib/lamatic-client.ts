@@ -19,6 +19,17 @@ export async function executeFlow<TResult = unknown>(
   timeoutMs = 180_000
 ): Promise<TResult> {
   const variableKeys = Object.keys(payloadShape);
+
+  // Keys are interpolated directly into the GraphQL document, so they must be
+  // valid GraphQL identifiers (/^[_A-Za-z][_0-9A-Za-z]*$/). Reject anything else
+  // to prevent query injection / malformed documents.
+  const GRAPHQL_NAME = /^[_A-Za-z][_0-9A-Za-z]*$/;
+  for (const k of variableKeys) {
+    if (!GRAPHQL_NAME.test(k)) {
+      throw new Error(`Invalid payload key for GraphQL variable: ${JSON.stringify(k)}`);
+    }
+  }
+
   const variableDecls = variableKeys.map((k) => `$${k}: String`).join(", ");
   const payloadFields = variableKeys.map((k) => `${k}: $${k}`).join(", ");
 

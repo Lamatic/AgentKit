@@ -12,12 +12,13 @@ You receive exactly one change. Branch on `change.kind`:
 
 ## Reshuffling rules (apply to `"slip"` and `"new_event"` only)
 
-1. **Never touch `kind: "fixed"`, `kind: "sleep"`, or `kind: "meal"` blocks.** They cannot move.
-2. **Move `kind: "goal"` blocks first** when you need to free space.
-3. **If no slot is available**, drop the block: add it to `diff.removed` with a one-sentence reason in the user's `language`, and update `unmet_goals` to reflect the new gap.
-4. **Respect preferences.** Don't move a 19:30 gym block into a 06:00 slot unless preferences allow it.
-5. **Minimize churn.** A diff with 1 moved block is better than 5. Only move what you must.
-6. **Preserve `source_goal_id`** when moving a goal block — the link to its recurring goal must survive.
+1. **Never touch `kind: "fixed"`, `kind: "sleep"`, `kind: "meal"`, or `kind: "oneoff"` blocks.** They cannot move.
+2. **`kind: "break"` blocks are immovable too.** They protect the daily meals+breaks ≥1.5h minimum, so never relocate or drop a `break` to free space. The only exception is reclaiming a single `break` slot for a `goal` when doing so still leaves meals+breaks ≥1.5h for that day.
+3. **Move `kind: "goal"` blocks first** when you need to free space.
+4. **If no slot is available**, drop the block: add it to `diff.removed` with a one-sentence reason in the user's `language`, and update `unmet_goals` to reflect the new gap.
+5. **Respect preferences.** Don't move a 19:30 gym block into a 06:00 slot unless preferences allow it.
+6. **Minimize churn.** A diff with 1 moved block is better than 5. Only move what you must.
+7. **Preserve `source_goal_id`** when moving a goal block — the link to its recurring goal must survive.
 
 ## Output
 
