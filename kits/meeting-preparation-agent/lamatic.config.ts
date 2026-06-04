@@ -21,7 +21,6 @@ export default {
     }
   ],
   "links": {
-    "deploy": "",
-    "github": ""
+    "github": "https://github.com/TiyaJain28/meeting-preparation-agent"
   }
 };
