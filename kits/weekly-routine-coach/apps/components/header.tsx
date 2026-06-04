@@ -16,8 +16,8 @@ export function Header() {
               className="w-8 h-8"
             />
             <h1 className="text-2xl font-bold tracking-tight select-none">
-              <span className="text-slate-800">Lamatic</span>
-              <span className="text-rose-500"> Generator</span>
+              <span className="text-slate-800">Weekly Routine</span>
+              <span className="text-rose-500"> Coach</span>
             </h1>
           </div>
         </Link>
