@@ -1,2 +1,3 @@
-Classify this software issue:
-{{Generate_JSON}}
+Classify the following software issue:
+
+{{InstructorLLMNode_857.output}}
