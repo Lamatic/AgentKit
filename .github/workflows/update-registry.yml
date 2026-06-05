@@ -8,12 +8,18 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      kits:
+        description: 'Kit paths to process (space separated, e.g. kits/forge kits/my-kit)'
+        required: true
+        type: string
 
 jobs:
   update-registry:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       pull-requests: read
@@ -286,7 +292,7 @@ jobs:
 
       - name: Update registry.json
         env:
-          KITS: ${{ steps.detect.outputs.kits }}
+          KITS: ${{ github.event_name == 'workflow_dispatch' && inputs.kits || steps.detect.outputs.kits }}
         run: node /tmp/update-registry.mjs
 
       - name: Commit updated registry.json
