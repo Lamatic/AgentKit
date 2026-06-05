@@ -1,0 +1,520 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #0c0c10;
+  --bg-surface: #14141a;
+  --bg-elevated: #1c1c24;
+  --border: #2a2a35;
+  --accent: #6366f1;
+  --accent-hover: #4f52e0;
+  --text-primary: #f0f0f5;
+  --text-secondary: #8888a0;
+  --text-muted: #55556a;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --doc-bg: #fafaf8;
+  --doc-text: #1a1a1a;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Google Sans', 'DM Sans', sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "GRAD" 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+/* ── Selections ── */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: var(--text-primary);
+}
+
+/* ── Document rendering (contract/invoice) ── */
+.document-surface {
+  background-color: var(--doc-bg);
+  color: var(--doc-text);
+  font-family: 'Lora', serif;
+  line-height: 1.8;
+}
+
+.document-surface h1,
+.document-surface h2,
+.document-surface h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  color: #111;
+}
+
+/* ── Input focus states ── */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* ── Smooth page transitions ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* ── Skeleton loading ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* --- LIQUID GLASS (from Founder Lens) --- */
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+}
+
+.liquid-glass-pill {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.liquid-glass-pill:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  transform: translateY(-1px);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+}
+
+/* --- AURORA BG --- */
+.aurora-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  background-color: var(--bg-base);
+}
+
+/* --- TEXT GRADIENT ANIMATION --- */
+.text-gradient-animate {
+  background: linear-gradient(to right, #ffffff, #6366f1, #ffffff);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* --- ICON COLOR ANIMATION --- */
+.animate-icon-color {
+  animation: iconColor 3s linear infinite;
+}
+
+@keyframes iconColor {
+  0%, 100% { color: #ffffff; }
+  50% { color: #6366f1; }
+}
+
+/* --- ANIMATED BORDER GLOW --- */
+@property --a {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-angle {
+  to {
+    --a: 1turn;
+  }
+}
+
+.feature-card-glow {
+  box-sizing: border-box;
+  border: solid 2px transparent;
+  border-radius: 1.5rem;
+  background: 
+    linear-gradient(#14141a, #14141a) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)) border-box;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card-glow:hover {
+  background: 
+    linear-gradient(#14141a, #14141a) padding-box,
+    conic-gradient(from var(--a, 0deg), transparent 50%, rgba(99,102,241,0.3) 80%, #ffffff 95%, #6366f1 100%) border-box;
+  animation: spin-angle 2s linear infinite;
+  transform: translateY(-4px);
+}
+
+/* --- GALAXY BUTTON --- */
+.galaxy-button {
+  --transition: 0.25s;
+  --spark: 1.8s;
+  --hue: 245;
+  position: relative;
+  display: inline-block;
+}
+
+.galaxy-btn-core {
+  --cut: 2px;
+  --active: 0;
+  --bg:
+    radial-gradient(
+      120% 120% at 126% 126%,
+      hsl(var(--hue) calc(var(--active) * 97%) 98% / calc(var(--active) * 0.9)) 40%,
+      transparent 50%
+    ) calc(100px - (var(--active) * 100px)) 0 / 100% 100% no-repeat, 
+    radial-gradient(
+      120% 120% at 120% 120%,
+      hsl(var(--hue) calc(var(--active) * 97%) 70% / calc(var(--active) * 1)) 30%,
+      transparent 70%
+    ) calc(100px - (var(--active) * 100px)) 0 / 100% 100% no-repeat,
+    hsl(var(--hue) calc(var(--active) * 100%) calc(12% - (var(--active) * 8%)));
+  font-weight: 500;
+  border: 0;
+  cursor: pointer;
+  padding: 0.9em 2em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  white-space: nowrap;
+  border-radius: 2rem;
+  position: relative;
+  box-shadow:
+    0 0 calc(var(--active) * 6em) calc(var(--active) * 3em) hsl(var(--hue) 97% 61% / 0.5),
+    0 calc(var(--active) * 0.05em) 0 0 hsl(var(--hue) calc(var(--active) * 97%) calc((var(--active) * 50%) + 30%)) inset,
+    0 calc(var(--active) * -0.05em) 0 0 hsl(var(--hue) calc(var(--active) * 97%) calc(var(--active) * 10%)) inset;
+  transition: box-shadow var(--transition), scale var(--transition);
+  scale: calc(1 + (var(--active) * 0.05));
+  transform-style: preserve-3d;
+  perspective: 100vmin;
+  overflow: hidden;
+  color: white;
+}
+
+.galaxy-btn-core:active {
+  scale: 1;
+}
+
+.galaxy-star {
+  height: var(--size);
+  aspect-ratio: 1;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  opacity: var(--alpha);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(var(--angle)) rotate(0deg) translateY(var(--distance));
+  animation: orbit var(--duration) calc(var(--delay) * -1) infinite linear;
+}
+
+@keyframes orbit {
+  to {
+    transform: translate(-50%, -50%) rotate(var(--angle)) rotate(360deg) translateY(var(--distance));
+  }
+}
+
+.galaxy {
+  position: absolute;
+  width: 100%;
+  aspect-ratio: 1;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  overflow: hidden;
+  opacity: var(--active);
+  transition: opacity var(--transition);
+}
+
+.galaxy__ring {
+  height: 200%;
+  width: 200%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-28%, -40%) rotateX(-24deg) rotateY(-30deg) rotateX(90deg);
+  transform-style: preserve-3d;
+}
+
+.galaxy__container {
+  position: absolute;
+  inset: 0;
+  opacity: var(--active);
+  transition: opacity var(--transition);
+  mask: radial-gradient(white, transparent);
+  -webkit-mask: radial-gradient(white, transparent);
+}
+
+.galaxy-star--static {
+  animation: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(0, 0);
+  max-height: 4px;
+  filter: brightness(4);
+  opacity: 0.9;
+  animation:
+    move-x calc(var(--duration) * 0.1) calc(var(--delay) * -0.1) infinite linear,
+    move-y calc(var(--duration) * 0.2) calc(var(--delay) * -0.2) infinite linear;
+}
+
+.galaxy-button:hover .galaxy-star--static,
+.galaxy-button:focus-visible .galaxy-star--static {
+  animation-play-state: paused;
+}
+
+@keyframes move-x {
+  0% { translate: -100px 0; }
+  100% { translate: 100px 0; }
+}
+
+@keyframes move-y {
+  0% { transform: translate(0, -50px); }
+  100% { transform: translate(0, 50px); }
+}
+
+.galaxy-spark-mask {
+  position: absolute;
+  inset: 0;
+  border-radius: 2rem;
+  padding: var(--cut);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.galaxy-spark {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  rotate: 0deg;
+  overflow: hidden;
+  mask: linear-gradient(white, transparent 50%);
+  -webkit-mask: linear-gradient(white, transparent 50%);
+  animation: flip calc(var(--spark) * 2) infinite steps(2, end);
+}
+
+@keyframes flip {
+  to { rotate: 360deg; }
+}
+
+.galaxy-spark:before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  aspect-ratio: 1;
+  top: 0%;
+  left: 50%;
+  z-index: -1;
+  translate: -50% -15%;
+  rotate: 0;
+  transform: rotate(-90deg);
+  opacity: calc((var(--active)) + 0.4);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 340deg,
+    white 360deg
+  );
+  transition: opacity var(--transition);
+  animation: rotate var(--spark) linear infinite both;
+}
+
+.galaxy-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2rem;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.galaxy-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--bg);
+  opacity: var(--active);
+  transition: opacity var(--transition);
+}
+
+@keyframes rotate {
+  to { transform: rotate(90deg); }
+}
+
+.galaxy-button:hover .galaxy-btn-core,
+.galaxy-button:focus-visible .galaxy-btn-core {
+  --active: 1;
+  --play-state: running;
+}
+
+.galaxy-text {
+  letter-spacing: 0.01ch;
+  color: hsl(0 0% calc(60% + (var(--active) * 26%)));
+  position: relative;
+  z-index: 10;
+}
+
+/* --- PRINT STYLES --- */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  /* White background, strip all spacing from html/body */
+  html, body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Kill anything tagged no-print (header, sidebar, buttons) */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Kill aurora background and its canvas */
+  .aurora-bg,
+  .aurora-bg canvas {
+    display: none !important;
+  }
+
+  /* Collapse ALL wrapper spacing so the document starts at the very top */
+  main,
+  main > div,
+  main > div > div {
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    max-width: none !important;
+    gap: 0 !important;
+    display: block !important;
+  }
+
+  /* The document itself — full width, pure white, no decorations */
+  .document-surface {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+    font-family: 'Lora', serif !important;
+    line-height: 1.8 !important;
+  }
+
+  .document-surface h1,
+  .document-surface h2,
+  .document-surface h3 {
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    color: #111 !important;
+  }
+
+  /* Preserve grids INSIDE the document (e.g. signatures side by side) */
+  .document-surface .grid {
+    display: grid !important;
+  }
+
+  /* Keep signatures together — avoid splitting, don't force a new page */
+  #signatures-section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Prevent invoice table rows from being clipped across pages */
+  .document-surface tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Print colors accurately */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
