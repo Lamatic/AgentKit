@@ -7,10 +7,15 @@ export default {
     "name": "Harshul Dashora",
     "email": "harshuldashora01@gmail.com"
   },
+  "tags": [],
   "steps": [
     {
       "id": "resume-parser",
       "type": "mandatory"
     }
-  ]
+  ],
+  "links": {
+    "deploy": "",
+    "github": ""
+  }
 };
