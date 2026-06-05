@@ -8,12 +8,12 @@ export default {
     "email": "tiyajain28102005@gmail.com"
   },
   "tags": [
-  "interview",
-  "career",
-  "job-preparation",
-  "ai-assistant",
-  "template"
-]
+    "interview",
+    "career",
+    "job-preparation",
+    "ai-assistant",
+    "template"
+  ],
   "steps": [
     {
       "id": "meeting-preparation-agent",
@@ -21,6 +21,6 @@ export default {
     }
   ],
   "links": {
-    "github": "https://github.com/TiyaJain28/meeting-preparation-agent"
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/meeting-preparation-agent"
   }
 };
