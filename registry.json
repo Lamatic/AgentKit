@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-04-20T07:48:04.778Z",
+  "generated": "2026-06-05T06:52:42.751Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 70,
+  "count": 71,
   "typeCounts": {
-    "kit": 22,
+    "kit": 23,
     "bundle": 6,
     "template": 42
   },
@@ -1432,6 +1432,53 @@
       },
       "capabilities": {
         "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "forge",
+      "name": "Forge",
+      "description": "AI-powered contract and invoice generator for cross-border freelancers. Enter project details, get AI-suggested pricing, select a governing law, and walk away with a professional contract and matching invoice — ready to sign and export as PDFs.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "agentic",
+        "documents",
+        "freelance",
+        "generative",
+        "legal"
+      ],
+      "author": {
+        "name": "Andrew Dosumu",
+        "email": "dev@andrewdosumu.com"
+      },
+      "steps": [],
+      "links": {},
+      "path": "kits/forge",
+      "flows": {
+        "count": 4,
+        "names": [
+          "forge-contract",
+          "forge-invoice",
+          "forge-pricing",
+          "forge-tradeoff"
+        ]
+      },
+      "resources": {
+        "prompts": 8,
+        "scripts": 0,
+        "modelConfigs": 4,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
