@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Review Analyzer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 400px;
+      height: 550px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0b0c10;
+      color: #e4e6eb;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(15, 17, 26, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.85);
+    }
+    .title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #ffffff, #a1a1aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .settings-btn {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .settings-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .settings-panel {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0d0e12;
+      padding: 24px 20px;
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 100;
+    }
+    .settings-panel.active {
+      display: flex;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+    input {
+      background: #14151f;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #ffffff;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-color: #6366f1;
+    }
+    .btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover {
+      opacity: 0.95;
+    }
+    .btn-secondary {
+      background: #14151f;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e4e6eb;
+    }
+    .btn-secondary:hover {
+      background: #1e1f2b;
+    }
+    #dashboard-iframe {
+      border: none;
+      width: 100%;
+      flex-grow: 1;
+      background: #0b0c10;
+    }
+    .loader-container {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: #0b0c10;
+      z-index: 5;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(99, 102, 241, 0.1);
+      border-radius: 50%;
+      border-top-color: #6366f1;
+      animation: spin 1s linear infinite;
+    }
+    .status-text {
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 0 32px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-container">
+        <div class="logo-dot"></div>
+        <div class="title">Review Analyzer Agent</div>
+      </div>
+      <button class="settings-btn" id="settings-btn" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      </button>
+    </div>
+
+    <!-- Settings panel -->
+    <div class="settings-panel" id="settings-panel">
+      <div class="form-group">
+        <label for="next-url">Next.js App URL</label>
+        <input type="text" id="next-url" placeholder="http://localhost:3000">
+      </div>
+      <button class="btn" id="save-settings-btn">Save Settings</button>
+      <button class="btn btn-secondary" id="close-settings-btn">Cancel</button>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loader-container" id="loader-container">
+      <div class="spinner"></div>
+      <div class="status-text" id="status-text">Ready to analyze reviews...</div>
+    </div>
+
+    <!-- Embedded Next.js Iframe -->
+    <iframe id="dashboard-iframe" src=""></iframe>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
