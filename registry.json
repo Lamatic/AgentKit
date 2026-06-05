@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-06-05T08:03:00.048Z",
+  "generated": "2026-06-05T08:15:31.133Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 73,
+  "count": 74,
   "typeCounts": {
     "kit": 25,
     "bundle": 6,
-    "template": 42
+    "template": 43
   },
   "entries": [
     {
@@ -103,6 +103,55 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "ai-onboarding-buddy",
+      "name": "AI Onboarding Buddy",
+      "description": "A generative employee-enablement agent that analyzes new hire skill gaps and constructs a tailored 30/60/90-day onboarding plan alongside manager welcome messages.",
+      "version": "1.0.0",
+      "type": "template",
+      "tags": [
+        "generative",
+        "support"
+      ],
+      "author": {
+        "name": "Anshuk Jirli",
+        "email": "geeked.anshuk666@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "ai-onboarding-buddy",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-onboarding-buddy",
+        "deploy": "https://studio.lamatic.ai/template/ai-onboarding-buddy"
+      },
+      "path": "kits/ai-onboarding-buddy",
+      "flows": {
+        "count": 1,
+        "names": [
+          "ai-onboarding-buddy"
+        ]
+      },
+      "resources": {
+        "prompts": 3,
+        "scripts": 0,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
