@@ -106,6 +106,8 @@ export const nodes = [
             "content": "Candidate Profile:\n{{triggerNode_1.output.candidateProfile}}\n\nJob Description:\n{{triggerNode_1.output.jobDescription}}"
           }
         ],
+        "memories": "@model-configs/gap-analyzer.ts",
+        "messages": "@model-configs/gap-analyzer.ts",
         "generativeModelName": "@model-configs/gap-analyzer.ts"
       }
     }
@@ -131,6 +133,8 @@ export const nodes = [
             "content": "Gap Analysis:\n{{gapAnalyzer_2.output.generatedResponse}}\n\nCompany Context (optional):\n{{triggerNode_1.output.companyContext}}"
           }
         ],
+        "memories": "@model-configs/plan-generator.ts",
+        "messages": "@model-configs/plan-generator.ts",
         "generativeModelName": "@model-configs/plan-generator.ts"
       }
     }
@@ -156,6 +160,8 @@ export const nodes = [
             "content": "Candidate Profile:\n{{triggerNode_1.output.candidateProfile}}\n\nOnboarding Plan:\n{{planGenerator_3.output.generatedResponse}}"
           }
         ],
+        "memories": "@model-configs/welcome-drafter.ts",
+        "messages": "@model-configs/welcome-drafter.ts",
         "generativeModelName": "@model-configs/welcome-drafter.ts"
       }
     }
