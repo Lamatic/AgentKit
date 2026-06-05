@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-06-05T08:22:58.465Z",
+  "generated": "2026-06-05T11:51:56.381Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 75,
+  "count": 76,
   "typeCounts": {
-    "kit": 26,
+    "kit": 27,
     "bundle": 6,
     "template": 43
   },
@@ -818,6 +818,57 @@
         "hasReadme": true,
         "hasEnvExample": false,
         "hasChatWidget": true,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "debugpilot-ai",
+      "name": "DebugPilot AI",
+      "description": "AI-powered debugging workflow for root cause analysis.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "debugging",
+        "ai",
+        "developer-tools"
+      ],
+      "author": {
+        "name": "Yash Ramnani",
+        "email": "yashyr190@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "debugpilot-flow",
+          "type": "mandatory",
+          "envKey": "DEBUGPILOT_FLOW_ID"
+        }
+      ],
+      "links": {
+        "demo": "https://debugpilot-ai.vercel.app",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/debugpilot-ai"
+      },
+      "path": "kits/debugpilot-ai",
+      "flows": {
+        "count": 1,
+        "names": [
+          "debugpilot-flow"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 0,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
         "hasSearchWidget": false
       }
     },
