@@ -1,7 +1,7 @@
 "use server";
 
 import { lamaticClient } from "@/lib/lamatic-client";
-import { config } from "../orchestrate.js";
+import { config } from "../../lamatic.config";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
 
 const TIMEOUT_MS = 240000; // 4 minutes — the LLM generates ~4K tokens of clause JSON
@@ -133,8 +133,8 @@ export async function generateMoU(
       agreementTitle: flatInputs.agreementTitle,
       deliverables_type: typeof flatInputs.deliverables,
       deliverables_is_string: typeof flatInputs.deliverables === "string",
-      partyAName: flatInputs.partyAName,
-      partyBName: flatInputs.partyBName,
+      partyAName: "[redacted]",
+      partyBName: "[redacted]",
     });
 
     const resData: any = await withTimeout(
