@@ -1,17 +1,24 @@
 // Server-side LaTeX → PDF compile.
 //
-// Accepts POST { latex: string }, shells out to `pdflatex` in a fresh temp
-// dir, returns the PDF bytes on success or the relevant slice of the
-// compile log on failure.
+// Accepts POST { latex: string }, runs `pdflatex` inside a locked-down
+// container with read-only input and no network, then returns the PDF bytes
+// on success or the relevant slice of the compile log on failure.
 //
-// Requires `pdflatex` on PATH (MiKTeX on Windows, TeX Live elsewhere).
-// Vercel serverless functions cannot run this — see README. For prod,
-// either deploy to a host with TeXLive baked in (Docker on Fly.io,
-// Railway, a VPS) or front this route with a separate compile service.
+// Requires a local container runtime in development. Vercel serverless
+// functions cannot run this — see README. For prod, either deploy to a host
+// that can run the sandbox or front this route with a separate compile service.
 
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
-import { mkdtemp, writeFile, readFile, rm, stat } from "fs/promises";
+import {
+  mkdtemp,
+  writeFile,
+  readFile,
+  rm,
+  stat,
+  mkdir,
+  chmod,
+} from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 
@@ -20,6 +27,12 @@ export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 const PDFLATEX_BIN = process.env.PDFLATEX_BIN || "pdflatex";
+const PDFLATEX_SANDBOX_RUNTIME =
+  process.env.PDFLATEX_SANDBOX_RUNTIME || "docker";
+const PDFLATEX_SANDBOX_IMAGE =
+  process.env.PDFLATEX_SANDBOX_IMAGE || "texlive/texlive:TL2024-historic";
+const PDFLATEX_SANDBOX_USER =
+  process.env.PDFLATEX_SANDBOX_USER || "65534:65534";
 const COMPILE_TIMEOUT_MS = 45_000;
 const MAX_LATEX_BYTES = 512 * 1024; // 512 KB cap — an MoU is ~10 KB
 
@@ -69,11 +82,17 @@ export async function POST(req: NextRequest) {
 
   const workDir = await mkdtemp(join(tmpdir(), "moudraft-"));
   try {
-    const texPath = join(workDir, "main.tex");
-    const pdfPath = join(workDir, "main.pdf");
+    const inputDir = join(workDir, "input");
+    const outputDir = join(workDir, "output");
+    await mkdir(inputDir);
+    await mkdir(outputDir);
+    await chmod(outputDir, 0o777).catch(() => undefined);
+
+    const texPath = join(inputDir, "main.tex");
+    const pdfPath = join(outputDir, "main.pdf");
     await writeFile(texPath, latex, "utf8");
 
-    const result = await runPdflatex(workDir, texPath);
+    const result = await runPdflatex(inputDir, outputDir);
 
     // pdflatex may exit non-zero on warnings yet still emit a PDF; rely on
     // the PDF file existing as the source of truth.
@@ -90,7 +109,7 @@ export async function POST(req: NextRequest) {
             result.timedOut
               ? "pdflatex timed out."
               : result.notFound
-              ? "pdflatex was not found. Install MiKTeX or TeX Live and ensure it's on PATH."
+              ? `${PDFLATEX_SANDBOX_RUNTIME} was not found. Install Docker/Podman or set PDFLATEX_SANDBOX_RUNTIME.`
               : "pdflatex failed to produce a PDF.",
           log: extractRelevantLog(result.log),
         } satisfies CompileFailure,
@@ -126,19 +145,49 @@ interface PdflatexResult {
   notFound: boolean;
 }
 
-function runPdflatex(cwd: string, texPath: string): Promise<PdflatexResult> {
+function runPdflatex(
+  inputDir: string,
+  outputDir: string
+): Promise<PdflatexResult> {
   return new Promise((resolve) => {
     const child = spawn(
-      PDFLATEX_BIN,
+      PDFLATEX_SANDBOX_RUNTIME,
       [
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "--user",
+        PDFLATEX_SANDBOX_USER,
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--pids-limit",
+        "64",
+        "--memory",
+        "512m",
+        "--cpus",
+        "1",
+        "--tmpfs",
+        "/tmp:rw,nosuid,nodev,noexec,size=64m",
+        "--mount",
+        `type=bind,source=${inputDir},target=/input,readonly`,
+        "--mount",
+        `type=bind,source=${outputDir},target=/output`,
+        "--workdir",
+        "/output",
+        PDFLATEX_SANDBOX_IMAGE,
+        PDFLATEX_BIN,
         "-interaction=nonstopmode",
         "-halt-on-error",
         "-no-shell-escape",
         "-output-directory",
-        cwd,
-        texPath,
+        "/output",
+        "/input/main.tex",
       ],
-      { cwd, windowsHide: true }
+      { windowsHide: true }
     );
 
     let log = "";

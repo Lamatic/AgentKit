@@ -515,6 +515,7 @@ interface MoUFormProps {
 
 export default function MoUForm({ onSubmit, isSubmitting, initialValues }: MoUFormProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const advancedPanelId = "risk-protection-panel";
 
   const {
     register,
@@ -761,6 +762,7 @@ export default function MoUForm({ onSubmit, isSubmitting, initialValues }: MoUFo
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive/80 h-9"
+                      aria-label={`Remove deliverable ${index + 1}`}
                       onClick={() => remove(index)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -1084,7 +1086,17 @@ export default function MoUForm({ onSubmit, isSubmitting, initialValues }: MoUFo
         <Card className="glass-card">
           <CardHeader
             className="pb-1 cursor-pointer select-none"
-            onClick={() => setShowAdvanced(!showAdvanced)}
+            role="button"
+            tabIndex={0}
+            aria-expanded={showAdvanced}
+            aria-controls={advancedPanelId}
+            onClick={() => setShowAdvanced((value) => !value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setShowAdvanced((value) => !value);
+              }
+            }}
           >
             <CardTitle className="text-lg flex items-center gap-2">
               {showAdvanced ? (
@@ -1099,7 +1111,7 @@ export default function MoUForm({ onSubmit, isSubmitting, initialValues }: MoUFo
             </CardTitle>
           </CardHeader>
           {showAdvanced && (
-            <CardContent className="space-y-4">
+            <CardContent id={advancedPanelId} className="space-y-4">
               <FormToggle
                 id="confidentialityRequired"
                 label="Confidentiality clause"

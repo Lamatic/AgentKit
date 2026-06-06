@@ -1,5 +1,5 @@
 import { Lamatic } from "lamatic";
-import { config } from "../orchestrate.js";
+import { config } from "../../lamatic.config";
 
 if (!process.env.MOU_DRAFTER_FLOW_ID) {
   throw new Error(
