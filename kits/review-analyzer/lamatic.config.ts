@@ -1,0 +1,21 @@
+export default {
+  name: "Review Analyzer",
+  description: "Analyze product reviews on e-commerce sites to summarize consensus, extract pros & cons, and determine a trust score to spot fake or low-effort reviews.",
+  version: "1.0.0",
+  type: "kit",
+  author: {
+    name: "Arda Ceylan",
+    email: "arda.ceylan@example.com"
+  },
+  tags: ["extension", "ecommerce", "analyzer", "sentiment"],
+  steps: [
+    {
+      id: "review-analyzer",
+      type: "mandatory",
+      envKey: "REVIEW_ANALYZER_FLOW_ID"
+    }
+  ],
+  links: {
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/review-analyzer"
+  }
+};

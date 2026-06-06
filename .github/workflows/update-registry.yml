@@ -1,0 +1,312 @@
+name: Update Registry
+
+# Runs when a PR is merged into main and touches kits/.
+# Reads lamatic.config.ts from each new kit, scans the kit folder,
+# builds the registry entry, and commits the updated registry.json.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      kits:
+        description: 'Kit paths to process (space separated, e.g. kits/forge kits/my-kit)'
+        required: true
+        type: string
+
+jobs:
+  update-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Detect merged kits
+        id: detect
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          CHANGED_FILES=$(gh api "repos/$REPO/pulls/$PR_NUMBER/files" \
+            --jq '.[].filename')
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          KITS=()
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if [[ "$file" == kits/* ]]; then
+              path=$(echo "$file" | cut -d/ -f1-2)
+              KITS+=("$path")
+            fi
+          done <<< "$CHANGED_FILES"
+
+          UNIQUE_KITS=($(printf '%s\n' "${KITS[@]}" | sort -u))
+
+          if [ ${#UNIQUE_KITS[@]} -eq 0 ]; then
+            echo "No kit changes detected — skipping registry update."
+            echo "kits=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Detected kits: ${UNIQUE_KITS[*]}"
+            echo "kits=${UNIQUE_KITS[*]}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write registry update script
+        run: |
+          cat > /tmp/update-registry.mjs << 'SCRIPT_EOF'
+          import fs from 'fs';
+          import path from 'path';
+
+          const registryPath = 'registry.json';
+          const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+          const kitsEnv = process.env.KITS || '';
+          const kits = kitsEnv.trim().split(/\s+/).filter(Boolean);
+
+          if (kits.length === 0) {
+            console.log('No kits to process.');
+            process.exit(0);
+          }
+
+          const readSafe = (p) => {
+            try { return fs.readFileSync(p, 'utf8'); } catch { return null; }
+          };
+
+          const countFiles = (dir) => {
+            if (!fs.existsSync(dir)) return 0;
+            let count = 0;
+            const walk = (d) => {
+              fs.readdirSync(d).forEach(f => {
+                const full = path.join(d, f);
+                if (fs.statSync(full).isDirectory()) walk(full);
+                else count++;
+              });
+            };
+            walk(dir);
+            return count;
+          };
+
+          const getFlowNames = (flowsDir) => {
+            if (!fs.existsSync(flowsDir)) return [];
+            return fs.readdirSync(flowsDir)
+              .filter(f => f.endsWith('.ts'))
+              .map(f => f.replace('.ts', ''))
+              .sort();
+          };
+
+          const hasChatWidget = (flowsDir) => {
+            if (!fs.existsSync(flowsDir)) return false;
+            for (const file of fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'))) {
+              const content = readSafe(path.join(flowsDir, file)) || '';
+              if (content.includes('askTriggerNode')) return true;
+            }
+            return false;
+          };
+
+          const hasSearchWidget = (flowsDir) => {
+            if (!fs.existsSync(flowsDir)) return false;
+            for (const file of fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'))) {
+              const content = readSafe(path.join(flowsDir, file)) || '';
+              if (content.includes('searchTriggerNode') || content.includes('searchWidgetNode')) return true;
+            }
+            return false;
+          };
+
+          const parseConfig = (configPath) => {
+            const content = readSafe(configPath);
+            if (!content) return null;
+
+            const getString = (key) => {
+              const re = new RegExp(key + '\\s*:\\s*["\']([^"\']+)["\']');
+              const m = content.match(re);
+              return m ? m[1] : '';
+            };
+
+            const getArray = (key) => {
+              const re = new RegExp(key + '\\s*:\\s*\\[([^\\]]+)\\]');
+              const m = content.match(re);
+              if (!m) return [];
+              const matches = m[1].match(/["']([^"']+)["']/g);
+              return matches ? matches.map(s => s.replace(/["']/g, '')) : [];
+            };
+
+            const getType = () => {
+              const m = content.match(/type\s*:\s*["']?(kit|bundle|template)["']?/);
+              return m ? m[1] : 'template';
+            };
+
+            const getAuthor = () => {
+              const allNameMatches = [...content.matchAll(/name\s*:\s*["']([^"']+)["']/g)];
+              const emailMatch = content.match(/email\s*:\s*["']([^"']+)["']/);
+              // Skip first name match (kit name), use second (author name)
+              const authorName = allNameMatches.length > 1 ? allNameMatches[1][1] : (allNameMatches[0] ? allNameMatches[0][1] : '');
+              return {
+                name: authorName,
+                ...(emailMatch ? { email: emailMatch[1] } : {})
+              };
+            };
+
+            const getLinks = () => {
+              const links = {};
+              const demoMatch = content.match(/demo\s*:\s*["']([^"']+)["']/);
+              const githubMatch = content.match(/github\s*:\s*["']([^"']+)["']/);
+              const deployMatch = content.match(/deploy\s*:\s*["']([^"']+)["']/);
+              const docsMatch = content.match(/docs\s*:\s*["']([^"']+)["']/);
+              if (demoMatch) links.demo = demoMatch[1];
+              if (githubMatch) links.github = githubMatch[1];
+              if (deployMatch) links.deploy = deployMatch[1];
+              if (docsMatch) links.docs = docsMatch[1];
+              return links;
+            };
+
+            const getSteps = () => {
+              const steps = [];
+              const stepPattern = /\{\s*(?:[^}]*?)id\s*:\s*["']([^"']+)["'](?:[^}]*?)type\s*:\s*["'](mandatory|any-of)["'](?:[^}]*?)\}/gs;
+              const matches = [...content.matchAll(stepPattern)];
+              for (const match of matches) {
+                const block = match[0];
+                const idM = block.match(/id\s*:\s*["']([^"']+)["']/);
+                const typeM = block.match(/type\s*:\s*["'](mandatory|any-of)["']/);
+                const envM = block.match(/envKey\s*:\s*["']([^"']+)["']/);
+                if (idM && typeM) {
+                  const step = { id: idM[1], type: typeM[1] };
+                  if (envM) step.envKey = envM[1];
+                  steps.push(step);
+                }
+              }
+              return steps;
+            };
+
+            return {
+              name: getString('name'),
+              description: getString('description'),
+              version: getString('version') || '1.0.0',
+              type: getType(),
+              tags: getArray('tags'),
+              author: getAuthor(),
+              steps: getSteps(),
+              links: getLinks()
+            };
+          };
+
+          let updated = false;
+
+          for (const kitPath of kits) {
+            const slug = path.basename(kitPath);
+            const configPath = path.join(kitPath, 'lamatic.config.ts');
+            const flowsDir = path.join(kitPath, 'flows');
+
+            if (!fs.existsSync(kitPath)) {
+              console.log('Kit path does not exist: ' + kitPath + ' — skipping');
+              continue;
+            }
+
+            const config = parseConfig(configPath);
+            if (!config) {
+              console.log('Could not parse lamatic.config.ts for ' + kitPath + ' — skipping');
+              continue;
+            }
+
+            const flowNames = getFlowNames(flowsDir);
+
+            const entry = {
+              slug,
+              name: config.name || slug,
+              description: config.description || '',
+              version: config.version || '1.0.0',
+              type: config.type || 'template',
+              tags: config.tags || [],
+              author: config.author || {},
+              steps: config.steps || [],
+              links: config.links || {},
+              path: kitPath,
+              flows: {
+                count: flowNames.length,
+                names: flowNames
+              },
+              resources: {
+                prompts: countFiles(path.join(kitPath, 'prompts')),
+                scripts: countFiles(path.join(kitPath, 'scripts')),
+                modelConfigs: countFiles(path.join(kitPath, 'model-configs')),
+                constitutions: countFiles(path.join(kitPath, 'constitutions')),
+                triggers: countFiles(path.join(kitPath, 'triggers')),
+                memory: countFiles(path.join(kitPath, 'memory')),
+                tools: countFiles(path.join(kitPath, 'tools'))
+              },
+              capabilities: {
+                hasApps: fs.existsSync(path.join(kitPath, 'apps')),
+                hasAgentMd: fs.existsSync(path.join(kitPath, 'agent.md')),
+                hasReadme: fs.existsSync(path.join(kitPath, 'README.md')),
+                hasEnvExample: fs.existsSync(path.join(kitPath, '.env.example')),
+                hasChatWidget: hasChatWidget(flowsDir),
+                hasSearchWidget: hasSearchWidget(flowsDir)
+              }
+            };
+
+            const existingIndex = registry.entries.findIndex(e => e.slug === slug);
+            if (existingIndex >= 0) {
+              registry.entries[existingIndex] = entry;
+              console.log('Updated existing entry: ' + slug);
+            } else {
+              registry.entries.push(entry);
+              console.log('Added new entry: ' + slug);
+            }
+
+            updated = true;
+          }
+
+          if (!updated) {
+            console.log('No entries updated.');
+            process.exit(0);
+          }
+
+          registry.entries.sort((a, b) => a.slug.localeCompare(b.slug));
+          registry.count = registry.entries.length;
+          registry.typeCounts = {
+            kit: registry.entries.filter(e => e.type === 'kit').length,
+            bundle: registry.entries.filter(e => e.type === 'bundle').length,
+            template: registry.entries.filter(e => e.type === 'template').length
+          };
+          registry.generated = new Date().toISOString();
+
+          fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n');
+          console.log('registry.json updated — total entries: ' + registry.entries.length);
+          SCRIPT_EOF
+
+      - name: Update registry.json
+        env:
+          KITS: ${{ github.event_name == 'workflow_dispatch' && inputs.kits || steps.detect.outputs.kits }}
+        run: node /tmp/update-registry.mjs
+
+      - name: Commit updated registry.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet registry.json; then
+            echo "No changes to registry.json — nothing to commit."
+            exit 0
+          fi
+
+          git add registry.json
+          git commit -m "chore: update registry.json after merging PR #${{ github.event.pull_request.number }}"
+          git push origin main
+          echo "registry.json committed and pushed."
