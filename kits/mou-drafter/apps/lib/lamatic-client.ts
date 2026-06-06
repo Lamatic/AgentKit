@@ -1,5 +1,4 @@
 import { Lamatic } from "lamatic";
-import { config } from "../../lamatic.config";
 
 if (!process.env.MOU_DRAFTER_FLOW_ID) {
   throw new Error(
@@ -18,7 +17,7 @@ if (
 }
 
 export const lamaticClient = new Lamatic({
-  endpoint: config.api.endpoint ?? "",
-  projectId: config.api.projectId,
-  apiKey: config.api.apiKey ?? "",
+  endpoint: process.env.LAMATIC_API_URL,
+  projectId: process.env.LAMATIC_PROJECT_ID,
+  apiKey: process.env.LAMATIC_API_KEY,
 });
