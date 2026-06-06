@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ExternalLink, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { openInOverleaf, downloadTexFile } from "@/lib/overleaf";
@@ -34,9 +34,16 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
   });
   const [showLog, setShowLog] = useState(false);
   const lastUrlRef = useRef<string | null>(null);
+  const revokeLastUrl = useCallback(() => {
+    if (lastUrlRef.current) {
+      URL.revokeObjectURL(lastUrlRef.current);
+      lastUrlRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
+    revokeLastUrl();
     setPhase({ kind: "loading", message: "Compiling your PDF" });
 
     (async () => {
@@ -53,7 +60,7 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
           const blob = await res.blob();
           if (cancelled) return;
           const url = URL.createObjectURL(blob);
-          if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
+          revokeLastUrl();
           lastUrlRef.current = url;
           setPhase({ kind: "ready", url });
           return;
@@ -69,9 +76,11 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
         } catch {
           // Fall through with generic message.
         }
+        revokeLastUrl();
         setPhase({ kind: "error", message, log });
       } catch (err) {
         if (cancelled) return;
+        revokeLastUrl();
         setPhase({
           kind: "error",
           message:
@@ -85,13 +94,11 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
     return () => {
       cancelled = true;
     };
-  }, [latex]);
+  }, [latex, revokeLastUrl]);
 
   useEffect(() => {
-    return () => {
-      if (lastUrlRef.current) URL.revokeObjectURL(lastUrlRef.current);
-    };
-  }, []);
+    return revokeLastUrl;
+  }, [revokeLastUrl]);
 
   if (phase.kind === "loading") {
     return (

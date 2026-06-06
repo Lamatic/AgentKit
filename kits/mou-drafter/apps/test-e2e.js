@@ -9,9 +9,11 @@
  */
 
 const { Lamatic } = require("lamatic");
+const fs = require("fs");
+const path = require("path");
 
 // ── Load env ─────────────────────────────────────────────────────────────
-require("dotenv").config({ path: ".env.local" });
+require("dotenv").config({ path: path.join(__dirname, ".env.local") });
 
 const FLOW_ID = process.env.MOU_DRAFTER_FLOW_ID;
 const API_URL = process.env.LAMATIC_API_URL;
@@ -76,6 +78,20 @@ const formData = {
   paymentPreset: "30-net-15",
   eventStart: "2025-09-12",
   eventEnd: "2025-09-14",
+  eventStartTime: "09:00",
+  eventEndTime: "22:00",
+  eventVenue: "PES University Main Auditorium, Bengaluru",
+  paymentTiming: "advance-partial",
+  paymentTimingCustom: "",
+  taxesIncluded: false,
+  taxRatePct: 18,
+  lateFeePctPerMonth: 1.5,
+  cancellationPolicy: "sliding-scale",
+  cancellationTerms: "",
+  guestCountFinalDate: "2025-09-05",
+  extraGuestRate: 800,
+  foodSafetyRequired: true,
+  allergyHandlingRequired: true,
   confidentialityRequired: true,
   confidentialitySurvivalYears: 2,
   ipOwnership: "not-applicable",
@@ -123,6 +139,20 @@ function flattenFormToTrigger(form) {
     customPaymentDays: form.customPaymentDays ?? 15,
     eventStart: form.eventStart ?? "",
     eventEnd: form.eventEnd ?? "",
+    eventStartTime: form.eventStartTime ?? "",
+    eventEndTime: form.eventEndTime ?? "",
+    eventVenue: form.eventVenue ?? "",
+    paymentTiming: form.paymentTiming,
+    paymentTimingCustom: form.paymentTimingCustom ?? "",
+    taxesIncluded: form.taxesIncluded,
+    taxRatePct: form.taxRatePct,
+    lateFeePctPerMonth: form.lateFeePctPerMonth,
+    cancellationPolicy: form.cancellationPolicy,
+    cancellationTerms: form.cancellationTerms ?? "",
+    guestCountFinalDate: form.guestCountFinalDate ?? "",
+    extraGuestRate: form.extraGuestRate ?? 0,
+    foodSafetyRequired: form.foodSafetyRequired,
+    allergyHandlingRequired: form.allergyHandlingRequired,
     confidentialityRequired: form.confidentialityRequired,
     confidentialitySurvivalYears: form.confidentialitySurvivalYears,
     ipOwnership: form.ipOwnership,
@@ -220,8 +250,7 @@ async function main() {
   console.log("  INR/amount:", hasINR);
 
   // Step 5: Write .tex to disk for manual verification
-  const fs = require("fs");
-  const outPath = "test-output-catering.tex";
+  const outPath = path.join(__dirname, "test-output-catering.tex");
   fs.writeFileSync(outPath, latex, "utf8");
   console.log(`\n[OUTPUT] LaTeX written to ${outPath} (${latex.length} bytes)`);
 
