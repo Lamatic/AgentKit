@@ -66,6 +66,8 @@ export default function Page() {
   const [showLatexSource, setShowLatexSource] = useState(false);
   const [copied, setCopied] = useState(false);
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const generationIdRef = useRef(0);
+  const copiedResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Drive the 1s ticker only while generating.
   useEffect(() => {
@@ -87,10 +89,13 @@ export default function Page() {
   }, [phase]);
 
   async function runGenerate(data: MoUFormData) {
+    const generationId = generationIdRef.current + 1;
+    generationIdRef.current = generationId;
     setFormData(data);
     setPhase({ kind: "generating", startedAt: Date.now() });
     try {
       const response = await generateMoU(data);
+      if (generationIdRef.current !== generationId) return;
       if (response.success && response.data) {
         setPhase({ kind: "result", data: response.data });
       } else {
@@ -100,6 +105,7 @@ export default function Page() {
         });
       }
     } catch (err) {
+      if (generationIdRef.current !== generationId) return;
       setPhase({
         kind: "error",
         message:
@@ -114,13 +120,36 @@ export default function Page() {
   }
 
   function handleBackToForm() {
+    generationIdRef.current += 1;
     setPhase({ kind: "form" });
   }
 
-  function handleCopyError(message: string) {
-    navigator.clipboard.writeText(message);
+  async function handleCopyError(message: string) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(message);
+      } else {
+        fallbackCopyText(message);
+      }
+    } catch {
+      fallbackCopyText(message);
+    }
+
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copiedResetRef.current) clearTimeout(copiedResetRef.current);
+    copiedResetRef.current = setTimeout(() => setCopied(false), 2000);
+  }
+
+  function fallbackCopyText(message: string) {
+    const textarea = document.createElement("textarea");
+    textarea.value = message;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
   }
 
   const progressPct = Math.min(100, (elapsed / TIMEOUT_SECONDS) * 100);
