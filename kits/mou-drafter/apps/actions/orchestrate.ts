@@ -1,7 +1,6 @@
 "use server";
 
 import { lamaticClient } from "@/lib/lamatic-client";
-import { config } from "../../lamatic.config";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
 
 const TIMEOUT_MS = 240000; // 4 minutes — the LLM generates ~4K tokens of clause JSON
@@ -122,8 +121,7 @@ export async function generateMoU(
   error?: string;
 }> {
   try {
-    const flow = config.flows.mouDrafter;
-    if (!flow.workflowId) {
+    if (!process.env.MOU_DRAFTER_FLOW_ID) {
       throw new Error("MOU_DRAFTER_FLOW_ID is not set.");
     }
 
@@ -138,7 +136,7 @@ export async function generateMoU(
     });
 
     const resData: any = await withTimeout(
-      lamaticClient.executeFlow(flow.workflowId, flatInputs),
+      lamaticClient.executeFlow(process.env.MOU_DRAFTER_FLOW_ID, flatInputs),
       TIMEOUT_MS,
       "The MoU generation is taking longer than expected. The LLM may be overloaded. Please try again in a minute."
     );
@@ -159,17 +157,17 @@ export async function generateMoU(
     const warnings = result.warnings ?? result.output?.warnings ?? [];
     const patternReport = result.patternReport ??
       result.output?.patternReport ?? {
-        expected: [],
-        found: [],
-        missing: [],
-        unexpected: [],
-      };
+      expected: [],
+      found: [],
+      missing: [],
+      unexpected: [],
+    };
 
     if (!latex) {
       throw new Error(
         "No LaTeX output returned. The LLM may have refused the draft. " +
-          "Warnings: " +
-          JSON.stringify(warnings)
+        "Warnings: " +
+        JSON.stringify(warnings)
       );
     }
 
