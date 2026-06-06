@@ -1,13 +1,13 @@
 export default {
-  "name": "resume-parser",
-  "description": "An AI-powered resume parser that extracts key information such as personal details, skills, education, work experience, and projects from resumes, converting unstructured documents into structured data for efficient candidate screening and analysis.",
+  "name": "ai-interview-preparation-agent",
+  "description": "An AI-powered interview preparation agent that analyzes a candidate's resume against a job description to identify strengths, skill gaps, and generate personalized interview questions with ideal answer guidance.",
   "version": "1.0.0",
   "type": "kit",
   "author": {
     "name": "Harshul Dashora",
     "email": "harshuldashora01@gmail.com"
   },
-  "tags": [],
+  "tags": ["interview", "resume", "AI", "hiring", "career"],
   "steps": [
     {
       "id": "resume-parser",
@@ -16,6 +16,6 @@ export default {
   ],
   "links": {
     "deploy": "",
-    "github": ""
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-interview-preparation-agent"
   }
 };
