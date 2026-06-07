@@ -1,0 +1,466 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import MoUForm from "@/components/MoUForm";
+import LatexPreview from "@/components/LatexPreview";
+import ShinyText from "@/components/ShinyText";
+import { generateMoU } from "@/actions/orchestrate";
+import { downloadTexFile, openInOverleaf } from "@/lib/overleaf";
+import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  FileDown,
+  ExternalLink,
+  AlertTriangle,
+  CheckCircle,
+  ArrowLeft,
+  FileText,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Check,
+  RefreshCw,
+} from "lucide-react";
+
+const TIMEOUT_SECONDS = 240; // matches actions/orchestrate.ts
+
+// Rotating loading messages — index advances every ~12s.
+const LOADING_MESSAGES = [
+  "Understanding what you actually need from this agreement",
+  "Identifying the parties and making sure nobody's misrepresented",
+  "Drafting the recitals — the 'here's why we're all here' section",
+  "Setting out the purpose and scope before things get assumed",
+  "Allocating obligations clearly, so there's no room for selective memory",
+  "Making sure both sides have skin in the game",
+  "Locking down confidentiality before something leaks",
+  "Sorting out IP ownership before it becomes a conversation nobody wants",
+  "Drafting the exit clauses — optimistic to need them, wise to have them",
+  "Working through dispute resolution, just in case civility doesn't hold",
+  "Tightening the termination clause — it always matters eventually",
+  "Making sure the numbers are consistent throughout",
+  "Checking for anything that quietly contradicts itself",
+  "Removing language vague enough to mean anything, which means nothing",
+  "Ensuring neither party accidentally committed to something unreasonable",
+  "Cross-referencing definitions — tedious, but it earns its keep",
+  "Confirming governing law and jurisdiction before someone asks",
+  "Reviewing the signature blocks — yes, even those",
+  "Reading this back the way a cautious counterparty would",
+  "Final pass before this goes anywhere near a desk",
+  "Your draft MoU is ready — give it a proper read before it moves forward",
+];
+
+type Phase =
+  | { kind: "form" }
+  | { kind: "generating"; startedAt: number }
+  | { kind: "result"; data: MoUFlowResult }
+  | { kind: "error"; message: string };
+
+export default function Page() {
+  const [phase, setPhase] = useState<Phase>({ kind: "form" });
+  const [formData, setFormData] = useState<MoUFormData | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const [showLatexSource, setShowLatexSource] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const generationIdRef = useRef(0);
+  const copiedResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Drive the 1s ticker only while generating.
+  useEffect(() => {
+    if (phase.kind !== "generating") {
+      if (tickerRef.current) clearInterval(tickerRef.current);
+      tickerRef.current = null;
+      setElapsed(0);
+      return;
+    }
+    const started = phase.startedAt;
+    setElapsed(0);
+    tickerRef.current = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => {
+      if (tickerRef.current) clearInterval(tickerRef.current);
+      tickerRef.current = null;
+    };
+  }, [phase]);
+
+  async function runGenerate(data: MoUFormData) {
+    const generationId = generationIdRef.current + 1;
+    generationIdRef.current = generationId;
+    setFormData(data);
+    setPhase({ kind: "generating", startedAt: Date.now() });
+    try {
+      const response = await generateMoU(data);
+      if (generationIdRef.current !== generationId) return;
+      if (response.success && response.data) {
+        setPhase({ kind: "result", data: response.data });
+      } else {
+        setPhase({
+          kind: "error",
+          message: response.error || "Unknown error generating MoU.",
+        });
+      }
+    } catch (err) {
+      if (generationIdRef.current !== generationId) return;
+      setPhase({
+        kind: "error",
+        message:
+          err instanceof Error ? err.message : "Unexpected error occurred.",
+      });
+    }
+  }
+
+  function handleRetry() {
+    if (!formData) return;
+    void runGenerate(formData);
+  }
+
+  function handleBackToForm() {
+    generationIdRef.current += 1;
+    setPhase({ kind: "form" });
+  }
+
+  async function handleCopyError(message: string) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(message);
+      } else {
+        fallbackCopyText(message);
+      }
+    } catch {
+      fallbackCopyText(message);
+    }
+
+    setCopied(true);
+    if (copiedResetRef.current) clearTimeout(copiedResetRef.current);
+    copiedResetRef.current = setTimeout(() => setCopied(false), 2000);
+  }
+
+  function fallbackCopyText(message: string) {
+    const textarea = document.createElement("textarea");
+    textarea.value = message;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+
+  const progressPct = Math.min(100, (elapsed / TIMEOUT_SECONDS) * 100);
+  const loadingMessage = useMemo(() => {
+    const idx = Math.min(
+      LOADING_MESSAGES.length - 1,
+      Math.floor(elapsed / 8)
+    );
+    return LOADING_MESSAGES[idx];
+  }, [elapsed]);
+
+  return (
+    <main className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        {/* ── Header ─────────────────────────────────────────── */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            MoU Drafter
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm leading-relaxed max-w-xl">
+            Generate a professional Memorandum of Understanding from your agreement details. Review, edit, and export the draft before sharing.
+          </p>
+        </div>
+
+        {/* ── Phase: form ─────────────────────────────────────── */}
+        {phase.kind === "form" && (
+          <MoUForm
+            onSubmit={runGenerate}
+            isSubmitting={false}
+            initialValues={formData ?? undefined}
+          />
+        )}
+
+        {/* ── Phase: generating ──────────────────────────────── */}
+        {phase.kind === "generating" && (
+          <Card className="glass-card">
+            <CardContent className="py-10 space-y-6">
+              <div className="text-center">
+                <ShinyText
+                  key={loadingMessage}
+                  text={loadingMessage}
+                  speed={2.4}
+                  delay={0.2}
+                  color="#7a7a85"
+                  shineColor="#ffffff"
+                  spread={70}
+                  direction="left"
+                  className="text-lg font-medium tracking-tight"
+                />
+              </div>
+
+              <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div
+                  className="h-full bg-white/70 transition-all duration-1000 ease-linear"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+
+              <p className="text-xs text-muted-foreground leading-relaxed text-center">
+                Usually 30–90 seconds. Hang tight — you can leave this tab open.
+              </p>
+
+              <div className="flex justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToForm}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Phase: error ───────────────────────────────────── */}
+        {phase.kind === "error" && (
+          <div className="space-y-5">
+            <div className="p-5 border border-destructive/30 rounded-xl bg-destructive/5 space-y-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-destructive">
+                    Couldn&apos;t finish the draft
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Something timed out or the service hiccuped. Your inputs
+                    are still here — try again, or go back to tweak the form.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
+                    Error details
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyError(phase.message)}
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1 border border-white/5"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3 w-3 text-green-500" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <pre className="text-[11px] font-mono text-destructive/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-37.5 overflow-y-auto">
+                  {phase.message}
+                </pre>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={handleRetry} disabled={!formData}>
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                  Try again
+                </Button>
+                <Button variant="outline" onClick={handleBackToForm}>
+                  <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                  Edit details
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Phase: result ──────────────────────────────────── */}
+        {phase.kind === "result" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={handleBackToForm}>
+                <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                Edit details
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleRetry}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Regenerate
+              </Button>
+            </div>
+
+            {/* Things worth a second look */}
+            {phase.data.warnings.length > 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>
+                  Worth a second look ({phase.data.warnings.length})
+                </AlertTitle>
+                <AlertDescription>
+                  <p className="text-xs text-muted-foreground mt-1 mb-2">
+                    These are just heads-ups based on the choices you made —
+                    nothing is wrong with the draft.
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-sm">
+                    {phase.data.warnings.map((w, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-muted-foreground shrink-0">
+                          {i + 1}.
+                        </span>
+                        <span>{w}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Pattern report */}
+            {(phase.data.patternReport.missing.length > 0 ||
+              phase.data.patternReport.unexpected.length > 0) && (
+                <Card className="glass-card">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium">
+                      Clause coverage
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {phase.data.patternReport.missing.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 items-center">
+                        <span className="text-xs text-destructive font-medium">
+                          Skipped (consider regenerating):
+                        </span>
+                        {phase.data.patternReport.missing.map((p) => (
+                          <Badge
+                            key={p}
+                            variant="destructive"
+                            className="text-xs"
+                          >
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    {phase.data.patternReport.unexpected.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 items-center">
+                        <span className="text-xs text-muted-foreground font-medium">
+                          Extra clauses added:
+                        </span>
+                        {phase.data.patternReport.unexpected.map((p) => (
+                          <Badge key={p} variant="secondary" className="text-xs">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    {phase.data.patternReport.missing.length === 0 &&
+                      phase.data.patternReport.unexpected.length === 0 && (
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Every clause you asked for is in the draft
+                        </div>
+                      )}
+                  </CardContent>
+                </Card>
+              )}
+
+            {/* In-browser PDF preview — dev-only.
+                Vercel can't run pdflatex (no apt-get, no persistent
+                binaries), so in production the preview card is omitted
+                entirely and users go straight to Overleaf / .tex download
+                in the next card. NODE_ENV is inlined by Next.js at build
+                time so this whole subtree is tree-shaken out of the
+                production bundle. */}
+            {process.env.NODE_ENV === "development" && (
+              <Card className="glass-card">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Your draft
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LatexPreview latex={phase.data.latex} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Download actions */}
+            <Card className="glass-card">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">
+                  Download &amp; share
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="default"
+                    onClick={() => downloadTexFile(phase.data.latex)}
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Download .tex
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => openInOverleaf(phase.data.latex)}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open in Overleaf
+                  </Button>
+                </div>
+
+                <Separator />
+
+                {/* LaTeX source (collapsible) */}
+                <div>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowLatexSource(!showLatexSource)}
+                  >
+                    {showLatexSource ? (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    )}
+                    Show the raw .tex source
+                  </button>
+                  {showLatexSource && (
+                    <pre
+                      className="mt-3 p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed max-h-125 overflow-y-auto"
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                      }}
+                    >
+                      {phase.data.latex}
+                    </pre>
+                  )}
+                </div>
+
+                {/* Disclaimer */}
+                <p className="text-xs text-muted-foreground italic border-t pt-3">
+                  Treat this as a first draft, not legal advice. Have a lawyer
+                  in your jurisdiction look it over before anyone signs.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
