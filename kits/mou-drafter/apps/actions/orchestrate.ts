@@ -1,6 +1,6 @@
 "use server";
 
-import { lamaticClient } from "@/lib/lamatic-client";
+import { getLamaticClient } from "@/lib/lamatic-client";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
 import kitConfig from "../../lamatic.config";
 
@@ -142,7 +142,7 @@ export async function generateMoU(
     });
 
     const resData: any = await withTimeout(
-      lamaticClient.executeFlow(flowId, flatInputs),
+      getLamaticClient().executeFlow(flowId, flatInputs),
       TIMEOUT_MS,
       "The MoU generation is taking longer than expected. The LLM may be overloaded. Please try again in a minute."
     );

@@ -111,10 +111,12 @@ Step-by-step walkthrough of the node chain:
 1. Set up the `mou-drafter` flow in your Lamatic Studio account.
 2. Clone the repository and configure `.env.local` inside `kits/mou-drafter/apps` with your Lamatic credentials.
 3. Install dependencies and run the Next.js development server:
+
    ```bash
    npm install
    npm run dev
    ```
+
 4. Access the web interface at `http://localhost:3000` to fill out the form and generate contracts.
 
 ---

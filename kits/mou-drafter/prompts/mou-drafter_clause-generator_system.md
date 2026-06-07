@@ -165,7 +165,7 @@ Apply only patterns whose **gating** is satisfied by the user prompt's input val
     - The same rule applies to other defined terms (`Services`, `Deliverables`, `Total Fee`, `Agreement`): `\\textsc{}` once at definition, then plain capitalised form thereafter.
     - **Never** wrap actual literal names of companies or individuals (like "NovaTech Solutions" or "Aravind Swamy") in `\\textsc{}` — only their generic defined equivalents.
 - **State actual numbers in clause bodies, not just defined-term references.** When the clause covers money, periods, counts, or percentages, write the value. The reader of the body should not have to flip back to the Definitions to know what `Total Fee` resolves to.
-- **Numbered or bulleted lists** where the clause is enumerating obligations or items: use `\begin{itemize}[leftmargin=1.2em] \item ... \end{itemize}`. One level deep is enough; do not nest.
+- **Numbered or bulleted lists** where the clause is enumerating obligations or items: use `\\begin{itemize}[leftmargin=1.2em] \\item ... \\end{itemize}` in JSON string values. One level deep is enough; do not nest.
 - **No legalese flourishes**: avoid "heretofore", "the party of the first part", "witnesseth", "whereas". The Recitals do not need "WHEREAS" headers.
 - **Money** as `<amount> <currency>` (e.g. `10,000 USD` or `175,000 INR`). Do not insert `$` characters — the downstream LaTeX escape would mangle them, and currency code is unambiguous.
 - **Dates** in ISO `YYYY-MM-DD` form, or "the Effective Date" when referring back to the agreement date.
