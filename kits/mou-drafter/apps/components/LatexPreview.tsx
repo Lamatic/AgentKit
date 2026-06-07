@@ -102,7 +102,7 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
 
   if (phase.kind === "loading") {
     return (
-      <div className="flex items-center justify-center h-[600px] rounded-lg border border-white/10 bg-black/20">
+      <div className="flex items-center justify-center h-150 rounded-lg border border-white/10 bg-black/20">
         <ShinyText
           text={phase.message}
           speed={2.4}
@@ -141,7 +141,7 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
               {showLog ? "Hide" : "Show"} pdflatex log
             </button>
             {showLog && (
-              <pre className="mt-2 p-3 rounded bg-black/40 border border-white/5 text-[11px] font-mono text-destructive/80 overflow-x-auto max-h-[320px] overflow-y-auto whitespace-pre-wrap">
+              <pre className="mt-2 p-3 rounded bg-black/40 border border-white/5 text-[11px] font-mono text-destructive/80 overflow-x-auto max-h-80 overflow-y-auto whitespace-pre-wrap">
                 {phase.log}
               </pre>
             )}
@@ -167,7 +167,7 @@ export default function LatexPreview({ latex }: LatexPreviewProps) {
       <iframe
         title="MoU PDF preview"
         src={phase.url}
-        className="w-full h-[900px] rounded-lg border border-white/10 bg-white"
+        className="w-full h-225 rounded-lg border border-white/10 bg-white"
       />
       <div className="flex justify-end">
         <Button asChild variant="outline" size="sm">

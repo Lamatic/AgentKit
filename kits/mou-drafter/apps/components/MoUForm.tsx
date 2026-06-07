@@ -1279,7 +1279,7 @@ export default function MoUForm({ onSubmit, isSubmitting, initialValues }: MoUFo
             type="submit"
             size="lg"
             disabled={isSubmitting}
-            className="min-w-[200px]"
+            className="min-w-50"
           >
             {isSubmitting ? (
               <>

@@ -268,7 +268,7 @@ export default function Page() {
                     )}
                   </Button>
                 </div>
-                <pre className="text-[11px] font-mono text-destructive/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[150px] overflow-y-auto">
+                <pre className="text-[11px] font-mono text-destructive/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-37.5 overflow-y-auto">
                   {phase.message}
                 </pre>
               </div>
@@ -440,7 +440,7 @@ export default function Page() {
                   </button>
                   {showLatexSource && (
                     <pre
-                      className="mt-3 p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed max-h-[500px] overflow-y-auto"
+                      className="mt-3 p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed max-h-125 overflow-y-auto"
                       style={{
                         background: "rgba(255,255,255,0.04)",
                         border: "1px solid rgba(255,255,255,0.1)",
