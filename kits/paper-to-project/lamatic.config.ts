@@ -1,21 +1,32 @@
 export default {
-  "name": "research-to-project-planner",
-  "description": "",
-  "version": "1.0.0",
-  "type": "kit",
-  "author": {
-    "name": "Arush John",
-    "email": "arushjohn22@gmail.com"
+  name: "paper-to-project",
+  description: "Convert research papers into practical software project roadmaps.",
+  version: "1.0.0",
+  type: "kit" as const,
+
+  author: {
+    name: "Arush John",
+    email: "arushjohn22@gmail.com",
   },
-  "tags": [],
-  "steps": [
+
+  tags: [
+    "research",
+    "project-planning",
+    "roadmap",
+    "llm",
+    "automation"
+  ],
+
+  steps: [
     {
-      "id": "research-to-project-planner",
-      "type": "mandatory"
+      id: "research-to-project-planner",
+      type: "mandatory" as const
     }
   ],
-  "links": {
-    "deploy": "",
-    "github": ""
+
+  links: {
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/paper-to-project",
+    deploy: "",
+    docs: "https://lamatic.ai/docs"
   }
 };
