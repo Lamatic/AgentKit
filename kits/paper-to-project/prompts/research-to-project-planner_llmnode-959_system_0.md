@@ -1,5 +1,8 @@
+# Format Project Plan
+
 Format the following project plan as a professional markdown report.
 Include:
+
 - Project Title
 - Difficulty Level
 - Timeline

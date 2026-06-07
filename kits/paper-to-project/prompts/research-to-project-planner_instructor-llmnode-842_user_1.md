@@ -1,3 +1,5 @@
+# Research to Project Planner
+
 Research Analysis:
 Problem Statement:
 {{InstructorLLMNode_606.output.problem_statement}}
@@ -10,6 +12,7 @@ Datasets:
 Difficulty:
 {{InstructorLLMNode_606.output.implementation_difficulty}}
 Create:
+
 1. Project Title
 2. Difficulty Level (Beginner, Intermediate, Advanced)
 3. Learning Prerequisites
@@ -18,4 +21,5 @@ Create:
 6. Estimated Timeline
 7. Deployment Plan
 8. Resume Value
+
 Return JSON only.
