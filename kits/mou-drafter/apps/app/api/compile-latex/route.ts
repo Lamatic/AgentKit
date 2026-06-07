@@ -86,7 +86,11 @@ export async function POST(req: NextRequest) {
     const outputDir = join(workDir, "output");
     await mkdir(inputDir);
     await mkdir(outputDir);
-    await chmod(outputDir, 0o777).catch(() => undefined);
+    await chmod(outputDir, 0o777).catch((err: NodeJS.ErrnoException) => {
+      throw new Error(
+        `output directory is not writable by the sandbox user (${PDFLATEX_SANDBOX_USER}): ${err.message}`
+      );
+    });
 
     const texPath = join(inputDir, "main.tex");
     const pdfPath = join(outputDir, "main.pdf");

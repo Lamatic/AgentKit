@@ -2,6 +2,7 @@
 
 import { lamaticClient } from "@/lib/lamatic-client";
 import type { MoUFormData, MoUFlowResult } from "@/lib/schema";
+import kitConfig from "../../lamatic.config";
 
 const TIMEOUT_MS = 240000; // 4 minutes — the LLM generates ~4K tokens of clause JSON
 
@@ -121,14 +122,19 @@ export async function generateMoU(
   error?: string;
 }> {
   try {
-    if (!process.env.MOU_DRAFTER_FLOW_ID) {
-      throw new Error("MOU_DRAFTER_FLOW_ID is not set.");
+    const mouStep = kitConfig.steps.find((s) => s.id === "mou-drafter");
+    const flowEnvKey = (mouStep as any)?.envKey ?? "MOU_DRAFTER_FLOW_ID";
+    const flowId = process.env[flowEnvKey] ?? process.env.MOU_DRAFTER_FLOW_ID;
+    if (!flowId) {
+      throw new Error(
+        `Flow ID not set. Add ${flowEnvKey} to your .env.local file.`
+      );
     }
 
     const flatInputs = flattenFormToTrigger(formData);
 
     console.log("[mou-drafter] Sending flat inputs to flow:", {
-      agreementTitle: flatInputs.agreementTitle,
+      agreementTitle: "[REDACTED]", // intentionally redacted — user-supplied title is PII-adjacent
       deliverables_type: typeof flatInputs.deliverables,
       deliverables_is_string: typeof flatInputs.deliverables === "string",
       partyAName: "[redacted]",
@@ -136,7 +142,7 @@ export async function generateMoU(
     });
 
     const resData: any = await withTimeout(
-      lamaticClient.executeFlow(process.env.MOU_DRAFTER_FLOW_ID, flatInputs),
+      lamaticClient.executeFlow(flowId, flatInputs),
       TIMEOUT_MS,
       "The MoU generation is taking longer than expected. The LLM may be overloaded. Please try again in a minute."
     );

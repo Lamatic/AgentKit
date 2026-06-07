@@ -1,11 +1,11 @@
 /**
- * End-to-end test: catering submission through the live Lamatic flow.
+ * End-to-end test: multi-engagement-type submissions through the live Lamatic flow.
  *
- * Validates:
+ * Validates per variant:
  * 1. flattenFormToTrigger produces correct flat field names
  * 2. JSON.stringify(deliverables) is sent as a string (not an array)
  * 3. The flow responds with LaTeX, clauseJson, warnings, patternReport
- * 4. The returned LaTeX compiles (we just check it's non-empty and starts with \documentclass)
+ * 4. The returned LaTeX passes basic sanity checks (documentclass, begin/end document, length)
  */
 
 const { Lamatic } = require("lamatic");
@@ -25,8 +25,19 @@ if (!FLOW_ID || !API_URL || !PROJECT_ID || !API_KEY) {
   process.exit(1);
 }
 
-// ── Test data: realistic catering submission ─────────────────────────────
-const formData = {
+const TIMEOUT_MS = 120_000;
+
+function withTimeout(promise, timeoutMs, errorMessage) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    ),
+  ]);
+}
+
+// ── Test data: catering ───────────────────────────────────────────────────
+const cateringFormData = {
   agreementTitle: "Catering Services MoU — AEON 2025",
   effectiveDate: "2025-07-01",
   engagementType: "catering",
@@ -111,7 +122,165 @@ const formData = {
     "This is a student-run event; budget is tight. The caterer has worked with us before.",
 };
 
-// ── Flatten (same logic as actions/orchestrate.ts) ───────────────────────
+// ── Test data: services ───────────────────────────────────────────────────
+const servicesFormData = {
+  agreementTitle: "Professional Services MoU — AEON 2025",
+  effectiveDate: "2025-07-01",
+  engagementType: "services",
+  partyA: {
+    name: "AEON Student Council",
+    type: "org",
+    address: "PES University, 100 Feet Ring Road, BSK 3rd Stage, Bengaluru 560085",
+    signatory: "Priya Sharma",
+    signatoryRole: "President",
+    email: "events@aeonpes.org",
+  },
+  partyB: {
+    name: "Apex Consulting LLP",
+    type: "llp",
+    address: "88 Brigade Road, Bengaluru 560025",
+    signatory: "Kiran Mehta",
+    signatoryRole: "Partner",
+    email: "kiran@apexconsult.in",
+  },
+  scopeOfWork:
+    "Event planning and logistics consulting for AEON 2025. Includes venue selection, vendor management, and on-site coordination across all three event days.",
+  deliverables: [
+    {
+      label: "Venue shortlist and recommendation",
+      dueDate: "2025-07-20",
+      acceptanceCriteria: "At least 3 shortlisted venues with cost comparison",
+    },
+    {
+      label: "Vendor engagement plan",
+      dueDate: "2025-08-01",
+      acceptanceCriteria: "Signed vendor agreements in place",
+    },
+    {
+      label: "On-site coordination (Day 1-3)",
+      dueDate: "2025-09-14",
+      acceptanceCriteria: "Event runs without operational incidents",
+    },
+  ],
+  totalFeeAmount: 300000,
+  totalFeeCurrency: "INR",
+  paymentSchedule: "milestone-based",
+  paymentPreset: "50-net-30",
+  eventStart: "",
+  eventEnd: "",
+  eventStartTime: "",
+  eventEndTime: "",
+  eventVenue: "",
+  paymentTiming: "advance-partial",
+  paymentTimingCustom: "",
+  taxesIncluded: false,
+  taxRatePct: 18,
+  lateFeePctPerMonth: 1.5,
+  cancellationPolicy: "sliding-scale",
+  cancellationTerms: "",
+  guestCountFinalDate: "",
+  extraGuestRate: 0,
+  foodSafetyRequired: false,
+  allergyHandlingRequired: false,
+  confidentialityRequired: true,
+  confidentialitySurvivalYears: 3,
+  ipOwnership: "engager",
+  ipPortfolioRights: false,
+  terminationPreset: "standard-30-7",
+  insuranceRequired: false,
+  insuranceGenLiab: 0,
+  insuranceProfIndem: 0,
+  dataProtectionRequired: false,
+  subcontractingAllowed: false,
+  noPublicityRequired: true,
+  liabilityCapMultiplier: 1,
+  governingLaw: "Karnataka, India",
+  disputeResolution: "mediation-then-arbitration",
+  disputeVenue: "Bengaluru",
+  additionalContext: "",
+};
+
+// ── Test data: design ─────────────────────────────────────────────────────
+const designFormData = {
+  agreementTitle: "Brand Design MoU — AEON 2025",
+  effectiveDate: "2025-07-01",
+  engagementType: "design",
+  partyA: {
+    name: "AEON Student Council",
+    type: "org",
+    address: "PES University, 100 Feet Ring Road, BSK 3rd Stage, Bengaluru 560085",
+    signatory: "Priya Sharma",
+    signatoryRole: "President",
+    email: "events@aeonpes.org",
+  },
+  partyB: {
+    name: "Pixel & Co Creative Studio",
+    type: "llp",
+    address: "42 Indiranagar, Bengaluru 560038",
+    signatory: "Ananya Rao",
+    signatoryRole: "Creative Director",
+    email: "ananya@pixelco.design",
+  },
+  scopeOfWork:
+    "Full brand identity and collateral design for AEON 2025 festival. Includes logo, poster series, merchandise templates, and digital assets.",
+  deliverables: [
+    {
+      label: "Logo and brand identity guide",
+      dueDate: "2025-07-25",
+      acceptanceCriteria: "Approved by council with 2 revision rounds included",
+    },
+    {
+      label: "Event poster series (print + digital)",
+      dueDate: "2025-08-10",
+      acceptanceCriteria: "Print-ready files at 300dpi, digital at 72dpi",
+    },
+    {
+      label: "Merchandise templates",
+      dueDate: "2025-08-20",
+      acceptanceCriteria: "Templates usable in standard printing software",
+    },
+  ],
+  totalFeeAmount: 150000,
+  totalFeeCurrency: "INR",
+  paymentSchedule: "milestone-based",
+  paymentPreset: "30-net-15",
+  eventStart: "",
+  eventEnd: "",
+  eventStartTime: "",
+  eventEndTime: "",
+  eventVenue: "",
+  paymentTiming: "advance-partial",
+  paymentTimingCustom: "",
+  taxesIncluded: false,
+  taxRatePct: 18,
+  lateFeePctPerMonth: 1,
+  cancellationPolicy: "flat-fee",
+  cancellationTerms: "25% of Total Fee",
+  guestCountFinalDate: "",
+  extraGuestRate: 0,
+  foodSafetyRequired: false,
+  allergyHandlingRequired: false,
+  confidentialityRequired: true,
+  confidentialitySurvivalYears: 2,
+  ipOwnership: "engager",
+  ipPortfolioRights: true,
+  terminationPreset: "standard-30-7",
+  insuranceRequired: false,
+  insuranceGenLiab: 0,
+  insuranceProfIndem: 0,
+  dataProtectionRequired: false,
+  subcontractingAllowed: false,
+  noPublicityRequired: false,
+  liabilityCapMultiplier: 1,
+  governingLaw: "Karnataka, India",
+  disputeResolution: "mediation-then-arbitration",
+  disputeVenue: "Bengaluru",
+  additionalContext: "Vendor has creative freedom within the AEON brand palette.",
+};
+
+// ── Flatten (same logic as actions/orchestrate.ts) ────────────────────────
+// IMPORTANT: Keep synchronized with apps/actions/orchestrate.ts flattenFormToTrigger
+// — mirror any changes to production logic or move to a shared util.
 function flattenFormToTrigger(form) {
   return {
     agreementTitle: form.agreementTitle,
@@ -172,45 +341,40 @@ function flattenFormToTrigger(form) {
   };
 }
 
-async function main() {
-  console.log("=== MoU Drafter End-to-End Test ===\n");
+// ── Per-variant runner ────────────────────────────────────────────────────
+async function runVariant(client, label, formData) {
+  console.log(`\n=== Variant: ${label} ===`);
 
-  // Step 1: Verify flatten
   const flatInputs = flattenFormToTrigger(formData);
-  console.log("[CHECK 1] deliverables type:", typeof flatInputs.deliverables);
-  console.log(
-    "[CHECK 1] deliverables is string:",
-    typeof flatInputs.deliverables === "string"
-  );
+
   if (typeof flatInputs.deliverables !== "string") {
-    console.error("FAIL: deliverables is not a string!");
+    console.error(`[FAIL:${label}] deliverables is not a string!`);
     process.exit(1);
   }
-  console.log("[CHECK 1] PASS: deliverables is a JSON string\n");
+  console.log(`[${label}] deliverables is a JSON string`);
 
-  // Step 2: Call the flow
-  console.log("[STEP 2] Calling Lamatic flow", FLOW_ID, "...");
-  const client = new Lamatic({
-    endpoint: API_URL,
-    projectId: PROJECT_ID,
-    apiKey: API_KEY,
-  });
-
+  console.log(`[${label}] Calling Lamatic flow ${FLOW_ID} ...`);
   const start = Date.now();
   let resData;
   try {
-    resData = await client.executeFlow(FLOW_ID, flatInputs);
+    resData = await withTimeout(
+      client.executeFlow(FLOW_ID, flatInputs),
+      TIMEOUT_MS,
+      `Flow call timed out after ${TIMEOUT_MS / 1000}s`
+    );
   } catch (err) {
-    console.error("[FAIL] Flow call threw:", err.message);
+    console.error(`[FAIL:${label}] Flow call threw:`, err.message);
     process.exit(1);
   }
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-  console.log(`[STEP 2] Flow responded in ${elapsed}s\n`);
+  console.log(`[${label}] Flow responded in ${elapsed}s`);
 
-  // Step 3: Parse result
   const result = resData?.result;
   if (!result) {
-    console.error("[FAIL] No result in response:", JSON.stringify(resData, null, 2).slice(0, 500));
+    console.error(
+      `[FAIL:${label}] No result in response:`,
+      JSON.stringify(resData, null, 2).slice(0, 500)
+    );
     process.exit(1);
   }
 
@@ -219,60 +383,63 @@ async function main() {
   const warnings = result.warnings ?? result.output?.warnings ?? [];
   const patternReport = result.patternReport ?? result.output?.patternReport;
 
-  console.log("[CHECK 3a] Has LaTeX:", !!latex);
-  console.log("[CHECK 3b] LaTeX length:", latex ? latex.length : 0);
-  console.log("[CHECK 3c] Has clauseJson:", !!clauseJson);
-  console.log("[CHECK 3d] Warnings count:", warnings.length);
-  console.log("[CHECK 3e] Pattern report:", patternReport ? "present" : "missing");
+  console.log(`[${label}] Has LaTeX:`, !!latex, `| length:`, latex ? latex.length : 0);
+  console.log(`[${label}] Has clauseJson:`, !!clauseJson);
+  console.log(`[${label}] Warnings:`, warnings.length);
+  console.log(`[${label}] Pattern report:`, patternReport ? "present" : "missing");
 
   if (!latex) {
-    console.error("[FAIL] No LaTeX returned.");
+    console.error(`[FAIL:${label}] No LaTeX returned.`);
     console.error("Full result:", JSON.stringify(result, null, 2).slice(0, 1000));
     process.exit(1);
   }
 
-  // Step 4: Basic LaTeX sanity checks
   const hasDocumentclass = latex.includes("\\documentclass");
   const hasBeginDocument = latex.includes("\\begin{document}");
   const hasEndDocument = latex.includes("\\end{document}");
-  const hasPartyA = latex.includes("AEON") || latex.includes("Priya");
-  const hasPartyB = latex.includes("Spice") || latex.includes("Ramesh");
-  const has30pct = latex.includes("30\\%") || latex.includes("30%");
-  const hasINR = latex.includes("INR") || latex.includes("750");
+  console.log(`[${label}] \\documentclass:`, hasDocumentclass);
+  console.log(`[${label}] \\begin{document}:`, hasBeginDocument);
+  console.log(`[${label}] \\end{document}:`, hasEndDocument);
 
-  console.log("\n[CHECK 4] LaTeX sanity:");
-  console.log("  \\documentclass:", hasDocumentclass);
-  console.log("  \\begin{document}:", hasBeginDocument);
-  console.log("  \\end{document}:", hasEndDocument);
-  console.log("  Party A reference:", hasPartyA);
-  console.log("  Party B reference:", hasPartyB);
-  console.log("  30% deposit:", has30pct);
-  console.log("  INR/amount:", hasINR);
-
-  // Step 5: Write .tex to disk for manual verification
-  const outPath = path.join(__dirname, "test-output-catering.tex");
+  const outPath = path.join(__dirname, `test-output-${label}.tex`);
   fs.writeFileSync(outPath, latex, "utf8");
-  console.log(`\n[OUTPUT] LaTeX written to ${outPath} (${latex.length} bytes)`);
+  console.log(`[${label}] LaTeX written to ${outPath} (${latex.length} bytes)`);
 
-  // Step 6: Show warnings
   if (warnings.length > 0) {
-    console.log("\n[WARNINGS]");
+    console.log(`[${label}] Warnings:`);
     warnings.forEach((w, i) => console.log(`  ${i + 1}. ${w}`));
   }
 
-  // Step 7: Show pattern report
   if (patternReport) {
-    console.log("\n[PATTERN REPORT]");
-    console.log("  Expected:", patternReport.expected?.join(", ") || "(none)");
-    console.log("  Found:", patternReport.found?.join(", ") || "(none)");
-    console.log("  Missing:", patternReport.missing?.join(", ") || "(none)");
-    console.log("  Unexpected:", patternReport.unexpected?.join(", ") || "(none)");
+    console.log(
+      `[${label}] Pattern report — missing:`,
+      patternReport.missing?.join(", ") || "(none)"
+    );
   }
 
-  // Step 8: Overall result
-  const allPass = hasDocumentclass && hasBeginDocument && hasEndDocument && latex.length > 1000;
-  console.log(`\n=== ${allPass ? "PASS" : "FAIL"} ===`);
-  if (!allPass) process.exit(1);
+  const pass =
+    hasDocumentclass && hasBeginDocument && hasEndDocument && latex.length > 1000;
+  if (!pass) {
+    console.error(`[FAIL:${label}] LaTeX sanity check failed`);
+    process.exit(1);
+  }
+  console.log(`[${label}] PASS`);
+}
+
+async function main() {
+  console.log("=== MoU Drafter End-to-End Test ===\n");
+
+  const client = new Lamatic({
+    endpoint: API_URL,
+    projectId: PROJECT_ID,
+    apiKey: API_KEY,
+  });
+
+  await runVariant(client, "catering", cateringFormData);
+  await runVariant(client, "services", servicesFormData);
+  await runVariant(client, "design", designFormData);
+
+  console.log("\n=== ALL VARIANTS PASSED ===");
 }
 
 main().catch((err) => {
