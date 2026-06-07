@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-06-05T11:51:56.381Z",
+  "generated": "2026-06-07T14:33:13.390Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 76,
+  "count": 77,
   "typeCounts": {
-    "kit": 27,
+    "kit": 28,
     "bundle": 6,
     "template": 43
   },
@@ -2730,6 +2730,50 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "mou-drafter",
+      "name": "mou-drafter",
+      "description": "AI-powered Memorandum of Understanding generator that produces a structured, LaTeX-formatted legal draft from a guided form — covering parties, scope, payment, IP, cancellation, and jurisdiction clauses.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "legal",
+        "document-generation",
+        "latex",
+        "mou",
+        "contracts"
+      ],
+      "author": {
+        "name": "Rohith Rathod",
+        "email": "banothrohithrathod@gmail.com"
+      },
+      "steps": [],
+      "links": {},
+      "path": "kits/mou-drafter",
+      "flows": {
+        "count": 1,
+        "names": [
+          "mou-drafter"
+        ]
+      },
+      "resources": {
+        "prompts": 3,
+        "scripts": 2,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
