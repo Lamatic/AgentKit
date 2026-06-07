@@ -1,4 +1,59 @@
 # fashion-outfit-analyzer
+# Fashion Outfit Analyzer
 
-<!-- TODO: Add a description of what this AgentKit does -->
-<!-- TODO: Add setup instructions, prerequisites, and usage examples -->
+Analyze any fashion outfit from an image URL and get professional styling feedback powered by Gemini AI.
+
+## What it does
+
+Upload an outfit image URL and get:
+- Overall style rating
+- Color analysis
+- Style assessment (casual/formal/streetwear etc)
+- What works in the outfit
+- What to improve
+- Missing accessories suggestions
+- Occasion recommendations
+
+## Deploy on Lamatic
+
+[![Deploy on Lamatic](https://studio.lamatic.ai/button.svg)](https://studio.lamatic.ai/template/fashion-outfit-analyzer)
+
+## Setup
+
+1. Add your Gemini API key in Lamatic Connections
+2. Import this flow into your Lamatic project
+3. Send a POST request with an outfit image URL
+
+## Example Input
+
+```json
+{
+  "imageUrl": "https://example.com/outfit.jpg",
+  "additionalContext": "casual summer outfit"
+}
+```
+
+## Example Output
+
+```json
+{
+  "overall_rating": "8/10",
+  "color_analysis": "The colors complement each other well",
+  "style_assessment": "Casual streetwear",
+  "what_works": ["item1", "item2"],
+  "what_to_improve": ["suggestion1"],
+  "missing_accessories": ["accessory1"],
+  "occasion_suitable_for": ["occasion1"],
+  "overall_feedback": "Great casual look overall."
+}
+```
+
+## Tech Stack
+
+- Lamatic AgentKit
+- Gemini 2.5 Flash (vision)
+- GraphQL API
+
+## Author
+
+Rutvija Mali
