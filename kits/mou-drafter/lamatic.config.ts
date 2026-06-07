@@ -15,7 +15,7 @@ export default {
     }
   ],
   "links": {
-    "deploy": "",
+    "deploy": "https://mou.itsrohith.dev/",
     "github": "kits/mou-drafter",
   }
 };
