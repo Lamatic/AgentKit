@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, type Control, type UseFormRegister, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Select,
@@ -300,7 +300,7 @@ function FormSelect({
   label: string;
   options: readonly string[];
   labels: Record<string, string>;
-  control: any;
+  control: Control<MoUFormData>;
   error?: string;
   required?: boolean;
   info?: ReactNode;
@@ -430,9 +430,9 @@ function PartyFields({
 }: {
   prefix: "partyA" | "partyB";
   title: string;
-  register: any;
-  control: any;
-  errors: any;
+  register: UseFormRegister<MoUFormData>;
+  control: Control<MoUFormData>;
+  errors: FieldErrors<MoUFormData>;
 }) {
   const e = errors?.[prefix] || {};
   return (
