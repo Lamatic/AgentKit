@@ -1,4 +1,3 @@
-# fashion-outfit-analyzer
 # Fashion Outfit Analyzer
 
 Analyze any fashion outfit from an image URL and get professional styling feedback powered by Gemini AI.
