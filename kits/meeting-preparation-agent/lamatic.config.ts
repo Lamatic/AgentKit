@@ -1,23 +1,17 @@
 export default {
   "name": "meeting-preparation-agent",
-  "description": "AI-powered meeting preparation assistant that generates company research, interview preparation guidance, technical and behavioral questions, and quick prep plans to help users prepare for interviews.",
+  "description": "An AI-powered interview preparation assistant that generates personalized preparation guides including company overview, technical and behavioral questions, and a focused prep plan based on the target company and role.",
   "version": "1.0.0",
-  "type": "template",
+  "type": "template" as const,
   "author": {
     "name": "tiyajain28102005",
     "email": "tiyajain28102005@gmail.com"
   },
-  "tags": [
-    "interview",
-    "career",
-    "job-preparation",
-    "ai-assistant",
-    "template"
-  ],
+  "tags": ["interview", "career", "job-preparation", "ai-assistant", "generative"],
   "steps": [
     {
       "id": "meeting-preparation-agent",
-      "type": "mandatory"
+      "type": "mandatory" as const
     }
   ],
   "links": {
