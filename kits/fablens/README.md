@@ -46,8 +46,10 @@ npm run dev
 | Variable | Description |
 |----------|-------------|
 | `LAMATIC_API_KEY` | Your Lamatic API key from studio.lamatic.ai |
+| `FABLENS_WORKFLOW_ID` | Workflow ID used by the FabLens Lamatic step |
 | `LAMATIC_PROJECT_ID` | Your Lamatic project ID |
 | `LAMATIC_WORKFLOW_ID` | Workflow ID used for material extraction |
+| `LAMATIC_SCORING_WORKFLOW_ID` | Workflow ID used for unknown-material scoring fallback |
 | `LAMATIC_HOST` | Your Lamatic GraphQL endpoint (e.g. https://<org>.lamatic.dev/graphql) |
 
 ## Supported Sites

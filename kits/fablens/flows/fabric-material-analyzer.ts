@@ -80,7 +80,7 @@ export const nodes = [
         "mobile": false,
         "waitFor": 123,
         "nodeName": "Scraper",
-        "credentials": "my-firecrawl-creds",
+        "credentials": "{{scraperNode_601.input.credentials}}",
         "excludeTags": [
           "nav",
           "footer",
