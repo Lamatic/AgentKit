@@ -30,20 +30,22 @@ FabLens uses Lamatic AI for flow orchestration and analysis, Firecrawl for webpa
 
 ## Environment Setup
 
-The application requires a Lamatic API key for operation, and the kit configuration also defines a workflow environment key named `FABLENS_WORKFLOW_ID`.
+The application requires Lamatic configuration for operation, including a host endpoint, project ID, and workflow IDs for material extraction and AI scoring fallback.
 
 ### Required Environment Variables
 
 | Variable | Description |
 |---|---|
-| `LAMATIC_API_KEY` | Your Lamatic API key from Lamatic Studio. |
-| `FABLENS_WORKFLOW_ID` | The workflow ID used by the configured Lamatic kit step. |
+| `LAMATIC_HOST` | Your Lamatic GraphQL endpoint (e.g. https://<org>.lamatic.dev/graphql). |
+| `LAMATIC_PROJECT_ID` | Your Lamatic project ID from Lamatic Studio. |
+| `LAMATIC_WORKFLOW_ID` | The workflow ID used for material extraction. |
+| `LAMATIC_SCORING_WORKFLOW_ID` | The workflow ID used for AI-based material scoring fallback. |
 
 ## Quickstart
 
 1. Navigate to `kits/fablens/apps`.
 2. Copy `.env.example` to `.env.local`.
-3. Add your `LAMATIC_API_KEY`.
+3. Fill in all required environment variables listed above.
 4. Install dependencies with `npm install`.
 5. Start the development server with `npm run dev`.
 
@@ -53,7 +55,7 @@ The application requires a Lamatic API key for operation, and the kit configurat
 |---|---|---|
 | No material analysis returned | The target site does not list material information clearly. | Try a product page that includes fabric details in plain text. |
 | No scrape results | The target site has scraper protection. | Test with supported or simpler sites such as independent brands. |
-| Flow does not run correctly | Missing API key or workflow configuration. | Verify `LAMATIC_API_KEY` and `FABLENS_WORKFLOW_ID` are set correctly. |
+| Flow does not run correctly | Missing or incorrect environment configuration. | Verify all four environment variables are set correctly in .env.local. |
 
 ## Scope
 
