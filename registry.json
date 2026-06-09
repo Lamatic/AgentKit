@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-04-20T07:48:04.778Z",
+  "generated": "2026-06-07T14:33:13.390Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 70,
+  "count": 77,
   "typeCounts": {
-    "kit": 22,
+    "kit": 28,
     "bundle": 6,
-    "template": 42
+    "template": 43
   },
   "entries": [
     {
@@ -103,6 +103,55 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "ai-onboarding-buddy",
+      "name": "AI Onboarding Buddy",
+      "description": "A generative employee-enablement agent that analyzes new hire skill gaps and constructs a tailored 30/60/90-day onboarding plan alongside manager welcome messages.",
+      "version": "1.0.0",
+      "type": "template",
+      "tags": [
+        "generative",
+        "support"
+      ],
+      "author": {
+        "name": "Anshuk Jirli",
+        "email": "geeked.anshuk666@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "ai-onboarding-buddy",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-onboarding-buddy",
+        "deploy": "https://studio.lamatic.ai/template/ai-onboarding-buddy"
+      },
+      "path": "kits/ai-onboarding-buddy",
+      "flows": {
+        "count": 1,
+        "names": [
+          "ai-onboarding-buddy"
+        ]
+      },
+      "resources": {
+        "prompts": 3,
+        "scripts": 0,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
@@ -522,6 +571,60 @@
       }
     },
     {
+      "slug": "codebase-onboarding-agent",
+      "name": "Codebase Onboarding Agent",
+      "description": "Analyze a GitHub repository and generate role-specific onboarding guides for developers.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "onboarding",
+        "codebase",
+        "github",
+        "documentation",
+        "analysis"
+      ],
+      "author": {
+        "name": "Himanshu Kaushik",
+        "email": "hk9797592893@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "repo-analyzer",
+          "type": "mandatory",
+          "envKey": "LAMATIC_FLOW_ID"
+        }
+      ],
+      "links": {
+        "demo": "https://agent-kit-delta.vercel.app/",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/codebase-onboarding-agent",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fcodebase-onboarding-agent%2Fapps&env=LAMATIC_PROJECT_API_KEY,LAMATIC_PROJECT_ENDPOINT,LAMATIC_PROJECT_ID,LAMATIC_FLOW_ID&envDescription=Your%20Lamatic%20project%20keys%20are%20required."
+      },
+      "path": "kits/codebase-onboarding-agent",
+      "flows": {
+        "count": 1,
+        "names": [
+          "repo-analyzer"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 2,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
       "slug": "combined-keyword-search",
       "name": "Combined Keyword Search",
       "description": "This flow adds keyword search (BM25 Search) to your website. It combines results from different vector databases, runs parallel searches, and returns the combined results to users.",
@@ -715,6 +818,57 @@
         "hasReadme": true,
         "hasEnvExample": false,
         "hasChatWidget": true,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "debugpilot-ai",
+      "name": "DebugPilot AI",
+      "description": "AI-powered debugging workflow for root cause analysis.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "debugging",
+        "ai",
+        "developer-tools"
+      ],
+      "author": {
+        "name": "Yash Ramnani",
+        "email": "yashyr190@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "debugpilot-flow",
+          "type": "mandatory",
+          "envKey": "DEBUGPILOT_FLOW_ID"
+        }
+      ],
+      "links": {
+        "demo": "https://debugpilot-ai.vercel.app",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/debugpilot-ai"
+      },
+      "path": "kits/debugpilot-ai",
+      "flows": {
+        "count": 1,
+        "names": [
+          "debugpilot-flow"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 0,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
         "hasSearchWidget": false
       }
     },
@@ -1432,6 +1586,53 @@
       },
       "capabilities": {
         "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "forge",
+      "name": "Forge",
+      "description": "AI-powered contract and invoice generator for cross-border freelancers. Enter project details, get AI-suggested pricing, select a governing law, and walk away with a professional contract and matching invoice — ready to sign and export as PDFs.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "agentic",
+        "documents",
+        "freelance",
+        "generative",
+        "legal"
+      ],
+      "author": {
+        "name": "Andrew Dosumu",
+        "email": "dev@andrewdosumu.com"
+      },
+      "steps": [],
+      "links": {},
+      "path": "kits/forge",
+      "flows": {
+        "count": 4,
+        "names": [
+          "forge-contract",
+          "forge-invoice",
+          "forge-pricing",
+          "forge-tradeoff"
+        ]
+      },
+      "resources": {
+        "prompts": 8,
+        "scripts": 0,
+        "modelConfigs": 4,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
@@ -2534,6 +2735,50 @@
       }
     },
     {
+      "slug": "mou-drafter",
+      "name": "mou-drafter",
+      "description": "AI-powered Memorandum of Understanding generator that produces a structured, LaTeX-formatted legal draft from a guided form — covering parties, scope, payment, IP, cancellation, and jurisdiction clauses.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "legal",
+        "document-generation",
+        "latex",
+        "mou",
+        "contracts"
+      ],
+      "author": {
+        "name": "Rohith Rathod",
+        "email": "banothrohithrathod@gmail.com"
+      },
+      "steps": [],
+      "links": {},
+      "path": "kits/mou-drafter",
+      "flows": {
+        "count": 1,
+        "names": [
+          "mou-drafter"
+        ]
+      },
+      "resources": {
+        "prompts": 3,
+        "scripts": 2,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
       "slug": "multi-vector-search",
       "name": "Multi Vector Search",
       "description": "This flow integrates vector search into your website, allowing you to combine results from multiple vector databases and run parallel searches. It then consolidates the results and returns them to users.",
@@ -3039,6 +3284,57 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "review-analyzer",
+      "name": "Review Analyzer",
+      "description": "Analyze product reviews on e-commerce sites to summarize consensus, extract pros & cons, and determine a trust score to spot fake or low-effort reviews.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "extension",
+        "ecommerce",
+        "analyzer",
+        "sentiment"
+      ],
+      "author": {
+        "name": "Arda Ceylan",
+        "email": "arda.ceylan@example.com"
+      },
+      "steps": [
+        {
+          "id": "review-analyzer",
+          "type": "mandatory",
+          "envKey": "REVIEW_ANALYZER_FLOW_ID"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/review-analyzer"
+      },
+      "path": "kits/review-analyzer",
+      "flows": {
+        "count": 1,
+        "names": [
+          "review-analyzer"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 0,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
@@ -3808,6 +4104,71 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "weekly-routine-coach",
+      "name": "Weekly Routine Coach",
+      "description": "Turns a free-text brain-dump of goals and commitments into a balanced weekly routine on a 30-minute grid. Re-plans when something slips. Bilingual PT-BR / EN.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "agentic",
+        "productivity",
+        "personal",
+        "scheduling",
+        "bilingual"
+      ],
+      "author": {
+        "name": "Igor Michalski",
+        "email": "igorroberto2312@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "intake",
+          "type": "mandatory",
+          "envKey": "INTAKE_FLOW_ID"
+        },
+        {
+          "id": "generate-week",
+          "type": "mandatory",
+          "envKey": "GENERATE_WEEK_FLOW_ID"
+        },
+        {
+          "id": "replan",
+          "type": "mandatory",
+          "envKey": "REPLAN_FLOW_ID"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/weekly-routine-coach",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fweekly-routine-coach%2Fapps&env=INTAKE_FLOW_ID,GENERATE_WEEK_FLOW_ID,REPLAN_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY"
+      },
+      "path": "kits/weekly-routine-coach",
+      "flows": {
+        "count": 3,
+        "names": [
+          "generate-week",
+          "intake",
+          "replan"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 0,
+        "modelConfigs": 0,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
