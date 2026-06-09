@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-06-07T14:33:13.390Z",
+  "generated": "2026-06-09T16:32:38.817Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 77,
+  "count": 78,
   "typeCounts": {
-    "kit": 28,
+    "kit": 29,
     "bundle": 6,
     "template": 43
   },
@@ -1488,6 +1488,58 @@
       },
       "capabilities": {
         "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "fablens",
+      "name": "fabric-material-analyzer",
+      "description": "Analyzes clothing product URLs to identify materials and provide factual environmental and skin safety insights.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "sustainability",
+        "fashion",
+        "environment",
+        "skin-safety",
+        "consumer"
+      ],
+      "author": {
+        "name": "Yashasvi",
+        "email": "yashasvivij01@email.com"
+      },
+      "steps": [
+        {
+          "id": "fabric-material-analyzer",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/yashasvij-19/AgentKit/tree/main/kits/fablens",
+        "deploy": "https://fablens-13b6jz8jl-yashasvij-19s-projects.vercel.app/"
+      },
+      "path": "kits/fablens",
+      "flows": {
+        "count": 1,
+        "names": [
+          "fabric-material-analyzer"
+        ]
+      },
+      "resources": {
+        "prompts": 1,
+        "scripts": 0,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
