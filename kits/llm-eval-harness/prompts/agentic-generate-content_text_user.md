@@ -1,0 +1,1 @@
+USER INSTRUCTION : {{triggerNode_1.output.instructions}}
