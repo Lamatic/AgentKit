@@ -1,6 +1,6 @@
 {
-  "name": "agent-kit-generation",
-  "author": "Lamatic AI",
+  "name": "llm-eval-harness",
+  "author": "Tharun Guduguntla",
   "repository": {
     "type": "git",
     "url": "https://github.com/Lamatic/AgentKit"

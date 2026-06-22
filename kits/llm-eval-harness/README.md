@@ -1,106 +1,81 @@
-# Agent Kit Generation by Lamatic.ai
+# LLM Eval Harness
 
-<p align="center">
-  <a href="https://agent-kit-generation.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
-  </a>
-</p>
+A ready-to-deploy kit that scores an LLM prompt against a **golden set** using an **LLM-as-judge**, then applies a **CI-style pass/fail gate** — so you can catch quality regressions *before* they ship.
 
-
-**Agent Kit Generation** is an AI-powered content generation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation)
+> Point it at any system prompt, give it a handful of test cases with expected criteria, and it tells you whether the prompt's outputs are faithful, relevant, and correct — with a single GATE PASSED / GATE FAILED verdict.
 
 ---
 
-## Lamatic Setup (Pre and Post)
+## The problem
 
-Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
+When you ship an LLM feature and then tweak a prompt or swap a model, output quality can silently regress — a small wording change makes the model hallucinate, over-promise, or drift off-task, and you don't find out until a user does. Eyeballing a few outputs doesn't scale and isn't repeatable.
 
-Pre: Build in Lamatic
-1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Generation' agent kit
-5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain your .env keys
-7. Copy the keys from your studio
+Teams solve this with an **evaluation harness**: a fixed set of representative inputs (a *golden set*), an automated grader, and a quality bar that must be met to ship. This kit packages that pattern as a hosted, reusable tool on Lamatic.
 
-Post: Wire into this repo
-1. Create a .env file and set the keys
-2. Install and run locally:
-   - npm install
-   - npm run dev
-3. Deploy (Vercel recommended):
-   - Import your repo, set the project's Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
+## The approach
 
-Notes
-- Coming soon: single-click export and "Connect Git" in Lamatic to push config directly to your repo.
+For each case in the golden set, the kit runs two flows:
 
----
+1. **`run-target`** — sends your system-prompt-under-test + the case input to an LLM and captures the output (the *system under test*).
+2. **`judge`** — an LLM-as-judge scores that output against the case's `criteria` (and optional `reference`) on three dimensions, **0–5** each:
+   - **Faithfulness** — is every claim grounded? (hallucination is penalised hard — it's a veto)
+   - **Relevancy** — does it actually address the input?
+   - **Correctness** — does it satisfy the case criteria?
 
-## 🔑 Setup
-## Required Keys and Config
+The app aggregates the per-case verdicts into a **pass rate** and compares it to a threshold you set (default **90%**) to produce the gate. A case **passes** only if `overall ≥ 3.5` **and** `faithfulness ≥ 3`.
 
-You’ll need these things to run this project locally:  
-
-1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
-
-
-| Item              | Purpose                                      | Where to Get It                                 |
-| ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
-
-### 1. Environment Variables
-
-Create `.env.local` with:
-
-```bash
-# Lamatic
-AGENTIC_GENERATE_CONTENT = "AGENTIC_GENERATE_CONTENT Flow ID"
-LAMATIC_API_URL = "LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
-LAMATIC_API_KEY = "LAMATIC_API_KEY"
+```
+golden case ──▶ run-target (LLM) ──▶ output ──▶ judge (LLM-as-judge) ──▶ {scores, pass, reasoning}
+                                                                              │
+                              all cases ──▶ pass rate vs threshold ──▶ GATE PASS / FAIL
 ```
 
-### 2. Install & Run
+## Results
+
+- Runs entirely on **Lamatic flows** (Groq `llama-3.3-70b-versatile`, temperature 0 for deterministic scoring).
+- The judge reliably **distinguishes good from bad output** — e.g. it fails a support reply that invents a refund against a "final-sale is non-refundable" policy (faithfulness 0), and passes a correct, grounded reply.
+- Per-case results are expandable to show the generated output and the judge's reasoning, so a failure tells you *why*.
+
+## Tradeoffs & assumptions
+
+- **Single provider (v1):** the flows use Groq. Lamatic stores model credentials at the project level, so multi-provider / bring-your-own-key was deliberately scoped out of v1 — runtime credential injection is a security tradeoff worth doing properly rather than quickly.
+- **App-side loop:** the golden set is iterated in the Next.js server action (3 cases concurrently) rather than inside one flow, which keeps the flows simple and lets the UI surface per-case progress and errors.
+- **Gate recomputed in code:** `overall` and `pass` are recomputed from the judge's dimension scores in the app, so the gate is deterministic and not dependent on the model's own arithmetic.
+- **Defensive parsing:** judge output is tolerant of code fences and minor formatting; run-target output is HTML-entity-decoded before scoring.
+
+---
+
+## Flows
+
+| Flow | Input | Output |
+|------|-------|--------|
+| `judge` | `{ input, output, criteria, reference? }` | `{ faithfulness, relevancy, correctness, overall, pass, reasoning }` |
+| `run-target` | `{ systemPrompt, input }` | `{ answer }` (the generated output under test) |
+
+## Setup
 
 ```bash
+cd kits/llm-eval-harness/apps
+cp .env.example .env.local   # then fill in the values below
 npm install
-npm run dev
-# Open http://localhost:3000
-```
----
-
-## 📂 Repo Structure
-
-```
-/actions
- └── orchestrate.ts        # Lamatic workflow orchestration
-/app
- └── page.tsx              # Main generation form UI
-/components
- ├── header.tsx            # Header component with navigation
- └── ui                    # shadcn/ui components
-/lib
- └── lamatic-client.ts     # Lamatic SDK client
-/public
- └── lamatic-logo.png      # Lamatic branding
-/flows
-  └── ...                  # Lamatic Flows
-/package.json              # Dependencies & scripts
+npm run dev                  # http://localhost:3000
 ```
 
----
+### Environment variables
 
-## 🤝 Contributing
+| Variable | Where to find it |
+|----------|------------------|
+| `JUDGE_FLOW` | Deploy the `judge` flow in Lamatic Studio → copy its Flow ID |
+| `RUN_TARGET_FLOW` | Deploy the `run-target` flow → copy its Flow ID |
+| `LAMATIC_API_URL` | Studio → Settings / API |
+| `LAMATIC_PROJECT_ID` | Studio → Project settings |
+| `LAMATIC_API_KEY` | Studio → API Keys |
 
-We welcome contributions! Open an issue or PR in this repo.
+## Usage
 
----
+1. Paste the **system prompt** you want to evaluate.
+2. Provide a **golden set** as JSON — an array of `{ input, criteria, reference? }`.
+3. Set a **gate threshold** (default 90%).
+4. Click **Run evaluation** — or **Load example** to try a support-agent scenario.
 
-## 📜 License
-
-MIT License – see [LICENSE](../../../LICENSE).
+Built on [Lamatic](https://lamatic.ai).
