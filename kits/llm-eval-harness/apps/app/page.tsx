@@ -28,7 +28,7 @@ function validateGoldenSet(text: string): Validation {
   if (!Array.isArray(parsed)) return { state: "invalid", message: "Golden set must be a JSON array." }
   if (parsed.length === 0) return { state: "invalid", message: "Add at least one test case." }
   for (let i = 0; i < parsed.length; i++) {
-    const item = parsed[i]
+    const item = parsed[i] as Record<string, unknown> | null
     if (!item || typeof item.input !== "string" || typeof item.criteria !== "string") {
       return { state: "invalid", message: `Case ${i + 1} needs "input" and "criteria" string fields.` }
     }
