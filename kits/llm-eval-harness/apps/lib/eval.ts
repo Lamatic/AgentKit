@@ -29,38 +29,72 @@ function clampScore(value: unknown): number {
   return Math.max(0, Math.min(5, Math.round(n)))
 }
 
-/**
- * Defensively turn the judge flow's `answer` into a JudgeResult.
- * Accepts an already-parsed object or a (possibly fenced) JSON string.
- * Overall and pass are recomputed from the dimensions so the gate logic
- * is enforced app-side regardless of the model's own arithmetic.
- */
-export function parseJudgeResult(raw: unknown): JudgeResult {
-  let obj: Record<string, unknown>
-
-  if (raw && typeof raw === "object") {
-    obj = raw as Record<string, unknown>
-  } else if (typeof raw === "string") {
-    const cleaned = stripCodeFences(raw)
-    try {
-      obj = JSON.parse(cleaned) as Record<string, unknown>
-    } catch {
-      const match = cleaned.match(/\{[\s\S]*\}/)
-      if (!match) throw new Error("Judge did not return valid JSON")
-      obj = JSON.parse(match[0]) as Record<string, unknown>
-    }
-  } else {
-    throw new Error("Judge returned an empty response")
-  }
-
+function buildJudgeResult(obj: Record<string, unknown>): JudgeResult {
   const faithfulness = clampScore(obj.faithfulness)
   const relevancy = clampScore(obj.relevancy)
   const correctness = clampScore(obj.correctness)
   const overall = Math.round(((faithfulness + relevancy + correctness) / 3) * 10) / 10
   const pass = overall >= 3.5 && faithfulness >= 3
   const reasoning = typeof obj.reasoning === "string" ? obj.reasoning : ""
-
   return { faithfulness, relevancy, correctness, overall, pass, reasoning }
+}
+
+/**
+ * Last-resort extraction for when the judge emits invalid JSON (e.g. an
+ * unescaped quote inside `reasoning`). Pulls the fixed schema's fields out
+ * with regex so a malformed-but-present verdict is still usable.
+ */
+function extractJudgeFields(text: string): JudgeResult | null {
+  const num = (key: string): number | null => {
+    const m = text.match(new RegExp(`"${key}"\\s*:\\s*(\\d+(?:\\.\\d+)?)`, "i"))
+    return m ? clampScore(m[1]) : null
+  }
+  const faithfulness = num("faithfulness")
+  const relevancy = num("relevancy")
+  const correctness = num("correctness")
+  if (faithfulness === null || relevancy === null || correctness === null) return null
+
+  const reasoningMatch = text.match(/"reasoning"\s*:\s*"([\s\S]*?)"\s*[},]/)
+  return buildJudgeResult({
+    faithfulness,
+    relevancy,
+    correctness,
+    reasoning: reasoningMatch ? reasoningMatch[1] : "",
+  })
+}
+
+/**
+ * Defensively turn the judge flow's `answer` into a JudgeResult.
+ * Accepts an already-parsed object, a (possibly fenced) JSON string, or even
+ * slightly-malformed JSON. Overall and pass are recomputed from the dimensions
+ * so the gate logic is enforced app-side regardless of the model's arithmetic.
+ */
+export function parseJudgeResult(raw: unknown): JudgeResult {
+  // 1. Lamatic already parsed the JSON into an object.
+  if (raw && typeof raw === "object") {
+    return buildJudgeResult(raw as Record<string, unknown>)
+  }
+  if (typeof raw !== "string") {
+    throw new Error("Judge returned an empty response")
+  }
+
+  const cleaned = stripCodeFences(raw)
+
+  // 2. Try strict JSON: the whole string, then the first {...} block.
+  for (const candidate of [cleaned, cleaned.match(/\{[\s\S]*\}/)?.[0]]) {
+    if (!candidate) continue
+    try {
+      return buildJudgeResult(JSON.parse(candidate) as Record<string, unknown>)
+    } catch {
+      // fall through to field extraction
+    }
+  }
+
+  // 3. Invalid JSON — recover the fields directly.
+  const extracted = extractJudgeFields(cleaned)
+  if (extracted) return extracted
+
+  throw new Error("Judge did not return parseable output")
 }
 
 /** Roll per-case results up into the run-level verdict. */
