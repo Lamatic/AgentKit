@@ -18,8 +18,8 @@ import type { GoldenCase, RunAggregate } from "@/lib/types"
 
 const caseSchema = z.object({
   id: z.string().optional(),
-  input: z.string().min(1),
-  criteria: z.string().min(1),
+  input: z.string().trim().min(1),
+  criteria: z.string().trim().min(1),
   reference: z.string().optional(),
 })
 
