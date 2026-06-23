@@ -1,11 +1,25 @@
 "use server"
 
-import { getFlowIds, getLamaticClient } from "@/lib/lamatic-client"
+import lamaticConfig from "../../lamatic.config"
+import { getLamaticClient } from "@/lib/lamatic-client"
 import { computeAggregate, decodeHtmlEntities, mapWithConcurrency, parseJudgeResult } from "@/lib/eval"
 import type { CaseResult, GoldenCase, RunAggregate } from "@/lib/types"
 
 // Bounded concurrency keeps large golden sets from tripping Groq rate limits.
 const CONCURRENCY = 3
+
+/** Resolve a deployed flow ID from the kit's lamatic.config step definitions. */
+function resolveFlowId(stepId: string): string {
+  const step = lamaticConfig.steps.find((s) => s.id === stepId)
+  if (!step?.envKey) {
+    throw new Error(`lamatic.config has no step "${stepId}" with an envKey`)
+  }
+  const value = process.env[step.envKey]
+  if (!value) {
+    throw new Error(`Missing environment variable "${step.envKey}" for flow "${stepId}"`)
+  }
+  return value
+}
 
 /** Execute a flow and pull the `answer` field out of the Lamatic response. */
 async function getAnswer(flowId: string, inputs: Record<string, unknown>): Promise<unknown> {
@@ -19,13 +33,16 @@ async function getAnswer(flowId: string, inputs: Record<string, unknown>): Promi
 }
 
 /** Run one golden case through run-target, then score it with the judge. */
-async function evaluateCase(systemPrompt: string, testCase: GoldenCase): Promise<CaseResult> {
-  const { judge, runTarget } = getFlowIds()
+async function evaluateCase(
+  systemPrompt: string,
+  testCase: GoldenCase,
+  flows: { judge: string; runTarget: string },
+): Promise<CaseResult> {
   try {
-    const rawOutput = await getAnswer(runTarget, { systemPrompt, input: testCase.input })
+    const rawOutput = await getAnswer(flows.runTarget, { systemPrompt, input: testCase.input })
     const output = decodeHtmlEntities(typeof rawOutput === "string" ? rawOutput : JSON.stringify(rawOutput))
 
-    const rawJudge = await getAnswer(judge, {
+    const rawJudge = await getAnswer(flows.judge, {
       input: testCase.input,
       output,
       criteria: testCase.criteria,
@@ -52,9 +69,13 @@ export async function runEvaluation(
   try {
     if (!systemPrompt.trim()) throw new Error("A system prompt is required")
     if (!Array.isArray(cases) || cases.length === 0) throw new Error("Provide at least one test case")
+    if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
+      throw new Error("Threshold must be a number between 0 and 100")
+    }
 
+    const flows = { judge: resolveFlowId("judge"), runTarget: resolveFlowId("run-target") }
     const results = await mapWithConcurrency(cases, CONCURRENCY, (testCase) =>
-      evaluateCase(systemPrompt, testCase),
+      evaluateCase(systemPrompt, testCase, flows),
     )
     return { success: true, data: computeAggregate(results, threshold) }
   } catch (error) {

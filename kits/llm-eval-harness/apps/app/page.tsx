@@ -29,8 +29,20 @@ function validateGoldenSet(text: string): Validation {
   if (parsed.length === 0) return { state: "invalid", message: "Add at least one test case." }
   for (let i = 0; i < parsed.length; i++) {
     const item = parsed[i] as Record<string, unknown> | null
-    if (!item || typeof item.input !== "string" || typeof item.criteria !== "string") {
-      return { state: "invalid", message: `Case ${i + 1} needs "input" and "criteria" string fields.` }
+    if (!item || typeof item !== "object") {
+      return { state: "invalid", message: `Case ${i + 1} must be an object.` }
+    }
+    if (typeof item.input !== "string" || item.input.trim() === "") {
+      return { state: "invalid", message: `Case ${i + 1} needs a non-empty "input" string.` }
+    }
+    if (typeof item.criteria !== "string" || item.criteria.trim() === "") {
+      return { state: "invalid", message: `Case ${i + 1} needs a non-empty "criteria" string.` }
+    }
+    if (item.reference !== undefined && typeof item.reference !== "string") {
+      return { state: "invalid", message: `Case ${i + 1} "reference" must be a string.` }
+    }
+    if (item.id !== undefined && typeof item.id !== "string") {
+      return { state: "invalid", message: `Case ${i + 1} "id" must be a string.` }
     }
   }
   return { state: "valid", count: parsed.length, cases: parsed as GoldenCase[] }
@@ -150,7 +162,11 @@ export default function EvalHarnessPage() {
                       min={0}
                       max={100}
                       value={threshold}
-                      onChange={(e) => setThreshold(Math.max(0, Math.min(100, Number(e.target.value))))}
+                      onChange={(e) => {
+                        const next = Number(e.target.value)
+                        if (Number.isNaN(next)) return
+                        setThreshold(Math.max(0, Math.min(100, next)))
+                      }}
                       className="bg-black/20 pr-7"
                       disabled={isLoading}
                     />
