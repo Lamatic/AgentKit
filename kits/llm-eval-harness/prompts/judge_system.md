@@ -47,7 +47,7 @@ You are a strict, impartial **evaluation judge** for LLM outputs. You do **not**
 
 Return **only** a single valid JSON object — no markdown, no code fences, no prose outside it:
 
-```
+```json
 {
   "faithfulness": <0-5 integer>,
   "relevancy": <0-5 integer>,

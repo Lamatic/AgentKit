@@ -21,11 +21,3 @@ export function getLamaticClient(): Lamatic {
   }
   return client
 }
-
-/** The two deployed flow IDs this kit calls. */
-export function getFlowIds(): { judge: string; runTarget: string } {
-  return {
-    judge: requireEnv("JUDGE_FLOW"),
-    runTarget: requireEnv("RUN_TARGET_FLOW"),
-  }
-}

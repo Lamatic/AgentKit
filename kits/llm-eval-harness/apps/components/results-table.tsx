@@ -47,10 +47,12 @@ export function ResultsTable({ results }: { results: CaseResult[] }) {
           const judge = result.judge
           const failed = !judge || judge.pass === false
           return (
-            <Fragment key={result.case.id ?? index}>
+            <Fragment key={`${result.case.id ?? "case"}-${index}`}>
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : index)}
+                aria-expanded={isOpen}
+                aria-controls={`case-detail-${index}`}
                 className="grid w-full grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.03]"
               >
                 <span className="flex min-w-0 items-center gap-2">
@@ -84,7 +86,7 @@ export function ResultsTable({ results }: { results: CaseResult[] }) {
               </button>
 
               {isOpen && (
-                <div className="space-y-3 bg-black/20 px-4 py-4 pl-10">
+                <div id={`case-detail-${index}`} className="space-y-3 bg-black/20 px-4 py-4 pl-10">
                   <Detail label="Generated output">
                     {result.error ? <span className="text-rose-400">{result.error}</span> : result.output}
                   </Detail>

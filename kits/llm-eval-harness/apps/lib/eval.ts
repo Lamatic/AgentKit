@@ -125,6 +125,9 @@ export async function mapWithConcurrency<T, R>(
   limit: number,
   fn: (item: T, index: number) => Promise<R>,
 ): Promise<R[]> {
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new Error("Concurrency limit must be a positive integer")
+  }
   const results = new Array<R>(items.length)
   let cursor = 0
 
