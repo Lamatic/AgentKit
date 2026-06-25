@@ -34,7 +34,7 @@ Thank you for your interest in improving AgentKit! This guide walks you through 
 3. **Export** from Studio → you get `lamatic.config.ts` + `flows/<name>.ts` + supporting directories
 4. **Copy** into `kits/<your-name>/` (kebab-case, unique)
 5. **Fill in** `lamatic.config.ts` (type, author, tags, GitHub link)
-6. **Commit** and open a PR titled `feat: Add <name> <type>`
+6. **Commit** and open a PR titled `feat: Add <name> <type>`. **Note:** Your **PR title must start with feat**: (e.g. feat: Add weekly-routine-coach kit). PRs without this prefix will not be validated and may be ignored.
 
 ---
 
@@ -340,7 +340,7 @@ Lamatic resolves these at build/run time. Studio's export already writes them co
    - `description` (one sentence)
    - `links.github` → `https://github.com/Lamatic/AgentKit/tree/main/kits/<your-name>`
 5. Write/update `README.md` explaining what the flow does.
-6. Commit and open a PR titled `feat: Add <name> template`.
+6. Commit and open a PR titled `feat: Add <name> template`. **Note:** Your **PR title must start with feat**: (e.g. feat: Add weekly-routine-coach kit). PRs without this prefix will not be validated and may be ignored.
 
 **Reference:** mirror the shape of [`kits/article-summariser/`](./kits/article-summariser/).
 
