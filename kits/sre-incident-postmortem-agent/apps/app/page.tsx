@@ -109,14 +109,17 @@ function ResultList({ title, items }: { title: string; items: string[] }) {
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+    <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
         {title}
       </h3>
       <ul className="mt-4 space-y-3">
         {items.map((item, index) => (
-          <li key={`${title}-${index}`} className="flex gap-3 text-sm text-slate-700">
-            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-500" />
+          <li
+            key={`${title}-${index}`}
+            className="flex gap-3 text-sm text-[var(--muted-strong)]"
+          >
+            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[var(--primary)]" />
             <span>{item}</span>
           </li>
         ))}
@@ -131,11 +134,13 @@ function ResultCard({ title, value }: { title: string; value: string }) {
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+    <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
         {title}
       </h3>
-      <p className="mt-3 text-sm leading-6 text-slate-700">{value}</p>
+      <p className="mt-3 text-sm leading-6 text-[var(--muted-strong)]">
+        {value}
+      </p>
     </section>
   );
 }
@@ -147,6 +152,7 @@ export default function Home() {
   });
   const [postmortem, setPostmortem] = useState<Postmortem | null>(null);
   const [error, setError] = useState("");
+  const [copyError, setCopyError] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { errors } = form.formState;
@@ -154,26 +160,37 @@ export default function Home() {
   const incidentTitle = form.watch("incident_title");
 
   const canSubmit = useMemo(
-    () => serviceName.trim() && incidentTitle.trim(),
+    () => Boolean(serviceName.trim() && incidentTitle.trim()),
     [incidentTitle, serviceName],
   );
 
   const loadSample = () => {
+    if (isLoading) {
+      return;
+    }
+
     form.reset(sampleIncident);
     setPostmortem(null);
     setError("");
+    setCopyError("");
     setCopied(false);
   };
 
   const clearAll = () => {
+    if (isLoading) {
+      return;
+    }
+
     form.reset(emptyIncident);
     setPostmortem(null);
     setError("");
+    setCopyError("");
     setCopied(false);
   };
 
   const submit = async (values: IncidentInput) => {
     setError("");
+    setCopyError("");
     setPostmortem(null);
     setCopied(false);
     setIsLoading(true);
@@ -201,51 +218,58 @@ export default function Home() {
       return;
     }
 
-    await navigator.clipboard.writeText(postmortem.markdown_postmortem);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText(postmortem.markdown_postmortem);
+      setCopyError("");
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+      setCopyError("Could not copy Markdown. Please copy it manually.");
+    }
   };
 
   return (
     <main className="min-h-screen">
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-[var(--border)] bg-[var(--surface)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="flex items-center gap-3 text-sm font-medium text-teal-700">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50">
+            <div className="flex items-center gap-3 text-sm font-medium text-[var(--primary)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--primary-soft)]">
                 <FileText className="h-5 w-5" />
               </span>
               Lamatic AgentKit
             </div>
-            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 md:text-4xl">
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-[var(--heading)] md:text-4xl">
               SRE Incident Postmortem Agent
             </h1>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+            <p className="mt-3 max-w-3xl text-base leading-7 text-[var(--muted)]">
               Convert incident notes into a structured, blameless postmortem with
               remediation, prevention work, owner follow-ups, and a Markdown draft.
             </p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--muted)]">
             Server-side Lamatic GraphQL execution
           </div>
         </div>
       </div>
 
       <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-[var(--border)] pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-950">
+              <h2 className="text-lg font-semibold text-[var(--heading)]">
                 Incident Intake
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-[var(--muted)]">
                 Service name and incident title are required.
               </p>
             </div>
             <Button
               type="button"
               onClick={loadSample}
-              className="border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
+              disabled={isLoading}
+              className="border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 font-medium text-[var(--muted-strong)] hover:bg-[var(--surface-muted)]"
             >
               <RotateCcw className="h-4 w-4" />
               Load Sample Incident
@@ -256,23 +280,25 @@ export default function Home() {
             <div className="mt-5 space-y-4">
               {fields.map((field) => (
                 <label key={field.key} className="block">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-[var(--muted-strong)]">
                     {field.label}
                   </span>
                   {field.multiline ? (
                     <Textarea
                       {...form.register(field.key)}
+                      disabled={isLoading}
                       placeholder={field.placeholder}
                       rows={4}
                     />
                   ) : (
                     <Input
                       {...form.register(field.key)}
+                      disabled={isLoading}
                       placeholder={field.placeholder}
                     />
                   )}
                   {errors[field.key]?.message ? (
-                    <span className="mt-1 block text-xs font-medium text-red-600">
+                    <span className="mt-1 block text-xs font-medium text-[var(--danger)]">
                       {errors[field.key]?.message}
                     </span>
                   ) : null}
@@ -284,7 +310,7 @@ export default function Home() {
               <Button
                 type="submit"
                 disabled={isLoading || !canSubmit}
-                className="flex-1 bg-teal-700 px-4 py-3 text-white hover:bg-teal-800"
+                className="flex-1 bg-[var(--primary)] px-4 py-3 text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -296,7 +322,8 @@ export default function Home() {
               <Button
                 type="button"
                 onClick={clearAll}
-                className="border border-slate-300 bg-white px-4 py-3 text-slate-700 hover:bg-slate-50"
+                disabled={isLoading}
+                className="border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-[var(--muted-strong)] hover:bg-[var(--surface-muted)]"
               >
                 <Trash2 className="h-4 w-4" />
                 Clear
@@ -305,7 +332,7 @@ export default function Home() {
           </form>
 
           {error ? (
-            <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="mt-5 rounded-md border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">
               {error}
             </div>
           ) : null}
@@ -313,10 +340,10 @@ export default function Home() {
 
         <section className="space-y-5">
           {isLoading ? (
-            <div className="flex min-h-72 items-center justify-center rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
+            <div className="flex min-h-72 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)] p-10 text-center shadow-sm">
               <div>
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-700" />
-                <p className="mt-4 text-sm font-medium text-slate-700">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-[var(--primary)]" />
+                <p className="mt-4 text-sm font-medium text-[var(--muted-strong)]">
                   Generating blameless postmortem draft...
                 </p>
               </div>
@@ -324,8 +351,8 @@ export default function Home() {
           ) : null}
 
           {!isLoading && !postmortem ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-              <FileText className="mx-auto h-10 w-10 text-slate-300" />
+            <div className="rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center text-[var(--muted)]">
+              <FileText className="mx-auto h-10 w-10 text-[var(--border-strong)]" />
               <p className="mt-4 text-sm">
                 Results will appear here after you generate a postmortem.
               </p>
@@ -335,11 +362,11 @@ export default function Home() {
           {postmortem ? (
             <>
               <div className="grid gap-5 md:grid-cols-2">
-                <section className="rounded-lg border border-teal-200 bg-teal-50 p-5">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-800">
+                <section className="rounded-lg border border-[var(--primary)] bg-[var(--primary-soft)] p-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--primary-soft-foreground)]">
                     Severity
                   </h3>
-                  <p className="mt-3 text-2xl font-semibold text-teal-950">
+                  <p className="mt-3 text-2xl font-semibold text-[var(--heading)]">
                     {postmortem.severity}
                   </p>
                 </section>
@@ -371,30 +398,35 @@ export default function Home() {
                 items={postmortem.owner_followups}
               />
 
-              <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+                <div className="flex flex-col gap-3 border-b border-[var(--border)] p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-950">
+                    <h3 className="text-lg font-semibold text-[var(--heading)]">
                       Markdown Postmortem
                     </h3>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-[var(--muted)]">
                       Review and edit before publishing.
                     </p>
+                    {copyError ? (
+                      <p className="mt-2 text-sm font-medium text-[var(--danger)]">
+                        {copyError}
+                      </p>
+                    ) : null}
                   </div>
                   <Button
                     type="button"
                     onClick={copyMarkdown}
-                    className="border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                    className="border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 font-medium text-[var(--muted-strong)] hover:bg-[var(--surface-muted)]"
                   >
                     {copied ? (
-                      <ClipboardCheck className="h-4 w-4 text-teal-700" />
+                      <ClipboardCheck className="h-4 w-4 text-[var(--primary)]" />
                     ) : (
                       <Clipboard className="h-4 w-4" />
                     )}
                     {copied ? "Copied" : "Copy Markdown"}
                   </Button>
                 </div>
-                <div className="prose prose-slate max-w-none p-5 prose-headings:scroll-mt-24 prose-pre:overflow-auto">
+                <div className="prose max-w-none p-5 prose-headings:scroll-mt-24 prose-pre:overflow-auto">
                   <ReactMarkdown>{postmortem.markdown_postmortem}</ReactMarkdown>
                 </div>
               </section>

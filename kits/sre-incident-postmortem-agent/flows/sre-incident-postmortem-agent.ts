@@ -67,6 +67,8 @@ export const inputs = {
   ],
 };
 
+export const references = {};
+
 export const nodes = [
   {
     id: "triggerNode_1",
@@ -196,3 +198,5 @@ export const edges = [
     type: "buttonedge",
   },
 ];
+
+export default { meta, inputs, references, nodes, edges };
