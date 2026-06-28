@@ -4,6 +4,21 @@
   color-scheme: light;
   --background: #f6f7f9;
   --foreground: #17202a;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --muted: #64748b;
+  --muted-strong: #334155;
+  --heading: #020617;
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f0fdfa;
+  --primary-soft-foreground: #115e59;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
 }
 
 * {

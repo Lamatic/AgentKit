@@ -9,7 +9,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-slate-300",
+        "inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-[var(--border-strong)]",
         className,
       )}
       {...props}
