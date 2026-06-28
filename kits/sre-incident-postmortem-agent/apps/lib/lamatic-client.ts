@@ -37,8 +37,9 @@ const requiredEnv = [
   "LAMATIC_API_KEY",
   "LAMATIC_API_URL",
   "LAMATIC_PROJECT_ID",
-  "SRE_POSTMORTEM_FLOW_ID",
 ] as const;
+
+const REQUEST_TIMEOUT_MS = 30000;
 
 function getRequiredEnv(key: (typeof requiredEnv)[number]) {
   const value = process.env[key];
@@ -59,47 +60,90 @@ function validatePostmortem(value: unknown): Postmortem {
   }
 
   const postmortem = value as Partial<Postmortem>;
-  return {
-    severity: String(postmortem.severity || "Unknown"),
-    executive_summary: String(postmortem.executive_summary || ""),
-    suspected_root_cause: String(postmortem.suspected_root_cause || ""),
-    timeline: Array.isArray(postmortem.timeline) ? postmortem.timeline.map(String) : [],
-    customer_impact: String(postmortem.customer_impact || ""),
-    immediate_remediation: String(postmortem.immediate_remediation || ""),
-    long_term_prevention: Array.isArray(postmortem.long_term_prevention)
-      ? postmortem.long_term_prevention.map(String)
-      : [],
-    owner_followups: Array.isArray(postmortem.owner_followups)
-      ? postmortem.owner_followups.map(String)
-      : [],
-    markdown_postmortem: String(postmortem.markdown_postmortem || ""),
-  };
+
+  const requiredStrings: Array<keyof Pick<
+    Postmortem,
+    | "severity"
+    | "executive_summary"
+    | "suspected_root_cause"
+    | "customer_impact"
+    | "immediate_remediation"
+    | "markdown_postmortem"
+  >> = [
+    "severity",
+    "executive_summary",
+    "suspected_root_cause",
+    "customer_impact",
+    "immediate_remediation",
+    "markdown_postmortem",
+  ];
+
+  for (const field of requiredStrings) {
+    if (typeof postmortem[field] !== "string" || !postmortem[field]) {
+      throw new Error(`Lamatic response is missing required field: ${field}`);
+    }
+  }
+
+  const requiredArrays: Array<keyof Pick<
+    Postmortem,
+    "timeline" | "long_term_prevention" | "owner_followups"
+  >> = ["timeline", "long_term_prevention", "owner_followups"];
+
+  for (const field of requiredArrays) {
+    if (
+      !Array.isArray(postmortem[field]) ||
+      !postmortem[field]?.every((item) => typeof item === "string")
+    ) {
+      throw new Error(`Lamatic response has invalid array field: ${field}`);
+    }
+  }
+
+  return postmortem as Postmortem;
 }
 
 export async function executePostmortemFlow(
   input: IncidentInput,
+  workflowEnvKey: string,
 ): Promise<Postmortem> {
   const apiKey = getRequiredEnv("LAMATIC_API_KEY");
   const endpoint = normalizeEndpoint(getRequiredEnv("LAMATIC_API_URL"));
   const projectId = getRequiredEnv("LAMATIC_PROJECT_ID");
-  const workflowId = getRequiredEnv("SRE_POSTMORTEM_FLOW_ID");
+  const workflowId = process.env[workflowEnvKey];
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "x-project-id": projectId,
-    },
-    body: JSON.stringify({
-      query,
-      variables: {
-        workflowId,
-        ...input,
+  if (!workflowId) {
+    throw new Error(`Missing required environment variable: ${workflowEnvKey}`);
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "x-project-id": projectId,
       },
-    }),
-    cache: "no-store",
-  });
+      body: JSON.stringify({
+        query,
+        variables: {
+          workflowId,
+          ...input,
+        },
+      }),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Lamatic request timed out.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const raw = await response.text();
   let parsed: LamaticGraphQLResponse | null = null;
@@ -125,6 +169,17 @@ export async function executePostmortemFlow(
     throw new Error(message || "Lamatic returned GraphQL errors.");
   }
 
-  const result = parsed?.data?.executeWorkflow?.result;
+  const execution = parsed?.data?.executeWorkflow;
+  const status = execution?.status;
+
+  if (!status) {
+    throw new Error("Lamatic response is missing workflow status.");
+  }
+
+  if (!["success", "completed"].includes(status.toLowerCase())) {
+    throw new Error(`Lamatic workflow failed with status: ${status}`);
+  }
+
+  const result = execution?.result;
   return validatePostmortem(result?.postmortem);
 }

@@ -2,6 +2,7 @@
 
 import { executePostmortemFlow } from "@/lib/lamatic-client";
 import type { GeneratePostmortemResponse, IncidentInput } from "@/lib/types";
+import kitConfig from "../../lamatic.config";
 
 function cleanInput(input: IncidentInput): IncidentInput {
   return {
@@ -19,6 +20,9 @@ export async function generatePostmortem(
   input: IncidentInput,
 ): Promise<GeneratePostmortemResponse> {
   const cleaned = cleanInput(input);
+  const flowStep = kitConfig.steps.find(
+    (step) => step.id === "sre-incident-postmortem-agent",
+  );
 
   if (!cleaned.service_name) {
     return { success: false, error: "Service name is required." };
@@ -28,8 +32,15 @@ export async function generatePostmortem(
     return { success: false, error: "Incident title is required." };
   }
 
+  if (!flowStep?.envKey) {
+    return {
+      success: false,
+      error: "Kit config is missing the SRE postmortem flow env key.",
+    };
+  }
+
   try {
-    const postmortem = await executePostmortemFlow(cleaned);
+    const postmortem = await executePostmortemFlow(cleaned, flowStep.envKey);
     return {
       success: true,
       postmortem,
