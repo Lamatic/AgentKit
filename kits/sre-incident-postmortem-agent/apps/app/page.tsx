@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import ReactMarkdown from "react-markdown";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
   Clipboard,
   ClipboardCheck,
@@ -12,7 +15,20 @@ import {
   Trash2,
 } from "lucide-react";
 import { generatePostmortem } from "@/actions/orchestrate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { IncidentInput, Postmortem } from "@/lib/types";
+
+const incidentSchema = z.object({
+  service_name: z.string().trim().min(1, "Service name is required."),
+  incident_title: z.string().trim().min(1, "Incident title is required."),
+  alert_details: z.string(),
+  logs_or_symptoms: z.string(),
+  timeline_notes: z.string(),
+  impact_description: z.string(),
+  current_status: z.string(),
+});
 
 const emptyIncident: IncidentInput = {
   service_name: "",
@@ -125,48 +141,59 @@ function ResultCard({ title, value }: { title: string; value: string }) {
 }
 
 export default function Home() {
-  const [incident, setIncident] = useState<IncidentInput>(emptyIncident);
+  const form = useForm<IncidentInput>({
+    resolver: zodResolver(incidentSchema),
+    defaultValues: emptyIncident,
+  });
   const [postmortem, setPostmortem] = useState<Postmortem | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { errors } = form.formState;
+  const serviceName = form.watch("service_name");
+  const incidentTitle = form.watch("incident_title");
 
   const canSubmit = useMemo(
-    () => incident.service_name.trim() && incident.incident_title.trim(),
-    [incident.incident_title, incident.service_name],
+    () => serviceName.trim() && incidentTitle.trim(),
+    [incidentTitle, serviceName],
   );
 
-  const updateField = (key: keyof IncidentInput, value: string) => {
-    setIncident((current) => ({ ...current, [key]: value }));
-  };
-
   const loadSample = () => {
-    setIncident(sampleIncident);
+    form.reset(sampleIncident);
     setPostmortem(null);
     setError("");
     setCopied(false);
   };
 
   const clearAll = () => {
-    setIncident(emptyIncident);
+    form.reset(emptyIncident);
     setPostmortem(null);
     setError("");
     setCopied(false);
   };
 
-  const submit = async () => {
+  const submit = async (values: IncidentInput) => {
     setError("");
     setPostmortem(null);
     setCopied(false);
     setIsLoading(true);
 
-    const response = await generatePostmortem(incident);
-    if (response.success && response.postmortem) {
-      setPostmortem(response.postmortem);
-    } else {
-      setError(response.error || "Unable to generate a postmortem.");
+    try {
+      const response = await generatePostmortem(values);
+      if (response.success && response.postmortem) {
+        setPostmortem(response.postmortem);
+      } else {
+        setError(response.error || "Unable to generate a postmortem.");
+      }
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to generate a postmortem.",
+      );
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const copyMarkdown = async () => {
@@ -215,65 +242,67 @@ export default function Home() {
                 Service name and incident title are required.
               </p>
             </div>
-            <button
+            <Button
               type="button"
               onClick={loadSample}
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
             >
               <RotateCcw className="h-4 w-4" />
               Load Sample Incident
-            </button>
+            </Button>
           </div>
 
-          <div className="mt-5 space-y-4">
-            {fields.map((field) => (
-              <label key={field.key} className="block">
-                <span className="text-sm font-medium text-slate-700">
-                  {field.label}
-                </span>
-                {field.multiline ? (
-                  <textarea
-                    value={incident[field.key]}
-                    onChange={(event) => updateField(field.key, event.target.value)}
-                    placeholder={field.placeholder}
-                    rows={4}
-                    className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
-                  />
+          <form onSubmit={form.handleSubmit(submit)}>
+            <div className="mt-5 space-y-4">
+              {fields.map((field) => (
+                <label key={field.key} className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    {field.label}
+                  </span>
+                  {field.multiline ? (
+                    <Textarea
+                      {...form.register(field.key)}
+                      placeholder={field.placeholder}
+                      rows={4}
+                    />
+                  ) : (
+                    <Input
+                      {...form.register(field.key)}
+                      placeholder={field.placeholder}
+                    />
+                  )}
+                  {errors[field.key]?.message ? (
+                    <span className="mt-1 block text-xs font-medium text-red-600">
+                      {errors[field.key]?.message}
+                    </span>
+                  ) : null}
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="submit"
+                disabled={isLoading || !canSubmit}
+                className="flex-1 bg-teal-700 px-4 py-3 text-white hover:bg-teal-800"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <input
-                    value={incident[field.key]}
-                    onChange={(event) => updateField(field.key, event.target.value)}
-                    placeholder={field.placeholder}
-                    className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
-                  />
+                  <Sparkles className="h-4 w-4" />
                 )}
-              </label>
-            ))}
-          </div>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={submit}
-              disabled={isLoading || !canSubmit}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
-              Generate Postmortem
-            </button>
-            <button
-              type="button"
-              onClick={clearAll}
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              <Trash2 className="h-4 w-4" />
-              Clear
-            </button>
-          </div>
+                Generate Postmortem
+              </Button>
+              <Button
+                type="button"
+                onClick={clearAll}
+                className="border border-slate-300 bg-white px-4 py-3 text-slate-700 hover:bg-slate-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear
+              </Button>
+            </div>
+          </form>
 
           {error ? (
             <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -352,10 +381,10 @@ export default function Home() {
                       Review and edit before publishing.
                     </p>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={copyMarkdown}
-                    className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    className="border border-slate-300 bg-white px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
                   >
                     {copied ? (
                       <ClipboardCheck className="h-4 w-4 text-teal-700" />
@@ -363,7 +392,7 @@ export default function Home() {
                       <Clipboard className="h-4 w-4" />
                     )}
                     {copied ? "Copied" : "Copy Markdown"}
-                  </button>
+                  </Button>
                 </div>
                 <div className="prose prose-slate max-w-none p-5 prose-headings:scroll-mt-24 prose-pre:overflow-auto">
                   <ReactMarkdown>{postmortem.markdown_postmortem}</ReactMarkdown>
