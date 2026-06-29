@@ -41,13 +41,13 @@ export const meta = {
 };
 
 export const inputs = {
-  postmortem_generator: [
+  InstructorLLMNode_1: [
     {
       name: "generativeModelName",
       label: "Generative Model Name",
       type: "model",
       modelType: "generator/text",
-      mode: "chat",
+      mode: "instructor",
       description: "Select the model used to generate the postmortem.",
       required: true,
       defaultValue: [
@@ -67,7 +67,19 @@ export const inputs = {
   ],
 };
 
-export const references = {};
+export const references = {
+  constitutions: {
+    default: "@constitutions/default.md",
+  },
+  prompts: {
+    sre_incident_postmortem_agent_postmortem_generator_system:
+      "@prompts/sre-incident-postmortem-agent_postmortem-generator_system.md",
+  },
+  modelConfigs: {
+    sre_incident_postmortem_agent_postmortem_generator:
+      "@model-configs/sre-incident-postmortem-agent_postmortem-generator.ts",
+  },
+};
 
 export const nodes = [
   {
@@ -177,25 +189,25 @@ export const edges = [
     id: "triggerNode_1-InstructorLLMNode_1",
     source: "triggerNode_1",
     target: "InstructorLLMNode_1",
-    sourceHandle: "source",
-    targetHandle: "target",
-    type: "buttonedge",
+    sourceHandle: "bottom",
+    targetHandle: "top",
+    type: "defaultEdge",
   },
   {
     id: "InstructorLLMNode_1-responseNode_triggerNode_1",
     source: "InstructorLLMNode_1",
     target: "responseNode_triggerNode_1",
-    sourceHandle: "source",
-    targetHandle: "target",
-    type: "buttonedge",
+    sourceHandle: "bottom",
+    targetHandle: "top",
+    type: "defaultEdge",
   },
   {
-    id: "response-trigger_triggerNode_1",
+    id: "response-responseNode_triggerNode_1",
     source: "triggerNode_1",
     target: "responseNode_triggerNode_1",
-    sourceHandle: "response-source",
-    targetHandle: "response-target",
-    type: "buttonedge",
+    sourceHandle: "to-response",
+    targetHandle: "from-trigger",
+    type: "responseEdge",
   },
 ];
 
