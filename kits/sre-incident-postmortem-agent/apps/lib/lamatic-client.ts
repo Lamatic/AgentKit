@@ -1,7 +1,4 @@
-import type {
-  IncidentInput,
-  Postmortem,
-} from "@/lib/types";
+import type { IncidentInput, Postmortem } from "@/lib/types";
 import { Lamatic } from "lamatic";
 
 const requiredEnv = [
@@ -9,8 +6,6 @@ const requiredEnv = [
   "LAMATIC_API_URL",
   "LAMATIC_PROJECT_ID",
 ] as const;
-
-const REQUEST_TIMEOUT_MS = 30000;
 
 function getRequiredEnv(key: (typeof requiredEnv)[number]) {
   const value = process.env[key];
@@ -91,26 +86,7 @@ export async function executePostmortemFlow(
     apiKey,
   });
 
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () => reject(new Error("Lamatic request timed out.")),
-      REQUEST_TIMEOUT_MS,
-    );
-  });
-
-  let execution: Awaited<ReturnType<typeof client.executeFlow>>;
-  try {
-    execution = await Promise.race([
-      client.executeFlow(workflowId, input),
-      timeout,
-    ]);
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  }
+  const execution = await client.executeFlow(workflowId, input);
 
   const status = execution?.status;
 
