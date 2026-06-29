@@ -91,14 +91,26 @@ export async function executePostmortemFlow(
     apiKey,
   });
 
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
   const timeout = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error("Lamatic request timed out.")), REQUEST_TIMEOUT_MS);
+    timeoutId = setTimeout(
+      () => reject(new Error("Lamatic request timed out.")),
+      REQUEST_TIMEOUT_MS,
+    );
   });
 
-  const execution = await Promise.race([
-    client.executeFlow(workflowId, input),
-    timeout,
-  ]);
+  let execution: Awaited<ReturnType<typeof client.executeFlow>>;
+  try {
+    execution = await Promise.race([
+      client.executeFlow(workflowId, input),
+      timeout,
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 
   const status = execution?.status;
 

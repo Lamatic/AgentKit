@@ -105,7 +105,7 @@ export const nodes = [
         id: "InstructorLLMNode_1",
         tools: [],
         schema:
-          '{\n  "type": "object",\n  "properties": {\n    "postmortem": {\n      "type": "object",\n      "properties": {\n        "severity": { "type": "string" },\n        "executive_summary": { "type": "string" },\n        "suspected_root_cause": { "type": "string" },\n        "timeline": { "type": "array", "items": { "type": "string" } },\n        "customer_impact": { "type": "string" },\n        "immediate_remediation": { "type": "string" },\n        "long_term_prevention": { "type": "array", "items": { "type": "string" } },\n        "owner_followups": { "type": "array", "items": { "type": "string" } },\n        "markdown_postmortem": { "type": "string" }\n      }\n    }\n  }\n}',
+          '{\n  "type": "object",\n  "additionalProperties": false,\n  "required": [\n    "severity",\n    "executive_summary",\n    "suspected_root_cause",\n    "timeline",\n    "customer_impact",\n    "immediate_remediation",\n    "long_term_prevention",\n    "owner_followups",\n    "markdown_postmortem"\n  ],\n  "properties": {\n    "severity": { "type": "string" },\n    "executive_summary": { "type": "string" },\n    "suspected_root_cause": { "type": "string" },\n    "timeline": { "type": "array", "items": { "type": "string" } },\n    "customer_impact": { "type": "string" },\n    "immediate_remediation": { "type": "string" },\n    "long_term_prevention": { "type": "array", "items": { "type": "string" } },\n    "owner_followups": { "type": "array", "items": { "type": "string" } },\n    "markdown_postmortem": { "type": "string" }\n  }\n}',
         prompts: [
           {
             id: "8c5aa66f-2461-42c2-bc59-4f2f00ef78a1",
@@ -117,7 +117,7 @@ export const nodes = [
             id: "d4da75c5-566a-4059-9577-7f28d930ef0b",
             role: "user",
             content:
-              "Service: {{triggerNode_1.output.service_name}}\nIncident title: {{triggerNode_1.output.incident_title}}\nAlert details: {{triggerNode_1.output.alert_details}}\nLogs or symptoms: {{triggerNode_1.output.logs_or_symptoms}}\nTimeline notes: {{triggerNode_1.output.timeline_notes}}\nImpact description: {{triggerNode_1.output.impact_description}}\nCurrent status: {{triggerNode_1.output.current_status}}",
+              'Service: {{triggerNode_1.output.service_name}}\nIncident title: {{triggerNode_1.output.incident_title}}\nAlert details: {{triggerNode_1.output.alert_details}}\nLogs or symptoms: {{triggerNode_1.output.logs_or_symptoms}}\nTimeline notes: {{triggerNode_1.output.timeline_notes}}\nImpact description: {{triggerNode_1.output.impact_description}}\nCurrent status: {{triggerNode_1.output.current_status}}\n\nReturn valid JSON only with exactly these keys:\n\n{\n  "severity": "string",\n  "executive_summary": "string",\n  "suspected_root_cause": "string",\n  "timeline": ["string"],\n  "customer_impact": "string",\n  "immediate_remediation": "string",\n  "long_term_prevention": ["string"],\n  "owner_followups": ["string"],\n  "markdown_postmortem": "string"\n}\n\nDo not rename keys.\nDo not use root_cause instead of suspected_root_cause.\nDo not wrap the JSON in markdown.',
           },
         ],
         memories:
@@ -155,7 +155,7 @@ export const nodes = [
         webhookUrl: "",
         retry_delay: "0",
         outputMapping:
-          '{\n  "postmortem": "{{InstructorLLMNode_1.output.postmortem}}"\n}',
+          '{\n  "postmortem": "{{InstructorLLMNode_1.output}}"\n}',
       },
       isResponseNode: true,
     },
