@@ -7,6 +7,9 @@ const requiredEnv = [
   "LAMATIC_PROJECT_ID",
 ] as const;
 
+const POLL_INTERVAL_SECONDS = 2;
+const POLL_TIMEOUT_SECONDS = 60;
+
 function getRequiredEnv(key: (typeof requiredEnv)[number]) {
   const value = process.env[key];
   if (!value) {
@@ -18,6 +21,15 @@ function getRequiredEnv(key: (typeof requiredEnv)[number]) {
 function normalizeEndpoint(endpoint: string) {
   const trimmed = endpoint.trim().replace(/\/+$/, "");
   return trimmed.endsWith("/graphql") ? trimmed : `${trimmed}/graphql`;
+}
+
+function getRequestId(result: unknown) {
+  if (!result || typeof result !== "object") {
+    return undefined;
+  }
+
+  const requestId = (result as { requestId?: unknown }).requestId;
+  return typeof requestId === "string" && requestId ? requestId : undefined;
 }
 
 function validatePostmortem(value: unknown): Postmortem {
@@ -86,7 +98,15 @@ export async function executePostmortemFlow(
     apiKey,
   });
 
-  const execution = await client.executeFlow(workflowId, input);
+  const initialExecution = await client.executeFlow(workflowId, input);
+  const requestId = getRequestId(initialExecution?.result);
+  const execution = requestId
+    ? await client.checkStatus(
+        requestId,
+        POLL_INTERVAL_SECONDS,
+        POLL_TIMEOUT_SECONDS,
+      )
+    : initialExecution;
 
   const status = execution?.status;
 
