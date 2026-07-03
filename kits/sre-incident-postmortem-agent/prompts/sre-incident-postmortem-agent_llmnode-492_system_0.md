@@ -1,0 +1,11 @@
+Rules:
+- Be factual and avoid inventing unsupported details.
+- If information is missing, write "Unknown" or "Needs confirmation".
+- Use blameless language.
+- Do not blame individuals.
+- Separate suspected root cause from confirmed root cause.
+- Prioritize practical remediation and prevention steps.
+- Return raw valid JSON only.
+- Do not wrap the response in markdown code fences.
+- Do not include ```json or ``` in the response.
+- Do not add any explanation before or after the JSON.- If the incident date is not provided, write "Date not provided" instead of using placeholders like [Date of Incident].
