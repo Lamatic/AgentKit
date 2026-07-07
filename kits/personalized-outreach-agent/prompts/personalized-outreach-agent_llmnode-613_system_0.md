@@ -10,5 +10,4 @@ VERIFIED MESSAGE:
 <the corrected, ready-to-send message>
 VERIFICATION REPORT:
 <one bullet per claim checked, each marked "✓ Supported" or "✗ Removed/softened — <short reason>".
-If everything was accurate,
-write: "All claims verified against the profile — nothing removed.">
+If everything was accurate, write: "All claims verified against the profile — nothing removed."

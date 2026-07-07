@@ -31,7 +31,7 @@ This flow includes **4 nodes** working together.
 
 A single response containing:
 
-```
+```text
 VERIFIED MESSAGE:
 <the corrected, ready-to-send outreach message>
 
