@@ -1,0 +1,1 @@
+Extract the receipt into structured JSON. Raw OCR text hint (may be empty): {{triggerNode_1.output.rawText}}
