@@ -4,7 +4,11 @@
 // A capable chat model at a moderate temperature (~0.5) for natural, readable
 // status-update prose. Higher than the diagnose node (which is 0) because this is
 // writing, not ranking — but not so high that it starts embellishing beyond the
-// evidence. Credentials blanked for sharing; set your own in Lamatic Studio.
+// evidence.
+//
+// The fields below are shareable placeholders (same convention as the other kits in
+// this repo): the model, temperature (~0.5), and credentials are configured on the
+// node in Lamatic Studio, not committed in this file.
 
 export default {
   "generativeModelName": "@model-configs/draft-comms_slack.ts",
