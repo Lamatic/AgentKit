@@ -71,7 +71,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"items\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"quantity\": {\n            \"type\": \"number\"\n          },\n          \"unitPrice\": {\n            \"type\": \"number\"\n          },\n          \"totalPrice\": {\n            \"type\": \"number\"\n          }\n        },\n        \"additionalProperties\": true\n      }\n    },\n    \"subtotal\": {\n      \"type\": \"number\"\n    },\n    \"tax\": {\n      \"type\": \"number\"\n    },\n    \"tip\": {\n      \"type\": \"number\"\n    },\n    \"grandTotal\": {\n      \"type\": \"number\"\n    },\n    \"currency\": {\n      \"type\": \"string\"\n    },\n    \"merchantName\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"items\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": [\n              \"string\",\n              \"null\"\n            ]\n          },\n          \"quantity\": {\n            \"type\": [\n              \"number\",\n              \"null\"\n            ]\n          },\n          \"unitPrice\": {\n            \"type\": [\n              \"number\",\n              \"null\"\n            ]\n          },\n          \"totalPrice\": {\n            \"type\": [\n              \"number\",\n              \"null\"\n            ]\n          }\n        },\n        \"additionalProperties\": true\n      }\n    },\n    \"subtotal\": {\n      \"type\": [\n        \"number\",\n        \"null\"\n      ]\n    },\n    \"tax\": {\n      \"type\": [\n        \"number\",\n        \"null\"\n      ]\n    },\n    \"tip\": {\n      \"type\": [\n        \"number\",\n        \"null\"\n      ]\n    },\n    \"grandTotal\": {\n      \"type\": [\n        \"number\",\n        \"null\"\n      ]\n    },\n    \"currency\": {\n      \"type\": [\n        \"string\",\n        \"null\"\n      ]\n    },\n    \"merchantName\": {\n      \"type\": [\n        \"string\",\n        \"null\"\n      ]\n    }\n  }\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -107,7 +107,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{}"
+        "outputMapping": "{\n  \"items\": \"{{InstructorLLMNode_841.output.items}}\",\n  \"subtotal\": \"{{InstructorLLMNode_841.output.subtotal}}\",\n  \"tax\": \"{{InstructorLLMNode_841.output.tax}}\",\n  \"tip\": \"{{InstructorLLMNode_841.output.tip}}\",\n  \"grandTotal\": \"{{InstructorLLMNode_841.output.grandTotal}}\",\n  \"currency\": \"{{InstructorLLMNode_841.output.currency}}\",\n  \"merchantName\": \"{{InstructorLLMNode_841.output.merchantName}}\"\n}"
       }
     }
   }

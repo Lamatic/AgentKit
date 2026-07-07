@@ -107,7 +107,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{}"
+        "outputMapping": "{\n  \"perPerson\": \"{{InstructorLLMNode_884.output.perPerson}}\",\n  \"subtotal\": \"{{InstructorLLMNode_884.output.subtotal}}\",\n  \"tax\": \"{{InstructorLLMNode_884.output.tax}}\",\n  \"tip\": \"{{InstructorLLMNode_884.output.tip}}\",\n  \"grandTotal\": \"{{InstructorLLMNode_884.output.grandTotal}}\",\n  \"currency\": \"{{InstructorLLMNode_884.output.currency}}\",\n  \"notes\": \"{{InstructorLLMNode_884.output.notes}}\"\n}"
       }
     }
   }
