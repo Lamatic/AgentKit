@@ -24,7 +24,7 @@ A chatbot answers the question you asked. Incident Copilot **gathers evidence, w
   Next.js app (apps/)                         Lamatic flows
   ─────────────────                           ─────────────
   paste alert + repo ─┐
-                      │  investigate(alert, incidentId, repo)
+                      │  investigate(alertText, incidentId, repoUrl)
                       ▼
   actions/orchestrate.ts ───────────────▶  flow: investigate
                       ▲                     ┌──────────────────────────────┐
@@ -42,7 +42,7 @@ A chatbot answers the question you asked. Incident Copilot **gathers evidence, w
                       │              │      │        Remember (memory add)  │
                       │              │      └──────────────────────────────┘
                       │
-                      │  draftComms(topHypothesis, evidence, …)
+                      │  draftComms(hypothesis, evidence, rankedHypotheses, incidentId)
                       ▼
   actions/orchestrate.ts ───────────────▶  flow: draft-comms
                                             ┌──────────────────────────────┐

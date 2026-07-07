@@ -6,8 +6,11 @@
 // or any capable model available in your Lamatic project).
 //
 // Temperature 0 is deliberate: incident triage must be repeatable — the same alert
-// and evidence should yield the same ranking. Credentials are blanked for sharing;
-// set your own model credential in Lamatic Studio.
+// and evidence should yield the same ranking.
+//
+// The fields below are shareable placeholders (same convention as the other kits in
+// this repo): the model, temperature (0), and credentials are configured on the node
+// in Lamatic Studio, not committed in this file.
 
 export default {
   "generativeModelName": "@model-configs/investigate_diagnose.ts",

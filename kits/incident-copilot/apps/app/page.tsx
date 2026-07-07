@@ -149,7 +149,11 @@ export default function Page() {
         </div>
 
         {(busy || step > 0) && <InvestigationTimeline activeStep={step} />}
-        {error && <div className="error">{error}</div>}
+        {error && (
+          <div className="error" role="alert" aria-live="assertive">
+            {error}
+          </div>
+        )}
       </section>
 
       {result && (
@@ -180,7 +184,7 @@ export default function Page() {
                 <button onClick={() => runInvestigation(followUp, true)} disabled={busy || !followUp.trim()}>
                   {busy ? "Revising…" : "Add info & re-investigate"}
                 </button>
-                <button className="secondary" onClick={onDraftComms} disabled={commsBusy}>
+                <button className="secondary" onClick={onDraftComms} disabled={commsBusy || busy}>
                   {commsBusy ? "Drafting…" : "Draft Slack + postmortem"}
                 </button>
               </div>
