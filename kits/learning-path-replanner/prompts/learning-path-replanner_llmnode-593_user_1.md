@@ -11,5 +11,5 @@ Available Days: {{triggerNode_1.availableDays}}
 Daily Study Time: {{triggerNode_1.dailyStudyTime}}
 Preferred Learning Style: {{triggerNode_1.preferredLearningStyle}}
 Learning Diagnosis:
-{{LLMNode_1.output.generatedResponse}}
+{{LLMNode_333.output.generatedResponse}}
 Please create a complete adaptive recovery learning path.
