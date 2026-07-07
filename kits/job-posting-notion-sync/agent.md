@@ -49,7 +49,7 @@ The flow starts as soon as this payload is received.
 | `location` | string | City/region as stated |
 | `remote_type` | string | e.g. Remote, Hybrid, On-site |
 | `tech_stack` | string[] | Only explicitly named technologies |
-| `experience_level` | string | One of: `fresher`, `junior`, `mid`, `senior`; `null` if unstated |
+| `experience_level` | string | One of: `fresher`, `junior`, `mid`, `senior`; `""` if unstated |
 | `salary_range` | string | As stated; `""` if not present |
 | `application_deadline` | string | As stated; `""` if not present |
 | `source_url` | string | Passed through from trigger input |

@@ -207,12 +207,12 @@ export const nodes = [
         "nodeName": "Classifier",
         "classifier": [
           {
-            "label": "Classifier 1",
-            "value": "agentClassifierNode_222-notionNode_1"
+            "label": "High",
+            "value": "agentClassifierNode_222-notionNode_1-high"
           },
           {
-            "label": "Classifier 2",
-            "value": "agentClassifierNode_222-notionNode_1"
+            "label": "Low",
+            "value": "agentClassifierNode_222-notionNode_1-low"
           }
         ],
         "generativeModelName": "@model-configs/job_agent-classifier-node-222_generative-model-name.ts"
@@ -232,8 +232,8 @@ export const nodes = [
         "id": "notionNode_1",
         "title": "JOB",
         "action": "NOTION_CREATE_NOTION_PAGE",
-        "pageId": "396db34f-0362-8145-8515-de2b8de41566",
-        "parent": "396db34f-0362-8145-8515-de2b8de41566",
+        "pageId": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
+        "parent": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
         "nodeName": "Save to Notion",
         "operation": "createPage",
         "databaseId": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
@@ -307,14 +307,7 @@ export const edges = [
     "targetHandle": "top",
     "type": "agentClassifierEdge"
   },
-  {
-    "id": "agentClassifierNode_222-notionNode_1",
-    "source": "agentClassifierNode_222",
-    "target": "notionNode_1",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "agentClassifierEdge"
-  },
+
   {
     "id": "notionNode_1-responseNode_triggerNode_1",
     "source": "notionNode_1",
