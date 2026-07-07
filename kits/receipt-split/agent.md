@@ -2,7 +2,7 @@
 
 ## Overview
 
-Receipt Split turns a photo of a receipt into a fair, itemized settlement between people. It is a two-flow bundle: one flow reads the receipt, the other does the math.
+Receipt Split turns a photo of a receipt into a fair, itemized settlement between people. It is a two-flow kit (with a small Next.js app in `apps/`): one flow reads the receipt, the other does the math.
 
 ## Flows
 
@@ -28,4 +28,4 @@ Both flows follow `constitutions/default.md`: no fabricated values (missing/ille
 
 ## Integration
 
-Call `receipt-extract` with the receipt image, then feed its JSON output directly into `bill-splitter` along with the splitting instructions. See `README.md` for example requests.
+Call `receipt-extract` with the receipt image, then feed its JSON output directly into `bill-splitter` along with the splitting instructions. See `README.md` for example requests, or run `apps/` locally for a ready-made two-step UI over the same two calls.
