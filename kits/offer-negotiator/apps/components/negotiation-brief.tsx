@@ -19,14 +19,19 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   };
 
   return (
-    <Button type="button" variant="ghost" onClick={copy} aria-live="polite">
-      {copied ? (
-        <Check size={14} aria-hidden="true" />
-      ) : (
-        <Copy size={14} aria-hidden="true" />
-      )}
-      {copied ? "Copied" : label}
-    </Button>
+    <span className="inline-flex items-center">
+      <Button type="button" variant="ghost" onClick={copy}>
+        {copied ? (
+          <Check size={14} aria-hidden="true" />
+        ) : (
+          <Copy size={14} aria-hidden="true" />
+        )}
+        {copied ? "Copied" : label}
+      </Button>
+      <span className="sr-only" role="status" aria-live="polite">
+        {copied ? `${label}: copied to clipboard` : ""}
+      </span>
+    </span>
   );
 }
 
