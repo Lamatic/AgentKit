@@ -72,18 +72,22 @@ Import this kit into your Lamatic workspace. The flow `job` will be added automa
 
 ### 4. Set Your Notion Database ID
 
-Open [`flows/job.ts`](./flows/job.ts) and find the `notionNode_1` values block. Replace the placeholder with your actual Notion database ID:
+Open [`flows/job.ts`](./flows/job.ts) and find the `notionNode_1` values block. Replace the three placeholders:
 
 ```ts
-// flows/job.ts  ~line 239
-"databaseId": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
+// flows/job.ts  ~line 232-239
+"pageId":     "REPLACE_WITH_YOUR_NOTION_PAGE_ID",   // the database page acting as parent
+"parent":     "REPLACE_WITH_YOUR_NOTION_PAGE_ID",   // same value as pageId
+"databaseId": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID", // the database to create pages in
 ```
 
-Your database ID is the part of the Notion page URL between the last `/` and the `?`:
+> **`pageId` / `parent`** — the Notion page that *contains* the database (the parent page ID).  
+> **`databaseId`** — the ID of the database itself where new job entries will be created.
+
+Both IDs appear in the Notion page URL:
 
 ```
-https://www.notion.so/myworkspace/396db34f03628145...?v=...
-                                  ^^^^^^^^^^^^^^^^ this is the ID
+https://www.notion.so/myworkspace/<PAGE_ID>?v=<DATABASE_ID>
 ```
 
 ### 5. Choose LLM Models

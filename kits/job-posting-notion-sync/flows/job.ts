@@ -232,8 +232,8 @@ export const nodes = [
         "id": "notionNode_1",
         "title": "JOB",
         "action": "NOTION_CREATE_NOTION_PAGE",
-        "pageId": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
-        "parent": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
+        "pageId": "REPLACE_WITH_YOUR_NOTION_PAGE_ID",
+        "parent": "REPLACE_WITH_YOUR_NOTION_PAGE_ID",
         "nodeName": "Save to Notion",
         "operation": "createPage",
         "databaseId": "REPLACE_WITH_YOUR_NOTION_DATABASE_ID",
@@ -300,7 +300,15 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "agentClassifierNode_222-notionNode_1",
+    "id": "agentClassifierNode_222-notionNode_1-high",
+    "source": "agentClassifierNode_222",
+    "target": "notionNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "agentClassifierEdge"
+  },
+  {
+    "id": "agentClassifierNode_222-notionNode_1-low",
     "source": "agentClassifierNode_222",
     "target": "notionNode_1",
     "sourceHandle": "bottom",
