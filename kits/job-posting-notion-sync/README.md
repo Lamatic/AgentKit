@@ -147,14 +147,14 @@ The flow is triggered via a **GraphQL API call** with the following input schema
 | **experience_level** | senior |
 | **salary_range** | $180,000 – $220,000 |
 | **application_deadline** | 2026-08-31 |
-| **source_url** | [link](https://jobs.ashbyhq.com/acmecorp/senior-ml-engineer) |
+| **source_url** | [Acme Corp posting](https://jobs.ashbyhq.com/acmecorp/senior-ml-engineer) |
 | **priority** | ✅ High |
 
 ---
 
 ## Flow Architecture
 
-```
+```text
 Trigger (job_url)
     │
     ▼
@@ -177,7 +177,7 @@ API Response
 
 ## Project Structure
 
-```
+```text
 job-posting-notion-sync/
 ├── flows/
 │   └── job.ts                          # Flow definition (nodes, edges, inputs)
