@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --canvas: #e8ecf1;
@@ -151,6 +149,21 @@ body {
     outline: none;
     border-color: var(--teal);
     box-shadow: 0 0 0 3px var(--teal-soft);
+  }
+  .field-input[aria-invalid="true"],
+  .field-textarea[aria-invalid="true"] {
+    border-color: var(--clay);
+  }
+  .field-input[aria-invalid="true"]:focus,
+  .field-textarea[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--clay) 22%, transparent);
+  }
+
+  .form-error {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--clay);
+    margin-top: 0.35rem;
   }
 
   .btn-primary {

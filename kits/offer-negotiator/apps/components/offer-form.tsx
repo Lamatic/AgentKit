@@ -1,43 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { useForm, type Control } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Loader2, Sparkles } from "lucide-react";
+
 import { emptyOffer, type OfferInput } from "@/lib/types";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+
+const offerSchema = z.object({
+  role: z.string().trim().min(1, "Add the role you were offered."),
+  company: z.string(),
+  location: z.string(),
+  seniority: z.string(),
+  current_base: z.string(),
+  current_bonus: z.string(),
+  current_equity: z.string(),
+  offered_base: z.string().trim().min(1, "Add the base salary on the table."),
+  offered_bonus: z.string(),
+  offered_equity: z.string(),
+  competing_offers: z.string(),
+  priorities: z.string().trim().min(1, "Tell us what matters most to you."),
+  constraints: z.string(),
+});
 
 type FieldKey = keyof OfferInput;
 
-function Field({
-  id,
+function OfferField({
+  control,
+  name,
   label,
-  value,
-  onChange,
   placeholder,
   numeric,
   required,
+  textarea,
+  rows,
 }: {
-  id: FieldKey;
+  control: Control<OfferInput>;
+  name: FieldKey;
   label: string;
-  value: string;
-  onChange: (key: FieldKey, value: string) => void;
   placeholder?: string;
   numeric?: boolean;
   required?: boolean;
+  textarea?: boolean;
+  rows?: number;
 }) {
   return (
-    <div>
-      <label htmlFor={id} className="field-label">
-        {label}
-        {required ? <span style={{ color: "var(--brass)" }}> *</span> : null}
-      </label>
-      <input
-        id={id}
-        name={id}
-        value={value}
-        onChange={(e) => onChange(id, e.target.value)}
-        placeholder={placeholder}
-        className={cn("field-input", numeric && "field-num")}
-      />
-    </div>
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>
+            {label}
+            {required ? (
+              <span style={{ color: "var(--brass)" }}> *</span>
+            ) : null}
+          </FormLabel>
+          <FormControl>
+            {textarea ? (
+              <Textarea
+                {...field}
+                placeholder={placeholder}
+                rows={rows ?? 2}
+                required={required}
+                aria-required={required}
+              />
+            ) : (
+              <Input
+                {...field}
+                placeholder={placeholder}
+                className={numeric ? "field-num" : undefined}
+                required={required}
+                aria-required={required}
+              />
+            )}
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
 
@@ -48,113 +100,94 @@ export function OfferForm({
   onSubmit: (offer: OfferInput) => void;
   loading: boolean;
 }) {
-  const [offer, setOffer] = useState<OfferInput>(emptyOffer);
+  const form = useForm<OfferInput>({
+    resolver: zodResolver(offerSchema),
+    defaultValues: emptyOffer,
+    mode: "onSubmit",
+  });
 
-  const set = (key: FieldKey, value: string) =>
-    setOffer((prev) => ({ ...prev, [key]: value }));
-
-  const canSubmit =
-    offer.role.trim() !== "" &&
-    offer.offered_base.trim() !== "" &&
-    offer.priorities.trim() !== "" &&
-    !loading;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    onSubmit(offer);
-  };
+  const { control } = form;
 
   return (
-    <form onSubmit={handleSubmit} className="card p-6 sm:p-8">
-      <div className="space-y-8">
-        <section className="space-y-4">
-          <div className="section-label">The role</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="role" label="Role" value={offer.role} onChange={set} placeholder="Senior Software Engineer" required />
-            <Field id="company" label="Company" value={offer.company} onChange={set} placeholder="Acme Corp" />
-            <Field id="location" label="Location" value={offer.location} onChange={set} placeholder="London, UK" />
-            <Field id="seniority" label="Seniority" value={offer.seniority} onChange={set} placeholder="Senior" />
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <div className="section-label">On the table</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-            <div className="space-y-4">
-              <p className="eyebrow">Your current pay</p>
-              <Field id="current_base" label="Base" value={offer.current_base} onChange={set} placeholder="£85,000" numeric />
-              <Field id="current_bonus" label="Bonus" value={offer.current_bonus} onChange={set} placeholder="10%" numeric />
-              <Field id="current_equity" label="Equity" value={offer.current_equity} onChange={set} placeholder="none" numeric />
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit((values) => onSubmit(values))}
+        className="card p-6 sm:p-8"
+        noValidate
+      >
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <div className="section-label">The role</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <OfferField control={control} name="role" label="Role" placeholder="Senior Software Engineer" required />
+              <OfferField control={control} name="company" label="Company" placeholder="Acme Corp" />
+              <OfferField control={control} name="location" label="Location" placeholder="London, UK" />
+              <OfferField control={control} name="seniority" label="Seniority" placeholder="Senior" />
             </div>
-            <div className="space-y-4">
-              <p className="eyebrow">The offer</p>
-              <Field id="offered_base" label="Base" value={offer.offered_base} onChange={set} placeholder="£95,000" numeric required />
-              <Field id="offered_bonus" label="Bonus" value={offer.offered_bonus} onChange={set} placeholder="10%" numeric />
-              <Field id="offered_equity" label="Equity" value={offer.offered_equity} onChange={set} placeholder="0.02% over 4 years" numeric />
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="space-y-4">
-          <div className="section-label">Your hand</div>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="priorities" className="field-label">
-                What matters most to you
-                <span style={{ color: "var(--brass)" }}> *</span>
-              </label>
-              <textarea
-                id="priorities"
+          <section className="space-y-4">
+            <div className="section-label">On the table</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+              <div className="space-y-4">
+                <p className="eyebrow">Your current pay</p>
+                <OfferField control={control} name="current_base" label="Base" placeholder="£85,000" numeric />
+                <OfferField control={control} name="current_bonus" label="Bonus" placeholder="10%" numeric />
+                <OfferField control={control} name="current_equity" label="Equity" placeholder="none" numeric />
+              </div>
+              <div className="space-y-4">
+                <p className="eyebrow">The offer</p>
+                <OfferField control={control} name="offered_base" label="Base" placeholder="£95,000" numeric required />
+                <OfferField control={control} name="offered_bonus" label="Bonus" placeholder="10%" numeric />
+                <OfferField control={control} name="offered_equity" label="Equity" placeholder="0.02% over 4 years" numeric />
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div className="section-label">Your hand</div>
+            <div className="space-y-4">
+              <OfferField
+                control={control}
                 name="priorities"
-                value={offer.priorities}
-                onChange={(e) => set("priorities", e.target.value)}
+                label="What matters most to you"
                 placeholder="Higher base, remote flexibility"
-                rows={2}
-                className="field-textarea"
+                textarea
+                required
               />
-            </div>
-            <div>
-              <label htmlFor="competing_offers" className="field-label">
-                Competing offers or outside options
-              </label>
-              <textarea
-                id="competing_offers"
+              <OfferField
+                control={control}
                 name="competing_offers"
-                value={offer.competing_offers}
-                onChange={(e) => set("competing_offers", e.target.value)}
+                label="Competing offers or outside options"
                 placeholder="One other final-stage interview, no offer yet"
-                rows={2}
-                className="field-textarea"
+                textarea
               />
-            </div>
-            <div>
-              <label htmlFor="constraints" className="field-label">
-                Constraints or notes
-              </label>
-              <textarea
-                id="constraints"
+              <OfferField
+                control={control}
                 name="constraints"
-                value={offer.constraints}
-                onChange={(e) => set("constraints", e.target.value)}
+                label="Constraints or notes"
                 placeholder="Need to decide within a week"
-                rows={2}
-                className="field-textarea"
+                textarea
               />
             </div>
-          </div>
-        </section>
+          </section>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
-          <button type="submit" className="btn-primary" disabled={!canSubmit}>
-            {loading ? "Building your brief…" : "Build my negotiation brief"}
-          </button>
-          <p className="text-sm" style={{ color: "var(--muted)" }}>
-            <span style={{ color: "var(--brass)" }}>*</span> Role, offered base,
-            and priorities are required.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? (
+                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <Sparkles size={18} aria-hidden="true" />
+              )}
+              {loading ? "Building your brief…" : "Build my negotiation brief"}
+            </Button>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>
+              <span style={{ color: "var(--brass)" }}>*</span> Role, offered base,
+              and priorities are required.
+            </p>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { OfferForm } from "@/components/offer-form";
 import { NegotiationBrief } from "@/components/negotiation-brief";
 import { negotiateOffer } from "@/actions/orchestrate";
+import { Button } from "@/components/ui/button";
 import type { NegotiationResult, OfferInput } from "@/lib/types";
 
 export default function Home() {
@@ -57,13 +58,9 @@ export default function Home() {
       ) : (
         <div className="mb-8 flex items-center justify-between gap-4">
           <p className="eyebrow">Your negotiation brief</p>
-          <button
-            type="button"
-            onClick={reset}
-            className="copy-btn"
-          >
+          <Button type="button" variant="ghost" onClick={reset}>
             New offer
-          </button>
+          </Button>
         </div>
       )}
 

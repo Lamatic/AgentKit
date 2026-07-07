@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 import type { NegotiationResult } from "@/lib/types";
+import { Button } from "@/components/ui/button";
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -17,9 +19,14 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   };
 
   return (
-    <button type="button" onClick={copy} className="copy-btn" aria-live="polite">
+    <Button type="button" variant="ghost" onClick={copy} aria-live="polite">
+      {copied ? (
+        <Check size={14} aria-hidden="true" />
+      ) : (
+        <Copy size={14} aria-hidden="true" />
+      )}
       {copied ? "Copied" : label}
-    </button>
+    </Button>
   );
 }
 
