@@ -44,7 +44,7 @@ Operationally, the agent accepts a free-text `scenario` description from the cal
   - Not ideal for: multi-turn interactive coaching conversations, legal advice, binding contract review, or highly technical regulatory negotiations.
 
 - **Output**
-  - `strategy` (string) — A structured markdown negotiation playbook containing:
+  - `strategy` (string) — A structured markdown negotiation playbook containing five core sections plus a disclaimer:
     - 🧠 **Framing Strategy** — psychological positioning and leverage analysis
     - 💬 **Opening Script** — word-for-word what to say first
     - 🔄 **Counter-Arguments table** — anticipated objections with prepared responses
