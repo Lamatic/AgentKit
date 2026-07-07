@@ -3,7 +3,7 @@ export default {
   description: "AI-powered negotiation strategy generator. Describe your negotiation scenario (salary, vendor contract, freelance rate, rent, or any deal) and receive a complete, structured playbook: framing strategy, opening script, anticipated counter-arguments with responses, BATNA analysis, and traps to avoid.",
   version: '1.0.0',
   type: 'template' as const,
-  author: { name: "Anuj Rajput", email: "anujrajput@example.com" },
+  author: { name: "Anuj Rajput", email: "rajputanuj041@gmail.com" },
   tags: ["negotiation", "productivity", "career", "startup"],
   steps: [
     { id: "negotiation-coach", type: 'mandatory' as const }
