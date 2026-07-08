@@ -1,34 +1,31 @@
 # Lead Outreach Agent
 
-Turn a single lead into a researched cold email — in seconds.
+Turn a single lead into a personalized cold email — in seconds.
 
-Give the agent a prospect's **name**, **company**, and **website**, pick a **tone**, and it reads the company's own site, then drafts a personalized **cold email + follow-up** that references something real about them. Built as a [Lamatic AgentKit](https://github.com/Lamatic/AgentKit) **kit** (one Lamatic flow + a Next.js app).
+Give the agent a prospect's **name**, **company**, and **website**, pick a **tone**, and it drafts a **cold email + follow-up** that opens with a specific, relevant observation about the company. Built as a [Lamatic AgentKit](https://github.com/Lamatic/AgentKit) **kit** (one Lamatic flow + a Next.js app).
 
 ## Why
 
-Writing a good cold email means researching the prospect first: open their site, skim it, find an angle, draft the email, draft the follow-up. That's 5–10 minutes per lead and it doesn't scale. This agent does the research-and-draft loop for you and grounds the copy in the prospect's real website content, so it never sounds generic.
+Writing a good cold email means researching the prospect and drafting both the email and a follow-up — a few minutes per lead that doesn't scale. This agent does the drafting for you and keeps the copy specific to the company instead of generic.
 
 ## How it works
 
 ```
 name + company + website + tone
-        │
+        │  (API Request)
         ▼
-  [ Firecrawl ]  ── scrape the company website
-        │
+  [ Generate Text ]  ── Groq · llama-3.3-70b-versatile
+        │              personalized, tone-matched, strict JSON
         ▼
-  [   LLM    ]  ── draft, grounded on the scrape + tone
-        │
-        ▼
-  answer = { subject, email, followUp }
+  answer = { subject, email, followUp }   (API Response)
 ```
 
-A single Lamatic flow does the scraping + drafting; the Next.js app is a thin UI that calls the flow and renders the result.
+A single Lamatic flow does the drafting; the Next.js app is a thin UI that calls the flow and renders the result. See [`agent.md`](./agent.md) for the node-by-node breakdown.
 
 ## Run it locally
 
-1. **Build the flow in Lamatic Studio** (see [`agent.md`](./agent.md) for the node layout), deploy it, and export it (⋮ → Export) into `flows/`.
-2. Grab your credentials from **Studio → Settings → API Keys** and the deployed **Flow ID**.
+1. In [Lamatic Studio](https://studio.lamatic.ai), the flow is already built and deployed (this repo ships its exported config in `flows/`).
+2. Grab your credentials from **Studio → Settings** and the deployed **Flow ID**.
 3. Start the app:
 
 ```bash
@@ -42,12 +39,12 @@ Open http://localhost:3000, enter a lead, and generate.
 
 ### Environment variables (`apps/.env.local`)
 
-| Key | Where to find it |
+| Key | Where to find it (Lamatic Studio) |
 |---|---|
 | `LEAD_OUTREACH_AGENT` | Deployed flow's **Flow ID** |
-| `LAMATIC_API_URL` | Settings → API Docs → Endpoint |
-| `LAMATIC_PROJECT_ID` | Settings → Project → Project ID |
-| `LAMATIC_API_KEY` | Settings → API Keys → Copy |
+| `LAMATIC_API_URL` | Settings → API → **Endpoint** |
+| `LAMATIC_PROJECT_ID` | Settings → **Project ID** |
+| `LAMATIC_API_KEY` | Settings → **API Keys** |
 
 ## Deploy
 
@@ -55,7 +52,7 @@ Use the one-click Vercel deploy in [`lamatic.config.ts`](./lamatic.config.ts) (`
 
 ## Guardrails
 
-The agent only **drafts** copy — it never sends anything — and it grounds personalization in the scraped site instead of fabricating facts. See [`constitutions/default.md`](./constitutions/default.md).
+The agent only **drafts** copy — it never sends anything — and is instructed not to fabricate facts it isn't sure about. See [`constitutions/default.md`](./constitutions/default.md).
 
 ---
 

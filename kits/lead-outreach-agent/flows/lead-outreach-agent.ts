@@ -1,51 +1,144 @@
-/*
- * # Lead Outreach Agent
- * A single entry-point flow that turns a lead (name, company, website, tone) into a
- * personalized cold email + follow-up, grounded on the company's own website content.
- *
- * ## Inputs
- * | Field | Type | Required | Description |
- * |---|---|---|---|
- * | `name`    | string | Yes | The lead / contact's name. |
- * | `company` | string | Yes | The lead's company name. |
- * | `website` | string | Yes | Company website URL, used to ground the copy. |
- * | `tone`    | string | Yes | Desired tone: friendly | formal | direct | playful. |
- *
- * ## Nodes (build this in Lamatic Studio)
- * 1. API Request trigger  → reads { name, company, website, tone }
- * 2. Firecrawl (scrape)   → fetches public content from `website`
- * 3. LLM node             → returns JSON { subject, email, followUp } grounded on the scrape
- * 4. API Response node    → maps a single field `answer` = the LLM JSON
- *
- * ## Output
- * | Field | Type | Description |
- * |---|---|---|
- * | `answer` | object | `{ subject: string, email: string, followUp: string }` |
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * NOTE: This file is the I/O contract the app in `apps/` expects. Replace it with
- * the real flow exported from Lamatic Studio (⋮ → Export) once the flow above is
- * built and deployed. The exported file keeps this same input/output contract.
- * ─────────────────────────────────────────────────────────────────────────────
- */
+// Flow: lead-outreach-agent
 
-export default {
-  name: "Lead Outreach Agent",
-  flowId: "lead-outreach-agent",
-  inputSchema: {
-    name: { type: "string", required: true },
-    company: { type: "string", required: true },
-    website: { type: "string", required: true },
-    tone: { type: "string", required: true },
-  },
-  outputSchema: {
-    answer: {
-      type: "object",
-      properties: {
-        subject: { type: "string" },
-        email: { type: "string" },
-        followUp: { type: "string" },
-      },
-    },
-  },
+// -- Meta --
+export const meta = {
+  "name": "lead-outreach-agent",
+  "description": "",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Rishav Jamwal",
+    "email": "rishav.rishu86@gmail.com"
+  }
 };
+
+// -- Inputs --
+export const inputs = {
+  "LLMNode_135": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ]
+};
+
+// -- References --
+export const references = {
+  "constitutions": {
+    "default": "@constitutions/default.md"
+  },
+  "prompts": {
+    "lead_outreach_agent_llmnode_135_system_0": "@prompts/lead-outreach-agent_llmnode-135_system_0.md",
+    "lead_outreach_agent_llmnode_135_user_1": "@prompts/lead-outreach-agent_llmnode-135_user_1.md"
+  },
+  "modelConfigs": {
+    "lead_outreach_agent_llmnode_135_generative_model_name": "@model-configs/lead-outreach-agent_llmnode-135_generative-model-name.ts"
+  }
+};
+
+// -- Nodes & Edges --
+export const nodes = [
+  {
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlNode",
+      "trigger": true,
+      "values": {
+        "id": "triggerNode_1",
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\n  \"name\": \"string\",\n  \"company\": \"string\",\n  \"website\": \"string\",\n  \"tone\": \"string\"\n}"
+      }
+    }
+  },
+  {
+    "id": "LLMNode_135",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "tools": [],
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/lead-outreach-agent_llmnode-135_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/lead-outreach-agent_llmnode-135_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Generate Text",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/lead-outreach-agent_llmnode-135_generative-model-name.ts"
+      }
+    }
+  },
+  {
+    "id": "responseNode_triggerNode_1",
+    "type": "responseNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "id": "responseNode_triggerNode_1",
+        "headers": "{\"content-type\":\"application/json\"}",
+        "retries": "0",
+        "nodeName": "API Response",
+        "webhookUrl": "",
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"answer\": \"{{LLMNode_135.output.generatedResponse}}\"\n}"
+      }
+    }
+  }
+];
+
+export const edges = [
+  {
+    "id": "triggerNode_1-LLMNode_135",
+    "source": "triggerNode_1",
+    "target": "LLMNode_135",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "LLMNode_135-responseNode_triggerNode_1",
+    "source": "LLMNode_135",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "response-trigger_triggerNode_1",
+    "source": "triggerNode_1",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
+  }
+];
+
+export default { meta, inputs, references, nodes, edges };
