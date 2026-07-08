@@ -2,12 +2,12 @@
 
 // -- Meta --
 export const meta = {
-  "name": "Hybrid RRF Search",
-  "description": "A hybrid search pipeline combining BM25 keyword search and vector search via Reciprocal Rank Fusion (RRF), with an LLM reranker for top-5 result scoring.",
-  "tags": ["search", "hybrid", "reranking", "weaviate", "cohere"],
+  "name": "hybrid rrf search",
+  "description": "",
+  "tags": [],
   "testInput": null,
-  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/hybrid-rrf-search",
-  "documentationUrl": "https://lamatic.ai/docs/nodes/data/hybrid-search-node",
+  "githubUrl": "",
+  "documentationUrl": "",
   "deployUrl": "",
   "author": {
     "name": "Yash Hirani",
@@ -32,16 +32,16 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "hydrid_rrf_search_instructor_llmnode_687_system_0": "@prompts/hydrid-rrf-search_instructor-llmnode-687_system_0.md",
-    "hydrid_rrf_search_instructor_llmnode_687_user_1": "@prompts/hydrid-rrf-search_instructor-llmnode-687_user_1.md"
+    "hybrid_rrf_search_instructor_llmnode_687_system_0": "@prompts/hybrid-rrf-search_instructor-llmnode-687_system_0.md",
+    "hybrid_rrf_search_instructor_llmnode_687_user_1": "@prompts/hybrid-rrf-search_instructor-llmnode-687_user_1.md"
   },
   "modelConfigs": {
-    "hydrid_rrf_search_hybrid_search_node_957_embedding_model_name": "@model-configs/hydrid-rrf-search_hybrid-search-node-957_embedding-model-name.ts",
-    "hydrid_rrf_search_instructor_llmnode_687_generative_model_name": "@model-configs/hydrid-rrf-search_instructor-llmnode-687_generative-model-name.ts"
+    "hybrid_rrf_search_hybrid_search_node_957_embedding_model_name": "@model-configs/hybrid-rrf-search_hybrid-search-node-957_embedding-model-name.ts",
+    "hybrid_rrf_search_instructor_llmnode_687_generative_model_name": "@model-configs/hybrid-rrf-search_instructor-llmnode-687_generative-model-name.ts"
   },
   "scripts": {
-    "hydrid_rrf_search_code_node_861_code": "@scripts/hydrid-rrf-search_code-node-861_code.ts",
-    "hydrid_rrf_search_code_node_933_code": "@scripts/hydrid-rrf-search_code-node-933_code.ts"
+    "hybrid_rrf_search_code_node_861_code": "@scripts/hybrid-rrf-search_code-node-861_code.ts",
+    "hybrid_rrf_search_code_node_933_code": "@scripts/hybrid-rrf-search_code-node-933_code.ts"
   }
 };
 
@@ -75,7 +75,7 @@ export const nodes = [
     "data": {
       "nodeId": "codeNode",
       "values": {
-        "code": "@scripts/hydrid-rrf-search_code-node-861_code.ts",
+        "code": "@scripts/hybrid-rrf-search_code-node-861_code.ts",
         "nodeName": "Code"
       }
     }
@@ -96,12 +96,12 @@ export const nodes = [
         "autocut": "0",
         "filters": "[]",
         "nodeName": "Hybrid Search",
-        "vectorDB": "hybridRRFranking",
+        "vectorDB": "hybridRRFRanking",
         "certainty": "0",
         "fusionType": "rankedFusion",
         "searchQuery": "{{codeNode_861.output}}",
         "boostProperties": false,
-        "embeddingModelName": "@model-configs/hydrid-rrf-search_hybrid-search-node-957_embedding-model-name.ts"
+        "embeddingModelName": "@model-configs/hybrid-rrf-search_hybrid-search-node-957_embedding-model-name.ts"
       }
     }
   },
@@ -115,7 +115,7 @@ export const nodes = [
     "data": {
       "nodeId": "codeNode",
       "values": {
-        "code": "@scripts/hydrid-rrf-search_code-node-933_code.ts",
+        "code": "@scripts/hybrid-rrf-search_code-node-933_code.ts",
         "nodeName": "Code"
       }
     }
@@ -136,19 +136,19 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
             "role": "system",
-            "content": "@prompts/hydrid-rrf-search_instructor-llmnode-687_system_0.md"
+            "content": "@prompts/hybrid-rrf-search_instructor-llmnode-687_system_0.md"
           },
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "@prompts/hydrid-rrf-search_instructor-llmnode-687_user_1.md"
+            "content": "@prompts/hybrid-rrf-search_instructor-llmnode-687_user_1.md"
           }
         ],
         "memories": "[]",
         "messages": "[]",
         "nodeName": "Generate JSON",
         "attachments": "",
-        "generativeModelName": "@model-configs/hydrid-rrf-search_instructor-llmnode-687_generative-model-name.ts"
+        "generativeModelName": "@model-configs/hybrid-rrf-search_instructor-llmnode-687_generative-model-name.ts"
       }
     }
   },

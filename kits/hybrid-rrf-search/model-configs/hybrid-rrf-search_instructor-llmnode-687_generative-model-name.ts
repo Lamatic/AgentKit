@@ -7,9 +7,9 @@ export default {
       "params": {},
       "configName": "configA",
       "model_name": "gemini/gemini-2.5-flash",
-      "credentialId": "c1f4bb63-d238-43f1-8f3c-e2a492290386",
+      "credentialId": "933a50fb-a458-4fc6-bc12-1a44eb75f4c6",
       "provider_name": "gemini",
-      "credential_name": "LLM node"
+      "credential_name": "backup"
     }
   ]
 };
