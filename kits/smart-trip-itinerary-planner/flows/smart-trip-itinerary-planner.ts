@@ -2,16 +2,23 @@
 
 // -- Meta --
 export const meta = {
-  "name": "Smart Trip Itinerary Planner",
-  "description": "",
-  "tags": [],
-  "testInput": null,
-  "githubUrl": "",
-  "documentationUrl": "",
-  "deployUrl": "",
-  "author": {
-    "name": "Try For app",
-    "email": "tryforapp4@gmail.com"
+  name: "Smart Trip Itinerary Planner",
+  description:
+    "An AI-powered travel assistant that generates personalized travel itineraries based on destination, budget, trip duration, and traveler preferences.",
+  tags: [
+    "travel",
+    "ai",
+    "itinerary",
+    "trip-planner",
+    "tourism"
+  ],
+  testInput: null,
+  githubUrl: "",
+  documentationUrl: "",
+  deployUrl: "",
+  author: {
+    name: "Dheeraj Singh",
+    email: ""
   }
 };
 
@@ -59,7 +66,7 @@ export const nodes = [
         ],
         "nodeName": "Chat Widget",
         "chatConfig": {
-          "botName": "Lamatic Bot",
+          "botName": "Smart Trip Planner",
           "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
           "position": "right",
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
@@ -74,7 +81,7 @@ export const nodes = [
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+          "greetingMessage": "Hi! I'm Smart Trip Planner. Tell me your destination, budget, and travel preferences, and I'll create a personalized itinerary for you.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",
