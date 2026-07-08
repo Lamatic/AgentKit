@@ -15,6 +15,6 @@ This Agent solves that by acting as a **Judge**. It receives the raw results fro
 - **Strict JSON Formatting**: Enforces a strict JSON schema output so that the API always returns structured data, never raw markdown.
 
 ## Guardrails
-- The agent is instructed to **ONLY** output the JSON array.
+- The agent is instructed to **ONLY** output a JSON object with a top-level `results` array.
 - It will not answer questions or generate conversational text.
 - It relies on `gemini-2.5-flash` for high-speed, structured output.
