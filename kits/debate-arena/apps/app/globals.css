@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+  --color-error: #ff9b9b;
+  --color-error-border: #fa5b5b;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -242,13 +247,13 @@ button:disabled {
   border-radius: 10px;
   background: rgba(250, 91, 91, 0.1);
   border: 1px solid rgba(250, 91, 91, 0.35);
-  color: #ff9b9b;
+  color: var(--color-error);
   font-size: 0.9rem;
 }
 
 .field-error {
   margin: 6px 0 0;
-  color: #ff9b9b;
+  color: var(--color-error);
   font-size: 0.82rem;
 }
 
@@ -286,8 +291,8 @@ button:disabled {
 }
 
 .ghost-button.danger:hover {
-  border-color: #fa5b5b;
-  color: #ff9b9b;
+  border-color: var(--color-error-border);
+  color: var(--color-error);
 }
 
 .verdict-panel .ghost-button {
@@ -297,7 +302,7 @@ button:disabled {
 .retry-button {
   margin-left: 12px;
   background: transparent;
-  color: #ff9b9b;
+  color: var(--color-error);
   border: 1px solid rgba(250, 91, 91, 0.5);
   border-radius: 8px;
   padding: 4px 12px;
