@@ -38,10 +38,6 @@ export const references = {
   "modelConfigs": {
     "hybrid_rrf_search_hybrid_search_node_957_embedding_model_name": "@model-configs/hybrid-rrf-search_hybrid-search-node-957_embedding-model-name.ts",
     "hybrid_rrf_search_instructor_llmnode_687_generative_model_name": "@model-configs/hybrid-rrf-search_instructor-llmnode-687_generative-model-name.ts"
-  },
-  "scripts": {
-    "hybrid_rrf_search_code_node_861_code": "@scripts/hybrid-rrf-search_code-node-861_code.ts",
-    "hybrid_rrf_search_code_node_933_code": "@scripts/hybrid-rrf-search_code-node-933_code.ts"
   }
 };
 
@@ -66,21 +62,6 @@ export const nodes = [
     }
   },
   {
-    "id": "codeNode_861",
-    "type": "dynamicNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "codeNode",
-      "values": {
-        "code": "@scripts/hybrid-rrf-search_code-node-861_code.ts",
-        "nodeName": "Code"
-      }
-    }
-  },
-  {
     "id": "hybridSearchNode_957",
     "type": "dynamicNode",
     "position": {
@@ -99,24 +80,9 @@ export const nodes = [
         "vectorDB": "hybridRRFRanking",
         "certainty": "0",
         "fusionType": "rankedFusion",
-        "searchQuery": "{{codeNode_861.output}}",
+        "searchQuery": "{{triggerNode_1.output.query}}",
         "boostProperties": false,
         "embeddingModelName": "@model-configs/hybrid-rrf-search_hybrid-search-node-957_embedding-model-name.ts"
-      }
-    }
-  },
-  {
-    "id": "codeNode_933",
-    "type": "dynamicNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "codeNode",
-      "values": {
-        "code": "@scripts/hybrid-rrf-search_code-node-933_code.ts",
-        "nodeName": "Code"
       }
     }
   },
@@ -184,33 +150,17 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "triggerNode_1-codeNode_861",
-    "source": "triggerNode_1",
-    "target": "codeNode_861",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "codeNode_861-hybridSearchNode_957",
-    "source": "codeNode_861",
-    "target": "hybridSearchNode_957",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "hybridSearchNode_957-codeNode_933",
+    "id": "hybridSearchNode_957-InstructorLLMNode_687-148",
     "source": "hybridSearchNode_957",
-    "target": "codeNode_933",
+    "target": "InstructorLLMNode_687",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_933-InstructorLLMNode_687",
-    "source": "codeNode_933",
-    "target": "InstructorLLMNode_687",
+    "id": "triggerNode_1-hybridSearchNode_957-573",
+    "source": "triggerNode_1",
+    "target": "hybridSearchNode_957",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"

@@ -1,2 +1,2 @@
-User Query: {{codeNode_861.output}}
-Retrieved Passages: {{codeNode_933.output}}
+User Query: {{triggerNode_1.output.query}}
+Retrieved Passages: {{hybridSearchNode_957.output.searchResults}}
