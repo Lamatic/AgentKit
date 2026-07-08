@@ -1,6 +1,6 @@
 "use server"
 
-import { lamaticClient } from "../lib/lamatic-client";
+import { getLamaticClient } from "../lib/lamatic-client";
 
 export interface PitchInput {
   company_url: string;
@@ -44,7 +44,7 @@ export async function generatePersonalizedPitch(input: PitchInput): Promise<{
     };
 
     const resData: any = await withTimeout(
-      lamaticClient.executeFlow(flowId, trimmedInput),
+      getLamaticClient().executeFlow(flowId, trimmedInput),
       TIMEOUT_MS,
       "The AI provider is taking longer than usual to respond. This usually means their service is overloaded. Please try again in a few minutes."
     );
