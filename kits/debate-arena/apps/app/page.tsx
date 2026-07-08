@@ -124,7 +124,11 @@ export default function Home() {
         weighs in with a verdict.
       </p>
 
+      <label htmlFor="topic" className="sr-only">
+        Decision or question to debate
+      </label>
       <textarea
+        id="topic"
         rows={3}
         placeholder='e.g. "Should our team use microservices or a monolith?" or "Should I take the job with more pay or the one with better work-life balance?"'
         value={topic}
@@ -152,7 +156,7 @@ export default function Home() {
         </button>
       </div>
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && <div className="error-banner" role="alert">{error}</div>}
       {thinking && <p className="thinking">{thinking}</p>}
 
       {setup && (
