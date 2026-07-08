@@ -74,7 +74,7 @@ export const nodes = [
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi! I'm Smart Trip Itinerary Planner. Tell me your destination, budget, trip duration, and travel preferences, and I'll create a personalized itinerary for you.",
+          "greetingMessage": "Hi! I'm Smart Trip Itinerary Planner. Tell me your destination, budget, and travel preferences, and I'll create a personalized itinerary for you.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",
