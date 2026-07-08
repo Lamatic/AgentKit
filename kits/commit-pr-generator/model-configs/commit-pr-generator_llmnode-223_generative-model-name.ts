@@ -7,9 +7,9 @@ export default {
       "params": {},
       "configName": "configA",
       "model_name": "gemini/gemini-2.5-flash",
-      "credentialId": "0fe5be0e-99ad-4b50-bad3-13b04b4e1546",
+      "credentialId": "",
       "provider_name": "gemini",
-      "credential_name": "Gemini Key"
+      "credential_name": ""
     }
   ]
 };
