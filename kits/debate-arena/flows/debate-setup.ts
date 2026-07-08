@@ -77,12 +77,12 @@ export const nodes = [
         "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"cleanTopic\": {\n      \"type\": \"string\"\n    },\n    \"positionA\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"label\": {\n          \"type\": \"string\"\n        },\n        \"stance\": {\n          \"type\": \"string\"\n        }\n      },\n      \"additionalProperties\": true\n    },\n    \"positionB\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"label\": {\n          \"type\": \"string\"\n        },\n        \"stance\": {\n          \"type\": \"string\"\n        }\n      },\n      \"additionalProperties\": true\n    },\n    \"context\": {\n      \"type\": \"string\"\n    }\n  }\n}",
         "prompts": [
           {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "id": "f7cd3cfd-16cd-431e-93c8-53af4e12058c",
             "role": "system",
             "content": "@prompts/debate-setup_instructorllmnode-980_system_0.md"
           },
           {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "id": "aabe11d0-7fa4-4ea6-a31b-479459f3ecf8",
             "role": "user",
             "content": "@prompts/debate-setup_instructorllmnode-980_user_1.md"
           }

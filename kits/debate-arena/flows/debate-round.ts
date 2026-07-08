@@ -82,12 +82,12 @@ export const nodes = [
         "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"statement\": {\n      \"type\": \"string\"\n    },\n    \"keyPoint\": {\n      \"type\": \"string\"\n    }\n  }\n}",
         "prompts": [
           {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "id": "a8e10c3b-8e9c-4acc-a4dc-5f8f0fab68e0",
             "role": "system",
             "content": "@prompts/debate-round_instructorllmnode-435_system_0.md"
           },
           {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "id": "faf586a0-49bf-49de-9746-eaf78a05334e",
             "role": "user",
             "content": "@prompts/debate-round_instructorllmnode-435_user_1.md"
           }

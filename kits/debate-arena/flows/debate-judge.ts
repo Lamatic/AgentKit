@@ -83,12 +83,12 @@ export const nodes = [
         "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"prosA\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"consA\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"prosB\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"consB\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"strongestArgA\": {\n      \"type\": \"string\"\n    },\n    \"strongestArgB\": {\n      \"type\": \"string\"\n    },\n    \"recommendation\": {\n      \"type\": \"string\"\n    },\n    \"confidence\": {\n      \"type\": \"string\"\n    },\n    \"caveats\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
         "prompts": [
           {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "id": "e4b7e4e6-cc60-4b0e-96ba-4ecb049d268b",
             "role": "system",
             "content": "@prompts/debate-judge_instructorllmnode-239_system_0.md"
           },
           {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "id": "de3ce2bf-0aa0-4569-a187-696487d67631",
             "role": "user",
             "content": "@prompts/debate-judge_instructorllmnode-239_user_1.md"
           }
