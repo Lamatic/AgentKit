@@ -3,15 +3,8 @@
 // -- Meta --
 export const meta = {
   name: "Smart Trip Itinerary Planner",
-  description:
-    "An AI-powered travel assistant that generates personalized travel itineraries based on destination, budget, trip duration, and traveler preferences.",
-  tags: [
-    "travel",
-    "ai",
-    "itinerary",
-    "trip-planner",
-    "tourism"
-  ],
+  "description": "AI-powered travel itinerary generator",
+"tags": ["travel", "ai", "trip-planner", "itinerary"],
   testInput: null,
   githubUrl: "",
   documentationUrl: "",
