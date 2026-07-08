@@ -1,4 +1,4 @@
-// Model config: llmnode-159 (LLMNode)
+// Model config: llmnode-585 (LLMNode)
 
 export default {
   "generativeModelName": [
