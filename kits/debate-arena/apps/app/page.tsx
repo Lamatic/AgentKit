@@ -400,6 +400,7 @@ export default function Home() {
     setPhase("done");
     setError(null);
     setThinking(null);
+    setRegeneratingRound(null);
     failedStepRef.current = null;
     ctxRef.current = {
       cleanTopic: entry.setup.cleanTopic,
@@ -437,14 +438,23 @@ export default function Home() {
               <ul className="history-list">
                 {history.map((entry) => (
                   <li key={entry.id}>
-                    <button type="button" onClick={() => loadFromHistory(entry)}>
+                    <button
+                      type="button"
+                      onClick={() => loadFromHistory(entry)}
+                      disabled={isRunning || regeneratingRound !== null}
+                    >
                       <span className="history-topic">{entry.setup.cleanTopic}</span>
                       <span className="history-date">{new Date(entry.savedAt).toLocaleString()}</span>
                     </button>
                   </li>
                 ))}
               </ul>
-              <button type="button" className="ghost-button danger" onClick={clearHistory}>
+              <button
+                type="button"
+                className="ghost-button danger"
+                onClick={clearHistory}
+                disabled={isRunning || regeneratingRound !== null}
+              >
                 Clear history
               </button>
             </>
