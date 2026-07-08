@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import {
   runDebateSetup,
   runDebateRound,
@@ -31,13 +32,57 @@ const HISTORY_KEY = "debate-arena-history";
 const MAX_HISTORY = 20;
 const MAX_ROUNDS = 10;
 
+// Mirrors the shape server actions already validate on the way in -- history
+// comes back out of localStorage, which can be edited, corrupted, or left
+// over from an older version of this app, so it gets the same treatment.
+const PositionSchema = z.object({
+  label: z.string(),
+  stance: z.string(),
+});
+
+const SavedDebateSchema = z.object({
+  id: z.string(),
+  savedAt: z.string(),
+  topic: z.string(),
+  setup: z.object({
+    cleanTopic: z.string(),
+    positionA: PositionSchema,
+    positionB: PositionSchema,
+    context: z.string(),
+  }),
+  transcript: z.array(
+    z.object({
+      round: z.number(),
+      side: z.enum(["A", "B"]),
+      label: z.string(),
+      statement: z.string(),
+      keyPoint: z.string(),
+    })
+  ),
+  verdict: z.object({
+    prosA: z.array(z.string()),
+    consA: z.array(z.string()),
+    prosB: z.array(z.string()),
+    consB: z.array(z.string()),
+    strongestArgA: z.string(),
+    strongestArgB: z.string(),
+    recommendation: z.string(),
+    confidence: z.enum(["low", "medium", "high"]),
+    caveats: z.array(z.string()),
+  }),
+});
+
 function loadHistory(): SavedDebate[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(HISTORY_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Drop any entries that don't match the expected shape instead of
+    // trusting them blindly -- a stale or hand-edited record shouldn't be
+    // able to crash the page when the history panel is opened.
+    return parsed.filter((entry): entry is SavedDebate => SavedDebateSchema.safeParse(entry).success);
   } catch {
     return [];
   }
@@ -113,6 +158,7 @@ function debateToMarkdown(
 export default function Home() {
   const [topic, setTopic] = useState("");
   const [rounds, setRounds] = useState(2);
+  const [roundsInput, setRoundsInput] = useState("2");
   const [phase, setPhase] = useState<Phase>("idle");
   const [setup, setSetup] = useState<DebateSetup | null>(null);
   const [transcript, setTranscript] = useState<DebateTurn[]>([]);
@@ -127,6 +173,18 @@ export default function Home() {
   const failedStepRef = useRef<Step | null>(null);
 
   const isRunning = phase === "framing" || phase === "debating" || phase === "judging";
+
+  const parsedRoundsInput = Number(roundsInput);
+  const roundsError =
+    roundsInput.trim() === ""
+      ? "Enter a number of rounds."
+      : !Number.isInteger(parsedRoundsInput)
+      ? "Rounds must be a whole number."
+      : parsedRoundsInput < 1
+      ? "Rounds can't be less than 1."
+      : parsedRoundsInput > MAX_ROUNDS
+      ? `Rounds can't be more than ${MAX_ROUNDS}.`
+      : null;
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -407,19 +465,29 @@ export default function Home() {
           type="number"
           min={1}
           max={MAX_ROUNDS}
-          value={rounds}
+          value={roundsInput}
           onChange={(e) => {
-            const next = Number(e.target.value);
-            if (Number.isFinite(next)) {
-              setRounds(Math.min(MAX_ROUNDS, Math.max(1, next)));
+            const raw = e.target.value;
+            setRoundsInput(raw);
+
+            // Only commit to the numeric `rounds` state once the typed value
+            // is a valid whole number in range -- otherwise leave `rounds` at
+            // its last valid value and let the inline error below do the
+            // talking, instead of silently clamping mid-keystroke (which
+            // made the field feel uneditable).
+            const next = Number(raw);
+            if (raw.trim() !== "" && Number.isInteger(next) && next >= 1 && next <= MAX_ROUNDS) {
+              setRounds(next);
             }
           }}
           disabled={isRunning}
         />
-        <button onClick={startDebate} disabled={isRunning}>
+        <button onClick={startDebate} disabled={isRunning || !!roundsError}>
           {isRunning ? "Debating..." : "Start Debate"}
         </button>
       </div>
+
+      {roundsError && <p className="field-error">{roundsError}</p>}
 
       {error && (
         <div className="error-banner" role="alert">
@@ -454,7 +522,11 @@ export default function Home() {
                 Round {turn.round} · {turn.label}
               </div>
               {turn.statement}
-              {!isRunning && (
+              {/* Only the most recent turn can be regenerated -- earlier
+                  turns already have rebuttals written against them, so
+                  replacing one would leave the transcript arguing against
+                  a statement that no longer exists. */}
+              {!isRunning && i === transcript.length - 1 && (
                 <button
                   type="button"
                   className="regenerate-button"
