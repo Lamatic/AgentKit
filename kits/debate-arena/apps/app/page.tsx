@@ -363,6 +363,14 @@ export default function Home() {
     const updated = [...transcript];
     updated[turnIndex] = res.data;
     setTranscript(updated);
+
+    // Regenerating the last turn invalidates any verdict/history entry that
+    // was judged against the statement it replaced -- re-run the judge on
+    // the corrected transcript so the displayed verdict, the download, and
+    // the saved history entry all stay consistent with what's on screen.
+    if (verdict) {
+      await runStep({ kind: "judge" }, updated);
+    }
   }
 
   function downloadMarkdown() {
