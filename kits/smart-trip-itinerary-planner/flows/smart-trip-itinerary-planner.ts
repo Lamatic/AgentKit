@@ -59,7 +59,7 @@ export const nodes = [
         ],
         "nodeName": "Chat Widget",
         "chatConfig": {
-          "botName": "Smart Trip Planner",
+          "botName": "Smart Trip Itinerary Planner",
           "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
           "position": "right",
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
@@ -74,7 +74,7 @@ export const nodes = [
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi! I'm Smart Trip Planner. Tell me your destination, budget, and travel preferences, and I'll create a personalized itinerary for you.",
+          "greetingMessage": "Hi! I'm Smart Trip Itinerary Planner. Tell me your destination, budget, trip duration, and travel preferences, and I'll create a personalized itinerary for you.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",
