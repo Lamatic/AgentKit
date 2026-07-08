@@ -1,6 +1,7 @@
 "use server"
 
 import { getLamaticClient } from "../lib/lamatic-client";
+import kitConfig from "../../lamatic.config";
 
 export interface PitchInput {
   company_url: string;
@@ -14,14 +15,21 @@ const TIMEOUT_MS = 300000; // 5 minutes (Matching Vercel Hobby maxDuration)
  * Wraps a promise with a timeout.
  */
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
-    const timer = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+    timer = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
     // Ensure node can exit if the timer is the only thing keeping it alive
     if (timer.unref) {
       timer.unref();
     }
   });
-  return Promise.race([promise, timeoutPromise]);
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
 }
 
 export async function generatePersonalizedPitch(input: PitchInput): Promise<{
@@ -32,9 +40,14 @@ export async function generatePersonalizedPitch(input: PitchInput): Promise<{
   try {
     console.log("[v0] Executing Average Teenager flow for company URL:", input.company_url);
 
-    const flowId = process.env.FLOW_ID;
+    const flowStep = kitConfig.steps.find((step) => step.id === "average-teenager");
+    if (!flowStep) {
+      throw new Error("Step 'average-teenager' not defined in lamatic.config.");
+    }
+    const envKey = flowStep.envKey || "FLOW_ID";
+    const flowId = process.env[envKey];
     if (!flowId) {
-      throw new Error("FLOW_ID is not set in environment variables.");
+      throw new Error(`${envKey} is not set in environment variables.`);
     }
 
     const trimmedInput = {
