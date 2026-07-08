@@ -92,7 +92,7 @@ export async function orchestratePRD(
     console.log("[PRD Copilot] Flow execution completed. Status:", resData?.status);
 
     // Lamatic SDK response mapping normally puts the output inside result?.answer
-    const rawAnswer = resData?.result?.answer || (resData as any)?.output?.answer;
+    const rawAnswer = resData?.result?.answer || (resData as { output?: { answer?: string } })?.output?.answer;
 
     if (!rawAnswer) {
       throw new Error("No answer found in the flow response.");
