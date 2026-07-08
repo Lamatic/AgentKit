@@ -92,4 +92,6 @@ commit-pr-generator/
 ## Notes
 
 - This is a **template** — there is no `apps/` directory and no `.env` file.
+- The diff is treated as **untrusted input**: the model is instructed to ignore any instructions embedded inside the diff.
 - If the input is empty or not a valid diff, the flow returns exactly `ERROR: no valid diff provided`.
+- **Extending validation:** the sentinel above is prompt-based by design (this template stays a single LLM step). If you need hard, deterministic validation, add a Condition/Code node after the API Request that checks for diff markers (e.g. `diff --git`, `@@`) and short-circuits invalid input to the response before the LLM runs.
