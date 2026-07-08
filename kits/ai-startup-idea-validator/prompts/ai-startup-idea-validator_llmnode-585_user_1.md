@@ -1,2 +1,4 @@
+# Startup Idea Input
+
 Analyze the following startup idea:
-{{trigger.message}}
+{{triggerNode_1.output.chatMessage}}

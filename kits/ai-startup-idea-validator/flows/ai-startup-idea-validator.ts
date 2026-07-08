@@ -10,8 +10,8 @@ export const meta = {
   "documentationUrl": "",
   "deployUrl": "",
   "author": {
-    "name": "Try For app",
-    "email": "tryforapp4@gmail.com"
+    "name": "Dheeraj singh",
+    "email": ""
   }
 };
 
