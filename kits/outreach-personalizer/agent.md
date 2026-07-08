@@ -18,7 +18,7 @@ graph TD
   PitchLLM --> Response([Response Output])
 ```
 
-1. **Firecrawl Node (`firecrawlNode_692`)**: Scrapes the company website, founder LinkedIn profile, or other URLs dynamically constructed from the trigger input.
+1. **Firecrawl Node (`firecrawlNode_692`)**: Scrapes both the company website (`company_url`) and the founder's LinkedIn profile (`founder_linkedin_url`) provided in the trigger inputs.
 2. **Signal Extraction (`LLMNode_276`)**: Parses the crawled markdown content to extract 3-5 concrete "noticed things" (e.g. a specific feature release, a bug, a technical post, or a design decision) and rates them with a specificity score from 1 to 5.
 3. **Asset Suggestion (`LLMNode_996`)**: Connects the candidate's background with one of the extracted signals and suggests one small, concrete value-add asset (e.g. a mini bug list, a UX walkthrough, a content sample, or a competitor teardown) that the candidate can build quickly.
 4. **Outreach Drafting (`LLMNode_696`)**: Selects the signal with the highest specificity score and drafts a direct, short cold outreach email around it.

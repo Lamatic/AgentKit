@@ -1,12 +1,6 @@
 import { Lamatic } from "lamatic";
 import config from "../../lamatic.config";
 
-if (!process.env.FLOW_ID) {
-  throw new Error(
-    "All Workflow IDs in environment variables are not set. Please add FLOW_ID to your .env.local file."
-  );
-}
-
 if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
   throw new Error(
     "All API Credentials in environment variables are not set. Please add them to your .env.local file."

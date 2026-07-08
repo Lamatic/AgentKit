@@ -176,12 +176,13 @@ export default function Home() {
             <form onSubmit={runFlow} className="flex flex-col gap-5">
               {/* Company Website URL */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <label htmlFor="company-url" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <Building2 className="h-3.5 w-3.5 text-indigo-400" />
                   Company Website URL
                 </label>
                 <div className="relative">
                   <input
+                    id="company-url"
                     type="url"
                     required
                     placeholder="https://company.com"
@@ -197,12 +198,13 @@ export default function Home() {
 
               {/* Founder LinkedIn URL */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <label htmlFor="founder-linkedin-url" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <LinkedInIcon className="h-3.5 w-3.5 text-indigo-400" />
                   Founder LinkedIn URL
                 </label>
                 <div className="relative">
                   <input
+                    id="founder-linkedin-url"
                     type="url"
                     required
                     placeholder="https://linkedin.com/in/founder"
@@ -218,12 +220,13 @@ export default function Home() {
 
               {/* Candidate Background Context */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <label htmlFor="candidate-context" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5 text-indigo-400" />
                   Candidate Background & Context
                 </label>
                 <div className="relative">
                   <textarea
+                    id="candidate-context"
                     required
                     rows={6}
                     placeholder="Full-stack engineer with 3 years of React/Node.js experience. Built a custom CRM script for Stripe API that reduced latency by 30%. Passionate about developer tooling..."
