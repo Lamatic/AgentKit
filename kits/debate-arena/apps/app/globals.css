@@ -246,6 +246,12 @@ button:disabled {
   font-size: 0.9rem;
 }
 
+.field-error {
+  margin: 6px 0 0;
+  color: #ff9b9b;
+  font-size: 0.82rem;
+}
+
 .top-row {
   display: flex;
   align-items: flex-start;
