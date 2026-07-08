@@ -18,9 +18,9 @@ Open http://localhost:3000.
 | Key | Where to find it (Lamatic Studio) |
 |---|---|
 | `LEAD_OUTREACH_AGENT` | Your deployed flow's **Flow ID** |
-| `LAMATIC_API_URL` | Settings → API Docs → Endpoint |
-| `LAMATIC_PROJECT_ID` | Settings → Project → Project ID |
-| `LAMATIC_API_KEY` | Settings → API Keys → Copy |
+| `LAMATIC_API_URL` | Settings → API → Endpoint |
+| `LAMATIC_PROJECT_ID` | Settings → Project ID |
+| `LAMATIC_API_KEY` | Settings → API Keys |
 
 ## Structure
 
