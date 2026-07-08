@@ -1,7 +1,7 @@
 "use server"
 
 import { lamaticClient } from "../lib/lamatic-client";
-import { config } from "../orchestrate.js";
+import { config } from "../orchestrate";
 
 export type FlowMode = "draft" | "refine";
 
@@ -89,10 +89,10 @@ export async function orchestratePRD(
 
     console.log("[PRD Copilot] Executing flow with ID:", flow.workflowId);
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs);
-    console.log("[PRD Copilot] Received raw flow response:", JSON.stringify(resData));
+    console.log("[PRD Copilot] Flow execution completed. Status:", resData?.status);
 
     // Lamatic SDK response mapping normally puts the output inside result?.answer
-    const rawAnswer = resData?.result?.answer || resData?.output?.answer;
+    const rawAnswer = resData?.result?.answer || (resData as any)?.output?.answer;
 
     if (!rawAnswer) {
       throw new Error("No answer found in the flow response.");

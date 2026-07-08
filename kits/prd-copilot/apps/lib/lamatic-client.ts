@@ -1,5 +1,5 @@
 import { Lamatic } from "lamatic";
-import { config } from '../orchestrate.js';
+import { config } from '../orchestrate';
 
 if (!process.env.PRD_COPILOT_FLOW_ID) {
   throw new Error(
