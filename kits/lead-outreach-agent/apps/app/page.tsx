@@ -12,9 +12,15 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={() => {
-        void navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+          })
+          .catch(() => {
+            /* clipboard unavailable or permission denied — leave state unchanged */
+          });
       }}
       className="inline-flex items-center gap-1.5 rounded-md border border-white/15 px-2.5 py-1 text-xs text-white/70 transition hover:bg-white/10"
     >

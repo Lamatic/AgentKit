@@ -29,16 +29,27 @@ export interface GenerateResult {
 export async function generateOutreach(
   input: OutreachInput
 ): Promise<GenerateResult> {
+  // Server-side validation — a direct caller can bypass the client-side checks.
+  const name = input.name?.trim();
+  const company = input.company?.trim();
+  const website = input.website?.trim();
+  if (!name || !company || !website) {
+    return { success: false, error: "Name, company, and website are required." };
+  }
   try {
+    new URL(website);
+  } catch {
+    return { success: false, error: "Website must be a valid URL (e.g. https://acme.com)." };
+  }
+
+  try {
+    // workflowId presence is already guaranteed by the module-level guard in lamatic-client.ts
     const workflowId = config.flows["lead-outreach-agent"].workflowId;
-    if (!workflowId) {
-      throw new Error("Flow ID not configured.");
-    }
 
     const res = await lamaticClient.executeFlow(workflowId, {
-      name: input.name,
-      company: input.company,
-      website: input.website,
+      name,
+      company,
+      website,
       tone: input.tone,
     });
 
@@ -47,11 +58,19 @@ export async function generateOutreach(
       throw new Error("No answer returned from the flow.");
     }
 
-    const draft: OutreachDraft =
-      typeof answer === "string" ? JSON.parse(answer) : (answer as OutreachDraft);
+    let draft: OutreachDraft;
+    if (typeof answer === "string") {
+      try {
+        draft = JSON.parse(answer) as OutreachDraft;
+      } catch {
+        throw new Error("The flow returned an invalid response format. Please try again.");
+      }
+    } else {
+      draft = answer as OutreachDraft;
+    }
 
-    if (!draft.subject || !draft.email) {
-      throw new Error("The flow response is missing a subject or email.");
+    if (!draft.subject || !draft.email || !draft.followUp) {
+      throw new Error("The flow response is missing a subject, email, or follow-up.");
     }
 
     return { success: true, data: draft };
