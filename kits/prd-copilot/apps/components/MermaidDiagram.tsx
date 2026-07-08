@@ -17,7 +17,7 @@ export default function MermaidDiagram({ code }: MermaidDiagramProps) {
     mermaid.initialize({
       startOnLoad: false,
       theme: "dark",
-      securityLevel: "loose",
+      securityLevel: "strict",
       fontFamily: "Geist Mono, Courier New, monospace",
       themeVariables: {
         background: "#0f172a",
