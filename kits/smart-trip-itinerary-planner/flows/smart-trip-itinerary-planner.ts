@@ -4,7 +4,7 @@
 export const meta = {
   name: "Smart Trip Itinerary Planner",
   "description": "AI-powered travel itinerary generator",
-"tags": ["travel", "ai", "trip-planner", "itinerary"],
+  "tags": ["travel", "ai", "trip-planner", "itinerary"],
   testInput: null,
   githubUrl: "",
   documentationUrl: "",
@@ -66,9 +66,9 @@ export const nodes = [
           "displayMode": "popup",
           "placeholder": "Compose your message",
           "suggestions": [
-            "What is lamatic?",
-            "How do I add data to my chatbot?",
-            "Explain this product to me"
+            "Plan a 5-day trip to Bali",
+            "Suggest a honeymoon itinerary for Switzerland",
+            "Create a budget-friendly trip to Goa"
           ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
