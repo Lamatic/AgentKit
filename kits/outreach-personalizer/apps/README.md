@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Outreach Personalizer - Next.js Reference App
 
-## Getting Started
+This is the reference web application for the **Outreach Personalizer** kit. It provides a modern, responsive web dashboard where job candidates can generate hyper-personalized cold outreach emails based on a target company website URL, founder's LinkedIn URL, and the candidate's background.
 
-First, run the development server:
+The application triggers a deployed Lamatic.ai AI flow via Next.js Server Actions, keeping all API credentials secure on the server side.
+
+## Features
+
+- **Input Form**: Clean fields for the company website, founder LinkedIn profile, and candidate background context.
+- **Real-Time Step Progression**: Dynamic feedback showing the current step of the underlying agent flow.
+- **Copy-to-Clipboard**: Quick copy functionality for the generated cold outreach pitch.
+- **Error Interception**: Graceful handling of network failures or flow timeout errors.
+
+## Prerequisites
+
+- Node.js v18.0.0 or higher
+- npm, yarn, or pnpm
+
+## Environment Setup
+
+Create a `.env.local` file in this directory (`apps/`), or copy `.env.example` to `.env.local`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Define the following environment variables inside `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+# The secret credential used to authenticate your client requests (do not share or commit)
+LAMATIC_API_KEY=your_lamatic_api_key
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# The project identifier in the Lamatic Cloud Studio
+LAMATIC_PROJECT_ID=your_lamatic_project_id
 
-## Learn More
+# The base URL endpoint for your deployed project (e.g. https://<org>-<project>.lamatic.dev)
+LAMATIC_API_URL=your_lamatic_api_url
 
-To learn more about Next.js, take a look at the following resources:
+# The UUID indicating which specific flow to trigger (e.g. Outreach Personalizer)
+FLOW_ID=your_deployed_flow_id
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Running the Application
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+2. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Access the dashboard**:
+   Open [http://localhost:3000](http://localhost:3000) in your browser.

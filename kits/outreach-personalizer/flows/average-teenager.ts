@@ -105,9 +105,10 @@ export const nodes = [
         "webhook": "list"
       },
       "values": {
-        "url": "{{triggerNode_1.output.company_url}}",
-        "mode": "syncSingleScrape",
-        "urls": "",
+        "id": "firecrawlNode_692",
+        "url": "",
+        "mode": "syncBatchScrape",
+        "urls": "[\"{{triggerNode_1.output.company_url}}\", \"{{triggerNode_1.output.founder_linkedin_url}}\"]",
         "delay": 0,
         "limit": 10,
         "model": "spark-1-mini",
@@ -258,13 +259,12 @@ export const nodes = [
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
-        "id": "responseNode_triggerNode_1",
         "headers": "{\"content-type\":\"application/json\"}",
         "retries": "0",
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"pitch\": \"{{LLMNode_696.output.generatedResponse}}\"\n}"
+        "outputMapping": "{}"
       }
     }
   }

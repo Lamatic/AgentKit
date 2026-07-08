@@ -8,13 +8,29 @@ export interface PitchInput {
   candidate_context: string;
 }
 
+const TIMEOUT_MS = 300000; // 5 minutes (Matching Vercel Hobby maxDuration)
+
+/**
+ * Wraps a promise with a timeout.
+ */
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    const timer = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+    // Ensure node can exit if the timer is the only thing keeping it alive
+    if (timer.unref) {
+      timer.unref();
+    }
+  });
+  return Promise.race([promise, timeoutPromise]);
+}
+
 export async function generatePersonalizedPitch(input: PitchInput): Promise<{
   success: boolean;
   data?: any;
   error?: string;
 }> {
   try {
-    console.log("[v0] Executing Average Teenager flow with:", input);
+    console.log("[v0] Executing Average Teenager flow for company URL:", input.company_url);
 
     const flowId = process.env.FLOW_ID;
     if (!flowId) {
@@ -27,8 +43,11 @@ export async function generatePersonalizedPitch(input: PitchInput): Promise<{
       candidate_context: input.candidate_context.trim(),
     };
 
-    const resData: any = await lamaticClient.executeFlow(flowId, trimmedInput);
-    console.log("[v0] Raw SDK response:", JSON.stringify(resData, null, 2));
+    const resData: any = await withTimeout(
+      lamaticClient.executeFlow(flowId, trimmedInput),
+      TIMEOUT_MS,
+      "The AI provider is taking longer than usual to respond. This usually means their service is overloaded. Please try again in a few minutes."
+    );
 
     if (!resData || (resData.status && resData.status === "error")) {
       throw new Error(resData.message || "Flow execution failed or returned no result.");

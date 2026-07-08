@@ -1,2 +1,2 @@
 Text:
-{{firecrawlNode_692.output.markdown}}
+{{firecrawlNode_692.output.data}}
