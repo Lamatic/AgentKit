@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   runDebateSetup,
   runDebateRound,
@@ -11,7 +11,104 @@ import {
   type Position,
 } from "@/actions/orchestrate";
 
-type Phase = "idle" | "framing" | "debating" | "judging" | "done";
+type Phase = "idle" | "framing" | "debating" | "judging" | "done" | "error";
+
+type Step =
+  | { kind: "setup" }
+  | { kind: "round"; round: number; side: "A" | "B" }
+  | { kind: "judge" };
+
+type SavedDebate = {
+  id: string;
+  savedAt: string;
+  topic: string;
+  setup: DebateSetup;
+  transcript: DebateTurn[];
+  verdict: DebateVerdict;
+};
+
+const HISTORY_KEY = "debate-arena-history";
+const MAX_HISTORY = 20;
+const MAX_ROUNDS = 10;
+
+function loadHistory(): SavedDebate[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: SavedDebate[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  } catch {
+    // localStorage unavailable (private browsing, quota, etc.) -- history just won't persist
+  }
+}
+
+function confidenceClass(confidence: DebateVerdict["confidence"]): string {
+  return `confidence-tag ${confidence}`;
+}
+
+function slugify(text: string): string {
+  return text
+    .slice(0, 40)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "debate";
+}
+
+function debateToMarkdown(
+  topic: string,
+  setup: DebateSetup,
+  transcript: DebateTurn[],
+  verdict: DebateVerdict
+): string {
+  const lines: string[] = [];
+  lines.push(`# Debate: ${setup.cleanTopic}`);
+  lines.push("");
+  lines.push(`_Original question: ${topic}_`);
+  lines.push("");
+  lines.push(`## Positions`);
+  lines.push(`- **${setup.positionA.label}**: ${setup.positionA.stance}`);
+  lines.push(`- **${setup.positionB.label}**: ${setup.positionB.stance}`);
+  lines.push("");
+  lines.push(`## Transcript`);
+  lines.push("");
+  for (const turn of transcript) {
+    lines.push(`### Round ${turn.round} — ${turn.label}`);
+    lines.push(turn.statement);
+    lines.push("");
+  }
+  lines.push(`## Verdict`);
+  lines.push("");
+  lines.push(`**Confidence:** ${verdict.confidence}`);
+  lines.push("");
+  lines.push(`**${setup.positionA.label} — Pros**`);
+  verdict.prosA.forEach((p) => lines.push(`- ${p}`));
+  lines.push("");
+  lines.push(`**${setup.positionA.label} — Cons**`);
+  verdict.consA.forEach((c) => lines.push(`- ${c}`));
+  lines.push("");
+  lines.push(`**${setup.positionB.label} — Pros**`);
+  verdict.prosB.forEach((p) => lines.push(`- ${p}`));
+  lines.push("");
+  lines.push(`**${setup.positionB.label} — Cons**`);
+  verdict.consB.forEach((c) => lines.push(`- ${c}`));
+  lines.push("");
+  lines.push(`**Recommendation:** ${verdict.recommendation}`);
+  if (verdict.caveats.length > 0) {
+    lines.push("");
+    lines.push(`**Caveats:** ${verdict.caveats.join(" · ")}`);
+  }
+  return lines.join("\n");
+}
 
 export default function Home() {
   const [topic, setTopic] = useState("");
@@ -22,107 +119,272 @@ export default function Home() {
   const [verdict, setVerdict] = useState<DebateVerdict | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [thinking, setThinking] = useState<string | null>(null);
+  const [regeneratingRound, setRegeneratingRound] = useState<number | null>(null);
+  const [history, setHistory] = useState<SavedDebate[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const ctxRef = useRef<{ cleanTopic: string; positionA: Position; positionB: Position } | null>(null);
+  const failedStepRef = useRef<Step | null>(null);
 
   const isRunning = phase === "framing" || phase === "debating" || phase === "judging";
 
-  async function startDebate() {
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
+
+  function resetAll() {
     setError(null);
     setSetup(null);
     setTranscript([]);
     setVerdict(null);
+    setPhase("idle");
+    setThinking(null);
+    setRegeneratingRound(null);
+    ctxRef.current = null;
+    failedStepRef.current = null;
+  }
 
+  async function runStep(step: Step, localTranscript: DebateTurn[]): Promise<void> {
+    const ctx = ctxRef.current;
+
+    if (step.kind === "setup") {
+      setPhase("framing");
+      setThinking("Framing the debate and picking two opposing positions...");
+
+      const res = await runDebateSetup(topic);
+      if (!res.success) {
+        failedStepRef.current = step;
+        setError(res.error);
+        setPhase("error");
+        setThinking(null);
+        return;
+      }
+
+      setSetup(res.data);
+      ctxRef.current = {
+        cleanTopic: res.data.cleanTopic,
+        positionA: res.data.positionA,
+        positionB: res.data.positionB,
+      };
+      await runStep({ kind: "round", round: 1, side: "A" }, localTranscript);
+      return;
+    }
+
+    if (step.kind === "round") {
+      if (!ctx) return;
+      setPhase("debating");
+
+      const isRebuttal = step.round > 1;
+      const position = step.side === "A" ? ctx.positionA : ctx.positionB;
+      const opponentPosition = step.side === "A" ? ctx.positionB : ctx.positionA;
+      setThinking(`Round ${step.round}: ${position.label} is ${isRebuttal ? "responding" : "opening"}...`);
+
+      const res = await runDebateRound({
+        topic: ctx.cleanTopic,
+        position,
+        opponentPosition,
+        transcript: localTranscript,
+        round: step.round,
+        side: step.side,
+        isRebuttal,
+      });
+
+      if (!res.success) {
+        failedStepRef.current = step;
+        setError(res.error);
+        setPhase("error");
+        setThinking(null);
+        return;
+      }
+
+      localTranscript.push(res.data);
+      setTranscript([...localTranscript]);
+
+      const next: Step =
+        step.side === "A"
+          ? { kind: "round", round: step.round, side: "B" }
+          : step.round < rounds
+          ? { kind: "round", round: step.round + 1, side: "A" }
+          : { kind: "judge" };
+      await runStep(next, localTranscript);
+      return;
+    }
+
+    if (step.kind === "judge") {
+      if (!ctx) return;
+      setPhase("judging");
+      setThinking("The judge is weighing both sides...");
+
+      const res = await runDebateJudge({
+        topic: ctx.cleanTopic,
+        positionA: ctx.positionA,
+        positionB: ctx.positionB,
+        transcript: localTranscript,
+      });
+
+      if (!res.success) {
+        failedStepRef.current = step;
+        setError(res.error);
+        setPhase("error");
+        setThinking(null);
+        return;
+      }
+
+      setVerdict(res.data);
+      setPhase("done");
+      setThinking(null);
+      failedStepRef.current = null;
+
+      const entry: SavedDebate = {
+        id: `${Date.now()}`,
+        savedAt: new Date().toISOString(),
+        topic,
+        setup: {
+          cleanTopic: ctx.cleanTopic,
+          positionA: ctx.positionA,
+          positionB: ctx.positionB,
+          context: "",
+        },
+        transcript: localTranscript,
+        verdict: res.data,
+      };
+      setHistory((prev) => {
+        const updated = [entry, ...prev].slice(0, MAX_HISTORY);
+        saveHistory(updated);
+        return updated;
+      });
+    }
+  }
+
+  async function startDebate() {
     if (!topic.trim()) {
       setError("Describe the decision or question you want debated first.");
+      setPhase("error");
       return;
     }
+    resetAll();
+    await runStep({ kind: "setup" }, []);
+  }
 
-    setPhase("framing");
-    setThinking("Framing the debate and picking two opposing positions...");
+  async function retryFailedStep() {
+    const step = failedStepRef.current;
+    if (!step) return;
+    setError(null);
+    await runStep(step, [...transcript]);
+  }
 
-    const setupRes = await runDebateSetup(topic);
-    if (!setupRes.success) {
-      setError(setupRes.error);
-      setPhase("idle");
-      setThinking(null);
-      return;
-    }
-    setSetup(setupRes.data);
-    setPhase("debating");
+  async function regenerateRound(turnIndex: number) {
+    const ctx = ctxRef.current;
+    const turn = transcript[turnIndex];
+    if (!ctx || !turn) return;
 
-    const positionA: Position = setupRes.data.positionA;
-    const positionB: Position = setupRes.data.positionB;
-    const localTranscript: DebateTurn[] = [];
+    setRegeneratingRound(turnIndex);
+    setError(null);
 
-    for (let round = 1; round <= rounds; round++) {
-      const isRebuttal = round > 1;
+    const position = turn.side === "A" ? ctx.positionA : ctx.positionB;
+    const opponentPosition = turn.side === "A" ? ctx.positionB : ctx.positionA;
+    const priorTranscript = transcript.slice(0, turnIndex);
 
-      setThinking(`Round ${round}: ${positionA.label} is ${isRebuttal ? "responding" : "opening"}...`);
-      const aRes = await runDebateRound({
-        topic: setupRes.data.cleanTopic,
-        position: positionA,
-        opponentPosition: positionB,
-        transcript: localTranscript,
-        round,
-        side: "A",
-        isRebuttal,
-      });
-      if (!aRes.success) {
-        setError(aRes.error);
-        setPhase("idle");
-        setThinking(null);
-        return;
-      }
-      localTranscript.push(aRes.data);
-      setTranscript([...localTranscript]);
-
-      setThinking(`Round ${round}: ${positionB.label} is ${isRebuttal ? "responding" : "opening"}...`);
-      const bRes = await runDebateRound({
-        topic: setupRes.data.cleanTopic,
-        position: positionB,
-        opponentPosition: positionA,
-        transcript: localTranscript,
-        round,
-        side: "B",
-        isRebuttal,
-      });
-      if (!bRes.success) {
-        setError(bRes.error);
-        setPhase("idle");
-        setThinking(null);
-        return;
-      }
-      localTranscript.push(bRes.data);
-      setTranscript([...localTranscript]);
-    }
-
-    setPhase("judging");
-    setThinking("The judge is weighing both sides...");
-
-    const judgeRes = await runDebateJudge({
-      topic: setupRes.data.cleanTopic,
-      positionA,
-      positionB,
-      transcript: localTranscript,
+    const res = await runDebateRound({
+      topic: ctx.cleanTopic,
+      position,
+      opponentPosition,
+      transcript: priorTranscript,
+      round: turn.round,
+      side: turn.side,
+      isRebuttal: turn.round > 1,
     });
-    if (!judgeRes.success) {
-      setError(judgeRes.error);
-      setPhase("idle");
-      setThinking(null);
+
+    setRegeneratingRound(null);
+
+    if (!res.success) {
+      setError(res.error);
       return;
     }
 
-    setVerdict(judgeRes.data);
+    const updated = [...transcript];
+    updated[turnIndex] = res.data;
+    setTranscript(updated);
+  }
+
+  function downloadMarkdown() {
+    if (!setup || !verdict) return;
+    const md = debateToMarkdown(topic, setup, transcript, verdict);
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `debate-${slugify(setup.cleanTopic)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function clearHistory() {
+    setHistory([]);
+    saveHistory([]);
+  }
+
+  function loadFromHistory(entry: SavedDebate) {
+    setTopic(entry.topic);
+    setSetup(entry.setup);
+    setTranscript(entry.transcript);
+    setVerdict(entry.verdict);
     setPhase("done");
+    setError(null);
     setThinking(null);
+    failedStepRef.current = null;
+    ctxRef.current = {
+      cleanTopic: entry.setup.cleanTopic,
+      positionA: entry.setup.positionA,
+      positionB: entry.setup.positionB,
+    };
+    setShowHistory(false);
   }
 
   return (
     <main>
-      <h1>Debate Arena</h1>
-      <p className="subtitle">
-        Pose any tradeoff or decision. Two AI agents will argue opposing sides, then an impartial judge
-        weighs in with a verdict.
-      </p>
+      <div className="top-row">
+        <div>
+          <h1>Debate Arena</h1>
+          <p className="subtitle">
+            Pose any tradeoff or decision. Two AI agents will argue opposing sides, then an impartial judge
+            weighs in with a verdict.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="ghost-button"
+          onClick={() => setShowHistory((v) => !v)}
+        >
+          History {history.length > 0 ? `(${history.length})` : ""}
+        </button>
+      </div>
+
+      {showHistory && (
+        <div className="history-panel">
+          {history.length === 0 ? (
+            <p className="thinking">No saved debates yet -- finish one and it will show up here.</p>
+          ) : (
+            <>
+              <ul className="history-list">
+                {history.map((entry) => (
+                  <li key={entry.id}>
+                    <button type="button" onClick={() => loadFromHistory(entry)}>
+                      <span className="history-topic">{entry.setup.cleanTopic}</span>
+                      <span className="history-date">{new Date(entry.savedAt).toLocaleString()}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="ghost-button danger" onClick={clearHistory}>
+                Clear history
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <label htmlFor="topic" className="sr-only">
         Decision or question to debate
@@ -137,26 +399,38 @@ export default function Home() {
       />
 
       <div className="controls-row">
-        <label htmlFor="rounds" style={{ fontSize: "0.85rem", color: "#9aa0ab" }}>
+        <label htmlFor="rounds" className="rounds-label">
           Rounds:
         </label>
-        <select
+        <input
           id="rounds"
+          type="number"
+          min={1}
+          max={MAX_ROUNDS}
           value={rounds}
-          onChange={(e) => setRounds(Number(e.target.value))}
+          onChange={(e) => {
+            const next = Number(e.target.value);
+            if (Number.isFinite(next)) {
+              setRounds(Math.min(MAX_ROUNDS, Math.max(1, next)));
+            }
+          }}
           disabled={isRunning}
-          style={{ width: "auto" }}
-        >
-          <option value={1}>1 (opening statements only)</option>
-          <option value={2}>2 (opening + one rebuttal)</option>
-          <option value={3}>3 (opening + two rebuttals)</option>
-        </select>
+        />
         <button onClick={startDebate} disabled={isRunning}>
           {isRunning ? "Debating..." : "Start Debate"}
         </button>
       </div>
 
-      {error && <div className="error-banner" role="alert">{error}</div>}
+      {error && (
+        <div className="error-banner" role="alert">
+          {error}
+          {phase === "error" && failedStepRef.current && (
+            <button type="button" className="retry-button" onClick={retryFailedStep}>
+              Retry
+            </button>
+          )}
+        </div>
+      )}
       {thinking && <p className="thinking">{thinking}</p>}
 
       {setup && (
@@ -180,6 +454,16 @@ export default function Home() {
                 Round {turn.round} · {turn.label}
               </div>
               {turn.statement}
+              {!isRunning && (
+                <button
+                  type="button"
+                  className="regenerate-button"
+                  onClick={() => regenerateRound(i)}
+                  disabled={regeneratingRound !== null}
+                >
+                  {regeneratingRound === i ? "Regenerating..." : "Regenerate"}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -189,7 +473,7 @@ export default function Home() {
         <div className="verdict-panel">
           <h2>
             Judge&apos;s Verdict
-            <span className="confidence-tag">{verdict.confidence} confidence</span>
+            <span className={confidenceClass(verdict.confidence)}>{verdict.confidence} confidence</span>
           </h2>
 
           <div className="matrix">
@@ -232,6 +516,10 @@ export default function Home() {
               <strong>Caveats:</strong> {verdict.caveats.join(" · ")}
             </div>
           )}
+
+          <button type="button" className="ghost-button" onClick={downloadMarkdown}>
+            Download as Markdown
+          </button>
         </div>
       )}
     </main>
