@@ -66,9 +66,9 @@ export const nodes = [
           "displayMode": "popup",
           "placeholder": "Compose your message",
           "suggestions": [
-            "Plan a 5-day trip to Bali",
-            "Suggest a honeymoon itinerary for Switzerland",
-            "Create a budget-friendly trip to Goa"
+            "Plan a 5-day trip to Bali on a ₹50,000 budget",
++            "Suggest a weekend getaway for a couple interested in beaches",
++            "Create a 7-day Europe itinerary for a family of four"
           ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
