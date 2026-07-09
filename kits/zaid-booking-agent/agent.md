@@ -30,20 +30,34 @@ a fast, conversational booking experience without a human having to triage every
 
 ### `1. Intake Agent` (`intake-agent`)
 
-> Status: not yet built in Lamatic Studio. Details below are the design intent; update once
-> the flow is exported to `flows/intake-agent.ts`.
+> Status: built and tested in Lamatic Studio (`claude-haiku-4-5`). Not yet exported into
+> `flows/intake-agent.ts` — export via Studio's menu once the Flow ID is wired into `.env`.
 
-- **Trigger**: API request (chat message for MVP; Twilio transcript as a stretch goal).
+- **Trigger**: API request (`message: string`, `session_id: string`). Chat message for MVP;
+  Twilio transcript is a stretch goal.
 - **What it does**:
-  1. `Extraction` (LLM node) parses the raw customer message into structured JSON
-     (`service_type`, `preferred_date`, `preferred_window`, `name`, `phone`, `notes`).
-  2. `Validation` (branch/logic node) checks required fields are present.
-     - Missing fields → branch to a clarifying-question response.
-     - Complete → pass structured data forward.
+  1. `Extraction` (Generate JSON / Instructor LLM node) parses the raw customer message into
+     structured JSON (`service_type`, `preferred_date`, `preferred_window`, `name`, `phone`,
+     `notes`). Every field is a plain string; missing fields come back as `""`, never `null` or
+     a placeholder token — see `docs/decision-log.md` for why.
+  2. `Condition` checks `service_type != ""`.
+     - Empty (`Else`) → `Prepare Clarification` (codeNode) sets `needs_clarification: true` and
+       a natural-language clarifying question.
+     - Present (`Condition 1`) → `Prepare Success Response` (codeNode) sets
+       `needs_clarification: false` and `request` to the full extracted object.
+  3. `API Response` maps `needs_clarification`/`clarifying_question` from `Prepare
+     Clarification`'s output and `request` from `Prepare Success Response`'s output — see
+     decision log for why one source node per field works correctly on both branches.
 - **When to use**: Every new customer booking request starts here.
-- **Output**: Either a clarifying question (if input was incomplete/ambiguous) or a structured
-  booking request ready for the Scheduling Agent.
-- **Dependencies**: LLM provider for extraction. No external services.
+- **Output**: `{ needs_clarification, clarifying_question, request }` — either a clarifying
+  question (if input was incomplete/ambiguous) or a structured booking request ready for the
+  Scheduling Agent.
+- **Dependencies**: LLM provider for extraction (Anthropic credential, `claude-haiku-4-5`). No
+  external services.
+- **Known limitation**: `preferred_date` is normalized relative to the message's own wording
+  (e.g. "tomorrow" stays as the literal word "tomorrow") since the model isn't given today's
+  date. Fine for MVP; revisit by passing the current date into the trigger input if exact-date
+  normalization becomes necessary.
 
 ### `2. Scheduling Agent` (`scheduling-agent`)
 
