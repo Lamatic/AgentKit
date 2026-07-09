@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 /* ---- Design tokens ---------------------------------------------------- */
 :root {
@@ -78,3 +77,11 @@ body {
 }
 
 h1, h2, h3 { letter-spacing: -0.02em; }
+
+/* Preserve pre-v4 defaults that Tailwind v4's Preflight changed. */
+*,
+::before,
+::after { border-color: var(--hairline); }
+
+button:not(:disabled),
+[role="button"]:not(:disabled) { cursor: pointer; }
