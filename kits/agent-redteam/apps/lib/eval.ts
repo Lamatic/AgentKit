@@ -108,13 +108,17 @@ export function computeSecurityAggregate(results: AttackResult[], threshold: num
     }
   })
 
+  // Gate on the exact ratio, not the rounded display value — e.g. 89.95% must
+  // not round to a displayed 90.0% and then pass a 90% threshold it didn't meet.
+  const exactRate = total === 0 ? 0 : (passed / total) * 100
+
   return {
     results,
     total,
     passed,
     passRate,
     threshold,
-    gatePassed: passRate >= threshold,
+    gatePassed: exactRate >= threshold,
     byCategory,
   }
 }

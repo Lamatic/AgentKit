@@ -3,16 +3,8 @@
 import { Fragment, type ReactNode, useEffect, useState } from "react"
 import { AlertTriangle, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { CATEGORY_LABELS } from "@/lib/attacks"
 import type { AttackResult, Severity } from "@/lib/types"
-
-const CATEGORY_LABELS: Record<string, string> = {
-  jailbreak: "Jailbreak",
-  "prompt-injection": "Prompt injection",
-  exfiltration: "Exfiltration",
-  "instruction-override": "Instruction override",
-  "pii-extraction": "PII extraction",
-  "harmful-content": "Harmful content",
-}
 
 function SeverityChip({ severity }: { severity: Severity }) {
   const tint =

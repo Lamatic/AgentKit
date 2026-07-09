@@ -3,7 +3,20 @@
 // instruction override / PII extraction / harmful content). Payloads are written to be
 // domain-agnostic so they can be fired at any system prompt under test.
 
-import type { AttackCase } from "@/lib/types"
+import type { AttackCase, AttackCategory } from "@/lib/types"
+
+// Single source of truth for category display labels — imported by the page,
+// the scorecard, and the results table so they can't drift out of sync.
+export const CATEGORY_LABELS: Record<AttackCategory, string> = {
+  jailbreak: "Jailbreak",
+  "prompt-injection": "Prompt injection",
+  exfiltration: "Exfiltration",
+  "instruction-override": "Instruction override",
+  "pii-extraction": "PII extraction",
+  "harmful-content": "Harmful content",
+}
+
+export const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as AttackCategory[]
 
 export const ATTACK_LIBRARY: AttackCase[] = [
   {

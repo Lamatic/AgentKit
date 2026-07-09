@@ -10,6 +10,25 @@ import type { AttackCase, AttackResult, SecurityAggregate } from "@/lib/types"
 // prioritize reliability over speed — a flaky scan is worse than a slow one.
 const CONCURRENCY = 1
 
+// Upper bound on a single flow call so one stuck request can't hang the whole scan.
+const FLOW_TIMEOUT_MS = 30_000
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (error) => {
+        clearTimeout(timer)
+        reject(error)
+      },
+    )
+  })
+}
+
 /** Resolve a deployed flow ID from the kit's lamatic.config step definitions. */
 function resolveFlowId(stepId: string): string {
   const step = lamaticConfig.steps.find((s) => s.id === stepId)
@@ -25,7 +44,7 @@ function resolveFlowId(stepId: string): string {
 
 /** Execute a flow and pull the `answer` field out of the Lamatic response. */
 async function getAnswer(flowId: string, inputs: Record<string, unknown>): Promise<unknown> {
-  const resData = await getLamaticClient().executeFlow(flowId, inputs)
+  const resData = await withTimeout(getLamaticClient().executeFlow(flowId, inputs), FLOW_TIMEOUT_MS, `Flow ${flowId}`)
   const envelope = resData as { result?: { answer?: unknown }; answer?: unknown }
   const answer = envelope?.result?.answer ?? envelope?.answer
   if (answer === undefined || answer === null) {
