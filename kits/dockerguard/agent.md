@@ -26,9 +26,9 @@ Because this kit has a single flow, all behaviour is concentrated in one pipelin
 
 - **What it does**
   1. `API Request` (`graphqlNode`) — accepts the request and exposes `dockerfile`, `file_type`, `filename` to downstream nodes.
-  2. `Audit Engine` (`LLMNode`) — runs the audit prompt chain:
-     - System prompt (`dockerguard-audit_audit-engine_system.md`) defines the rule catalog, severity levels, scoring, and a strict JSON output contract.
-     - User prompt (`dockerguard-audit_audit-engine_user.md`) injects `{{triggerNode_1.output.dockerfile}}` and the optional hints.
+  2. `Generate Text` (`LLMNode`) — runs the audit prompt chain:
+     - System prompt (`dockerguard-audit_llmnode-540_system_0.md`) defines the rule catalog, severity levels, scoring, and a strict JSON output contract.
+     - User prompt (`dockerguard-audit_llmnode-540_user_1.md`) injects `{{triggerNode_1.output.dockerfile}}` and the optional hints.
      - Emits `generatedResponse`, the JSON report.
   3. `API Response` (`graphqlResponseNode`) — maps `report` to the model output and returns it.
 
@@ -64,7 +64,7 @@ Single-flow kit — no inter-flow chaining.
 - `LAMATIC_API_URL` — Lamatic API endpoint for your project.
 - `LAMATIC_PROJECT_ID` — your Lamatic project ID.
 - `LAMATIC_API_KEY` — Lamatic API key used by the SDK client.
-- LLM provider key — configured inside Lamatic for the `Audit Engine` node.
+- LLM provider key — configured inside Lamatic for the `Generate Text` node.
 
 ## Quickstart
 1. Build and deploy the `dockerguard-audit` flow in Lamatic Studio (see README).
@@ -77,7 +77,7 @@ Single-flow kit — no inter-flow chaining.
 | Symptom | Likely Cause | Fix |
 |---|---|---|
 | App shows "could not parse report" | Model returned prose or fenced JSON | Lower the model temperature; keep the strict-JSON instruction; the app also strips ```` ```json ```` fences defensively. |
-| LLM node auth error | Missing/invalid provider key in Lamatic | Configure the provider credentials for the `Audit Engine` node. |
+| LLM node auth error | Missing/invalid provider key in Lamatic | Configure the provider credentials for the `Generate Text` node. |
 | `input_type: "unknown"` | Input was not a Dockerfile/compose file | Submit the raw build file contents. |
 | Network error in the app | Missing/invalid `LAMATIC_*` env vars or flow ID | Verify `.env.local` matches Studio; confirm the flow is deployed. |
 
