@@ -15,21 +15,26 @@ export type OfferInput = {
   constraints: string;
 };
 
-/** The structured negotiation brief returned under the flow's `answer` field. */
+/**
+ * The structured negotiation brief returned under the flow's `answer` field.
+ *
+ * Only `assessment` and `counter_email` are guaranteed. Everything else is
+ * optional because the shape comes from an LLM, which may omit keys.
+ */
 export type NegotiationResult = {
   assessment: string;
-  leverage: string[];
-  strategy: {
-    summary: string;
-    target_base: string;
-    target_total: string;
-    approach: string;
+  leverage?: string[];
+  strategy?: {
+    summary?: string;
+    target_base?: string;
+    target_total?: string;
+    approach?: string;
   };
-  talking_points: string[];
+  talking_points?: string[];
   counter_email: string;
-  call_script: string;
-  risks: string[];
-  assumptions: string[];
+  call_script?: string;
+  risks?: string[];
+  assumptions?: string[];
 };
 
 /** Blank offer used to seed the form. */

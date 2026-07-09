@@ -67,6 +67,14 @@ Prerequisites: Node 18+, a Lamatic account.
 | `LAMATIC_PROJECT_ID` | Lamatic project ID |
 | `LAMATIC_API_KEY` | Lamatic API key |
 
+## Model credentials
+
+`model-configs/offer-negotiator-flow_llmnode-516_generative-model-name.ts` pins
+the LLM node to `gpt-4o-mini` via a `credentialId` from the project this kit was
+authored in. After importing the flow, point `credentialId` and
+`credential_name` at your own provider credential in Lamatic Studio, or the LLM
+node will not resolve.
+
 ## License
 
 Part of [Lamatic AgentKit](https://github.com/Lamatic/AgentKit).
