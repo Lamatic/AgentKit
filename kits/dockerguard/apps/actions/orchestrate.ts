@@ -38,13 +38,14 @@ const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
 /** Coerce a raw finding into a safe, fully-populated Finding. */
 function normalizeFinding(raw: unknown, index: number): Finding {
   const f = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  const lineNum = Number(f.line);
+  const severity = String(f.severity ?? "").toLowerCase();
+  const lineNum = f.line == null ? NaN : Number(f.line);
   return {
     id: typeof f.id === "string" && f.id.trim() ? f.id : `finding-${index + 1}`,
-    severity: SEVERITIES.includes(f.severity as Severity) ? (f.severity as Severity) : "info",
+    severity: SEVERITIES.includes(severity as Severity) ? (severity as Severity) : "info",
     category: typeof f.category === "string" && f.category.trim() ? f.category : "general",
     title: typeof f.title === "string" && f.title.trim() ? f.title : "Untitled finding",
-    line: Number.isFinite(lineNum) ? lineNum : null,
+    line: Number.isFinite(lineNum) && lineNum > 0 ? lineNum : null,
     instruction: typeof f.instruction === "string" ? f.instruction : null,
     why: typeof f.why === "string" ? f.why : "",
     fix: typeof f.fix === "string" ? f.fix : "",
