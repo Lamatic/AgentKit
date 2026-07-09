@@ -85,7 +85,7 @@ There are two parts. First you build the agent inside Lamatic; then you connect 
 2. Create a new flow and name it `dockerguard-audit`. It has three steps:
    - an entry step that receives the file (an "API Request" node);
    - a thinking step that does the review (an "LLM" node); paste the two prompt files from the `prompts/` folder into it, and choose a model that can return clean data, such as GPT-4o-mini, Claude Haiku, or Gemini Flash, set to a low temperature so the output stays consistent;
-   - an exit step that returns the report (an "API Response" node); set its output to `report` = `{{LLMNode_1.output.generatedResponse}}`.
+   - an exit step that returns the report (an "API Response" node); map its `report` output to the `generatedResponse` output of the LLM ("Generate Text") node — i.e. `report` = `{{<LLMNodeId>.output.generatedResponse}}`, where `<LLMNodeId>` is whatever id Studio assigned to that node.
 3. Deploy the flow and copy its Flow ID.
 4. Open Settings, then API Keys, and copy the API URL, the Project ID, and the API Key.
 
