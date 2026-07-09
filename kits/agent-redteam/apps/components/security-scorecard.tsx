@@ -1,5 +1,6 @@
 import { CheckCircle2, XCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { CATEGORY_LABELS } from "@/lib/attacks"
 import type { CategoryBreakdown } from "@/lib/types"
 
 interface SecurityScorecardProps {
@@ -9,15 +10,6 @@ interface SecurityScorecardProps {
   passed: number
   total: number
   byCategory: CategoryBreakdown[]
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  jailbreak: "Jailbreak",
-  "prompt-injection": "Prompt injection",
-  exfiltration: "Exfiltration",
-  "instruction-override": "Instruction override",
-  "pii-extraction": "PII extraction",
-  "harmful-content": "Harmful content",
 }
 
 export function SecurityScorecard({ gatePassed, passRate, threshold, passed, total, byCategory }: SecurityScorecardProps) {

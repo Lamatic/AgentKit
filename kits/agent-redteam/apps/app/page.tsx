@@ -1,7 +1,10 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { AlertCircle, CheckCircle2, Loader2, Play, Shield, ShieldAlert, Sparkles } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { AlertCircle, Loader2, Play, Shield, ShieldAlert, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -9,56 +12,60 @@ import { Label } from "@/components/ui/label"
 import { SecurityScorecard } from "@/components/security-scorecard"
 import { AttackResultsTable } from "@/components/attack-results-table"
 import { runRedTeamScan } from "@/actions/orchestrate"
-import { ATTACK_LIBRARY, SAMPLE_HARDENED_SYSTEM_PROMPT, SAMPLE_WEAK_SYSTEM_PROMPT } from "@/lib/attacks"
+import { ALL_CATEGORIES, ATTACK_LIBRARY, CATEGORY_LABELS, SAMPLE_HARDENED_SYSTEM_PROMPT, SAMPLE_WEAK_SYSTEM_PROMPT } from "@/lib/attacks"
 import { cn } from "@/lib/utils"
 import type { AttackCategory, SecurityAggregate } from "@/lib/types"
 
-const CATEGORY_LABELS: Record<AttackCategory, string> = {
-  jailbreak: "Jailbreak",
-  "prompt-injection": "Prompt injection",
-  exfiltration: "Exfiltration",
-  "instruction-override": "Instruction override",
-  "pii-extraction": "PII extraction",
-  "harmful-content": "Harmful content",
-}
+const formSchema = z.object({
+  systemPrompt: z.string().trim().min(1, "Enter a system prompt to test."),
+  categories: z.array(z.string()).min(1, "Select at least one attack category."),
+  threshold: z.number().min(0).max(100),
+})
 
-const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as AttackCategory[]
+type FormValues = z.infer<typeof formSchema>
 
 export default function AgentRedTeamPage() {
-  const [systemPrompt, setSystemPrompt] = useState("")
-  const [threshold, setThreshold] = useState(90)
-  const [enabledCategories, setEnabledCategories] = useState<Set<AttackCategory>>(new Set(ALL_CATEGORIES))
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    mode: "onChange",
+    defaultValues: { systemPrompt: "", categories: ALL_CATEGORIES, threshold: 90 },
+  })
+
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<SecurityAggregate | null>(null)
   const [runError, setRunError] = useState("")
 
+  const selectedCategories = (watch("categories") as AttackCategory[]) ?? []
   const selectedAttacks = useMemo(
-    () => ATTACK_LIBRARY.filter((a) => enabledCategories.has(a.category)),
-    [enabledCategories],
+    () => ATTACK_LIBRARY.filter((a) => selectedCategories.includes(a.category)),
+    [selectedCategories],
   )
 
   const toggleCategory = (category: AttackCategory) => {
-    setEnabledCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(category)) next.delete(category)
-      else next.add(category)
-      return next
-    })
+    const current = new Set(selectedCategories)
+    if (current.has(category)) current.delete(category)
+    else current.add(category)
+    setValue("categories", Array.from(current), { shouldValidate: true })
   }
 
   const loadExample = (variant: "weak" | "hardened") => {
-    setSystemPrompt(variant === "weak" ? SAMPLE_WEAK_SYSTEM_PROMPT : SAMPLE_HARDENED_SYSTEM_PROMPT)
+    setValue("systemPrompt", variant === "weak" ? SAMPLE_WEAK_SYSTEM_PROMPT : SAMPLE_HARDENED_SYSTEM_PROMPT, { shouldValidate: true })
     setRunError("")
   }
 
-  const onSubmit = async () => {
+  const onSubmit = async (values: FormValues) => {
     setRunError("")
     setIsLoading(true)
     setResult(null)
     try {
-      if (!systemPrompt.trim()) throw new Error("Enter a system prompt to test.")
-      if (selectedAttacks.length === 0) throw new Error("Select at least one attack category.")
-      const res = await runRedTeamScan(systemPrompt, selectedAttacks, threshold)
+      const attacks = ATTACK_LIBRARY.filter((a) => values.categories.includes(a.category))
+      const res = await runRedTeamScan(values.systemPrompt, attacks, values.threshold)
       if (res.success && res.data) {
         setResult(res.data)
       } else {
@@ -94,21 +101,33 @@ export default function AgentRedTeamPage() {
       <main className="relative mx-auto grid max-w-6xl gap-6 px-6 py-8 lg:grid-cols-[400px_1fr]">
         {/* Configuration */}
         <section className="lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 shadow-2xl shadow-black/20">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 shadow-2xl shadow-black/20"
+          >
             <h2 className="text-sm font-semibold">Configuration</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Paste the prompt you're about to ship, pick your attack battery, run the scan.</p>
 
             <div className="mt-5 space-y-5">
               {/* System prompt */}
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">System prompt under test</Label>
+                <Label htmlFor="system-prompt" className="text-xs uppercase tracking-wide text-muted-foreground">
+                  System prompt under test
+                </Label>
                 <Textarea
+                  id="system-prompt"
                   placeholder="You are a support agent for…"
                   className="min-h-[140px] max-h-[260px] resize-y overflow-y-auto [field-sizing:fixed] bg-black/20"
                   disabled={isLoading}
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  aria-invalid={!!errors.systemPrompt}
+                  {...register("systemPrompt")}
                 />
+                {errors.systemPrompt && (
+                  <p className="flex items-start gap-1.5 text-xs text-rose-400">
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    {errors.systemPrompt.message}
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Button type="button" variant="ghost" size="sm" onClick={() => loadExample("weak")} disabled={isLoading} className="gap-1.5 text-muted-foreground hover:text-foreground">
                     <Sparkles className="h-3.5 w-3.5" />
@@ -128,7 +147,7 @@ export default function AgentRedTeamPage() {
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
                   {ALL_CATEGORIES.map((category) => {
-                    const active = enabledCategories.has(category)
+                    const active = selectedCategories.includes(category)
                     return (
                       <button
                         key={category}
@@ -145,6 +164,12 @@ export default function AgentRedTeamPage() {
                     )
                   })}
                 </div>
+                {errors.categories && (
+                  <p className="flex items-start gap-1.5 text-xs text-rose-400">
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    {errors.categories.message}
+                  </p>
+                )}
               </div>
 
               {/* Threshold */}
@@ -160,8 +185,7 @@ export default function AgentRedTeamPage() {
                     max={100}
                     className="bg-black/20 pr-7"
                     disabled={isLoading}
-                    value={threshold}
-                    onChange={(e) => setThreshold(Number(e.target.value))}
+                    {...register("threshold", { valueAsNumber: true })}
                   />
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
                 </div>
@@ -175,9 +199,8 @@ export default function AgentRedTeamPage() {
               )}
 
               <Button
-                type="button"
-                onClick={onSubmit}
-                disabled={isLoading}
+                type="submit"
+                disabled={isLoading || !isValid}
                 className="w-full gap-2 bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/20 hover:from-rose-400 hover:to-orange-400"
               >
                 {isLoading ? (
@@ -193,7 +216,7 @@ export default function AgentRedTeamPage() {
                 )}
               </Button>
             </div>
-          </div>
+          </form>
         </section>
 
         {/* Results */}
@@ -214,16 +237,22 @@ export default function AgentRedTeamPage() {
             <div className="flex min-h-[460px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01]">
               <div className="max-w-sm px-6 text-center">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]">
-                  {result === null && !isLoading ? (
-                    <ShieldAlert className="h-7 w-7 text-muted-foreground" />
+                  {isLoading ? (
+                    <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
                   ) : (
-                    <CheckCircle2 className="h-7 w-7 text-muted-foreground" />
+                    <ShieldAlert className="h-7 w-7 text-muted-foreground" />
                   )}
                 </div>
-                <p className="font-medium">No scan yet</p>
+                <p className="font-medium">{isLoading ? "Scanning…" : "No scan yet"}</p>
                 <p className="mt-1.5 text-sm text-muted-foreground">
-                  Paste a system prompt and run the scan — or click <span className="font-medium text-foreground">Load weak example</span> to see a prompt
-                  get compromised.
+                  {isLoading ? (
+                    "Running the attack battery against your prompt — this can take a minute since attacks run one at a time."
+                  ) : (
+                    <>
+                      Paste a system prompt and run the scan — or click <span className="font-medium text-foreground">Load weak example</span> to see a
+                      prompt get compromised.
+                    </>
+                  )}
                 </p>
               </div>
             </div>
