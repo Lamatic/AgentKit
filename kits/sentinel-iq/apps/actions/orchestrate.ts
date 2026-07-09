@@ -9,8 +9,9 @@ async function graphqlRequest(query: string, variables: Record<string, unknown>)
   const res = await fetch(LAMATIC_API_URL, {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${LAMATIC_API_KEY}`,
       "Content-Type": "application/json",
-      Authorization: `Bearer ${LAMATIC_API_KEY}`
+      "x-project-id": LAMATIC_PROJECT_ID
     },
     body: JSON.stringify({ query, variables })
   });
@@ -20,50 +21,49 @@ async function graphqlRequest(query: string, variables: Record<string, unknown>)
   return json.data;
 }
 
-export async function triageAlert(alertText: string) {
-  const executeMutation = `
-    mutation ExecuteWorkflow($workflowId: String!, $projectId: String!, $payload: JSON!) {
-      executeWorkflow(workflowId: $workflowId, projectId: $projectId, payload: $payload) {
-        executionId
+async function executeWorkflow(alertText: string) {
+  const query = `
+    query ExecuteWorkflow($workflowId: String!, $alert_text: String) {
+      executeWorkflow(workflowId: $workflowId, payload: { alert_text: $alert_text }) {
+        requestId
         status
-        output
       }
     }
   `;
 
-  const executeResult = await graphqlRequest(executeMutation, {
+  const data = await graphqlRequest(query, {
     workflowId: SENTINEL_TRIAGE_FLOW_ID,
-    projectId: LAMATIC_PROJECT_ID,
-    payload: { alert_text: alertText }
+    alert_text: alertText
   });
 
-  const { executionId, status, output } = executeResult.executeWorkflow;
+  return data.executeWorkflow;
+}
 
-  if (status === "success" || status === "completed") {
-    return output;
-  }
-
-  const statusQuery = `
-    query ExecutionStatus($executionId: String!) {
-      executionStatus(executionId: $executionId) {
-        status
-        output
-      }
+async function checkStatus(requestId: string) {
+  const query = `
+    query CheckStatus($requestId: String!) {
+      checkStatus(requestId: $requestId)
     }
   `;
+
+  const data = await graphqlRequest(query, { requestId });
+  return data.checkStatus;
+}
+
+export async function triageAlert(alertText: string) {
+  const { requestId } = await executeWorkflow(alertText);
 
   const maxAttempts = 15;
   const delayMs = 2000;
 
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(resolve => setTimeout(resolve, delayMs));
-    const pollResult = await graphqlRequest(statusQuery, { executionId });
-    const { status: pollStatus, output: pollOutput } = pollResult.executionStatus;
+    const result = await checkStatus(requestId);
 
-    if (pollStatus === "success" || pollStatus === "completed") {
-      return pollOutput;
+    if (result.status === "success" || result.status === "completed") {
+      return result.output;
     }
-    if (pollStatus === "failed" || pollStatus === "error") {
+    if (result.status === "failed" || result.status === "error") {
       throw new Error("Flow execution failed");
     }
   }
