@@ -13,7 +13,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "lamatic": "latest",
+    "lamatic": "0.3.2",
     "lucide-react": "^0.469.0",
     "next": "15.5.20",
     "react": "18.3.1",
