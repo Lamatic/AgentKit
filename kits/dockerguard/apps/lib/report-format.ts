@@ -26,7 +26,7 @@ export function toJSON(report: AuditReport): string {
 export function toMarkdown(report: AuditReport): string {
   const out: string[] = [];
   out.push("# DockerGuard audit report", "");
-  out.push(`- **Score:** ${report.score}/100`);
+  out.push(`- **Score:** ${Number(report.score) || 0}/100`);
   out.push(`- **Grade:** ${report.grade}`);
   out.push(`- **Detected type:** ${report.input_type}`);
   out.push(`- **Findings:** ${report.findings?.length ?? 0}`, "");
@@ -106,7 +106,7 @@ export function toPrintableHTML(report: AuditReport): string {
     @media print { body { margin: 16px; } }
   </style></head><body>
   <h1>DockerGuard audit report</h1>
-  <p class="sub"><span class="score">${report.score}</span>/100 · Grade ${esc(report.grade)} · ${esc(report.input_type)} · ${findings.length} finding${findings.length === 1 ? "" : "s"}</p>
+  <p class="sub"><span class="score">${Number(report.score) || 0}</span>/100 · Grade ${esc(report.grade)} · ${esc(report.input_type)} · ${findings.length} finding${findings.length === 1 ? "" : "s"}</p>
   ${report.summary ? `<div class="summary">${esc(report.summary)}</div>` : ""}
   <h2>Findings</h2>
   ${rows}
