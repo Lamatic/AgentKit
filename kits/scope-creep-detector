@@ -1,0 +1,213 @@
+export default {
+  type: "template",
+  name: "Scope Creep Detector",
+  author: "Czarina Mari Gonzales",
+  description:
+    "Compares a new client message against an original project scope/SOW and flags each request as In Scope, Out of Scope, or Ambiguous — helping freelancers and consultants catch scope creep before it happens.",
+  tags: [
+    "productivity",
+    "freelance",
+    "contracts",
+    "text-generation",
+    "llm",
+  ],
+  links: {
+    github: "kits/scope-creep-detector",
+  },
+  api: {
+    endpoint: "https://prod-api.lamatic.ai/graphql",
+    projectId: "dcc1be74-93df-4b09-9e9a-4e97e24c64fb",
+  },
+  flows: [
+    {
+      name: "Scope Creep Detector",
+      flowId: "ee3bb1d9-2722-46da-8181-25a3c5d5aae7",
+      purpose:
+        "Takes an original scope/SOW and a new client message, and classifies each ask in the new message as In Scope, Out of Scope, or Ambiguous with a reason.",
+      inputSchema: {
+        scopeText: "string",
+        newMessage: "string",
+      },
+      outputSchema: {
+        output: "string", // JSON array: [{ ask, classification, reason }]
+      },
+    },
+  ],
+};
+
+# Scope Creep Detector
+
+A Lamatic AgentKit template that compares a new client message against an
+original project scope (SOW/brief) and flags exactly what's in scope, what's
+not, and what's ambiguous — before you accidentally start doing free work.
+
+## The problem
+
+Freelancers, consultants, and agencies constantly get "just one more thing"
+requests from clients. Some of those are perfectly reasonable extensions of
+the original agreement. Others are quietly asking for new deliverables that
+were never part of the deal. Catching this manually means re-reading the
+original scope every time a new message comes in — easy to miss, easy to
+under-charge for.
+
+## What it does
+
+Give it two things:
+1. **`scopeText`** — the original scope of work / project brief
+2. **`newMessage`** — the new message or request from the client
+
+It returns a structured breakdown of every distinct ask in the new message,
+classified as:
+
+- **In Scope** — clearly covered by the original agreement
+- **Out of Scope** — not covered, should be flagged/quoted separately
+- **Ambiguous** — unclear, worth a clarifying question before proceeding
+
+Example output:
+
+```json
+[
+  {
+    "ask": "Redesign the footer navigation",
+    "classification": "In Scope",
+    "reason": "Original scope explicitly covers homepage and site-wide navigation updates."
+  },
+  {
+    "ask": "Build a new customer login portal",
+    "classification": "Out of Scope",
+    "reason": "This is a new feature/system not mentioned anywhere in the original scope."
+  }
+]
+```
+
+## How it works
+
+A single flow:
+
+1. **API Request (trigger)** — accepts `scopeText` and `newMessage`
+2. **Generate Text (LLM node)** — prompts the model to extract each distinct
+   ask from the new message and classify it against the original scope
+3. **API Response** — returns the model's structured JSON output
+
+See [`flows/scope-creep-detector.yaml`](./flows/scope-creep-detector.yaml)
+for the full flow definition.
+
+## Setup
+
+1. Copy this flow config into a new Flow in your own Lamatic Studio project
+   (Config tab → paste the YAML), or recreate the 3 nodes manually as shown
+   above.
+2. Connect an LLM credential (this template was built with Gemini 2.5 Flash,
+   but any text-generation model works).
+3. Deploy the flow.
+4. Call it via the Lamatic API:
+
+```bash
+curl -X POST "https://prod-api.lamatic.ai/graphql" \
+  -H "Authorization: Bearer <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -H "x-project-id: <YOUR_PROJECT_ID>" \
+  -d '{
+    "query": "query ExecuteWorkflow($workflowId: String!, $scopeText: String, $newMessage: String) { executeWorkflow(workflowId: $workflowId, payload: { scopeText: $scopeText, newMessage: $newMessage }) { status result } }",
+    "variables": {
+      "workflowId": "<YOUR_FLOW_ID>",
+      "scopeText": "Redesign the homepage and update the logo.",
+      "newMessage": "Can you also add a new contact page and a customer login portal?"
+    }
+  }'
+```
+
+## Tradeoffs / assumptions
+
+- Classification quality depends on how detailed `scopeText` is — a vague
+  scope will produce more "Ambiguous" results, which is arguably correct
+  behavior rather than a bug.
+- This template doesn't persist history between calls; each request is
+  evaluated independently against whatever `scopeText` is passed in.
+
+## Author
+
+Czarina Mari Gonzales
+
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    responeType: realtime
+    advance_schema: |-
+      {
+        "scopeText": "string",
+        "newMessage": "string"
+      }
+  modes: {}
+  schema:
+    sampleOutput: string
+
+nodes:
+  - nodeId: LLMNode_985
+    nodeType: LLMNode
+    nodeName: Generate Text
+    values:
+      tools: []
+      prompts:
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: You are an AI Assistant
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            You are a scope-compliance assistant.
+
+            ORIGINAL SCOPE:
+            {{scopeText}}
+
+            NEW CLIENT MESSAGE:
+            {{newMessage}}
+
+            Task: Identify every distinct ask in the new message. For each one,
+            classify it as:
+            - "In Scope" — clearly covered by the original scope
+            - "Out of Scope" — not covered, should be flagged to the client
+            - "Ambiguous" — unclear, worth clarifying
+
+            Return a JSON array like:
+            [{"ask": "...", "classification": "...", "reason": "..."}]
+      memories: '[]'
+      messages: '[]'
+      attachments: ''
+      credentials: ''
+      generativeModelName:
+        - type: generator/text
+          params: {}
+          configName: configA
+          model_name: gemini/gemini-2.5-flash
+          credentialId: dd54972e-fdae-40a4-831a-e23889301f6d
+          provider_name: gemini
+          credential_name: Gemini
+    modes: {}
+    needs:
+      - triggerNode_1
+    schema:
+      generatedResponse: string
+      _meta: object
+      tool_calls: object
+      images: array
+
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  values:
+    headers: '{"content-type":"application/json"}'
+    retries: '0'
+    webhookUrl: ''
+    retry_delay: '0'
+    outputMapping: |-
+      {
+        "output": "{{LLMNode_985.output.generatedResponse}}"
+      }
+  needs:
+    - LLMNode_985
+  modes: {}
+  schema: {}
