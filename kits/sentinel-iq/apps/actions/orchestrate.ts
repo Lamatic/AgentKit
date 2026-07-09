@@ -36,6 +36,7 @@ async function executeWorkflow(alertText: string) {
     alert_text: alertText
   });
 
+  console.error("executeWorkflow response:", JSON.stringify(data, null, 2));
   return data.executeWorkflow.result.requestId;
 }
 
@@ -64,7 +65,8 @@ export async function triageAlert(alertText: string) {
       return statusResult.data.output.result;
     }
     if (statusResult.status === "failed" || statusResult.status === "error") {
-      throw new Error("Flow execution failed");
+      const errorMsg = statusResult.data?.output?.result?.errorMsg || "Flow execution failed";
+      throw new Error(errorMsg);
     }
   }
 
