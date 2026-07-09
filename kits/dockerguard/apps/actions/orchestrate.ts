@@ -13,12 +13,17 @@ type AuditResponse =
  * The `dockerguard-audit` flow maps `report` to the LLM output, so we look
  * there first, then fall back to common alternatives.
  */
-function extractReportString(resData: any): string | null {
-  const candidates = [
-    resData?.result?.report,
-    resData?.report,
-    resData?.result,
-    resData?.output?.report,
+function extractReportString(resData: unknown): string | null {
+  const r = resData as {
+    result?: { report?: unknown };
+    report?: unknown;
+    output?: { report?: unknown };
+  };
+  const candidates: unknown[] = [
+    r?.result?.report,
+    r?.report,
+    r?.result,
+    r?.output?.report,
     resData,
   ];
   for (const c of candidates) {
@@ -37,10 +42,23 @@ function parseReport(raw: string): AuditReport | null {
     .trim();
   try {
     const parsed = JSON.parse(cleaned);
-    if (parsed && typeof parsed === "object" && Array.isArray(parsed.findings)) {
-      return parsed as AuditReport;
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.findings)) {
+      return null;
     }
-    return null;
+    // Normalize the rest of the shape so a partial-but-parseable response can't
+    // render a broken report (e.g. a NaN score).
+    const score = Number(parsed.score);
+    const inputType = ["dockerfile", "compose", "unknown"].includes(parsed.input_type)
+      ? parsed.input_type
+      : "unknown";
+    return {
+      input_type: inputType,
+      score: Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
+      grade: typeof parsed.grade === "string" ? parsed.grade : "F",
+      summary: typeof parsed.summary === "string" ? parsed.summary : "",
+      findings: parsed.findings,
+      passed_checks: Array.isArray(parsed.passed_checks) ? parsed.passed_checks : [],
+    } as AuditReport;
   } catch {
     return null;
   }
