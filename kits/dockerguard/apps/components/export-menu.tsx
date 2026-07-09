@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Download, Copy, Check, ChevronDown, FileJson, FileText, Printer } from "lucide-react";
 import type { AuditReport } from "@/lib/types";
 import { toJSON, toMarkdown, toPrintableHTML } from "@/lib/report-format";
@@ -8,6 +8,15 @@ import { toJSON, toMarkdown, toPrintableHTML } from "@/lib/report-format";
 export function ExportMenu({ report }: { report: AuditReport }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   function downloadFile(content: string, type: string, filename: string) {
     const blob = new Blob([content], { type });
@@ -61,6 +70,8 @@ export function ExportMenu({ report }: { report: AuditReport }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
         className="inline-flex items-center gap-1.5 rounded-md border border-hairline px-3 py-1.5 text-sm text-fg-secondary transition-colors hover:bg-surface-2 hover:text-fg"
       >
         {copied ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}

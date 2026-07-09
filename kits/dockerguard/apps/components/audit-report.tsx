@@ -51,6 +51,7 @@ function FindingRow({ finding }: { finding: Finding }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="flex w-full items-center gap-3 py-3 pl-4 pr-3 text-left hover:bg-surface-2"
       >
         <Icon className="h-4 w-4 shrink-0" style={{ color: "var(--sev-solid)" }} />
@@ -108,6 +109,7 @@ function SeverityGroup({ severity, findings }: { severity: Severity; findings: F
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="flex w-full items-center gap-2 border-b border-hairline bg-surface px-4 py-2.5 text-left"
         style={{ boxShadow: "inset 3px 0 0 var(--sev-solid)" }}
       >
@@ -188,6 +190,7 @@ export function AuditReportView({ report, source }: { report: AuditReport; sourc
           <button
             type="button"
             onClick={() => setPassedOpen((v) => !v)}
+            aria-expanded={passedOpen}
             className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
           >
             {passedOpen ? <ChevronDown className="h-4 w-4 text-fg-muted" /> : <ChevronRight className="h-4 w-4 text-fg-muted" />}
