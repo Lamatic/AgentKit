@@ -5,7 +5,7 @@ import { triageAlert } from "../actions/orchestrate";
 
 type TriageResult = {
   severity: "P1" | "P2" | "P3" | "P4";
-  confidence: number;
+  confidence: string;
   attack_technique_id: string;
   attack_technique_name: string;
   attack_tactic: string;
@@ -18,8 +18,15 @@ const severityStyles: Record<string, string> = {
   P1: "bg-p1/10 text-p1 border-p1/30",
   P2: "bg-p2/10 text-p2 border-p2/30",
   P3: "bg-p3/10 text-p3 border-p3/30",
-  P4: "bg-p4/10 text-p4 border-p4/30"
+  P4: "bg-p4/10 text-p4 border-p4/30",
 };
+
+const sampleAlerts = [
+  "Failed login attempts detected for user=admin from IP 185.220.101.45, 47 attempts in 3 minutes, followed by successful login.",
+  "Phishing email reported by user containing link to hxxp://secure-login-verify[.]com requesting Office365 credentials.",
+  "Endpoint detected suspicious PowerShell execution: powershell.exe -enc JABzAD0A... spawned by winword.exe",
+  "Routine vulnerability scan detected outdated TLS version on internal server 10.0.4.22, no exploitation observed.",
+];
 
 export default function Home() {
   const [alertText, setAlertText] = useState("");
@@ -34,7 +41,7 @@ export default function Home() {
     setError(null);
     try {
       const result = await triageAlert(alertText);
-      setQueue(prev => [result, ...prev]);
+      setQueue((prev) => [result, ...prev]);
       setSelected(result);
       setAlertText("");
     } catch (e) {
@@ -55,7 +62,7 @@ export default function Home() {
         <div className="p-5 flex flex-col gap-3 border-b border-neutral-800">
           <textarea
             value={alertText}
-            onChange={e => setAlertText(e.target.value)}
+            onChange={(e) => setAlertText(e.target.value)}
             className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 h-32 text-sm placeholder:text-neutral-600 focus:outline-none focus:border-neutral-600 resize-none"
             placeholder="Paste raw alert text..."
           />
@@ -67,27 +74,49 @@ export default function Home() {
             {loading ? "Triaging..." : "Triage Alert"}
           </button>
           {error && <p className="text-xs text-p1">{error}</p>}
+          <div className="flex flex-col gap-1.5 mt-1">
+            <p className="text-[11px] text-neutral-600">Try a sample alert</p>
+            <div className="flex flex-col gap-1.5">
+              {sampleAlerts.map((sample, i) => (
+                <button
+                  key={i}
+                  onClick={() => setAlertText(sample)}
+                  className="text-left text-xs text-neutral-400 bg-neutral-900/50 hover:bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 truncate transition"
+                >
+                  {sample}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
           {queue.length === 0 && (
-            <p className="text-xs text-neutral-600 text-center mt-8">No alerts triaged yet</p>
+            <p className="text-xs text-neutral-600 text-center mt-8">
+              No alerts triaged yet
+            </p>
           )}
           {queue.map((item, i) => (
             <button
               key={i}
               onClick={() => setSelected(item)}
               className={`text-left p-3 rounded-lg border transition ${
-                selected === item ? "border-neutral-600 bg-neutral-900" : "border-transparent hover:bg-neutral-900"
+                selected === item
+                  ? "border-neutral-600 bg-neutral-900"
+                  : "border-transparent hover:bg-neutral-900"
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${severityStyles[item.severity]}`}>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${severityStyles[item.severity]}`}
+                >
                   {item.severity}
                 </span>
-                <span className="text-xs text-neutral-500">{item.confidence}%</span>
+         <p className="font-medium">{item.confidence}</p>
               </div>
-              <p className="text-sm text-neutral-300 truncate">{item.attack_technique_name}</p>
+              <p className="text-sm text-neutral-300 truncate">
+                {item.attack_technique_name}
+              </p>
             </button>
           ))}
         </div>
@@ -97,10 +126,14 @@ export default function Home() {
         {selected ? (
           <div className="max-w-2xl mx-auto p-10 flex flex-col gap-6">
             <div className="flex items-center gap-3">
-              <span className={`text-xs font-bold px-2 py-1 rounded border ${severityStyles[selected.severity]}`}>
+              <span
+                className={`text-xs font-bold px-2 py-1 rounded border ${severityStyles[selected.severity]}`}
+              >
                 {selected.severity}
               </span>
-              <h2 className="text-2xl font-semibold tracking-tight">{selected.attack_technique_name}</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                {selected.attack_technique_name}
+              </h2>
             </div>
 
             <div className="grid grid-cols-3 gap-4 text-sm">
@@ -119,15 +152,24 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-400 mb-2">Summary</h3>
-              <p className="text-sm text-neutral-300 leading-relaxed">{selected.summary}</p>
+              <h3 className="text-sm font-semibold text-neutral-400 mb-2">
+                Summary
+              </h3>
+              <p className="text-sm text-neutral-300 leading-relaxed">
+                {selected.summary}
+              </p>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-400 mb-2">Indicators of Compromise</h3>
+              <h3 className="text-sm font-semibold text-neutral-400 mb-2">
+                Indicators of Compromise
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {selected.iocs.map((ioc, i) => (
-                  <span key={i} className="text-xs font-mono bg-neutral-900 border border-neutral-800 rounded px-2 py-1">
+                  <span
+                    key={i}
+                    className="text-xs font-mono bg-neutral-900 border border-neutral-800 rounded px-2 py-1"
+                  >
                     {ioc}
                   </span>
                 ))}
@@ -135,7 +177,9 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-400 mb-2">Remediation</h3>
+              <h3 className="text-sm font-semibold text-neutral-400 mb-2">
+                Remediation
+              </h3>
               <ul className="flex flex-col gap-2">
                 {selected.remediation_steps.map((step, i) => (
                   <li key={i} className="text-sm text-neutral-300 flex gap-2">
@@ -148,7 +192,9 @@ export default function Home() {
           </div>
         ) : (
           <div className="h-full flex items-center justify-center">
-            <p className="text-neutral-600 text-sm">Select a triaged alert to view details</p>
+            <p className="text-neutral-600 text-sm">
+              Select a triaged alert to view details
+            </p>
           </div>
         )}
       </div>

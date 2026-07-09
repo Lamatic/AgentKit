@@ -9,7 +9,8 @@ export const lamaticConfig = {
 export function getFlowId(stepId: string): string {
   const step = config.steps.find(s => s.id === stepId);
   if (!step || !("envKey" in step)) throw new Error(`No envKey for step ${stepId}`);
-  const flowId = process.env[step.envKey];
-  if (!flowId) throw new Error(`Missing env var ${step.envKey}`);
+  const envKey = step.envKey as string;
+  const flowId = process.env[envKey];
+  if (!flowId) throw new Error(`Missing env var ${envKey}`);
   return flowId;
 }
