@@ -18,6 +18,23 @@ This AI agent performs market analysis, SWOT analysis, competitor research, and 
 - Startup viability score
 - Improvement recommendations
 
+## Setup
+
+1. Clone the repository.
+2. Import the flow into Lamatic Studio.
+3. Configure the required environment variables.
+4. Install dependencies:
+
+```bash
+npm install
+```
+
+5. Start the application:
+
+```bash
+npm run dev
+```
+
 ## Architecture
 
 - Chat Widget
