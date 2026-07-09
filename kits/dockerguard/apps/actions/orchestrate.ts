@@ -1,8 +1,8 @@
 "use server";
 
 import { getLamaticClient } from "@/lib/lamatic-client";
-import { config } from "../orchestrate.js";
-import type { AuditReport, FileType } from "@/lib/types";
+import { config } from "@/orchestrate.js";
+import type { AuditReport, FileType, Finding, Severity } from "@/lib/types";
 
 type AuditResponse =
   | { success: true; report: AuditReport }
@@ -33,6 +33,25 @@ function extractReportString(resData: unknown): string | null {
   return null;
 }
 
+const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
+
+/** Coerce a raw finding into a safe, fully-populated Finding. */
+function normalizeFinding(raw: unknown, index: number): Finding {
+  const f = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const lineNum = Number(f.line);
+  return {
+    id: typeof f.id === "string" && f.id.trim() ? f.id : `finding-${index + 1}`,
+    severity: SEVERITIES.includes(f.severity as Severity) ? (f.severity as Severity) : "info",
+    category: typeof f.category === "string" && f.category.trim() ? f.category : "general",
+    title: typeof f.title === "string" && f.title.trim() ? f.title : "Untitled finding",
+    line: Number.isFinite(lineNum) ? lineNum : null,
+    instruction: typeof f.instruction === "string" ? f.instruction : null,
+    why: typeof f.why === "string" ? f.why : "",
+    fix: typeof f.fix === "string" ? f.fix : "",
+    reference: typeof f.reference === "string" ? f.reference : null,
+  };
+}
+
 /** Strip ```json fences the model may add, then parse. */
 function parseReport(raw: string): AuditReport | null {
   const cleaned = raw
@@ -56,7 +75,7 @@ function parseReport(raw: string): AuditReport | null {
       score: Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
       grade: typeof parsed.grade === "string" ? parsed.grade : "F",
       summary: typeof parsed.summary === "string" ? parsed.summary : "",
-      findings: parsed.findings,
+      findings: parsed.findings.map(normalizeFinding),
       passed_checks: Array.isArray(parsed.passed_checks) ? parsed.passed_checks : [],
     } as AuditReport;
   } catch {
