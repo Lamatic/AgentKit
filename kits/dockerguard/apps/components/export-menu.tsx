@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, Copy, Check, ChevronDown, FileJson, FileText, Printer } from "lucide-react";
 import type { AuditReport } from "@/lib/types";
 import { toJSON, toMarkdown, toPrintableHTML } from "@/lib/report-format";
@@ -8,11 +8,18 @@ import { toJSON, toMarkdown, toPrintableHTML } from "@/lib/report-format";
 export function ExportMenu({ report }: { report: AuditReport }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Close the menu and return focus to the trigger (keyboard-friendly).
+  function close() {
+    setOpen(false);
+    triggerRef.current?.focus();
+  }
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -28,7 +35,7 @@ export function ExportMenu({ report }: { report: AuditReport }) {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    setOpen(false);
+    close();
   }
 
   async function copyJson() {
@@ -39,13 +46,13 @@ export function ExportMenu({ report }: { report: AuditReport }) {
     } catch {
       /* clipboard unavailable */
     }
-    setOpen(false);
+    close();
   }
 
   function printPdf() {
     const w = window.open("", "_blank");
     if (!w) {
-      setOpen(false);
+      close();
       return;
     }
     w.document.open();
@@ -60,7 +67,7 @@ export function ExportMenu({ report }: { report: AuditReport }) {
         /* user can print manually */
       }
     }, 300);
-    setOpen(false);
+    close();
   }
 
   const item = "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-fg hover:bg-surface-2";
@@ -68,6 +75,7 @@ export function ExportMenu({ report }: { report: AuditReport }) {
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
@@ -81,22 +89,36 @@ export function ExportMenu({ report }: { report: AuditReport }) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute right-0 z-40 mt-1 w-52 overflow-hidden rounded-md border border-hairline bg-surface py-1 shadow-subtle">
-            <button type="button" onClick={copyJson} className={item}>
+          <div className="fixed inset-0 z-30" onClick={close} aria-hidden />
+          <div
+            role="menu"
+            aria-label="Export options"
+            className="absolute right-0 z-40 mt-1 w-52 overflow-hidden rounded-md border border-hairline bg-surface py-1 shadow-subtle"
+          >
+            <button type="button" role="menuitem" onClick={copyJson} className={item}>
               <Copy className="h-4 w-4 text-fg-muted" />
               Copy as JSON
             </button>
             <div className="my-1 border-t border-hairline" />
-            <button type="button" onClick={() => downloadFile(toJSON(report), "application/json", "dockerguard-report.json")} className={item}>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => downloadFile(toJSON(report), "application/json", "dockerguard-report.json")}
+              className={item}
+            >
               <FileJson className="h-4 w-4 text-fg-muted" />
               Download JSON
             </button>
-            <button type="button" onClick={() => downloadFile(toMarkdown(report), "text/markdown", "dockerguard-report.md")} className={item}>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => downloadFile(toMarkdown(report), "text/markdown", "dockerguard-report.md")}
+              className={item}
+            >
               <FileText className="h-4 w-4 text-fg-muted" />
               Download Markdown
             </button>
-            <button type="button" onClick={printPdf} className={item}>
+            <button type="button" role="menuitem" onClick={printPdf} className={item}>
               <Printer className="h-4 w-4 text-fg-muted" />
               Download PDF
             </button>

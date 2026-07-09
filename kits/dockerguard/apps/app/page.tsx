@@ -69,6 +69,7 @@ export default function Home() {
                       key={t}
                       type="button"
                       onClick={() => setFileType(t)}
+                      aria-pressed={fileType === t}
                       className={
                         fileType === t
                           ? "rounded px-3 py-1 font-medium text-accent-fg"
@@ -93,6 +94,7 @@ export default function Home() {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                aria-label="Dockerfile or docker-compose source"
                 spellCheck={false}
                 placeholder={"FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\n..."}
                 className="h-64 w-full resize-y rounded-md border border-hairline bg-bg-alt p-3 font-mono text-[13px] leading-relaxed text-fg outline-none placeholder:text-fg-muted focus:border-accent"
