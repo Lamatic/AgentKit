@@ -30,6 +30,7 @@ export function AnnotatedDockerfile({ source, findings }: { source: string; find
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
         <span className="flex items-center gap-2 text-sm font-medium text-fg">
