@@ -45,12 +45,18 @@ export default function Home() {
       setSelected(result);
       setAlertText("");
     } catch (e) {
-      setError("Triage failed. Check your flow ID and API key.");
+      const message = e instanceof Error ? e.message : String(e);
+      if (message.includes("429") || message.toLowerCase().includes("quota")) {
+        setError(
+          "The demo LLM has hit its free-tier daily quota. Please try again later, or check console logs for details.",
+        );
+      } else {
+        setError("Triage failed. Check your flow ID and API key.");
+      }
     } finally {
       setLoading(false);
     }
   }
-
   return (
     <main className="flex h-screen bg-neutral-950 text-neutral-100">
       <div className="w-[380px] border-r border-neutral-800 flex flex-col">
@@ -112,7 +118,7 @@ export default function Home() {
                 >
                   {item.severity}
                 </span>
-         <p className="font-medium">{item.confidence}</p>
+                <p className="font-medium">{item.confidence}</p>
               </div>
               <p className="text-sm text-neutral-300 truncate">
                 {item.attack_technique_name}
