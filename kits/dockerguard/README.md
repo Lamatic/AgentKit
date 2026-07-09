@@ -119,7 +119,7 @@ LAMATIC_API_KEY="your API key"
 
 ## How the folder is organised
 
-```
+```text
 kits/dockerguard/
   lamatic.config.ts            the kit's description and settings
   agent.md                     what the agent is and how it behaves
