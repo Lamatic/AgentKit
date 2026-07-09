@@ -2,9 +2,8 @@
 node_modules/
 
 # env files — never commit real secrets, only .env.example
-.env
-.env.local
-.env.*.local
+.env*
+!.env.example
 
 # build output
 .next/

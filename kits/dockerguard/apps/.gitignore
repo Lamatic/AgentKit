@@ -6,10 +6,9 @@
 /out/
 /build
 
-# env files
-.env
-.env.local
-.env.*.local
+# env files — never commit real secrets, only .env.example
+.env*
+!.env.example
 
 # debug
 npm-debug.log*
