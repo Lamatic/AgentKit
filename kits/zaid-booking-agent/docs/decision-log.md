@@ -45,6 +45,41 @@ prep material — every entry here should be explainable without notes.
   `apiNode` — same position in the flow, same interface, so this doesn't require a rewrite when
   the stretch goal is tackled.
 
+### Extraction schema uses empty string "", not null, for missing fields
+- **What**: The Intake Agent's Extraction node (Instructor/Generate JSON) has every field typed
+  `string` with `required` only set on `service_type`. The system prompt tells the model to
+  return `""` for anything not stated, never the word "null" or a placeholder token.
+- **Why**: First build attempt had the prompt say "return null" while the Zod-JSON schema typed
+  every field as a plain `string`. Since the schema has no true nullable type, the model can't
+  emit real JSON `null` for a `string` field — it improvised sentinel text instead (`"<UNKNOWN>"`
+  for the required field, the literal string `"null"` for optional ones). That silently broke
+  the Condition node's `!= ""` check, which had no way to detect either sentinel value.
+- **Alternative considered**: Match the condition to whatever sentinel the model tends to use
+  ("<UNKNOWN>", "null", etc.).
+- **Tradeoff**: Rewriting the prompt to demand a real empty string is more restrictive on the
+  model but removes the ambiguity entirely — `!= ""` is now a reliable, single check. Costs
+  nothing extra since the fields were always going to be strings.
+
+### Response merges both Condition branches via undefined-as-falsy, not a shared merge node
+- **What**: The Intake Agent has two terminal `codeNode`s before the response — `Prepare
+  Clarification` on the "incomplete" branch (sets `needs_clarification: true` + a question) and
+  `Prepare Success Response` on the "complete" branch (sets `needs_clarification: false` +
+  the full `request` object). The API Response node's output mapping pulls
+  `needs_clarification`/`clarifying_question` from `Prepare Clarification`'s output and `request`
+  from `Prepare Success Response`'s output — one field per source node, not per branch.
+- **Why**: Lamatic has no way to reference "whichever branch actually ran" generically — the
+  Condition node itself only exposes `sampleOutput: string`, not a reusable boolean. Tested
+  empirically: referencing a `codeNode` that didn't execute on a given run resolves to an empty
+  value (falsy) rather than erroring. That means picking one canonical source node per field
+  works correctly on both branches without needing a dedicated merge step, because "didn't run"
+  and "explicitly false/empty" collapse to the same observable result downstream.
+- **Alternative considered**: A single `codeNode` placed after the branches reconverge that
+  re-derives the same condition and builds the whole response object in one place (avoids
+  relying on undefined-as-falsy, but duplicates the Condition node's logic).
+- **Tradeoff**: Relies on unverified-but-empirically-confirmed platform behavior (unexecuted node
+  → falsy reference) rather than an explicit merge. Documented here specifically so this
+  assumption gets re-checked if a future Lamatic Studio update changes that behavior.
+
 <!-- Add new entries below in this format as decisions are made:
 
 ### [Decision]
