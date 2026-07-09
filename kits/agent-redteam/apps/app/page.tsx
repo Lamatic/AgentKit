@@ -16,9 +16,11 @@ import { ALL_CATEGORIES, ATTACK_LIBRARY, CATEGORY_LABELS, SAMPLE_HARDENED_SYSTEM
 import { cn } from "@/lib/utils"
 import type { AttackCategory, SecurityAggregate } from "@/lib/types"
 
+const categoryEnum = z.enum(ALL_CATEGORIES as [AttackCategory, ...AttackCategory[]])
+
 const formSchema = z.object({
   systemPrompt: z.string().trim().min(1, "Enter a system prompt to test."),
-  categories: z.array(z.string()).min(1, "Select at least one attack category."),
+  categories: z.array(categoryEnum).min(1, "Select at least one attack category."),
   threshold: z.number().min(0).max(100),
 })
 
@@ -41,7 +43,7 @@ export default function AgentRedTeamPage() {
   const [result, setResult] = useState<SecurityAggregate | null>(null)
   const [runError, setRunError] = useState("")
 
-  const selectedCategories = (watch("categories") as AttackCategory[]) ?? []
+  const selectedCategories = watch("categories") ?? []
   const selectedAttacks = useMemo(
     () => ATTACK_LIBRARY.filter((a) => selectedCategories.includes(a.category)),
     [selectedCategories],
