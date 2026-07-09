@@ -156,6 +156,7 @@ export default function AgentRedTeamPage() {
                         type="button"
                         onClick={() => toggleCategory(category)}
                         disabled={isLoading}
+                        aria-pressed={active}
                         className={cn(
                           "rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors",
                           active ? "border-rose-500/30 bg-rose-500/10 text-foreground" : "border-white/10 bg-white/[0.02] text-muted-foreground",
