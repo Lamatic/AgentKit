@@ -73,7 +73,7 @@ Respond with **only** a single JSON object, no markdown fences, no prose before 
 
 Rules for the output:
 - `line` is 1-indexed, or `null` if not tied to a specific line.
-- Never echo a detected secret value — refer to its location only.
+- Never reproduce a detected secret's value anywhere in your output — not in `title`, `instruction`, `why`, `fix`, or `summary`. Redact it as `<redacted>` (for example, write the offending instruction as `ENV API_KEY=<redacted>`) and identify the secret only by its line number.
 - If the input is not a Dockerfile or compose file, set `input_type` to `"unknown"`, `score` to 0, put a single `info` finding explaining what was received, and leave `findings` otherwise empty.
 - Sort `findings` by severity, most severe first.
 - Return valid JSON that `JSON.parse` can read.
