@@ -102,6 +102,7 @@ export default function Home() {
 
               {error && (
                 <p
+                  role="alert"
                   data-sev="critical"
                   className="mt-3 rounded-md px-3 py-2 text-sm"
                   style={{ background: "var(--sev-bg)", color: "var(--sev-text)" }}
