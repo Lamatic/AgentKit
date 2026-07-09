@@ -2,6 +2,8 @@
 
 DockerGuard is a tool that reviews the setup file used to build software containers and tells you what is wrong with it. You paste in the file; it gives you back a report with a score, a plain-English explanation of each problem, and the exact fix for it. It is built on [Lamatic.ai](https://lamatic.ai) and comes with a simple web page you can run yourself.
 
+**Live demo:** [agent-kit-roan.vercel.app](https://agent-kit-roan.vercel.app)
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fdockerguard%2Fapps&env=DOCKERGUARD_AUDIT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20flow%20ID%20and%20API%20credentials%20are%20required.&envLink=https://lamatic.ai/docs)
 
 ---
