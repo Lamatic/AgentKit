@@ -10,11 +10,21 @@ DockerGuard is a tool that reviews the setup file used to build software contain
 
 ## Screenshots
 
-The audit report, shown in light and dark mode:
+Paste a Dockerfile or compose file:
 
-![DockerGuard audit report in light mode](./assets/dockerguard-light.png)
+![DockerGuard input screen](./assets/dockerguard-input.png)
 
-![DockerGuard audit report in dark mode](./assets/dockerguard-dark.png)
+Get a scored overview — grade, severity breakdown, and findings grouped by severity:
+
+![DockerGuard results overview](./assets/dockerguard-overview.png)
+
+Expand any finding for the offending line, why it matters, and the fix:
+
+![DockerGuard expanded report](./assets/dockerguard-light.png)
+
+Light and dark themes, with a toggle in the top-right:
+
+![DockerGuard in dark mode](./assets/dockerguard-dark.png)
 
 ## The problem this solves
 
