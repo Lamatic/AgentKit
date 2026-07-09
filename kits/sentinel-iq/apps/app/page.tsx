@@ -51,7 +51,7 @@ export default function Home() {
           "The demo LLM has hit its free-tier daily quota. Please try again later, or check console logs for details.",
         );
       } else {
-        setError("Triage failed. Check your flow ID and API key.");
+        setError("Triage failed. Check your Gemini API Key, must have exhasted");
       }
     } finally {
       setLoading(false);
