@@ -8,6 +8,14 @@ DockerGuard is a tool that reviews the setup file used to build software contain
 
 ---
 
+## Screenshots
+
+The audit report, shown in light and dark mode:
+
+![DockerGuard audit report in light mode](./assets/dockerguard-light.png)
+
+![DockerGuard audit report in dark mode](./assets/dockerguard-dark.png)
+
 ## The problem this solves
 
 Software is often shipped inside a "container"; a container is described by a small text file (a Dockerfile, or a docker-compose file). Most security mistakes are made right here, in that text file, before anything is even built. Common examples are leaving a password inside the file, giving the program more power than it needs, or pulling in an unnamed version of something that can change without warning.
