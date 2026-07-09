@@ -25,8 +25,8 @@ async function executeWorkflow(alertText: string) {
   const query = `
     query ExecuteWorkflow($workflowId: String!, $alert_text: String) {
       executeWorkflow(workflowId: $workflowId, payload: { alert_text: $alert_text }) {
-        requestId
         status
+        result
       }
     }
   `;
@@ -36,7 +36,7 @@ async function executeWorkflow(alertText: string) {
     alert_text: alertText
   });
 
-  return data.executeWorkflow;
+  return data.executeWorkflow.result.requestId;
 }
 
 async function checkStatus(requestId: string) {
@@ -51,19 +51,19 @@ async function checkStatus(requestId: string) {
 }
 
 export async function triageAlert(alertText: string) {
-  const { requestId } = await executeWorkflow(alertText);
+  const requestId = await executeWorkflow(alertText);
 
   const maxAttempts = 15;
   const delayMs = 2000;
 
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(resolve => setTimeout(resolve, delayMs));
-    const result = await checkStatus(requestId);
+    const statusResult = await checkStatus(requestId);
 
-    if (result.status === "success" || result.status === "completed") {
-      return result.output;
+    if (statusResult.status === "success") {
+      return statusResult.data.output.result;
     }
-    if (result.status === "failed" || result.status === "error") {
+    if (statusResult.status === "failed" || statusResult.status === "error") {
       throw new Error("Flow execution failed");
     }
   }
