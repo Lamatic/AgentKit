@@ -1,0 +1,97 @@
+"use client";
+
+import { useState } from "react";
+import { Download, Copy, Check, ChevronDown, FileJson, FileText, Printer } from "lucide-react";
+import type { AuditReport } from "@/lib/types";
+import { toJSON, toMarkdown, toPrintableHTML } from "@/lib/report-format";
+
+export function ExportMenu({ report }: { report: AuditReport }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  function downloadFile(content: string, type: string, filename: string) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setOpen(false);
+  }
+
+  async function copyJson() {
+    try {
+      await navigator.clipboard.writeText(toJSON(report));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+    setOpen(false);
+  }
+
+  function printPdf() {
+    const w = window.open("", "_blank");
+    if (!w) {
+      setOpen(false);
+      return;
+    }
+    w.document.open();
+    w.document.write(toPrintableHTML(report));
+    w.document.close();
+    w.focus();
+    // Give the new document a moment to lay out before opening the print dialog.
+    setTimeout(() => {
+      try {
+        w.print();
+      } catch {
+        /* user can print manually */
+      }
+    }, 300);
+    setOpen(false);
+  }
+
+  const item = "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-fg hover:bg-surface-2";
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-hairline px-3 py-1.5 text-sm text-fg-secondary transition-colors hover:bg-surface-2 hover:text-fg"
+      >
+        {copied ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+        {copied ? "Copied" : "Export"}
+        <ChevronDown className="h-3.5 w-3.5 text-fg-muted" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} aria-hidden />
+          <div className="absolute right-0 z-40 mt-1 w-52 overflow-hidden rounded-md border border-hairline bg-surface py-1 shadow-subtle">
+            <button type="button" onClick={copyJson} className={item}>
+              <Copy className="h-4 w-4 text-fg-muted" />
+              Copy as JSON
+            </button>
+            <div className="my-1 border-t border-hairline" />
+            <button type="button" onClick={() => downloadFile(toJSON(report), "application/json", "dockerguard-report.json")} className={item}>
+              <FileJson className="h-4 w-4 text-fg-muted" />
+              Download JSON
+            </button>
+            <button type="button" onClick={() => downloadFile(toMarkdown(report), "text/markdown", "dockerguard-report.md")} className={item}>
+              <FileText className="h-4 w-4 text-fg-muted" />
+              Download Markdown
+            </button>
+            <button type="button" onClick={printPdf} className={item}>
+              <Printer className="h-4 w-4 text-fg-muted" />
+              Download PDF
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

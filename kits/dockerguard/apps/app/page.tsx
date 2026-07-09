@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ShieldCheck, Loader2, FileCode2, ArrowLeft } from "lucide-react";
 import { auditDockerfile } from "@/actions/orchestrate";
 import { AuditReportView } from "@/components/audit-report";
+import { ExportMenu } from "@/components/export-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SAMPLE_DOCKERFILE } from "@/lib/sample";
 import type { AuditReport, FileType } from "@/lib/types";
@@ -143,14 +144,17 @@ export default function Home() {
                 </span>
                 <span className="text-fg-muted">· {lineCount} lines</span>
               </div>
-              <button
-                type="button"
-                onClick={() => setReport(null)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-hairline px-3 py-1.5 text-sm text-fg-secondary hover:bg-surface-2 hover:text-fg"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Audit another
-              </button>
+              <div className="flex items-center gap-2">
+                <ExportMenu report={report} />
+                <button
+                  type="button"
+                  onClick={() => setReport(null)}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-hairline px-3 py-1.5 text-sm text-fg-secondary hover:bg-surface-2 hover:text-fg"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Audit another
+                </button>
+              </div>
             </div>
 
             <AuditReportView report={report} source={auditedSource} />
