@@ -174,6 +174,7 @@ export default function Home() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading || phase !== "intake"}
+            aria-label="Chat message"
             placeholder={
               phase === "intake" ? "Type a message…" : "Pick a slot above to continue"
             }
