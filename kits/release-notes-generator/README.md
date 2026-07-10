@@ -19,7 +19,8 @@ Paste your merged PR titles / commit messages (optionally a version and date) an
 ### Example
 
 **Input**
-```
+
+```text
 Add dark mode toggle to settings page (#412)
 fix: crash when uploading empty CSV (#419)
 BREAKING: rename `apiKey` config option to `token`
@@ -29,6 +30,7 @@ Add retry with backoff to webhook delivery (#421)
 ```
 
 **Output**
+
 ```markdown
 # v1.2.0 — 2026-07-10
 
@@ -52,7 +54,7 @@ This release adds dark mode and more reliable webhook delivery, and renames the
 
 ## How it works
 
-```
+```text
 API Request (changes, version?, date?)
       │
       ▼
@@ -66,7 +68,7 @@ A single flow, one LLM node. Prompts, guardrails, and model settings are externa
 
 ## Project structure
 
-```
+```text
 release-notes-generator/
 ├── lamatic.config.ts                # metadata (type: kit, steps, links)
 ├── agent.md                         # agent capability doc

@@ -2,6 +2,10 @@
 
 import { getLamaticClient } from "@/lib/lamatic-client";
 import { buildDemoNotes } from "@/lib/demo";
+import lamaticConfig from "../../lamatic.config";
+
+// Single source of truth: the flow's env var name comes from the kit metadata.
+const ENV_KEY = lamaticConfig.steps[0]?.envKey ?? "RELEASE_NOTES_GENERATOR";
 
 export interface GenerateInput {
   changes: string;
@@ -30,11 +34,11 @@ export async function generateReleaseNotes(input: GenerateInput): Promise<Genera
     return { success: true, releaseNotes: buildDemoNotes(input.version, input.date) };
   }
 
-  const flowId = process.env.RELEASE_NOTES_GENERATOR;
+  const flowId = process.env[ENV_KEY];
   if (!flowId) {
     return {
       success: false,
-      error: "RELEASE_NOTES_GENERATOR flow ID is not set. Add it to apps/.env.local.",
+      error: `${ENV_KEY} flow ID is not set. Add it to apps/.env.local.`,
     };
   }
 
