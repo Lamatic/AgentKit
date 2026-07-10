@@ -93,17 +93,36 @@ a fast, conversational booking experience without a human having to triage every
 
 ### `3. Confirmation Agent` (`confirmation-agent`)
 
-> Status: not yet built in Lamatic Studio.
+> Status: built and tested in Lamatic Studio (`claude-haiku-4-5`), both branches verified
+> end-to-end. Not yet exported into `flows/confirmation-agent.ts` — export via Studio's menu
+> once the Flow ID is wired into `.env`.
 
-- **Trigger**: API request, fires when the customer confirms a specific slot.
+- **Trigger**: API request (`confirmed_date`, `confirmed_time`, `service_type`,
+  `customer_name`, `session_id`, all `string`), fires when the customer confirms a specific
+  slot.
 - **What it does**:
-  1. `Write Booking` (`codeNode`/`apiNode`) writes the booking to the mock store (or a real
-     calendar write as a stretch goal).
-  2. `Generate Confirmation` (LLM node) produces a natural-language confirmation message.
-  3. `Send Confirmation` (stretch, `apiNode`) sends an SMS/email confirmation via Twilio.
+  1. `Write Booking` (codeNode) re-checks the confirmed slot is still present in the mock
+     availability data immediately before "writing" — guards against a double-booking race
+     between two customers confirming near-simultaneously. Always executes; sets `booked`.
+  2. `Condition` on `booked`:
+     - True → `Generate Confirmation` (LLM node) produces a short, warm confirmation message
+       restating service, date, time, and customer name — never inventing values that weren't
+       provided.
+     - False → `Prepare Failure Message` (codeNode) sets a fixed decline message; no LLM call
+       needed since there's nothing to personalize about a failed booking.
+  3. `API Response` maps `booked` from `Write Booking` (always runs) and `confirmation_message`
+     from the concatenation of both branch nodes' outputs — only one ever executes per run, so
+     the unexecuted one resolves to empty and concatenation yields exactly the right message.
+     Same pattern used in the Scheduling Agent's response merge — see decision log.
 - **When to use**: After the customer has picked one of the slots the Scheduling Agent offered.
-- **Output**: A confirmation message returned to the customer.
-- **Dependencies**: Booking store (MVP: mock; stretch: Calendar write). Twilio (stretch).
+- **Output**: `{ booked, confirmation_message }` — a real confirmation, or a decline asking the
+  customer to pick another time.
+- **Dependencies**: `scripts/mock-availability.js` (MVP) / Google Calendar API (stretch:
+  `Write Booking` becomes an `apiNode`). Twilio (stretch, not built) to actually send the
+  message.
+- **Known limitation**: `Write Booking`'s re-check reads the same static mock slot list every
+  time — it doesn't persist bookings, since the Next.js app's session object is the source of
+  truth for booking status across the pipeline, not Lamatic. Acceptable for MVP.
 
 ### `4. Follow-up Agent` (`followup-agent`) — stretch goal
 

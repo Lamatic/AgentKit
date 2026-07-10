@@ -11,9 +11,10 @@ key architectural choices.
 
 ## Status
 
-MVP in progress. Build order: Intake → Scheduling → Confirmation, one flow fully built and
-tested in Lamatic Studio before moving to the next. Follow-up (reminders) is a stretch goal,
-started only after the 3-agent MVP is merged.
+MVP core complete: Intake, Scheduling, and Confirmation are all built and tested end-to-end in
+Lamatic Studio. Remaining before merge: exporting each flow's real node graph into
+`flows/*.ts` via Studio's export menu, and wiring up the Next.js demo app. Follow-up
+(reminders) is a stretch goal, started only after the 3-agent MVP is merged.
 
 ## Repo layout
 
