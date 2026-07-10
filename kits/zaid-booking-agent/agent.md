@@ -102,8 +102,10 @@ a fast, conversational booking experience without a human having to triage every
   slot.
 - **What it does**:
   1. `Write Booking` (codeNode) re-checks the confirmed slot is still present in the mock
-     availability data immediately before "writing" — guards against a double-booking race
-     between two customers confirming near-simultaneously. Always executes; sets `booked`.
+     availability data immediately before "writing" — catches slots that were removed from the
+     mock data, though this isn't a true atomic reservation and doesn't protect against two
+     customers confirming the same slot near-simultaneously (see Known limitation below).
+     Always executes; sets `booked`.
   2. `Condition` on `booked`:
      - True → `Generate Confirmation` (LLM node) produces a short, warm confirmation message
        restating service, date, time, and customer name — never inventing values that weren't
