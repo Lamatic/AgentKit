@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ChatMessage = {
   role: "customer" | "assistant";
@@ -24,6 +24,11 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, proposedSlots]);
 
   function appendAssistant(text: string) {
     setMessages((prev) => [...prev, { role: "assistant", text }]);
@@ -123,7 +128,7 @@ export default function Home() {
         </p>
       </header>
 
-      <main className="flex-1 space-y-3 overflow-y-auto p-4">
+      <main aria-live="polite" className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((m, i) => (
           <div
             key={i}
@@ -154,6 +159,7 @@ export default function Home() {
         )}
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <div ref={bottomRef} />
       </main>
 
       {phase !== "confirmed" && (
