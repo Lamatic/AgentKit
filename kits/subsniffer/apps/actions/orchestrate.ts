@@ -2,6 +2,12 @@
 
 import { getLamaticClient } from "@/lib/lamatic-client";
 
+/**
+ * Runs the SubSniffer flow against a pasted statement and returns the audit.
+ * @param statement - Raw charges (bank statement, CSV, or "Merchant $amount" lines).
+ * @param goals - Optional optimization focus, e.g. "cancel anything unused in 60 days".
+ * @returns Success flag with structured `data` ({ analysis, report }) or an error message.
+ */
 export async function auditSubscriptions(
   statement: string,
   goals?: string,

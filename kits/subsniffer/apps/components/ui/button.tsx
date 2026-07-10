@@ -3,6 +3,10 @@ import { cn } from "@/lib/utils";
 
 type Variant = "default" | "outline";
 
+/**
+ * Primary/secondary button used across the app.
+ * @param variant - "default" (filled indigo) or "outline" (bordered).
+ */
 export function Button({
   className,
   variant = "default",

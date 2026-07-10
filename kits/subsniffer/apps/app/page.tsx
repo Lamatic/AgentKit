@@ -49,6 +49,10 @@ type Analysis = {
   risk_flags?: string[];
 };
 
+/**
+ * Returns a colored Badge describing a subscription's usage verdict.
+ * @param u - Usage string ("used" | "rarely" | "unused").
+ */
 function usageBadge(u?: string) {
   const v = (u || "").toLowerCase();
   if (v === "unused")
@@ -58,9 +62,16 @@ function usageBadge(u?: string) {
   return <Badge className="bg-emerald-100 text-emerald-700">Used</Badge>;
 }
 
+/**
+ * Formats a numeric amount as a dollar string, or "—" when undefined.
+ * @param n - The number to format.
+ */
 const fmt = (n?: number) =>
   typeof n === "number" ? `$${n.toFixed(2)}` : "—";
 
+/**
+ * Main page: statement input form and the rendered subscription audit results.
+ */
 export default function Page() {
   const [statement, setStatement] = React.useState("");
   const [goals, setGoals] = React.useState("");
@@ -69,6 +80,9 @@ export default function Page() {
   const [analysis, setAnalysis] = React.useState<Analysis | null>(null);
   const [report, setReport] = React.useState("");
 
+  /**
+   * Sends the statement to the SubSniffer flow and stores the audit result.
+   */
   const run = async () => {
     if (!statement.trim()) {
       setError("Paste a statement or list of charges first.");
@@ -98,6 +112,9 @@ export default function Page() {
     }
   };
 
+  /**
+   * Clears the current audit result and returns to the input form.
+   */
   const reset = () => {
     setAnalysis(null);
     setReport("");

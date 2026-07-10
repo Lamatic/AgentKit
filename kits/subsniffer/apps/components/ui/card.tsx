@@ -1,6 +1,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Rounded white card container with a subtle border and shadow.
+ */
 export function Card({
   className,
   ...props

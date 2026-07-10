@@ -8,6 +8,9 @@ export const metadata: Metadata = {
     "Paste a bank statement and find the subscriptions you're paying for but not using.",
 };
 
+/**
+ * Root layout for the SubSniffer app (html/body shell + page metadata).
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
