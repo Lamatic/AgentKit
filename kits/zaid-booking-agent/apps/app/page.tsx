@@ -103,6 +103,10 @@ export default function Home() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      // Whatever failed, there are no slots left on screen to click and phase may still be
+      // "awaiting_confirmation" from before this call — fall back to "intake" so the customer
+      // can type a new request instead of being stuck behind a disabled input.
+      setPhase("intake");
     } finally {
       setLoading(false);
     }
