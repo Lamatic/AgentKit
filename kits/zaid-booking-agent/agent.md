@@ -61,21 +61,35 @@ a fast, conversational booking experience without a human having to triage every
 
 ### `2. Scheduling Agent` (`scheduling-agent`)
 
-> Status: not yet built in Lamatic Studio.
+> Status: built and tested in Lamatic Studio (`claude-haiku-4-5`), both branches verified
+> end-to-end. Not yet exported into `flows/scheduling-agent.ts` — export via Studio's menu once
+> the Flow ID is wired into `.env`.
 
-- **Trigger**: API request, receives the structured booking request produced by Intake.
+- **Trigger**: API request (`preferred_date: string`, `preferred_window: string`,
+  `session_id: string`), from the structured booking request produced by Intake.
 - **What it does**:
-  1. `Check Availability` (`codeNode`) queries the mock availability data (see
-     `scripts/mock-availability.js`) for the requested date/window. Inline in the flow so it
-     works without a publicly reachable server during local development; swappable for a real
-     Google Calendar `apiNode` later without changing the flow's shape.
-  2. `Branch` (logic node): slot available → proceed to Confirmation; not available → next node.
-  3. `Suggest Alternatives` (LLM node) generates 2–3 natural-language alternative time
-     suggestions from the remaining open slots.
+  1. `Check Availability` (codeNode) filters the inline mock slot data (see
+     `scripts/mock-availability.js`) for same-day matches against `preferred_date`. Always
+     executes, and sets `slot_available`, `open_slots` (same-day matches), and `nearby_slots`
+     (first 3 of the full slot list — a fallback source for alternatives when there's no
+     same-day match).
+  2. `Condition` on `slot_available`:
+     - True → `Prepare Availability Response` (codeNode) sets `proposed_slots` to `open_slots`
+       and a confirmation `message`.
+     - False → `Suggest Alternatives` (Generate Text LLM node) generates a natural-language
+       message offering 2–3 alternatives drawn from `nearby_slots`, explicitly instructed to
+       never invent a slot not present in that list.
+  3. `API Response` maps `slot_available` from `Check Availability` directly (it always runs),
+     `proposed_slots` from `Prepare Availability Response`, and `message` from the
+     concatenation of both branch nodes' message fields — only one ever executes per run, so
+     the unexecuted one resolves to empty and concatenation yields exactly the right message.
+     See decision log.
 - **When to use**: After Intake has produced a complete, structured request.
-- **Output**: The slot(s) to present back to the customer (either the requested slot, or
-  alternatives).
+- **Output**: `{ slot_available, proposed_slots, message }` — either the confirmed requested
+  slot, or LLM-generated alternatives.
 - **Dependencies**: `scripts/mock-availability.js` (MVP) / Google Calendar API (stretch).
+- **Known limitation**: `Check Availability` matches on `preferred_date` only, not
+  `preferred_window` — acceptable for MVP given the small mock data set.
 
 ### `3. Confirmation Agent` (`confirmation-agent`)
 

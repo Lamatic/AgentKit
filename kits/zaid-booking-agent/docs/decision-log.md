@@ -80,6 +80,44 @@ prep material — every entry here should be explainable without notes.
   → falsy reference) rather than an explicit merge. Documented here specifically so this
   assumption gets re-checked if a future Lamatic Studio update changes that behavior.
 
+### Scheduling Agent's `message` field merges two branch sources via chip concatenation
+- **What**: The Scheduling Agent's API Response has a single `message` field that must come
+  from `Prepare Availability Response`'s `message` (true branch) OR `Suggest Alternatives`'
+  `generatedResponse` (false branch) — two different node outputs feeding one response field.
+  The field's value is set to two `{{}}` chips back-to-back with no separator:
+  `{{codeNode_594.output.message}}{{LLMNode_969.output.generatedResponse}}`.
+- **Why**: Only one of the two branch nodes executes per run, and (per the Intake Agent's
+  undefined-as-falsy finding) an unexecuted node's referenced output resolves to an empty
+  string. Concatenating both chips therefore always yields exactly the one message that
+  actually ran, with nothing from the branch that didn't. This is the same falsy-reference
+  behavior used in the Intake Agent's response merge, extended to a case where a *single*
+  field's source node differs by branch, rather than each field having one fixed source node.
+- **Alternative considered**: Insert a dedicated merge `codeNode` after the branches
+  reconverge, which explicitly picks `availMessage || altMessage` in JS.
+- **Tradeoff**: The concatenation trick needed no new node and stayed consistent with the
+  existing merge pattern, but it's a subtler technique to read later — a future maintainer
+  seeing two chips glued together with no space needs this log entry to understand why. Would
+  break silently if either node's field could contain leading/trailing whitespace to overlap
+  awkwardly with the other, or if a future rule needed both messages simultaneously.
+
+### CodeNode templating: `{{node.output}}` chip already includes the trailing accessor path
+- **What**: `Prepare Availability Response`'s codeNode had a real bug —
+  `{{codeNode_970.output}}..open_slots` (double dot) — which threw `Unexpected token '.'` on
+  Test. Fixed by removing one dot: `{{codeNode_970.output}}.open_slots`.
+- **Why**: The bug was introduced while manually typing `.fieldName` after an inserted
+  `{{node.output}}` chip (a known workaround since codeNode's own `Add Variable` picker only
+  exposes the whole `output`, not sub-fields — see the "Errors and fixes" notes from building
+  the Intake Agent). The chip's rendered text already ends without a trailing dot, so only one
+  `.` needs to be typed after it, not two. The node had gone unnoticed because its Schema tab
+  was stale (still showing only a default `executionMsg: string` field) until a fresh Test run
+  both surfaced the syntax error and refreshed the schema to the real shape
+  (`slot_available`, `proposed_slots`, `message`).
+- **Alternative considered**: N/A — straightforward typo fix.
+- **Tradeoff**: None. Worth logging because it's an easy mistake to repeat: after inserting a
+  `{{node.output}}` chip in a codeNode and manually typing a field-access suffix, always type
+  exactly one `.` before the field name, and re-run Test afterward — a stale Schema tab can
+  hide a broken node that looks fine at a glance.
+
 <!-- Add new entries below in this format as decisions are made:
 
 ### [Decision]
