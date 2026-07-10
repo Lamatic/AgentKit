@@ -1,47 +1,78 @@
 /*
  * # Confirmation Agent
- * STUB — not yet built in Lamatic Studio. Build this only after Scheduling Agent is fully
- * working and tested on its own. This file will be replaced by the real export
- * (meta/inputs/references/nodes/edges) once the flow is built.
+ * BUILT AND TESTED in Lamatic Studio (Zaid's Organization / ZaidsProject406, model
+ * claude-haiku-4-5), both branches verified end-to-end. Not yet exported into this file — do
+ * that via Studio's export menu once the flow's Flow ID is copied into .env as
+ * CONFIRMATION_AGENT. Until then this remains a doc-only stub describing the real,
+ * already-built node graph.
  *
  * ## Purpose
  * Writes the booking once the customer has picked a specific slot, and generates a
- * natural-language confirmation message.
+ * natural-language confirmation message — or, if the slot was taken in the meantime, a
+ * same-shape decline message instead of a false confirmation.
  *
  * ## Trigger
- * API request (graphqlNode), fires when the customer confirms a specific slot from the
- * Scheduling Agent's `proposed_slots`.
+ * API request (graphqlNode). Schema: `{ confirmed_date: string, confirmed_time: string,
+ * service_type: string, customer_name: string, session_id: string }`.
  *
- * ## Planned Inputs
+ * ## Node Walkthrough (as built)
+ * 1. `API Request` (trigger) — receives `confirmed_date`, `confirmed_time`, `service_type`,
+ *    `customer_name`, `session_id`.
+ * 2. `Write Booking` (codeNode) — re-checks the confirmed slot is still present in the inline
+ *    `OPEN_SLOTS` array (see `scripts/mock-availability.js`) immediately before "writing", to
+ *    guard against a double-booking race between two customers confirming near-simultaneously.
+ *    Sets `output.booked` (boolean). Always executes regardless of which branch fires
+ *    downstream, so `booked` is safe to source directly from this node for the response.
+ * 3. `Condition` — checks `{{codeNode_672.output.booked}} == "true"`.
+ *    - `Condition 1` (true) → `Generate Confirmation` (Generate Text LLM node,
+ *      claude-haiku-4-5): produces a short, warm confirmation message restating service, date,
+ *      time, and customer name. System prompt:
+ *      `@prompts/confirmation-agent_generate-message_system.md`. Output field:
+ *      `generatedResponse` (string).
+ *    - `Else` (false) → `Prepare Failure Message` (codeNode): sets `booked: false` and a fixed
+ *      `confirmation_message` apologizing that the slot was taken and asking the customer to
+ *      pick another time. No LLM call needed here — the message is a static string since there
+ *      is nothing to personalize about a failed booking.
+ * 4. `API Response` — output mapping:
+ *    - `booked` ← `{{codeNode_672.output.booked}}` (Write Booking runs on every execution).
+ *    - `confirmation_message` ←
+ *      `{{codeNode_676.output.confirmation_message}}{{LLMNode_440.output.generatedResponse}}`
+ *      — both branch outputs concatenated in sequence. Only one of the two ever executes per
+ *      run, and an unexecuted node's referenced output resolves to an empty string, so the
+ *      concatenation always yields exactly the one message that actually ran. Same
+ *      undefined-as-falsy merge pattern used in the Scheduling Agent's `message` field — see
+ *      decision log.
+ *
+ * ## Inputs
  * | Field | Type | Required | Description |
  * |---|---|---|---|
- * | `confirmed_slot` | `{date, time}` | Yes | The slot the customer selected. |
- * | `customer` | `{name, phone, email}` | Yes | From the session object. |
+ * | `confirmed_date` | `string` | Yes | The date the customer selected, `YYYY-MM-DD`. |
+ * | `confirmed_time` | `string` | Yes | The time the customer selected. |
  * | `service_type` | `string` | Yes | From the Intake Agent's output. |
+ * | `customer_name` | `string` | Yes | From the session object / Intake Agent's output. |
  * | `session_id` | `string` | Yes | Session identifier. |
  *
- * ## Planned Node Walkthrough
- * 1. `API Request` (trigger, graphqlNode) — receives the confirmed slot + customer + service.
- * 2. `Write Booking` (codeNode for MVP / apiNode for the Google Calendar stretch goal) —
- *    re-checks the slot is still available immediately before writing, to guard against a
- *    double-booking race between two customers confirming near-simultaneously (see
- *    "Double-booking" under Guardrails in agent.md).
- * 3. `Generate Confirmation` (LLMNode) — produces the natural-language confirmation message.
- *    System prompt: `@prompts/confirmation-agent_generate-message_system.md`.
- * 4. `Send Confirmation` (apiNode, stretch) — sends SMS/email via Twilio. Not built for MVP.
- * 5. `API Response` (responseNode) — returns the confirmation message and updates `status` to
- *    `confirmed` in the shared session contract.
- *
- * ## Planned Outputs
+ * ## Outputs
  * | Field | Type | Description |
  * |---|---|---|
  * | `booked` | `boolean` | False if the re-check found the slot was taken in the meantime. |
- * | `confirmation_message` | `string` | Natural-language message to show/send the customer. |
+ * | `confirmation_message` | `string` | Natural-language confirmation (LLM-generated) or a
+ *   fixed decline message, depending on `booked`. |
  *
  * ## Dependencies
- * - Booking store (MVP: mock; stretch: Calendar write).
- * - LLM provider for the Generate Confirmation node.
- * - Twilio (stretch only).
+ * - `scripts/mock-availability.js` (MVP: `OPEN_SLOTS` inline array) / Google Calendar API
+ *   (stretch — same interface, `Write Booking` becomes an `apiNode`).
+ * - LLM provider for the Generate Confirmation node (Anthropic credential, claude-haiku-4-5).
+ * - Twilio (stretch only, not built) for actually sending the confirmation as SMS/email.
+ *
+ * ## Known limitation
+ * `Write Booking`'s re-check reads the same static `OPEN_SLOTS` array every time — it doesn't
+ * actually remove a slot once booked, since there's no persistent store on the Lamatic side
+ * (the Next.js app's session object is the source of truth for booking status across the
+ * pipeline). This means the double-booking guard only catches slots that were never in
+ * `OPEN_SLOTS` to begin with, not slots booked by an earlier request in the same session run.
+ * Acceptable for MVP; a real implementation would back this with the same store the Scheduling
+ * Agent reads from.
  */
 
 export {};

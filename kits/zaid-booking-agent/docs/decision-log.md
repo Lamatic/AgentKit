@@ -118,6 +118,20 @@ prep material — every entry here should be explainable without notes.
   exactly one `.` before the field name, and re-run Test afterward — a stale Schema tab can
   hide a broken node that looks fine at a glance.
 
+### Confirmation Agent's decline path uses a fixed string, not an LLM call
+- **What**: The Confirmation Agent's `Else` branch (`booked == false`) is a plain `codeNode`
+  (`Prepare Failure Message`) that sets a fixed apology string, rather than an LLM node like
+  the Scheduling Agent's `Suggest Alternatives`.
+- **Why**: A failed re-check has nothing to personalize — there's no service/date/time/name
+  combination to restate, and no alternatives to offer at this stage (that's the Scheduling
+  Agent's job, one step earlier in the pipeline). An LLM call here would add latency and cost
+  for a message that's identical every time.
+- **Alternative considered**: Route back through an LLM for tone consistency with the other two
+  agents' messages.
+- **Tradeoff**: The decline message is less warm/varied than an LLM-generated one, but it's
+  instant, free, and impossible to get factually wrong. Matches the same reasoning already used
+  for Scheduling's `Prepare Availability Response` (a codeNode, not an LLM) on its true branch.
+
 <!-- Add new entries below in this format as decisions are made:
 
 ### [Decision]
