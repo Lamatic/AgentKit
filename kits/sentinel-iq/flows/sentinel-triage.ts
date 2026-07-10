@@ -43,26 +43,7 @@ export const references = {
   }
 };
 
-// -- Nodes & Edges --
 export const nodes = [
-  {
-    "id": "sticky-note-542",
-    "type": "stickyNoteNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "stickyNoteNode",
-      "values": {
-        "text": "",
-        "color": "blue",
-        "nodeId": "stickyNoteNode",
-        "nodeName": "Sticky Note",
-        "nodeType": "stickyNoteNode"
-      }
-    }
-  },
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
