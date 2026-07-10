@@ -127,7 +127,9 @@ a fast, conversational booking experience without a human having to triage every
 ### `4. Follow-up Agent` (`followup-agent`) — stretch goal
 
 > Status: not yet built in Lamatic Studio. Only build after the 3-agent MVP is fully working
-> and merged.
+> and merged. Full spec: [`docs/followup-agent-spec.md`](./docs/followup-agent-spec.md) — it
+> lives in `docs/`, not `flows/`, since it's a specification document rather than a real
+> Studio flow export.
 
 - **Trigger**: Scheduled/cron, runs daily.
 - **What it does**:
