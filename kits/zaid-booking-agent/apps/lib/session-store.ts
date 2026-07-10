@@ -25,8 +25,22 @@ export type Session = {
 // Single dev server, module-level Map — matches the "no need for Postgres until this is a
 // real multi-instance deployment" call in the original stub. See docs/decision-log.md for why
 // the app (not the flows) owns session state at all.
-const sessions = new Map<string, Session>();
-const lastTouched = new Map<string, number>();
+//
+// Pinned to globalThis rather than a plain module-level const: in Next.js dev mode (Turbopack),
+// separate app/api/*/route.ts files can end up with independent instantiations of an imported
+// module's top-level state, so a plain `const sessions = new Map()` here is not guaranteed to
+// be the same Map across different route handlers — only within repeated calls to the same one.
+// globalThis is the actual Node.js process global, so stashing the Maps there guarantees one
+// real singleton regardless of how many times this module gets re-evaluated. Same pattern Next
+// recommends for keeping a single Prisma Client instance alive across HMR.
+const globalForSessions = globalThis as unknown as {
+  __bookingSessions?: Map<string, Session>;
+  __bookingLastTouched?: Map<string, number>;
+};
+const sessions = globalForSessions.__bookingSessions ?? new Map<string, Session>();
+const lastTouched = globalForSessions.__bookingLastTouched ?? new Map<string, number>();
+globalForSessions.__bookingSessions = sessions;
+globalForSessions.__bookingLastTouched = lastTouched;
 
 // A booking conversation should complete in minutes; 24h is generous headroom for an
 // interrupted session, not an expected duration. Dev-only demo, so a lazy sweep on every
