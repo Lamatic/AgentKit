@@ -1,43 +1,58 @@
 # Scope Creep Detector
 
-A Lamatic AgentKit template that compares a new client message against an
-original project scope (SOW/brief) and flags exactly what's in scope, what's
-not, and what's ambiguous — before you accidentally start doing free work.
+## Purpose
 
-## The problem
-
-Freelancers, consultants, and agencies constantly get "just one more thing"
-requests from clients. Some of those are reasonable extensions of the
-original agreement. Others quietly ask for new deliverables never part of
-the deal. This template catches that before you under-charge for it.
+Scope Creep Detector helps freelancers, consultants, and agencies catch
+scope creep before it becomes unpaid work. It compares a new client message
+against the original project scope (SOW/brief) and classifies every
+distinct request in that message.
 
 ## What it does
 
-Give it two things:
-1. **`scopeText`** — the original scope of work / project brief
-2. **`newMessage`** — the new message or request from the client
+Given two inputs:
+- `scopeText` — the original scope of work / project brief
+- `newMessage` — a new message or request from the client
 
-Returns a structured list of every distinct ask, classified as:
+The agent identifies each distinct ask in `newMessage` and classifies it as:
+
 - **In Scope** — clearly covered by the original agreement
 - **Out of Scope** — not covered, should be flagged/quoted separately
-- **Ambiguous** — unclear, worth a clarifying question
+- **Ambiguous** — unclear, worth a clarifying question before proceeding
 
-## How it works
+Each classification includes a short reason tying it back to specific
+language in the original scope.
 
-1. **API Request (trigger)** — accepts `scopeText` and `newMessage`
-2. **Generate Text (LLM node)** — classifies each ask against the scope
-3. **API Response** — returns structured JSON output
+## Behavior
 
-See [`flows/scope-creep-detector/config.json`](./flows/scope-creep-detector/config.json)
-for the full flow definition.
+- The agent reasons only from the text it's given — it does not assume
+  unstated context about the relationship or prior conversations.
+- When a request only partially overlaps with the original scope, the
+  agent favors "Ambiguous" over guessing, and explains what's unclear.
+- Output is always a structured JSON array so it can be consumed
+  programmatically (e.g., piped into a client-facing report or dashboard).
 
-## Setup
+## Example
 
-1. Copy the flow config into a new Flow in your own Lamatic Studio project.
-2. Connect an LLM credential (built with Gemini 2.5 Flash; any text model works).
-3. Deploy the flow.
-4. Call it via the Lamatic API with `scopeText` and `newMessage` as inputs.
+Input:
+```json
+{
+  "scopeText": "Redesign the homepage and update the logo.",
+  "newMessage": "Can you also add a new contact page and a customer login portal?"
+}
+```
 
-## Author
-
-Czarina Mari Gonzales
+Output:
+```json
+[
+  {
+    "ask": "Add a new contact page",
+    "classification": "Out of Scope",
+    "reason": "Not mentioned in the original scope, which only covers the homepage and logo."
+  },
+  {
+    "ask": "Build a customer login portal",
+    "classification": "Out of Scope",
+    "reason": "A login/authentication system is a significant new feature outside the original scope."
+  }
+]
+```
