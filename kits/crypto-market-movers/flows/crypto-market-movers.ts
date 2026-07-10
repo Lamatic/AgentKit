@@ -1,8 +1,8 @@
-// Flow: top-crypto-movers
+// Flow: crypto-market-movers
 
 // -- Meta --
 export const meta = {
-  "name": "Top_Crypto_Movers",
+  "name": "Crypto_Market_Movers",
   "description": "Scheduled agent that pulls the top 100 cryptocurrencies from CoinGecko, deterministically ranks the five largest 24-hour gainers and losers in code, and uses an LLM to summarize the results into a daily Markdown report.",
   "tags": [
     "cryptocurrency",
@@ -40,14 +40,14 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "top_crypto_movers_llmnode_261_system_0": "@prompts/top-crypto-movers_llmnode-261_system_0.md",
-    "top_crypto_movers_llmnode_261_user_1": "@prompts/top-crypto-movers_llmnode-261_user_1.md"
+    "crypto_market_movers_llmnode_261_system_0": "@prompts/crypto-market-movers_llmnode-261_system_0.md",
+    "crypto_market_movers_llmnode_261_user_1": "@prompts/crypto-market-movers_llmnode-261_user_1.md"
   },
   "modelConfigs": {
-    "top_crypto_movers_llmnode_261_generative_model_name": "@model-configs/top-crypto-movers_llmnode-261_generative-model-name.ts"
+    "crypto_market_movers_llmnode_261_generative_model_name": "@model-configs/crypto-market-movers_llmnode-261_generative-model-name.ts"
   },
   "scripts": {
-    "top_crypto_movers_code_node_672_code": "@scripts/top-crypto-movers_code-node-672_code.ts"
+    "crypto_market_movers_code_node_672_code": "@scripts/crypto-market-movers_code-node-672_code.ts"
   }
 };
 
@@ -102,7 +102,7 @@ export const nodes = [
     "data": {
       "nodeId": "codeNode",
       "values": {
-        "code": "@scripts/top-crypto-movers_code-node-672_code.ts",
+        "code": "@scripts/crypto-market-movers_code-node-672_code.ts",
         "nodeName": "Rank Market Movers"
       }
     }
@@ -122,12 +122,12 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
             "role": "system",
-            "content": "@prompts/top-crypto-movers_llmnode-261_system_0.md"
+            "content": "@prompts/crypto-market-movers_llmnode-261_system_0.md"
           },
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "@prompts/top-crypto-movers_llmnode-261_user_1.md"
+            "content": "@prompts/crypto-market-movers_llmnode-261_user_1.md"
           }
         ],
         "memories": "[]",
@@ -135,7 +135,7 @@ export const nodes = [
         "nodeName": "Generate Daily Report",
         "attachments": "",
         "credentials": "",
-        "generativeModelName": "@model-configs/top-crypto-movers_llmnode-261_generative-model-name.ts"
+        "generativeModelName": "@model-configs/crypto-market-movers_llmnode-261_generative-model-name.ts"
       }
     }
   },

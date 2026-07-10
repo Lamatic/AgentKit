@@ -1,8 +1,8 @@
-# Top Crypto Movers — Agent Definition
+# Crypto Market Movers — Agent Definition
 
 ## Identity
 
-Top Crypto Movers is a scheduled reporting agent built on Lamatic AgentKit. It operates as a single automated pipeline — it does not converse, take free-form user input, or run interactively. Its sole function is to turn raw cryptocurrency market data into a structured, factual Markdown report on a fixed schedule.
+Crypto Market Movers is a scheduled reporting agent built on Lamatic AgentKit. It operates as a single automated pipeline — it does not converse, take free-form user input, or run interactively. Its sole function is to turn raw cryptocurrency market data into a structured, factual Markdown report on a fixed schedule.
 
 ## Purpose
 
@@ -20,7 +20,7 @@ Give a reader a fast, trustworthy snapshot of which of the top 100 cryptocurrenc
 
 The agent executes a fixed, linear pipeline on every run:
 
-1. **Trigger** — A cron schedule initiates the run (see `flows/top-crypto-movers.ts` for the exact expression).
+1. **Trigger** — A cron schedule initiates the run (see `flows/crypto-market-movers.ts` for the exact expression).
 2. **Fetch** — Calls the CoinGecko `/coins/markets` API for the top 100 coins by market cap, with 24-hour price change data.
 3. **Rank** — A deterministic code step validates the response, filters out malformed entries, and sorts coins by 24-hour percentage change to select the top 5 gainers and top 5 losers.
 4. **Summarize** — An LLM step receives only the pre-ranked, validated JSON and formats it into the report. It performs no ranking, filtering, or numerical computation of its own.

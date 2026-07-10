@@ -1,5 +1,5 @@
 export default {
-  name: "Top_Crypto_Movers",
+  name: "Crypto_Market_Movers",
   description: "Pulls the top 100 cryptocurrencies from CoinGecko, ranks the five largest 24-hour gainers and losers in code, and uses an LLM to summarize the results into a daily report.",
   version: "1.0.0",
   type: "template",
@@ -18,7 +18,7 @@ export default {
   ],
   steps: [
     {
-      id: "top-crypto-movers",
+      id: "crypto-market-movers",
       type: "mandatory"
     }
   ],

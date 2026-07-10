@@ -1,10 +1,10 @@
-# Top Crypto Movers
+# Crypto Market Movers
 
 A scheduled [Lamatic AgentKit](https://lamatic.ai) agent that monitors the top 100 cryptocurrencies by market cap, deterministically ranks the five largest 24-hour gainers and losers, and uses an LLM to summarize the results into a clean, human-readable Markdown report.
 
 ## Overview
 
-Top Crypto Movers runs on a fixed schedule, pulls live market data from the [CoinGecko](https://www.coingecko.com/) public API, ranks the biggest 24-hour gainers and losers using plain deterministic code, and hands that pre-ranked data to an LLM whose only job is to format it into a readable report. No ranking, filtering, or numerical reasoning is delegated to the model — it summarizes; it does not compute.
+Crypto Market Movers runs on a fixed schedule, pulls live market data from the [CoinGecko](https://www.coingecko.com/) public API, ranks the biggest 24-hour gainers and losers using plain deterministic code, and hands that pre-ranked data to an LLM whose only job is to format it into a readable report. No ranking, filtering, or numerical reasoning is delegated to the model — it summarizes; it does not compute.
 
 ## Features
 
@@ -56,22 +56,22 @@ flowchart LR
 ├── constitutions/
 │   └── default.md                                         # Global + domain-specific behavioral rules
 ├── flows/
-│   └── top-crypto-movers.ts                                # Flow definition: nodes, edges, references
+│   └── crypto-market-movers.ts                                # Flow definition: nodes, edges, references
 ├── model-configs/
-│   └── top-crypto-movers_llmnode-261_generative-model-name.ts  # LLM provider/model configuration
+│   └── crypto-market-movers_llmnode-261_generative-model-name.ts  # LLM provider/model configuration
 ├── prompts/
-│   ├── top-crypto-movers_llmnode-261_system_0.md            # System prompt (role + guardrails)
-│   └── top-crypto-movers_llmnode-261_user_1.md               # User prompt (task + report structure)
+│   ├── crypto-market-movers_llmnode-261_system_0.md            # System prompt (role + guardrails)
+│   └── crypto-market-movers_llmnode-261_user_1.md               # User prompt (task + report structure)
 └── scripts/
-    └── top-crypto-movers_code-node-672_code.ts               # Deterministic ranking logic
+    └── crypto-market-movers_code-node-672_code.ts               # Deterministic ranking logic
 ```
 
 ## Configuration
 
 | Setting | Location | Value |
 |---|---|---|
-| Schedule | `flows/top-crypto-movers.ts` → `triggerNode_1` | `0 9 * * *` (America/New_York) — once daily at 9:00 AM ET |
-| Data source | `flows/top-crypto-movers.ts` → `apiNode_407` | CoinGecko `/coins/markets` endpoint |
+| Schedule | `flows/crypto-market-movers.ts` → `triggerNode_1` | `0 9 * * *` (America/New_York) — once daily at 9:00 AM ET |
+| Data source | `flows/crypto-market-movers.ts` → `apiNode_407` | CoinGecko `/coins/markets` endpoint |
 | LLM provider | `model-configs/.../generative-model-name.ts` | OpenAI (`gpt-5.2-2025-12-11`) via a Lamatic credential |
 | Prompts | `prompts/` | System prompt (guardrails) + user prompt (task/data) |
 
@@ -141,7 +141,7 @@ This separation of concerns is deliberate:
 
 ## Future Improvements
 
-- Add automated tests for the ranking logic in `scripts/top-crypto-movers_code-node-672_code.ts`.
+- Add automated tests for the ranking logic in `scripts/crypto-market-movers_code-node-672_code.ts`.
 - Validate the LLM's Markdown output against the expected structure before delivery, with a retry on malformed output.
 - Add a delivery step (e.g. email, Slack, or webhook) so reports reach recipients without manual polling.
 - Persist historical reports to support trend analysis across runs.
