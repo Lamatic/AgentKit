@@ -39,8 +39,9 @@ export default function Home() {
     if (!res.ok) throw new Error(data.error ?? "Scheduling Agent call failed");
 
     appendAssistant(data.message);
-    setProposedSlots(data.proposed_slots ?? []);
-    setPhase("awaiting_confirmation");
+    const slots = data.proposed_slots ?? [];
+    setProposedSlots(slots);
+    setPhase(slots.length > 0 ? "awaiting_confirmation" : "intake");
   }
 
   async function handleSend() {
