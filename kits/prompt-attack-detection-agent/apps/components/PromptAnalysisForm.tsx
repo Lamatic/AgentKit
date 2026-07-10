@@ -6,15 +6,17 @@ interface Props {
   onSubmit: (prompt: string) => void;
 }
 
-export default function PromptAnalysisForm({
-  onSubmit,
-}: Props) {
-
+export default function PromptAnalysisForm({ onSubmit }: Props) {
   const [prompt, setPrompt] = useState("");
 
   return (
-    <div className="space-y-6">
-
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(prompt);
+      }}
+      className="space-y-6"
+    >
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
@@ -23,12 +25,11 @@ export default function PromptAnalysisForm({
       />
 
       <button
-        onClick={() => onSubmit(prompt)}
+        type="submit"
         className="rounded-xl bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
       >
         Analyze Prompt
       </button>
-
-    </div>
+    </form>
   );
 }

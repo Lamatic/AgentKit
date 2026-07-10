@@ -1,8 +1,5 @@
 import { Lamatic } from "lamatic";
-import {
-  PromptAnalysisInput,
-  PromptAnalysisOutput,
-} from "@/types";
+import { PromptAnalysisInput, PromptAnalysisOutput } from "@/types";
 
 const requiredEnv = [
   "LAMATIC_API_URL",
@@ -26,16 +23,24 @@ export const lamaticClient = new Lamatic({
 });
 
 export async function executePromptAnalysis(
-  input: PromptAnalysisInput
+  input: PromptAnalysisInput,
 ): Promise<PromptAnalysisOutput> {
   try {
-    const res = await lamaticClient.executeFlow(flowId, {
-      prompt: input.prompt,
-    });
+    const res = await Promise.race([
+      lamaticClient.executeFlow(flowId, {
+        prompt: input.prompt,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Lamatic API request timed out")),
+          30000,
+        ),
+      ),
+    ]);
 
     return res.result as PromptAnalysisOutput;
   } catch (error) {
-    console.error("Lamatic Error:", error);
+    console.error("Lamatic Error:", error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
