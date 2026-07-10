@@ -7,7 +7,7 @@ function getClient(): Lamatic {
     const endpoint = process.env.LAMATIC_API_URL;
     const projectId = process.env.LAMATIC_PROJECT_ID;
     const apiKey = process.env.LAMATIC_API_KEY;
-    if (!endpoint || !apiKey) {
+    if (!endpoint || !projectId || !apiKey) {
       throw new Error(
         "Lamatic API credentials are not set. Copy apps/.env.example to apps/.env and fill in LAMATIC_API_URL / LAMATIC_PROJECT_ID / LAMATIC_API_KEY."
       );
