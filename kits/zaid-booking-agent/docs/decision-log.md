@@ -227,6 +227,19 @@ prep material — every entry here should be explainable without notes.
   writing one keyed by folder slug (`path.basename(kitPath)`). Correct move is to leave
   `registry.json` untouched.
 
+## Deferred: chat fetch calls have no client-side timeout/abort
+
+- **What**: `apps/app/page.tsx`'s three `fetch` calls (`/api/intake`, `/api/scheduling`,
+  `/api/confirmation`) have no `AbortController`/timeout — if a Lamatic flow stalls
+  server-side, the UI spins indefinitely with no escape hatch beyond a page refresh.
+- **Why deferred**: Flagged by CodeRabbit as a real, minor stability gap, but out of scope for
+  this MVP PR — flow calls in local/dev testing complete in seconds, and adding timeout
+  handling is a small enough change to bundle with a future pass rather than block this merge.
+- **Alternative considered**: Add a shared `fetchWithTimeout` helper now.
+- **Tradeoff**: Leaves the known failure mode (indefinite spinner on a stalled flow) unhandled
+  until a follow-up PR. Acceptable for MVP demo traffic; would need addressing before any
+  production use with unreliable flow execution.
+
 <!-- Add new entries below in this format as decisions are made:
 
 ## [Decision]
