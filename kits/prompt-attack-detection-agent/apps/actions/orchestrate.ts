@@ -1,5 +1,6 @@
 "use server";
 
+import lamaticConfig from "../../lamatic.config";
 import { executePromptAnalysis } from "@/lib/lamatic-client";
 import {
   ApiResponse,
