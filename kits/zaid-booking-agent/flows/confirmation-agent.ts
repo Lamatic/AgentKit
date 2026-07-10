@@ -19,10 +19,12 @@
  * 1. `API Request` (trigger) — receives `confirmed_date`, `confirmed_time`, `service_type`,
  *    `customer_name`, `session_id`.
  * 2. `Write Booking` (codeNode) — re-checks the confirmed slot is still present in the inline
- *    `OPEN_SLOTS` array (see `scripts/mock-availability.js`) immediately before "writing", to
- *    guard against a double-booking race between two customers confirming near-simultaneously.
- *    Sets `output.booked` (boolean). Always executes regardless of which branch fires
- *    downstream, so `booked` is safe to source directly from this node for the response.
+ *    `OPEN_SLOTS` array (see `scripts/mock-availability.js`) immediately before "writing" —
+ *    catches slots that were never in `OPEN_SLOTS` to begin with, though this isn't a true
+ *    atomic reservation and doesn't protect against two customers confirming the same slot
+ *    near-simultaneously (see Known limitation below). Sets `output.booked` (boolean). Always
+ *    executes regardless of which branch fires downstream, so `booked` is safe to source
+ *    directly from this node for the response.
  * 3. `Condition` — checks `{{codeNode_672.output.booked}} == "true"`.
  *    - `Condition 1` (true) → `Generate Confirmation` (Generate Text LLM node,
  *      claude-haiku-4-5): produces a short, warm confirmation message restating service, date,
