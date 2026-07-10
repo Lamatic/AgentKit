@@ -1,0 +1,50 @@
+[
+  {
+    "name": "OAuth Login Feature",
+    "input": {
+      "title": "Add Google OAuth Login",
+      "description": "Users should be able to sign in using Google. Existing JWT authentication should remain compatible."
+    },
+    "expected": {
+      "businessGoal": "Enable secure Google authentication.",
+      "shouldContain": [
+        "Backend tasks",
+        "Frontend tasks",
+        "Testing",
+        "Risks",
+        "Acceptance criteria"
+      ]
+    }
+  },
+  {
+    "name": "Dark Mode Feature",
+    "input": {
+      "title": "Add Dark Mode",
+      "description": "Allow users to switch between light and dark themes while remembering their preference."
+    },
+    "expected": {
+      "businessGoal": "Improve user experience with theme customization.",
+      "shouldContain": [
+        "Frontend tasks",
+        "Testing",
+        "Definition of Done"
+      ]
+    }
+  },
+  {
+    "name": "Payment Bug",
+    "input": {
+      "title": "Fix duplicate payment processing",
+      "description": "Occasionally the payment gateway charges users twice due to repeated callback events."
+    },
+    "expected": {
+      "businessGoal": "Prevent duplicate payments.",
+      "shouldContain": [
+        "Backend tasks",
+        "Database tasks",
+        "Risks",
+        "Sprint blockers"
+      ]
+    }
+  }
+]
