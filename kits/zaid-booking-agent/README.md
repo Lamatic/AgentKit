@@ -19,7 +19,7 @@ IDs/credentials in `apps/.env`. Follow-up (reminders) is a stretch goal, started
 
 ## Repo layout
 
-```
+```text
 kits/zaid-booking-agent/
   lamatic.config.ts       # kit metadata + flow-ID env keys
   agent.md                # architecture, flow contracts, guardrails

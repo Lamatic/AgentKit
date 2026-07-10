@@ -26,6 +26,22 @@ export type Session = {
 // real multi-instance deployment" call in the original stub. See docs/decision-log.md for why
 // the app (not the flows) owns session state at all.
 const sessions = new Map<string, Session>();
+const lastTouched = new Map<string, number>();
+
+// A booking conversation should complete in minutes; 24h is generous headroom for an
+// interrupted session, not an expected duration. Dev-only demo, so a lazy sweep on every
+// write is enough — no need for a background timer.
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function evictExpired() {
+  const cutoff = Date.now() - SESSION_TTL_MS;
+  for (const [id, touchedAt] of lastTouched) {
+    if (touchedAt < cutoff) {
+      sessions.delete(id);
+      lastTouched.delete(id);
+    }
+  }
+}
 
 function newSession(sessionId: string): Session {
   return {
@@ -44,6 +60,8 @@ export function getSession(sessionId: string): Session | undefined {
 }
 
 export function getOrCreateSession(sessionId: string): Session {
+  evictExpired();
+  lastTouched.set(sessionId, Date.now());
   const existing = sessions.get(sessionId);
   if (existing) return existing;
   const created = newSession(sessionId);
@@ -54,5 +72,6 @@ export function getOrCreateSession(sessionId: string): Session {
 export function updateSession(sessionId: string, patch: Partial<Session>): Session {
   const updated = { ...getOrCreateSession(sessionId), ...patch };
   sessions.set(sessionId, updated);
+  lastTouched.set(sessionId, Date.now());
   return updated;
 }

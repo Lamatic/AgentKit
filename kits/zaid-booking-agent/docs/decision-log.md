@@ -3,7 +3,8 @@
 Running log of meaningful architectural decisions, one entry per decision. This is interview
 prep material — every entry here should be explainable without notes.
 
-### Fork Lamatic/AgentKit instead of a standalone repo
+## Fork Lamatic/AgentKit instead of a standalone repo
+
 - **What**: Built this kit inside a fork of `Lamatic/AgentKit` (`kits/zaid-booking-agent/`)
   from the start, rather than a standalone repo copied in later.
 - **Why**: A real PR into AgentKit has to land in `kits/<name>/` inside a fork of that repo
@@ -13,7 +14,8 @@ prep material — every entry here should be explainable without notes.
 - **Tradeoff**: Slightly more setup up front (forking, upstream remote) in exchange for zero
   structural rework later and a repo that always matches the real contribution conventions.
 
-### Next.js app orchestrates the agent handoff (not flow-to-flow chaining)
+## Next.js app orchestrates the agent handoff (not flow-to-flow chaining)
+
 - **What**: The Next.js demo app calls Intake, then Scheduling, then Confirmation in sequence,
   holding the shared `session` object and passing it forward as each flow's input. Flows do not
   call each other directly.
@@ -29,7 +31,8 @@ prep material — every entry here should be explainable without notes.
   in the app layer, but it's dramatically easier to test each flow independently and doesn't
   require every downstream flow to already be deployed before you can test an upstream one.
 
-### Mock availability lives inline in a Lamatic codeNode, not an external API
+## Mock availability lives inline in a Lamatic codeNode, not an external API
+
 - **What**: The Scheduling Agent's "check availability" step is a `codeNode` with the mock slot
   data embedded (via `scripts/mock-availability.js`), rather than an `apiNode` calling out to a
   Next.js API route.
@@ -45,7 +48,8 @@ prep material — every entry here should be explainable without notes.
   `apiNode` — same position in the flow, same interface, so this doesn't require a rewrite when
   the stretch goal is tackled.
 
-### Extraction schema uses empty string "", not null, for missing fields
+## Extraction schema uses empty string "", not null, for missing fields
+
 - **What**: The Intake Agent's Extraction node (Instructor/Generate JSON) has every field typed
   `string` with `required` only set on `service_type`. The system prompt tells the model to
   return `""` for anything not stated, never the word "null" or a placeholder token.
@@ -60,7 +64,8 @@ prep material — every entry here should be explainable without notes.
   model but removes the ambiguity entirely — `!= ""` is now a reliable, single check. Costs
   nothing extra since the fields were always going to be strings.
 
-### Response merges both Condition branches via undefined-as-falsy, not a shared merge node
+## Response merges both Condition branches via undefined-as-falsy, not a shared merge node
+
 - **What**: The Intake Agent has two terminal `codeNode`s before the response — `Prepare
   Clarification` on the "incomplete" branch (sets `needs_clarification: true` + a question) and
   `Prepare Success Response` on the "complete" branch (sets `needs_clarification: false` +
@@ -80,7 +85,8 @@ prep material — every entry here should be explainable without notes.
   → falsy reference) rather than an explicit merge. Documented here specifically so this
   assumption gets re-checked if a future Lamatic Studio update changes that behavior.
 
-### Scheduling Agent's `message` field merges two branch sources via chip concatenation
+## Scheduling Agent's `message` field merges two branch sources via chip concatenation
+
 - **What**: The Scheduling Agent's API Response has a single `message` field that must come
   from `Prepare Availability Response`'s `message` (true branch) OR `Suggest Alternatives`'
   `generatedResponse` (false branch) — two different node outputs feeding one response field.
@@ -100,7 +106,8 @@ prep material — every entry here should be explainable without notes.
   break silently if either node's field could contain leading/trailing whitespace to overlap
   awkwardly with the other, or if a future rule needed both messages simultaneously.
 
-### CodeNode templating: `{{node.output}}` chip already includes the trailing accessor path
+## CodeNode templating: `{{node.output}}` chip already includes the trailing accessor path
+
 - **What**: `Prepare Availability Response`'s codeNode had a real bug —
   `{{codeNode_970.output}}..open_slots` (double dot) — which threw `Unexpected token '.'` on
   Test. Fixed by removing one dot: `{{codeNode_970.output}}.open_slots`.
@@ -118,7 +125,8 @@ prep material — every entry here should be explainable without notes.
   exactly one `.` before the field name, and re-run Test afterward — a stale Schema tab can
   hide a broken node that looks fine at a glance.
 
-### Confirmation Agent's decline path uses a fixed string, not an LLM call
+## Confirmation Agent's decline path uses a fixed string, not an LLM call
+
 - **What**: The Confirmation Agent's `Else` branch (`booked == false`) is a plain `codeNode`
   (`Prepare Failure Message`) that sets a fixed apology string, rather than an LLM node like
   the Scheduling Agent's `Suggest Alternatives`.
@@ -132,7 +140,8 @@ prep material — every entry here should be explainable without notes.
   instant, free, and impossible to get factually wrong. Matches the same reasoning already used
   for Scheduling's `Prepare Availability Response` (a codeNode, not an LLM) on its true branch.
 
-### Next.js app re-sends the full conversation to Intake on every clarification round-trip
+## Next.js app re-sends the full conversation to Intake on every clarification round-trip
+
 - **What**: `apps/lib/session-store.ts` accumulates every raw customer message in
   `session.messages`. `apps/app/api/intake/route.ts` calls the Intake Agent with
   `messages.join(" ")` as the `message` field, not just the customer's latest reply.
@@ -150,7 +159,8 @@ prep material — every entry here should be explainable without notes.
   turns a booking conversation realistically needs, but not a pattern that scales to long
   conversations.
 
-### Next.js app calls flows via the official `lamatic` npm package, lazily initialized
+## Next.js app calls flows via the official `lamatic` npm package, lazily initialized
+
 - **What**: `apps/lib/lamatic-client.ts` wraps the `lamatic` SDK's `executeFlow(flowId, input)`
   behind a `runFlow()` helper, constructing the `Lamatic` client on first use rather than at
   module load time.
@@ -165,7 +175,8 @@ prep material — every entry here should be explainable without notes.
 - **Tradeoff**: None meaningful — lazy init is strictly safer for local dev/CI where `.env`
   might not exist yet, and the call shape at the route-handler level is identical either way.
 
-### Exported prompts/scripts/model-configs use Studio's generated filenames verbatim
+## Exported prompts/scripts/model-configs use Studio's generated filenames verbatim
+
 - **What**: `prompts/`, `scripts/`, and the new `model-configs/` directory now hold the files
   produced by Studio's "Export as AgentKit" menu for each flow (e.g.
   `scheduling-agent_llmnode-969_system_0.md`, `confirmation-agent_code-node-672_code.ts`),
@@ -182,7 +193,8 @@ prep material — every entry here should be explainable without notes.
   e.g. `llmnode-969`, `code-node-672`) than a human-chosen name would be, but they're guaranteed
   to match reality and survive a future re-export without manual reconciliation.
 
-### `model-configs/` is exported per-node rather than hand-written
+## `model-configs/` is exported per-node rather than hand-written
+
 - **What**: Each LLM node's model selection (provider, model name, credential reference) now
   lives in `model-configs/<flow>_<node>_generative-model-name.ts`, exported directly from
   Studio, rather than only being described in prose in `agent.md`.
@@ -196,7 +208,8 @@ prep material — every entry here should be explainable without notes.
   later (e.g. to a different provider) now only touches one small file instead of requiring a
   re-export.
 
-### `registry.json` is not touched by this PR — it's bot-generated on merge
+## `registry.json` is not touched by this PR — it's bot-generated on merge
+
 - **What**: This kit's PR does not add or edit an entry in the repo-root `registry.json`.
 - **Why**: `.github/workflows/update-registry.yml` runs on every PR merged into `main` that
   touches `kits/`, parses the new/changed kit's `lamatic.config.ts` plus its folder contents
@@ -216,7 +229,8 @@ prep material — every entry here should be explainable without notes.
 
 <!-- Add new entries below in this format as decisions are made:
 
-### [Decision]
+## [Decision]
+
 - What:
 - Why:
 - Alternative considered:

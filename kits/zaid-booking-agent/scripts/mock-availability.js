@@ -4,9 +4,12 @@
 // cloud runtime can't reach localhost, so keeping mock data inline avoids needing to deploy
 // anything to build/test the Scheduling flow. See docs/decision-log.md for the full reasoning.
 //
-// To swap in a real calendar later: replace getAvailability()'s body with a call to the
-// Google Calendar API (or whatever provider), keeping the same (date, window) -> slots[]
-// signature so the rest of the flow doesn't need to change.
+// This file is a reference mirror, not a live dependency — Lamatic codeNodes can't import
+// external files, so the Scheduling Agent's deployed "Check Availability" node carries this
+// same logic inline (see scripts/scheduling-agent_code-node-970_code.ts). To swap in a real
+// calendar later: replace that codeNode's body (and this file's, to keep them in parity) with
+// a call to the Google Calendar API (or whatever provider), keeping the same
+// (date, window) -> slots[] signature so the rest of the flow doesn't need to change.
 
 const OPEN_SLOTS = [
   { date: "2026-07-13", time: "09:00" },
