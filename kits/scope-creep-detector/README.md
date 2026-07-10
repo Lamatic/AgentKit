@@ -28,7 +28,7 @@ Returns a structured list of every distinct ask, classified as:
 2. **Generate Text (LLM node)** — classifies each ask against the scope
 3. **API Response** — returns structured JSON output
 
-See [`flows/scope-creep-detector/config.json`](./flows/scope-creep-detector/config.json)
+See [`flows/scope-creep-detector/lamatic.config`](./flows/scope-creep-detector/lamatic.config)
 for the full flow definition.
 
 ## Setup
