@@ -22,6 +22,12 @@ export const lamaticClient = new Lamatic({
   apiKey: process.env.LAMATIC_API_KEY!,
 });
 
+/****
+ * Executes the Prompt Attack Detection flow using the Lamatic SDK.
+ *
+ * @param input User prompt
+ * @returns Prompt security analysis
+ */
 export async function executePromptAnalysis(
   input: PromptAnalysisInput,
 ): Promise<PromptAnalysisOutput> {

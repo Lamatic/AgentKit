@@ -2,6 +2,9 @@ interface Props {
   severity: string;
 }
 
+/**
+ * Displays the severity badge.
+ */
 export default function RiskBadge({ severity }: Props) {
   const color =
     severity.toLowerCase() === "high"

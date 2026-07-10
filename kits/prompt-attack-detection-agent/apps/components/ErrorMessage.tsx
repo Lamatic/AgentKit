@@ -3,6 +3,9 @@ interface Props {
   onRetry: () => void;
 }
 
+/**
+ * Displays an error message.
+ */
 export default function ErrorMessage({
   message,
   onRetry,
