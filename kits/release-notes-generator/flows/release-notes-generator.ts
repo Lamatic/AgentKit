@@ -133,7 +133,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\n  \"changes\": \"string\",\n  \"version\": \"string\",\n  \"date\": \"string\"\n}"
       }
     }
   },
