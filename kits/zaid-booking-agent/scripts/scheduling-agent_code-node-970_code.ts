@@ -12,4 +12,7 @@ const OPEN_SLOTS = [
   const sameDaySlots = OPEN_SLOTS.filter((slot) => slot.date === requestedDate);
   output.slot_available = sameDaySlots.length > 0;
   output.open_slots = sameDaySlots;
-  output.nearby_slots = OPEN_SLOTS.slice(0, 3);
+  const requestedTime = new Date(requestedDate).getTime();
+  output.nearby_slots = [...OPEN_SLOTS]
+    .sort((a, b) => Math.abs(new Date(a.date).getTime() - requestedTime) - Math.abs(new Date(b.date).getTime() - requestedTime))
+    .slice(0, 3);

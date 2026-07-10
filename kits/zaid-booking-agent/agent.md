@@ -71,8 +71,8 @@ a fast, conversational booking experience without a human having to triage every
   1. `Check Availability` (codeNode) filters the inline mock slot data (see
      `scripts/mock-availability.js`) for same-day matches against `preferred_date`. Always
      executes, and sets `slot_available`, `open_slots` (same-day matches), and `nearby_slots`
-     (first 3 of the full slot list — a fallback source for alternatives when there's no
-     same-day match).
+     (the 3 slots closest to `preferred_date` by date distance — a fallback source for
+     alternatives when there's no same-day match).
   2. `Condition` on `slot_available`:
      - True → `Prepare Availability Response` (codeNode) sets `proposed_slots` to `open_slots`
        and a confirmation `message`.

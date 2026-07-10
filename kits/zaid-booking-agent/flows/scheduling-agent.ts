@@ -20,9 +20,9 @@
  *    executes regardless of which branch fires downstream. Sets:
  *    - `slot_available` (boolean) — true if any same-day slot exists.
  *    - `open_slots` (array) — same-day matches (empty when no slot is available).
- *    - `nearby_slots` (array) — first 3 entries of the full `OPEN_SLOTS` list, used as
- *      fallback suggestions on the no-availability path (see decision log: the `open_slots`
- *      gap).
+ *    - `nearby_slots` (array) — the 3 `OPEN_SLOTS` entries closest to `preferred_date` by
+ *      absolute date distance, used as fallback suggestions on the no-availability path (see
+ *      decision log: the `open_slots` gap).
  * 3. `Condition` — checks `{{codeNode_970.output.slot_available}} == "true"`.
  *    - `Condition 1` (true) → `Prepare Availability Response` (codeNode_594): sets
  *      `slot_available: true`, `proposed_slots` (= `open_slots`), and a `message` confirming
