@@ -40,7 +40,7 @@ export function toMarkdown(report: AuditReport): string {
     out.push(`### ${SEVERITY_LABEL[sev]} — ${f.title}`);
     const meta = [f.category, f.line != null ? `line ${f.line}` : null].filter(Boolean).join(" · ");
     if (meta) out.push(`_${meta}_`, "");
-    if (f.instruction) out.push("```dockerfile", f.instruction, "```", "");
+    if (f.instruction) out.push("```text", f.instruction, "```", "");
     out.push(`**Why:** ${f.why}`);
     out.push(`**Fix:** ${f.fix}`);
     if (f.reference) out.push(`**Reference:** ${f.reference}`);
