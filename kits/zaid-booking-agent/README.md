@@ -59,23 +59,33 @@ kits/zaid-booking-agent/
 ## Shared data contract
 
 Every agent reads/writes the same session object, held and passed forward by the Next.js app
-(see `apps/lib/session-store.ts`):
+(see `apps/lib/session-store.ts`) as an in-memory `Map` keyed by `session_id`:
 
 ```json
 {
   "session_id": "string",
-  "customer": { "name": "string", "phone": "string", "email": "string | null" },
+  "messages": ["string"],
   "request": {
     "service_type": "string",
     "preferred_date": "string",
     "preferred_window": "string",
-    "notes": "string | null"
+    "name": "string",
+    "phone": "string",
+    "notes": "string"
   },
-  "status": "intake | scheduling | awaiting_confirmation | confirmed | reminded | no_show",
+  "status": "intake | scheduling | awaiting_confirmation | confirmed",
   "proposed_slots": [{ "date": "string", "time": "string" }],
-  "confirmed_slot": { "date": "string", "time": "string" } | null
+  "confirmed_slot": { "date": "string", "time": "string" } | null,
+  "confirmation_message": "string | null"
 }
 ```
+
+`name`/`phone` live inside `request` rather than a separate `customer` object, matching what
+the Intake Agent's extraction actually returns as one flat object. `messages` accumulates the
+raw customer messages across a clarification round-trip — the Intake Agent extracts from a
+single message string with no memory of its own, so the app re-sends the whole conversation
+joined together each time rather than just the latest reply. `status` values `reminded` /
+`no_show` are reserved for the Follow-up Agent stretch goal, not yet built.
 
 ## Why 4 discrete agents instead of one prompt
 
