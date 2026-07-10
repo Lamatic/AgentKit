@@ -20,6 +20,7 @@ export default {
     {
       id: "prompt-attack-detection-agent",
       type: "mandatory",
+      envKey: "LAMATIC_FLOW_ID",
     },
   ],
   links: {
