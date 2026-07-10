@@ -1,3 +1,6 @@
+/**
+ * Top navigation bar showing the SubSniffer brand and tagline.
+ */
 export function Header() {
   return (
     <header className="border-b border-slate-200 bg-white/70 backdrop-blur">

@@ -1,6 +1,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Small pill used to label a subscription's usage (used / rarely / unused).
+ */
 export function Badge({
   className,
   ...props

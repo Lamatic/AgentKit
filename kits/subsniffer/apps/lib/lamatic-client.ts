@@ -4,6 +4,12 @@ import { Lamatic } from "lamatic";
 // credentials (the action throws a friendly error at call time instead).
 let client: any = null;
 
+/**
+ * Returns a singleton Lamatic SDK client, constructing it on first use.
+ * Reads the endpoint, project id, and API key from environment variables.
+ * @throws Error if LAMATIC_API_URL, LAMATIC_PROJECT_ID, or LAMATIC_API_KEY is missing.
+ * @returns The configured Lamatic client instance.
+ */
 export function getLamaticClient() {
   if (client) return client;
 
