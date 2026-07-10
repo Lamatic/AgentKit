@@ -13,7 +13,7 @@ export default {
     {
       id: "sentinal-triage",
       type: "mandatory" as const,
-      envkey: "SENTINAL_TRIAGE_FLOW_ID",
+     envKey: "SENTINEL_TRIAGE_FLOW_ID",
     },
   ],
   links: {
