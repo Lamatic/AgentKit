@@ -1,19 +1,18 @@
 export default {
-  name: "SentinalIQ",
+  name: "SentinelIQ",
   description:
-    "Triages raw security alerts intosevernity scored, ATT&CK-mapped incident reports",
+    "Triages raw security alerts into severity-scored, ATT&CK-mapped incident reports",
   version: "1.0.0",
   type: "kit" as const,
   author: {
     name: "Amaresh Hebbar",
-    email: "reshama0302@gmail.com",
   },
   tags: ["security", "incident-response", "triage", "soc"],
   steps: [
     {
-      id: "sentinal-triage",
+      id: "sentinel-triage",
       type: "mandatory" as const,
-     envKey: "SENTINEL_TRIAGE_FLOW_ID",
+      envKey: "SENTINEL_TRIAGE_FLOW_ID",
     },
   ],
   links: {
