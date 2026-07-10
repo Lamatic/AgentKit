@@ -132,6 +132,39 @@ prep material — every entry here should be explainable without notes.
   instant, free, and impossible to get factually wrong. Matches the same reasoning already used
   for Scheduling's `Prepare Availability Response` (a codeNode, not an LLM) on its true branch.
 
+### Next.js app re-sends the full conversation to Intake on every clarification round-trip
+- **What**: `apps/lib/session-store.ts` accumulates every raw customer message in
+  `session.messages`. `apps/app/api/intake/route.ts` calls the Intake Agent with
+  `messages.join(" ")` as the `message` field, not just the customer's latest reply.
+- **Why**: The Intake Agent's Extraction node has no memory across calls — each invocation
+  parses one `message` string in isolation (see `flows/intake-agent.ts`). If the app only sent
+  the latest reply after a clarifying question (e.g. customer says "haircut", gets asked for a
+  date, replies "tomorrow at 2pm"), a fresh extraction on just "tomorrow at 2pm" would lose the
+  service type and could loop the clarification forever. Concatenating the whole conversation
+  gives the Extraction node everything it needs to fill in all fields cumulatively, without
+  requiring any change to the flow itself.
+- **Alternative considered**: Add a `previous_request` field to the Intake Agent's trigger
+  schema and merge partial extractions inside the flow.
+- **Tradeoff**: The app-layer concatenation is simpler and needed no flow changes, but the
+  message string sent to the LLM grows with every clarification round — fine for the handful of
+  turns a booking conversation realistically needs, but not a pattern that scales to long
+  conversations.
+
+### Next.js app calls flows via the official `lamatic` npm package, lazily initialized
+- **What**: `apps/lib/lamatic-client.ts` wraps the `lamatic` SDK's `executeFlow(flowId, input)`
+  behind a `runFlow()` helper, constructing the `Lamatic` client on first use rather than at
+  module load time.
+- **Why**: Matches the convention already used across other kits in this repo (`content-generation`,
+  `deep-search`, `forge`, `hiring` all use the same `lamatic` package and `executeFlow` call
+  shape) rather than hand-rolling a raw GraphQL/REST call. Lazy init means a missing
+  `apps/.env` doesn't crash `next build` — the credential check only fires when a route handler
+  actually tries to call a flow, matching `forge`'s pattern specifically (some other kits
+  construct the client eagerly at module scope, which does crash the build without env vars set).
+- **Alternative considered**: Construct the client eagerly at module scope, matching
+  `content-generation`/`deep-search` exactly.
+- **Tradeoff**: None meaningful — lazy init is strictly safer for local dev/CI where `.env`
+  might not exist yet, and the call shape at the route-handler level is identical either way.
+
 <!-- Add new entries below in this format as decisions are made:
 
 ### [Decision]
