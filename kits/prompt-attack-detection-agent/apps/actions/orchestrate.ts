@@ -7,6 +7,10 @@ import {
   PromptAnalysisInput,
 } from "@/types";
 
+/**
+ * Sends a prompt to the Lamatic Prompt Attack Detection Agent
+ * and returns the security analysis.
+ */
 export async function analyzePrompt(
   input: PromptAnalysisInput
 ): Promise<ApiResponse> {

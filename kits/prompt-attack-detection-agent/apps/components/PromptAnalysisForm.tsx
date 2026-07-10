@@ -6,6 +6,9 @@ interface Props {
   onSubmit: (prompt: string) => void;
 }
 
+/**
+ * Form used to submit prompts for security analysis.
+ */
 export default function PromptAnalysisForm({ onSubmit }: Props) {
   const [prompt, setPrompt] = useState("");
 

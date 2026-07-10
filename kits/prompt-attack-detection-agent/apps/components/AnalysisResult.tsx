@@ -5,6 +5,9 @@ interface Props {
   data: PromptAnalysisOutput;
 }
 
+/**
+ * Displays the analysis returned by the Prompt Attack Detection Agent.
+ */
 export default function AnalysisResult({
   data,
 }: Props) {

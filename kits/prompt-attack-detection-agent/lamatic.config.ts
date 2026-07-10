@@ -24,7 +24,7 @@ export default {
     },
   ],
   links: {
-    github:
-      "https://github.com/Ujjwal5705/AgentKit/tree/main/kits/prompt-attack-detection-agent",
+    github: "https://github.com/Ujjwal5705/AgentKit/tree/main/kits/prompt-attack-detection-agent",
+    deploy: "",
   },
 };
