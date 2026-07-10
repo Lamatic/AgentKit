@@ -1,7 +1,7 @@
 export default {
   name: "Local Service Booking Agent",
   description:
-    "A 4-agent appointment-booking system for local service businesses (salon, barbershop, etc). Intake, Scheduling, Confirmation, and Follow-up agents pass a shared session object through explicit, orchestrated handoffs instead of one monolithic prompt.",
+    "A 3-agent appointment-booking system for local service businesses (salon, barbershop, etc). Intake, Scheduling, and Confirmation agents pass a shared session object through explicit, orchestrated handoffs instead of one monolithic prompt. A Follow-up (reminder) agent is an optional stretch goal, spec'd but not yet built.",
   version: "0.1.0",
   type: "kit" as const,
   author: { name: "Zaid Khan", email: "zk3473893@gmail.com" },
