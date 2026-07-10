@@ -30,8 +30,8 @@ a fast, conversational booking experience without a human having to triage every
 
 ### `1. Intake Agent` (`intake-agent`)
 
-> Status: built and tested in Lamatic Studio (`claude-haiku-4-5`). Not yet exported into
-> `flows/intake-agent.ts` — export via Studio's menu once the Flow ID is wired into `.env`.
+> Status: built, tested, and exported from Lamatic Studio (`claude-haiku-4-5`) into
+> `flows/intake-agent.ts`. Deploy in your own Studio project and wire the Flow ID into `.env`.
 
 - **Trigger**: API request (`message: string`, `session_id: string`). Chat message for MVP;
   Twilio transcript is a stretch goal.
@@ -61,9 +61,9 @@ a fast, conversational booking experience without a human having to triage every
 
 ### `2. Scheduling Agent` (`scheduling-agent`)
 
-> Status: built and tested in Lamatic Studio (`claude-haiku-4-5`), both branches verified
-> end-to-end. Not yet exported into `flows/scheduling-agent.ts` — export via Studio's menu once
-> the Flow ID is wired into `.env`.
+> Status: built, tested, and exported from Lamatic Studio (`claude-haiku-4-5`) into
+> `flows/scheduling-agent.ts`, both branches verified end-to-end. Deploy in your own Studio
+> project and wire the Flow ID into `.env`.
 
 - **Trigger**: API request (`preferred_date: string`, `preferred_window: string`,
   `session_id: string`), from the structured booking request produced by Intake.
@@ -93,9 +93,9 @@ a fast, conversational booking experience without a human having to triage every
 
 ### `3. Confirmation Agent` (`confirmation-agent`)
 
-> Status: built and tested in Lamatic Studio (`claude-haiku-4-5`), both branches verified
-> end-to-end. Not yet exported into `flows/confirmation-agent.ts` — export via Studio's menu
-> once the Flow ID is wired into `.env`.
+> Status: built, tested, and exported from Lamatic Studio (`claude-haiku-4-5`) into
+> `flows/confirmation-agent.ts`, both branches verified end-to-end. Deploy in your own Studio
+> project and wire the Flow ID into `.env`.
 
 - **Trigger**: API request (`confirmed_date`, `confirmed_time`, `service_type`,
   `customer_name`, `session_id`, all `string`), fires when the customer confirms a specific
@@ -194,12 +194,12 @@ building/understanding one agent at a time.
 
 ## Quickstart
 
-1. In Lamatic Studio, create a project, then build the Intake Agent flow first (see
-   `flows/intake-agent.ts` for the node list to recreate). Deploy it and copy its Flow ID.
-2. Repeat for Scheduling, then Confirmation, once Intake works end-to-end on its own.
-3. Copy flow IDs and API credentials into `apps/.env` (from `apps/.env.example`).
-4. `cd apps && npm install && npm run dev`.
-5. Use the chat widget to send a booking request and walk it through Intake → Scheduling →
+1. In Lamatic Studio, create a project, then recreate each flow from its export in `flows/*.ts`
+   (Intake, Scheduling, Confirmation — each file's header comment has the full node-by-node
+   walkthrough). Deploy each and copy its Flow ID.
+2. Copy flow IDs and API credentials into `apps/.env` (from `apps/.env.example`).
+3. `cd apps && npm install && npm run dev`.
+4. Use the chat widget to send a booking request and walk it through Intake → Scheduling →
    Confirmation.
 
 ## Common Failure Modes
@@ -207,7 +207,7 @@ building/understanding one agent at a time.
 | Symptom | Likely Cause | Fix |
 |---|---|---|
 | API call fails with auth/403 | Invalid `LAMATIC_API_KEY` / project mismatch | Verify `LAMATIC_PROJECT_ID` + `LAMATIC_API_KEY`; re-copy from Lamatic Studio |
-| Intake never leaves clarifying-question loop | Extraction prompt not matching real message phrasing | Tune `prompts/intake-agent_extract-request_system.md`; check required-field list |
+| Intake never leaves clarifying-question loop | Extraction prompt not matching real message phrasing | Tune `prompts/intake-agent_instructor-llmnode-254_system_0.md`; check required-field list |
 | Scheduling always reports no availability | `scripts/mock-availability.js` data doesn't cover requested dates | Add/adjust mock slots; confirm date format matches what Intake extracts |
 | Two customers get the same slot | Availability check and booking write aren't reading/writing the same store atomically | Ensure Confirmation Agent's write re-checks availability immediately before writing |
 | Confirmation message never sent | Twilio not configured (stretch only) | Not required for MVP; configure Twilio credentials in Lamatic when building the stretch goal |

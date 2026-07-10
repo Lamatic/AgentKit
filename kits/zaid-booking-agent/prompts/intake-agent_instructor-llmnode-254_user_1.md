@@ -1,0 +1,1 @@
+Customer message: {{triggerNode_1.output.message}}
