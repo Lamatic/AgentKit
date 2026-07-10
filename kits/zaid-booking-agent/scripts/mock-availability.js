@@ -38,4 +38,12 @@ function isSlotAvailable(date, time) {
   return OPEN_SLOTS.some((slot) => slot.date === date && slot.time === time);
 }
 
-module.exports = { OPEN_SLOTS, getAvailability, isSlotAvailable };
+// Fallback suggestions for the Suggest Alternatives LLM node when the requested date has no
+// same-day openings (getAvailability() returns an empty array). Without this, the "no slot
+// available" branch would have nothing to offer the customer but empty data, and the LLM was
+// correctly refusing to fabricate slots — see docs/decision-log.md.
+function getNearbySlots(count = 3) {
+  return OPEN_SLOTS.slice(0, count);
+}
+
+module.exports = { OPEN_SLOTS, getAvailability, isSlotAvailable, getNearbySlots };
