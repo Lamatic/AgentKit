@@ -42,8 +42,19 @@ function isSlotAvailable(date, time) {
 // same-day openings (getAvailability() returns an empty array). Without this, the "no slot
 // available" branch would have nothing to offer the customer but empty data, and the LLM was
 // correctly refusing to fabricate slots — see docs/decision-log.md.
-function getNearbySlots(count = 3) {
-  return OPEN_SLOTS.slice(0, count);
+//
+// Ranked by absolute distance from the requested date so "nearby" actually means nearby —
+// OPEN_SLOTS is already chronologically sorted and Array#sort is stable, so equal-distance
+// ties resolve to date/time order for free.
+function getNearbySlots(date, count = 3) {
+  const requestedTime = new Date(date).getTime();
+  return [...OPEN_SLOTS]
+    .sort(
+      (a, b) =>
+        Math.abs(new Date(a.date).getTime() - requestedTime) -
+        Math.abs(new Date(b.date).getTime() - requestedTime)
+    )
+    .slice(0, count);
 }
 
 module.exports = { OPEN_SLOTS, getAvailability, isSlotAvailable, getNearbySlots };
