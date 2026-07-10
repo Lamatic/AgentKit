@@ -1,9 +1,0 @@
-{
-  "name": "Scope Creep Detector",
-  "flowId": "ee3bb1d9-2722-46da-8181-25a3c5d5aae7",
-  "projectId": "dcc1be74-93df-4b09-9e9a-4e97e24c64fb",
-  "endpoint": "https://prod-api.lamatic.ai/graphql",
-  "purpose": "Takes an original scope/SOW and a new client message, and classifies each ask in the new message as In Scope, Out of Scope, or Ambiguous with a reason.",
-  "inputSchema": { "scopeText": "string", "newMessage": "string" },
-  "outputSchema": { "output": "string" }
-}
