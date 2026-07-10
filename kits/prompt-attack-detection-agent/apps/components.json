@@ -4,9 +4,9 @@
   "tsx": true,
   "rsc": true,
   "aliases": {
-    "components": "`@/components`",
-    "utils": "`@/lib/utils`",
-    "ui": "`@/components/ui`"
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui"
   },
   "tailwind": {
     "config": "tailwind.config.ts",
