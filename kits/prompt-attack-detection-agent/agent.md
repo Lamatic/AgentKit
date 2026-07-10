@@ -26,7 +26,7 @@ For every prompt, the agent returns:
 - Severity Level
 - Detected Attack Types
 - Explanation
-- Recommendation (Accept / Review / Reject)
+- Recommendation (Allow / Allow After Sanitization / Reject)
 - Sanitized Prompt (when applicable)
 
 ---
