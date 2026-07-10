@@ -196,6 +196,24 @@ prep material — every entry here should be explainable without notes.
   later (e.g. to a different provider) now only touches one small file instead of requiring a
   re-export.
 
+### `registry.json` is not touched by this PR — it's bot-generated on merge
+- **What**: This kit's PR does not add or edit an entry in the repo-root `registry.json`.
+- **Why**: `.github/workflows/update-registry.yml` runs on every PR merged into `main` that
+  touches `kits/`, parses the new/changed kit's `lamatic.config.ts` plus its folder contents
+  (flow names, prompt/script/model-config counts, whether `apps/` exists, etc.), and commits the
+  resulting entry itself as `github-actions[bot]` in a separate follow-up commit — confirmed by
+  checking the last several merged kit PRs (e.g. `llm-eval-harness`, PR #179): the PR's own diff
+  never includes `registry.json`, and the very next commit on `main` is always
+  `github-actions[bot]`'s "chore: update registry.json after merging PR #N", adding exactly that
+  kit's entry. `CONTRIBUTING.md` itself labels the file "Auto-generated index of all kits" and
+  only tells contributors to read it (to check for duplicate kits), never to edit it.
+- **Alternative considered**: Manually add a `zaid-booking-agent` entry to `registry.json` in
+  this PR to be thorough.
+- **Tradeoff**: None — doing so would just create a merge conflict with the bot's own commit
+  immediately after merge, since the bot doesn't check whether an entry already exists before
+  writing one keyed by folder slug (`path.basename(kitPath)`). Correct move is to leave
+  `registry.json` untouched.
+
 <!-- Add new entries below in this format as decisions are made:
 
 ### [Decision]
