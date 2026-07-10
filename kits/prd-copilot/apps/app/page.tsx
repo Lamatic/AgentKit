@@ -85,9 +85,14 @@ export default function PRDCopilotPage() {
 
   const handleCopyPRD = () => {
     const textToCopy = step === "result" ? finalPrd : draftPrd;
-    navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
   };
 
   const handleDownloadPRD = () => {
@@ -175,6 +180,7 @@ export default function PRDCopilotPage() {
                 onChange={(e) => setIdea(e.target.value)}
                 placeholder="e.g. A marketplace app where local bakers can list custom cakes, and users can place orders, chat, and schedule deliveries..."
                 className="w-full min-h-[160px] rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-slate-100 placeholder:text-slate-600 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition font-sans text-sm resize-y"
+                aria-label="Product Idea Input"
               />
               
               <div className="mt-4 flex items-center justify-between border-t border-slate-800/60 pt-4">
