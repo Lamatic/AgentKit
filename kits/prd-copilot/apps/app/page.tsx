@@ -276,7 +276,8 @@ export default function PRDCopilotPage() {
               <div className="mt-8 flex items-center justify-between border-t border-slate-800/80 pt-6">
                 <button
                   onClick={handleRestart}
-                  className="flex items-center space-x-1.5 text-sm text-slate-500 hover:text-slate-300 transition"
+                  disabled={loading}
+                  className="flex items-center space-x-1.5 text-sm text-slate-500 hover:text-slate-300 transition disabled:opacity-40 disabled:hover:text-slate-500"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span>Start over</span>
