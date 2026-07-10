@@ -1,0 +1,1 @@
+Confirm this booking: {{triggerNode_1.output.service_type}} on {{triggerNode_1.output.confirmed_date}} at {{triggerNode_1.output.confirmed_time}} for {{triggerNode_1.output.customer_name}}

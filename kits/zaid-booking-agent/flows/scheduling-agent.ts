@@ -1,9 +1,9 @@
 /*
  * # Scheduling Agent
- * BUILT AND TESTED in Lamatic Studio (Zaid's Organization / ZaidsProject406, model
- * claude-haiku-4-5). Not yet exported into this file — do that via Studio's export menu once
- * the flow's Flow ID is copied into .env as SCHEDULING_AGENT. Until then this remains a doc-only
- * stub describing the real, already-built node graph.
+ * BUILT, TESTED, AND EXPORTED from Lamatic Studio (Zaid's Organization / ZaidsProject406,
+ * model claude-haiku-4-5). The `meta`/`inputs`/`references`/`nodes`/`edges` below are the real
+ * export via Studio's "Export as AgentKit" menu — do not hand-edit the node graph; re-export
+ * from Studio if the flow changes.
  *
  * ## Purpose
  * Checks the requested date/window against availability and either confirms the slot is open
@@ -29,7 +29,7 @@
  *      the requested date.
  *    - `Else` (false) → `Suggest Alternatives` (LLMNode_969, Generate Text, claude-haiku-4-5):
  *      generates a natural-language message offering 2-3 alternatives drawn from
- *      `nearby_slots`. System prompt: `@prompts/scheduling-agent_suggest-alternatives_system.md`.
+ *      `nearby_slots`. System prompt: `@prompts/scheduling-agent_llmnode-969_system_0.md`.
  *      Explicitly instructed to never invent a slot not present in the provided list. Output
  *      field: `generatedResponse` (string).
  * 4. `API Response` — output mapping:
@@ -72,4 +72,240 @@
  * mock data set is small enough that window filtering wasn't worth the added complexity yet.
  */
 
-export {};
+// Flow: scheduling-agent
+
+// -- Meta --
+export const meta = {
+  "name": "Scheduling Agent",
+  "description": "",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Zaid Khan",
+    "email": "zaid9khn@gmail.com"
+  }
+};
+
+// -- Inputs --
+export const inputs = {
+  "LLMNode_969": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ]
+};
+
+// -- References --
+export const references = {
+  "constitutions": {
+    "default": "@constitutions/default.md"
+  },
+  "prompts": {
+    "scheduling_agent_llmnode_969_system_0": "@prompts/scheduling-agent_llmnode-969_system_0.md",
+    "scheduling_agent_llmnode_969_user_1": "@prompts/scheduling-agent_llmnode-969_user_1.md"
+  },
+  "modelConfigs": {
+    "scheduling_agent_llmnode_969_generative_model_name": "@model-configs/scheduling-agent_llmnode-969_generative-model-name.ts"
+  },
+  "scripts": {
+    "scheduling_agent_code_node_970_code": "@scripts/scheduling-agent_code-node-970_code.ts",
+    "scheduling_agent_code_node_594_code": "@scripts/scheduling-agent_code-node-594_code.ts"
+  }
+};
+
+// -- Nodes & Edges --
+export const nodes = [
+  {
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlNode",
+      "trigger": true,
+      "values": {
+        "id": "triggerNode_1",
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\n  \"preferred_date\": \"string\",\n  \"preferred_window\": \"string\",\n  \"session_id\": \"string\"\n}"
+      }
+    }
+  },
+  {
+    "id": "codeNode_970",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/scheduling-agent_code-node-970_code.ts",
+        "nodeName": "Check Availability"
+      }
+    }
+  },
+  {
+    "id": "conditionNode_694",
+    "type": "conditionNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "conditionNode",
+      "values": {
+        "nodeName": "Condition",
+        "conditions": [
+          {
+            "label": "Condition 1",
+            "value": "conditionNode_694-addNode_867",
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{codeNode_970.output.slot_available}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
+          },
+          {
+            "label": "Else",
+            "value": "conditionNode_694-addNode_497",
+            "condition": {}
+          }
+        ],
+        "allowMultipleConditionExecution": false
+      }
+    }
+  },
+  {
+    "id": "codeNode_594",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/scheduling-agent_code-node-594_code.ts",
+        "nodeName": "Prepare Availability Response"
+      }
+    }
+  },
+  {
+    "id": "LLMNode_969",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "tools": [],
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/scheduling-agent_llmnode-969_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/scheduling-agent_llmnode-969_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Suggest Alternatives",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/scheduling-agent_llmnode-969_generative-model-name.ts"
+      }
+    }
+  },
+  {
+    "id": "responseNode_triggerNode_1",
+    "type": "responseNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "id": "responseNode_triggerNode_1",
+        "headers": "{\"content-type\":\"application/json\"}",
+        "retries": "0",
+        "nodeName": "API Response",
+        "webhookUrl": "",
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"slot_available\": \"{{codeNode_970.output.slot_available}}\",\n  \"proposed_slots\": \"{{codeNode_594.output.proposed_slots}}\",\n  \"message\": \"{{codeNode_594.output.message}}{{LLMNode_969.output.generatedResponse}}\"\n}"
+      }
+    }
+  }
+];
+
+export const edges = [
+  {
+    "id": "triggerNode_1-codeNode_970",
+    "source": "triggerNode_1",
+    "target": "codeNode_970",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_970-conditionNode_694",
+    "source": "codeNode_970",
+    "target": "conditionNode_694",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_694-codeNode_594-145",
+    "source": "conditionNode_694",
+    "target": "codeNode_594",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "codeNode_594-responseNode_triggerNode_1-849",
+    "source": "codeNode_594",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_694-LLMNode_969-413",
+    "source": "conditionNode_694",
+    "target": "LLMNode_969",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "LLMNode_969-responseNode_triggerNode_1-402",
+    "source": "LLMNode_969",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "response-trigger_triggerNode_1",
+    "source": "triggerNode_1",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
+  }
+];
+
+export default { meta, inputs, references, nodes, edges };

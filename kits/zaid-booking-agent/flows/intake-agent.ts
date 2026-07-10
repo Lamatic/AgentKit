@@ -1,9 +1,9 @@
 /*
  * # Intake Agent
- * BUILT AND TESTED in Lamatic Studio (Zaid's Organization / ZaidsProject406, model
- * claude-haiku-4-5). Not yet exported into this file — do that via Studio's export menu once
- * the flow's Flow ID is copied into .env as INTAKE_AGENT. Until then this remains a doc-only
- * stub describing the real, already-built node graph.
+ * BUILT, TESTED, AND EXPORTED from Lamatic Studio (Zaid's Organization / ZaidsProject406,
+ * model claude-haiku-4-5). The `meta`/`inputs`/`references`/`nodes`/`edges` below are the real
+ * export via Studio's "Export as AgentKit" menu — do not hand-edit the node graph; re-export
+ * from Studio if the flow changes.
  *
  * ## Purpose
  * Parses a raw customer message into a structured booking request and checks it's complete
@@ -17,21 +17,20 @@
  * 2. `Extraction` (Generate JSON / InstructorLLMNode, claude-haiku-4-5) — parses `message` into
  *    service_type, preferred_date, preferred_window, name, phone, notes. Every field is typed
  *    `string`; only `service_type` is `required`. System prompt:
- *    `@prompts/intake-agent_extract-request_system.md`. The prompt explicitly requires an empty
- *    string `""` (never the word "null") for anything not stated — the schema has no true
- *    nullable type, so asking the model for JSON `null` produced sentinel text like "<UNKNOWN>"
- *    instead. See docs/decision-log.md.
- * 3. `Condition` — checks `{{Extraction.output.service_type}} != ""`.
- *    - `Else` (empty) → `Prepare Clarification` (codeNode): sets `needs_clarification: true`
- *      and a clarifying question (from `@prompts/intake-agent_extract-request_system.md`-style
- *      reasoning, hardcoded per-field for now).
- *    - `Condition 1` (present) → `Prepare Success Response` (codeNode): sets
+ *    `@prompts/intake-agent_instructor-llmnode-254_system_0.md`. The prompt explicitly requires
+ *    an empty string `""` (never the word "null") for anything not stated — the schema has no
+ *    true nullable type, so asking the model for JSON `null` produced sentinel text like
+ *    "<UNKNOWN>" instead. See docs/decision-log.md.
+ * 3. `Condition` — checks `{{InstructorLLMNode_254.output.service_type}} != ""`.
+ *    - `Else` (empty) → `Prepare Clarification` (codeNode_969): sets `needs_clarification: true`
+ *      and a fixed clarifying question.
+ *    - `Condition 1` (present) → `Prepare Success Response` (codeNode_677): sets
  *      `needs_clarification: false` and `request` to the full Extraction output object.
  * 4. `API Response` — output mapping pulls `needs_clarification`/`clarifying_question` from
- *    `Prepare Clarification`'s output and `request` (type `obj`... actually mapped as `str`
- *    referencing the object directly, which Lamatic serializes correctly) from `Prepare Success
- *    Response`'s output. One source node per field, not per branch — see decision log for why
- *    this resolves correctly regardless of which branch actually ran.
+ *    `Prepare Clarification`'s output and `request` from `Prepare Success Response`'s output.
+ *    One source node per field, not per branch — see decision log for why this resolves
+ *    correctly regardless of which branch actually ran (unexecuted node references resolve
+ *    falsy/empty rather than erroring).
  *
  * ## Inputs
  * | Field | Type | Required | Description |
@@ -44,7 +43,8 @@
  * |---|---|---|
  * | `needs_clarification` | `boolean` | True if `service_type` was missing. |
  * | `clarifying_question` | `string` | Present (non-empty) when `needs_clarification` is true. |
- * | `request` | `object` | Structured booking request; populated when complete. |
+ * | `request` | `object` | Structured booking request (service_type, preferred_date,
+ *   preferred_window, name, phone, notes); populated when complete. |
  *
  * ## Dependencies
  * - LLM provider for the Extraction node (Anthropic credential, claude-haiku-4-5).
@@ -55,4 +55,240 @@
  * so relative phrases like "tomorrow" are returned as-is. Acceptable for MVP.
  */
 
-export {};
+// Flow: intake-agent
+
+// -- Meta --
+export const meta = {
+  "name": "Intake Agent",
+  "description": "",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Zaid Khan",
+    "email": "zaid9khn@gmail.com"
+  }
+};
+
+// -- Inputs --
+export const inputs = {
+  "InstructorLLMNode_254": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ]
+};
+
+// -- References --
+export const references = {
+  "constitutions": {
+    "default": "@constitutions/default.md"
+  },
+  "prompts": {
+    "intake_agent_instructor_llmnode_254_system_0": "@prompts/intake-agent_instructor-llmnode-254_system_0.md",
+    "intake_agent_instructor_llmnode_254_user_1": "@prompts/intake-agent_instructor-llmnode-254_user_1.md"
+  },
+  "modelConfigs": {
+    "intake_agent_instructor_llmnode_254_generative_model_name": "@model-configs/intake-agent_instructor-llmnode-254_generative-model-name.ts"
+  },
+  "scripts": {
+    "intake_agent_code_node_969_code": "@scripts/intake-agent_code-node-969_code.ts",
+    "intake_agent_code_node_677_code": "@scripts/intake-agent_code-node-677_code.ts"
+  }
+};
+
+// -- Nodes & Edges --
+export const nodes = [
+  {
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlNode",
+      "trigger": true,
+      "values": {
+        "id": "triggerNode_1",
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\n  \"message\": \"string\",\n  \"session_id\": \"string\"\n}"
+      }
+    }
+  },
+  {
+    "id": "InstructorLLMNode_254",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "InstructorLLMNode",
+      "values": {
+        "tools": [],
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"service_type\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"The service being requested, e.g. haircut, beard trim, color\"\n    },\n    \"preferred_date\": {\n      \"type\": \"string\",\n      \"description\": \"Requested date normalized to YYYY-MM-DD if stated or clearly inferable, else empty string \\\"\\\".\"\n    },\n    \"preferred_window\": {\n      \"type\": \"string\",\n      \"description\": \"Requested time or time-of-day window, e.g. 2pm, morning, after 5pm. Empty string \\\"\\\" if not given.\"\n    },\n    \"name\": {\n      \"type\": \"string\",\n      \"description\": \"Customer's name if stated, else empty string \\\"\\\".\"\n    },\n    \"phone\": {\n      \"type\": \"string\",\n      \"description\": \"Customer's phone number if stated, else empty string \\\"\\\".\"\n    },\n    \"notes\": {\n      \"type\": \"string\",\n      \"description\": \"Anything else relevant (preferences, special requests) that doesn't fit the other fields, else empty string \\\"\\\".\"\n    }\n  }\n}",
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/intake-agent_instructor-llmnode-254_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/intake-agent_instructor-llmnode-254_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Extraction",
+        "attachments": "",
+        "generativeModelName": "@model-configs/intake-agent_instructor-llmnode-254_generative-model-name.ts"
+      }
+    }
+  },
+  {
+    "id": "conditionNode_423",
+    "type": "conditionNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "conditionNode",
+      "values": {
+        "nodeName": "Condition",
+        "conditions": [
+          {
+            "label": "Condition 1",
+            "value": "conditionNode_423-addNode_895",
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{InstructorLLMNode_254.output.service_type}}\",\n      \"operator\": \"!=\",\n      \"value\": \"\"\n    }\n  ]\n}"
+          },
+          {
+            "label": "Else",
+            "value": "conditionNode_423-addNode_633",
+            "condition": {}
+          }
+        ],
+        "allowMultipleConditionExecution": false
+      }
+    }
+  },
+  {
+    "id": "codeNode_969",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/intake-agent_code-node-969_code.ts",
+        "nodeName": "Prepare Clarification"
+      }
+    }
+  },
+  {
+    "id": "codeNode_677",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/intake-agent_code-node-677_code.ts",
+        "nodeName": "Prepare Success Response"
+      }
+    }
+  },
+  {
+    "id": "responseNode_triggerNode_1",
+    "type": "responseNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "id": "responseNode_triggerNode_1",
+        "headers": "{\"content-type\":\"application/json\"}",
+        "retries": "0",
+        "nodeName": "API Response",
+        "webhookUrl": "",
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"needs_clarification\": \"{{codeNode_969.output.needs_clarification}}\",\n  \"clarifying_question\": \"{{codeNode_969.output.clarifying_question}}\",\n  \"request\": \"{{codeNode_677.output.request}}\"\n}"
+      }
+    }
+  }
+];
+
+export const edges = [
+  {
+    "id": "triggerNode_1-InstructorLLMNode_254",
+    "source": "triggerNode_1",
+    "target": "InstructorLLMNode_254",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "InstructorLLMNode_254-conditionNode_423",
+    "source": "InstructorLLMNode_254",
+    "target": "conditionNode_423",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_423-codeNode_969-279",
+    "source": "conditionNode_423",
+    "target": "codeNode_969",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "codeNode_969-responseNode_triggerNode_1-952",
+    "source": "codeNode_969",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_423-codeNode_677-680",
+    "source": "conditionNode_423",
+    "target": "codeNode_677",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "codeNode_677-responseNode_triggerNode_1-520",
+    "source": "codeNode_677",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "response-trigger_triggerNode_1",
+    "source": "triggerNode_1",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
+  }
+];
+
+export default { meta, inputs, references, nodes, edges };

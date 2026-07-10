@@ -11,10 +11,11 @@ key architectural choices.
 
 ## Status
 
-MVP core complete: Intake, Scheduling, and Confirmation are all built and tested end-to-end in
-Lamatic Studio. Remaining before merge: exporting each flow's real node graph into
-`flows/*.ts` via Studio's export menu, and wiring up the Next.js demo app. Follow-up
-(reminders) is a stretch goal, started only after the 3-agent MVP is merged.
+MVP complete: Intake, Scheduling, and Confirmation are all built, tested end-to-end in Lamatic
+Studio, and exported into `flows/*.ts`. The Next.js demo app is wired up and builds cleanly.
+Remaining before merge: deploying the flows in a Lamatic project and filling in real flow
+IDs/credentials in `apps/.env`. Follow-up (reminders) is a stretch goal, started only after the
+3-agent MVP is merged.
 
 ## Repo layout
 
@@ -22,30 +23,30 @@ Lamatic Studio. Remaining before merge: exporting each flow's real node graph in
 kits/zaid-booking-agent/
   lamatic.config.ts       # kit metadata + flow-ID env keys
   agent.md                # architecture, flow contracts, guardrails
-  flows/                  # one file per agent flow (exported from Lamatic Studio)
-  prompts/                # LLM system prompts, referenced from flows via @prompts/...
-  scripts/                # codeNode script bodies (e.g. mock availability data)
+  flows/                  # one file per agent flow, exported from Lamatic Studio
+  prompts/                # LLM system/user prompts, referenced from flows via @prompts/...
+  model-configs/          # per-node LLM model selection, referenced via @model-configs/...
+  scripts/                # codeNode script bodies, referenced via @scripts/...
   constitutions/          # guardrail/persona definitions
   apps/                   # Next.js demo app (chat widget + orchestration)
   docs/decision-log.md    # running log of architectural decisions
 ```
 
+Filenames under `prompts/`, `model-configs/`, and `scripts/` match what Lamatic Studio's
+"Export as AgentKit" menu generates verbatim (e.g. `scheduling-agent_llmnode-969_system_0.md`)
+since each flow's `@reference` strings point to those exact paths — don't rename them without
+also re-exporting the flow.
+
 ## Setup
 
 1. **Create a Lamatic project.** Sign up at [lamatic.ai](https://lamatic.ai), create a new
    project, and open Studio.
-2. **Build the Intake Agent flow first.** In Studio, recreate the node graph described under
-   "Intake Agent" in [`agent.md`](./agent.md) and the header comment in
-   [`flows/intake-agent.ts`](./flows/intake-agent.ts). Reference the system prompt at
-   [`prompts/intake-agent_extract-request_system.md`](./prompts/intake-agent_extract-request_system.md).
-   Deploy the flow and copy its Flow ID.
-3. **Export the flow** back into this repo via Studio's export menu, replacing the stub content
-   of `flows/intake-agent.ts`.
-4. **Repeat for Scheduling and Confirmation** once Intake is fully working on its own. The
-   Scheduling flow's availability check should be a `codeNode` referencing
-   [`scripts/mock-availability.js`](./scripts/mock-availability.js) — no external API needed for
-   local development, since Lamatic Studio's cloud runtime can't reach `localhost`.
-5. **Configure the demo app**:
+2. **Import each flow.** The node graphs for Intake, Scheduling, and Confirmation are already
+   built and exported into `flows/*.ts` (see the header comment in each file for a full
+   node-by-node walkthrough) — recreate them in your own Studio project, or use Studio's import
+   if your account supports importing an AgentKit export directly. Deploy each flow and copy
+   its Flow ID.
+3. **Configure the demo app**:
    ```bash
    cd apps
    cp .env.example .env
@@ -54,7 +55,7 @@ kits/zaid-booking-agent/
    npm install
    npm run dev
    ```
-6. Open the app and send a booking request through the chat widget.
+4. Open the app and send a booking request through the chat widget.
 
 ## Shared data contract
 
