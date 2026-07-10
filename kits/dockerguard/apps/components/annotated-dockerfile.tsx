@@ -44,7 +44,7 @@ export function AnnotatedDockerfile({ source, findings }: { source: string; find
 
       {open && (
         <div className="overflow-x-auto border-t border-hairline">
-          <pre className="min-w-full py-2 font-mono text-[13px] leading-relaxed">
+          <div className="min-w-full py-2 font-mono text-[13px] leading-relaxed">
             {lines.map((line, i) => {
               const n = i + 1;
               const sev = lineSev.get(n);
@@ -63,7 +63,7 @@ export function AnnotatedDockerfile({ source, findings }: { source: string; find
                 </div>
               );
             })}
-          </pre>
+          </div>
         </div>
       )}
     </section>
