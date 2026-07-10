@@ -11,7 +11,7 @@ An AI-powered copilot for YouTube creators that generates viral video ideas, scr
 2. **Run Locally**
    ```sh
    cd apps
-   cp .env.example .env.local
+   cp .env.example .env.local 
    # Fill in your .env.local with your Lamatic credentials
    bun install
    bun run dev

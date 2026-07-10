@@ -175,23 +175,144 @@ export async function analyzeWebsite(input: AnalysisInput): Promise<AnalysisResu
       res.result?.LLMNode_1?.output ||
       (typeof res.result === 'string' ? res.result : JSON.stringify(res.result));
 
+    console.log("=== RAW AI OUTPUT RECEIVED ===");
+    console.log(rawOutput);
+    console.log("==============================");
+
     // Parse JSON — strip markdown fences if present
     const jsonStr = rawOutput
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/```\s*$/i, '')
       .trim();
 
-    let data: WebReviveReport;
+    let data: WebReviveReport = null as any;
+    let parseFailed = false;
+
     try {
       data = JSON.parse(jsonStr);
     } catch {
       // Try to extract JSON object from the response
       const match = jsonStr.match(/\{[\s\S]*\}/);
       if (match) {
-        data = JSON.parse(match[0]);
+        try {
+          data = JSON.parse(match[0]);
+        } catch {
+          parseFailed = true;
+        }
       } else {
-        return { success: false, error: "AI returned unexpected format. Please try again." };
+        parseFailed = true;
       }
+    }
+
+    // Fallback: If parse fails or structure is incomplete, package the raw response as a report so the user can verify connection
+    if (parseFailed || !data || !data.websiteAnalysis || !data.seoAudit || !data.performance || !data.uiuxReview || !data.proposal || !data.finalReport) {
+      data = {
+        websiteAnalysis: {
+          businessName: "Raw Output Mode (JSON Parsing Failed)",
+          industry: input.industry || "Not Specified",
+          mainServices: ["Audit Result Analysis"],
+          websiteStructure: ["Response Captured"],
+          techStack: ["Unknown"],
+          contactInfo: "N/A",
+          socialLinks: [],
+          overallImpression: "A connection was successfully established with Lamatic! However, the AI returned text instead of the requested JSON structure. You can view the raw text below.",
+        },
+        seoAudit: {
+          score: 0,
+          metaTitle: { present: false, quality: "missing", note: "N/A" },
+          metaDescription: { present: false, quality: "missing", note: "N/A" },
+          h1: { present: false, content: null, note: "N/A" },
+          openGraph: { present: false, note: "N/A" },
+          structuredData: { present: false, note: "N/A" },
+          issues: [{ title: "Non-JSON Response", priority: "critical", detail: rawOutput, fix: "Make sure your flow's LLM node is using the WebRevive system prompt and a model that outputs valid JSON.", impact: "Low usability" }],
+          quickWins: [],
+        },
+        performance: {
+          score: pageSpeedData.error ? 0 : pageSpeedData.performanceScore,
+          grade: pageSpeedData.error ? "F" : (pageSpeedData.performanceScore >= 90 ? 'A' : pageSpeedData.performanceScore >= 70 ? 'B' : pageSpeedData.performanceScore >= 50 ? 'C' : 'D'),
+          fcp: pageSpeedData.fcp,
+          lcp: pageSpeedData.lcp,
+          cls: pageSpeedData.cls,
+          tbt: pageSpeedData.tbt,
+          suggestions: [],
+        },
+        uiuxReview: {
+          uiScore: 0,
+          uxScore: 0,
+          accessibilityScore: 0,
+          heroSection: { score: 0, notes: "N/A" },
+          navigation: { score: 0, notes: "N/A" },
+          typography: { score: 0, notes: "N/A" },
+          colorPalette: { score: 0, notes: "N/A" },
+          mobileResponsiveness: { score: 0, notes: "N/A" },
+          callToAction: { score: 0, notes: "N/A" },
+          recommendations: [],
+        },
+        competitors: {
+          list: [],
+          gapOpportunities: [],
+           d: "",
+          competitiveAdvantage: "N/A",
+        } as any, // fallback typings
+        conversionAudit: {
+          score: 0,
+          leadForms: { present: false, quality: "N/A" },
+          trustSignals: { present: false, detail: "N/A" },
+          socialProof: { present: false, detail: "N/A" },
+          ctaEffectiveness: "weak",
+          recommendations: [],
+        },
+        redesignSuggestions: {
+          heroSection: "N/A",
+          colorPalette: { primary: "#000", secondary: "#000", accent: "#000", rationale: "N/A" },
+          typography: { heading: "N/A", body: "N/A", rationale: "N/A" },
+          navigationRedesign: "N/A",
+          sectionOrder: [],
+          animationIdeas: [],
+          premiumFeatures: [],
+          mobileFirstImprovements: [],
+          imagePrompt: "N/A",
+        },
+        copywriting: {
+          headline: "N/A",
+          subheadline: "N/A",
+          primaryCTA: "N/A",
+          secondaryCTA: "N/A",
+          aboutSection: "N/A",
+          valueProps: [],
+          faqItems: [],
+          footerTagline: "N/A",
+        },
+        coldEmail: {
+          subject: "Audit Result Ready",
+          body: rawOutput,
+          followUp3Days: { subject: "N/A", body: "N/A" },
+          followUp7Days: { subject: "N/A", body: "N/A" },
+        },
+        linkedinOutreach: {
+          connectionRequest: "N/A",
+          firstMessage: "N/A",
+          followUpMessage: "N/A",
+          shortPitch: "N/A",
+        },
+        proposal: {
+          executiveSummary: "N/A",
+          problemsFound: [],
+          proposedSolutions: [],
+          projectGoals: [],
+          timeline: [],
+          estimatedCost: { min: 0, max: 0, currency: "USD", notes: "N/A" },
+          maintenancePlan: "N/A",
+          whyUs: "N/A",
+          callToAction: "N/A",
+        },
+        finalReport: {
+          overallScore: 0,
+          priorityFixes: [],
+          estimatedBusinessImpact: "N/A",
+          executiveOneLiner: "Successfully connected to Lamatic! Flow returned unstructured response.",
+        },
+      };
     }
 
     // Overlay real PageSpeed data if we got it
