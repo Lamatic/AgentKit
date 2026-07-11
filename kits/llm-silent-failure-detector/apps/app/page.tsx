@@ -32,7 +32,7 @@ export default function Page() {
     setError("")
     setReport(null)
 
-    let parsed: LogEntry[]
+    let parsed: unknown
     try {
       parsed = JSON.parse(logsText)
       if (!Array.isArray(parsed)) throw new Error("Input must be a JSON array of log objects.")

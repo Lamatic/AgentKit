@@ -1,14 +1,18 @@
 "use server"
 
-import { lamaticClient, FLOW_ID } from "@/lib/lamatic-client"
+import { z } from "zod"
+import { lamaticClient } from "@/lib/lamatic-client"
+import config from "../../lamatic.config"
 
-export type LogEntry = {
-  id: string
-  prompt: string
-  context: string
-  response: string
-  expected_schema?: Record<string, unknown>
-}
+const LogEntrySchema = z.object({
+  id: z.string(),
+  prompt: z.string(),
+  context: z.string(),
+  response: z.string(),
+  expected_schema: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type LogEntry = z.infer<typeof LogEntrySchema>
 
 export type FailureMode = {
   name: string
@@ -27,19 +31,34 @@ export type DetectionReport = {
   failure_modes: FailureMode[]
 }
 
-type ActionResult =
-  | { success: true; data: DetectionReport }
-  | { success: false; error: string }
+type ActionResult = { success: true; data: DetectionReport } | { success: false; error: string }
 
-export async function detectSilentFailures(logs: LogEntry[]): Promise<ActionResult> {
+function resolveFlowId(): string {
+  const step = config.steps[0]
+  if (!step?.envKey) {
+    throw new Error("No flow envKey configured in lamatic.config.ts")
+  }
+  const flowId = process.env[step.envKey]
+  if (!flowId) {
+    throw new Error(`Missing environment variable: ${step.envKey}`)
+  }
+  return flowId
+}
+
+export async function detectSilentFailures(logs: unknown[]): Promise<ActionResult> {
   try {
-    if (!Array.isArray(logs) || logs.length === 0) {
-      return { success: false, error: "Provide at least one log entry." }
+    const parsed = z.array(LogEntrySchema).min(1).safeParse(logs)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      return {
+        success: false,
+        error: issue ? `Invalid log entry at ${issue.path.join(".")}: ${issue.message}` : "Invalid log batch.",
+      }
     }
 
-    const resData = await lamaticClient.executeFlow(FLOW_ID, { logs })
+    const flowId = resolveFlowId()
+    const resData = await lamaticClient.executeFlow(flowId, { logs: parsed.data })
 
-    // The flow's API Response node returns the report directly under `result`.
     const report = resData?.result?.result as DetectionReport | undefined
 
     if (!report || !report.summary || !Array.isArray(report.failure_modes)) {
@@ -50,13 +69,22 @@ export async function detectSilentFailures(logs: LogEntry[]): Promise<ActionResu
   } catch (error) {
     console.error("[detectSilentFailures] error:", error)
 
-    let message = "Unknown error occurred."
+    let message = "Something went wrong while running detection. Please try again."
     if (error instanceof Error) {
-      message = error.message
-      if (message.includes("fetch failed")) {
+      if (error.message.includes("fetch failed")) {
         message = "Network error: could not reach the Lamatic API. Check your connection and credentials."
-      } else if (message.toLowerCase().includes("api key") || message.toLowerCase().includes("unauthorized")) {
+      } else if (
+        error.message.toLowerCase().includes("api key") ||
+        error.message.toLowerCase().includes("unauthorized")
+      ) {
         message = "Authentication error: check LAMATIC_API_KEY and LAMATIC_PROJECT_ID in your .env.local."
+      } else if (
+        error.message.startsWith("Invalid log entry") ||
+        error.message.startsWith("Missing environment variable") ||
+        error.message.startsWith("No flow envKey") ||
+        error.message === "Unexpected response shape from the flow."
+      ) {
+        message = error.message
       }
     }
 

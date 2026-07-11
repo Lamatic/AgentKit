@@ -17,9 +17,9 @@ This is a multi-step agent, not a single prompt wrapper. For each log in the bat
 
 Flagged logs are then collected and, if there are enough of them (more than 1), run through a second stage:
 
-3. **Embed** each flagged failure (Gemini `text-embedding-004`)
-4. **Cluster** by cosine similarity — grouping failures that represent the same underlying problem
-5. **Name each cluster** (LLM) — a short label, a description of the pattern, and a suggested engineering fix
+1. **Embed** each flagged failure (Gemini `text-embedding-004`)
+2. **Cluster** by cosine similarity — grouping failures that represent the same underlying problem
+3. **Name each cluster** (LLM) — a short label, a description of the pattern, and a suggested engineering fix
 
 The output is a structured report: summary counts, plus a list of named failure modes ranked by frequency.
 
@@ -42,7 +42,7 @@ The fix would be clustering on a normalized failure-category signal (e.g. having
 
 ## Architecture
 
-```
+```text
 API Request (logs[]) → for each log:
     Grounding check (LLM) ─┐
     Schema check (code)    ─┤→ merge → flagged?

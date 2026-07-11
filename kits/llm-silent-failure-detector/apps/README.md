@@ -5,18 +5,22 @@ Next.js frontend for the `llm-silent-failure-detector` Lamatic flow. Paste a bat
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Copy `.env.example` to `.env.local` and fill in your credentials:
+
    ```bash
    cp .env.example .env.local
    ```
+
    - `LAMATIC_FLOW_ID` — the deployed flow's ID (Studio → your flow → detail panel)
    - `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` — from Studio → Settings
 
 3. Run locally:
+
    ```bash
    npm run dev
    ```
