@@ -14,14 +14,14 @@ The **LLM Response QA** agent evaluates responses across multiple quality dimens
 
 ## Features
 
-- ✅ Overall Quality Score (0–100)
-- ✅ Accuracy Evaluation
-- ✅ Completeness Assessment
-- ✅ Relevance Analysis
-- ✅ Hallucination Risk Detection (Low / Medium / High)
-- ✅ Issue Detection
-- ✅ Actionable Suggestions
-- ✅ Constructive Feedback
+- Overall Quality Score (0–100)
+- Accuracy Evaluation
+- Completeness Assessment
+- Relevance Analysis
+- Hallucination Risk Detection (Low / Medium / High)
+- Issue Detection
+- Actionable Suggestions
+- Constructive Feedback
 
 ## Workflow
 
