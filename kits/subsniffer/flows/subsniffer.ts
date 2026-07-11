@@ -140,6 +140,14 @@ export const nodes = [
 
 export const edges = [
   {
+    "id": "triggerNode_1-InstructorLLMNode_954",
+    "source": "triggerNode_1",
+    "target": "InstructorLLMNode_954",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
     "id": "InstructorLLMNode_954-LLMNode_456",
     "source": "InstructorLLMNode_954",
     "target": "LLMNode_456",
