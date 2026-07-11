@@ -21,10 +21,15 @@
  *    an empty string `""` (never the word "null") for anything not stated — the schema has no
  *    true nullable type, so asking the model for JSON `null` produced sentinel text like
  *    "<UNKNOWN>" instead. See docs/decision-log.md.
- * 3. `Condition` — checks `{{InstructorLLMNode_254.output.service_type}} != ""`.
- *    - `Else` (empty) → `Prepare Clarification` (codeNode_969): sets `needs_clarification: true`
- *      and a fixed clarifying question.
- *    - `Condition 1` (present) → `Prepare Success Response` (codeNode_677): sets
+ * 3. `Condition` — checks BOTH `{{InstructorLLMNode_254.output.service_type}} != ""` AND
+ *    `{{InstructorLLMNode_254.output.preferred_date}} != ""` (a two-operand AND condition,
+ *    built via Studio's condition builder UI since no compound condition existed elsewhere in
+ *    this repo to copy the JSON shape from).
+ *    - `Else` (either field empty) → `Prepare Clarification` (codeNode_969): sets
+ *      `needs_clarification: true` and a clarifying question for whichever single field is
+ *      missing — service_type takes priority if both are (one question at a time, per
+ *      constitutions/default.md).
+ *    - `Condition 1` (both present) → `Prepare Success Response` (codeNode_677): sets
  *      `needs_clarification: false` and `request` to the full Extraction output object.
  * 4. `API Response` — output mapping pulls `needs_clarification`/`clarifying_question` from
  *    `Prepare Clarification`'s output and `request` from `Prepare Success Response`'s output.
@@ -41,7 +46,8 @@
  * ## Outputs
  * | Field | Type | Description |
  * |---|---|---|
- * | `needs_clarification` | `boolean` | True if `service_type` was missing. |
+ * | `needs_clarification` | `boolean` | True if `service_type` and/or `preferred_date` was
+ *   missing. |
  * | `clarifying_question` | `string` | Present (non-empty) when `needs_clarification` is true. |
  * | `request` | `object` | Structured booking request (service_type, preferred_date,
  *   preferred_window, name, phone, notes); populated when complete. |
@@ -168,7 +174,7 @@ export const nodes = [
           {
             "label": "Condition 1",
             "value": "conditionNode_423-addNode_895",
-            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{InstructorLLMNode_254.output.service_type}}\",\n      \"operator\": \"!=\",\n      \"value\": \"\"\n    }\n  ]\n}"
+            "condition": "{\n  \"operator\": \"AND\",\n  \"operands\": [\n    {\n      \"name\": \"{{InstructorLLMNode_254.output.service_type}}\",\n      \"operator\": \"!=\",\n      \"value\": \"\"\n    },\n    {\n      \"name\": \"{{InstructorLLMNode_254.output.preferred_date}}\",\n      \"operator\": \"!=\",\n      \"value\": \"\"\n    }\n  ]\n}"
           },
           {
             "label": "Else",
