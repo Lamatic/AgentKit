@@ -40,10 +40,11 @@ a fast, conversational booking experience without a human having to triage every
      structured JSON (`service_type`, `preferred_date`, `preferred_window`, `name`, `phone`,
      `notes`). Every field is a plain string; missing fields come back as `""`, never `null` or
      a placeholder token — see `docs/decision-log.md` for why.
-  2. `Condition` checks `service_type != ""`.
-     - Empty (`Else`) → `Prepare Clarification` (codeNode) sets `needs_clarification: true` and
-       a natural-language clarifying question.
-     - Present (`Condition 1`) → `Prepare Success Response` (codeNode) sets
+  2. `Condition` checks `service_type != ""` AND `preferred_date != ""` (both required now).
+     - Either missing (`Else`) → `Prepare Clarification` (codeNode) sets
+       `needs_clarification: true` and asks about whichever single field is missing
+       (service first if both are missing).
+     - Both present (`Condition 1`) → `Prepare Success Response` (codeNode) sets
        `needs_clarification: false` and `request` to the full extracted object.
   3. `API Response` maps `needs_clarification`/`clarifying_question` from `Prepare
      Clarification`'s output and `request` from `Prepare Success Response`'s output — see
