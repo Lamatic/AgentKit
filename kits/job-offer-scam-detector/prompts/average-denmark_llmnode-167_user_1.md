@@ -1,1 +1,4 @@
+
+<message>
 {{triggerNode_1.output.job_offer_text}}
+</message>

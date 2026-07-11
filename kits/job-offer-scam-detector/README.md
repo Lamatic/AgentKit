@@ -54,8 +54,11 @@ Sample inputs and expected behavior:
 1. Import this template into your own Lamatic Studio project, or deploy the flow as-is.
 2. No environment variables or external API keys are required beyond your Lamatic project's configured model credential (this template uses Groq's `llama-3.3-70b-versatile`).
 3. Call the flow's API endpoint with:
+
 ```json
+
 { "job_offer_text": "<the message to analyze>" }
+
 ```
 
 ## Limitations & Tradeoffs
