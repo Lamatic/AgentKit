@@ -1,4 +1,5 @@
 import { Lamatic } from "lamatic";
+import kitConfig from "../../lamatic.config";
 
 /** Reads a required environment variable, failing fast with a setup hint if absent. */
 function env(key: string): string {
@@ -18,10 +19,19 @@ export function getLamaticClient() {
   });
 }
 
-/** Returns the deployed flow IDs for the log and ask flows. */
+/** Resolves an envKey from the kit's canonical step definitions in lamatic.config.ts. */
+function stepEnvKey(stepId: string): string {
+  const step = kitConfig.steps.find((s) => s.id === stepId);
+  if (!step?.envKey) {
+    throw new Error(`Step "${stepId}" with an envKey not found in lamatic.config.ts`);
+  }
+  return step.envKey;
+}
+
+/** Returns the deployed flow IDs for the log and ask flows, keyed via lamatic.config.ts. */
 export function getFlowIds() {
   return {
-    log: env("DEVDIARY_LOG_FLOW_ID"),
-    ask: env("DEVDIARY_ASK_FLOW_ID"),
+    log: env(stepEnvKey("devdiary-log")),
+    ask: env(stepEnvKey("devdiary-ask")),
   };
 }

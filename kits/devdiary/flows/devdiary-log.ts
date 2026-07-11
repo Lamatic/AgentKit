@@ -3,7 +3,7 @@
 // -- Meta --
 export const meta = {
   "name": "devdiary-log",
-  "description": "",
+  "description": "Summarizes GitHub push diffs into a structured journal entry, then vectorizes and indexes it with project/date metadata.",
   "tags": [],
   "testInput": null,
   "githubUrl": "",

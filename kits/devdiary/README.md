@@ -52,7 +52,7 @@ npm run dev
 | `DEVDIARY_LOG_FLOW_ID` | `devdiary-log` flow → ⋮ → Copy Flow Id |
 | `DEVDIARY_ASK_FLOW_ID` | `devdiary-ask` flow → ⋮ → Copy Flow Id |
 | `GITHUB_TOKEN` | GitHub → Settings → Developer settings → PAT (repo read scope). Optional for public repos |
-| `GITHUB_WEBHOOK_SECRET` | Any random string; reuse it in the GitHub webhook config. Optional but recommended |
+| `GITHUB_WEBHOOK_SECRET` | Any random string; reuse it in the GitHub webhook config. Required for the webhook endpoint (unsigned requests are rejected) |
 
 Open [http://localhost:3000](http://localhost:3000).
 

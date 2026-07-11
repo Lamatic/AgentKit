@@ -26,6 +26,9 @@ export async function syncRepo(
     if (!owner.trim() || !repo.trim()) {
       return { success: false, error: "Owner and repo are required." };
     }
+    if (!Number.isFinite(days) || days < 1 || days > 365) {
+      return { success: false, error: "Days must be between 1 and 365." };
+    }
 
     const effectiveBranch = branch.trim() || "main";
     const commits = await fetchRecentCommits(owner, repo, effectiveBranch, days);

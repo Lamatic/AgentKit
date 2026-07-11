@@ -21,11 +21,15 @@ export async function POST(req: Request) {
   const rawBody = rawBytes.toString("utf8");
 
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
-  if (secret) {
-    const signature = req.headers.get("x-hub-signature-256");
-    if (!verifySignature(rawBytes, signature, secret)) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
+  if (!secret) {
+    return NextResponse.json(
+      { error: "Webhook not configured: set GITHUB_WEBHOOK_SECRET" },
+      { status: 503 }
+    );
+  }
+  const signature = req.headers.get("x-hub-signature-256");
+  if (!verifySignature(rawBytes, signature, secret)) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   const event = req.headers.get("x-github-event");
@@ -67,7 +71,7 @@ export async function POST(req: Request) {
       repo: `${owner}/${repo}`,
       branch,
       author,
-      date: new Date().toISOString(),
+      date: payload.head_commit?.timestamp ?? details[details.length - 1]?.date ?? new Date().toISOString(),
       commitText,
     });
 
@@ -77,7 +81,7 @@ export async function POST(req: Request) {
       entry: response?.result?.entry ?? null,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[devdiary webhook]", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

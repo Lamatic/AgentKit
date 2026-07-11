@@ -85,11 +85,12 @@ export function ChatPanel() {
           <CalendarRange className="h-3.5 w-3.5" /> Weekly digest
         </button>
         <input
-          className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-sky-600"
+          className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-sky-600 disabled:opacity-50"
           placeholder="Ask about your work..."
           value={input}
+          disabled={loading}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send(input)}
+          onKeyDown={(e) => e.key === "Enter" && !loading && send(input)}
         />
         <button
           onClick={() => send(input)}

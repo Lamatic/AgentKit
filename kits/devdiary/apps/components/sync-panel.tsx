@@ -51,9 +51,9 @@ export function SyncPanel() {
           className={inputClass}
           type="number"
           min={1}
-          max={30}
+          max={365}
           value={days}
-          onChange={(e) => setDays(Number(e.target.value) || 7)}
+          onChange={(e) => setDays(Math.min(365, Math.max(1, Number(e.target.value) || 7)))}
           title="Days of history to fetch"
         />
       </div>

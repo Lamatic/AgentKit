@@ -37,7 +37,10 @@ function githubHeaders(): Record<string, string> {
 
 /** GETs a GitHub REST path and returns parsed JSON, mapping common errors to actionable messages. */
 async function githubFetch(path: string): Promise<any> {
-  const res = await fetch(`${GITHUB_API}${path}`, { headers: githubHeaders() });
+  const res = await fetch(`${GITHUB_API}${path}`, {
+    headers: githubHeaders(),
+    signal: AbortSignal.timeout(15000),
+  });
   if (!res.ok) {
     const hint =
       res.status === 404
@@ -59,7 +62,7 @@ export async function fetchRecentCommits(
 ): Promise<CommitSummary[]> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const data = await githubFetch(
-    `/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&since=${since}&per_page=25`
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?sha=${encodeURIComponent(branch)}&since=${since}&per_page=25`
   );
   return data.map((c: any) => ({
     sha: c.sha,
@@ -71,7 +74,9 @@ export async function fetchRecentCommits(
 
 /** Fetches one commit with its per-file diff patches. */
 export async function fetchCommitDetail(owner: string, repo: string, sha: string): Promise<CommitDetail> {
-  const data = await githubFetch(`/repos/${owner}/${repo}/commits/${sha}`);
+  const data = await githubFetch(
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(sha)}`
+  );
   return {
     sha: data.sha,
     message: data.commit?.message ?? "",
@@ -108,6 +113,11 @@ export function buildCommitText(commits: CommitDetail[]): string {
     }
 
     const block = lines.join("\n");
+    if (blocks.length === 0) {
+      blocks.push(block.slice(0, MAX_TOTAL_CHARS));
+      total += Math.min(block.length, MAX_TOTAL_CHARS);
+      continue;
+    }
     if (total + block.length > MAX_TOTAL_CHARS) break;
     total += block.length;
     blocks.push(block);

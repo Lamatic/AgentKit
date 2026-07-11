@@ -3,7 +3,7 @@
 // -- Meta --
 export const meta = {
   "name": "devdiary-ask",
-  "description": "",
+  "description": "Answers natural-language questions about logged work via RAG over the devdiary vector store, citing project and date.",
   "tags": [],
   "testInput": null,
   "githubUrl": "",
