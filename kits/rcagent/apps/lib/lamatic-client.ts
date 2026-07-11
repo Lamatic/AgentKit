@@ -12,7 +12,7 @@ if (!IS_MOCK) {
 
   if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
     throw new Error(
-      "All API Credentials in environment variables are not set. Please add it to your .env.local file."
+      "Required API credentials (LAMATIC_API_URL, LAMATIC_PROJECT_ID, LAMATIC_API_KEY) are missing. Please add them to your .env.local file."
     );
   }
 }
