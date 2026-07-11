@@ -7,7 +7,9 @@
  *
  * ## Purpose
  * Checks the requested date/window against availability and either confirms the slot is open
- * or proposes 2-3 natural-language alternatives.
+ * or proposes 2-3 alternative slots — as clickable data, not just prose — so the customer can
+ * accept one directly instead of re-typing a new request (see decision log: the accept-loop
+ * bug this replaced).
  *
  * ## Trigger
  * API request (graphqlNode). Schema: `{ preferred_date: string, preferred_window: string,
@@ -23,10 +25,14 @@
  *    - `nearby_slots` (array) — the 3 `OPEN_SLOTS` entries closest to `preferred_date` by
  *      absolute date distance, used as fallback suggestions on the no-availability path (see
  *      decision log: the `open_slots` gap).
+ *    - `proposed_slots` (array) — `open_slots` when available, else `nearby_slots`. Computed
+ *      here (not in either branch node) specifically so it's non-empty regardless of which
+ *      branch fires — see decision log: this is what makes suggested alternatives clickable
+ *      instead of forcing the customer to re-type a new request to accept one.
  * 3. `Condition` — checks `{{codeNode_970.output.slot_available}} == "true"`.
  *    - `Condition 1` (true) → `Prepare Availability Response` (codeNode_594): sets
- *      `slot_available: true`, `proposed_slots` (= `open_slots`), and a `message` confirming
- *      the requested date.
+ *      `slot_available: true`, its own (now redundant but harmless) `proposed_slots` copy, and
+ *      a `message` confirming the requested date.
  *    - `Else` (false) → `Suggest Alternatives` (LLMNode_969, Generate Text, claude-haiku-4-5):
  *      generates a natural-language message offering 2-3 alternatives drawn from
  *      `nearby_slots`. System prompt: `@prompts/scheduling-agent_llmnode-969_system_0.md`.
@@ -35,8 +41,12 @@
  * 4. `API Response` — output mapping:
  *    - `slot_available` ← `{{codeNode_970.output.slot_available}}` (Check Availability runs on
  *      every execution, so this is sourced directly rather than from either branch node).
- *    - `proposed_slots` ← `{{codeNode_594.output.proposed_slots}}` (empty/falsy on the Else
- *      branch, since that codeNode never runs).
+ *    - `proposed_slots` ← `{{codeNode_970.output.proposed_slots}}` — sourced directly from
+ *      Check Availability (same "always runs" reasoning as `slot_available`) rather than from
+ *      either branch node, so it's populated on both the available and unavailable paths. Not
+ *      merged via the `{{a}}{{b}}` branch-concatenation pattern used for `message` below —
+ *      that trick is only proven safe for string fields in this repo, and `proposed_slots` is
+ *      an array, so a single direct source avoids relying on untested merge behavior.
  *    - `message` ← `{{codeNode_594.output.message}}{{LLMNode_969.output.generatedResponse}}`
  *      — both branch outputs concatenated in sequence. Only one of the two ever executes per
  *      run, and an unexecuted node's referenced output resolves to an empty string, so the
@@ -56,8 +66,9 @@
  * | Field | Type | Description |
  * |---|---|---|
  * | `slot_available` | `boolean` | True if the originally requested date has an open slot. |
- * | `proposed_slots` | `{date, time}[]` | The same-day open slot(s) when available; empty
- *   array when not. |
+ * | `proposed_slots` | `{date, time}[]` | The same-day open slot(s) when available, otherwise
+ *   the 3 nearest alternative slots — always populated so the customer always has something
+ *   clickable to accept, on either path. |
  * | `message` | `string` | Natural-language message to show the customer — either a
  *   confirmation (available path) or an LLM-generated alternatives offer (unavailable path). |
  *
@@ -243,7 +254,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"slot_available\": \"{{codeNode_970.output.slot_available}}\",\n  \"proposed_slots\": \"{{codeNode_594.output.proposed_slots}}\",\n  \"message\": \"{{codeNode_594.output.message}}{{LLMNode_969.output.generatedResponse}}\"\n}"
+        "outputMapping": "{\n  \"slot_available\": \"{{codeNode_970.output.slot_available}}\",\n  \"proposed_slots\": \"{{codeNode_970.output.proposed_slots}}\",\n  \"message\": \"{{codeNode_594.output.message}}{{LLMNode_969.output.generatedResponse}}\"\n}"
       }
     }
   }

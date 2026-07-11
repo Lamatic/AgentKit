@@ -34,6 +34,9 @@ export async function POST(request: Request) {
       // conversation joined together — this lets a clarifying answer combine with what the
       // customer already said, without needing state inside the flow itself.
       message: messages.join(" "),
+      // The model has no built-in sense of the real current date, so it was defaulting
+      // relative/year-less dates to the wrong year. Give it the real one.
+      today: new Date().toISOString().slice(0, 10),
       session_id,
     });
 
