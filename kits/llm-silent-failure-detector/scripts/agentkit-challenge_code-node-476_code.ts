@@ -1,14 +1,26 @@
 const report = {{codeNode_978.output}};
 const single = {{codeNode_575.output}};
 
-if (report && typeof report === "object" && Object.keys(report).length > 0) {
-  return report;
+const reportValid =
+  report &&
+  !report.executionMsg &&
+  report.summary;
+
+const singleValid =
+  single &&
+  !single.executionMsg;
+
+if (reportValid) {
+  return { result: report };
 }
 
-if (single && typeof single === "object" && Object.keys(single).length > 0) {
-  return single;
+if (singleValid) {
+  return { result: single };
 }
 
 return {
-  error: "No output available from either branch."
+  result: {
+    summary: { total_logs: 0, flagged: 0, clusters: 0 },
+    failure_modes: []
+  }
 };

@@ -6,7 +6,7 @@ export default {
       "type": "generator/text",
       "params": {},
       "configName": "configA",
-      "model_name": "gemini/gemini-2.5-flash",
+      "model_name": "gemini/gemini-3.1-flash-lite",
       "credentialId": "62d4aca2-62de-4926-b128-f3cdf0dfd2fc",
       "provider_name": "gemini",
       "credential_name": "Agentkit2"

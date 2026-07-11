@@ -418,12 +418,13 @@ export const nodes = [
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
+        "id": "responseNode_triggerNode_1",
         "headers": "{\"content-type\":\"application/json\"}",
         "retries": "0",
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{{codeNode_476.output}}"
+        "outputMapping": "{\n  \"result\": \"{{codeNode_476.output.result}}\"\n}"
       }
     }
   }
