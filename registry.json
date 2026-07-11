@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "generated": "2026-06-24T15:59:50.185Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 79,
+  "count": 80,
   "typeCounts": {
-    "kit": 30,
+    "kit": 31,
     "bundle": 6,
     "template": 43
   },
@@ -4268,6 +4268,69 @@
         "prompts": 6,
         "scripts": 0,
         "modelConfigs": 0,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "rcagent",
+      "name": "RCAgent",
+      "description": "Automated Root Cause Analysis (RCA) pipeline for software incidents.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "sre",
+        "debugging",
+        "incident-management"
+      ],
+      "author": {
+        "name": "Shuvendu Kumar Mohapatra",
+        "email": "shuvendukumarmohapatra92@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "rcagent-planner",
+          "type": "mandatory",
+          "envKey": "RC_PLANNER_FLOW_ID"
+        },
+        {
+          "id": "rcagent-analyzer",
+          "type": "mandatory",
+          "envKey": "RC_ANALYZER_FLOW_ID"
+        },
+        {
+          "id": "rcagent-synthesizer",
+          "type": "mandatory",
+          "envKey": "RC_SYNTHESIZER_FLOW_ID"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/rcagent",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Frcagent%2Fapps&env=LAMATIC_API_KEY,LAMATIC_API_URL,LAMATIC_PROJECT_ID,RC_PLANNER_FLOW_ID,RC_ANALYZER_FLOW_ID,RC_SYNTHESIZER_FLOW_ID"
+      },
+      "path": "kits/rcagent",
+      "flows": {
+        "count": 3,
+        "names": [
+          "rcagent-planner",
+          "rcagent-analyzer",
+          "rcagent-synthesizer"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 0,
+        "modelConfigs": 3,
         "constitutions": 1,
         "triggers": 0,
         "memory": 0,
