@@ -2,7 +2,7 @@
 
 ## Overview
 
-An AI agent that analyzes job offer messages — emails, DMs, or texts — and flags common signs of employment fraud before a candidate acts on them. It returns a structured risk assessment rather than a vague opinion, so the output can be trusted, logged, or shown directly in a UI.
+An AI agent that analyzes job offer messages — emails, DMs, or texts — and flags common signs of employment fraud before a candidate acts on them. It returns a structured risk assessment rather than a vague opinion, so the output is easy to log, audit, or display directly in a UI.
 
 ## Purpose
 
@@ -31,7 +31,7 @@ Job seekers, especially early-career candidates applying to many roles at once, 
 
 - The agent only evaluates the text it is given — it does not claim to verify a company's real-world legitimacy, contact a domain, or perform any lookup. It is a linguistic/pattern-based signal, not a definitive fraud determination.
 - Output is constrained to the fixed JSON schema above; the system prompt explicitly disallows freeform commentary outside that structure.
-- The agent does not store, log, or forward any submitted message content beyond the single request/response cycle.
+- This template itself does not add extra logging or storage beyond the LLM call — but data retention ultimately depends on your Lamatic project and model provider settings, which this template does not control.
 
 ## Model
 
