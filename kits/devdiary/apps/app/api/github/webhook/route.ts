@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getLamaticClient, getFlowIds } from "@/lib/lamatic-client";
 import { fetchCommitDetail, buildCommitText } from "@/lib/github";
 
+/** Verifies GitHub's X-Hub-Signature-256 HMAC against the raw request bytes. */
 function verifySignature(rawBody: Buffer, signature: string | null, secret: string): boolean {
   if (!signature) return false;
   const expected =
@@ -14,6 +15,7 @@ function verifySignature(rawBody: Buffer, signature: string | null, secret: stri
   }
 }
 
+/** Handles GitHub push webhooks: verifies signature, fetches diffs, and logs a diary entry. */
 export async function POST(req: Request) {
   const rawBytes = Buffer.from(await req.arrayBuffer());
   const rawBody = rawBytes.toString("utf8");

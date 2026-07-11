@@ -9,10 +9,12 @@ export interface ActionResult<T = unknown> {
   error?: string;
 }
 
+/** Normalizes unknown thrown values into a display-safe message. */
 function toError(err: unknown): string {
   return err instanceof Error ? err.message : "Unknown error";
 }
 
+/** Fetches recent commits + diffs from GitHub and logs one journal entry via the devdiary-log flow. */
 export async function syncRepo(
   owner: string,
   repo: string,
@@ -55,6 +57,7 @@ export async function syncRepo(
   }
 }
 
+/** Answers a natural-language question about logged work via the devdiary-ask RAG flow. */
 export async function askDiary(query: string): Promise<ActionResult<{ answer: string }>> {
   try {
     if (!query.trim()) {

@@ -23,6 +23,7 @@ export interface CommitDetail extends CommitSummary {
   files: CommitFileChange[];
 }
 
+/** Builds GitHub API headers, attaching the PAT from GITHUB_TOKEN when set. */
 function githubHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -34,6 +35,7 @@ function githubHeaders(): Record<string, string> {
   return headers;
 }
 
+/** GETs a GitHub REST path and returns parsed JSON, mapping common errors to actionable messages. */
 async function githubFetch(path: string): Promise<any> {
   const res = await fetch(`${GITHUB_API}${path}`, { headers: githubHeaders() });
   if (!res.ok) {
@@ -48,6 +50,7 @@ async function githubFetch(path: string): Promise<any> {
   return res.json();
 }
 
+/** Lists commits on a branch within the last `days`, newest first (max 25). */
 export async function fetchRecentCommits(
   owner: string,
   repo: string,
@@ -66,6 +69,7 @@ export async function fetchRecentCommits(
   }));
 }
 
+/** Fetches one commit with its per-file diff patches. */
 export async function fetchCommitDetail(owner: string, repo: string, sha: string): Promise<CommitDetail> {
   const data = await githubFetch(`/repos/${owner}/${repo}/commits/${sha}`);
   return {
@@ -82,6 +86,7 @@ export async function fetchCommitDetail(owner: string, repo: string, sha: string
   };
 }
 
+/** Formats commits + truncated diffs into the plain-text block the devdiary-log flow expects. */
 export function buildCommitText(commits: CommitDetail[]): string {
   const blocks: string[] = [];
   let total = 0;
