@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import HotelForm from "@/components/HotelForm";
 import HotelResults from "@/components/HotelResults";
 import type { HotelSearchRequest, HotelSearchResponse } from "@/lib/hotel-client";
@@ -24,13 +24,21 @@ function saveState(data: { hotelResult: HotelSearchResponse | null }) {
 }
 
 export default function Home() {
-  const saved = loadState();
-
-  const [hotelResult, setHotelResult] = useState<HotelSearchResponse | null>(saved?.hotelResult ?? null);
+  const [hotelResult, setHotelResult] = useState<HotelSearchResponse | null>(null);
   const [hotelLoading, setHotelLoading] = useState(false);
   const [hotelError, setHotelError] = useState<string | null>(null);
+  const hasHydrated = useRef(false);
 
   useEffect(() => {
+    const saved = loadState();
+    if (saved?.hotelResult) {
+      setHotelResult(saved.hotelResult);
+    }
+    hasHydrated.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated.current) return;
     saveState({ hotelResult });
   }, [hotelResult]);
 

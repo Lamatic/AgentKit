@@ -1,6 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-parchment: #EDE6D6;
+  --color-parchment-dark: #E1D7BF;
+  --color-ink: #1B2A4A;
+  --color-pine: #1F3A3D;
+  --color-marigold: #E8A33D;
+  --color-stamp: #B23A2E;
+
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+  --font-body: var(--font-body);
+}
 
 :root {
   color-scheme: light;
@@ -115,4 +126,29 @@ select {
 select option {
   background-color: #EDE6D6;
   color: #1B2A4A;
+}
+
+/* shadcn/ui Select animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes zoomIn95 {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
+@keyframes zoomOut95 {
+  from { transform: scale(1); }
+  to { transform: scale(0.95); }
+}
+
+.select-content-animate[data-state="open"] {
+  animation: fadeIn 150ms ease-out, zoomIn95 150ms ease-out;
+}
+.select-content-animate[data-state="closed"] {
+  animation: fadeOut 100ms ease-in, zoomOut95 100ms ease-in;
 }
