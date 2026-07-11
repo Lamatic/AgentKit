@@ -1,0 +1,17 @@
+INVOICE  #A-2231
+
+From:      Brightline Studios
+Bill To:   Acme Co.
+
+Description                         Amount
+-------------------------------------------
+Brand identity design               $900.00
+Landing page mockups                $340.00
+-------------------------------------------
+Total Due:                        $1,240.00
+
+Due Date:  03/18/2026
+Terms:     Net 30. A late fee of 1.5% per month applies to any balance
+           unpaid after the due date.
+
+Remit to account ending 4471. Questions? billing@brightline.studio

@@ -1,0 +1,52 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 493 >>
+stream
+BT
+/F1 11 Tf
+72 720 Td
+15 TL
+(INVOICE  #A-2231) Tj
+() '
+(From:    Brightline Studios) '
+(Bill To: Acme Co.) '
+() '
+(Description                         Amount) '
+(Brand identity design               $900.00) '
+(Landing page mockups                $340.00) '
+(Total Due:                        $1,240.00) '
+() '
+(Due Date: 03/18/2026) '
+(Terms:    Net 30. A late fee of 1.5% per month applies) '
+(          to any balance unpaid after the due date.) '
+() '
+(Remit to account ending 4471.) '
+ET
+
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+855
+%%EOF
