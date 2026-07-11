@@ -3,7 +3,7 @@ export default {
   description: "Paste a bank statement or list of charges and get a clear audit of recurring subscriptions, which ones you don't use, your estimated monthly savings, and one-click cancellation links.",
   version: "1.0.0",
   type: "kit" as const,
-  author: { name: "Satyam Singh", email: "acinema69@gmail.com" },
+  author: { name: "Satyam Singh", email: "satyamsingh7734@gmail.com" },
   tags: ["finance", "subscriptions", "savings", "productivity"],
   steps: [
     {
