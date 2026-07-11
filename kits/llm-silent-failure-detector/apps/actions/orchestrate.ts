@@ -70,21 +70,26 @@ export async function detectSilentFailures(logs: unknown[]): Promise<ActionResul
     console.error("[detectSilentFailures] error:", error)
 
     let message = "Something went wrong while running detection. Please try again."
+
     if (error instanceof Error) {
-      if (error.message.includes("fetch failed")) {
-        message = "Network error: could not reach the Lamatic API. Check your connection and credentials."
+      const rawMessage = error.message;
+
+      if (rawMessage.includes("fetch failed")) {
+        message =
+          "Network error: could not reach the Lamatic API. Check your connection and credentials.";
       } else if (
-        error.message.toLowerCase().includes("api key") ||
-        error.message.toLowerCase().includes("unauthorized")
+        rawMessage.toLowerCase().includes("api key") ||
+        rawMessage.toLowerCase().includes("unauthorized")
       ) {
-        message = "Authentication error: check LAMATIC_API_KEY and LAMATIC_PROJECT_ID in your .env.local."
+        message =
+          "Authentication error: check LAMATIC_API_KEY and LAMATIC_PROJECT_ID in your .env.local.";
       } else if (
-        error.message.startsWith("Invalid log entry") ||
-        error.message.startsWith("Missing environment variable") ||
-        error.message.startsWith("No flow envKey") ||
-        error.message === "Unexpected response shape from the flow."
+        rawMessage.startsWith("Invalid log entry") ||
+        rawMessage.startsWith("Missing environment variable") ||
+        rawMessage.startsWith("No flow envKey") ||
+        rawMessage === "Unexpected response shape from the flow."
       ) {
-        message = error.message
+        message = rawMessage;
       }
     }
 
