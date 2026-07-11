@@ -237,7 +237,12 @@
                             "maximum": 100
                         },
                         "status": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                                "Ready",
+                                "Needs Clarification",
+                                "Blocked"
+                            ]
                         },
                         "recommendation": {
                             "type": "string"
