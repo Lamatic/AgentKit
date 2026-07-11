@@ -25,6 +25,6 @@ export default {
   ],
   links: {
     deploy: "", // Add deployed app URL if available
-    github: "https://github.com/<your-username>/AgentKit",
+    github: "https://github.com/nixen-rohit/AgentKit/tree/main/kits/find-your-hotel",
   },
 };
