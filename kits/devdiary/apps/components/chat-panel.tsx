@@ -13,12 +13,14 @@ interface Message {
 const DIGEST_QUERY =
   "Give me a weekly digest: summarize everything I worked on in the last 7 days, grouped by project, in chronological order.";
 
+/** Chat panel for querying the work diary, with a one-click weekly digest. */
 export function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  /** Sends a question to the ask flow and appends the exchange to the thread. */
   async function send(query: string) {
     if (!query.trim() || loading) return;
     setMessages((prev) => [...prev, { role: "user", content: query }]);

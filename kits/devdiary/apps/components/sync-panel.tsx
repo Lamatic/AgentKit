@@ -5,6 +5,7 @@ import { GitBranch, Loader2, BookOpenCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { syncRepo } from "@/actions/orchestrate";
 
+/** Form panel that fetches recent commits from a GitHub repo and logs a journal entry. */
 export function SyncPanel() {
   const [owner, setOwner] = useState("");
   const [repo, setRepo] = useState("");
@@ -16,6 +17,7 @@ export function SyncPanel() {
   const [entry, setEntry] = useState<string | null>(null);
   const [commitCount, setCommitCount] = useState(0);
 
+  /** Runs the sync server action and maps the result into panel state. */
   async function handleSync() {
     setLoading(true);
     setError(null);

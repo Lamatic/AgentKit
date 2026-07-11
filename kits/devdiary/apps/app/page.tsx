@@ -2,6 +2,7 @@ import Image from "next/image";
 import { SyncPanel } from "@/components/sync-panel";
 import { ChatPanel } from "@/components/chat-panel";
 
+/** DevDiary dashboard: sync panel and diary chat side by side. */
 export default function Home() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
