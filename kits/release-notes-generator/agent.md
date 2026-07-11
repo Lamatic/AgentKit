@@ -23,7 +23,7 @@ human-readable release notes in Markdown.
 
 ## Example
 **Input (`changes`):**
-```
+```text
 feat: add dark mode toggle to settings
 fix: crash when uploading empty file
 chore: bump dependencies

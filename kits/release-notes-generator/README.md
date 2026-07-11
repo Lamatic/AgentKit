@@ -18,7 +18,7 @@ rewrites each line into a concise, user-facing sentence.
 
 ## Structure
 
-```
+```text
 release-notes-generator/
 ├── lamatic.config.ts
 ├── agent.md
@@ -49,7 +49,7 @@ release-notes-generator/
 
 Call the deployed flow with a `changes` payload:
 
-```
+```text
 feat: add dark mode toggle to settings
 fix: crash when uploading empty file
 chore: bump dependencies

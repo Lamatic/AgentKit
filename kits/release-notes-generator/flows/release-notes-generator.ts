@@ -56,7 +56,17 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
-export const inputs = {};
+// The `changes` field is the required, untrusted payload for this flow.
+// A max length guard keeps oversized requests from reaching the LLM node.
+export const inputs = {
+  "changes": {
+    "type": "string",
+    "title": "changes",
+    "description": "Newline-separated git commit messages and/or pull request titles.",
+    "required": true,
+    "maxLength": 20000
+  }
+};
 
 // ── References ────────────────────────────────────────
 export const references = {
@@ -84,7 +94,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\"type\":\"object\",\"properties\":{\"changes\":{\"type\":\"string\",\"title\":\"changes\",\"description\":\"Newline-separated git commit messages and/or pull request titles.\",\"maxLength\":20000}},\"required\":[\"changes\"]}"
       }
     }
   },
