@@ -14,3 +14,8 @@ export const meta = {
     "https://github.com/Ramyatha24/AgentKit/tree/main/kits/llm-response-qa",
   documentationUrl: "",
   deployUrl: "",
+  author: {
+    name: "Ramyatha Balaraju",
+    email: "ramyathaaa@gmail.com"
+  }
+};
