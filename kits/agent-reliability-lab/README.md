@@ -8,7 +8,7 @@ Instead of eyeballing a system prompt and hoping it's fine, this flow runs it th
 - **Reliability scoring** — repeats a sample of probes to check the agent responds consistently.
 - **An automatically rewritten, production-ready prompt** — with a change log tying every edit to the specific finding that caused it.
 
-The result is a single structured report with an overall score, a verdict (`PRODUCTION_READY` / `NEEDS_IMPROVEMENT` / `NOT_PRODUCTION_READY`), critical issues, warnings, suggestions, and the rewritten prompt — never claiming more confidence than what was actually tested (every dimension is explicitly labeled `tested` or `not_assessed`).
+The result is a single structured report with an overall score, a verdict (`PRODUCTION_READY` / `NEEDS_IMPROVEMENT` / `NOT_PRODUCTION_READY` / `PARTIAL_AUDIT_STATIC_ONLY`), critical issues, warnings, suggestions, and the rewritten prompt — never claiming more confidence than what was actually tested (every dimension is explicitly labeled `tested` or `not_assessed`).
 
 ## Why
 
@@ -17,12 +17,16 @@ Most agent tooling helps you build agents. This helps you decide whether one is 
 ## Option A: Use the web app
 
 1. Deploy the flow in your Lamatic project and grab its Flow ID.
-2. ```sh
+
+2. Set up and run the app:
+
+   ```sh
    cd apps
    cp .env.example .env.local   # fill in your Flow ID + Lamatic API credentials
    npm install
    npm run dev
    ```
+
 3. Open `http://localhost:3000`, paste in a system prompt, optionally a live target endpoint, and click **Run Audit**. See [`apps/README.md`](./apps/README.md) for details.
 
 ## Option B: Call the flow directly
@@ -51,13 +55,25 @@ With `targetEndpoint.url` left empty, you get a fast static-only audit. Set it t
     "overallScore": 77,
     "verdict": "PRODUCTION_READY",
     "hasCriticalFail": false,
-    "categoryScores": { "...": "..." },
-    "coverage": { "...": "..." },
-    "criticalIssues": [ "..." ],
-    "warnings": [ "..." ],
-    "suggestions": [ "..." ],
+    "categoryScores": {
+      "promptQuality": 70,
+      "guardrailCoverage": 60,
+      "injectionResistance": 100,
+      "jailbreakResistance": 100,
+      "toolMisuseResistance": null,
+      "overRefusalScore": 100,
+      "reliability": 100
+    },
+    "coverage": { "promptQuality": "tested", "faithfulness": "not_assessed" },
+    "criticalIssues": [
+      { "source": "static_analysis", "issue": "...", "recommendation": "..." }
+    ],
+    "warnings": ["..."],
+    "suggestions": ["..."],
     "rewrittenPrompt": "...",
-    "changeLog": [ "..." ]
+    "changeLog": [
+      { "change": "...", "findingAddressed": "..." }
+    ]
   }
 }
 ```

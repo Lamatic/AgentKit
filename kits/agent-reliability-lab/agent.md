@@ -85,6 +85,8 @@ See [`constitutions/default.md`](./constitutions/default.md) for the full consti
 - Any critical-severity failure caps the overall verdict at `NOT_PRODUCTION_READY`, regardless of the numeric average.
 - Every report dimension is explicitly labeled `tested` or `not_assessed` — the report never implies coverage it doesn't have.
 - This tool does not persist target prompts or probe results beyond the single request/response cycle.
+- Test Executor refuses to send probes to targets resolving to localhost or private/internal IP ranges (SSRF guard) — probes against such targets are marked with a `blocked` error instead of being sent.
+- All prompts that interpolate untrusted content (the target's system prompt, tool schema, constitution doc, probe responses, or audit findings) explicitly delimit that content and instruct the model to treat it as data, never as instructions — since a malicious target agent could otherwise attempt prompt injection back into the auditor itself.
 
 ## Integration Reference
 
