@@ -48,6 +48,14 @@ export default function Home() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    try {
+      JSON.parse(referenceQA)
+    } catch {
+      setError('Reference QA must be valid JSON (e.g. [] or [{"q": "...", "a": "..."}]).')
+      return
+    }
+
     setLoading(true)
     setError(null)
     setReport(null)

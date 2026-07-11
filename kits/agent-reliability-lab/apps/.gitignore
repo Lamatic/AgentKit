@@ -9,9 +9,8 @@
 /build
 
 # env files
-.env
-.env.local
-.env*.local
+.env*
+!.env.example
 
 # misc
 .DS_Store

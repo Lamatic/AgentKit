@@ -27,6 +27,12 @@ export interface AuditInput {
   depth: "quick" | "standard" | "deep"
 }
 
+interface LamaticFlowResponse {
+  result?: { report?: AuditReport }
+  report?: AuditReport
+  data?: { report?: AuditReport }
+}
+
 export async function runAudit(
   input: AuditInput
 ): Promise<{ success: boolean; data?: AuditReport; error?: string }> {
@@ -51,7 +57,7 @@ export async function runAudit(
       depth: input.depth,
     }
 
-    const resData: any = await lamaticClient.executeFlow(flowId, inputs)
+    const resData = (await lamaticClient.executeFlow(flowId, inputs)) as LamaticFlowResponse
 
     const report: AuditReport | undefined =
       resData?.result?.report ?? resData?.report ?? resData?.data?.report

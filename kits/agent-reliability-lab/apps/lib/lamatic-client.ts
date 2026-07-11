@@ -1,4 +1,5 @@
 import { Lamatic } from "lamatic"
+import lamaticConfig from "../../lamatic.config"
 
 if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
   throw new Error(
@@ -12,4 +13,5 @@ export const lamaticClient = new Lamatic({
   apiKey: process.env.LAMATIC_API_KEY,
 })
 
-export const AUDIT_FLOW_ENV_KEY = "AGENT_RELIABILITY_AUDIT_FLOW_ID"
+export const auditFlowStep = lamaticConfig.steps[0]
+export const AUDIT_FLOW_ENV_KEY = auditFlowStep.envKey
