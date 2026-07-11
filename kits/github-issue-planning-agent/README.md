@@ -42,15 +42,15 @@ Before using IssuePilot, ensure you have:
 
 1. Clone the AgentKit repository.
 
-```bash
-git clone https://github.com/Lamatic/AgentKit.git
-```
+   ```bash
+   git clone https://github.com/Lamatic/AgentKit.git
+   ```
 
 2. Navigate to the kit.
 
-```bash
-cd kits/github-issue-planning-agent
-```
+   ```bash
+   cd kits/github-issue-planning-agent
+   ```
 
 3. Import or configure the flow in Lamatic Studio.
 
