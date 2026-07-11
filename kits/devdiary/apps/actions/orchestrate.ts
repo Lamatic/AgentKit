@@ -25,9 +25,10 @@ export async function syncRepo(
       return { success: false, error: "Owner and repo are required." };
     }
 
-    const commits = await fetchRecentCommits(owner, repo, branch || "main", days);
+    const effectiveBranch = branch.trim() || "main";
+    const commits = await fetchRecentCommits(owner, repo, effectiveBranch, days);
     if (commits.length === 0) {
-      return { success: false, error: `No commits found on ${branch} in the last ${days} day(s).` };
+      return { success: false, error: `No commits found on ${effectiveBranch} in the last ${days} day(s).` };
     }
 
     const details = await Promise.all(
@@ -39,7 +40,7 @@ export async function syncRepo(
     const response = await client.executeFlow(getFlowIds().log, {
       project: project?.trim() || repo,
       repo: `${owner}/${repo}`,
-      branch: branch || "main",
+      branch: effectiveBranch,
       author: details[0]?.author ?? "unknown",
       date: new Date().toISOString(),
       commitText,

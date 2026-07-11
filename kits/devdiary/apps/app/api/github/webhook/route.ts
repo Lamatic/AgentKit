@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getLamaticClient, getFlowIds } from "@/lib/lamatic-client";
 import { fetchCommitDetail, buildCommitText } from "@/lib/github";
 
-function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
+function verifySignature(rawBody: Buffer, signature: string | null, secret: string): boolean {
   if (!signature) return false;
   const expected =
     "sha256=" + crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
@@ -15,12 +15,13 @@ function verifySignature(rawBody: string, signature: string | null, secret: stri
 }
 
 export async function POST(req: Request) {
-  const rawBody = await req.text();
+  const rawBytes = Buffer.from(await req.arrayBuffer());
+  const rawBody = rawBytes.toString("utf8");
 
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
   if (secret) {
     const signature = req.headers.get("x-hub-signature-256");
-    if (!verifySignature(rawBody, signature, secret)) {
+    if (!verifySignature(rawBytes, signature, secret)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
   }
