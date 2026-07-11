@@ -7,6 +7,21 @@
     },
     "expected": {
       "businessGoal": "Enable secure Google authentication.",
+      "requiredFields": [
+        "businessGoal",
+        "requirements",
+        "missingInformation",
+        "clarifyingQuestions",
+        "technicalApproach",
+        "tasks",
+        "timeline",
+        "risks",
+        "acceptanceCriteria",
+        "definitionOfDone",
+        "sprintReadiness",
+        "confidence",
+        "markdown"
+      ],
       "shouldContain": [
         "Backend tasks",
         "Frontend tasks",
@@ -24,6 +39,21 @@
     },
     "expected": {
       "businessGoal": "Improve user experience with theme customization.",
+      "requiredFields": [
+        "businessGoal",
+        "requirements",
+        "missingInformation",
+        "clarifyingQuestions",
+        "technicalApproach",
+        "tasks",
+        "timeline",
+        "risks",
+        "acceptanceCriteria",
+        "definitionOfDone",
+        "sprintReadiness",
+        "confidence",
+        "markdown"
+      ],
       "shouldContain": [
         "Frontend tasks",
         "Testing",
@@ -39,6 +69,21 @@
     },
     "expected": {
       "businessGoal": "Prevent duplicate payments.",
+      "requiredFields": [
+        "businessGoal",
+        "requirements",
+        "missingInformation",
+        "clarifyingQuestions",
+        "technicalApproach",
+        "tasks",
+        "timeline",
+        "risks",
+        "acceptanceCriteria",
+        "definitionOfDone",
+        "sprintReadiness",
+        "confidence",
+        "markdown"
+      ],
       "shouldContain": [
         "Backend tasks",
         "Database tasks",

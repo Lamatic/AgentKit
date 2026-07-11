@@ -72,10 +72,10 @@ Prevent duplicate payment processing while ensuring reliable transaction handlin
 
 ## Acceptance Criteria
 
-- Duplicate callbacks do not create duplicate payments.
-- Each transaction is processed exactly once.
-- Payment history remains accurate.
-
+- Duplicate callbacks do not create duplicate financial effects.
+- Payment processing is idempotent for every unique callback or idempotency key.
+- Retries safely return the existing payment result without creating duplicate records.
+- Payment history remains accurate and auditable.
 ---
 
 ## Definition of Done
