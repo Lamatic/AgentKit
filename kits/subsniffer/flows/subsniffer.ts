@@ -1,47 +1,8 @@
-/*
- * # SubSniffer — Subscription Audit
- * A flow that turns a raw bank statement or list of charges into a structured
- * subscription audit and a friendly, plain-language savings report. It is the
- * single API-driven execution path for this agent kit.
- *
- * ## Purpose
- * People rarely know how much they quietly spend on recurring subscriptions,
- * and even when they suspect waste they don't know which ones to cancel or how.
- * This flow accepts free-text charges (a pasted bank statement, a CSV dump, or a
- * hand-typed list) and produces two things: a strict structured JSON analysis of
- * every detected subscription, and a human-readable report that highlights wasted
- * spend and links straight to cancellation pages.
- *
- * ## When To Use
- * - Use when you have a bank/card statement, transaction export, or typed list of charges.
- * - Use when you want to know total recurring spend, what you're not using, and potential savings.
- * - Use when you want cancellation links surfaced automatically instead of hunting for them.
- *
- * ## When Not To Use
- * - Do not use for non-recurring one-off purchases; this flow focuses on recurring charges.
- * - Do not use when the input is empty or contains no recognizable merchant/amount pairs.
- * - Do not treat the output as financial advice — it is an estimate to inform your own decisions.
- *
- * ## Inputs
- * | Field | Type | Required | Description |
- * |---|---|---|---|
- * | `statement` | `string` | Yes | Raw charges: a pasted statement, CSV text, or a list of "Merchant $amount" lines. |
- * | `goals` | `string` | No | Optional focus, e.g. "cut everything I haven't used in 60 days" or "keep only creative tools". |
- *
- * ## Outputs
- * | Field | Type | Description |
- * |---|---|---|
- * | `analysis` | `object` | Structured audit: summary, subscriptions[], totals{}, top_recommendations[], risk_flags[]. |
- * | `report` | `string` | Plain-language savings report generated from the structured analysis. |
- *
- * ## Node Walkthrough
- * 1. `API Request` (graphqlNode trigger) — receives `statement` + optional `goals`.
- * 2. `Detect Subscriptions` (InstructorLLMNode) — schema-constrained JSON extraction of subscriptions + totals.
- * 3. `Write Report` (LLMNode) — turns the structured analysis into a friendly report.
- * 4. `API Response` (graphqlResponseNode) — returns `{ analysis, report }`.
- */
-
 // Flow: subsniffer
+// Audit a bank statement for recurring subscriptions, flag unused ones,
+// estimate savings, and surface cancellation links. Single Lamatic flow:
+// API Request -> InstructorLLM (Detect Subscriptions) -> LLM (Write Report)
+// -> API Response returning { analysis, report }.
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
