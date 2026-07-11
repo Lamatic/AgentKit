@@ -52,10 +52,14 @@ export function validatePdf(candidate: PdfCandidate): void {
 
 /** Filesystem-safe, collision-resistant blob name for a short-lived upload. */
 export function safeBlobName(originalName: string): string {
-  const cleaned = originalName
+  let cleaned = originalName
     .replace(/\s+/g, "_")
     .replace(/[^a-zA-Z0-9._-]/g, "")
     .toLowerCase();
+  // Guard against names that sanitize to empty or a hidden dotfile (e.g. ".pdf").
+  if (!cleaned || cleaned.startsWith(".")) {
+    cleaned = `document${cleaned}`;
+  }
   const base = cleaned.endsWith(".pdf") ? cleaned : `${cleaned}.pdf`;
   return `self-verifying-extractor/${Date.now()}-${base}`;
 }

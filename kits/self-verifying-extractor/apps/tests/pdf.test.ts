@@ -46,4 +46,14 @@ describe("pdf validation", () => {
     expect(name).toMatch(/\.pdf$/);
     expect(name).not.toMatch(/[()\s]/);
   });
+
+  it("gives a non-hidden default name when sanitization empties it or leaves a dotfile", () => {
+    for (const input of ["", ".pdf", "🙂🙂🙂.pdf", "   "]) {
+      const name = safeBlobName(input);
+      const file = name.split("/").pop() ?? "";
+      expect(file).toMatch(/\.pdf$/);
+      // the filename portion (after the timestamp-) must not start with a dot
+      expect(file.replace(/^\d+-/, "").startsWith(".")).toBe(false);
+    }
+  });
 });

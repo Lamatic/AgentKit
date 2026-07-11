@@ -61,7 +61,7 @@ const displayValue = (value: VerificationValue) => {
 };
 
 export default function Home() {
-  const [document, setDocument] = useState("");
+  const [documentText, setDocumentText] = useState("");
   const [simulateError, setSimulateError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PipelineResult | null>(null);
@@ -71,7 +71,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function loadSample(sample: string) {
-    setDocument(sample);
+    setDocumentText(sample);
     setResult(null);
     setShowJson(false);
     setPdfNotice(null);
@@ -95,7 +95,7 @@ export default function Home() {
         setPdfNotice(data.error || "Could not parse the PDF.");
         return;
       }
-      setDocument(data.text || "");
+      setDocumentText(data.text || "");
       const pages = data.pageCount ? ` · ${data.pageCount} page${data.pageCount === 1 ? "" : "s"}` : "";
       setPdfNotice(`Extracted text from ${file.name}${pages}. Review it below, then Extract & Verify.`);
     } catch {
@@ -109,7 +109,7 @@ export default function Home() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await runPipeline(document, { simulateError });
+      const res = await runPipeline(documentText, { simulateError });
       setResult(res);
     } catch (e) {
       setResult({ success: false, error: e instanceof Error ? e.message : "Unexpected error." });
@@ -186,8 +186,8 @@ export default function Home() {
 
           <textarea
             id="document-input"
-            value={document}
-            onChange={(e) => setDocument(e.target.value)}
+            value={documentText}
+            onChange={(e) => setDocumentText(e.target.value)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -228,13 +228,13 @@ export default function Home() {
             <div className="text-xs text-[var(--text-muted)]">
               <p>Every green result must pass both the model review and an exact code-level evidence check.</p>
               <p className="mt-1">
-                {document.length.toLocaleString()} / {MAX_DOCUMENT_CHARACTERS.toLocaleString()} characters
+                {documentText.length.toLocaleString()} / {MAX_DOCUMENT_CHARACTERS.toLocaleString()} characters
               </p>
             </div>
             <button
               type="button"
               onClick={handleAnalyze}
-              disabled={loading || !document.trim()}
+              disabled={loading || !documentText.trim()}
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}

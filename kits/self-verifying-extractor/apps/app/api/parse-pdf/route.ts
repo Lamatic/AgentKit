@@ -42,7 +42,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const blob = await put(safeBlobName(file.name), file, {
       access: "public",
-      addRandomSuffix: false,
+      // Random suffix so the short-lived public URL is unguessable while the
+      // flow fetches it (the blob is deleted immediately after parsing).
+      addRandomSuffix: true,
     });
     blobUrl = blob.url;
 
@@ -70,8 +72,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: message }, { status: 502 });
   } finally {
     if (blobUrl) {
-      // Best-effort cleanup — never let deletion failures mask the response.
-      await del(blobUrl).catch(() => undefined);
+      // Best-effort cleanup — never let deletion failures mask the response,
+      // but surface them so an orphaned blob can be investigated/reaped.
+      await del(blobUrl).catch((err) => {
+        console.error(`Failed to delete temporary PDF blob ${blobUrl}:`, err);
+      });
     }
   }
 }

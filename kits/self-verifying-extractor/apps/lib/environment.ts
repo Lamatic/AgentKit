@@ -57,8 +57,17 @@ export function validateEnvironment(
       "LAMATIC_API_URL must be a complete absolute URL copied from Lamatic API Docs.",
     );
   }
-  if (endpoint.protocol !== "https:" && endpoint.protocol !== "http:") {
-    throw new ConfigurationError("LAMATIC_API_URL must use http:// or https://.");
+  // https is always accepted; http only outside production, so a deployed app
+  // can never silently talk to Lamatic over an unencrypted endpoint.
+  const httpAllowed = process.env.NODE_ENV !== "production";
+  const validProtocol =
+    endpoint.protocol === "https:" || (httpAllowed && endpoint.protocol === "http:");
+  if (!validProtocol) {
+    throw new ConfigurationError(
+      httpAllowed
+        ? "LAMATIC_API_URL must use http:// or https://."
+        : "LAMATIC_API_URL must use https:// (http:// is only allowed outside production).",
+    );
   }
 
   return result;
