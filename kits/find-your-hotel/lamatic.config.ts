@@ -1,0 +1,30 @@
+export default {
+  name: "find-your-hotel",
+  description:
+    "AI-powered hotel recommendation kit that suggests realistic hotels with confidence labels, estimated prices, and Google Maps links using Lamatic.",
+  version: "1.0.0",
+  type: "kit",
+  author: {
+    name: "Rohit",
+    email: "nixenboi@gmail.com",
+  },
+  tags: [
+    "travel",
+    "hotel",
+    "ai",
+    "recommendation",
+    "lamatic",
+    "booking",
+    "maps",
+  ],
+  steps: [
+    {
+      id: "find-your-hotel",
+      type: "mandatory",
+    },
+  ],
+  links: {
+    deploy: "", // Add deployed app URL if available
+    github: "https://github.com/<your-username>/AgentKit",
+  },
+};

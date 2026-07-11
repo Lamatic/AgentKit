@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(27, 42, 74, 0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+/* Perforated edge, like a tear-off ticket stub */
+.perforated {
+  position: relative;
+}
+.perforated::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background-image: radial-gradient(circle, rgba(27, 42, 74, 0.25) 1.5px, transparent 1.5px);
+  background-size: 10px 1px;
+  background-position: 4px 0;
+}
+
+.barcode {
+  height: 22px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0px,
+    currentColor 2px,
+    transparent 2px,
+    transparent 4px,
+    currentColor 4px,
+    currentColor 5px,
+    transparent 5px,
+    transparent 9px
+  );
+  opacity: 0.35;
+}
+
+/* Punch-hole checkbox */
+.punch-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px dashed rgba(27, 42, 74, 0.4);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 150ms ease;
+}
+.punch-checkbox:checked {
+  border-style: solid;
+  border-color: #1f3a3d;
+  background: #1f3a3d;
+}
+.punch-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #ede6d6;
+  border-bottom: 2px solid #ede6d6;
+  transform: translate(-60%, -65%) rotate(-45deg);
+}
+
+@keyframes stamp-in {
+  0% { transform: scale(1.4) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(0.95) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-8deg); opacity: 1; }
+}
+.stamp-in {
+  animation: stamp-in 420ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-in { animation: none; }
+}
+
+/* Date picker — theme-matched */
+.date-picker {
+  color-scheme: light;
+}
+.date-picker::-webkit-calendar-picker-indicator {
+  opacity: 0.45;
+  cursor: pointer;
+  filter: none;
+  transition: opacity 150ms ease;
+}
+.date-picker::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.7;
+}
+
+/* Select dropdown arrow override */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231B2A4A' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 2rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+select option {
+  background-color: #EDE6D6;
+  color: #1B2A4A;
+}
