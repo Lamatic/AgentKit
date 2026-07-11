@@ -54,6 +54,10 @@ export const meta = {
   githubUrl: "",
   documentationUrl: "",
   deployUrl: "",
+  author: {
+    name: "Satyam Singh",
+    email: "satyamsingh7734@gmail.com",
+  },
 };
 
 // ── Inputs ────────────────────────────────────────────
