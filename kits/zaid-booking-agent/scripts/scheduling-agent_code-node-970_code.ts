@@ -16,3 +16,4 @@ const OPEN_SLOTS = [
   output.nearby_slots = [...OPEN_SLOTS]
     .sort((a, b) => Math.abs(new Date(a.date).getTime() - requestedTime) - Math.abs(new Date(b.date).getTime() - requestedTime))
     .slice(0, 3);
+  output.proposed_slots = output.slot_available ? output.open_slots : output.nearby_slots;
