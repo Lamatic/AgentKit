@@ -49,7 +49,6 @@ The agent follows this process:
 
 The agent:
 
-- Responds only to interview and career-related requests.
 - Produces structured Markdown responses.
 - Avoids generating misleading ATS scores by clearly indicating they are estimates.
 - Provides professional and actionable recommendations.

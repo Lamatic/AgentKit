@@ -44,8 +44,8 @@ It analyzes resumes and job descriptions, calculates ATS compatibility, identifi
 
 **User**
 
-```
-Analyze my resume for this AI Engineer job.
+```text
+Analyze my resume...
 ```
 
 **Agent**

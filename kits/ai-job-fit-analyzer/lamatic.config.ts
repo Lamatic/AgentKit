@@ -1,6 +1,6 @@
 export default {
   "name": "Interview Preparation Agent",
-  "description": "",
+  "description": "AI agent that analyzes resumes against job descriptions, calculates ATS match scores, identifies skill gaps, suggests resume improvements, generates interview questions, and recommends personalized learning roadmaps.",
   "version": "1.0.0",
   "type": "kit",
   "author": {

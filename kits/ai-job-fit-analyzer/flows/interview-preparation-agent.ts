@@ -3,7 +3,7 @@
 // -- Meta --
 export const meta = {
   "name": "Interview Preparation Agent",
-  "description": "",
+  "description": "AI agent that analyzes resumes against job descriptions, calculates ATS match scores, identifies skill gaps, suggests resume improvements, generates interview questions, and recommends personalized learning roadmaps.",
   "tags": [],
   "testInput": null,
   "githubUrl": "",
@@ -66,15 +66,15 @@ export const nodes = [
           "displayMode": "popup",
           "placeholder": "Compose your message",
           "suggestions": [
-            "What is lamatic?",
-            "How do I add data to my chatbot?",
-            "Explain this product to me"
+            "Analyze my resume",
+            "Generate interview questions",
+            "Suggest resume improvements"
           ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+          "greetingMessage": "Hi! I'm your Interview Preparation Assistant. Upload your resume and the job description to get started.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",
