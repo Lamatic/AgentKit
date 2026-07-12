@@ -165,7 +165,6 @@ function buildQuery(
     `  executeWorkflow(workflowId: $workflowId, payload: { ${payloadFields.join(", ")} }) {`,
     `    status`,
     `    result`,
-    `    requestId`,
     `  }`,
     `}`,
   ].join("\n");
