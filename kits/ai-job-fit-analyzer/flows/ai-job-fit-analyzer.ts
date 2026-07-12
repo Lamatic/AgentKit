@@ -59,7 +59,7 @@ export const nodes = [
         ],
         "nodeName": "Chat Widget",
         "chatConfig": {
-          "botName": "Interview Prep Assistant",
+          "botName": "AI Job Fit Analyzer",
           "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
           "position": "right",
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
@@ -74,7 +74,7 @@ export const nodes = [
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi! I'm your Interview Preparation Assistant. Upload your resume and the job description to get started.",
+         "greetingMessage": "Hi! I'm your AI Job Fit Analyzer. Upload your resume and a job description to receive an ATS match score, identify skill gaps, get resume improvement suggestions, and generate personalized interview questions.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",

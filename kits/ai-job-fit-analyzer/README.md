@@ -1,10 +1,10 @@
-# Interview Preparation Agent
+# AI Job Fit Analyzer
 
 ## Overview
 
-The Interview Preparation Agent is an AI-powered assistant that helps candidates prepare for technical and HR interviews.
+AI Job Fit Analyzer is an AI-powered assistant that helps job seekers evaluate how well their resume matches a job description.
 
-It analyzes resumes and job descriptions, calculates ATS compatibility, identifies strengths and missing skills, recommends improvements, generates interview questions, and creates a personalized learning roadmap.
+It analyzes resumes and job descriptions, calculates ATS compatibility, identifies matching and missing skills, suggests resume improvements, generates technical and HR interview questions, and creates a personalized learning roadmap.
 
 ---
 
@@ -36,7 +36,7 @@ It analyzes resumes and job descriptions, calculates ATS compatibility, identifi
 1. Import the AgentKit into Lamatic.
 2. Configure your Perplexity API Key.
 3. Deploy the flow.
-4. Start chatting with the Interview Preparation Agent.
+4. Start chatting with the AI Job Fit Analyzer.
 
 ---
 
@@ -45,14 +45,15 @@ It analyzes resumes and job descriptions, calculates ATS compatibility, identifi
 **User**
 
 ```text
-Analyze my resume...
+Analyze my resume for this Software Engineer role.
 ```
 
 **Agent**
 
-- ATS Score
+- ATS Match Score
 - Matching Skills
 - Missing Skills
-- Resume Suggestions
-- Interview Questions
-- Learning Roadmap
+- Resume Improvement Suggestions
+- Technical Interview Questions
+- HR Interview Questions
+- Personalized Learning Roadmap

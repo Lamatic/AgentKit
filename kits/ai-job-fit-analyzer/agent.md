@@ -1,24 +1,24 @@
-# Interview Preparation Agent
+# AI Job Fit Analyzer
 
 ## Overview
 
-The Interview Preparation Agent is an AI-powered career assistant built using Lamatic AgentKit. It helps job seekers prepare for technical and HR interviews by analyzing resumes, comparing them with job descriptions, calculating ATS compatibility, identifying skill gaps, and generating personalized interview preparation material.
+The AI Job Fit Analyzer is an AI-powered career assistant built using Lamatic AgentKit. It helps job seekers evaluate how well their resumes match a job description by analyzing resumes, comparing them with job requirements, estimating ATS compatibility, identifying skill gaps, and generating personalized interview preparation material.
 
 ---
 
 ## Purpose
 
-This agent simplifies interview preparation by providing:
+This agent helps users:
 
-- Resume analysis
-- Job description comparison
-- ATS match score estimation
-- Matching skills identification
-- Missing skills detection
-- Resume improvement suggestions
-- Technical interview questions
-- HR interview questions
-- Personalized learning roadmap
+- Analyze resumes
+- Compare resumes with job descriptions
+- Estimate ATS match scores
+- Identify matching skills
+- Detect missing skills
+- Suggest resume improvements
+- Generate technical interview questions
+- Generate HR interview questions
+- Recommend a personalized learning roadmap
 
 ---
 
@@ -26,7 +26,7 @@ This agent simplifies interview preparation by providing:
 
 The agent follows this process:
 
-1. User submits a resume or job description.
+1. User submits a resume and/or a job description.
 2. The AI analyzes the provided information.
 3. The resume is compared against the job requirements.
 4. An ATS compatibility score is estimated.
@@ -34,7 +34,7 @@ The agent follows this process:
 6. Suggestions for improving the resume are generated.
 7. Customized technical interview questions are created.
 8. HR interview questions are generated.
-9. A learning roadmap is recommended based on identified skill gaps.
+9. A personalized learning roadmap is recommended.
 
 ---
 
@@ -50,8 +50,9 @@ The agent follows this process:
 The agent:
 
 - Produces structured Markdown responses.
-- Avoids generating misleading ATS scores by clearly indicating they are estimates.
-- Provides professional and actionable recommendations.
+- Clearly states that ATS scores are estimates.
+- Provides professional and actionable career recommendations.
+- Avoids misleading or fabricated hiring claims.
 
 ---
 

@@ -1,6 +1,6 @@
 export default {
-  "name": "Interview Preparation Agent",
-  "description": "AI agent that analyzes resumes against job descriptions, calculates ATS match scores, identifies skill gaps, suggests resume improvements, generates interview questions, and recommends personalized learning roadmaps.",
+  "name": "AI Job Fit Analyzer",
+  "description": "Analyzes resumes against job descriptions, calculates ATS score, identifies missing skills, and generates interview preparation guidance.",
   "version": "1.0.0",
   "type": "kit",
   "author": {
@@ -16,6 +16,6 @@ export default {
   ],
   "links": {
     "deploy": "",
-    "github": ""
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-job-fit-analyzer"
   }
 };
