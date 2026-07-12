@@ -96,6 +96,13 @@ function isBlockedHost(url) {
     return true;
   }
   if (hostname === "localhost" || hostname === "0.0.0.0" || hostname === "::1") return true;
+  if (/^::ffff:/.test(hostname)) {
+    const v4 = hostname.replace(/^::ffff:/, "");
+    if (/^127\./.test(v4) || /^10\./.test(v4) || /^192\.168\./.test(v4) || /^169\.254\./.test(v4)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(v4)) return true;
+  }
+  if (/^f[cd][0-9a-f]{2}:/.test(hostname)) return true;
+  if (/^fe[89ab][0-9a-f]:/.test(hostname)) return true;
   if (/^127\./.test(hostname)) return true;
   if (/^10\./.test(hostname)) return true;
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
@@ -124,6 +131,7 @@ async function callTarget(probe) {
       headers,
       body: JSON.stringify({ message: probe.payload }),
       signal: controller.signal,
+      redirect: "manual",
     });
     clearTimeout(timeoutId);
     const latencyMs = Date.now() - start;

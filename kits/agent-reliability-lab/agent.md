@@ -85,7 +85,7 @@ See [`constitutions/default.md`](./constitutions/default.md) for the full consti
 - Any critical-severity failure caps the overall verdict at `NOT_PRODUCTION_READY`, regardless of the numeric average.
 - Every report dimension is explicitly labeled `tested` or `not_assessed` — the report never implies coverage it doesn't have.
 - This tool does not persist target prompts or probe results beyond the single request/response cycle.
-- Test Executor refuses to send probes to targets resolving to localhost or private/internal IP ranges (SSRF guard) — probes against such targets are marked with a `blocked` error instead of being sent.
+- Test Executor refuses to send probes to targets resolving to localhost or private/internal IP ranges (SSRF guard, covering IPv4 and IPv6 private ranges) and disables automatic redirect-following, so a target can't bounce a probe to an internal address via a 3xx response. Known limitation: the guard checks the URL's hostname string, not resolved DNS — a public domain that resolves to a private IP (DNS rebinding) is not currently caught, since DNS resolution isn't reliably available in this sandboxed execution environment. Probes against such targets are marked with a `blocked` error instead of being sent when the hostname itself is recognizable as private.
 - All prompts that interpolate untrusted content (the target's system prompt, tool schema, constitution doc, probe responses, or audit findings) explicitly delimit that content and instruct the model to treat it as data, never as instructions — since a malicious target agent could otherwise attempt prompt injection back into the auditor itself.
 
 ## Integration Reference
