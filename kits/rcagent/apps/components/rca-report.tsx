@@ -49,11 +49,11 @@ export default function RcaReport({ reportMarkdown }: RcaReportProps) {
             h1: ({ children }) => <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">{children}</h1>,
             h2: ({ children }) => <h2 className="text-lg font-bold text-slate-800 dark:text-white mt-6 mb-3">{children}</h2>,
             h3: ({ children }) => <h3 className="text-base font-semibold text-slate-800 dark:text-white mt-4 mb-2">{children}</h3>,
-            p: ({ children }) => <p className="text-sm leading-relaxed mb-4 text-slate-600 dark:text-slate-355">{children}</p>,
-            ul: ({ children }) => <ul className="list-disc pl-5 mb-4 text-sm space-y-1.5 text-slate-600 dark:text-slate-355">{children}</ul>,
+            p: ({ children }) => <p className="text-sm leading-relaxed mb-4 text-slate-600 dark:text-slate-300">{children}</p>,
+            ul: ({ children }) => <ul className="list-disc pl-5 mb-4 text-sm space-y-1.5 text-slate-600 dark:text-slate-300">{children}</ul>,
             li: ({ children }) => <li>{children}</li>,
             code: ({ children }) => <code className="bg-slate-50 dark:bg-slate-900 px-1.5 py-0.5 rounded text-xs font-mono text-slate-800 dark:text-slate-200">{children}</code>,
-            pre: ({ children }) => <pre className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 overflow-x-auto text-xs font-mono text-slate-750 dark:text-slate-300 mb-4">{children}</pre>,
+            pre: ({ children }) => <pre className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 overflow-x-auto text-xs font-mono text-slate-700 dark:text-slate-300 mb-4">{children}</pre>,
           }}
         >
           {reportMarkdown}

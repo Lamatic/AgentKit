@@ -33,7 +33,7 @@ export default function IncidentForm({ onSubmit, isLoading }: IncidentFormProps)
     "DEPLOYMENT ENVIRONMENT CONFIG:\n" +
     "PORT=3000\n" +
     "DB_URL=postgresql://localhost:5432/mydb\n" +
-    "JWT_SECRET=super-secret-auth-key-12345"
+    "JWT_SECRET=<your-jwt-secret>"
   );
 
   const handleSubmit = (e: React.FormEvent) => {

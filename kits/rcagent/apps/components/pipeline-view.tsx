@@ -40,12 +40,12 @@ export default function PipelineView({ steps }: PipelineViewProps) {
                   <h4 className={`text-base font-semibold ${isActive ? "text-slate-950 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
                     {step.name}
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-450">{step.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{step.description}</p>
                 </div>
 
                 {/* Intermediate Output details */}
                 {isSuccess && step.data && (
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-350 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-300 max-h-48 overflow-y-auto whitespace-pre-wrap">
                     {step.id === "step1" && step.data.steps}
                     {step.id === "step2" && step.data.research}
                     {step.id === "step3" && "RCA analysis completed. Postmortem report compiled below."}

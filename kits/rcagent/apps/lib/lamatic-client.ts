@@ -4,15 +4,25 @@ import { config } from '../orchestrate.js'
 const IS_MOCK = !process.env.LAMATIC_API_KEY || process.env.LAMATIC_API_KEY === "your-lamatic-api-key";
 
 if (!IS_MOCK) {
-  if (!process.env.RC_PLANNER_FLOW_ID || !process.env.RC_ANALYZER_FLOW_ID || !process.env.RC_SYNTHESIZER_FLOW_ID) {
+  const missingFlows = [];
+  if (!process.env.RC_PLANNER_FLOW_ID) missingFlows.push("RC_PLANNER_FLOW_ID");
+  if (!process.env.RC_ANALYZER_FLOW_ID) missingFlows.push("RC_ANALYZER_FLOW_ID");
+  if (!process.env.RC_SYNTHESIZER_FLOW_ID) missingFlows.push("RC_SYNTHESIZER_FLOW_ID");
+
+  if (missingFlows.length > 0) {
     throw new Error(
-      "All Workflow IDs in environment variables are not set. Please add it to your .env.local file."
+      `Missing required environment variables:\n${missingFlows.map(v => `- ${v}`).join("\n")}\nPlease add them to your .env.local file.`
     );
   }
 
-  if (!process.env.LAMATIC_API_URL || !process.env.LAMATIC_PROJECT_ID || !process.env.LAMATIC_API_KEY) {
+  const missingCreds = [];
+  if (!process.env.LAMATIC_API_KEY) missingCreds.push("LAMATIC_API_KEY");
+  if (!process.env.LAMATIC_PROJECT_ID) missingCreds.push("LAMATIC_PROJECT_ID");
+  if (!process.env.LAMATIC_API_URL) missingCreds.push("LAMATIC_API_URL");
+
+  if (missingCreds.length > 0) {
     throw new Error(
-      "Required API credentials (LAMATIC_API_URL, LAMATIC_PROJECT_ID, LAMATIC_API_KEY) are missing. Please add them to your .env.local file."
+      `Missing required environment variables:\n${missingCreds.map(v => `- ${v}`).join("\n")}\nPlease add them to your .env.local file.`
     );
   }
 }
@@ -20,8 +30,8 @@ if (!IS_MOCK) {
 export const lamaticClient = IS_MOCK
   ? null as any
   : new Lamatic({
-      endpoint: config.api.endpoint ?? "",
-      projectId: config.api.projectId ?? null,
-      apiKey: config.api.apiKey ?? ""
-    });
+    endpoint: config.api.endpoint ?? "",
+    projectId: config.api.projectId ?? null,
+    apiKey: config.api.apiKey ?? ""
+  });
 
