@@ -72,8 +72,9 @@ When multiple approaches exist, recommend one and briefly explain why.
 - Return ONLY valid JSON matching `planning-output.schema.json`.
 - Ensure every required schema field is populated.
 
-The output must include all top-level sections required by the schema:
+The output must include all top-level fields required by `planning-output.schema.json`:
 
+- `schemaVersion` (must be `"1.0.0"`)
 - `analysis`
 - `planning`
 - `review`
