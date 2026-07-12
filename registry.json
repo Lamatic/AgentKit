@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "generated": "2026-06-24T15:59:50.185Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 80,
+  "count": 79,
   "typeCounts": {
     "kit": 30,
     "bundle": 6,
-    "template": 44
+    "template": 43
   },
   "entries": [
     {
@@ -208,7 +208,7 @@
     {
       "slug": "assistants",
       "name": "Internal Assistant",
-      "description": "Build an internal chatbot that finds precise answers within your company\u2019s knowledge base.",
+      "description": "Build an internal chatbot that finds precise answers within your company’s knowledge base.",
       "version": "1.0.0",
       "type": "bundle",
       "tags": [
@@ -1648,7 +1648,7 @@
     {
       "slug": "forge",
       "name": "Forge",
-      "description": "AI-powered contract and invoice generator for cross-border freelancers. Enter project details, get AI-suggested pricing, select a governing law, and walk away with a professional contract and matching invoice \u2014 ready to sign and export as PDFs.",
+      "description": "AI-powered contract and invoice generator for cross-border freelancers. Enter project details, get AI-suggested pricing, select a governing law, and walk away with a professional contract and matching invoice — ready to sign and export as PDFs.",
       "version": "1.0.0",
       "type": "kit",
       "tags": [
@@ -1695,7 +1695,7 @@
     {
       "slug": "founder-lens",
       "name": "Founder Lens",
-      "description": "Powerful 7-phase agentic startup research agent. Submit a startup idea and get a brutally honest investor-grade brief built from real web data \u2014 market size, competitors, customer complaints, dead startup postmortems, and a contrarian VC take. Then chat with your analysis using RAG-powered persistent memory.",
+      "description": "Powerful 7-phase agentic startup research agent. Submit a startup idea and get a brutally honest investor-grade brief built from real web data — market size, competitors, customer complaints, dead startup postmortems, and a contrarian VC take. Then chat with your analysis using RAG-powered persistent memory.",
       "version": "1.0.0",
       "type": "kit",
       "tags": [
@@ -1880,58 +1880,6 @@
         "count": 1,
         "names": [
           "get-started-with-google-sheet"
-        ]
-      },
-      "resources": {
-        "prompts": 1,
-        "scripts": 0,
-        "modelConfigs": 1,
-        "constitutions": 1,
-        "triggers": 0,
-        "memory": 0,
-        "tools": 0
-      },
-      "capabilities": {
-        "hasApps": false,
-        "hasAgentMd": true,
-        "hasReadme": true,
-        "hasEnvExample": false,
-        "hasChatWidget": false,
-        "hasSearchWidget": false
-      }
-    },
-    {
-      "slug": "git-standup-digest",
-      "name": "Git Standup Digest",
-      "description": "Fetches GitHub repository activity (commits, merged PRs, open issues) over a configurable time window and synthesizes it into a human-readable daily standup digest, replacing manual log scanning with an AI-written morning briefing.",
-      "version": "1.0.0",
-      "type": "template",
-      "tags": [
-        "developer-tools",
-        "github",
-        "productivity",
-        "summarization",
-        "automation"
-      ],
-      "author": {
-        "name": "Sai Ashok Karadi",
-        "email": "saiashok103@gmail.com"
-      },
-      "steps": [
-        {
-          "id": "git-standup-digest",
-          "type": "mandatory"
-        }
-      ],
-      "links": {
-        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/git-standup-digest",
-        "docs": "https://lamatic.ai/docs"
-      },
-      "path": "kits/git-standup-digest",
-      "flows": {
-        "count": 1,
-        "names": [
-          "git-standup-digest"
         ]
       },
       "resources": {
@@ -2695,7 +2643,7 @@
     {
       "slug": "llm-eval-harness",
       "name": "LLM Eval Harness",
-      "description": "Score an LLM prompt against a golden set with an LLM-as-judge across faithfulness, relevancy, and correctness, then gate on pass rate \u2014 a CI-style quality check for prompt and model changes.",
+      "description": "Score an LLM prompt against a golden set with an LLM-as-judge across faithfulness, relevancy, and correctness, then gate on pass rate — a CI-style quality check for prompt and model changes.",
       "version": "1.0.0",
       "type": "kit",
       "tags": [
@@ -2751,7 +2699,7 @@
     },
     {
       "slug": "localboost-ai",
-      "name": "LocalBoost AI \u2013 Lead Intelligence",
+      "name": "LocalBoost AI – Lead Intelligence",
       "description": "AI-powered lead analysis and outreach generation for local businesses using real website data.",
       "version": "1.0.0",
       "type": "template",
@@ -2898,7 +2846,7 @@
     {
       "slug": "mou-drafter",
       "name": "mou-drafter",
-      "description": "AI-powered Memorandum of Understanding generator that produces a structured, LaTeX-formatted legal draft from a guided form \u2014 covering parties, scope, payment, IP, cancellation, and jurisdiction clauses.",
+      "description": "AI-powered Memorandum of Understanding generator that produces a structured, LaTeX-formatted legal draft from a guided form — covering parties, scope, payment, IP, cancellation, and jurisdiction clauses.",
       "version": "1.0.0",
       "type": "kit",
       "tags": [
@@ -2989,8 +2937,8 @@
     },
     {
       "slug": "pageindex-notebooklm",
-      "name": "PageIndex NotebookLM \u2014 Vectorless Tree-Structured RAG",
-      "description": "Upload any PDF and chat with it using vectorless, tree-structured RAG powered entirely by Lamatic AI flows. No vector database, no external Python server, no chunking \u2014 just a hierarchical document index built from the table of contents.",
+      "name": "PageIndex NotebookLM — Vectorless Tree-Structured RAG",
+      "description": "Upload any PDF and chat with it using vectorless, tree-structured RAG powered entirely by Lamatic AI flows. No vector database, no external Python server, no chunking — just a hierarchical document index built from the table of contents.",
       "version": "1.0.0",
       "type": "kit",
       "tags": [
