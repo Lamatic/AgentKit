@@ -1,9 +1,9 @@
 {
-  "name": "agent-kit-blog-automation",
+  "name": "agent-kit-ai-job-fit-analyzer",
   "author": "Lamatic AI",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Lamatic/AgentKit/kits/automation/blog-automation"
+    "url": "https://github.com/Lamatic/AgentKit/kits/ai-job-fit-analyzer"
   },
   "version": "0.1.0",
   "private": true,
@@ -59,8 +59,8 @@
     "react": "19.2.3",
     "react-day-picker": "9.8.0",
     "react-dom": "19.2.3",
-    "react-markdown": "10.1.0",
     "react-hook-form": "^7.60.0",
+    "react-markdown": "10.1.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.9",
-    "@types/node": "^22",
+    "@types/node": "^22.20.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
