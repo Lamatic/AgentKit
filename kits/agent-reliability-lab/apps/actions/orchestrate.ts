@@ -1,6 +1,7 @@
 "use server"
 
-import { lamaticClient, AUDIT_FLOW_ENV_KEY } from "@/lib/lamatic-client"
+import lamaticConfig from "../../lamatic.config"
+import { lamaticClient } from "@/lib/lamatic-client"
 
 export interface AuditReport {
   overallScore: number
@@ -42,11 +43,12 @@ export async function runAudit(
   input: AuditInput
 ): Promise<{ success: boolean; data?: AuditReport; error?: string }> {
   try {
-    const flowId = process.env[AUDIT_FLOW_ENV_KEY]
+    const auditFlowStep = lamaticConfig.steps[0]
+    const flowId = auditFlowStep.envKey ? process.env[auditFlowStep.envKey] : undefined
 
     if (!flowId) {
       throw new Error(
-        `Missing environment variable for the flow ID (expected env key: ${AUDIT_FLOW_ENV_KEY}).`
+        `Missing environment variable for the flow ID (expected env key: ${auditFlowStep.envKey}).`
       )
     }
 
