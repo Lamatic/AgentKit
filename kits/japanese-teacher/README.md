@@ -1,3 +1,4 @@
+
 ## 1. The Problem
 
 Traditional Japanese language learning (such as JLPT preparation) suffers from a disconnect between vocabulary memorization and real-world reading practice. Flashcard apps teach words in isolation, while textbooks provide static reading passages with rigid, often unengaging contexts (e.g., generic office introductions). Learners lack a way to instantly generate reading materials and assessments that incorporate their specific target vocabulary into contexts that actually interest them, appropriately scaled to their current reading level.
@@ -41,6 +42,7 @@ This AgentKit contains 2 flows:
 2. **Quiz** (`flows/quiz.ts`)
 
 ## Prerequisites
+
 Before running this project, ensure you have the following installed:
 *   **Node.js** (v18 or higher recommended)
 *   **npm** or **pnpm** package manager
@@ -58,18 +60,21 @@ npm install
 
 Configure Environment Variables
 Copy the example environment file to create your local environment settings.
+
 ```Bash
 
 cp .env.example .env.local
 ```
 
 Open .env.local and add your Lamatic API credentials:
+
 ```Kod snippet'i
 
 LAMATIC_API_KEY=your_lamatic_api_key_here
 ```
 
 Start the Development Server
+
 ```Bash
 
 npm run dev
@@ -80,6 +85,7 @@ The application will be available at http://localhost:3000.
 ## Usage Examples
 
 The frontend communicates with the Lamatic AgentKit through secure Next.js Server Actions. Here is how the flows are invoked programmatically:
+
 ### Example 1: Generating a Lesson
 
 This action calls the Lesson Flow, passing the JLPT level, context, and target words to study.
@@ -109,6 +115,7 @@ const createLesson = async () => {
 ### Example 2: Generating a Quiz
 
 Once a lesson is generated, the resulting text is passed into the Quiz Flow along with the desired distribution of question types.
+
 ```TypeScript
 
 import { generateQuestions } from "@/actions/orchestrate";
@@ -133,6 +140,7 @@ const createQuiz = async (lessonText: string) => {
   }
 };
 ```
+
 ![alt text](images/tab_quiz.png)
 ![alt text](images/quiz_inside.png)
 ![alt text](images/quiz_results.png)

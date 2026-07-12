@@ -7,9 +7,22 @@ import { generateTextContext, generateQuestions } from "../actions/orchestrate";
 // --- HELPER FUNCTION: Replaces Python's parse_and_highlight ---
 // This processes the Japanese text, adds hover tooltips for vocab, 
 // and formats the [furigana] into beautiful HTML ruby tags.
+
+const escapeHtml = (str: string) => {
+  if (!str) return "";
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const formatJapaneseText = (text: string, dict: any[]) => {
   if (!text) return "";
-  let html = text;
+  
+  // SECURE: Escape the raw text immediately
+  let html = escapeHtml(text);
   const tokens: Record<string, string> = {};
 
   // 1. Process Vocabulary Tooltips
@@ -18,9 +31,11 @@ const formatJapaneseText = (text: string, dict: any[]) => {
     const sortedDict = [...dict].sort((a, b) => (b["たんご／文法"]?.length || 0) - (a["たんご／文法"]?.length || 0));
 
     sortedDict.forEach((item, i) => {
-      const word = item["たんご／文法"];
-      const meaning = item["いみ"];
-      const explanation = item["れいぶん・せつめい"];
+      // SECURE: Escape all AI dictionary properties
+      const word = escapeHtml(item["たんご／文法"] || "");
+      const meaning = escapeHtml(item["いみ"] || "");
+      const explanation = escapeHtml(item["れいぶん・せつめい"] || "");
+      
       if (!word) return;
 
       // Extract stems for conjugated verbs
@@ -194,8 +209,14 @@ export default function Home() {
 
     questionsList.forEach((q: any) => {
       max += q.points || 1;
-      const uAns = userAnswers[q.question_id] || "";
-      if (uAns.startsWith(q.answer)) {
+      const uAns = (userAnswers[q.question_id] || "").trim();
+      const correctAns = (q.answer || "").trim();
+      
+      // CodeRabbit didn't realize the UI saves the full option text like "(a) 猫".
+      // We slice out the prefix so we can strictly compare it to the answer key!
+      const uPrefix = uAns.substring(0, correctAns.length);
+      
+      if (uPrefix === correctAns) {
         score += q.points || 1;
       }
     });
@@ -334,7 +355,7 @@ export default function Home() {
                         {activeLesson.dictionary.map((item, idx) => (
                           <tr key={idx} className="hover:bg-gray-50 transition-colors">
                             <td className="px-4 py-3 font-bold text-blue-600">
-                              <span dangerouslySetInnerHTML={{ __html: item["たんご／文法"].replace(/([^\s\[\]]+)\[([^\]]+)\]/g, "<ruby>$1<rt>$2</rt></ruby>") }} />
+                              <span dangerouslySetInnerHTML={{ __html: escapeHtml(item["たんご／文法"] || "").replace(/([\u4E00-\u9FAF々]+)\[([^\]<>]+)\]/g, "<ruby>$1<rt class='text-xs text-gray-500'>$2</rt></ruby>") }} />
                             </td>
                             <td className="px-4 py-3 text-gray-800">{item["いみ"]}</td>
                             <td className="px-4 py-3 text-gray-600 whitespace-normal">{item["れいぶん・せつめい"]}</td>
