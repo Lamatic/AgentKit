@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Lamatic Context Blocker",
+  "version": "1.0.0",
+  "description": "AI-powered context-aware page blocker to keep you focused.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_title": "Open Lamatic Blocker"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
