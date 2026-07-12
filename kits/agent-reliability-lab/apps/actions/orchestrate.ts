@@ -33,6 +33,11 @@ interface LamaticFlowResponse {
   data?: { report?: AuditReport }
 }
 
+/**
+ * Runs the Agent Reliability Lab flow via the Lamatic SDK and extracts the report.
+ * @param input - The audit request (target system prompt and optional context/endpoint).
+ * @returns The audit report on success, or an error message on failure.
+ */
 export async function runAudit(
   input: AuditInput
 ): Promise<{ success: boolean; data?: AuditReport; error?: string }> {

@@ -33,6 +33,10 @@ const COVERAGE_LABELS: Record<string, string> = {
   faithfulness: "Faithfulness",
 }
 
+/**
+ * The audit form page: collects the target agent's system prompt and optional
+ * context/endpoint, runs the audit, and renders the resulting report.
+ */
 export default function Home() {
   const [systemPrompt, setSystemPrompt] = useState("")
   const [toolSchema, setToolSchema] = useState("")
@@ -46,6 +50,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [report, setReport] = useState<AuditReport | null>(null)
 
+  /** Validates the form, then submits it to runAudit and stores the result. */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
@@ -184,6 +189,11 @@ export default function Home() {
   )
 }
 
+/**
+ * Renders a completed audit report: score, verdict, category scores, coverage,
+ * findings, the rewritten prompt, and its change log.
+ * @param report - The audit report returned by runAudit.
+ */
 function ReportView({ report }: { report: AuditReport }) {
   return (
     <div className="report">
