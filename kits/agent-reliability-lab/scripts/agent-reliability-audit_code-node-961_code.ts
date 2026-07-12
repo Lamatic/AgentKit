@@ -46,8 +46,9 @@ let reliabilityScore = 100;
 const reliabilityDetails = [];
 for (const run of (testResults.reliabilityRuns || [])) {
   const responses = run.repeats.map(r => r.response);
-  const uniqueResponses = new Set(responses);
-  const consistent = uniqueResponses.size === 1;
+  const hasErrors = responses.some(r => r == null);
+  const uniqueResponses = new Set(responses.filter(r => r != null));
+  const consistent = !hasErrors && uniqueResponses.size === 1;
   reliabilityDetails.push({ probeId: run.probeId, consistent, variantCount: uniqueResponses.size });
   if (!consistent) reliabilityScore -= 15;
 }
