@@ -68,6 +68,35 @@ When multiple approaches exist, recommend one and briefly explain why.
 
 - Do not generate source code.
 - Do not review an existing implementation plan.
+- Do not produce Markdown outside the structured report field.
+- Return ONLY valid JSON matching `planning-output.schema.json`.
+- Ensure every required schema field is populated.
+
+The output must include all top-level sections required by the schema:
+
+- `analysis`
+- `planning`
+- `review`
+- `report`
+
+For the `review` section, include:
+
+- Risks
+- Sprint blockers
+- Acceptance criteria
+- Definition of Done
+- Sprint readiness assessment
+- Confidence score with justification
+
+For the `report` section, generate:
+
+- A complete Markdown engineering report.
+- A concise implementation checklist suitable for engineering teams.
+
+The generated JSON must be fully schema-compliant and ready for downstream review and formatting.
+
+- Do not generate source code.
+- Do not review an existing implementation plan.
 - Do not produce Markdown.
 - Return ONLY valid JSON matching `planning-output.schema.json`.
 - Ensure every required schema field is populated.
