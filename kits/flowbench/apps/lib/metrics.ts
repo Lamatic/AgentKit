@@ -44,33 +44,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
-// ---------------------------------------------------------------------------
-// Regression detection
-// ---------------------------------------------------------------------------
 
-/**
- * Check if current latency is a regression vs baseline.
- * Default threshold: 1.20 (20% slower = regression).
- */
-export function isLatencyRegression(
-  current: number,
-  baseline: number,
-  threshold: number = 1.2
-): boolean {
-  return current > baseline * threshold;
-}
-
-/**
- * Check if current similarity is a regression vs baseline.
- * Default threshold: 0.1 (drop of >0.1 = regression).
- */
-export function isSimilarityRegression(
-  current: number,
-  baseline: number,
-  threshold: number = 0.1
-): boolean {
-  return (baseline - current) > threshold;
-}
 
 // ---------------------------------------------------------------------------
 // Run ID generation

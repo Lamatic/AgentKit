@@ -82,16 +82,17 @@ export default function RunForm() {
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Test Cases (.jsonl)
           </label>
-          <div 
-            className="w-full bg-slate-950 border border-slate-800 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-950/50 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
+          <label 
+            htmlFor="jsonl-file-input"
+            className="block w-full bg-slate-950 border border-slate-800 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-950/50 transition-colors focus-within:ring-2 focus-within:ring-cyan-500/50 focus-within:border-cyan-500"
           >
             <input
+              id="jsonl-file-input"
               type="file"
               required
               accept=".jsonl"
               ref={fileInputRef}
-              className="hidden"
+              className="sr-only"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
             {file ? (
@@ -105,7 +106,7 @@ export default function RunForm() {
                 <span>Click to select a JSONL file</span>
               </div>
             )}
-          </div>
+          </label>
         </div>
 
         {error && (

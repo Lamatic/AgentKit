@@ -28,6 +28,10 @@ export interface TestCaseInput {
   id: string;
   /** The payload to send to the flow (e.g. { userPrompt: "..." }). */
   input: Record<string, unknown>;
+  /** The expected text that should be contained in the flow's output. */
+  expected_contains?: string;
+  /** The minimum similarity score required to pass (default: 0.7). */
+  min_similarity?: number;
   /** The key within `result` to extract as the scored output. */
   resultField: string;
 }
@@ -168,7 +172,7 @@ export async function runFlow(
   flowId: string,
   testCases: TestCaseInput[]
 ): Promise<TestCaseRunResult[]> {
-  const limit = pLimit(1);
+  const limit = pLimit(CONCURRENCY_LIMIT);
 
   const promises = testCases.map((testCase) =>
     limit(() => runSingleCase(flowId, testCase))
