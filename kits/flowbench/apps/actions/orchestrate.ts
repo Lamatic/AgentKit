@@ -7,8 +7,8 @@ import { generateRunId } from "../lib/metrics";
 import { loadBaseline, saveBaseline, saveRun } from "./storage";
 
 export interface OrchestrationResult {
-  run: RunResult;
-  diff: CompareResult;
+  run: RunResult | null;
+  diff: CompareResult | null;
   baselineUpdated: boolean;
   error?: string;
 }
@@ -89,8 +89,8 @@ export async function executeBenchmark(
     };
   } catch (err: unknown) {
     return {
-      run: null as any,
-      diff: null as any,
+      run: null,
+      diff: null,
       baselineUpdated: false,
       error: err instanceof Error ? err.message : "An unknown error occurred",
     };
