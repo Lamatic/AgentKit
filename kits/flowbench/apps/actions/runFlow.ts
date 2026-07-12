@@ -134,7 +134,19 @@ async function runSingleCase(
   }
 
   const rawOutput = flowResult.result[testCase.resultField];
-  const output = coerceToString(rawOutput);
+  let output: string | null;
+  try {
+    output = coerceToString(rawOutput);
+  } catch (err: unknown) {
+    return {
+      id: testCase.id,
+      output: null,
+      latencyMs: flowResult.latencyMs,
+      error: `Failed to serialize resultField "${testCase.resultField}": ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    };
+  }
 
   if (output === null) {
     return {
