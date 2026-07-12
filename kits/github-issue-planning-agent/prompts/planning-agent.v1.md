@@ -94,11 +94,3 @@ For the `report` section, generate:
 - A concise implementation checklist suitable for engineering teams.
 
 The generated JSON must be fully schema-compliant and ready for downstream review and formatting.
-
-- Do not generate source code.
-- Do not review an existing implementation plan.
-- Do not produce Markdown.
-- Return ONLY valid JSON matching `planning-output.schema.json`.
-- Ensure every required schema field is populated.
-
-The goal is to produce an engineering plan that is ready for technical review.
