@@ -148,7 +148,12 @@ function buildQuery(
   const payloadFields: string[] = [];
   const variables: Record<string, unknown> = { workflowId: flowId };
 
+  const validIdentifier = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
+
   for (const [key, value] of Object.entries(payload)) {
+    if (!validIdentifier.test(key)) {
+      throw new Error(`Invalid payload key: "${key}". Payload keys must be valid GraphQL identifiers (letters, numbers, underscores, and cannot start with a number).`);
+    }
     const gqlType = inferGraphQLType(value);
     varDefs.push(`$${key}: ${gqlType}`);
     payloadFields.push(`${key}: $${key}`);
@@ -160,6 +165,7 @@ function buildQuery(
     `  executeWorkflow(workflowId: $workflowId, payload: { ${payloadFields.join(", ")} }) {`,
     `    status`,
     `    result`,
+    `    requestId`,
     `  }`,
     `}`,
   ].join("\n");

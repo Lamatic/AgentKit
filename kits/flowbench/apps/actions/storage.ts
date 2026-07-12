@@ -11,17 +11,32 @@ function ensureDir(dir: string) {
   }
 }
 
+function sanitizeId(id: string): string {
+  if (!/^[a-zA-Z0-9-_]+$/.test(id)) {
+    throw new Error(`Invalid ID format: ${id}. Only alphanumeric, hyphens, and underscores are allowed.`);
+  }
+  return id;
+}
+
 /**
  * Gets the path to the baseline file for a given flow.
  */
 export function getBaselinePath(flowId: string): string {
-  return path.join(BASELINES_DIR, `${flowId}.json`);
+  return path.join(BASELINES_DIR, `${sanitizeId(flowId)}.json`);
+}
+
+/**
+ * Gets the path to a run file.
+ */
+export function getRunPath(runId: string): string {
+  return path.join(RUNS_DIR, `${sanitizeId(runId)}.json`);
 }
 
 /**
  * Loads the baseline for a flow, or null if it doesn't exist.
  */
 export function loadBaseline(flowId: string): RunResult | null {
+  sanitizeId(flowId);
   const p = getBaselinePath(flowId);
   if (!fs.existsSync(p)) return null;
   try {
@@ -37,6 +52,7 @@ export function loadBaseline(flowId: string): RunResult | null {
  * Saves a run as the new baseline for a flow.
  */
 export function saveBaseline(flowId: string, run: RunResult): void {
+  sanitizeId(flowId);
   ensureDir(BASELINES_DIR);
   const p = getBaselinePath(flowId);
   fs.writeFileSync(p, JSON.stringify(run, null, 2), "utf-8");
@@ -46,8 +62,9 @@ export function saveBaseline(flowId: string, run: RunResult): void {
  * Saves a historical run.
  */
 export function saveRun(run: RunResult): void {
+  sanitizeId(run.runId);
   ensureDir(RUNS_DIR);
-  const p = path.join(RUNS_DIR, `${run.runId}.json`);
+  const p = getRunPath(run.runId);
   fs.writeFileSync(p, JSON.stringify(run, null, 2), "utf-8");
 }
 
@@ -55,7 +72,8 @@ export function saveRun(run: RunResult): void {
  * Loads a specific historical run.
  */
 export function loadRun(runId: string): RunResult | null {
-  const p = path.join(RUNS_DIR, `${runId}.json`);
+  sanitizeId(runId);
+  const p = getRunPath(runId);
   if (!fs.existsSync(p)) return null;
   try {
     const raw = fs.readFileSync(p, "utf-8");

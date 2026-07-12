@@ -32,16 +32,19 @@ export async function executeBenchmark(
       let similarity: number | null = null;
       let passed = run.error === null;
 
-      // Type-cast because TestCaseInput doesn't have min_similarity and expected_contains by default
-      // but we will pass them in from the UI parse step
-      const expectedContains = (spec as any).expected_contains;
-      const minSimilarity = (spec as any).min_similarity ?? 0.7;
+      const expectedContains = spec.expected_contains;
+      const minSimilarity = spec.min_similarity ?? 0.7;
 
       if (expectedContains && run.output && passed) {
-        const score = await scoreOutput(run.output, expectedContains, minSimilarity);
-        similarity = score.similarity;
-        if (!score.pass) {
+        try {
+          const score = await scoreOutput(run.output, expectedContains, minSimilarity);
+          similarity = score.similarity;
+          if (!score.pass) {
+            passed = false;
+          }
+        } catch (err: unknown) {
           passed = false;
+          run.error = err instanceof Error ? err.message : String(err);
         }
       }
 

@@ -233,4 +233,38 @@ describe("compareBaseline", () => {
     assert.equal(result.blockingRegressions[0].id, "a");
     assert.equal(result.blockingRegressions[0].passChange, "new_failure");
   });
+  // ── 6. Removed Cases ──
+  it("flags removedCases correctly when a baseline case is absent from current run", () => {
+    const baseline = makeRun([
+      makeCase({ id: "a", latencyMs: 500, similarity: 0.9, passed: true }),
+      makeCase({ id: "b", latencyMs: 600, similarity: 0.85, passed: true }),
+    ]);
+    const current = makeRun([
+      makeCase({ id: "a", latencyMs: 500, similarity: 0.9, passed: true }),
+    ]);
+
+    const result = compareBaseline(current, baseline);
+
+    assert.deepStrictEqual(result.removedCases, ["b"]);
+    assert.deepStrictEqual(result.newCases, []);
+  });
+
+  // ── 7. Improvements ──
+  it("flags improvements correctly when similarity rises above threshold", () => {
+    const baseline = makeRun([
+      makeCase({ id: "a", latencyMs: 500, similarity: 0.60, passed: true }),
+    ]);
+    const current = makeRun([
+      // 0.85 - 0.60 = 0.25 > 0.2 threshold -> improvement
+      makeCase({ id: "a", latencyMs: 500, similarity: 0.85, passed: true }),
+    ]);
+
+    const result = compareBaseline(current, baseline);
+
+    assert.equal(result.improvements.length, 1);
+    assert.equal(result.improvements[0].id, "a");
+    assert.equal(result.improvements[0].similarity?.improved, true);
+    assert.equal(result.improvements[0].similarity?.regressed, false);
+    assert.equal(result.regressions.length, 0);
+  });
 });
