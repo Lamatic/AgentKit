@@ -11,6 +11,6 @@ RULES:
 - For multiple-choice questions provide options labeled (a), (b), (c), (d) as needed. Randomize option order.
 - For kanji question, test reading or meaning; show target kanji with furigana format in question.
 - Add metadata for each question: question_id (string), question_type ("grammar"|"vocabulary"|"context"|"kanji"), points (10).
-- Output structure must be JSON. The JSON must include: "question_number", "quiz" (array of questions). Each question is:
+- Output structure must be JSON. The JSON must include: "Questions" (array of questions). Each question is:
   { "question_id": "<question_number>_<index>", "question_type": "...", "points": 10, "text": "<Japanese>", "options": ["(a) ...","(b) ...", ...], "answer": "(a)" } 
 - Keep all Japanese using kanji(ふりがな) format for kanji except kanji questions.

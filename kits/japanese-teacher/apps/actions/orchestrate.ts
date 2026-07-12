@@ -3,6 +3,21 @@
 
 import { lamaticClient } from "../lib/lamatic-client"
 
+const workflowEnvKeys = {
+  lesson: "JAPANESE_TEACHER_LESSON_FLOW_ID",
+  quiz: "JAPANESE_TEACHER_QUIZ_FLOW_ID",
+} as const;
+
+// Helper to securely get the flow ID from the environment.
+function getWorkflowId(stepId: string): string {
+  const envKey = workflowEnvKeys[stepId as keyof typeof workflowEnvKeys];
+
+  if (!envKey || !process.env[envKey]) {
+    throw new Error(`Missing workflow ID for step: ${stepId}. Please check your environment variables.`);
+  }
+
+  return process.env[envKey] as string;
+}
 // ---------------------------------------------------------
 // FLOW 1: Generate Text/Context
 // ---------------------------------------------------------
@@ -24,7 +39,7 @@ export async function generateTextContext(
       }`;
 
     const variables = {
-      workflowId: "d270b86a-d948-440b-b523-45b6ee4af49a",
+      workflowId: getWorkflowId("lesson"),
       level,
       context,
       words
@@ -33,9 +48,10 @@ export async function generateTextContext(
     const response = await lamaticClient.executeGraphQL(query, variables);
     return { success: true, data: response.result };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Text Generation Error:", error);
-    return { success: false, error: error.message };
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 }
 
@@ -50,7 +66,6 @@ export async function generateQuestions(
   counts: { grammar: number; vocabulary: number; context: number; kanji: number }
 ) {
   try {
-    // Note: I renamed the second $context to $q_context to prevent GraphQL naming collisions
     const query = `
       query ExecuteWorkflow(
         $workflowId: String!
@@ -84,7 +99,7 @@ export async function generateQuestions(
       }`;
 
     const variables = {
-      workflowId: "62ca9b42-7242-4521-bf11-9439d10faeff",
+      workflowId: getWorkflowId("quiz"),
       level,
       context: storyContext,
       question_number: questionNumber,
@@ -98,8 +113,9 @@ export async function generateQuestions(
     const response = await lamaticClient.executeGraphQL(query, variables);
     return { success: true, data: response.result };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Question Generation Error:", error);
-    return { success: false, error: error.message };
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 }
