@@ -59,7 +59,7 @@ export const nodes = [
         ],
         "nodeName": "Chat Widget",
         "chatConfig": {
-          "botName": "Lamatic Bot",
+          "botName": "Interview Prep Assistant",
           "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
           "position": "right",
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
