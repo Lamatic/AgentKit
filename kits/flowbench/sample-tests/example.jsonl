@@ -1,0 +1,3 @@
+{"id":"capital-of-france","input":{"userPrompt":"What is the capital of France?"},"resultField":"response","expected_contains":"The capital of France is Paris.","min_similarity":0.7}
+{"id":"simple-math","input":{"userPrompt":"What is 2 + 2?"},"resultField":"response","expected_contains":"2 + 2 = 4","min_similarity":0.7}
+{"id":"greeting-spanish","input":{"userPrompt":"Say hello in Spanish"},"resultField":"response","expected_contains":"¡Hola! Soy un asistente de IA.","min_similarity":0.7}
