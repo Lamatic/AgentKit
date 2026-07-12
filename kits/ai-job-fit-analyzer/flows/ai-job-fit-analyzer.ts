@@ -1,8 +1,8 @@
-// Flow: interview-preparation-agent
+// Flow: ai-job-fit-analyzer
 
 // -- Meta --
 export const meta = {
-  "name": "Interview Preparation Agent",
+  "name": "AI Job Fit Analyzer",
   "description": "AI agent that analyzes resumes against job descriptions, calculates ATS match scores, identifies skill gaps, suggests resume improvements, generates interview questions, and recommends personalized learning roadmaps.",
   "tags": [],
   "testInput": null,
@@ -32,11 +32,11 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "interview_preparation_agent_llmnode_423_system_0": "@prompts/interview-preparation-agent_llmnode-423_system_0.md",
-    "interview_preparation_agent_llmnode_423_user_1": "@prompts/interview-preparation-agent_llmnode-423_user_1.md"
+    "ai_job_fit_analyzer_llmnode_423_system_0": "@prompts/ai-job-fit-analyzer_llmnode-423_system_0.md",
+    "ai_job_fit_analyzer_llmnode_423_user_1": "@prompts/ai-job-fit-analyzer_llmnode-423_user_1.md"
   },
   "modelConfigs": {
-    "interview_preparation_agent_llmnode_423_generative_model_name": "@model-configs/interview-preparation-agent_llmnode-423_generative-model-name.ts"
+    "ai_job_fit_analyzer_llmnode_423_generative_model_name": "@model-configs/ai-job-fit-analyzer_llmnode-423_generative-model-name.ts"
   }
 };
 
@@ -74,7 +74,7 @@ export const nodes = [
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-         "greetingMessage": "Hi! I'm your AI Job Fit Analyzer. Upload your resume and a job description to receive an ATS match score, identify skill gaps, get resume improvement suggestions, and generate personalized interview questions.",
+          "greetingMessage": "Hi! I'm your AI Job Fit Analyzer. Upload your resume and a job description to receive an ATS match score, identify skill gaps, get resume improvement suggestions, and generate personalized interview questions.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",
@@ -102,12 +102,12 @@ export const nodes = [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
             "role": "system",
-            "content": "@prompts/interview-preparation-agent_llmnode-423_system_0.md"
+            "content": "@prompts/ai-job-fit-analyzer_llmnode-423_system_0.md"
           },
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             "role": "user",
-            "content": "@prompts/interview-preparation-agent_llmnode-423_user_1.md"
+            "content": "@prompts/ai-job-fit-analyzer_llmnode-423_user_1.md"
           }
         ],
         "memories": "[]",
@@ -115,7 +115,7 @@ export const nodes = [
         "nodeName": "Generate Text",
         "attachments": "",
         "credentials": "",
-        "generativeModelName": "@model-configs/interview-preparation-agent_llmnode-423_generative-model-name.ts"
+        "generativeModelName": "@model-configs/ai-job-fit-analyzer_llmnode-423_generative-model-name.ts"
       }
     }
   },
