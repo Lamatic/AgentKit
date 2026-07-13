@@ -22,7 +22,7 @@ const body = Inter({
 
 export const metadata: Metadata = {
   title: "Find Your Hotel",
-  description: "Honest AI hotel suggestions plus a weather-aware packing checklist.",
+  description: "Honest AI-powered hotel suggestions for your next trip.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
