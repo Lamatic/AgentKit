@@ -151,7 +151,7 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
     
     const executeWorkflowResponse = jsonResponse?.data?.executeWorkflow;
     
-    if (!executeWorkflowResponse || !executeWorkflowResponse.result) {
+    if (!executeWorkflowResponse) {
       return { success: false, error: "Empty or invalid response received from the flow." };
     }
 
@@ -161,6 +161,11 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
     // If the API runs asynchronously, it returns a requestId instead of the final result.
     // We must poll the checkStatus endpoint until it succeeds.
     const requestId = executeWorkflowResponse.requestId || (rawResponse && rawResponse.requestId);
+
+    if (!rawResponse && !requestId) {
+      return { success: false, error: "Empty or invalid response received from the flow." };
+    }
+
     if (requestId && (!rawResponse || (!rawResponse.InstructorLLMNode_575 && !rawResponse.vendor))) {
       let isCompleted = false;
       let retries = 0;

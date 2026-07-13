@@ -28,7 +28,7 @@ graph TD
     I --> J[React Dashboard updates state & persists to LocalStorage]
 ```
 
-1. **OCR Pre-processing (Optional)**: If `GEMINI_API_KEY` is configured, the Next.js action performs client-side OCR first to convert the image to plain text, reducing flow latency.
+1. **OCR Pre-processing (Optional)**: If `GEMINI_API_KEY` is configured, the Next.js server action performs server-side OCR first to convert the image to plain text, reducing flow latency.
 2. **Lamatic Flow Trigger**: Invokes the `receipt-budget-tracker` flow on Lamatic.ai.
 3. **Structured Extraction**: The flow's `InstructorLLMNode` processes the payload using the prompt and generates a strict JSON schema.
 4. **Polling & Normalization**: The server action polls `checkStatus` if run asynchronously, normalizes properties, falls back to local simulation if offline/unconfigured, and returns a unified structure to the client dashboard.

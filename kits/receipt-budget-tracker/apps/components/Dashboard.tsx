@@ -39,25 +39,23 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load history from LocalStorage on mount
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const saved = localStorage.getItem("receipt_history");
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as ReceiptItem[];
-        setTimeout(() => {
-          setHistory(parsed);
-          if (parsed.length > 0) {
-            setSelectedItem(parsed[0]);
-          }
-        }, 0);
+        setHistory(parsed);
+        if (parsed.length > 0) {
+          setSelectedItem(parsed[0]);
+        }
       } catch (err) {
         console.error("Failed to parse receipt history from local storage:", err);
       }
     }
-    setTimeout(() => {
-      setIsLoaded(true);
-    }, 0);
+    setIsLoaded(true);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Sync history to LocalStorage
   useEffect(() => {

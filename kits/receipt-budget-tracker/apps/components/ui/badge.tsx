@@ -5,9 +5,10 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "warning";
 }
 
-function Badge({ className, variant = "default", ...props }: BadgeProps) {
-  return (
+const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
+  ({ className, variant = "default", ...props }, ref) => (
     <div
+      ref={ref}
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500",
         variant === "default" && "border-transparent bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
@@ -20,7 +21,8 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
       )}
       {...props}
     />
-  );
-}
+  )
+);
+Badge.displayName = "Badge";
 
 export { Badge };
