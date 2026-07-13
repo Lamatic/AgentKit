@@ -38,7 +38,10 @@ const negativeEvidenceByCategory = {
   "evals-and-tests": [evalNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["evals-and-tests"])],
   "tool-boundaries": [toolNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["tool-boundaries"])],
   "failure-paths": [failureNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["failure-paths"])],
-  "security-and-privacy": [securityNegativePattern],
+  "security-and-privacy": [
+    securityNegativePattern,
+    negatedPositiveEvidencePattern(categoryEvidenceTargets["security-and-privacy"])
+  ],
   "env-and-setup-docs": [setupNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["env-and-setup-docs"])],
   "observability-and-logging": [negatedPositiveEvidencePattern(categoryEvidenceTargets["observability-and-logging"])],
   "cost-and-latency": [costNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["cost-and-latency"])]
@@ -299,8 +302,10 @@ function negatedPositiveEvidencePattern(targetPattern) {
   const evidenceActionPattern =
     "(present|documented|defined|enabled|available|captured|configured|covered|tested|implemented|listed|used|called|logged|redacted|stored|kept|includes?|documents?|defines?|enables?|captures?|configures?|covers?|tests?|implements?|lists?|uses?|calls?|logs?|redacts?|stores?|keeps?)";
   const negationPattern = "(no|not|never|without|don't|doesn't|do not|does not)";
+  const auxiliaryPattern = "(is|are|was|were|has|have|had|do|does|did)";
+  const qualifierPattern = "((currently|still|yet|properly|fully|explicitly)\\s+){0,3}";
   return new RegExp(
-    `\\b(${targetPattern})\\b[^.!?\\n]{0,60}\\b((is|are|was|were)\\s+)?${negationPattern}\\s+${evidenceActionPattern}\\b|\\b${negationPattern}\\s+${evidenceActionPattern}\\b[^.!?\\n]{0,60}\\b(${targetPattern})\\b`
+    `\\b(${targetPattern})\\b\\s+${auxiliaryPattern}\\s+${qualifierPattern}${negationPattern}\\s+(been\\s+)?${evidenceActionPattern}\\b|\\b${negationPattern}\\s+${evidenceActionPattern}\\b[^.!?\\n]{0,60}\\b(${targetPattern})\\b`
   );
 }
 
