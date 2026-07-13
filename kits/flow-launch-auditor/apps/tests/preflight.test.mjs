@@ -231,6 +231,35 @@ ${negatedEvidence} Retry, fallback, and timeout behavior are documented. README 
   }
 });
 
+test("mock audit rejects negated security controls without rejecting safe non-logging", () => {
+  for (const negatedEvidence of [
+    "Auth is not implemented.",
+    "Auth is currently not implemented.",
+    "Encryption is not configured.",
+    "Encryption has not been configured."
+  ]) {
+    const flowBrief = `A customer support team uses a Lamatic Flow for billing classification. The webhook trigger sends each request to a read-only API and a model returns a queue decision.
+Evals include fixtures. Retry, fallback, and timeout behavior are documented. README setup includes env guidance. Logs capture run IDs and metrics. ${negatedEvidence}`;
+    const detectedSignals = extractDetectedSignals(flowBrief, "");
+    const audit = buildMockAuditResponse({ flowBrief, optionalFlowExport: "", detectedSignals });
+
+    assert.ok(
+      audit.findings.some((finding) => finding.category === "security-and-privacy"),
+      `${negatedEvidence} must produce a security-and-privacy finding`
+    );
+  }
+
+  const safeBrief = `A customer support team uses a Lamatic Flow for billing classification. The webhook trigger sends each request to a read-only API and a model returns a queue decision.
+Evals include fixtures. Retry, fallback, and timeout behavior are documented. README setup includes env guidance. Logs capture run IDs and metrics. Auth controls are documented. Secrets are not logged.`;
+  const safeSignals = extractDetectedSignals(safeBrief, "");
+  const safeAudit = buildMockAuditResponse({ flowBrief: safeBrief, optionalFlowExport: "", detectedSignals: safeSignals });
+
+  assert.equal(
+    safeAudit.findings.some((finding) => finding.category === "security-and-privacy"),
+    false
+  );
+});
+
 test("mock audit does not treat an ambiguous category mention as positive evidence", () => {
   const flowBrief = `A customer support team uses a Lamatic Flow for billing classification. The webhook trigger sends each request to a read-only API and a model returns a queue decision.
 Evals are something we should add later. Retry, fallback, and timeout behavior are documented. README setup includes env guidance. Logs capture run IDs and metrics. Sensitive data is redacted.`;
