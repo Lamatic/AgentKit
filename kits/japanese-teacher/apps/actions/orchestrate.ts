@@ -13,6 +13,9 @@ export async function generateTextContext(
   words: string[]
 ) {
   try {
+    const workflowId = lamaticConfig.steps.find((s) => s.id === "lesson")?.workflowId;
+    if (!workflowId) throw new Error("Lesson workflow not found in lamatic.config");
+
     const query = `
       query ExecuteWorkflow($workflowId: String!, $context: String, $level: String, $words: [String]) {
         executeWorkflow(
@@ -25,7 +28,7 @@ export async function generateTextContext(
       }`;
 
     const variables = {
-      workflowId: (lamaticConfig.steps.find((s: any) => s.id === "lesson") as any)?.workflowId,
+      workflowId,
       level,
       context,
       words
@@ -52,6 +55,9 @@ export async function generateQuestions(
   counts: { grammar: number; vocabulary: number; context: number; kanji: number }
 ) {
   try {
+    const workflowId = lamaticConfig.steps.find((s) => s.id === "quiz")?.workflowId;
+    if (!workflowId) throw new Error("Quiz workflow not found in lamatic.config");
+
     const query = `
       query ExecuteWorkflow(
         $workflowId: String!
@@ -85,7 +91,7 @@ export async function generateQuestions(
       }`;
 
     const variables = {
-      workflowId: (lamaticConfig.steps.find((s: any) => s.id === "quiz") as any)?.workflowId,
+      workflowId,
       level,
       context: storyContext,
       question_number: questionNumber,
