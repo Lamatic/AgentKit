@@ -62,7 +62,23 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
-export const inputs = {};
+export const inputs = {
+  "LLMNode_parse_50": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ],
+  "LLMNode_200": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ]
+};
+
 
 // ── References ────────────────────────────────────────
 export const references = {
@@ -88,60 +104,64 @@ export const references = {
 export const nodes = [
   // ── Node 1: Trigger ───────────────────────────────
   {
-    id: "triggerNode_1",
-    type: "triggerNode",
-    position: { x: 0, y: 0 },
-    data: {
-      nodeId: "graphqlNode",
-      trigger: true,
-      values: {
-        nodeName: "API Request",
-        responeType: "realtime",
-        advance_schema: "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\",\n      \"description\": \"Natural language request, e.g. 'What changed in Lamatic/AgentKit since v1.0.0?' or 'Show me the last two releases of vercel/next.js'\"\n    }\n  },\n  \"required\": [\"message\"]\n}"
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": { "x": 0, "y": 0 },
+    "data": {
+      "nodeId": "graphqlNode",
+      "trigger": true,
+      "values": {
+        "id": "triggerNode_1",
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\",\n      \"description\": \"Natural language request, e.g. 'What changed in Lamatic/AgentKit since v1.0.0?' or 'Show me the last two releases of vercel/next.js'\"\n    }\n  },\n  \"required\": [\"message\"]\n}"
       }
     }
   },
 
   // ── Node 2: Parse Intent (LLM) ────────────────────
   {
-    id: "LLMNode_parse_50",
-    type: "dynamicNode",
-    position: { x: 0, y: 200 },
-    data: {
-      nodeId: "LLMNode",
-      values: {
-        nodeName: "Parse Intent",
-        tools: [],
-        prompts: [
+    "id": "LLMNode_parse_50",
+    "type": "dynamicNode",
+    "position": { "x": 0, "y": 200 },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "nodeName": "Parse Intent",
+        "tools": [],
+        "prompts": [
           {
-            id: "parse-system-1",
-            role: "system",
-            content: "@prompts/github-commit-agent_parse-intent_system.md"
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/github-commit-agent_parse-intent_system.md"
           },
           {
-            id: "parse-user-1",
-            role: "user",
-            content: "@prompts/github-commit-agent_parse-intent_user.md"
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/github-commit-agent_parse-intent_user.md"
           }
         ],
-        messages: "@model-configs/github-commit-agent_parse-intent.ts",
-        generativeModelName: "@model-configs/github-commit-agent_parse-intent.ts"
+        "memories": "[]",
+        "messages": "[]",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/github-commit-agent_parse-intent.ts"
       }
     }
   },
 
   // ── Node 3: Fetch Commits (Code) ──────────────────
   {
-    id: "codeNode_100",
-    type: "dynamicNode",
-    position: { x: 0, y: 400 },
-    data: {
-      nodeId: "codeNode",
-      values: {
-        nodeName: "Fetch Commits from GitHub",
-        code: "@scripts/github-commit-agent_code-node.ts",
-        inputs: {
-          parsedIntent: "{{LLMNode_parse_50.output.generatedResponse}}"
+    "id": "codeNode_100",
+    "type": "dynamicNode",
+    "position": { "x": 0, "y": 400 },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "nodeName": "Fetch Commits from GitHub",
+        "code": "@scripts/github-commit-agent_code-node.ts",
+        "inputs": {
+          "parsedIntent": "{{LLMNode_parse_50.output.generatedResponse}}"
         }
       }
     }
@@ -149,42 +169,50 @@ export const nodes = [
 
   // ── Node 4: Summarise (LLM) ───────────────────────
   {
-    id: "LLMNode_200",
-    type: "dynamicNode",
-    position: { x: 0, y: 600 },
-    data: {
-      nodeId: "LLMNode",
-      values: {
-        nodeName: "Classify & Summarise Commits",
-        tools: [],
-        prompts: [
+    "id": "LLMNode_200",
+    "type": "dynamicNode",
+    "position": { "x": 0, "y": 600 },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "nodeName": "Classify & Summarise Commits",
+        "tools": [],
+        "prompts": [
           {
-            id: "prompt-system-1",
-            role: "system",
-            content: "@prompts/github-commit-agent_llm-node_system.md"
+            "id": "287c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/github-commit-agent_llm-node_system.md"
           },
           {
-            id: "prompt-user-1",
-            role: "user",
-            content: "@prompts/github-commit-agent_llm-node_user.md"
+            "id": "287c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/github-commit-agent_llm-node_user.md"
           }
         ],
-        messages: "@model-configs/github-commit-agent_llm-node.ts",
-        generativeModelName: "@model-configs/github-commit-agent_llm-node.ts"
+        "memories": "[]",
+        "messages": "[]",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/github-commit-agent_llm-node.ts"
       }
     }
   },
 
   // ── Node 5: Response ──────────────────────────────
   {
-    id: "graphqlResponseNode_300",
-    type: "dynamicNode",
-    position: { x: 0, y: 800 },
-    data: {
-      nodeId: "graphqlResponseNode",
-      values: {
-        nodeName: "API Response",
-        outputMapping: "{\n  \"summary\": \"{{LLMNode_200.output.generatedResponse}}\",\n  \"compared\": \"{{codeNode_100.output.resolvedBase}}...{{codeNode_100.output.resolvedHead}}\"\n}"
+    "id": "responseNode_triggerNode_1",
+    "type": "responseNode",
+    "position": { "x": 0, "y": 800 },
+    "data": {
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "id": "responseNode_triggerNode_1",
+        "nodeName": "API Response",
+        "headers": "{\"content-type\":\"application/json\"}",
+        "retries": "0",
+        "webhookUrl": "",
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"summary\": \"{{LLMNode_200.output.generatedResponse}}\",\n  \"compared\": \"{{codeNode_100.output.resolvedBase}}...{{codeNode_100.output.resolvedHead}}\"\n}"
       }
     }
   }
@@ -192,44 +220,44 @@ export const nodes = [
 
 export const edges = [
   {
-    id: "triggerNode_1-LLMNode_parse_50",
-    source: "triggerNode_1",
-    target: "LLMNode_parse_50",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge"
+    "id": "triggerNode_1-LLMNode_parse_50",
+    "source": "triggerNode_1",
+    "target": "LLMNode_parse_50",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
-    id: "LLMNode_parse_50-codeNode_100",
-    source: "LLMNode_parse_50",
-    target: "codeNode_100",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge"
+    "id": "LLMNode_parse_50-codeNode_100",
+    "source": "LLMNode_parse_50",
+    "target": "codeNode_100",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
-    id: "codeNode_100-LLMNode_200",
-    source: "codeNode_100",
-    target: "LLMNode_200",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge"
+    "id": "codeNode_100-LLMNode_200",
+    "source": "codeNode_100",
+    "target": "LLMNode_200",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
-    id: "LLMNode_200-graphqlResponseNode_300",
-    source: "LLMNode_200",
-    target: "graphqlResponseNode_300",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge"
+    "id": "LLMNode_200-responseNode_triggerNode_1",
+    "source": "LLMNode_200",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
-    id: "response-graphqlResponseNode_300",
-    source: "triggerNode_1",
-    target: "graphqlResponseNode_300",
-    sourceHandle: "to-response",
-    targetHandle: "from-trigger",
-    type: "responseEdge"
+    "id": "response-trigger_triggerNode_1",
+    "source": "triggerNode_1",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
   }
 ];
 
