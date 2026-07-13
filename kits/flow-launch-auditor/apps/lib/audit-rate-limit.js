@@ -39,7 +39,7 @@ export function resetAuditRateLimitForTests() {
 
 function getClientKey(request) {
   if (!isTruthyEnvValue(process.env.TRUST_PROXY_HEADERS)) {
-    return "local";
+    return process.env.NODE_ENV === "production" ? "" : "local";
   }
 
   const realIp = getSingleIpHeaderValue(request.headers.get("x-real-ip"));

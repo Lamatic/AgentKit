@@ -834,24 +834,19 @@ test("callLamaticFlow cancels non-OK response bodies", async () => {
   assert.equal(fetchCount, 1);
 });
 
-test("callLamaticFlow retries one transient HTTP response", async () => {
+test("callLamaticFlow does not replay executeWorkflow after a transient HTTP response", async () => {
   configureLamaticEnv();
   let fetchCount = 0;
   globalThis.fetch = async () => {
     fetchCount += 1;
-    if (fetchCount === 1) {
-      return new Response("cold start", { status: 503 });
-    }
-    return new Response(JSON.stringify({
-      data: { executeWorkflow: { status: "success", result: audit } }
-    }), { status: 200 });
+    return new Response("cold start", { status: 503 });
   };
 
-  assert.deepEqual(
-    await callLamaticFlow({ flowBrief: "brief", optionalFlowExport: "", detectedSignals: audit.detectedSignals }),
-    audit
+  await assert.rejects(
+    () => callLamaticFlow({ flowBrief: "brief", optionalFlowExport: "", detectedSignals: audit.detectedSignals }),
+    (error) => error instanceof LamaticClientError && error.code === "http" && error.status === 503
   );
-  assert.equal(fetchCount, 2);
+  assert.equal(fetchCount, 1);
 });
 
 test("callLamaticFlow maps aborts to timeout errors", async () => {

@@ -4,9 +4,6 @@ const requiredEnv = ["LAMATIC_API_URL", "LAMATIC_API_KEY", "LAMATIC_PROJECT_ID",
 const defaultTimeoutMs = 60000;
 const minTimeoutMs = 3000;
 const maxTimeoutMs = 120000;
-const maxAttempts = 2;
-const retryDelayMs = 250;
-const transientHttpStatuses = new Set([502, 503, 504]);
 const allowedLamaticHosts = new Set(["lamatic.dev", "lamatic.ai"]);
 const executeFlowQuery = `
   query ExecuteWorkflow($workflowId: String!, $payload: JSON!) {
@@ -53,7 +50,7 @@ export async function callLamaticFlow(auditRequest, requestSignal) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetchWithTransientRetry(apiUrl, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,51 +114,6 @@ export async function callLamaticFlow(auditRequest, requestSignal) {
     clearTimeout(timeout);
     requestSignal?.removeEventListener("abort", abortFromRequest);
   }
-}
-
-async function fetchWithTransientRetry(url, options) {
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const response = await fetch(url, options);
-    if (
-      response.ok ||
-      !transientHttpStatuses.has(response.status) ||
-      attempt === maxAttempts
-    ) {
-      return response;
-    }
-    await response.body?.cancel().catch(() => {});
-    await waitForRetry(options.signal);
-  }
-  throw new LamaticClientError("http", "Lamatic request failed before a response was available");
-}
-
-function waitForRetry(signal) {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) {
-      reject(abortError());
-      return;
-    }
-    const onAbort = () => {
-      clearTimeout(timer);
-      reject(abortError());
-    };
-    const timer = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, retryDelayMs);
-    signal.addEventListener("abort", onAbort, { once: true });
-    if (signal.aborted) {
-      signal.removeEventListener("abort", onAbort);
-      clearTimeout(timer);
-      reject(abortError());
-    }
-  });
-}
-
-function abortError() {
-  const error = new Error("aborted");
-  error.name = "AbortError";
-  return error;
 }
 
 export function parseLamaticTimeoutMs(value) {

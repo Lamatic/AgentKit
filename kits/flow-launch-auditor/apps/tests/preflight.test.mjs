@@ -210,6 +210,27 @@ Evals include fixtures. Retry, fallback, and timeout behavior are documented. RE
   );
 });
 
+test("mock audit rejects negated eval and observability controls as positive evidence", () => {
+  const cases = [
+    ["Tests are not implemented.", "evals-and-tests"],
+    ["The Flow does not implement tests.", "evals-and-tests"],
+    ["Metrics are not logged.", "observability-and-logging"],
+    ["The Flow does not log metrics.", "observability-and-logging"]
+  ];
+
+  for (const [negatedEvidence, expectedCategory] of cases) {
+    const flowBrief = `A customer support team uses a Lamatic Flow for billing classification. The webhook trigger sends each request to a read-only API and a model returns a queue decision.
+${negatedEvidence} Retry, fallback, and timeout behavior are documented. README setup includes env guidance. Sensitive data is redacted.`;
+    const detectedSignals = extractDetectedSignals(flowBrief, "");
+    const audit = buildMockAuditResponse({ flowBrief, optionalFlowExport: "", detectedSignals });
+
+    assert.ok(
+      audit.findings.some((finding) => finding.category === expectedCategory),
+      `${negatedEvidence} must not satisfy ${expectedCategory}`
+    );
+  }
+});
+
 test("mock audit does not treat an ambiguous category mention as positive evidence", () => {
   const flowBrief = `A customer support team uses a Lamatic Flow for billing classification. The webhook trigger sends each request to a read-only API and a model returns a queue decision.
 Evals are something we should add later. Retry, fallback, and timeout behavior are documented. README setup includes env guidance. Logs capture run IDs and metrics. Sensitive data is redacted.`;

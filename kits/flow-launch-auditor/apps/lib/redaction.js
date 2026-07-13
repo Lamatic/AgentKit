@@ -9,9 +9,10 @@ const unquotedAssignmentPattern = new RegExp(
   `\\b${secretKeySource}\\s*[:=]\\s*([^,;\\r\\n]+?)(?=\\s+${secretKeySource}\\s*[:=]|[,;]|\\r?\\n|$)`,
   "gi"
 );
-const bearerPattern = /\b(bearer\s+)[^,;\r\n]{12,}/gi;
+const bearerPattern = /\b(bearer\s+)[^,;\r\n]+/gi;
 const basicAuthPattern = /\b(basic\s+)[A-Za-z0-9+/=]+/gi;
 const databaseUrlPattern = /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis):\/\/[^\s'"<>]+/gi;
+const credentialedHttpUrlPattern = /\bhttps?:\/\/[^/\s:@]+:[^@\s/]+@[^\s'"<>]+/gi;
 const barePemPattern = /-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----/g;
 const webhookUrlPatterns = [
   /\bhttps:\/\/hooks\.slack\.com\/services\/[^\s'"<>]+/gi,
@@ -33,6 +34,7 @@ export function redactSecretValues(text) {
   redacted = redacted.replace(bearerPattern, "$1<redacted>");
   redacted = redacted.replace(basicAuthPattern, "$1<redacted>");
   redacted = redacted.replace(databaseUrlPattern, "<redacted>");
+  redacted = redacted.replace(credentialedHttpUrlPattern, "<redacted>");
   for (const pattern of webhookUrlPatterns) {
     redacted = redacted.replace(pattern, "<redacted>");
   }

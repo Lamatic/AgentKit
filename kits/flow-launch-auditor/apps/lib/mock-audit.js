@@ -17,14 +17,31 @@ const costNegativePattern = new RegExp(
   `(latency budget is missing|cost budget is missing|${negativeEvidencePattern("(cache|caching|batching|latency|cost|token budget|parallelization|throughput)").source})`
 );
 const securityNegativePattern = negativeEvidencePattern(securityAndPrivacyEvidencePattern);
+const categoryEvidenceTargets = {
+  "evals-and-tests": "(evals?|tests?|fixtures?|assertions?|test coverage)",
+  "tool-boundaries": "(tools?|apis?|webhooks?|integrations?|tool boundaries|api boundaries)",
+  "failure-paths": "(retry|fallback|timeout|error handling)",
+  "security-and-privacy": securityAndPrivacyEvidencePattern,
+  "env-and-setup-docs": "(\\.env\\.example|env example|setup|readme|config)",
+  "observability-and-logging": "(logs?|logging|traces?|metrics?|observability)",
+  "cost-and-latency": "(cache|caching|batching|latency|cost|token budget|parallelization|throughput)"
+};
 const positiveEvidenceByCategory = {
-  "evals-and-tests": [positiveEvidencePattern("(evals?|tests?|fixtures?|assertions?|test coverage)")],
-  "tool-boundaries": [positiveEvidencePattern("(tools?|apis?|webhooks?|integrations?|tool boundaries|api boundaries)")],
-  "failure-paths": [positiveEvidencePattern("(retry|fallback|timeout|error handling)")],
-  "security-and-privacy": [positiveEvidencePattern(securityAndPrivacyEvidencePattern)],
-  "env-and-setup-docs": [positiveEvidencePattern("(\\.env\\.example|env example|setup|readme|config)")],
-  "observability-and-logging": [positiveEvidencePattern("(logs?|logging|traces?|metrics?|observability)")],
-  "cost-and-latency": [positiveEvidencePattern("(cache|caching|batching|latency|cost|token budget|parallelization|throughput)")]
+  ...Object.fromEntries(
+    Object.entries(categoryEvidenceTargets).map(([category, target]) => [
+      category,
+      [positiveEvidencePattern(target)]
+    ])
+  )
+};
+const negativeEvidenceByCategory = {
+  "evals-and-tests": [evalNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["evals-and-tests"])],
+  "tool-boundaries": [toolNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["tool-boundaries"])],
+  "failure-paths": [failureNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["failure-paths"])],
+  "security-and-privacy": [securityNegativePattern],
+  "env-and-setup-docs": [setupNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["env-and-setup-docs"])],
+  "observability-and-logging": [negatedPositiveEvidencePattern(categoryEvidenceTargets["observability-and-logging"])],
+  "cost-and-latency": [costNegativePattern, negatedPositiveEvidencePattern(categoryEvidenceTargets["cost-and-latency"])]
 };
 
 export function buildMockAuditResponse(request) {
@@ -255,10 +272,11 @@ function hasPositiveCategoryEvidence(text, category, signals) {
   if (signals.length === 0) {
     return false;
   }
-  if (matchesAny(text, positiveEvidenceByCategory[category] || [])) {
-    return true;
-  }
-  return false;
+  return splitEvidenceClauses(text).some(
+    (clause) =>
+      matchesAny(clause, positiveEvidenceByCategory[category] || []) &&
+      !matchesAny(clause, negativeEvidenceByCategory[category] || [])
+  );
 }
 
 function negativeEvidencePattern(targetPattern) {
@@ -273,8 +291,24 @@ function positiveEvidencePattern(targetPattern) {
   const positiveStatePattern =
     "((is|are)\\s+)?(present|documented|defined|enabled|available|captured|configured|covered|tested|implemented|listed|used|logged|redacted|stored|kept)";
   return new RegExp(
-    `\\b(${targetPattern})\\b[^.!?\\n]{0,120}\\b(${positiveVerbPattern}|${positiveStatePattern})\\b|\\b${positiveVerbPattern}\\b[^.!?\\n]{0,120}\\b(${targetPattern})\\b`
+    `\\b(${targetPattern})\\b[^.!?\\n]{0,120}\\b(${positiveVerbPattern}|${positiveStatePattern})\\b|\\b(${positiveVerbPattern}|${positiveStatePattern})\\b[^.!?\\n]{0,120}\\b(${targetPattern})\\b`
   );
+}
+
+function negatedPositiveEvidencePattern(targetPattern) {
+  const evidenceActionPattern =
+    "(present|documented|defined|enabled|available|captured|configured|covered|tested|implemented|listed|used|called|logged|redacted|stored|kept|includes?|documents?|defines?|enables?|captures?|configures?|covers?|tests?|implements?|lists?|uses?|calls?|logs?|redacts?|stores?|keeps?)";
+  const negationPattern = "(no|not|never|without|don't|doesn't|do not|does not)";
+  return new RegExp(
+    `\\b(${targetPattern})\\b[^.!?\\n]{0,60}\\b((is|are|was|were)\\s+)?${negationPattern}\\s+${evidenceActionPattern}\\b|\\b${negationPattern}\\s+${evidenceActionPattern}\\b[^.!?\\n]{0,60}\\b(${targetPattern})\\b`
+  );
+}
+
+function splitEvidenceClauses(text) {
+  return text
+    .split(/(?:[.!?;\n]+|\b(?:but|however|although|yet)\b)/)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
 }
 
 function addNegativeEvidenceFinding(findings, text, pattern, finding) {

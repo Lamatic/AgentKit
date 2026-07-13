@@ -9,7 +9,7 @@ export function validateAuditInputs(flowBrief, optionalFlowExport) {
     String(flowBrief || "").length > maxInputCharacters ||
     String(optionalFlowExport || "").length > maxInputCharacters
   ) {
-    return "Keep each input under 12,000 characters.";
+    return `Keep each input under ${maxInputCharacters.toLocaleString("en-US")} characters.`;
   }
   return "";
 }
