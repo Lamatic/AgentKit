@@ -1,0 +1,170 @@
+// Flow: ai-job-fit-analyzer
+
+// -- Meta --
+export const meta = {
+  "name": "AI Job Fit Analyzer",
+  "description": "AI agent that analyzes resumes against job descriptions, calculates ATS match scores, identifies skill gaps, suggests resume improvements, generates interview questions, and recommends personalized learning roadmaps.",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Shaik Nishad",
+    "email": "shaiknishad25@gmail.com"
+  }
+};
+
+// -- Inputs --
+export const inputs = {
+  "LLMNode_423": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ]
+};
+
+// -- References --
+export const references = {
+  "constitutions": {
+    "default": "@constitutions/default.md"
+  },
+  "prompts": {
+    "ai_job_fit_analyzer_llmnode_423_system_0": "@prompts/ai-job-fit-analyzer_llmnode-423_system_0.md",
+    "ai_job_fit_analyzer_llmnode_423_user_1": "@prompts/ai-job-fit-analyzer_llmnode-423_user_1.md"
+  },
+  "modelConfigs": {
+    "ai_job_fit_analyzer_llmnode_423_generative_model_name": "@model-configs/ai-job-fit-analyzer_llmnode-423_generative-model-name.ts"
+  }
+};
+
+// -- Nodes & Edges --
+export const nodes = [
+  {
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "chatTriggerNode",
+      "trigger": true,
+      "values": {
+        "chat": "",
+        "domains": [
+          "*"
+        ],
+        "nodeName": "Chat Widget",
+        "chatConfig": {
+          "botName": "AI Job Fit Analyzer",
+          "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
+          "position": "right",
+          "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
+          "displayMode": "popup",
+          "placeholder": "Compose your message",
+          "suggestions": [
+            "Analyze my resume",
+            "Generate interview questions",
+            "Suggest resume improvements"
+          ],
+          "errorMessage": "Oops! Something went wrong. Please try again.",
+          "hideBranding": false,
+          "primaryColor": "#ef4444",
+          "headerBgColor": "#000000",
+          "greetingMessage": "Hi! I'm your AI Job Fit Analyzer. Upload your resume and a job description to receive an ATS match score, identify skill gaps, get resume improvement suggestions, and generate personalized interview questions.",
+          "headerTextColor": "#FFFFFF",
+          "showEmojiButton": true,
+          "suggestionBgColor": "#f1f5f9",
+          "userMessageBgColor": "#FEF2F2",
+          "agentMessageBgColor": "#f1f5f9",
+          "suggestionTextColor": "#334155",
+          "userMessageTextColor": "#d12323",
+          "agentMessageTextColor": "#334155"
+        }
+      }
+    }
+  },
+  {
+    "id": "LLMNode_423",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "tools": [],
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/ai-job-fit-analyzer_llmnode-423_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/ai-job-fit-analyzer_llmnode-423_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Generate Text",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/ai-job-fit-analyzer_llmnode-423_generative-model-name.ts"
+      }
+    }
+  },
+  {
+    "id": "responseNode_triggerNode_1",
+    "type": "responseNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "chatResponseNode",
+      "values": {
+        "id": "responseNode_triggerNode_1",
+        "content": "{{LLMNode_423.output.generatedResponse}}",
+        "nodeName": "Chat Response",
+        "references": "",
+        "webhookUrl": "",
+        "webhookHeaders": ""
+      }
+    }
+  }
+];
+
+export const edges = [
+  {
+    "id": "triggerNode_1-LLMNode_423-229",
+    "source": "triggerNode_1",
+    "target": "LLMNode_423",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "LLMNode_423-responseNode_triggerNode_1-931",
+    "source": "LLMNode_423",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "response-trigger_triggerNode_1",
+    "source": "triggerNode_1",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
+  }
+];
+
+export default { meta, inputs, references, nodes, edges };
