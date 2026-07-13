@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const DAYS = [
@@ -13,13 +12,18 @@ const DAYS = [
   { id: "sun", label: "S" },
 ];
 
-export function DaySelector() {
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+interface DaySelectorProps {
+  selectedDays: string[];
+  onChange: (days: string[]) => void;
+}
 
+export function DaySelector({ selectedDays, onChange }: DaySelectorProps) {
   const toggleDay = (id: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(id) ? prev.filter((day) => day !== id) : [...prev, id]
-    );
+    if (selectedDays.includes(id)) {
+      onChange(selectedDays.filter((day) => day !== id));
+    } else {
+      onChange([...selectedDays, id]);
+    }
   };
 
   return (
@@ -47,7 +51,7 @@ export function DaySelector() {
                 "w-10 h-10 rounded-full flex items-center justify-center font-bold text-[15px] transition-colors",
                 isSelected 
                   ? "bg-[#e83a3a] text-white" 
-                  : "bg-[#151515] text-[#94a3b8] hover:text-white border border-white/5"
+                  : "bg-[#151515] text-[#94a3b8] hover:text-white"
               )}
             >
               {day.label}

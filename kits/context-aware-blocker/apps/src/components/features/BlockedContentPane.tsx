@@ -1,32 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useCommitStore } from "@/hooks/useCommitStore";
+import { WebItem } from "@/types/store";
 
 type Tab = "webs" | "ai";
 
-interface WebItem {
-  id: string;
-  url: string;
-  selected: boolean;
-}
-
 interface BlockedContentPaneProps {
+  commitId: string;
   onSave: () => void;
 }
 
-export function BlockedContentPane({ onSave }: BlockedContentPaneProps) {
+export function BlockedContentPane({ commitId, onSave }: BlockedContentPaneProps) {
+  // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
+  const { commits, saveCommit } = useCommitStore();
+  
+  // Initialize synchronously to prevent layout flash
+  const commit = commits.find(c => c.id === commitId);
+
   const [activeTab, setActiveTab] = useState<Tab>("webs");
   
   // Webs State
-  const [webs, setWebs] = useState<WebItem[]>([
-    { id: "1", url: "youtube.com", selected: true },
-    { id: "2", url: "twitter.com", selected: false }
-  ]);
+  const [webs, setWebs] = useState<WebItem[]>(commit?.blockedWebsites || []);
   const [webInput, setWebInput] = useState("");
 
   // AI State
+  const [aiRules, setAiRules] = useState<string[]>(commit?.aiRules || []);
   const [aiInput, setAiInput] = useState("");
+
+  // ** PRODUCTION LEVEL HYDRATION: Ensure state stays synced ** //
+  useEffect(() => {
+    const updatedCommit = commits.find(c => c.id === commitId);
+    if (updatedCommit) {
+      setWebs(updatedCommit.blockedWebsites || []);
+      setAiRules(updatedCommit.aiRules || []);
+    }
+  }, [commitId, commits]);
 
   const handleAddWeb = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +48,35 @@ export function BlockedContentPane({ onSave }: BlockedContentPaneProps) {
   const handleAddAi = (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiInput.trim()) return;
+    setAiRules([aiInput.trim(), ...aiRules]);
     setAiInput("");
   };
 
   const toggleWeb = (id: string) => {
     setWebs(webs.map(w => w.id === id ? { ...w, selected: !w.selected } : w));
+  };
+
+  const handleSave = async () => {
+    // ** PRODUCTION LEVEL PERSISTENCE: Save configuration to Tiny DB ** //
+    const commit = commits.find(c => c.id === commitId);
+    if (commit) {
+      
+      // ** PRODUCTION LEVEL UX: Auto-flush pending inputs ** //
+      // If the user typed a URL or AI rule but forgot to hit the '+' button, automatically include it!
+      let finalWebs = [...webs];
+      if (webInput.trim()) {
+        finalWebs = [{ id: Math.random().toString(), url: webInput.trim(), selected: true }, ...finalWebs];
+      }
+
+      let finalAiRules = [...aiRules];
+      if (aiInput.trim()) {
+        finalAiRules = [aiInput.trim(), ...finalAiRules];
+      }
+
+      const updatedCommit = { ...commit, blockedWebsites: finalWebs, aiRules: finalAiRules };
+      await saveCommit(updatedCommit);
+    }
+    onSave();
   };
 
   return (
@@ -96,25 +130,38 @@ export function BlockedContentPane({ onSave }: BlockedContentPaneProps) {
 
             <div className="flex flex-col gap-2 mt-2">
               {webs.map((web) => (
-                <button 
+                <div 
                   key={web.id}
-                  onClick={() => toggleWeb(web.id)} 
-                  className="flex items-center justify-between bg-[#151515] p-3 rounded-xl border border-white/5 hover:bg-[#1a1a1a] transition-colors"
+                  className="flex items-center justify-between bg-[#151515] p-3 rounded-xl border border-white/5 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => toggleWeb(web.id)}>
                     <span className="material-symbols-outlined text-[#94a3b8] !text-[20px]">language</span>
                     <span className="text-white font-medium">{web.url}</span>
                   </div>
-                  <div 
-                    className={cn(
-                      "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors",
-                      web.selected ? "bg-[#e83a3a] border-[#e83a3a]" : "border-white/20 bg-transparent"
-                    )}
-                  >
-                    {web.selected && <span className="material-symbols-outlined !text-[16px] text-white font-bold">check</span>}
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => toggleWeb(web.id)}
+                      className={cn(
+                        "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors",
+                        web.selected ? "bg-[#e83a3a] border-[#e83a3a]" : "border-white/20 bg-transparent"
+                      )}
+                    >
+                      {web.selected && <span className="material-symbols-outlined !text-[16px] text-white font-bold">check</span>}
+                    </button>
+                    {/* ** PRODUCTION LEVEL ACTION: Delete Web Rule ** */}
+                    <button 
+                      onClick={() => setWebs(webs.filter(w => w.id !== web.id))}
+                      className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-[#e83a3a] transition-colors shrink-0"
+                      title="Remove website"
+                    >
+                      <span className="material-symbols-outlined !text-[18px]">close</span>
+                    </button>
                   </div>
-                </button>
+                </div>
               ))}
+              {webs.length === 0 && (
+                 <p className="text-[#94a3b8] text-sm text-center py-4">No websites added.</p>
+              )}
             </div>
           </div>
         )}
@@ -135,9 +182,29 @@ export function BlockedContentPane({ onSave }: BlockedContentPaneProps) {
               </button>
             </form>
             
-            <div className="flex-1 flex flex-col items-center justify-center text-[#94a3b8] min-h-[200px]">
-              <span className="material-symbols-outlined text-4xl mb-2 text-white/10">auto_awesome</span>
-              <span className="text-sm font-medium text-center px-8">AI-generated rules will appear here</span>
+            <div className="flex-1 flex flex-col items-center justify-start mt-2">
+              {aiRules.map((rule, idx) => (
+                <div key={idx} className="w-full bg-[#151515] p-3 rounded-xl border border-white/5 flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[#94a3b8] !text-[20px]">auto_awesome</span>
+                    <span className="text-white font-medium">{rule}</span>
+                  </div>
+                  {/* ** PRODUCTION LEVEL ACTION: Delete AI Rule ** */}
+                  <button 
+                    onClick={() => setAiRules(aiRules.filter((_, i) => i !== idx))}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-[#e83a3a] transition-colors shrink-0"
+                    title="Remove rule"
+                  >
+                    <span className="material-symbols-outlined !text-[18px]">close</span>
+                  </button>
+                </div>
+              ))}
+              {aiRules.length === 0 && (
+                <div className="flex flex-col items-center justify-center text-[#94a3b8] min-h-[200px]">
+                  <span className="material-symbols-outlined text-4xl mb-2 text-white/10">auto_awesome</span>
+                  <span className="text-sm font-medium text-center px-8">AI-generated rules will appear here</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -147,7 +214,7 @@ export function BlockedContentPane({ onSave }: BlockedContentPaneProps) {
       {/* Save Button */}
       <div className="pt-6 shrink-0 mt-auto border-t border-white/5 -mx-6 px-6">
         <button 
-          onClick={onSave}
+          onClick={handleSave}
           className="w-full bg-[#e83a3a] hover:bg-[#f94f4f] transition-colors text-white rounded-full px-6 py-4 shadow-lg font-bold text-[17px] flex justify-center items-center"
         >
           Save

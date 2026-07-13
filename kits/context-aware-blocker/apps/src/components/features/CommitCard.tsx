@@ -8,6 +8,7 @@ interface CommitCardProps {
   hasBlock?: boolean;
   onTimeClick?: () => void;
   onBlockClick?: () => void;
+  onDeleteClick?: () => void;
 }
 
 export function CommitCard({
@@ -18,13 +19,14 @@ export function CommitCard({
   hasBlock = true,
   onTimeClick,
   onBlockClick,
+  onDeleteClick,
 }: CommitCardProps) {
   const getIconColor = (isActive: boolean) => isActive ? 'text-[#e83a3a]' : 'text-white/10';
 
   return (
     <div className="w-full bg-[#151515] rounded-[32px] cursor-pointer shadow-lg hover:bg-[#1f1f1f] transition-colors px-5 py-6">
       
-      {/* Top Row: Skull | Icon+Title | Dots */}
+      {/* Top Row: Skull | Icon+Title | Trash */}
       <div className="flex items-start">
         
         {/* Left: Skull */}
@@ -42,11 +44,21 @@ export function CommitCard({
           <h3 className="text-lg font-bold tracking-wide text-[#f8fafc] mt-2">{title}</h3>
         </div>
 
-        {/* Right: 3 dots */}
+        {/* Right: Trash Button */}
+        {/* ** PRODUCTION LEVEL ACTION: Trigger Delete Confirmation Modal ** */}
         <div className="w-10 shrink-0 flex justify-end">
-          <span className="material-symbols-outlined text-[#94a3b8] hover:text-white transition-colors !text-[24px] leading-none">
-            more_vert
-          </span>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onDeleteClick) onDeleteClick();
+            }}
+            className="flex items-center justify-center p-1 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+            title="Delete Block"
+          >
+            <span className="material-symbols-outlined text-[#94a3b8] hover:text-white transition-colors !text-[24px] leading-none">
+              delete
+            </span>
+          </button>
         </div>
 
       </div>

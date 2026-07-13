@@ -1,24 +1,56 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UpcomingBlocksCard } from "@/components/ui/UpcomingBlocksCard";
 import { CommitCard } from "@/components/features/CommitCard";
 import { CommitSettingsModal } from "@/components/features/CommitSettingsModal";
+import { useCommitStore } from "@/hooks/useCommitStore";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function Home() {
-  const [modalConfig, setModalConfig] = useState<{ isOpen: boolean; initialPane: "time" | "block" }>({
+  // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
+  const { commits, loadCommits, isLoaded, deleteCommit } = useCommitStore();
+
+  const [modalConfig, setModalConfig] = useState<{ isOpen: boolean; initialPane: "time" | "block"; commitId: string | null }>({
     isOpen: false,
     initialPane: "time",
+    commitId: null
   });
 
-  const openModal = (pane: "time" | "block") => {
-    setModalConfig({ isOpen: true, initialPane: pane });
+  const [deleteConfig, setDeleteConfig] = useState<{ isOpen: boolean; commitId: string | null; title: string }>({
+    isOpen: false,
+    commitId: null,
+    title: "",
+  });
+
+  // ** PRODUCTION LEVEL HYDRATION: Fetch tiny DB config on client mount ** //
+  useEffect(() => {
+    loadCommits();
+  }, [loadCommits]);
+
+  const openModal = (pane: "time" | "block", commitId: string) => {
+    setModalConfig({ isOpen: true, initialPane: pane, commitId });
   };
 
   const closeModal = () => {
-    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+    setModalConfig((prev) => ({ ...prev, isOpen: false, commitId: null }));
   };
+
+  const openDeleteModal = (commitId: string, title: string) => {
+    setDeleteConfig({ isOpen: true, commitId, title });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfig.commitId) {
+      await deleteCommit(deleteConfig.commitId);
+    }
+    setDeleteConfig({ isOpen: false, commitId: null, title: "" });
+  };
+
+  if (!isLoaded) {
+    return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#e83a3a] border-t-transparent rounded-full animate-spin"></div></div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] font-sans text-[#f8fafc] p-8 relative">
@@ -48,30 +80,46 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Cards Container */}
+        {/* ** PRODUCTION LEVEL RENDERING: Dynamically render user commitments ** */}
         <div className="flex flex-col gap-4">
-          <CommitCard 
-            title="Summer" 
-            iconName="book" 
-            showRisk={true} 
-            onTimeClick={() => openModal("time")}
-            onBlockClick={() => openModal("block")}
-          />
-          <CommitCard 
-            title="Deep Work" 
-            iconName="target" 
-            showRisk={false}
-            onTimeClick={() => openModal("time")}
-            onBlockClick={() => openModal("block")}
-          />
+          {commits.map((commit) => (
+            <CommitCard 
+              key={commit.id}
+              title={commit.title} 
+              iconName={commit.iconName} 
+              showRisk={commit.showRisk} 
+              onTimeClick={() => openModal("time", commit.id)}
+              onBlockClick={() => openModal("block", commit.id)}
+              onDeleteClick={() => openDeleteModal(commit.id, commit.title)}
+            />
+          ))}
+          {commits.length === 0 && (
+            <p className="text-[#94a3b8] text-center py-6">No blocks added yet.</p>
+          )}
         </div>
 
       </div>
 
-      <CommitSettingsModal 
-        isOpen={modalConfig.isOpen} 
-        initialPane={modalConfig.initialPane} 
-        onClose={closeModal} 
+      {modalConfig.commitId && (
+        <CommitSettingsModal 
+          isOpen={modalConfig.isOpen} 
+          initialPane={modalConfig.initialPane} 
+          commitId={modalConfig.commitId}
+          onClose={closeModal} 
+        />
+      )}
+
+      {/* ** PRODUCTION LEVEL ACTION: Delete Confirmation Modal Overlay ** */}
+      <ConfirmationModal
+        isOpen={deleteConfig.isOpen}
+        title="Delete Block?"
+        message={`Are you sure you want to permanently delete the "${deleteConfig.title}" block? This cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmColor="#e83a3a"
+        cancelColor="#94a3b8"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfig(prev => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

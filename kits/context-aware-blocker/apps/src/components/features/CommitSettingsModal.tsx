@@ -9,9 +9,10 @@ interface CommitSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialPane?: "time" | "block";
+  commitId: string; // ** PRODUCTION LEVEL IDENTIFIER: Passed down to load specific commit config **
 }
 
-export function CommitSettingsModal({ isOpen, onClose, initialPane = "time" }: CommitSettingsModalProps) {
+export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", commitId }: CommitSettingsModalProps) {
   const [activePane, setActivePane] = useState<"time" | "block">(initialPane);
 
   // Reset pane when modal opens
@@ -61,7 +62,7 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time" }: C
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm">
       
       {/* Modal Container */}
-      <div className="bg-[#0f0f0f] w-[90%] max-w-[420px] rounded-[24px] border border-white/10 flex flex-col shadow-2xl h-[560px] overflow-hidden relative">
+      <div className="bg-[#0f0f0f] w-[90%] max-w-[420px] rounded-[24px] flex flex-col shadow-2xl h-[560px] overflow-hidden relative">
         
         {/* Global Header */}
         <div className="flex justify-between items-center p-6 pb-2 shrink-0 z-10 bg-[#0f0f0f]">
@@ -99,7 +100,8 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time" }: C
                 <p className="text-[#94a3b8] text-sm">Choose when this commitment is active</p>
               </div>
               <div className="flex-1 overflow-hidden">
-                <ActiveTimePane onSave={onClose} />
+                {/* ** PRODUCTION LEVEL PROP INJECTION: Pass commitId down ** */}
+                <ActiveTimePane commitId={commitId} onSave={onClose} />
               </div>
             </div>
 
@@ -110,7 +112,8 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time" }: C
                 <p className="text-[#94a3b8] text-sm">Choose what websites or AI topics to block</p>
               </div>
               <div className="flex-1 overflow-hidden">
-                <BlockedContentPane onSave={onClose} />
+                {/* ** PRODUCTION LEVEL PROP INJECTION: Pass commitId down ** */}
+                <BlockedContentPane commitId={commitId} onSave={onClose} />
               </div>
             </div>
 

@@ -1,22 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DaySelector } from "@/components/ui/DaySelector";
-
-interface TimeWindow {
-  id: string;
-  start: string;
-  end: string;
-}
+import { useCommitStore } from "@/hooks/useCommitStore";
+import { TimeWindow } from "@/types/store";
 
 interface ActiveTimePaneProps {
+  commitId: string;
   onSave: () => void;
 }
 
-export function ActiveTimePane({ onSave }: ActiveTimePaneProps) {
-  const [timeWindows, setTimeWindows] = useState<TimeWindow[]>([
-    { id: "1", start: "9:00 AM", end: "5:00 PM" }
-  ]);
+export function ActiveTimePane({ commitId, onSave }: ActiveTimePaneProps) {
+  // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
+  const { commits, saveCommit } = useCommitStore();
+  
+  // Initialize synchronously to prevent layout flash
+  const commit = commits.find(c => c.id === commitId);
+
+  const [timeWindows, setTimeWindows] = useState<TimeWindow[]>(commit?.timeWindows || []);
+  // ** PRODUCTION LEVEL STATE: Sync Days State ** //
+  const [activeDays, setActiveDays] = useState<string[]>(
+    commit?.activeDays && commit.activeDays.length > 0 ? commit.activeDays : ["mon", "tue", "wed", "thu", "fri"]
+  );
+
+  // ** PRODUCTION LEVEL HYDRATION: Ensure state stays synced ** //
+  useEffect(() => {
+    const updatedCommit = commits.find(c => c.id === commitId);
+    if (updatedCommit) {
+      setTimeWindows(updatedCommit.timeWindows || []);
+      setActiveDays(updatedCommit.activeDays && updatedCommit.activeDays.length > 0 ? updatedCommit.activeDays : ["mon", "tue", "wed", "thu", "fri"]);
+    }
+  }, [commitId, commits]);
 
   const addTimeWindow = () => {
     setTimeWindows([...timeWindows, { id: Math.random().toString(), start: "9:00 AM", end: "5:00 PM" }]);
@@ -32,11 +46,22 @@ export function ActiveTimePane({ onSave }: ActiveTimePaneProps) {
     ));
   };
 
+  const handleSave = async () => {
+    // ** PRODUCTION LEVEL PERSISTENCE: Save configuration to Tiny DB ** //
+    const commit = commits.find(c => c.id === commitId);
+    if (commit) {
+      const updatedCommit = { ...commit, timeWindows, activeDays };
+      await saveCommit(updatedCommit);
+    }
+    onSave();
+  };
+
   return (
     <div className="flex flex-col h-full p-6">
       <div className="flex-1 overflow-y-auto pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
         {/* Day Selector */}
-        <DaySelector />
+        {/* ** PRODUCTION LEVEL PROP INJECTION ** */}
+        <DaySelector selectedDays={activeDays} onChange={setActiveDays} />
 
         {/* Divider */}
         <div className="h-[1px] bg-white/10 my-6 -mx-6"></div>
@@ -56,7 +81,7 @@ export function ActiveTimePane({ onSave }: ActiveTimePaneProps) {
 
           <div className="flex flex-col gap-2">
             {timeWindows.map((window) => (
-              <div key={window.id} className="flex items-center gap-2 bg-[#151515] p-2 rounded-[16px] border border-white/5">
+              <div key={window.id} className="flex items-center gap-2 bg-[#151515] p-2 rounded-[16px]">
                 
                 {/* Start Time Picker (Manual Text) */}
                 <div className="flex items-center gap-1.5 flex-1 bg-black/20 px-2.5 py-1.5 rounded-lg">
@@ -105,7 +130,7 @@ export function ActiveTimePane({ onSave }: ActiveTimePaneProps) {
       {/* Save Button */}
       <div className="pt-6 shrink-0 mt-auto border-t border-white/5 -mx-6 px-6">
         <button 
-          onClick={onSave}
+          onClick={handleSave}
           className="w-full bg-[#e83a3a] hover:bg-[#f94f4f] transition-colors text-white rounded-full px-6 py-4 shadow-lg font-bold text-[17px] flex justify-center items-center"
         >
           Save
