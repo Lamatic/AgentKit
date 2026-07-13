@@ -140,31 +140,6 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
           />
         </div>
 
-        {/* Memory Toggle */}
-        <div className="flex items-center justify-between py-1">
-          <div>
-            <p className="text-sm font-medium text-slate-300">Enable Memory</p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Remember context across investigations
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={formData.memory_enabled}
-            disabled={loading}
-            onClick={() => set("memory_enabled", !formData.memory_enabled)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
-              formData.memory_enabled ? "bg-cyan-500" : "bg-slate-700"
-            }`}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out ${
-                formData.memory_enabled ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </button>
-        </div>
 
         {/* Submit */}
         <motion.button
