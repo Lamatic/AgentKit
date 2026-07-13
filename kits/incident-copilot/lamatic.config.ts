@@ -1,11 +1,11 @@
 export default {
   name: "Incident Copilot",
   description:
-    "An investigation agent for on-call engineers. Paste a production alert and it grounds hypotheses in your runbooks (RAG) and recent GitHub activity (tool call), ranks likely root causes with supporting AND contradicting evidence, remembers the incident so new information revises the ranking instead of restarting, and drafts a Slack update plus a postmortem skeleton.",
+    "An investigation agent for on-call engineers. Paste a production alert and it grounds hypotheses in your runbooks and recent GitHub activity (tool call), ranks likely root causes with supporting AND contradicting evidence, remembers the incident so new information revises the ranking instead of restarting, and drafts a Slack update plus a postmortem skeleton.",
   version: "1.0.0",
   type: "kit" as const,
   author: { name: "Tushar Anand", email: "tusharanand797@gmail.com" },
-  tags: ["agentic", "incident-response", "devtools", "rag", "reasoning"],
+  tags: ["agentic", "incident-response", "devtools", "reasoning"],
   steps: [
     {
       id: "investigate",

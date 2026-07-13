@@ -1,7 +1,7 @@
 # Incident Copilot
 
 ## Overview
-Incident Copilot is an investigation agent for on-call engineers, built on Lamatic.ai. Given a production alert, it produces ranked, evidence-grounded root-cause hypotheses by combining retrieval over the team's runbooks (RAG), a live check of recent repository activity (a GitHub API tool call), and incident-scoped memory that lets follow-up information revise the ranking instead of restarting it. It then drafts an honestly-hedged Slack update and a blameless postmortem skeleton. It analyses and drafts only — it never takes real-world actions.
+Incident Copilot is an investigation agent for on-call engineers, built on Lamatic.ai. Given a production alert, it produces ranked, evidence-grounded root-cause hypotheses by combining the team's runbooks, a live check of recent repository activity (a GitHub API tool call), and incident-scoped memory that lets follow-up information revise the ranking instead of restarting it. It then drafts an honestly-hedged Slack update and a blameless postmortem skeleton. It analyses and drafts only — it never takes real-world actions.
 
 ## Purpose
 The first ten minutes of an incident are spent reconstructing context: which runbook applies, whether a recent deploy is implicated, and what to tell the team. Incident Copilot compresses that by gathering the evidence, weighing it, and presenting a calibrated ranking with supporting *and* contradicting evidence for each hypothesis — so an engineer can act on the most-supported cause rather than the most-recent or most-alarming one. Because memory is scoped to the incident ID, the agent becomes more accurate as the incident unfolds and new facts arrive.
@@ -11,7 +11,7 @@ The first ten minutes of an incident are spent reconstructing context: which run
 ### investigate
 - **Trigger:** API request (`graphqlNode`, realtime) with `{ alertText, incidentId, repoUrl?, githubToken? }`.
 - **Processing:**
-  1. `Runbook_RAG` (`RAGNode`) retrieves the most relevant runbook excerpts for the alert.
+  1. `Load_Runbooks` (`codeNode`) supplies the runbook corpus as grounding context (passed directly to the diagnosis model — no vector store).
   2. `Parse_Repo` (`codeNode`) turns the optional repo URL into GitHub API parameters, or flags that no repo was given.
   3. `Fetch_Commits` (`apiNode`) GETs recent commits for the affected repo.
   4. `Shape_Changes` (`codeNode`) compacts the commits into an evidence summary, degrading gracefully to an explicit "unavailable" marker on failure or absence.
@@ -20,7 +20,7 @@ The first ten minutes of an incident are spent reconstructing context: which run
   7. `Remember` (`memoryNode`) writes the new hypothesis set back under the `incidentId`.
 - **When to use:** any time an alert fires and you want a grounded first-pass diagnosis, or when new information arrives mid-incident and you want the ranking revised.
 - **Output:** `{ hypotheses[], summary, insufficientInfo }`, where each hypothesis is `{ rank, title, confidence, reasoning, supportingEvidence[], contradictingEvidence[], nextStep }`.
-- **Dependencies:** a vector DB indexed with runbooks; embedding + generative models; a memory collection; optionally a GitHub token for private repos / higher rate limits.
+- **Dependencies:** a generative model on the `Diagnose` node; a memory collection (with an embedding model) for `Retrieve_Prior` / `Remember`; optionally a GitHub token for private repos / higher rate limits. No vector DB — runbooks are supplied by the `Load_Runbooks` code node.
 
 ### draft-comms
 - **Trigger:** API request with `{ hypothesis, evidence, rankedHypotheses, incidentId }`.
@@ -41,7 +41,6 @@ The app calls `investigate` first (possibly several times for one incident, as i
 | Integration | Purpose | Required credential / config |
 |---|---|---|
 | GraphQL/API trigger | Receives alert and comms payloads | Lamatic runtime endpoint |
-| RAG vector DB (`RAGNode`) | Retrieves runbook context | Vector DB connection + embedding model in Studio |
 | GitHub REST API (`apiNode`) | Fetches recent commits | Public by default; `GITHUB_TOKEN` optional |
 | Memory (`memoryNode` / `memoryRetrieveNode`) | Incident-scoped hypothesis history | Memory collection + embedding model in Studio |
 | Generative models (`InstructorLLMNode`, `LLMNode`) | Diagnosis and drafting | Model credentials in Studio |
@@ -54,7 +53,7 @@ The app calls `investigate` first (possibly several times for one incident, as i
 
 ## Quickstart
 1. Import `flows/investigate.ts` and `flows/draft-comms.ts` into Lamatic Studio.
-2. Configure models, vector DB, and memory collection; index `assets/demo/runbooks.md`.
+2. Configure the models and a memory collection on both flows. No vector DB or indexing needed — runbooks ship in `scripts/investigate_runbooks.ts`.
 3. Deploy both flows and copy their Flow IDs.
 4. In `apps/`, copy `.env.example` → `.env.local`, fill in the IDs and credentials.
 5. `npm install && npm run dev`, then click **Load example** → **Investigate**.
@@ -63,11 +62,11 @@ The app calls `investigate` first (possibly several times for one incident, as i
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | "Missing environment variable" | Flow ID or credential not set | Fill in `.env.local` from `.env.example` |
-| Hypotheses returned but no runbook grounding | Vector DB not indexed with runbooks | Index `assets/demo/runbooks.md` into the DB `Runbook_RAG` queries |
+| Hypotheses ignore the runbooks | `Load_Runbooks` output not reaching the prompt | Confirm `scripts/investigate_runbooks.ts` returns `runbooks` and the diagnose user prompt reads `{{codeNode_runbooks.output.runbooks}}` |
 | "Recent-changes data unavailable" | Private repo without token, rate limit, or no repo given | Add `GITHUB_TOKEN`, or proceed on runbooks alone (expected, non-fatal) |
 | Follow-up re-diagnoses from scratch | Memory not persisting across runs for the incident ID | Verify the memory collection and that `incidentId` is stable between runs |
 | Empty / malformed diagnosis | Model didn't honor the JSON schema | Confirm the `Diagnose` node uses an instructor-capable model at temperature 0 |
 
 ## Notes
 - Companion to `llm-eval-harness`: that kit evaluates generation quality; this one diagnoses incidents.
-- The default runbook corpus in `assets/demo/` is a stand-in — replace it with your team's runbooks with no code changes.
+- The default runbook corpus is a stand-in — replace the `RUNBOOKS` string in `scripts/investigate_runbooks.ts` (canonical copy in `assets/demo/runbooks.md`) with your team's runbooks.
