@@ -21,7 +21,7 @@ export default {
     }
   ],
   "links": {
-    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/metinegearal/AgentKit&root-directory=kits/japanese-teacher/apps",
+    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/japanese-teacher/apps",
     "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/japanese-teacher"
   }
 };
