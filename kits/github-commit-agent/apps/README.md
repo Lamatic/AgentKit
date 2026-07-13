@@ -41,7 +41,7 @@ You can deploy this Next.js app to Vercel in a few clicks:
 
 1. Connect your fork repository to Vercel.
 2. Under **Project Settings**, set the **Root Directory** to `kits/github-commit-agent/apps`.
-3. Add the required Environment Variables shown in the code block above.
+3. Add the required variables shown in the code block above; optionally add `GITHUB_TOKEN` for private repository access.
 4. Click **Deploy**.
 
 ---
