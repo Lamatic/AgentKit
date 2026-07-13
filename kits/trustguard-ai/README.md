@@ -2,6 +2,8 @@
 
 > A multi-stage AI investigation kit that helps you detect fraud, phishing, and scams across emails, SMS, URLs, and documents. Built on Lamatic AI flows and powered by large language models.
 
+🔗 **Live Demo:** [https://trustguard-ai-blush.vercel.app](https://trustguard-ai-blush.vercel.app)
+
 ---
 
 ## Introduction
