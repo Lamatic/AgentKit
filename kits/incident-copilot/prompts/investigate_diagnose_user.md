@@ -3,8 +3,8 @@
 ## Alert
 {{triggerNode_1.output.alertText}}
 
-## Retrieved runbook context
-{{RAGNode_runbooks.output.modelResponse}}
+## Runbook context
+{{codeNode_runbooks.output.runbooks}}
 
 ## Recent repository activity
 {{codeNode_changes.output.recentChanges}}

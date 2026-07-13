@@ -12,7 +12,7 @@ It investigates. It does not act — no deploys, no restarts, no posting. Drafts
 
 A chatbot answers the question you asked. Incident Copilot **gathers evidence, weighs it, and argues against itself** — the three things that make it an agent rather than a prompt:
 
-1. **It grounds every hypothesis in real evidence** — runbook excerpts (RAG) and the actual recent commits on the affected repo (a live tool call), never a guess.
+1. **It grounds every hypothesis in real evidence** — your runbooks and the actual recent commits on the affected repo (a live tool call), never a guess.
 2. **It surfaces contradicting evidence, not just supporting** — the constitution makes "argue both sides" a hard rule, so you get a calibrated ranking, not a confident single answer.
 3. **It gets smarter with new information** — memory is scoped to the incident ID, so a follow-up (“the DB pool is maxed”) *revises* the existing ranking and tells you what changed.
 
@@ -30,7 +30,7 @@ A chatbot answers the question you asked. Incident Copilot **gathers evidence, w
                       ▲                     ┌──────────────────────────────┐
                       │                     │ trigger (alertText,          │
                       │                     │   incidentId, repoUrl?)      │
-                      │              ┌──────┼──▶ Runbook_RAG (RAG) ────┐    │
+                      │              ┌──────┼──▶ Load_Runbooks (code) ─┐    │
                       │              │      │   Parse_Repo (code)       │   │
                       │   ranked     │      │     └▶ Fetch_Commits (API)│   │
                       │   hypotheses │      │         └▶ Shape_Changes ─┤   │
@@ -55,12 +55,18 @@ A chatbot answers the question you asked. Incident Copilot **gathers evidence, w
 
 | Capability | Where | Why it earns its place |
 |---|---|---|
-| **RAG** | `Runbook_RAG` | Grounds hypotheses in your runbooks instead of the model's memory |
 | **Tool calling** | `Fetch_Commits` (`apiNode` → GitHub) | "Check recent deploys" becomes a real check, not a claim |
 | **Memory** | `Retrieve_Prior` / `Remember`, keyed by incident ID | The one thing that makes re-investigation *revise* rather than repeat |
 | **Structured output** | `Diagnose` (`InstructorLLMNode` + JSON schema) | Ranked hypotheses the UI can render, with guaranteed shape |
 | **Multiple flows** | `investigate` + `draft-comms` | Separates "figure out what's true" from "write it up" |
 | **Prompts / model-configs / constitution** | throughout | Diagnose runs at temp 0 (repeatable triage); drafts run warmer; the constitution enforces evidence + hedging |
+| **Code nodes** | `Load_Runbooks`, `Parse_Repo`, `Shape_Changes` | Supply runbook grounding and shape the GitHub tool output; graceful degradation lives here |
+
+> **Design note — why no vector store:** the runbook corpus is small (8 entries), so it's
+> passed to the diagnosis model directly rather than retrieved from a vector DB. That's
+> right-sized for the data and keeps the flow **self-contained** — no vector database to
+> provision or index. Swap your own runbooks into `scripts/investigate_runbooks.ts`
+> (canonical copy in `assets/demo/runbooks.md`).
 
 ---
 
@@ -81,9 +87,9 @@ Each `hypothesis` is `{ rank, title, confidence, reasoning, supportingEvidence[]
 
 The two flows live in [`flows/`](./flows). Import them into [Lamatic Studio](https://studio.lamatic.ai), then:
 
-- **`investigate`** — set the model on the `Diagnose` node (temperature **0**), the embedding + generative models and vector DB on `Runbook_RAG`, and a memory collection on `Retrieve_Prior` / `Remember`.
+- **`investigate`** — set the model on the `Diagnose` node (temperature **0**) and a memory collection on `Retrieve_Prior` / `Remember`. No vector DB needed — runbooks are supplied by the `Load_Runbooks` code node.
 - **`draft-comms`** — set the models on `Draft_Slack` (~0.5) and `Draft_Postmortem` (~0.3).
-- **Index the runbooks:** load [`assets/demo/runbooks.md`](./assets/demo/runbooks.md) (or your own) into the vector DB that `Runbook_RAG` queries. Each `##` section is one runbook entry.
+- **Runbooks:** the demo corpus ships inside [`scripts/investigate_runbooks.ts`](./scripts/investigate_runbooks.ts) (canonical copy in [`assets/demo/runbooks.md`](./assets/demo/runbooks.md)) — edit that string to use your own. No indexing step.
 - **Deploy** both flows and copy each **Flow ID**.
 
 ### 2. Run the app

@@ -1,8 +1,8 @@
 /*
  * # investigate
  * The investigation flow for Incident Copilot. Takes a production alert and produces
- * a ranked set of evidence-grounded root-cause hypotheses, grounded in runbooks (RAG)
- * and recent repository activity (GitHub tool call), and made incident-aware through
+ * a ranked set of evidence-grounded root-cause hypotheses, grounded in runbooks and
+ * recent repository activity (GitHub tool call), and made incident-aware through
  * memory so follow-up runs revise the ranking instead of starting over.
  *
  * ## Inputs (trigger advance_schema)
@@ -22,7 +22,7 @@
  *
  * ## Node walkthrough
  * 1. `API Request` (graphqlNode) — receives the alert payload.
- * 2. `Runbook_RAG` (RAGNode) — retrieves the most relevant runbook excerpts for the alert.
+ * 2. `Load_Runbooks` (codeNode) — supplies the runbook corpus as grounding context.
  * 3. `Parse_Repo` (codeNode) — turns the optional repoUrl into GitHub API params, or flags no-repo.
  * 4. `Fetch_Commits` (apiNode) — GET recent commits for the affected repo (skipped/degraded if no repo).
  * 5. `Shape_Changes` (codeNode) — compacts commits into an evidence summary; graceful on failure.
@@ -31,8 +31,14 @@
  * 8. `Remember` (memoryNode) — writes the new hypothesis set back under the incidentId.
  * 9. `API Response` — returns hypotheses, summary, insufficientInfo.
  *
- * The three evidence branches (RAG, changes, prior memory) run independently and fan in
- * at `Diagnose`, mirroring the parallel-fetch-then-synthesise pattern used across AgentKit.
+ * The three evidence branches (runbooks, changes, prior memory) run independently and
+ * fan in at `Diagnose`, mirroring the parallel-gather-then-synthesise pattern used
+ * across AgentKit.
+ *
+ * Runbook grounding is done by passing the (small) runbook corpus directly to the
+ * diagnosis model rather than via a vector store — right-sized for an 8-entry corpus
+ * and keeps the flow self-contained (no vector DB to provision). Swap the corpus in
+ * `@scripts/investigate_runbooks.ts` (canonical copy in `assets/demo/runbooks.md`).
  */
 
 // Flow: investigate
@@ -40,7 +46,7 @@
 // -- Meta --
 export const meta = {
   "name": "investigate",
-  "description": "Investigates a production alert: grounds ranked root-cause hypotheses in runbooks (RAG) and recent GitHub activity (tool call), with incident-scoped memory so follow-ups revise rather than restart.",
+  "description": "Investigates a production alert: grounds ranked root-cause hypotheses in runbooks and recent GitHub activity (tool call), with incident-scoped memory so follow-ups revise rather than restart.",
   "tags": ["🤖 Agentic", "🛠️ Devtools"],
   "testInput": {
     "alertText": "[PagerDuty] checkout-service p99 latency 1.4s (threshold 800ms) and 5xx error rate 3.1% for 8 minutes. orders-service also elevated. Started ~09:12 UTC. No paging from payments-service.",
@@ -86,15 +92,14 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "investigate_rag_system": "@prompts/investigate_rag_system.md",
     "investigate_diagnose_system": "@prompts/investigate_diagnose_system.md",
     "investigate_diagnose_user": "@prompts/investigate_diagnose_user.md"
   },
   "modelConfigs": {
-    "investigate_rag": "@model-configs/investigate_rag.ts",
     "investigate_diagnose": "@model-configs/investigate_diagnose.ts"
   },
   "scripts": {
+    "investigate_runbooks": "@scripts/investigate_runbooks.ts",
     "investigate_parse_repo": "@scripts/investigate_parse-repo.ts",
     "investigate_shape_changes": "@scripts/investigate_shape-changes.ts"
   },
@@ -122,29 +127,15 @@ export const nodes = [
     }
   },
   {
-    "id": "RAGNode_runbooks",
+    "id": "codeNode_runbooks",
     "type": "dynamicNode",
     "position": { "x": 0, "y": 0 },
     "data": {
-      "nodeId": "RAGNode",
+      "nodeId": "codeNode",
       "values": {
-        "nodeName": "Runbook_RAG",
-        "limit": "@model-configs/investigate_rag.ts",
-        "filters": "",
-        "prompts": [
-          {
-            "id": "a1b2c3d4-0001-4a5b-8c7d-000000000001",
-            "role": "system",
-            "content": "@prompts/investigate_rag_system.md"
-          }
-        ],
-        "memories": "@model-configs/investigate_rag.ts",
-        "messages": "@model-configs/investigate_rag.ts",
-        "vectorDB": "",
-        "certainty": "@model-configs/investigate_rag.ts",
-        "queryField": "{{triggerNode_1.output.alertText}}",
-        "embeddingModelName": "@model-configs/investigate_rag.ts",
-        "generativeModelName": "@model-configs/investigate_rag.ts"
+        "id": "codeNode_runbooks",
+        "nodeName": "Load_Runbooks",
+        "code": "@scripts/investigate_runbooks.ts"
       }
     }
   },
@@ -279,9 +270,9 @@ export const nodes = [
 
 export const edges = [
   {
-    "id": "triggerNode_1-RAGNode_runbooks",
+    "id": "triggerNode_1-codeNode_runbooks",
     "source": "triggerNode_1",
-    "target": "RAGNode_runbooks",
+    "target": "codeNode_runbooks",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
@@ -319,8 +310,8 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "RAGNode_runbooks-InstructorLLMNode_diagnose",
-    "source": "RAGNode_runbooks",
+    "id": "codeNode_runbooks-InstructorLLMNode_diagnose",
+    "source": "codeNode_runbooks",
     "target": "InstructorLLMNode_diagnose",
     "sourceHandle": "bottom",
     "targetHandle": "top",
