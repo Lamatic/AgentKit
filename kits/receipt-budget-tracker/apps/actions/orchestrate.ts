@@ -1,6 +1,6 @@
 "use server";
 
-import { lamatic } from "@/lib/lamatic-client";
+import lamaticConfig from "../../lamatic.config";
 
 // Define the interface for the structured response we return to the UI
 export interface ReceiptAnalysisResult {
@@ -36,8 +36,10 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
     const mimeType = file.type || "image/jpeg";
     const dataUrl = `data:${mimeType};base64,${base64String}`;
 
-    // Read the flow ID from environment variables
-    const flowId = process.env.RECEIPT_TRACKER_FLOW_ID;
+    // Read the flow ID from environment variables using the step definition in lamatic.config
+    const step = lamaticConfig.steps.find((s) => s.id === "receipt-budget-tracker");
+    const envKey = step ? step.envKey : "RECEIPT_TRACKER_FLOW_ID";
+    const flowId = process.env[envKey];
     const apiKey = process.env.LAMATIC_API_KEY;
     const projectId = process.env.LAMATIC_PROJECT_ID;
 
@@ -54,6 +56,14 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
       // Introduce a slight delay to simulate network/AI processing latency
       await new Promise((resolve) => setTimeout(resolve, 1500));
       return getSimulatedResponse(file.name);
+    }
+
+    const apiUrl = process.env.LAMATIC_API_URL;
+    if (!apiUrl) {
+      return { success: false, error: "LAMATIC_API_URL is not configured." };
+    }
+    if (!projectId) {
+      return { success: false, error: "LAMATIC_PROJECT_ID is not configured." };
     }
 
     // Execute the Lamatic Flow via GraphQL API
@@ -73,13 +83,16 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
         ) {
             status
             result
+            requestId
         }
       }`;
     
     let payloadContent = dataUrl;
 
     if (process.env.GEMINI_API_KEY) {
-      console.log("Gemini API Key found. Performing OCR before sending to Lamatic...");
+      if (process.env.DEBUG_RECEIPT === "true") {
+        console.log("Gemini API Key found. Performing OCR before sending to Lamatic...");
+      }
       try {
         const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
           method: 'POST',
@@ -98,8 +111,10 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
           const geminiData = await geminiResponse.json();
           const extractedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (extractedText) {
-             console.log("OCR Extracted Text via Gemini:", extractedText);
-             payloadContent = extractedText; // Pass the extracted text instead of the base64 image!
+            if (process.env.DEBUG_RECEIPT === "true") {
+              console.log("OCR Extracted Text via Gemini:", extractedText);
+            }
+            payloadContent = extractedText; // Pass the extracted text instead of the base64 image!
           }
         } else {
           console.error("Gemini OCR failed:", await geminiResponse.text());
@@ -115,12 +130,12 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
       fileName: file.name
     };
 
-    const fetchResponse = await fetch(process.env.LAMATIC_API_URL || "https://palashsorganization691-lamaticproject216.lamatic.dev", {
+    const fetchResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'x-project-id': projectId || '22b9b38d-86ff-4f84-ba18-f2661cef2852',
+        'x-project-id': projectId,
       },
       body: JSON.stringify({ query, variables })
     });
@@ -130,7 +145,9 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
     }
 
     const jsonResponse = await fetchResponse.json();
-    console.log("Lamatic API Flow Response:", JSON.stringify(jsonResponse, null, 2));
+    if (process.env.DEBUG_RECEIPT === "true") {
+      console.log("Lamatic API Flow Response:", JSON.stringify(jsonResponse, null, 2));
+    }
     
     const executeWorkflowResponse = jsonResponse?.data?.executeWorkflow;
     
@@ -139,18 +156,15 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
     }
 
     // Parse the flow output.
-    // The Instructor LLM node (InstructorLLMNode_575) has the schema:
-    // { vendor: string, data: string, total: number }
-    // We look for this structure in the response.
     let rawResponse = executeWorkflowResponse.result;
 
     // If the API runs asynchronously, it returns a requestId instead of the final result.
     // We must poll the checkStatus endpoint until it succeeds.
-    if (rawResponse && rawResponse.requestId && !rawResponse.InstructorLLMNode_575 && !rawResponse.vendor) {
-      const requestId = rawResponse.requestId;
+    const requestId = executeWorkflowResponse.requestId || (rawResponse && rawResponse.requestId);
+    if (requestId && (!rawResponse || (!rawResponse.InstructorLLMNode_575 && !rawResponse.vendor))) {
       let isCompleted = false;
       let retries = 0;
-      const maxRetries = 30; // 60s timeout
+      const maxRetries = 4; // Max polling time around 8 seconds to prevent Vercel execution limits
 
       while (!isCompleted && retries < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -161,12 +175,12 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
           }
         `;
 
-        const statusResponse = await fetch(process.env.LAMATIC_API_URL || "https://palashsorganization691-lamaticproject216.lamatic.dev", {
+        const statusResponse = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
-            'x-project-id': projectId || '22b9b38d-86ff-4f84-ba18-f2661cef2852',
+            'x-project-id': projectId,
           },
           body: JSON.stringify({ query: statusQuery, variables: { requestId } })
         });
@@ -177,7 +191,9 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
           
           if (checkStatusResult) {
             if (checkStatusResult.status === 'success') {
-              console.log("Lamatic API Check Status Result:", JSON.stringify(checkStatusResult, null, 2));
+              if (process.env.DEBUG_RECEIPT === "true") {
+                console.log("Lamatic API Check Status Result:", JSON.stringify(checkStatusResult, null, 2));
+              }
               rawResponse = checkStatusResult.result || checkStatusResult.data || checkStatusResult;
               isCompleted = true;
             } else if (checkStatusResult.status === 'error' || checkStatusResult.status === 'failed') {
@@ -193,7 +209,7 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
         return { success: false, error: "Flow execution timed out." };
       }
     }
-    let flowOutput: any = null;
+    let flowOutput: { vendor?: string; total?: number; category?: string; date?: string; data?: string; items?: Array<{ name?: string; description?: string; price?: number | string }> } | null = null;
 
     if (rawResponse.InstructorLLMNode_575) {
       flowOutput = rawResponse.InstructorLLMNode_575;
@@ -222,36 +238,21 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
     }
 
     const vendor = flowOutput.vendor || "Unknown Vendor";
-    const total = typeof flowOutput.total === "number" ? flowOutput.total : parseFloat(flowOutput.total) || 0;
+    const total = typeof flowOutput.total === "number" ? flowOutput.total : parseFloat(String(flowOutput.total)) || 0;
+    const category = flowOutput.category || inferCategory(vendor);
+    
+    // Parse date: support either date or data, default to today
+    const date = flowOutput.date || flowOutput.data || new Date().toISOString().split("T")[0];
 
-    // Parse the date and potentially items or category from the "data" field (or "date").
-    // Note: in several languages, 'data' is the word for date.
-    let date = new Date().toISOString().split("T")[0];
-    let category = "Shopping";
+    // Expose items directly from top-level schema fields
     let items: Array<{ name: string; price: number }> = [];
-
-    const rawData = flowOutput.data || flowOutput.date || "";
-    if (rawData) {
-      try {
-        // Try parsing 'data' as JSON in case the system prompt put structured details there
-        const parsed = JSON.parse(rawData);
-        if (parsed.date) date = parsed.date;
-        if (parsed.category) category = parsed.category;
-        if (parsed.items && Array.isArray(parsed.items)) {
-          items = parsed.items;
-        }
-      } catch {
-        // If it's not JSON, treat rawData as the date string directly
-        date = rawData;
-      }
+    if (Array.isArray(flowOutput.items)) {
+      items = flowOutput.items.map((item: { name?: string; description?: string; price?: number | string }) => ({
+        name: String(item.name || item.description || "Item"),
+        price: typeof item.price === "number" ? item.price : parseFloat(String(item.price)) || 0
+      }));
     }
 
-    // Dynamic Category assignment based on vendor if not already extracted
-    if (!category || category === "Shopping") {
-      category = inferCategory(vendor);
-    }
-
-    // Generate fallback items if the list is empty
     if (items.length === 0) {
       items = [
         { name: "Total Bill Amount", price: total }
@@ -269,11 +270,12 @@ export async function orchestrateReceipt(formData: FormData): Promise<Orchestrat
       }
     };
 
-  } catch (error: any) {
-    console.error("Orchestrate Action Error:", error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Orchestrate Action Error:", err);
     return { 
       success: false, 
-      error: error.message || "Failed to process receipt image due to an internal error." 
+      error: err.message || "Failed to process receipt image due to an internal error." 
     };
   }
 }

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   UploadCloud, 
   Trash2, 
-  Plus, 
   Loader2, 
   Receipt, 
   TrendingUp, 
@@ -19,6 +18,10 @@ import {
   History as HistoryIcon
 } from "lucide-react";
 import { orchestrateReceipt, ReceiptAnalysisResult } from "@/actions/orchestrate";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface ReceiptItem extends ReceiptAnalysisResult {
   id: string;
@@ -32,6 +35,7 @@ export default function Dashboard() {
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [simulatedWarning, setSimulatedWarning] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load history from LocalStorage on mount
@@ -40,21 +44,27 @@ export default function Dashboard() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as ReceiptItem[];
-        setHistory(parsed);
-        if (parsed.length > 0) {
-          setSelectedItem(parsed[0]);
-        }
+        setTimeout(() => {
+          setHistory(parsed);
+          if (parsed.length > 0) {
+            setSelectedItem(parsed[0]);
+          }
+        }, 0);
       } catch (err) {
         console.error("Failed to parse receipt history from local storage:", err);
       }
     }
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 0);
   }, []);
 
   // Sync history to LocalStorage
-  const saveToHistory = (newHistory: ReceiptItem[]) => {
-    setHistory(newHistory);
-    localStorage.setItem("receipt_history", JSON.stringify(newHistory));
-  };
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("receipt_history", JSON.stringify(history));
+    }
+  }, [history, isLoaded]);
 
   // Calculate statistics
   const budgetLimit = 500.0;
@@ -69,6 +79,13 @@ export default function Dashboard() {
     setError(null);
     setSimulatedWarning(false);
 
+    // Validate file size is less than 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File is too large. Maximum size allowed is 5MB.");
+      setIsUploading(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -82,9 +99,11 @@ export default function Dashboard() {
           uploadedAt: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        const updatedHistory = [newItem, ...history];
-        saveToHistory(updatedHistory);
-        setSelectedItem(newItem);
+        setHistory((prevHistory) => {
+          const updated = [newItem, ...prevHistory];
+          setSelectedItem(newItem);
+          return updated;
+        });
 
         if (response.simulated) {
           setSimulatedWarning(true);
@@ -92,8 +111,9 @@ export default function Dashboard() {
       } else {
         setError(response.error || "An error occurred during receipt processing.");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to upload receipt. Make sure the server action is configured correctly.");
+    } catch (err: unknown) {
+      const errorObject = err as Error;
+      setError(errorObject.message || "Failed to upload receipt. Make sure the server action is configured correctly.");
     } finally {
       setIsUploading(false);
     }
@@ -133,12 +153,16 @@ export default function Dashboard() {
   // Handle item deletion
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent selecting the item
-    const updated = history.filter(item => item.id !== id);
-    saveToHistory(updated);
-
-    if (selectedItem?.id === id) {
-      setSelectedItem(updated.length > 0 ? updated[0] : null);
-    }
+    setHistory((prevHistory) => {
+      const updated = prevHistory.filter(item => item.id !== id);
+      setSelectedItem((prevSelected) => {
+        if (prevSelected?.id === id) {
+          return updated.length > 0 ? updated[0] : null;
+        }
+        return prevSelected;
+      });
+      return updated;
+    });
   };
 
   // Trigger quick simulation flow for testing with predefined mock names
@@ -203,34 +227,38 @@ export default function Dashboard() {
             No API Keys? Run Simulated Demo Receipts:
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               id="btn-demo-starbucks"
+              variant="outline"
+              size="sm"
               onClick={() => handleDemoTrigger("starbucks")}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 transition-colors"
             >
               ☕ Starbucks
-            </button>
-            <button
+            </Button>
+            <Button
               id="btn-demo-walmart"
+              variant="outline"
+              size="sm"
               onClick={() => handleDemoTrigger("walmart")}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 transition-colors"
             >
               🛒 Walmart
-            </button>
-            <button
+            </Button>
+            <Button
               id="btn-demo-uber"
+              variant="outline"
+              size="sm"
               onClick={() => handleDemoTrigger("uber")}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 transition-colors"
             >
               🚗 Uber Ride
-            </button>
-            <button
+            </Button>
+            <Button
               id="btn-demo-utility"
+              variant="outline"
+              size="sm"
               onClick={() => handleDemoTrigger("utility")}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 transition-colors"
             >
               ⚡ City Power
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -260,7 +288,7 @@ export default function Dashboard() {
       {/* Stats Cards Section */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Spent Card */}
-        <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm flex items-center justify-between shadow-xl">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Spent</p>
             <h3 className={`text-3xl font-extrabold mt-1 tracking-tight ${isBudgetExceeded ? 'text-rose-400' : 'text-white'}`}>
@@ -274,10 +302,10 @@ export default function Dashboard() {
           <div className={`p-4 rounded-xl ${isBudgetExceeded ? 'bg-rose-500/10 text-rose-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
             <DollarSign className="h-7 w-7" />
           </div>
-        </div>
+        </Card>
 
         {/* Budget limit Card */}
-        <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm flex items-center justify-between shadow-xl">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Budget Goal limit</p>
             <h3 className="text-3xl font-extrabold mt-1 tracking-tight text-white">
@@ -290,10 +318,10 @@ export default function Dashboard() {
           <div className="p-4 rounded-xl bg-slate-800 text-slate-400">
             <Wallet className="h-7 w-7" />
           </div>
-        </div>
+        </Card>
 
         {/* Remaining Budget Card */}
-        <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm flex items-center justify-between shadow-xl">
+        <Card className="flex items-center justify-between p-6">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Remaining Budget</p>
             <h3 className={`text-3xl font-extrabold mt-1 tracking-tight ${getProgressTextClass()}`}>
@@ -310,24 +338,19 @@ export default function Dashboard() {
               <CheckCircle className="h-7 w-7" />
             )}
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* Progress Bar Widget */}
-      <section className="bg-slate-900/30 border border-slate-800/85 rounded-2xl p-6 mb-8 shadow-md">
+      <Card className="p-6 mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-slate-200">Budget Progress Tracker</span>
           <span className={`text-sm font-bold ${getProgressTextClass()}`}>
             {budgetPercentage.toFixed(1)}% of $500.00 Limit
           </span>
         </div>
-        <div className="h-4 w-full bg-slate-800/60 rounded-full overflow-hidden p-0.5 border border-slate-700/30">
-          <div 
-            className={`h-full rounded-full transition-all duration-700 ease-out shadow-lg ${getProgressColor()}`}
-            style={{ width: `${budgetPercentage}%` }}
-          />
-        </div>
-      </section>
+        <Progress value={budgetPercentage} indicatorClassName={getProgressColor()} />
+      </Card>
 
       {/* Main Grid: Upload & History (Left) | Details breakdown (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -338,12 +361,21 @@ export default function Dashboard() {
           {/* Upload Zone */}
           <div 
             id="btn-upload-zone"
-            onClick={triggerFileSelect}
+            role="button"
+            tabIndex={isUploading ? -1 : 0}
+            onClick={isUploading ? undefined : triggerFileSelect}
+            onKeyDown={(e) => {
+              if (isUploading) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                triggerFileSelect();
+              }
+            }}
             onDragEnter={handleDrag}
             onDragOver={handleDrag}
             onDragLeave={handleDrag}
             onDrop={handleDrop}
-            className={`relative rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 backdrop-blur-sm flex flex-col items-center justify-center min-h-[220px] ${
+            className={`relative rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 backdrop-blur-sm flex flex-col items-center justify-center min-h-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
               isDragActive 
                 ? "border-indigo-400 bg-indigo-500/10 shadow-lg shadow-indigo-500/5" 
                 : "border-slate-800 hover:border-slate-700 hover:bg-slate-900/20 bg-slate-900/10"
@@ -384,15 +416,15 @@ export default function Dashboard() {
           </div>
 
           {/* Historical list */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl flex-1 flex flex-col min-h-[300px]">
+          <Card className="overflow-hidden shadow-xl flex-1 flex flex-col min-h-[300px]">
             <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <HistoryIcon className="h-5 w-5 text-indigo-400" />
                 Receipt Upload History
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700/50">
+              <Badge variant="secondary">
                 {history.length} Saved
-              </span>
+              </Badge>
             </div>
 
             {history.length === 0 ? (
@@ -422,9 +454,9 @@ export default function Dashboard() {
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-white truncate">{item.vendor}</p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${getCategoryBadgeClass(item.category)}`}>
+                          <Badge className={getCategoryBadgeClass(item.category)}>
                             {item.category}
-                          </span>
+                          </Badge>
                           <span className="text-[10px] text-slate-400 flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {item.date}
@@ -437,25 +469,27 @@ export default function Dashboard() {
                       <span className="text-sm font-extrabold text-white">
                         ${item.total.toFixed(2)}
                       </span>
-                      <button
+                      <Button
                         id={`btn-delete-receipt-${item.id}`}
+                        variant="destructive"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-rose-400"
                         onClick={(e) => handleDelete(item.id, e)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                         title="Delete receipt"
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Right Column (Itemized breakdown details) - 5 cols */}
         <div className="lg:col-span-5">
-          <div className="sticky top-8 bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm shadow-xl min-h-[500px] flex flex-col">
+          <Card className="sticky top-8 p-6 shadow-xl min-h-[500px] flex flex-col">
             <h3 className="text-lg font-bold text-white border-b border-slate-800 pb-4 mb-6">
               Itemized Breakdown Panel
             </h3>
@@ -557,7 +591,7 @@ export default function Dashboard() {
               </div>
             )}
 
-          </div>
+          </Card>
         </div>
 
       </div>

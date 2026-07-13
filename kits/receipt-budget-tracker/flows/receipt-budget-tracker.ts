@@ -80,7 +80,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "nodeName": "Generate JSON",
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"vendor\": {\n      \"type\": \"string\"\n    },\n    \"data\": {\n      \"type\": \"string\"\n    },\n    \"total\": {\n      \"type\": \"number\"\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"vendor\": {\n      \"type\": \"string\"\n    },\n    \"date\": {\n      \"type\": \"string\"\n    },\n    \"total\": {\n      \"type\": \"number\"\n    },\n    \"category\": {\n      \"type\": \"string\"\n    },\n    \"items\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"price\": {\n            \"type\": \"number\"\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"price\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"vendor\",\n    \"date\",\n    \"total\",\n    \"category\",\n    \"items\"\n  ]\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",

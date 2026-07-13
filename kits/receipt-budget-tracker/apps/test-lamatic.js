@@ -1,10 +1,21 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unused-vars */
+// Load environment variables if dotenv is available (optional)
+try {
+  require('dotenv').config();
+} catch (e) {}
+
 async function testUserAgent() {
-  const apiKey = "lt-08e1450dc4ed752d6986425e95d8884a";
-  const projectId = "22b9b38d-86ff-4f84-ba18-f2661cef2852";
-  const flowId = "ce17fa46-f851-40eb-b082-a4e7d6cd8f41";
+  const apiKey = process.env.LAMATIC_API_KEY;
+  const projectId = process.env.LAMATIC_PROJECT_ID;
+  const flowId = process.env.RECEIPT_TRACKER_FLOW_ID;
+
+  if (!apiKey || !projectId || !flowId) {
+    console.error("Error: Missing required environment variables. Please set LAMATIC_API_KEY, LAMATIC_PROJECT_ID, and RECEIPT_TRACKER_FLOW_ID.");
+    process.exit(1);
+  }
 
   const urls = [
-    "https://api.lamatic.ai",
+    process.env.LAMATIC_API_URL || "https://api.lamatic.ai",
     "https://inference-api.lamatic.tech/graphql"
   ];
 
