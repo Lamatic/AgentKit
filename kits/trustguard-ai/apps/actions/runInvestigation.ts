@@ -24,7 +24,7 @@ export async function runInvestigation(
       content: formData.content,
       attachment_url: formData.attachment_url || "",
       language: formData.language === "Auto" ? "auto" : formData.language,
-      memory_enabled: formData.memory_enabled,
+      memory_enabled: false,
       tenant_id: "default",
       user_id: "anonymous",
     };
