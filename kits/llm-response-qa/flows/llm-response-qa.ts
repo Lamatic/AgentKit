@@ -43,10 +43,11 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "system": "@prompts/system.md"
+    "system": "@prompts/llm-response-qa_instructor-llmnode-298_system_0.md",
+    "user": "@prompts/llm-response-qa_instructor-llmnode-298_user_1.md"
   },
   "modelConfigs": {
-    "default": "@model-configs/default.ts"
+    "default": "@model-configs/llm-response-qa_instructor-llmnode-298_generative-model-name.ts"
   }
 };
 
@@ -77,14 +78,19 @@ export const nodes = [
       values: {
         nodeName: "Response Evaluator",
         prompts: [
-          {
-            role: "system",
-            content:
-              "Evaluate the response for accuracy, completeness, relevance, and hallucination risk."
-          }
-        ],
+  {
+    role: "system",
+    content:
+      "@prompts/llm-response-qa_instructor-llmnode-298_system_0.md"
+  },
+  {
+    role: "user",
+    content:
+      "@prompts/llm-response-qa_instructor-llmnode-298_user_1.md"
+  }
+],
         generativeModelName:
-          "@model-configs/default.ts"
+  "@model-configs/llm-response-qa_instructor-llmnode-298_generative-model-name.ts"
       }
     },
     type: "dynamicNode",
