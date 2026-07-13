@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.env
+.env.local
+.env*.local
+.DS_Store
+*.log
+
+# The repo-root .gitignore ignores any "scripts" dir; re-include this kit's
+# Lamatic code-node scripts, which must ship in the PR payload.
+!scripts/
+!scripts/**
