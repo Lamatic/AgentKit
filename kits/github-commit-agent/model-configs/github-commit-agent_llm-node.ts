@@ -2,6 +2,11 @@
 // Flow: github-commit-agent
 
 export default {
-  generativeModelName: "@model-configs/github-commit-agent_llm-node.ts",
-  messages: "@model-configs/github-commit-agent_llm-node.ts"
+  generativeModelName: [
+    {
+      configName: "configA",
+      type: "generator/text",
+      model_name: "gpt-4o-mini"
+    }
+  ]
 };
