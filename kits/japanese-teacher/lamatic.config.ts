@@ -11,11 +11,13 @@ export default {
   "steps": [
     {
       "id": "lesson",
-      "type": "mandatory"
+      "type": "mandatory",
+      "workflowId": "d270b86a-d948-440b-b523-45b6ee4af49a"
     },
     {
       "id": "quiz",
-      "type": "mandatory"
+      "type": "mandatory",
+      "workflowId": "62ca9b42-7242-4521-bf11-9439d10faeff"
     }
   ],
   "links": {

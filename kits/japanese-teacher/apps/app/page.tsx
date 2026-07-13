@@ -212,11 +212,7 @@ export default function Home() {
       const uAns = (userAnswers[q.question_id] || "").trim();
       const correctAns = (q.answer || "").trim();
       
-      // CodeRabbit didn't realize the UI saves the full option text like "(a) 猫".
-      // We slice out the prefix so we can strictly compare it to the answer key!
-      const uPrefix = uAns.substring(0, correctAns.length);
-      
-      if (uPrefix === correctAns) {
+      if (uAns === correctAns) {
         score += q.points || 1;
       }
     });
@@ -443,7 +439,7 @@ export default function Home() {
                       {(quizData.quiz || quizData.Questions || quizData.questions).map((q: any, idx: number) => {
                         const isSubmitted = quizResult !== null;
                         const userAnswer = userAnswers[q.question_id];
-                        const isCorrect = userAnswer?.startsWith(q.answer);
+                        const isCorrect = (userAnswer || "").trim() === (q.answer || "").trim();
 
                         return (
                           <div key={q.question_id} className="mb-8 p-4 rounded-lg bg-gray-50 border border-gray-200">
