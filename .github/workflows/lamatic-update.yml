@@ -6,15 +6,21 @@ on:
       - main
     paths:
       - '**/lamatic/flows/**'
-  
+
+permissions:
+  contents: read
+
 jobs:
   detect-flow-changes:
     environment: main
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[LAMATIC-COMMIT]')"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Sync Flows to lamatic
         uses: Lamatic/sync-flows-to-lamatic@v1
@@ -23,4 +29,3 @@ jobs:
           api-key: ${{ secrets.LAMATIC_PROJECT_API_KEY }}
           project-id: ${{ secrets.LAMATIC_PROJECT_ID }}
           auto-deploy: ${{ secrets.LAMATIC_AUTO_DEPLOY_PROJECT }}
-
