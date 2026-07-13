@@ -1,1 +1,0 @@
-City: {{codeNode_prep.output.city}} | Country: {{codeNode_prep.output.country}} | Check-in: {{codeNode_prep.output.checkIn}} | Check-out: {{codeNode_prep.output.checkOut}} | Adults: {{codeNode_prep.output.adults}} | Rooms: {{codeNode_prep.output.rooms}} | Currency: {{codeNode_prep.output.currency}} | Search radius: {{codeNode_prep.output.radiusKm}} km
