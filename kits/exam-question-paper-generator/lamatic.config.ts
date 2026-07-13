@@ -15,6 +15,6 @@ export default {
     }
   ],
   "links": {
-    "github": "https://github.com/nikhi-afak/AgentKit/tree/main/kits/exam-question-paper-generator"
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/exam-question-paper-generator"
   }
 };

@@ -1,4 +1,5 @@
 // Model config: llmnode-644 (LLMNode)
+// Configure your own OpenAI credential in Lamatic Studio after importing this template.
 
 export default {
   "generativeModelName": [
@@ -7,9 +8,9 @@ export default {
       "params": {},
       "configName": "configA",
       "model_name": "gpt-4o-mini",
-      "credentialId": "03032a64-eb3a-404d-8686-44a453c87255",
+      "credentialId": "",
       "provider_name": "openai",
-      "credential_name": "open ai"
+      "credential_name": ""
     }
   ]
 };
