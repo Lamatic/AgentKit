@@ -304,7 +304,7 @@ jobs:
             [ "$CHECK3_PASS" = true ] && echo "| Flow .ts files present | :white_check_mark: Pass |" || echo "| Flow .ts files present | :x: Fail |"
             [ "$CHECK4_PASS" = true ] && echo "| lamatic.config.ts valid | :white_check_mark: Pass |" || echo "| lamatic.config.ts valid | :x: Fail |"
             [ "$CHECK5_WARN" = false ] && echo "| No changes outside kits/ | :white_check_mark: Pass |" || echo "| No changes outside kits/ | :warning: Warning |"
-            [ "$CHECK7_PASS" = true ] && echo "| Flow asset references valid | :white_check_mark: Pass |" || echo "| Flow asset references resolved | :x: Fail |"
+            [ "$CHECK7_PASS" = true ] && echo "| Flow asset references valid | :white_check_mark: Pass |" || echo "| Flow asset references valid | :x: Fail |"
 
             echo ""
 
