@@ -62,3 +62,26 @@ Produces a clean, structured output covering:
 * Classifier node for interview format prediction
 
 ## Flow Structure
+
+<img width="1041" height="899" alt="image" src="https://github.com/user-attachments/assets/8c2e9eb7-0214-4c60-8e36-1e0756f67437" />
+
+
+The classifier step determines the likely interview format based on the job
+title, and its output is fed into the final brief-generation step — so the
+interview format section is grounded in an explicit classification rather
+than a single-shot guess.
+
+## Usage
+This is a **template** — a Lamatic flow you can import and run directly
+through the Lamatic Studio or call via its GraphQL API, without needing to
+set up a separate frontend application.
+
+1. Import the flow into your Lamatic project via Studio
+2. Connect your own Web Search (Serper) and Gemini credentials
+3. Deploy the flow
+4. Call it via the Lamatic GraphQL API with `company_name` and `job_title`
+
+## Example Use Cases
+* Interview preparation for job seekers
+* Career coaching tools
+* Recruiting platforms offering candidate prep resources
