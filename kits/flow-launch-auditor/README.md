@@ -6,7 +6,7 @@ A Flow can succeed on its happy path in Studio and still be difficult to launch 
 
 For Lamatic onboarding and launch work, that means a customer-facing engineer can explain what is ready, what needs attention, and what to fix first. Repeated findings can also become product feedback for Studio checks, starter templates, and documentation improvements.
 
-[Try the live demo](https://flow-launch-auditor.vercel.app) · [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fflow-launch-auditor%2Fapps&env=LAMATIC_API_URL,LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_FLOW_ID&envDescription=Lamatic%20runtime%20values%20are%20required.%20See%20the%20kit%20README%20for%20setup.&envLink=https://github.com/Lamatic/AgentKit/tree/main/kits/flow-launch-auditor%23run-the-app)
+[Try the live demo](https://flow-launch-auditor.vercel.app) · [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fflow-launch-auditor%2Fapps&env=LAMATIC_API_URL,LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_FLOW_ID,TRUST_PROXY_HEADERS&envDescription=Lamatic%20runtime%20values%20and%20trusted-proxy%20configuration%20are%20required.%20See%20the%20kit%20README%20for%20setup.&envLink=https://github.com/Lamatic/AgentKit/tree/main/kits/flow-launch-auditor%23run-the-app)
 
 > The Deploy Button targets the canonical `Lamatic/AgentKit` repository and becomes cloneable after this kit is merged into upstream `main`. Until then, use the live demo or run the kit locally.
 
@@ -134,7 +134,7 @@ The four Lamatic runtime values are required for live execution; `LAMATIC_TIMEOU
 
 If the live Lamatic values are absent and `DISABLE_MOCK` is not enabled, the app uses its local demo path so reviewers can inspect the UI. Set `DISABLE_MOCK=true` to require live Lamatic configuration and skip that fallback.
 
-For transient Lamatic HTTP `502`, `503`, or `504` responses, the server performs one short bounded retry within the configured overall timeout. Other HTTP failures and malformed or unexpected response shapes remain visible errors.
+The server sends each `executeWorkflow` mutation once. Transient HTTP failures remain visible rather than being retried because the runtime does not provide an idempotency guarantee for workflow execution; callers can decide whether a replay is safe.
 
 ## Studio and Deployment Notes
 
@@ -148,7 +148,7 @@ Its request fields are `flowBrief`, `optionalFlowExport`, and `detectedSignals`.
 
 The Flow was tested in Studio with a thin brief, a launchable Flow with a documentation gap, a ready Flow, and a fragile lead-enrichment Flow with launch blockers. Each run completed through API Request, Generate JSON, and API Response. Live app smoke tests also confirmed the GraphQL runtime path with the final `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, and `LAMATIC_FLOW_ID` shape.
 
-The reviewer demo runs at [flow-launch-auditor.vercel.app](https://flow-launch-auditor.vercel.app) with the deployed Lamatic Flow and retains the local mock path for local review or a deployment without Lamatic credentials. `lamatic.config.ts` exposes the demo and the canonical Vercel Deploy Button. The button preserves `root-directory=kits%2Fflow-launch-auditor%2Fapps` and prompts for the four required Lamatic runtime values.
+The reviewer demo runs at [flow-launch-auditor.vercel.app](https://flow-launch-auditor.vercel.app) with the deployed Lamatic Flow and retains the local mock path for local review or a deployment without Lamatic credentials. `lamatic.config.ts` exposes the demo and the canonical Vercel Deploy Button. The button preserves `root-directory=kits%2Fflow-launch-auditor%2Fapps` and prompts for the four required Lamatic runtime values plus `TRUST_PROXY_HEADERS`; set the latter to `true` only on Vercel or another trusted proxy that overwrites the client-IP header.
 
 ## Accepted Limitations and Security Guidance
 
@@ -161,7 +161,7 @@ The reviewer demo runs at [flow-launch-auditor.vercel.app](https://flow-launch-a
 - Uses a same-origin API and does not advertise wildcard browser CORS. Add an explicit allowlist only if a future deployment needs trusted cross-origin clients.
 - Sets HSTS without `includeSubDomains` because AgentKit demos may be hosted under shared platform domains. Add `includeSubDomains` only under a domain whose subdomains you control.
 - Sends `X-Robots-Tag: noindex, nofollow` and includes `public/robots.txt` for the review/demo surface. Remove those before promoting the app as an indexed public production page.
-- Uses a process-local in-app rate limit. It ignores forwarded IP headers by default; set `TRUST_PROXY_HEADERS=true` only behind a trusted proxy that overwrites `x-real-ip` or `x-forwarded-for` with one sanitized client IP. Requests without one sanitized trusted-proxy client header, including multi-entry forwarded-IP chains, receive a retryable `503` rather than sharing a global direct-traffic bucket. Use platform-native or shared-store rate limiting before public multi-instance deployment.
+- Uses a process-local in-app rate limit. Local development can use one local bucket; production fails closed unless `TRUST_PROXY_HEADERS=true` is set behind a trusted proxy that overwrites `x-real-ip` or `x-forwarded-for` with one sanitized client IP. Requests without one sanitized trusted-proxy client header, including multi-entry forwarded-IP chains, receive a retryable `503` rather than sharing a global direct-traffic bucket. Use platform-native or shared-store rate limiting before public multi-instance deployment.
 
 ## Why This Belongs in AgentKit
 

@@ -6,7 +6,7 @@ import { resetAuditRateLimitForTests } from "../lib/audit-rate-limit.js";
 
 const originalFetch = globalThis.fetch;
 const lamaticEnv = ["LAMATIC_API_URL", "LAMATIC_API_KEY", "LAMATIC_PROJECT_ID", "LAMATIC_FLOW_ID", "LAMATIC_TIMEOUT_MS"];
-const routeEnv = [...lamaticEnv, "TRUST_PROXY_HEADERS", "DISABLE_MOCK"];
+const routeEnv = [...lamaticEnv, "TRUST_PROXY_HEADERS", "DISABLE_MOCK", "NODE_ENV"];
 const originalRouteEnv = Object.fromEntries(routeEnv.map((name) => [name, process.env[name]]));
 
 const readyBrief = `A customer support team uses a Lamatic Flow for billing classification. The Flow trigger is a helpdesk webhook and the model calls a read-only billing API before returning category, confidence, reason, suggestedQueue, and billingStatus.
@@ -471,6 +471,17 @@ test("POST rate limits repeated requests from the same client", async () => {
   assert.equal(retryAfter >= 1 && retryAfter <= 60, true);
   assert.equal(body.error, "Too many audit requests. Try again shortly.");
   assertApiHeaders(lastResponse);
+});
+
+test("POST fails closed in production without a trusted client IP", async () => {
+  process.env.NODE_ENV = "production";
+
+  const response = await POST(jsonRequest({ flowBrief: readyBrief, optionalFlowExport: "" }));
+  const body = await response.json();
+
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("retry-after"), "60");
+  assert.equal(body.code, "proxy-client-ip");
 });
 
 test("POST rate limiting can key by forwarded IP behind a trusted proxy", async () => {

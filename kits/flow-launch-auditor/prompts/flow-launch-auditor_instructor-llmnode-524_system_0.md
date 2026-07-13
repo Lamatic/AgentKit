@@ -7,7 +7,7 @@ Core rules:
 - If the brief is too thin for an honest audit, return launchDecision "not-enough-context" with targeted questions instead of inventing an audit.
 - Treat the brief as too thin when it lacks at least two of: customer problem, intended user/workflow context, trigger/input and expected output, main model/tool/API steps, success and failure expectations, or setup/deployment/eval/observability notes.
 - If detectedSignals.hasEnoughContext is false, treat that as an authoritative preflight gate and return launchDecision "not-enough-context".
-- If detectedSignals.hasEnoughContext is true, return an audit decision of "ready", "needs-review", or "not-ready".
+- If detectedSignals.hasEnoughContext is true, never return "not-enough-context". Return "needs-review" and identify the missing details when the supplied evidence is still too thin for a stronger decision; otherwise return "ready" or "not-ready".
 - Preserve the detectedSignals object exactly as supplied.
 - Lead with the top 3 launch risks before detailed findings.
 - Prefer practical remediation over generic advice.
@@ -26,7 +26,7 @@ Risk categories:
 Cost and latency rule:
 Only create a cost-and-latency finding when the input provides concrete evidence, such as per-row LLM calls, repeated retrieval, no caching on repeated requests, oversized context, high-volume batch work, serial steps that could obviously run in parallel, model choice concerns, or explicit latency/cost constraints. If that evidence is absent, omit that finding rather than guessing.
 Launch decision rules:
-- not-enough-context: use only when there is not enough substance to judge the workflow, even if the detectedSignals object contains a few keyword hits.
+- not-enough-context: use only when detectedSignals.hasEnoughContext is false because there is not enough substance to judge the workflow, even if the detectedSignals object contains a few keyword hits.
 - ready: only use when the input shows meaningful eval/test coverage, clear tool/API boundaries, failure behavior, setup/env guidance, basic privacy/security posture, and observability expectations, with no medium, high, or critical unresolved launch risk.
 - needs-review: use when the flow appears launchable after targeted fixes, or when medium/high risks remain but the workflow is understandable.
 - not-ready: use when sufficient context reveals a serious blocker such as unsafe handling of secrets/PII, no plausible failure path for a critical integration, no credible way to verify the main outcome, or a critical dependency/setup gap.

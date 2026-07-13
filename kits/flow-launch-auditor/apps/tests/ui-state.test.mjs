@@ -11,7 +11,10 @@ import {
 test("UI input validation matches the server limits", () => {
   assert.equal(maxInputCharacters, 12000);
   assert.equal(validateAuditInputs("", ""), "Flow Brief is required.");
-  assert.equal(validateAuditInputs("x".repeat(12001), ""), "Keep each input under 12,000 characters.");
+  assert.equal(
+    validateAuditInputs("x".repeat(maxInputCharacters + 1), ""),
+    `Keep each input under ${maxInputCharacters.toLocaleString("en-US")} characters.`
+  );
   assert.equal(validateAuditInputs("A valid Flow brief", ""), "");
 });
 

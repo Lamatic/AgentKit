@@ -20,6 +20,12 @@ test("redactSecretValues redacts bearer tokens in pasted config", () => {
   assert.equal(redacted, "Authorization: Bearer <redacted>");
 });
 
+test("redactSecretValues redacts short bearer credentials", () => {
+  const redacted = redactSecretValues("Authorization: Bearer abc");
+
+  assert.equal(redacted, "Authorization: Bearer <redacted>");
+});
+
 test("redactSecretValues redacts quoted assignment values with spaces", () => {
   const redacted = redactSecretValues("SECRET=\"my value here\" PASSWORD='another value here'");
 
@@ -116,6 +122,14 @@ test("redactSecretValues redacts common cloud, auth, database, and JWT secrets",
   assert.equal(redacted.includes("DATABASE_URL=<redacted>"), true);
   assert.equal(redacted.includes("MONGO_URL=<redacted>"), true);
   assert.equal(redacted.includes("SESSION_JWT=<redacted>"), true);
+});
+
+test("redactSecretValues redacts HTTP URLs containing userinfo credentials", () => {
+  const redacted = redactSecretValues(
+    "Proxy: https://launch-user:launch-pass@example.com/private"
+  );
+
+  assert.equal(redacted, "Proxy: <redacted>");
 });
 
 test("redactSecretValues redacts webhook URL assignments", () => {
