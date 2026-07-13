@@ -17,7 +17,7 @@ resume required) and generates a tailored interview preparation brief by:
 3. Generating a structured brief with company context, likely question
    themes, and smart questions to ask the interviewer
 
-This is complementary to resume-matching tools — instead of analyzing *your*
+This is complementary to resume-matching tools - instead of analyzing *your*
 fit against a job description, it researches *the company itself* to help
 you walk in prepared for what their specific interview process looks like.
 
@@ -25,7 +25,7 @@ you walk in prepared for what their specific interview process looks like.
 
 ### Live Web Research
 Searches the web in real time for current information about the target
-company — culture, values, hiring practices — rather than relying on
+company - culture, values, hiring practices - rather than relying on
 static/training data.
 
 ### Interview Format Classification
@@ -63,11 +63,11 @@ Produces a clean, structured output covering:
 
 ## Flow Structure
 
-<img width="1041" height="899" alt="image" src="https://github.com/user-attachments/assets/8c2e9eb7-0214-4c60-8e36-1e0756f67437" />
+<img width="1706" height="952" alt="image" src="https://github.com/user-attachments/assets/cffbb333-cede-400b-98f7-db842159b25b" />
 
 
 The classifier step determines the likely interview format based on the job
-title, and its output is fed into the final brief-generation step — so the
+title, and its output is fed into the final brief-generation step, so the
 interview format section is grounded in an explicit classification rather
 than a single-shot guess.
 
