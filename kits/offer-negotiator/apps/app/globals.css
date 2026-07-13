@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+:root {
+  --canvas: #e8ecf1;
+  --surface: #ffffff;
+  --ink: #131a24;
+  --muted: #5d6b7a;
+  --line: #d4dbe3;
+  --teal: #0f6f6a;
+  --teal-soft: #e0efee;
+  --brass: #a9721a;
+  --brass-soft: #f4e8d3;
+  --clay: #ab4629;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    ui-serif, serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Segoe UI Mono",
+    Menlo, Consolas, monospace;
+}
+
+.dark {
+  --canvas: #0b1312;
+  --surface: #111e1d;
+  --ink: #e9eeec;
+  --muted: #8fa09d;
+  --line: #21322f;
+  --teal: #43b1a9;
+  --teal-soft: #12302d;
+  --brass: #d7a24e;
+  --brass-soft: #29230f;
+  --clay: #d26a4b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --canvas: #0b1312;
+    --surface: #111e1d;
+    --ink: #e9eeec;
+    --muted: #8fa09d;
+    --line: #21322f;
+    --teal: #43b1a9;
+    --teal-soft: #12302d;
+    --brass: #d7a24e;
+    --brass-soft: #29230f;
+    --clay: #d26a4b;
+  }
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Quiet ruled-paper atmosphere behind everything */
+.desk {
+  min-height: 100dvh;
+  background-image: linear-gradient(
+    var(--canvas) 0%,
+    color-mix(in srgb, var(--canvas) 88%, var(--teal) 12%) 100%
+  );
+}
+
+@layer components {
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 1.4rem;
+    height: 2px;
+    background: var(--teal);
+    display: inline-block;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(19, 26, 36, 0.02),
+      0 18px 40px -30px rgba(19, 26, 36, 0.35);
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--teal);
+  }
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .field-input,
+  .field-textarea {
+    width: 100%;
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 0.6rem 0.75rem;
+    color: var(--ink);
+    font-size: 0.92rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .field-num {
+    font-family: var(--font-mono);
+    letter-spacing: -0.01em;
+  }
+  .field-input::placeholder,
+  .field-textarea::placeholder {
+    color: color-mix(in srgb, var(--muted) 70%, transparent);
+  }
+  .field-input:focus,
+  .field-textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-soft);
+  }
+  .field-input[aria-invalid="true"],
+  .field-textarea[aria-invalid="true"] {
+    border-color: var(--clay);
+  }
+  .field-input[aria-invalid="true"]:focus,
+  .field-textarea[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--clay) 22%, transparent);
+  }
+
+  .form-error {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--clay);
+    margin-top: 0.35rem;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--teal);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.8rem 1.4rem;
+    border-radius: 10px;
+    transition: transform 0.12s ease, filter 0.15s ease;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.06);
+  }
+  .btn-primary:active {
+    transform: translateY(1px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--teal);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .copy-btn:hover {
+    background: var(--teal-soft);
+    border-color: var(--teal);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--teal-soft);
+    border-radius: 999px;
+  }
+
+  /* The money moment: the ask */
+  .ask-figure {
+    font-family: var(--font-mono);
+    font-size: clamp(1.9rem, 4vw, 2.9rem);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .ask-underline {
+    height: 3px;
+    width: 3.2rem;
+    background: var(--brass);
+    border-radius: 2px;
+    margin-top: 0.7rem;
+  }
+
+  /* The deliverable: a letter on card stock */
+  .letter {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    line-height: 1.7;
+    color: var(--ink);
+    white-space: pre-wrap;
+    position: relative;
+  }
+  .letter::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: var(--brass);
+    border-radius: 12px 0 0 12px;
+  }
+
+  .list-marked > li {
+    position: relative;
+    padding-left: 1.4rem;
+    margin-bottom: 0.55rem;
+    line-height: 1.55;
+  }
+  .list-marked.pos > li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--teal);
+  }
+  .list-marked.neg > li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--clay);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  * {
+    transition: none !important;
+  }
+}
