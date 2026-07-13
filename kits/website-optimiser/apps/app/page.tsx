@@ -1,43 +1,79 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { analyzeWebsite, type WebReviveReport } from "../actions/orchestrate";
 import { 
-  Loader2, Copy, Check, ExternalLink, Send, FileText, 
-  Search, ShieldAlert, Zap, Layers, BarChart3, Target, Mail, Linkedin 
+  Loader2, Copy, Check, ExternalLink, FileText, 
+  Search, Zap, Layers, BarChart3, Target, Mail 
 } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const formSchema = z.object({
+  url: z.string().url("Please enter a valid URL").min(1, "URL is required"),
+  businessName: z.string().optional(),
+  industry: z.string().optional(),
+  targetService: z.string().default("Website Redesign"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Page() {
-  const [url, setUrl] = useState("");
-  const [businessName, setBusinessName] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [targetService, setTargetService] = useState("Website Redesign");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WebReviveReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      url: "",
+      businessName: "",
+      industry: "",
+      targetService: "Website Redesign",
+    },
+  });
+
   const handleCopy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopiedKey(key);
+        setTimeout(() => setCopiedKey(null), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!url.trim()) return;
-
+  const onSubmit = async (values: FormValues) => {
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
       const res = await analyzeWebsite({
-        url: url.trim(),
-        businessName,
-        industry,
-        targetService,
+        url: values.url.trim(),
+        businessName: values.businessName,
+        industry: values.industry === "none" ? "" : values.industry,
+        targetService: values.targetService,
       });
 
       if (res.success && res.data) {
@@ -64,7 +100,7 @@ export default function Page() {
           </div>
           {result && (
             <button
-              onClick={() => { setResult(null); setError(null); }}
+              onClick={() => { setResult(null); setError(null); form.reset(); }}
               className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold px-3 py-1.5 rounded transition"
             >
               New Audit
@@ -83,93 +119,127 @@ export default function Page() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 bg-zinc-900 border border-zinc-800 p-6 rounded-lg shadow-sm">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Website URL *</label>
-                <input
-                  id="website-url"
-                  type="url"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition"
-                  placeholder="https://example.com"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  required
-                  disabled={loading}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 bg-zinc-900 border border-zinc-800 p-6 rounded-lg shadow-sm">
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Website URL *</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="website-url"
+                          type="url"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition"
+                          placeholder="https://example.com"
+                          disabled={loading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Business Name</label>
-                  <input
-                    id="business-name"
-                    type="text"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition"
-                    placeholder="Optional"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    disabled={loading}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="businessName"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Business Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            id="business-name"
+                            type="text"
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition"
+                            placeholder="Optional"
+                            disabled={loading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="industry"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Industry</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || "none"} disabled={loading}>
+                          <FormControl>
+                            <SelectTrigger id="industry" className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition">
+                              <SelectValue placeholder="Select Industry (Optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-zinc-950 border border-zinc-850 text-zinc-200">
+                            <SelectItem value="none">Select Industry (Optional)</SelectItem>
+                            <SelectItem value="E-Commerce">E-Commerce</SelectItem>
+                            <SelectItem value="SaaS / Tech">SaaS / Tech</SelectItem>
+                            <SelectItem value="Healthcare">Healthcare</SelectItem>
+                            <SelectItem value="Real Estate">Real Estate</SelectItem>
+                            <SelectItem value="Legal / Law Firm">Legal / Law Firm</SelectItem>
+                            <SelectItem value="Restaurant / Food">Restaurant / Food</SelectItem>
+                            <SelectItem value="Consulting / Agency">Consulting / Agency</SelectItem>
+                            <SelectItem value="Education">Education</SelectItem>
+                            <SelectItem value="Finance">Finance</SelectItem>
+                            <SelectItem value="Construction">Construction</SelectItem>
+                            <SelectItem value="Retail">Retail</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Industry</label>
-                  <select
-                    id="industry"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition"
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                    disabled={loading}
-                  >
-                    <option value="">Select Industry (Optional)</option>
-                    <option value="E-Commerce">E-Commerce</option>
-                    <option value="SaaS / Tech">SaaS / Tech</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Real Estate">Real Estate</option>
-                    <option value="Legal / Law Firm">Legal / Law Firm</option>
-                    <option value="Restaurant / Food">Restaurant / Food</option>
-                    <option value="Consulting / Agency">Consulting / Agency</option>
-                    <option value="Education">Education</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Construction">Construction</option>
-                    <option value="Retail">Retail</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Target Service</label>
-                <select
-                  id="target-service"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition"
-                  value={targetService}
-                  onChange={(e) => setTargetService(e.target.value)}
-                  disabled={loading}
+                <FormField
+                  control={form.control}
+                  name="targetService"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Target Service</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                        <FormControl>
+                          <SelectTrigger id="target-service" className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition">
+                            <SelectValue placeholder="Website Redesign" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-zinc-950 border border-zinc-850 text-zinc-200">
+                          <SelectItem value="Website Redesign">Website Redesign</SelectItem>
+                          <SelectItem value="SEO Optimization">SEO Optimization</SelectItem>
+                          <SelectItem value="Performance Optimization">Performance Optimization</SelectItem>
+                          <SelectItem value="Branding & Copywriting">Branding & Copywriting</SelectItem>
+                          <SelectItem value="Conversion Optimization">Conversion Optimization</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <button
+                  type="submit"
+                  id="analyze-btn"
+                  disabled={loading || !form.watch("url")?.trim()}
+                  className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold py-2.5 rounded text-sm transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <option value="Website Redesign">Website Redesign</option>
-                  <option value="SEO Optimization">SEO Optimization</option>
-                  <option value="Performance Optimization">Performance Optimization</option>
-                  <option value="Branding & Copywriting">Branding & Copywriting</option>
-                  <option value="Conversion Optimization">Conversion Optimization</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                id="analyze-btn"
-                disabled={loading || !url.trim()}
-                className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold py-2.5 rounded text-sm transition flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Analyzing Website (12 agents running)...</span>
-                  </>
-                ) : (
-                  <span>Analyze Website</span>
-                )}
-              </button>
-            </form>
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Analyzing Website (12 agents running)...</span>
+                    </>
+                  ) : (
+                    <span>Analyze Website</span>
+                  )}
+                </button>
+              </form>
+            </Form>
 
             {error && (
               <div className="bg-red-950/20 border border-red-900/50 p-4 rounded text-sm space-y-2">
@@ -194,8 +264,8 @@ export default function Page() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-zinc-400">
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-200 flex items-center gap-1">
-                    {url} <ExternalLink className="w-3 h-3" />
+                  <a href={form.getValues("url")} target="_blank" rel="noopener noreferrer" className="hover:text-zinc-200 flex items-center gap-1">
+                    {form.getValues("url")} <ExternalLink className="w-3 h-3" />
                   </a>
                   {result.websiteAnalysis.industry && (
                     <>
@@ -215,7 +285,7 @@ export default function Page() {
                   <span>Copy Cold Email</span>
                 </button>
                 <button
-                  onClick={() => { setResult(null); setError(null); }}
+                  onClick={() => { setResult(null); setError(null); form.reset(); }}
                   className="bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs px-3 py-1.5 rounded font-semibold transition"
                 >
                   New Audit
@@ -224,7 +294,7 @@ export default function Page() {
             </div>
 
             {/* Tabs Nav */}
-            <div className="flex gap-1 border-b border-zinc-800 overflow-x-auto pb-px">
+            <div role="tablist" className="flex gap-1 border-b border-zinc-800 overflow-x-auto pb-px">
               {[
                 { id: "overview", label: "Overview", icon: Layers },
                 { id: "seo", label: "SEO Audit", icon: Search },
@@ -240,6 +310,9 @@ export default function Page() {
                   <button
                     key={t.id}
                     id={`tab-${t.id}`}
+                    role="tab"
+                    aria-selected={activeTab === t.id}
+                    aria-controls={`panel-${t.id}`}
                     onClick={() => setActiveTab(t.id)}
                     className={`flex items-center gap-1.5 px-4 py-2 border-b-2 text-xs font-semibold whitespace-nowrap transition -mb-px ${
                       activeTab === t.id
@@ -257,7 +330,7 @@ export default function Page() {
             {/* Tab content */}
             <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg space-y-6">
               {activeTab === "overview" && (
-                <div className="space-y-6">
+                <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" className="space-y-6">
                   <div>
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-2">Executive Summary</h3>
                     <p className="text-sm leading-relaxed text-zinc-200 bg-zinc-950 p-4 rounded border border-zinc-800 italic">
@@ -282,7 +355,7 @@ export default function Page() {
                   <div>
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Priority Action Items</h3>
                     <div className="space-y-2">
-                      {result.finalReport.priorityFixes.map((f, i) => (
+                      {(result.finalReport.priorityFixes || []).map((f, i) => (
                         <div key={i} className="bg-zinc-950 p-3.5 rounded border border-zinc-850 flex items-start gap-3">
                           <span className="text-xs font-mono text-zinc-500 bg-zinc-900 border border-zinc-800 w-6 h-6 flex items-center justify-center rounded shrink-0">
                             #{f.rank}
@@ -311,7 +384,7 @@ export default function Page() {
               )}
 
               {activeTab === "seo" && (
-                <div className="space-y-6">
+                <div id="panel-seo" role="tabpanel" aria-labelledby="tab-seo" className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4 bg-zinc-950 p-4 rounded border border-zinc-800">
                     <div className="space-y-2">
                       <h4 className="text-xs font-semibold text-zinc-500 uppercase">Tags & Metadata</h4>
@@ -347,7 +420,7 @@ export default function Page() {
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">SEO Recommendations</h3>
                     <div className="space-y-2">
-                      {result.seoAudit.issues.map((issue, i) => (
+                      {(result.seoAudit.issues || []).map((issue, i) => (
                         <div key={i} className="bg-zinc-950 p-4 rounded border border-zinc-800 space-y-1.5">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono font-bold capitalize">
@@ -367,7 +440,7 @@ export default function Page() {
               )}
 
               {activeTab === "performance" && (
-                <div className="space-y-6">
+                <div id="panel-performance" role="tabpanel" aria-labelledby="tab-performance" className="space-y-6">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-zinc-950 p-4 rounded border border-zinc-800 font-mono text-center">
                     <div>
                       <span className="text-[10px] text-zinc-500 block">FCP</span>
@@ -390,7 +463,7 @@ export default function Page() {
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Speed Audits</h3>
                     <div className="space-y-2">
-                      {result.performance.suggestions.map((item, i) => (
+                      {(result.performance.suggestions || []).map((item, i) => (
                         <div key={i} className="bg-zinc-950 p-4 rounded border border-zinc-800 space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] bg-zinc-850 text-zinc-400 px-1.5 py-0.5 rounded font-mono font-bold capitalize">
@@ -410,7 +483,7 @@ export default function Page() {
               )}
 
               {activeTab === "uiux" && (
-                <div className="space-y-6">
+                <div id="panel-uiux" role="tabpanel" aria-labelledby="tab-uiux" className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-4">
                       <div>
@@ -447,7 +520,7 @@ export default function Page() {
                       <div>
                         <h4 className="text-xs font-semibold text-zinc-500 uppercase mb-2">Structure & Ordering</h4>
                         <div className="bg-zinc-950 p-4 rounded border border-zinc-800 space-y-1.5 text-xs">
-                          {result.redesignSuggestions.sectionOrder.map((section, idx) => (
+                          {(result.redesignSuggestions.sectionOrder || []).map((section, idx) => (
                             <div key={idx} className="flex gap-2 py-0.5 border-b border-zinc-900/60 last:border-0">
                               <span className="text-zinc-500 w-4">{idx + 1}.</span>
                               <span className="text-zinc-300">{section}</span>
@@ -476,7 +549,7 @@ export default function Page() {
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">UI/UX Recommendations</h3>
                     <div className="space-y-2">
-                      {result.uiuxReview.recommendations.map((item, i) => (
+                      {(result.uiuxReview.recommendations || []).map((item, i) => (
                         <div key={i} className="bg-zinc-950 p-4 rounded border border-zinc-800 space-y-1">
                           <p className="text-xs font-semibold text-zinc-200">{item.area || item.title}</p>
                           <p className="text-xs text-zinc-400">{item.suggestion || item.detail}</p>
@@ -488,11 +561,11 @@ export default function Page() {
               )}
 
               {activeTab === "competitors" && (
-                <div className="space-y-6">
+                <div id="panel-competitors" role="tabpanel" aria-labelledby="tab-competitors" className="space-y-6">
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Competitor Profiles</h3>
                     <div className="grid md:grid-cols-3 gap-4">
-                      {result.competitors.list.map((c, i) => (
+                      {(result.competitors.list || []).map((c, i) => (
                         <div key={i} className="bg-zinc-950 p-4 rounded border border-zinc-800 space-y-3">
                           <div>
                             <p className="text-sm font-bold text-zinc-200">{c.name}</p>
@@ -501,11 +574,11 @@ export default function Page() {
                           <div className="space-y-1.5 text-xs">
                             <div>
                               <span className="text-[10px] text-zinc-500 block font-semibold">Strengths</span>
-                              <p className="text-zinc-300">{c.strengths.join(", ")}</p>
+                              <p className="text-zinc-300">{(c.strengths || []).join(", ")}</p>
                             </div>
                             <div>
                               <span className="text-[10px] text-zinc-500 block font-semibold">Weaknesses</span>
-                              <p className="text-zinc-300">{c.weaknesses.join(", ")}</p>
+                              <p className="text-zinc-300">{(c.weaknesses || []).join(", ")}</p>
                             </div>
                           </div>
                         </div>
@@ -518,11 +591,11 @@ export default function Page() {
                       <h4 className="text-xs font-bold text-zinc-500 uppercase">Competitive Angle / Pitch</h4>
                       <p className="text-sm text-zinc-300 mt-1">{result.competitors.competitiveAdvantage}</p>
                     </div>
-                    {result.competitors.gapOpportunities.length > 0 && (
+                    {(result.competitors.gapOpportunities || []).length > 0 && (
                       <div className="pt-2 border-t border-zinc-900">
                         <span className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">Identified Gap Opportunities</span>
                         <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
-                          {result.competitors.gapOpportunities.map((g, i) => (
+                          {(result.competitors.gapOpportunities || []).map((g, i) => (
                             <li key={i}>{g}</li>
                           ))}
                         </ul>
@@ -533,7 +606,7 @@ export default function Page() {
               )}
 
               {activeTab === "conversion" && (
-                <div className="space-y-6">
+                <div id="panel-conversion" role="tabpanel" aria-labelledby="tab-conversion" className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4 bg-zinc-950 p-4 rounded border border-zinc-800 text-xs">
                     <div>
                       <span className="text-zinc-500 block">Lead capture forms</span>
@@ -548,7 +621,7 @@ export default function Page() {
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Conversion Improvements</h3>
                     <div className="space-y-2">
-                      {result.conversionAudit.recommendations.map((item, i) => (
+                      {(result.conversionAudit.recommendations || []).map((item, i) => (
                         <div key={i} className="bg-zinc-950 p-4 rounded border border-zinc-800 space-y-1">
                           <p className="text-xs font-semibold text-zinc-200">{item.title}</p>
                           <p className="text-xs text-zinc-400">{item.detail}</p>
@@ -563,7 +636,7 @@ export default function Page() {
               )}
 
               {activeTab === "outreach" && (
-                <div className="space-y-6">
+                <div id="panel-outreach" role="tabpanel" aria-labelledby="tab-outreach" className="space-y-6">
                   {/* Cold Email */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -618,7 +691,7 @@ export default function Page() {
               )}
 
               {activeTab === "proposal" && (
-                <div className="space-y-6">
+                <div id="panel-proposal" role="tabpanel" aria-labelledby="tab-proposal" className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-zinc-400 uppercase">Client Proposal Document</h3>
                     <div className="flex gap-2">
@@ -647,7 +720,7 @@ export default function Page() {
                     <div>
                       <h2 className="text-base font-bold text-zinc-100 mb-2">2. Problems Identified</h2>
                       <ul className="list-disc list-inside space-y-1">
-                        {result.proposal.problemsFound.map((p, i) => (
+                        {(result.proposal.problemsFound || []).map((p, i) => (
                           <li key={i} className="text-zinc-300">{p}</li>
                         ))}
                       </ul>
@@ -656,7 +729,7 @@ export default function Page() {
                     <div>
                       <h2 className="text-base font-bold text-zinc-100 mb-2">3. Proposed Scope & Solutions</h2>
                       <ul className="list-disc list-inside space-y-1">
-                        {result.proposal.proposedSolutions.map((s, i) => (
+                        {(result.proposal.proposedSolutions || []).map((s, i) => (
                           <li key={i} className="text-zinc-300">{s}</li>
                         ))}
                       </ul>
@@ -665,10 +738,10 @@ export default function Page() {
                     <div>
                       <h2 className="text-base font-bold text-zinc-100 mb-2">4. Project Timeline</h2>
                       <div className="space-y-3">
-                        {result.proposal.timeline.map((t, i) => (
+                        {(result.proposal.timeline || []).map((t, i) => (
                           <div key={i} className="border-l-2 border-zinc-800 pl-4 py-1 space-y-1">
                             <p className="font-semibold text-zinc-200">{t.phase} ({t.duration})</p>
-                            <p className="text-xs text-zinc-400">Deliverables: {t.deliverables.join(", ")}</p>
+                            <p className="text-xs text-zinc-400">Deliverables: {(t.deliverables || []).join(", ")}</p>
                           </div>
                         ))}
                       </div>

@@ -1,8 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+/* stylelint-disable at-rule-no-unknown scss/at-rule-no-unknown */
+@import "tailwindcss";
 
 /* ── Design Tokens ─────────────────────────────────────────── */
 :root {
@@ -26,8 +23,9 @@
   body {
     background-color: var(--bg-base);
     color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    @apply antialiased;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-image:
       radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59,130,246,0.08) 0%, transparent 60%),
       radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139,92,246,0.06) 0%, transparent 60%),
@@ -38,7 +36,7 @@
   * { box-sizing: border-box; }
 
   code, pre {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-family: var(--font-jetbrains-mono), 'Fira Code', monospace;
   }
 }
 
@@ -278,7 +276,7 @@
   font-size: 14px;
   color: var(--text-primary);
   transition: all 0.2s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
   outline: none;
 }
 .wr-input::placeholder { color: var(--text-muted); }
@@ -298,7 +296,7 @@
   font-size: 14px;
   color: var(--text-primary);
   transition: all 0.2s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
   outline: none;
   cursor: pointer;
 }
@@ -326,7 +324,7 @@
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(59,130,246,0.3);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
 }
 .btn-primary::before {
   content: '';
@@ -362,7 +360,7 @@
   border: 1px solid rgba(71,85,105,0.4);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
 }
 .btn-secondary:hover {
   border-color: rgba(59,130,246,0.3);
@@ -430,7 +428,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   padding: 24px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
   font-size: 14px;
   line-height: 1.8;
   color: var(--text-secondary);
