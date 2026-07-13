@@ -15,6 +15,14 @@ export const inputs = {};
 export const references = {
   "constitutions": {
     "default": "@constitutions/default.md"
+  },
+  "prompts": {
+    "draft_prd_system": "@prompts/draft_prd_system.md",
+    "refine_prd_system": "@prompts/refine_prd_system.md"
+  },
+  "modelConfigs": {
+    "draft_prd": "@model-configs/draft_prd.ts",
+    "refine_prd": "@model-configs/refine_prd.ts"
   }
 };
 
@@ -48,7 +56,16 @@ export const nodes = [
       "values": {
         "nodeName": "Draft PRD Node",
         "tools": [],
-        "prompts": []
+        "prompts": [
+          {
+            "id": "prompt-draft-id",
+            "role": "system",
+            "content": "@prompts/draft_prd_system.md"
+          }
+        ],
+        "memories": "@model-configs/draft_prd.ts",
+        "messages": "@model-configs/draft_prd.ts",
+        "generativeModelName": "@model-configs/draft_prd.ts"
       }
     }
   },
@@ -64,7 +81,16 @@ export const nodes = [
       "values": {
         "nodeName": "Refine PRD Node",
         "tools": [],
-        "prompts": []
+        "prompts": [
+          {
+            "id": "prompt-refine-id",
+            "role": "system",
+            "content": "@prompts/refine_prd_system.md"
+          }
+        ],
+        "memories": "@model-configs/refine_prd.ts",
+        "messages": "@model-configs/refine_prd.ts",
+        "generativeModelName": "@model-configs/refine_prd.ts"
       }
     }
   },
