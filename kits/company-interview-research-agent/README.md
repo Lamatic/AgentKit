@@ -72,7 +72,7 @@ interview format section is grounded in an explicit classification rather
 than a single-shot guess.
 
 ## Usage
-This is a **template** — a Lamatic flow you can import and run directly
+This is a **template** - a Lamatic flow you can import and run directly
 through the Lamatic Studio or call via its GraphQL API, without needing to
 set up a separate frontend application.
 
