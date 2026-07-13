@@ -24,8 +24,7 @@ Analyzes a SQL migration and flags risky operations before they hit production -
 1. Sign up at lamatic.ai and create a project.
 2. Get your Lamatic API key from Settings -> API Keys.
 3. Import this flow into Lamatic Studio using flows/db-migration-safety-checker.ts as reference.
-4. Connect your Anthropic credential (used by the model config file).
-
+4. Connect your Google Gemini credential (used by the model config file).
 ## Usage
 
 Send a POST request to the deployed flow endpoint with:
