@@ -1,0 +1,222 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    responeType: realtime
+    advance_schema: |-
+      {
+        "company_name": "string",
+        "job_title": "string"
+      }
+  modes: {}
+  allConfigs:
+    Config A:
+      id: triggerNode_1
+      nodeName: API Request
+      responeType: realtime
+      advance_schema: |-
+        {
+          "company_name": "string",
+          "job_title": "string"
+        }
+  schema:
+    sampleOutput: string
+nodes:
+  - nodeId: webSearchNode_224
+    nodeType: webSearchNode
+    nodeName: Web Search
+    values:
+      page: 1
+      type: https://google.serper.dev/search
+      query: >-
+        interview tips and company culture for
+        {{triggerNode_1.output.company_name}}
+      country: us
+      results: 10
+      language: en
+      location: ''
+      dateRange: ''
+      credentials: Serper Basic Auth
+    modes: {}
+    needs:
+      - triggerNode_1
+    allConfigs:
+      Config A:
+        id: webSearchNode_224
+        page: 1
+        type: https://google.serper.dev/search
+        query: >-
+          interview tips and company culture for
+          {{triggerNode_1.output.company_name}}
+        country: us
+        results: 10
+        language: en
+        location: ''
+        nodeName: Web Search
+        dateRange: ''
+        credentials: Serper Basic Auth
+    schema:
+      output: object
+    logic: []
+  - nodeId: agentClassifierNode_548
+    nodeType: agentClassifierNode
+    nodeName: Classifier
+    values:
+      prompts: &ref_0
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are an expert at analyzing job roles to predict likely interview
+            formats.
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            Classify the likely interview format for this job
+            title:{{triggerNode_1.output.job_title}}
+      classifier: &ref_1
+        - label: Classifier 1
+          value: agentClassifierNode_548-addNode_319
+          description: >-
+            The role is likely to involve technical or case-based interview
+            questions - e.g., data analysis, engineering, quantitative, or
+            problem-solving heavy roles.
+        - label: Classifier 2
+          value: agentClassifierNode_548-addNode_918
+          description: >-
+            The role is likely to involve primarily behavioral or mixed
+            interview questions - e.g., roles more focused on soft skills,
+            communication, or general business fit.
+      generativeModelName: &ref_2
+        - type: generator/text
+          params: {}
+          configName: configA
+          model_name: gemini/gemini-2.5-flash
+          credentialId: 3380f2a4-f5fe-427c-a344-a71cc7f75b21
+          provider_name: gemini
+          credential_name: google-gem
+    modes: []
+    needs:
+      - webSearchNode_224
+    allConfigs:
+      Config A:
+        prompts: *ref_0
+        nodeName: Classifier
+        classifier: *ref_1
+        generativeModelName: *ref_2
+    schema:
+      class: string
+      _meta: object
+    classifier:
+      - label: Classifier 1
+        value: addNode_319
+      - label: Classifier 2
+        value: addNode_918
+  - nodeId: addNode_918
+    nodeType: addNode
+    nodeName: ''
+    values: {}
+    modes: {}
+    needs:
+      - agentClassifierNode_548
+    allConfigs:
+      Config A: {}
+  - nodeId: addNode_319
+    nodeType: addNode
+    nodeName: ''
+    values: {}
+    modes: {}
+    needs:
+      - agentClassifierNode_548
+    allConfigs:
+      Config A: {}
+  - nodeId: LLMNode_621
+    nodeType: LLMNode
+    nodeName: Generate Text
+    values:
+      tools: &ref_3 []
+      prompts: &ref_4
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are a career coach creating a concise, structured interview
+            preparation brief. Be specific and actionable, not generic.
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            Create an interview prep brief for a candidate interviewing for the
+            role of{{triggerNode_1.output.job_title}} at
+            {{triggerNode_1.output.company_name}}. Use this research about the
+            company: {{webSearchNode_224.output.output}}Based on prior analysis,
+            this role has been classified as:
+            {{agentClassifierNode_548.output.class}}Structure your response with
+            these sections:
+
+            1. Company Snapshot (2-3 sentences)
+
+            2. Confirm and expand on the interview format based on the
+            classification above - explain what to expect in practice
+
+            3. 4-5 Likely Question Themes with brief reasoning
+
+            4. 3 Smart Questions to Ask the Interviewer
+      memories: '[]'
+      messages: '[]'
+      attachments: ''
+      credentials: ''
+      generativeModelName: &ref_5
+        - type: generator/text
+          params: {}
+          configName: configA
+          model_name: gemini/gemini-2.5-flash
+          credentialId: 3380f2a4-f5fe-427c-a344-a71cc7f75b21
+          provider_name: gemini
+          credential_name: google-gem
+    modes: {}
+    needs:
+      - addNode_319
+      - addNode_918
+    allConfigs:
+      Config A:
+        tools: *ref_3
+        prompts: *ref_4
+        memories: '[]'
+        messages: '[]'
+        nodeName: Generate Text
+        attachments: ''
+        credentials: ''
+        generativeModelName: *ref_5
+    schema:
+      generatedResponse: string
+      _meta: object
+      tool_calls: object
+      images: array
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  values:
+    headers: '{"content-type":"application/json"}'
+    retries: '0'
+    webhookUrl: ''
+    retry_delay: '0'
+    outputMapping: |-
+      {
+        "interview_brief": "{{LLMNode_621.output.generatedResponse}}"
+      }
+  needs:
+    - LLMNode_621
+  modes: {}
+  allConfigs:
+    Config A:
+      id: responseNode_triggerNode_1
+      headers: '{"content-type":"application/json"}'
+      retries: '0'
+      nodeName: API Response
+      webhookUrl: ''
+      retry_delay: '0'
+      outputMapping: |-
+        {
+          "interview_brief": "{{LLMNode_621.output.generatedResponse}}"
+        }
+  schema: {}
