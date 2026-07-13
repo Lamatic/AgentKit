@@ -4,10 +4,21 @@ import Image from "next/image";
 import { useState } from "react";
 import { UpcomingBlocksCard } from "@/components/ui/UpcomingBlocksCard";
 import { CommitCard } from "@/components/features/CommitCard";
-import { ActiveTimeModal } from "@/components/features/ActiveTimeModal";
+import { CommitSettingsModal } from "@/components/features/CommitSettingsModal";
 
 export default function Home() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{ isOpen: boolean; initialPane: "time" | "block" }>({
+    isOpen: false,
+    initialPane: "time",
+  });
+
+  const openModal = (pane: "time" | "block") => {
+    setModalConfig({ isOpen: true, initialPane: pane });
+  };
+
+  const closeModal = () => {
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] font-sans text-[#f8fafc] p-8 relative">
@@ -43,19 +54,25 @@ export default function Home() {
             title="Summer" 
             iconName="book" 
             showRisk={true} 
-            onTimeClick={() => setIsModalOpen(true)}
+            onTimeClick={() => openModal("time")}
+            onBlockClick={() => openModal("block")}
           />
           <CommitCard 
             title="Deep Work" 
             iconName="target" 
             showRisk={false}
-            onTimeClick={() => setIsModalOpen(true)}
+            onTimeClick={() => openModal("time")}
+            onBlockClick={() => openModal("block")}
           />
         </div>
 
       </div>
 
-      <ActiveTimeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <CommitSettingsModal 
+        isOpen={modalConfig.isOpen} 
+        initialPane={modalConfig.initialPane} 
+        onClose={closeModal} 
+      />
     </div>
   );
 }

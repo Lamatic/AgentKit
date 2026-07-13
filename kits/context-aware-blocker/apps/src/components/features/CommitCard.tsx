@@ -6,8 +6,8 @@ interface CommitCardProps {
   showRisk?: boolean;
   hasTime?: boolean;
   hasBlock?: boolean;
-  hasAI?: boolean;
   onTimeClick?: () => void;
+  onBlockClick?: () => void;
 }
 
 export function CommitCard({
@@ -16,8 +16,8 @@ export function CommitCard({
   showRisk = false,
   hasTime = true,
   hasBlock = true,
-  hasAI = true,
   onTimeClick,
+  onBlockClick,
 }: CommitCardProps) {
   const getIconColor = (isActive: boolean) => isActive ? 'text-[#e83a3a]' : 'text-white/10';
 
@@ -55,25 +55,28 @@ export function CommitCard({
       <div className="h-[1px] bg-white/10 mt-5 -mx-5"></div>
 
       {/* Bottom Row: Condition Icons */}
-      <div className="mt-4 flex justify-center items-center gap-7">
+      <div className="mt-4 flex justify-center items-center gap-10">
         <span 
           onClick={(e) => {
-            e.stopPropagation(); // prevent triggering the card's main click later
+            e.stopPropagation();
             if (onTimeClick) onTimeClick();
           }}
-          className={cn("time-trigger material-symbols-outlined !text-[28px] hover:text-white transition-colors cursor-pointer", getIconColor(hasTime))} 
+          className={cn("time-trigger material-symbols-outlined !text-[34px] hover:text-white transition-colors cursor-pointer", getIconColor(hasTime))} 
           title="Time"
         >
           schedule
         </span>
-        <span className={cn("material-symbols-outlined !text-[28px] hover:text-white transition-colors cursor-pointer", getIconColor(hasBlock))} title="Blocked Content">
+        <span 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onBlockClick) onBlockClick();
+          }}
+          className={cn("material-symbols-outlined !text-[34px] hover:text-white transition-colors cursor-pointer", getIconColor(hasBlock))} 
+          title="Blocked Content"
+        >
           app_blocking
         </span>
-        <span className={cn("material-symbols-outlined !text-[28px] hover:text-white transition-colors cursor-pointer", getIconColor(hasAI))} title="AI Powered">
-          auto_awesome
-        </span>
       </div>
-
     </div>
   );
 }

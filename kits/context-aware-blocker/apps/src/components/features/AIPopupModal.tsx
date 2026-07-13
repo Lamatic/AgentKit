@@ -1,9 +1,9 @@
-interface ActiveTimeModalProps {
+interface AIPopupModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function ActiveTimeModal({ isOpen, onClose }: ActiveTimeModalProps) {
+export function AIPopupModal({ isOpen, onClose }: AIPopupModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -15,8 +15,8 @@ export function ActiveTimeModal({ isOpen, onClose }: ActiveTimeModalProps) {
         {/* Modal Header */}
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-wide mb-1">Active Time</h2>
-            <p className="text-[#94a3b8] text-sm">Choose when this commitment is active</p>
+            <h2 className="text-2xl font-bold text-white tracking-wide mb-1">AI Description</h2>
+            <p className="text-[#94a3b8] text-sm">Configure how AI detects this commitment</p>
           </div>
           <button onClick={onClose} className="text-white/50 hover:text-white transition-colors">
             <span className="material-symbols-outlined">close</span>
@@ -25,7 +25,7 @@ export function ActiveTimeModal({ isOpen, onClose }: ActiveTimeModalProps) {
 
         {/* Empty Holder Placeholder */}
         <div className="py-12 flex flex-col items-center justify-center text-[#94a3b8]">
-          <span className="material-symbols-outlined text-4xl mb-2 text-[#e83a3a]">schedule</span>
+          <span className="material-symbols-outlined text-4xl mb-2 text-[#e83a3a]">auto_awesome</span>
           <span className="text-sm font-medium">Popup holder active. Content cleared.</span>
         </div>
 
