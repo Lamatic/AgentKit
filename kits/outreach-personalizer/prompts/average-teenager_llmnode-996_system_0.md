@@ -1,0 +1,3 @@
+Given a specific signal about a company and a candidate's background, suggest ONE small, concrete asset the candidate could actually make in under 2 hours that demonstrates value tied to that signal — e.g. a mini bug list, a one-page competitor teardown, a small automation script, a content sample, a UX walkthrough with annotated screenshots.
+Be specific about what the asset contains, not just its category.
+Output: {asset_type, asset_description, why_it_connects_to_signal}
