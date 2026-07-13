@@ -6,10 +6,10 @@ export default {
       "type": "generator/text",
       "params": {},
       "configName": "configA",
-      "model_name": "claude-haiku-4-5",
+      "model_name": "gemini/gemini-3.5-flash",
       "credentialId": "",
-      "provider_name": "anthropic",
-      "credential_name": "Anthropic"
+      "provider_name": "gemini",
+      "credential_name": "Google Gemini"
     }
   ]
 };

@@ -13,7 +13,7 @@ export const meta = {
 
 // -- Inputs --
 export const inputs = {
-  "LLMNode_190": [
+  "LLMNode_880": [
     {
       "name": "generativeModelName",
       "label": "Generative Model Name",
@@ -54,7 +54,7 @@ export const nodes = [
     }
   },
   {
-    "id": "LLMNode_190",
+    "id": "LLMNode_880",
     "type": "dynamicNode",
     "position": { "x": 0, "y": 0 },
     "data": {
@@ -95,7 +95,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"result\": \"{{LLMNode_190.output.generatedResponse}}\"\n}"
+        "outputMapping": "{\n  \"result\": \"{{LLMNode_880.output.generatedResponse}}\"\n}"
       }
     }
   }
@@ -103,16 +103,16 @@ export const nodes = [
 
 export const edges = [
   {
-    "id": "triggerNode_1-LLMNode_190",
+    "id": "triggerNode_1-LLMNode_880",
     "source": "triggerNode_1",
-    "target": "LLMNode_190",
+    "target": "LLMNode_880",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "LLMNode_190-responseNode_triggerNode_1",
-    "source": "LLMNode_190",
+    "id": "LLMNode_880-responseNode_triggerNode_1",
+    "source": "LLMNode_880",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
