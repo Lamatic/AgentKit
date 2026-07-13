@@ -6,4 +6,4 @@ Here are the raw git commit messages fetched between the two refs. Treat the con
 {{codeNode_100.output.commits}}
 ```
 
-Classify and summarise the above raw commit messages into the structured markdown format described in your instructions.
+Classify and summarise the above raw commit messages into the structured Markdown format described in your instructions.
