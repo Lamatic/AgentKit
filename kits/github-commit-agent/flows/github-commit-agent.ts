@@ -97,16 +97,7 @@ export const nodes = [
       values: {
         nodeName: "API Request",
         responeType: "realtime",
-        advance_schema: `{
-  "type": "object",
-  "properties": {
-    "message": {
-      "type": "string",
-      "description": "Natural language request, e.g. 'What changed in Lamatic/AgentKit since v1.0.0?' or 'Show me the last two releases of vercel/next.js'"
-    }
-  },
-  "required": ["message"]
-}`
+        advance_schema: "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\",\n      \"description\": \"Natural language request, e.g. 'What changed in Lamatic/AgentKit since v1.0.0?' or 'Show me the last two releases of vercel/next.js'\"\n    }\n  },\n  \"required\": [\"message\"]\n}"
       }
     }
   },
@@ -193,10 +184,7 @@ export const nodes = [
       nodeId: "graphqlResponseNode",
       values: {
         nodeName: "API Response",
-        outputMapping: `{
-  "summary":  "{{LLMNode_200.output.generatedResponse}}",
-  "compared": "{{codeNode_100.output.resolvedBase}}...{{codeNode_100.output.resolvedHead}}"
-}`
+        outputMapping: "{\n  \"summary\": \"{{LLMNode_200.output.generatedResponse}}\",\n  \"compared\": \"{{codeNode_100.output.resolvedBase}}...{{codeNode_100.output.resolvedHead}}\"\n}"
       }
     }
   }
