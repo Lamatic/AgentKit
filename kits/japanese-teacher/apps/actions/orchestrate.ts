@@ -2,22 +2,8 @@
 "use server"
 
 import { lamaticClient } from "../lib/lamatic-client"
+import lamaticConfig from "../../lamatic.config"
 
-const workflowEnvKeys = {
-  lesson: "JAPANESE_TEACHER_LESSON_FLOW_ID",
-  quiz: "JAPANESE_TEACHER_QUIZ_FLOW_ID",
-} as const;
-
-// Helper to securely get the flow ID from the environment.
-function getWorkflowId(stepId: string): string {
-  const envKey = workflowEnvKeys[stepId as keyof typeof workflowEnvKeys];
-
-  if (!envKey || !process.env[envKey]) {
-    throw new Error(`Missing workflow ID for step: ${stepId}. Please check your environment variables.`);
-  }
-
-  return process.env[envKey] as string;
-}
 // ---------------------------------------------------------
 // FLOW 1: Generate Text/Context
 // ---------------------------------------------------------
@@ -39,7 +25,7 @@ export async function generateTextContext(
       }`;
 
     const variables = {
-      workflowId: getWorkflowId("lesson"),
+      workflowId: (lamaticConfig.steps.find((s: any) => s.id === "lesson") as any)?.workflowId,
       level,
       context,
       words
@@ -99,7 +85,7 @@ export async function generateQuestions(
       }`;
 
     const variables = {
-      workflowId: getWorkflowId("quiz"),
+      workflowId: (lamaticConfig.steps.find((s: any) => s.id === "quiz") as any)?.workflowId,
       level,
       context: storyContext,
       question_number: questionNumber,

@@ -70,7 +70,9 @@ Open .env.local and add your Lamatic API credentials:
 
 ```Kod snippet'i
 
-LAMATIC_API_KEY=your_lamatic_api_key_here
+LAMATIC_API_KEY=your_api_key_here
+LAMATIC_PROJECT_ID=your_project_id
+LAMATIC_ENDPOINT=https://your-endpoint.lamatic.dev
 ```
 
 Start the Development Server
