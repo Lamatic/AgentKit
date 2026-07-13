@@ -107,7 +107,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{"question_paper": "{{LLMNode_644.output.generatedResponse}}"}"
+        "outputMapping": "{\"question_paper\": \"{{LLMNode_644.output.generatedResponse}}\"}"
       }
     }
   }
