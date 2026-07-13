@@ -1,0 +1,9 @@
+.lamatic/
+node_modules/
+.next/
+.env
+.env.local
+
+# The repo root ignores `scripts`, which would silently drop this kit's
+# code-node sources that flows/ resolves via @scripts/ references.
+!scripts/
