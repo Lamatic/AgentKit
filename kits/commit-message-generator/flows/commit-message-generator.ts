@@ -19,10 +19,13 @@ export const meta = {
 
 // -- Inputs --
 export const inputs = {
-  "git_diff": {
-    "type": "string",
-    "description": "The git diff to generate a commit message for"
-  }
+  "generateText": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ]
 };
 
 // -- References --
@@ -42,49 +45,102 @@ export const references = {
 // -- Nodes & Edges --
 export const nodes = [
   {
-    "nodeId": "apiRequest",
-    "type": "interface.apiRequest",
-    "values": {
-      "schema": {
-        "git_diff": "string"
-      },
-      "responseType": "realtime"
+    "id": "apiRequest",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlNode",
+      "trigger": true,
+      "values": {
+        "id": "apiRequest",
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\n  \"git_diff\": \"string\"\n}"
+      }
     }
   },
   {
-    "nodeId": "generateText",
-    "type": "ai.generateText",
-    "values": {
-      "prompts": [
-        {
-          "role": "system",
-          "content": "@prompts/commit-message-generator_llm-node_system.md"
-        },
-        {
-          "role": "user",
-          "content": "@prompts/commit-message-generator_llm-node_user.md"
-        }
-      ],
-      "generativeModelName": "@model-configs/commit-message-generator_generateText_generative-model-name.ts"
+    "id": "generateText",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "id": "generateText",
+        "tools": [],
+        "prompts": [
+          {
+            "id": "prompt_system",
+            "role": "system",
+            "content": "@prompts/commit-message-generator_llm-node_system.md"
+          },
+          {
+            "id": "prompt_user",
+            "role": "user",
+            "content": "@prompts/commit-message-generator_llm-node_user.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Generate Text",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/commit-message-generator_generateText_generative-model-name.ts"
+      }
     }
   },
   {
-    "nodeId": "apiResponse",
-    "type": "interface.apiResponse",
-    "values": {
-      "response": "{{generateText.output.response}}"
+    "id": "apiResponse",
+    "type": "responseNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "id": "apiResponse",
+        "headers": "{\"content-type\":\"application/json\"}",
+        "retries": "0",
+        "nodeName": "API Response",
+        "webhookUrl": "",
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"response\": \"{{generateText.output.generatedResponse}}\"\n}"
+      }
     }
   }
 ];
 
 export const edges = [
   {
+    "id": "apiRequest-generateText",
     "source": "apiRequest",
-    "target": "generateText"
+    "target": "generateText",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
+    "id": "generateText-apiResponse",
     "source": "generateText",
-    "target": "apiResponse"
+    "target": "apiResponse",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "response-trigger_apiRequest",
+    "source": "apiRequest",
+    "target": "apiResponse",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
   }
 ];
 

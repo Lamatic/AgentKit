@@ -20,7 +20,19 @@ feat(auth): add JWT token refresh endpoint
 
 Send a request with your diff:
 
-{ "git_diff": "diff --git a/src/auth.ts b/src/auth.ts\n..." }
+```json
+{
+  "git_diff": "diff --git a/src/auth.ts b/src/auth.ts\n..."
+}
+```
+
+Expected response payload:
+
+```json
+{
+  "response": "feat(auth): add JWT token refresh endpoint"
+}
+```
 
 ## Commit Types
 
