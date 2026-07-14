@@ -47,12 +47,13 @@ const defaultCommits: BlockCommit[] = [
   }
 ];
 
+// ** PRODUCTION LEVEL STATE: Global Store Initialization ** //
 export const useCommitStore = create<CommitState>((set, get) => ({
   commits: [],
   isLoaded: false,
 
   loadCommits: async () => {
-    // Attempt to load from storage. If null, fallback to default.
+    // ** PRODUCTION LEVEL LOGIC: Attempt to load from storage. Fallback to default. ** //
     const saved = await storage.get<BlockCommit[] | null>(STORAGE_KEY, null);
     set({ 
       commits: saved ?? defaultCommits,
@@ -69,10 +70,10 @@ export const useCommitStore = create<CommitState>((set, get) => ({
     const { commits } = get();
     const newCommits = commits.map(c => c.id === updatedCommit.id ? updatedCommit : c);
     
-    // Optimistic UI update
+    // ** PRODUCTION LEVEL LOGIC: Optimistic UI update ** //
     set({ commits: newCommits });
     
-    // Persist
+    // ** PRODUCTION LEVEL LOGIC: Persist to Tiny DB ** //
     await storage.set(STORAGE_KEY, newCommits);
   },
 

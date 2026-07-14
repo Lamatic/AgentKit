@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ActiveTimePane } from "./ActiveTimePane";
 import { BlockedContentPane } from "./BlockedContentPane";
+import { useCommitStore } from "@/hooks/useCommitStore";
 
 interface CommitSettingsModalProps {
   isOpen: boolean;
@@ -13,14 +14,21 @@ interface CommitSettingsModalProps {
 }
 
 export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", commitId }: CommitSettingsModalProps) {
+  const { commits } = useCommitStore();
+  const commit = commits.find(c => c.id === commitId);
+
   const [activePane, setActivePane] = useState<"time" | "block">(initialPane);
+  const [title, setTitle] = useState(commit?.title || "New Block");
 
   // Reset pane when modal opens
   useEffect(() => {
     if (isOpen) {
       setActivePane(initialPane);
+      if (commit) {
+        setTitle(commit.title);
+      }
     }
-  }, [isOpen, initialPane]);
+  }, [isOpen, initialPane, commit]);
 
   // Keyboard Navigation
   useEffect(() => {
@@ -65,12 +73,12 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", com
       <div className="bg-[#0f0f0f] w-[90%] max-w-[420px] rounded-[24px] flex flex-col shadow-2xl h-[560px] overflow-hidden relative">
         
         {/* Global Header */}
-        <div className="flex justify-between items-center p-6 pb-2 shrink-0 z-10 bg-[#0f0f0f]">
+        <div className="flex justify-between items-center p-6 pb-2 shrink-0 z-10 bg-[#0f0f0f] gap-4">
           
           {/* Toggle Pane Arrow */}
           <button 
             onClick={() => setActivePane(activePane === "time" ? "block" : "time")}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-[#151515] text-white/50 hover:text-white transition-all"
+            className="w-10 h-10 shrink-0 flex items-center justify-center rounded-full bg-[#151515] text-white/50 hover:text-white transition-all"
             title={activePane === "time" ? "Go to Blocked Content (→)" : "Go to Active Time (←)"}
           >
             <span className="material-symbols-outlined">
@@ -78,8 +86,17 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", com
             </span>
           </button>
 
+          {/* ** PRODUCTION LEVEL UI: Title Editor (Unwired as requested) ** */}
+          <input 
+            type="text" 
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="flex-1 min-w-0 bg-transparent text-center text-xl font-bold text-white outline-none border-b border-transparent hover:border-white/10 focus:border-[#e83a3a] transition-colors pb-1 truncate"
+            placeholder="Commit Name"
+          />
+
           {/* Close Button */}
-          <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#151515] text-white/50 hover:text-white transition-colors">
+          <button onClick={onClose} className="w-10 h-10 shrink-0 flex items-center justify-center rounded-full bg-[#151515] text-white/50 hover:text-white transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -101,7 +118,7 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", com
               </div>
               <div className="flex-1 overflow-hidden">
                 {/* ** PRODUCTION LEVEL PROP INJECTION: Pass commitId down ** */}
-                <ActiveTimePane commitId={commitId} onSave={onClose} />
+                <ActiveTimePane commitId={commitId} onSave={onClose} editedTitle={title} />
               </div>
             </div>
 
@@ -113,7 +130,7 @@ export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", com
               </div>
               <div className="flex-1 overflow-hidden">
                 {/* ** PRODUCTION LEVEL PROP INJECTION: Pass commitId down ** */}
-                <BlockedContentPane commitId={commitId} onSave={onClose} />
+                <BlockedContentPane commitId={commitId} onSave={onClose} editedTitle={title} />
               </div>
             </div>
 

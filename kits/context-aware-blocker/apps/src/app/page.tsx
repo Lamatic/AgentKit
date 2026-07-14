@@ -10,7 +10,7 @@ import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function Home() {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
-  const { commits, loadCommits, isLoaded, deleteCommit } = useCommitStore();
+  const { commits, loadCommits, isLoaded, deleteCommit, addCommit } = useCommitStore();
 
   const [modalConfig, setModalConfig] = useState<{ isOpen: boolean; initialPane: "time" | "block"; commitId: string | null }>({
     isOpen: false,
@@ -48,6 +48,13 @@ export default function Home() {
     setDeleteConfig({ isOpen: false, commitId: null, title: "" });
   };
 
+  // ** PRODUCTION LEVEL ACTION: Create a new block ** //
+  const handleAddCommit = () => {
+    const newId = `commit-${Date.now()}`;
+    // UX Polish: Automatically open the modal for the new block so they can edit it immediately!
+    openModal("time", newId);
+  };
+
   if (!isLoaded) {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#e83a3a] border-t-transparent rounded-full animate-spin"></div></div>;
   }
@@ -75,7 +82,10 @@ export default function Home() {
         {/* Blocks Section Header */}
         <div className="flex justify-between items-center mb-6 px-1">
           <h2 className="text-2xl font-bold tracking-wide">Blocks</h2>
-          <button className="bg-[#151515] text-[#f8fafc] px-5 py-2 rounded-full font-medium text-lg hover:bg-[#1f1f1f] transition-colors shadow-sm">
+          <button 
+            onClick={handleAddCommit}
+            className="bg-[#151515] text-[#f8fafc] px-5 py-2 rounded-full font-medium text-lg hover:bg-[#1f1f1f] transition-colors shadow-sm"
+          >
             + Add
           </button>
         </div>
@@ -88,6 +98,7 @@ export default function Home() {
               title={commit.title} 
               iconName={commit.iconName} 
               showRisk={commit.showRisk} 
+              onClick={() => openModal("time", commit.id)}
               onTimeClick={() => openModal("time", commit.id)}
               onBlockClick={() => openModal("block", commit.id)}
               onDeleteClick={() => openDeleteModal(commit.id, commit.title)}

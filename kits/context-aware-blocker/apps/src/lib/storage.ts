@@ -1,13 +1,12 @@
-/**
- * Isomorphic Storage Adapter
- * Safely wraps chrome.storage.local for the extension environment,
- * while falling back to window.localStorage for local Next.js dev.
- */
+// ** PRODUCTION LEVEL STORAGE: Isomorphic Storage Adapter ** //
+// Safely wraps chrome.storage.local for the extension environment,
+// while falling back to window.localStorage for local Next.js dev.
 
 const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
 
 export const storage = {
   async get<T>(key: string, defaultValue: T): Promise<T> {
+    // ** PRODUCTION LEVEL LOGIC: Extension Storage Retrieval ** //
     if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.get([key], (result) => {
@@ -30,6 +29,7 @@ export const storage = {
   },
 
   async set<T>(key: string, value: T): Promise<void> {
+    // ** PRODUCTION LEVEL LOGIC: Extension Storage Persistence ** //
     if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.set({ [key]: value }, () => {

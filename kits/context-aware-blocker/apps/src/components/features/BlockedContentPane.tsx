@@ -10,9 +10,10 @@ type Tab = "webs" | "ai";
 interface BlockedContentPaneProps {
   commitId: string;
   onSave: () => void;
+  editedTitle?: string;
 }
 
-export function BlockedContentPane({ commitId, onSave }: BlockedContentPaneProps) {
+export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedContentPaneProps) {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
   const { commits, saveCommit } = useCommitStore();
   
@@ -59,23 +60,45 @@ export function BlockedContentPane({ commitId, onSave }: BlockedContentPaneProps
   const handleSave = async () => {
     // ** PRODUCTION LEVEL PERSISTENCE: Save configuration to Tiny DB ** //
     const commit = commits.find(c => c.id === commitId);
-    if (commit) {
-      
-      // ** PRODUCTION LEVEL UX: Auto-flush pending inputs ** //
-      // If the user typed a URL or AI rule but forgot to hit the '+' button, automatically include it!
-      let finalWebs = [...webs];
-      if (webInput.trim()) {
-        finalWebs = [{ id: Math.random().toString(), url: webInput.trim(), selected: true }, ...finalWebs];
-      }
-
-      let finalAiRules = [...aiRules];
-      if (aiInput.trim()) {
-        finalAiRules = [aiInput.trim(), ...finalAiRules];
-      }
-
-      const updatedCommit = { ...commit, blockedWebsites: finalWebs, aiRules: finalAiRules };
-      await saveCommit(updatedCommit);
+    
+    // ** PRODUCTION LEVEL UX: Auto-flush pending inputs ** //
+    // If the user typed a URL or AI rule but forgot to hit the '+' button, automatically include it!
+    let finalWebs = [...webs];
+    if (webInput.trim()) {
+      finalWebs = [{ id: Math.random().toString(), url: webInput.trim(), selected: true }, ...finalWebs];
     }
+
+    let finalAiRules = [...aiRules];
+    if (aiInput.trim()) {
+      finalAiRules = [aiInput.trim(), ...finalAiRules];
+    }
+
+    // Construct the commit (either update existing or create new)
+    const updatedCommit = commit 
+      ? { ...commit, blockedWebsites: finalWebs, aiRules: finalAiRules }
+      : { 
+          id: commitId, 
+          title: "New Block", 
+          iconName: "category", 
+          showRisk: false, 
+          activeDays: ["mon", "tue", "wed", "thu", "fri"], 
+          timeWindows: [], 
+          blockedWebsites: finalWebs, 
+          aiRules: finalAiRules 
+        };
+    
+    // ** PRODUCTION LEVEL MUTATION: Sync edited title if available ** //
+    if (editedTitle && editedTitle.trim() !== "") {
+      updatedCommit.title = editedTitle.trim();
+    }
+
+    if (commit) {
+      await saveCommit(updatedCommit);
+    } else {
+      // ** PRODUCTION LEVEL ACTION: Create completely new block on first save ** //
+      await useCommitStore.getState().addCommit(updatedCommit);
+    }
+    
     onSave();
   };
 

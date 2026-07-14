@@ -6,6 +6,7 @@ interface CommitCardProps {
   showRisk?: boolean;
   hasTime?: boolean;
   hasBlock?: boolean;
+  onClick?: () => void;
   onTimeClick?: () => void;
   onBlockClick?: () => void;
   onDeleteClick?: () => void;
@@ -17,6 +18,7 @@ export function CommitCard({
   showRisk = false,
   hasTime = true,
   hasBlock = true,
+  onClick,
   onTimeClick,
   onBlockClick,
   onDeleteClick,
@@ -24,7 +26,10 @@ export function CommitCard({
   const getIconColor = (isActive: boolean) => isActive ? 'text-[#e83a3a]' : 'text-white/10';
 
   return (
-    <div className="w-full bg-[#151515] rounded-[32px] cursor-pointer shadow-lg hover:bg-[#1f1f1f] transition-colors px-5 py-6">
+    <div 
+      onClick={onClick}
+      className="w-full bg-[#151515] rounded-[32px] cursor-pointer shadow-lg hover:bg-[#1f1f1f] transition-colors px-5 py-6"
+    >
       
       {/* Top Row: Skull | Icon+Title | Trash */}
       <div className="flex items-start">

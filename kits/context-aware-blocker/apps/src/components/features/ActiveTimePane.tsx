@@ -8,9 +8,10 @@ import { TimeWindow } from "@/types/store";
 interface ActiveTimePaneProps {
   commitId: string;
   onSave: () => void;
+  editedTitle?: string;
 }
 
-export function ActiveTimePane({ commitId, onSave }: ActiveTimePaneProps) {
+export function ActiveTimePane({ commitId, onSave, editedTitle }: ActiveTimePaneProps) {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
   const { commits, saveCommit } = useCommitStore();
   
@@ -49,10 +50,33 @@ export function ActiveTimePane({ commitId, onSave }: ActiveTimePaneProps) {
   const handleSave = async () => {
     // ** PRODUCTION LEVEL PERSISTENCE: Save configuration to Tiny DB ** //
     const commit = commits.find(c => c.id === commitId);
-    if (commit) {
-      const updatedCommit = { ...commit, timeWindows, activeDays };
-      await saveCommit(updatedCommit);
+    
+    // Construct the commit (either update existing or create new)
+    const updatedCommit = commit 
+      ? { ...commit, timeWindows, activeDays }
+      : { 
+          id: commitId, 
+          title: "New Block", 
+          iconName: "category", 
+          showRisk: false, 
+          activeDays, 
+          timeWindows, 
+          blockedWebsites: [], 
+          aiRules: [] 
+        };
+    
+    // ** PRODUCTION LEVEL MUTATION: Sync edited title if available ** //
+    if (editedTitle && editedTitle.trim() !== "") {
+      updatedCommit.title = editedTitle.trim();
     }
+
+    if (commit) {
+      await saveCommit(updatedCommit);
+    } else {
+      // ** PRODUCTION LEVEL ACTION: Create completely new block on first save ** //
+      await useCommitStore.getState().addCommit(updatedCommit);
+    }
+    
     onSave();
   };
 
