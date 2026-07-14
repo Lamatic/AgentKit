@@ -1,9 +1,18 @@
 {
   "name": "VentureArchitect",
-  "description": "",
-  "tags": [],
-  "testInput": "",
-  "githubUrl": "",
-  "documentationUrl": "",
+  "description": "AI Venture Architecture Agent that transforms startup ideas into complete venture blueprints.",
+  "tags": [
+    "ai",
+    "agent",
+    "startup",
+    "entrepreneurship",
+    "product",
+    "architecture",
+    "planning",
+    "business"
+  ],
+  "testInput": "{\"idea\": \"An AI that reviews rental leases and flags unfair clauses for tenants\", \"industry\": \"PropTech\", \"audience\": \"First-time renters in the US\", \"budget\": \"$1,000 - $5,000\", \"timeline\": \"3 Months\", \"team_size\": \"Solo Founder\"}",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/venture-architect",
+  "documentationUrl": "https://lamatic.ai/docs/",
   "deployUrl": ""
 }

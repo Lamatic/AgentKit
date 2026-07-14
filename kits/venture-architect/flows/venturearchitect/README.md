@@ -2,18 +2,23 @@
 
 ## About This Flow
 
-This flow automates a workflow with **3 nodes** working together to process and transform data. The flow is designed to streamline operations and can be easily integrated into your existing systems.
+This flow automates a workflow with **3 nodes** working together to
+process and transform data. The flow is designed to streamline operations
+and can be easily integrated into your existing systems.
 
 ## Flow Components
 
 This workflow includes the following node types:
+
 - API Request
 - Generate Text
 - API Response
 
 ## Configuration Requirements
 
-This flow requires configuration for **1 node(s)** with private inputs (credentials, API keys, model selections, etc.). All required configurations are documented in the `inputs.json` file.
+This flow requires configuration for **1 node(s)** with private inputs
+(credentials, API keys, model selections, etc.). All required
+configurations are documented in the `inputs.json` file.
 
 ## Files Included
 
@@ -53,6 +58,7 @@ Your contribution will help others build amazing automations! 🚀
 ## Support
 
 For questions or issues with this flow:
+
 - Review the node documentation for specific integrations
 - Check the Lamatic documentation at docs.lamatic.ai
 - Contact support for assistance

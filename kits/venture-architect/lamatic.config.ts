@@ -22,8 +22,6 @@ export default {
     { id: "venture-architect", type: "mandatory" as const },
   ],
   links: {
-    // TODO: replace with a real recorded demo once you've tested this in Studio
-    demo: "https://your-demo-url-here.com",
     github:
       "https://github.com/Lamatic/AgentKit/tree/main/kits/venture-architect",
     // NOTE: per the contributing guide, `deploy` is documented as a

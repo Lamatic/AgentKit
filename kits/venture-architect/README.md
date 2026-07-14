@@ -1,6 +1,6 @@
 # 🏗 VentureArchitect
 
-### AI Venture Architecture Agent
+## AI Venture Architecture Agent
 
 Turns a raw, one-sentence startup idea into a complete, founder-ready
 venture blueprint — business strategy, technical architecture, product
@@ -38,6 +38,7 @@ VentureArchitect bridges that gap.
 ## Example
 
 **Input**
+
 ```json
 {
   "idea": "An AI that reviews rental leases and flags unfair clauses for tenants",
@@ -50,6 +51,7 @@ VentureArchitect bridges that gap.
 ```
 
 **Output (abbreviated)**
+
 ```json
 {
   "startup_name": "LeaseGuard",
@@ -78,60 +80,50 @@ VentureArchitect bridges that gap.
 
 ## Pipeline
 
-```
+```text
 API Request
     ↓
-Validate Inputs
+Generate Text (LLM)
     ↓
-Build Prompt
-    ↓
-LLM
-    ↓
-JSON Parser
-    ↓
-Output
+API Response
 ```
 
-Inputs are validated before the model is ever called; the model's raw
-output is parsed and checked for required fields before it reaches the
-caller — see `scripts/` for both steps.
-
-## Screenshots
-
-> Add screenshots here once this has been built and tested in Lamatic
-> Studio.
-
-- Landing — _screenshot pending_
-- Flow — _screenshot pending_
-- Generated Result — _screenshot pending_
+The trigger node's `advance_schema` documents the six accepted input
+fields (`idea`, `industry`, `audience`, `budget`, `timeline`, `team_size`).
+The LLM node's system prompt (externalized at
+`prompts/venture-architect_VentureArchitectLLM_system.md`) carries the
+persona and full output schema; its user prompt interpolates the trigger's
+input fields directly. The response node maps the LLM's output back to the
+caller as `{"result": "..."}`. See `flows/venture-architect/config.json`
+for the exact node wiring.
 
 ## Try it in Lamatic Studio
 
 1. Sign in at [studio.lamatic.ai](https://studio.lamatic.ai)
-2. Import this flow (or rebuild it using `flows/venture-architect.ts` as a
-   reference — see the note at the top of that file)
-3. Confirm the `VentureArchitectLLM` node's provider/model in
-   `model-configs/venture-architect_VentureArchitectLLM.ts` matches a
-   provider connected in your Studio project
-4. Deploy the flow and test it with the example input above
+2. Import `flows/venture-architect/config.json`, or rebuild the 3-node flow
+   (API Request → Generate Text → API Response) manually using it as a
+   reference
+3. In the **Generate Text** node, select a connected model provider (this
+   is left blank in the export — `inputs.json` marks it as a required,
+   per-deployment private field)
+4. Deploy the flow and test it with the example input above (also stored
+   as `testInput` in `flows/venture-architect/meta.json`)
 
 ## Files
 
-```
+```text
 venture-architect/
 ├── lamatic.config.ts   # project metadata
 ├── agent.md             # identity + capability doc
 ├── README.md            # this file
 ├── flows/
-│   └── venture-architect.ts
+│   └── venture-architect/
+│       ├── config.json      # the actual node graph, exported from Studio
+│       ├── inputs.json      # private/per-deployment inputs (model selection)
+│       ├── meta.json        # flow metadata + test input
+│       └── README.md        # Studio's auto-generated export notes
 ├── prompts/
 │   └── venture-architect_VentureArchitectLLM_system.md
-├── scripts/
-│   ├── venture-architect_ValidateInputs.ts
-│   ├── venture-architect_BuildPrompt.ts
-│   └── venture-architect_JSONParser.ts
-├── model-configs/
-│   └── venture-architect_VentureArchitectLLM.ts
 └── constitutions/
     └── default.md
 ```

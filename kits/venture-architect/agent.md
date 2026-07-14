@@ -1,6 +1,7 @@
 # VentureArchitect
 
 ## What it is
+
 VentureArchitect acts as an AI Venture Architecture Agent.
 
 It transforms startup ideas into structured venture blueprints by combining
@@ -9,8 +10,9 @@ modeling, MVP definition, roadmap generation, and investor-ready
 documentation.
 
 ## Capabilities
+
 - Accepts unstructured, plain-language startup ideas as input
-- Validates and normalizes inputs before any model call
+- Trigger schema documents and type-checks the six accepted input fields
 - Returns strictly structured JSON suitable for rendering in a UI, piping
   into another flow, or exporting to a document
 - Grounds recommendations in the stated budget, timeline, and team size
@@ -19,6 +21,7 @@ documentation.
   and a launch checklist — not just a static idea summary
 
 ## Inputs
+
 | Field | Required | Example |
 |---|---|---|
 | `idea` | Yes | "An AI that reviews rental leases and flags unfair clauses for tenants" |
@@ -29,6 +32,7 @@ documentation.
 | `team_size` | No | "Solo Founder" |
 
 ## Output
+
 A single JSON object covering: startup name, tagline, executive summary,
 problem statement, solution, target users, competitor analysis, revenue
 model, MVP features, tech stack, database design, API suggestions, folder
@@ -39,13 +43,17 @@ resume-ready project description. See
 schema.
 
 ## Pipeline
+
+```text
+API Request → Generate Text (LLM) → API Response
 ```
-API Request → Validate Inputs → Build Prompt → LLM → JSON Parser → Output
-```
-Validation happens before the model call (fail fast on bad input); parsing
-and required-field checks happen after (fail loudly on bad output) — see
-`scripts/` for each step.
+
+The trigger's `advance_schema` documents the six accepted input fields;
+the LLM node's user prompt interpolates them directly from the trigger's
+output, and the response node maps the LLM's output back to the caller.
+See `flows/venture-architect/config.json` for the exact node wiring.
 
 ## Not intended for
+
 Legal, financial, or investment advice. Treat output as a founder-ready
 first draft, not verified business or market research.
