@@ -94,99 +94,96 @@ export const references = {
   },
 };
 
-// ── Nodes & Edges ─────────────────────────────────────
 export const nodes = [
   {
-    id: "triggerNode_1",
-    type: "triggerNode",
-    position: { x: 0, y: 0 },
-    data: {
-      nodeId: "graphqlNode",
-      trigger: true,
-      values: {
-        nodeName: "API Request",
-        responeType: "realtime",
-        advance_schema: JSON.stringify({
-          type: "object",
-          properties: {
-            sender: { type: "string" },
-            subject: { type: "string" },
-            body: { type: "string" },
-          },
-          required: ["sender", "subject", "body"],
-        }),
-      },
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
     },
+    "data": {
+      "nodeId": "graphqlNode",
+      "trigger": true,
+      "values": {
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"sender\": {\n      \"type\": \"string\"\n    },\n    \"subject\": {\n      \"type\": \"string\"\n    },\n    \"body\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"sender\",\n    \"subject\",\n    \"body\"\n  ]\n}"
+      }
+    }
   },
   {
-    id: "LLMNode_100",
-    type: "dynamicNode",
-    position: { x: 0, y: 200 },
-    data: {
-      nodeId: "LLMNode",
-      values: {
-        nodeName: "Draft Reply",
-        tools: [],
-        prompts: [
+    "id": "LLMNode_100",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 200
+    },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "nodeName": "Draft Reply",
+        "tools": [],
+        "prompts": [
           {
-            id: "email-replier-system-prompt",
-            role: "system",
-            content: "@prompts/email-replier_generate-text_system.md",
+            "id": "email-replier-system-prompt",
+            "role": "system",
+            "content": "@prompts/email-replier_generate-text_system.md"
           },
           {
-            id: "email-replier-user-prompt",
-            role: "user",
-            content:
-              "Sender: {{triggerNode_1.output.sender}}\nSubject: {{triggerNode_1.output.subject}}\nBody:\n{{triggerNode_1.output.body}}",
-          },
+            "id": "email-replier-user-prompt",
+            "role": "user",
+            "content": "Sender: {{triggerNode_1.output.sender}}\nSubject: {{triggerNode_1.output.subject}}\nBody:\n{{triggerNode_1.output.body}}"
+          }
         ],
-        memories: "@model-configs/email-replier_generate-text.ts",
-        messages: "@model-configs/email-replier_generate-text.ts",
-        generativeModelName: "@model-configs/email-replier_generate-text.ts",
-      },
-    },
+        "memories": "@model-configs/email-replier_generate-text.ts",
+        "messages": "@model-configs/email-replier_generate-text.ts",
+        "generativeModelName": "@model-configs/email-replier_generate-text.ts"
+      }
+    }
   },
   {
-    id: "graphqlResponseNode_200",
-    type: "dynamicNode",
-    position: { x: 0, y: 400 },
-    data: {
-      nodeId: "graphqlResponseNode",
-      values: {
-        nodeName: "API Response",
-        outputMapping: JSON.stringify({
-          output: "{{LLMNode_100.output.generatedResponse}}",
-        }),
-      },
+    "id": "graphqlResponseNode_200",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 400
     },
-  },
+    "data": {
+      "nodeId": "graphqlResponseNode",
+      "values": {
+        "nodeName": "API Response",
+        "outputMapping": "{\n  \"output\": \"{{LLMNode_100.output.generatedResponse}}\"\n}"
+      }
+    }
+  }
 ];
 
 export const edges = [
   {
-    id: "triggerNode_1-LLMNode_100",
-    source: "triggerNode_1",
-    target: "LLMNode_100",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge",
+    "id": "triggerNode_1-LLMNode_100",
+    "source": "triggerNode_1",
+    "target": "LLMNode_100",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
-    id: "LLMNode_100-graphqlResponseNode_200",
-    source: "LLMNode_100",
-    target: "graphqlResponseNode_200",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge",
+    "id": "LLMNode_100-graphqlResponseNode_200",
+    "source": "LLMNode_100",
+    "target": "graphqlResponseNode_200",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
   },
   {
-    id: "response-graphqlResponseNode_200",
-    source: "triggerNode_1",
-    target: "graphqlResponseNode_200",
-    sourceHandle: "to-response",
-    targetHandle: "from-trigger",
-    type: "responseEdge",
-  },
+    "id": "response-graphqlResponseNode_200",
+    "source": "triggerNode_1",
+    "target": "graphqlResponseNode_200",
+    "sourceHandle": "to-response",
+    "targetHandle": "from-trigger",
+    "type": "responseEdge"
+  }
 ];
 
 export default { meta, inputs, references, nodes, edges };
