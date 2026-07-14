@@ -8,6 +8,10 @@ export interface LamaticGraphQLResponse<T = unknown> {
   errors?: Array<{ message: string }>;
 }
 
+/**
+ * Checks if all required Lamatic GraphQL API credentials are configured.
+ * @returns True if LAMATIC_API_URL, LAMATIC_API_KEY, and LAMATIC_PROJECT_ID are set.
+ */
 export function isLamaticConfigured(): boolean {
   return Boolean(
     process.env.LAMATIC_API_URL &&
@@ -16,6 +20,12 @@ export function isLamaticConfigured(): boolean {
   );
 }
 
+/**
+ * Executes a GraphQL workflow query against the Lamatic API.
+ * @param query The GraphQL mutation or query string.
+ * @param variables The variables payload containing workflow ID and inputs.
+ * @returns An object containing either the execution result/status or an error message.
+ */
 export async function callLamaticGraphQL<T = unknown>(
   query: string,
   variables: Record<string, unknown>
