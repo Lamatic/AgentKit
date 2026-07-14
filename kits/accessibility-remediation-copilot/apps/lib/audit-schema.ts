@@ -11,21 +11,21 @@ export const overallRiskSchema = z.enum([
   "no-supported-findings",
 ]);
 
-const findingCountSchema = z.number().int().nonnegative();
-
 export const auditResultSchema = z
   .object({
     auditSummary: z.object({
       pageTitle: z.string(),
       url: z.string(),
       targetLevel: targetLevelSchema,
-      overallRisk: overallRiskSchema,
+      // These values are supplied by the model, but the canonical values are
+      // derived from `findings` in the transform below.
+      overallRisk: z.unknown().optional(),
       executiveSummary: z.string(),
-      totalFindings: findingCountSchema,
-      criticalCount: findingCountSchema,
-      seriousCount: findingCountSchema,
-      moderateCount: findingCountSchema,
-      minorCount: findingCountSchema,
+      totalFindings: z.unknown().optional(),
+      criticalCount: z.unknown().optional(),
+      seriousCount: z.unknown().optional(),
+      moderateCount: z.unknown().optional(),
+      minorCount: z.unknown().optional(),
     }),
     findings: z
       .array(
@@ -61,48 +61,28 @@ export const auditResultSchema = z
     limitations: z.array(z.string()),
     disclaimer: z.string(),
   })
-  .superRefine((audit, context) => {
+  .transform((audit) => {
     const counts = {
       critical: audit.findings.filter((finding) => finding.severity === "critical").length,
       serious: audit.findings.filter((finding) => finding.severity === "serious").length,
       moderate: audit.findings.filter((finding) => finding.severity === "moderate").length,
       minor: audit.findings.filter((finding) => finding.severity === "minor").length,
     };
-
-    const summaryCounts = {
-      critical: audit.auditSummary.criticalCount,
-      serious: audit.auditSummary.seriousCount,
-      moderate: audit.auditSummary.moderateCount,
-      minor: audit.auditSummary.minorCount,
-    };
-
-    if (audit.auditSummary.totalFindings !== audit.findings.length) {
-      context.addIssue({
-        code: "custom",
-        path: ["auditSummary", "totalFindings"],
-        message: "Total findings must match the findings array.",
-      });
-    }
-
-    for (const severity of severitySchema.options) {
-      if (summaryCounts[severity] !== counts[severity]) {
-        context.addIssue({
-          code: "custom",
-          path: ["auditSummary", `${severity}Count`],
-          message: `${severity}Count must match the findings array.`,
-        });
-      }
-    }
-
-    const expectedRisk =
+    const overallRisk =
       severitySchema.options.find((severity) => counts[severity] > 0) ?? "no-supported-findings";
-    if (audit.auditSummary.overallRisk !== expectedRisk) {
-      context.addIssue({
-        code: "custom",
-        path: ["auditSummary", "overallRisk"],
-        message: "Overall risk must match the highest finding severity.",
-      });
-    }
+
+    return {
+      ...audit,
+      auditSummary: {
+        ...audit.auditSummary,
+        overallRisk,
+        totalFindings: audit.findings.length,
+        criticalCount: counts.critical,
+        seriousCount: counts.serious,
+        moderateCount: counts.moderate,
+        minorCount: counts.minor,
+      },
+    };
   });
 
 export type AuditResult = z.infer<typeof auditResultSchema>;
