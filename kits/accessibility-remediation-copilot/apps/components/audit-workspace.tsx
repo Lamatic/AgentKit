@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertCircle,
   ArrowRight,
@@ -21,9 +22,20 @@ import {
   Users,
   Wrench,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
-import type { AuditResult, Severity } from "@/lib/audit-schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  auditRequestSchema,
+  type AuditRequest,
+  type AuditRequestInput,
+  type AuditResult,
+  type Severity,
+} from "@/lib/audit-schema";
 
 type Mode = "url" | "html";
 type FilterValue = "all" | Severity;
@@ -101,24 +113,38 @@ function downloadFile(name: string, contents: string, type: string) {
 }
 
 export function AuditWorkspace() {
-  const [mode, setMode] = useState<Mode>("url");
-  const [url, setUrl] = useState("");
-  const [pageContent, setPageContent] = useState("");
-  const [framework, setFramework] = useState("nextjs");
-  const [targetLevel, setTargetLevel] = useState("AA");
   const [result, setResult] = useState<AuditResult | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<FilterValue>("all");
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<AuditRequestInput, unknown, AuditRequest>({
+    resolver: zodResolver(auditRequestSchema),
+    defaultValues: {
+      mode: "url",
+      url: "",
+      pageContent: "",
+      framework: "nextjs",
+      targetLevel: "AA",
+    },
+  });
+  const mode: Mode = watch("mode");
 
   const filteredFindings = useMemo(
     () => result?.findings.filter((finding) => filter === "all" || finding.severity === filter) ?? [],
     [filter, result],
   );
 
-  async function submitAudit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
+  useEffect(() => {
+    if (!result) return;
+    document.querySelector("#audit-results")?.scrollIntoView({ behavior: "smooth" });
+  }, [result]);
+
+  async function submitAudit(values: AuditRequest) {
     setError("");
     setResult(null);
     setFilter("all");
@@ -127,16 +153,13 @@ export function AuditWorkspace() {
       const response = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, url, pageContent, framework, targetLevel }),
+        body: JSON.stringify(values),
       });
       const payload = (await response.json()) as { data?: AuditResult; error?: string };
       if (!response.ok || !payload.data) throw new Error(payload.error || "The audit could not be completed.");
       setResult(payload.data);
-      requestAnimationFrame(() => document.querySelector("#audit-results")?.scrollIntoView({ behavior: "smooth" }));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The audit could not be completed.");
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -180,14 +203,14 @@ export function AuditWorkspace() {
             <span className="secure-note"><ShieldCheck size={16} aria-hidden="true" /> Server-side analysis</span>
           </div>
 
-          <form onSubmit={submitAudit}>
+          <form onSubmit={handleSubmit(submitAudit)} noValidate>
             <div className="mode-tabs" role="tablist" aria-label="Audit input method">
-              <button type="button" role="tab" aria-selected={mode === "url"} className={mode === "url" ? "active" : ""} onClick={() => setMode("url")}>
+              <Button variant="ghost" type="button" role="tab" aria-selected={mode === "url"} className={mode === "url" ? "active" : ""} onClick={() => setValue("mode", "url", { shouldValidate: true })}>
                 <Globe2 size={17} aria-hidden="true" /> Public URL
-              </button>
-              <button type="button" role="tab" aria-selected={mode === "html"} className={mode === "html" ? "active" : ""} onClick={() => setMode("html")}>
+              </Button>
+              <Button variant="ghost" type="button" role="tab" aria-selected={mode === "html"} className={mode === "html" ? "active" : ""} onClick={() => setValue("mode", "html", { shouldValidate: true })}>
                 <FileCode2 size={17} aria-hidden="true" /> Paste HTML
-              </button>
+              </Button>
             </div>
 
             {mode === "url" ? (
@@ -195,15 +218,17 @@ export function AuditWorkspace() {
                 Webpage URL
                 <span className="input-with-icon">
                   <Globe2 size={18} aria-hidden="true" />
-                  <input type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://example.com/checkout" required autoComplete="url" />
+                  <Input type="url" {...register("url")} placeholder="https://example.com/checkout" autoComplete="url" aria-invalid={Boolean(errors.url)} />
                 </span>
+                {errors.url && <small role="alert">{errors.url.message}</small>}
                 <small>Public HTTP and HTTPS pages only. Private network addresses are blocked.</small>
               </label>
             ) : (
               <label className="field-label">
                 Page HTML
-                <textarea value={pageContent} onChange={(event) => setPageContent(event.target.value)} placeholder="Paste the relevant page or component HTML…" required rows={9} />
-                <span className="field-footer"><small>Scripts and styles are removed before analysis.</small><button type="button" className="text-button" onClick={() => { setPageContent(exampleHtml); setUrl("https://example.com/sign-in"); }}>Use safe example</button></span>
+                <Textarea {...register("pageContent")} placeholder="Paste the relevant page or component HTML…" rows={9} aria-invalid={Boolean(errors.pageContent)} />
+                {errors.pageContent && <small role="alert">{errors.pageContent.message}</small>}
+                <span className="field-footer"><small>Scripts and styles are removed before analysis.</small><Button variant="ghost" size="sm" type="button" className="text-button !h-auto !p-0" onClick={() => { setValue("pageContent", exampleHtml, { shouldValidate: true }); setValue("url", "https://example.com/sign-in"); }}>Use safe example</Button></span>
               </label>
             )}
 
@@ -212,11 +237,11 @@ export function AuditWorkspace() {
                 Implementation
                 <span className="select-wrap">
                   <Code2 size={17} aria-hidden="true" />
-                  <select value={framework} onChange={(event) => setFramework(event.target.value)}>
+                  <Select {...register("framework")}>
                     <option value="nextjs">Next.js / React</option>
                     <option value="react">React</option>
                     <option value="html">HTML</option>
-                  </select>
+                  </Select>
                   <ChevronDown size={16} aria-hidden="true" />
                 </span>
               </label>
@@ -224,11 +249,11 @@ export function AuditWorkspace() {
                 Target level
                 <span className="select-wrap">
                   <ClipboardCheck size={17} aria-hidden="true" />
-                  <select value={targetLevel} onChange={(event) => setTargetLevel(event.target.value)}>
+                  <Select {...register("targetLevel")}>
                     <option value="A">WCAG 2.2 A</option>
                     <option value="AA">WCAG 2.2 AA</option>
                     <option value="AAA">WCAG 2.2 AAA</option>
-                  </select>
+                  </Select>
                   <ChevronDown size={16} aria-hidden="true" />
                 </span>
               </label>
@@ -236,9 +261,9 @@ export function AuditWorkspace() {
 
             {error && <div className="error-message" role="alert"><AlertCircle size={18} aria-hidden="true" /><span>{error}</span></div>}
 
-            <button className="primary-button" type="submit" disabled={loading}>
-              {loading ? <><LoaderCircle className="spinner" size={19} aria-hidden="true" /> Auditing evidence…</> : <><SearchCheck size={19} aria-hidden="true" /> Run accessibility audit <ArrowRight size={18} aria-hidden="true" /></>}
-            </button>
+            <Button className="primary-button" size="lg" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <><LoaderCircle className="spinner" size={19} aria-hidden="true" /> Auditing evidence…</> : <><SearchCheck size={19} aria-hidden="true" /> Run accessibility audit <ArrowRight size={18} aria-hidden="true" /></>}
+            </Button>
           </form>
         </section>
 
