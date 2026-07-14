@@ -39,7 +39,7 @@ Production incidents are chaotic. SRE teams waste precious minutes manually tria
 
 ## 🏗️ Architecture: 3-Flow Micro-Flow Design
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                  SRE COMMAND CENTER                     │
 │                                                         │
@@ -150,7 +150,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## 📂 Project Structure
 
-```
+```text
 sre-command-center/
 ├── lamatic.config.ts          # Kit metadata & flow registry
 ├── agent.md                   # ARIA agent identity document
@@ -158,9 +158,9 @@ sre-command-center/
 ├── .gitignore
 ├── demo/                      # Screenshots & workflow diagrams
 ├── flows/
-│   ├── data_ingestion.ts      # Flow 1: Runbook → Vector DB
-│   ├── incident_generator.ts  # Flow 2: Prompt → Alert JSON
-│   └── master_responder.ts    # Flow 3: Alert → Triage → Report
+│   ├── data-ingestion.ts      # Flow 1: Runbook → Vector DB
+│   ├── incident-generator.ts  # Flow 2: Prompt → Alert JSON
+│   └── master-responder.ts    # Flow 3: Alert → Triage → Report
 ├── prompts/
 │   ├── incident_generator_system.md   # Flow 2 LLM system prompt
 │   └── master_responder_system.md     # Flow 3 LLM system prompt
@@ -203,9 +203,9 @@ sre-command-center/
 
 | Flow | Trigger | Purpose |
 |------|---------|---------|
-| `data_ingestion` | Webhook | One-time setup: index runbooks into Vector DB |
-| `incident_generator` | GraphQL | Per-request: prompt → structured alert JSON |
-| `master_responder` | GraphQL | Per-request: alert → triage → RAG/search → Markdown report |
+| `data-ingestion` | Webhook | One-time setup: index runbooks into Vector DB |
+| `incident-generator` | GraphQL | Per-request: prompt → structured alert JSON |
+| `master-responder` | GraphQL | Per-request: alert → triage → RAG/search → Markdown report |
 
 ---
 

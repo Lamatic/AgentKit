@@ -19,21 +19,21 @@ export default {
   ],
   steps: [
     {
-      id: "data_ingestion",
+      id: "data-ingestion",
       name: "Initialize Runbook Vector DB",
       description: "Trigger the Data Ingestion flow to chunk and embed your runbooks into Lamatic's Vector DB.",
       type: "mandatory" as const,
       envKey: "LAMATIC_FLOW_INGESTION_ID",
     },
     {
-      id: "incident_generator",
+      id: "incident-generator",
       name: "Generate Incident Alert",
       description: "Provide a natural language incident prompt to generate a realistic Datadog-style JSON alert.",
       type: "mandatory" as const,
       envKey: "LAMATIC_FLOW_GENERATOR_ID",
     },
     {
-      id: "master_responder",
+      id: "master-responder",
       name: "Resolve Incident",
       description: "Feed the alert JSON through the Master Responder for automated triage, runbook retrieval, and Markdown report generation.",
       type: "mandatory" as const,

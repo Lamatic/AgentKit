@@ -236,7 +236,7 @@ export const nodes = [
           {
             "label": "Runbook Result",
             "value": "conditionNode_1-addNode_101",
-            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{searchNode_1.output.searchResults}}\",\n      \"operator\": \"==\",\n      \"value\": \"[]\"\n    }\n  ]\n}"
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{searchNode_1.output.searchResults}}\",\n      \"operator\": \"!=\",\n      \"value\": \"[]\"\n    }\n  ]\n}"
           },
           {
             "label": "Web Search Fallback",
@@ -406,7 +406,7 @@ export const nodes = [
         "subject": "Incident Report: —{{InstructorLLMNode_1.output.category}}",
         "nodeName": "Email Incident Report",
         "credentials": "Gmail OAuth",
-        "recipient_email": "rajputnik911@gmail.com"
+        "recipient_email": "{{triggerNode_1.output.recipientEmail || 'sre-oncall@example.com'}}"
       }
     }
   },

@@ -2,10 +2,17 @@
 
 import { callLamaticGraphQL } from "../lib/lamatic";
 import { AlertObject } from "../lib/types";
+import lamaticConfig from "../../lamatic.config";
 
-const INGESTION_FLOW_ID = process.env.LAMATIC_FLOW_INGESTION_ID || "";
-const GENERATOR_FLOW_ID = process.env.LAMATIC_FLOW_GENERATOR_ID || "";
-const RESPONDER_FLOW_ID = process.env.LAMATIC_FLOW_RESPONDER_ID || "";
+function getFlowId(stepId: string): string {
+  const step = lamaticConfig.steps.find((s) => s.id === stepId);
+  if (!step || !step.envKey) return "";
+  return process.env[step.envKey] || "";
+}
+
+const INGESTION_FLOW_ID = getFlowId("data-ingestion");
+const GENERATOR_FLOW_ID = getFlowId("incident-generator");
+const RESPONDER_FLOW_ID = getFlowId("master-responder");
 
 const GRAPHQL_QUERY = `
   query ExecuteWorkflow(
