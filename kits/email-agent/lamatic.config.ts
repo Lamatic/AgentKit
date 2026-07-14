@@ -1,6 +1,6 @@
 export default {
   name: "Email Agent",
-  description: "An AI-powered email assistant that verifies inbound emails (for intent, urgency, authenticity) and drafts context-aware professional replies.",
+  description: "An AI-powered email assistant that verifies inbound emails for authenticity and intent, then drafts context-aware professional replies instantly.",
   version: "1.0.0",
   type: "kit" as const,
   author: { name: "Krishna Khurana", email: "krishna@lamatic.ai" },
