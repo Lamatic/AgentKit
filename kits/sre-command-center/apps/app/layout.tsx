@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Next.js App Router root layout component setting up HTML document wrapper, fonts, and SEO metadata.
+ * @param props Props containing page children elements.
+ * @returns React JSX root layout element.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

@@ -28,7 +28,11 @@ const GRAPHQL_QUERY = `
   }
 `;
 
-// Rich demo report when Lamatic is not configured
+/**
+ * Generates a comprehensive SRE remediation report fallback when Lamatic credentials or live workflows are unavailable.
+ * @param alert The alert JSON payload containing service, severity, description, and tags.
+ * @returns Structured resolution object containing Markdown report, triage category, retrieval source, and confidence score.
+ */
 function generateDemoReport(alert: Record<string, unknown>): {
   report: string;
   triage_category: string;
@@ -144,6 +148,11 @@ If not resolved within 15 minutes:
   return { report, triage_category: category, retrieval_source: "vector_db", confidence: "High" };
 }
 
+/**
+ * Handles HTTP POST requests to triage an incident alert, retrieve runbook knowledge, and generate a remediation plan.
+ * @param req Incoming Next.js HTTP request containing the alert payload.
+ * @returns JSON response containing the Markdown remediation report, triage classification, and confidence metrics.
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

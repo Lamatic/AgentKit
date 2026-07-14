@@ -20,6 +20,11 @@ const GRAPHQL_QUERY = `
   }
 `;
 
+/**
+ * Generates a realistic mock Datadog/PagerDuty incident alert when live flow credentials are unconfigured or unavailable.
+ * @param prompt Natural language prompt or scenario description.
+ * @returns Structured mock incident alert object.
+ */
 function generateDemoAlert(prompt: string) {
   const now = new Date().toISOString();
   const dateStr = now.slice(0, 10).replace(/-/g, "");
@@ -89,6 +94,11 @@ function generateDemoAlert(prompt: string) {
   };
 }
 
+/**
+ * Handles HTTP POST requests to generate structured incident alert JSON from a natural language prompt.
+ * @param req Incoming Next.js HTTP request containing `{ prompt: string }`.
+ * @returns JSON response containing the generated alert payload.
+ */
 export async function POST(req: NextRequest) {
   try {
     const { prompt } = await req.json();

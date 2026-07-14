@@ -1,3 +1,7 @@
+/**
+ * Renders the official SVG vector logo of Lamatic AgentKit with glowing drop shadow styling.
+ * @returns React JSX element displaying the Lamatic logo.
+ */
 export default function LamaticLogo() {
   return (
     <svg

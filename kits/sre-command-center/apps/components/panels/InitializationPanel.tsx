@@ -73,6 +73,11 @@ const DEFAULT_CUSTOM_RUNBOOK = `# Redis Server OOM & Memory Exhaustion Runbook
 - Set default TTL for all cached keys
 - Configure volatile-lru eviction policy in redis.conf`;
 
+/**
+ * Renders the vector database ingestion modal enabling SREs to upload preset or custom runbooks.
+ * @param props Props containing completion callback and modal close trigger.
+ * @returns React JSX modal component for runbook embedding.
+ */
 export default function InitializationPanel({ onComplete, onClose }: InitializationPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("preset");
   const [status, setStatus] = useState<Status>("idle");

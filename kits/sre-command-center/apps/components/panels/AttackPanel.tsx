@@ -22,6 +22,11 @@ const severityColor: Record<string, string> = {
   P4: "badge-p4",
 };
 
+/**
+ * Renders the incident simulation panel allowing SREs to trigger preset or custom production outage scenarios.
+ * @param props Props containing incident callbacks, active state flags, and generated alert payloads.
+ * @returns React JSX simulation workspace component.
+ */
 export default function AttackPanel({
   onAlertGenerated,
   isProcessing,

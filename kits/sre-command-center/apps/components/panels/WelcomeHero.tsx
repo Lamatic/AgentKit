@@ -11,6 +11,11 @@ import {
 } from "lucide-react";
 import { WelcomeHeroProps } from "../../lib/types";
 
+/**
+ * Renders the hero landing screen introducing the 3-Flow autonomous architecture and interactive demo launcher.
+ * @param props Props containing launch callback and initializing status flag.
+ * @returns React JSX hero banner component.
+ */
 export default function WelcomeHero({
   onLaunch,
   isInitializing,

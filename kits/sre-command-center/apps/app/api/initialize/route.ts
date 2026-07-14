@@ -22,6 +22,11 @@ const GRAPHQL_QUERY = `
   }
 `;
 
+/**
+ * Handles HTTP POST requests to chunk and ingest runbook content into Lamatic Vector DB.
+ * @param req Incoming Next.js HTTP request containing `{ content: string, source: string }`.
+ * @returns JSON response indicating ingestion status and indexed chunk count.
+ */
 export async function POST(req: NextRequest) {
   try {
     const { content, source } = await req.json();

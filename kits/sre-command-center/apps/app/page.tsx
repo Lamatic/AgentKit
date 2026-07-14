@@ -11,6 +11,10 @@ import AgentTerminal from "../components/terminal/AgentTerminal";
 import ResolutionCard from "../components/panels/ResolutionCard";
 import { useIncidentFlow } from "../hooks/useIncidentFlow";
 
+/**
+ * Renders the primary single-page SRE Command Center application handling phase orchestration, modal state, and view toggling.
+ * @returns React JSX home page component.
+ */
 export default function Home() {
   const {
     phase,

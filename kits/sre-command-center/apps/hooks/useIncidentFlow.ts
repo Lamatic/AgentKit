@@ -3,6 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { AlertObject, AppPhase, LogLine, ResolvedData } from "../lib/types";
 
+/**
+ * Custom React hook orchestrating application lifecycle phases, terminal log streaming, and triage mutations.
+ * @returns State properties and mutation handlers for managing incident workflows.
+ */
 export function useIncidentFlow() {
   const [phase, setPhase] = useState<AppPhase>("welcome");
   const [currentAlert, setCurrentAlert] = useState<AlertObject | null>(null);

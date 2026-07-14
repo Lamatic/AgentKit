@@ -3,6 +3,11 @@
 import LamaticLogo from "../icons/LamaticLogo";
 import { NavbarProps } from "../../lib/types";
 
+/**
+ * Renders the responsive top navigation header displaying live system phase, UTC clock, and reset actions.
+ * @param props Props containing current phase, time string, and reset callback.
+ * @returns React JSX navigation header component.
+ */
 export default function Navbar({ phase, currentTime, onReset }: NavbarProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-[#070b14]/90 backdrop-blur-2xl shadow-lg">

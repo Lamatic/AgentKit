@@ -42,6 +42,11 @@ const severityBgGlow: Record<string, string> = {
   P4: "rgba(16, 185, 129, 0.12)",
 };
 
+/**
+ * Renders the incident resolution card displaying the generated SRE post-mortem report, triage metadata, and notification statuses.
+ * @param props Props containing report markdown, alert ID, severity, service, and triage info.
+ * @returns React JSX card component displaying triage report.
+ */
 export default function ResolutionCard({
   report,
   alertId,

@@ -20,6 +20,11 @@ const typeClass: Record<LogLine["type"], string> = {
   dim: "log-dim",
 };
 
+/**
+ * Renders an interactive CLI-style live log terminal displaying real-time agent reasoning, RAG vector lookups, and auto-remediation steps.
+ * @param props Props containing log entries array and active processing status flag.
+ * @returns React JSX scrollable terminal console component.
+ */
 export default function AgentTerminal({ logs, isActive }: AgentTerminalProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
 
