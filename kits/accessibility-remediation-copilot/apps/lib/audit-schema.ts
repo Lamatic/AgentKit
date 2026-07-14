@@ -62,12 +62,14 @@ export const auditResultSchema = z
     disclaimer: z.string(),
   })
   .transform((audit) => {
-    const counts = {
-      critical: audit.findings.filter((finding) => finding.severity === "critical").length,
-      serious: audit.findings.filter((finding) => finding.severity === "serious").length,
-      moderate: audit.findings.filter((finding) => finding.severity === "moderate").length,
-      minor: audit.findings.filter((finding) => finding.severity === "minor").length,
+    const counts: Record<z.infer<typeof severitySchema>, number> = {
+      critical: 0,
+      serious: 0,
+      moderate: 0,
+      minor: 0,
     };
+    for (const finding of audit.findings) counts[finding.severity] += 1;
+
     const overallRisk =
       severitySchema.options.find((severity) => counts[severity] > 0) ?? "no-supported-findings";
 
