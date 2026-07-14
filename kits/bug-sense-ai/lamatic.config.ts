@@ -25,6 +25,6 @@ export default {
   ],
   links: {
     deploy: "",
-    github: "https://github.com/kavin0521/AgentKit"
+    github: "https://github.com/kavin0521/AgentKit/tree/main/kits/bug-sense-ai"
   }
 };
