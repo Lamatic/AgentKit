@@ -51,7 +51,9 @@ API Request → Generate Text (LLM) → API Response
 The trigger's `advance_schema` documents the six accepted input fields;
 the LLM node's user prompt interpolates them directly from the trigger's
 output, and the response node maps the LLM's output back to the caller.
-See `flows/venture-architect/config.json` for the exact node wiring.
+See `flows/venture-architect.ts` (unified format) or
+`flows/venturearchitect/config.json` (raw Studio export) for the exact
+node wiring — both describe the same flow and should be kept in sync.
 
 ## Not intended for
 

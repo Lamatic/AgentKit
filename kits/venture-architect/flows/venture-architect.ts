@@ -1,10 +1,12 @@
 /**
- * NOTE: This flow file was hand-authored to match the shape Lamatic Studio
- * produces on export (meta + inputs + references + nodes + edges), since it
- * wasn't built inside Studio's visual editor. Before opening a PR, import or
- * rebuild this in Studio to confirm the node types, edge wiring, and
- * generativeModelName provider/model string are valid, then re-export to
- * replace this file with Studio's own output.
+ * NOTE: This file mirrors the flow actually built and exported from Lamatic
+ * Studio (see flows/venturearchitect/config.json for the authoritative,
+ * Studio-generated node graph). It's provided in this shape because the
+ * contributing guide's structure expects a flows/<name>.ts file to exist
+ * alongside the raw Studio export. The node graph here intentionally
+ * matches the real, deployed flow exactly: API Request -> Generate Text
+ * (LLM) -> API Response. It does not include any validation/build/parse
+ * code-node steps, since none exist in the actual deployed flow.
  */
 
 const flow = {
@@ -55,22 +57,6 @@ const flow = {
       values: {},
     },
     {
-      nodeId: "ValidateInputs",
-      type: "codeNode",
-      values: {
-        script: "@scripts/venture-architect_ValidateInputs.ts",
-        input: "{{APIRequest.body}}",
-      },
-    },
-    {
-      nodeId: "BuildPrompt",
-      type: "codeNode",
-      values: {
-        script: "@scripts/venture-architect_BuildPrompt.ts",
-        input: "{{ValidateInputs.output}}",
-      },
-    },
-    {
       nodeId: "VentureArchitectLLM",
       type: "llm",
       values: {
@@ -82,7 +68,8 @@ const flow = {
           },
           {
             role: "user",
-            content: "{{BuildPrompt.output}}",
+            content:
+              "Raw idea: {{APIRequest.output.idea}}\nIndustry: {{APIRequest.output.industry}}\nTarget audience: {{APIRequest.output.audience}}\nBudget available: {{APIRequest.output.budget}}\nTimeline to launch: {{APIRequest.output.timeline}}\nTeam size: {{APIRequest.output.team_size}}\n\nTurn this into a venture blueprint following the JSON shape defined in your instructions.",
           },
         ],
         generativeModelName:
@@ -91,28 +78,17 @@ const flow = {
       },
     },
     {
-      nodeId: "JSONParser",
-      type: "codeNode",
-      values: {
-        script: "@scripts/venture-architect_JSONParser.ts",
-        input: "{{VentureArchitectLLM.output}}",
-      },
-    },
-    {
       nodeId: "output",
       type: "responseNode",
       values: {
-        body: "{{JSONParser.output}}",
+        body: "{{VentureArchitectLLM.output}}",
       },
     },
   ],
 
   edges: [
-    { source: "APIRequest", target: "ValidateInputs" },
-    { source: "ValidateInputs", target: "BuildPrompt" },
-    { source: "BuildPrompt", target: "VentureArchitectLLM" },
-    { source: "VentureArchitectLLM", target: "JSONParser" },
-    { source: "JSONParser", target: "output" },
+    { source: "APIRequest", target: "VentureArchitectLLM" },
+    { source: "VentureArchitectLLM", target: "output" },
   ],
 };
 
