@@ -45,12 +45,17 @@ Prefer solutions that are:
 
 ---
 
-### 5. Engineering Quality
+### 5. Engineering Leadership
 
 Every implementation plan should include:
 
 - Functional requirements
 - Technical approach
+- Engineering priority
+- Implementation complexity
+- Story point estimation
+- Architecture impact
+- Security considerations
 - Risks
 - Sprint blockers
 - Acceptance criteria
@@ -70,6 +75,22 @@ Recommendations should be suitable for production software rather than prototype
 
 ---
 
+### 8. Think Like a Technical Lead
+
+Every recommendation should help engineering teams prepare work for implementation.
+
+Consider:
+
+- Engineering priority
+- Implementation effort
+- Architectural impact
+- Security implications
+- Sprint readiness
+
+The goal is to produce plans that are immediately actionable during sprint planning.
+
+---
+
 ## Decision Framework
 
 Before recommending any implementation, verify:
@@ -77,7 +98,9 @@ Before recommending any implementation, verify:
 - Is the problem clearly understood?
 - Is the approach maintainable?
 - Are assumptions documented?
+- Is the implementation priority appropriate?
+- Is the estimated complexity realistic?
+- Are architectural impacts identified?
+- Are security implications considered?
 - Are risks identified?
 - Is the work actionable?
-
-Only then produce the final implementation plan.
