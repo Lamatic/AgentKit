@@ -2,6 +2,10 @@
   "name": "accessibility-remediation-copilot",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,11 +13,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "5.4.0",
+    "@tailwindcss/postcss": "4.3.2",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
     "lamatic": "0.3.2",
     "lucide-react": "1.14.0",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-hook-form": "7.81.0",
+    "tailwind-merge": "3.6.0",
+    "tailwindcss": "4.3.2",
     "zod": "3.25.76"
   },
   "devDependencies": {

@@ -57,8 +57,8 @@ accessibility-remediation-copilot/
 
 ## Prerequisites
 
-- Node.js 18 or later
-- npm 9 or later
+- Node.js 20.9 or later
+- npm 10 or later
 - A Lamatic account and deployed copy of the `accessibility-audit` flow
 - A configured structured-generation model credential in Lamatic
 
@@ -114,9 +114,13 @@ Recommended acceptance tests:
 - Remote HTML is never rendered in AccessFix.
 - Script, style, noscript, and comment blocks are removed before model analysis.
 - Redirect destinations are resolved and checked again to reduce SSRF risk.
+- Each outbound request is pinned to the public IP address that passed validation to prevent DNS rebinding.
 - Downloads, response size, redirect depth, and request time are bounded.
+- The audit endpoint applies a best-effort per-IP limit of five requests per ten minutes before fetching a page or calling Lamatic.
 - AccessFix does not persist audit content or reports.
 - Public sites can still block automated retrieval; use Paste HTML in that case.
+
+The included rate limiter is intentionally dependency-free and scoped to one application instance. Production deployments running multiple serverless instances should replace it with a shared rate-limit store such as Vercel KV or Upstash Redis so the quota is enforced globally.
 
 ## Known limitations
 
