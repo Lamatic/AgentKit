@@ -1,9 +1,8 @@
 # IssuePilot – GitHub Issue Planning Agent
 
-IssuePilot is an AI-powered planning workflow built for **Lamatic AgentKit**.
+IssuePilot acts as an AI Technical Lead that analyzes GitHub issues before implementation begins.
 
-It transforms GitHub issues into structured engineering implementation plans, helping development teams understand, estimate, and execute work before coding begins.
-
+It transforms GitHub issues into structured engineering implementation plans, estimates implementation complexity, identifies architectural impact, highlights security considerations, and prepares issues for sprint planning.
 ---
 
 ## Why IssuePilot?
@@ -88,19 +87,25 @@ IssuePilot generates:
 # Workflow
 
 ```text
-GitHub Issue
-      │
-      ▼
-Planning Agent
-      │
-      ▼
-Engineering Review Agent
-      │
-      ▼
-Markdown Formatter
-      │
-      ▼
-Engineering Report
+               GitHub Issue
+                     │
+                     ▼
+        ┌────────────────────┐
+        │ Planning Agent     │
+        └────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────┐
+        │ Engineering Review │
+        └────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────┐
+        │ Markdown Formatter │
+        └────────────────────┘
+                     │
+                     ▼
+         Engineering Report
 ```
 
 ---
@@ -117,6 +122,11 @@ Engineering Report
 - Definition of Done generation
 - Markdown engineering reports
 - Structured JSON output
+- Engineering priority assessment
+- Story point estimation
+- Implementation complexity estimation
+- Architecture impact analysis
+- Security review recommendations
 
 ---
 
@@ -180,6 +190,12 @@ IssuePilot produces:
 - Sprint Readiness
 - Confidence Score
 - Markdown Engineering Report
+- Engineering Insights
+- Priority
+- Complexity
+- Story Points
+- Architecture Impact
+- Security Review
 
 ---
 
@@ -234,6 +250,9 @@ IssuePilot follows these engineering principles:
 - Prefer maintainable solutions.
 - Explain engineering trade-offs.
 - Produce implementation-ready plans.
+- Prioritize maintainability over cleverness.
+- Surface engineering risks early.
+- Provide implementation-ready planning artifacts.
 
 ---
 
@@ -254,6 +273,15 @@ IssuePilot follows these engineering principles:
 - Jira export
 - Sprint story generation
 - Repository-aware planning
+
+---
+
+# Future Roadmap
+
+- GitHub App
+- Jira Integration
+- PR Planning
+- Repository Analysis
 
 ---
 

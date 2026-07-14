@@ -62,6 +62,34 @@ Prevent duplicate payment processing while ensuring reliable transaction handlin
 
 ---
 
+## Expected Engineering Insights
+
+**Priority**
+
+Critical
+
+**Complexity**
+
+Large
+
+**Story Points**
+
+13
+
+**Architecture Impact**
+
+- Backend
+- Database
+- Infrastructure
+
+**Security Review**
+
+- Verify callback signatures
+- Prevent replay attacks
+- Audit payment integrity
+
+---
+
 ## Risks
 
 - False duplicate detection

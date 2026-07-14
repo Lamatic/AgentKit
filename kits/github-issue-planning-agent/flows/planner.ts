@@ -3,7 +3,7 @@
  *
  * ## Purpose
  *
- * Transform a GitHub issue into a structured engineering implementation plan.
+ * Transform a GitHub issue into an implementation-ready engineering plan with technical leadership insights for sprint planning.
  *
  * The flow analyzes an issue, identifies requirements, recommends an implementation strategy,
  * reviews the generated plan, and produces a structured output for engineering teams.
@@ -45,12 +45,14 @@
 export const meta = {
     name: "IssuePilot Planning Flow",
     description:
-        "Transforms GitHub issues into structured engineering implementation plans.",
+        "Transforms GitHub issues into structured engineering implementation plans with technical leadership insights.",
     tags: [
         "github",
         "planning",
         "engineering",
-        "agent"
+        "technical-lead",
+        "sprint-planning",
+        "ai-agent"
     ],
     testInput: {
         issue_title: "Add Google OAuth Login",

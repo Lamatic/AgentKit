@@ -1,14 +1,16 @@
 export default {
-  name: "github-issue-planning-agent",
-  version: "1.0.0",
-  description:
-    "Transforms GitHub issues into structured engineering implementation plans using a multi-agent workflow.",
-  author: "Aman Kumar Singh",
-  tags: [
-    "github",
-    "planning",
-    "engineering",
-    "agent",
-    "workflow"
-  ]
+    name: "github-issue-planning-agent",
+    type: "kit",
+    version: "1.0.0",
+    description:
+        "IssuePilot is an AI Technical Lead that transforms GitHub issues into implementation-ready engineering plans with engineering insights for sprint planning.",
+    author: "Aman Kumar Singh",
+    tags: [
+        "github",
+        "engineering",
+        "planning",
+        "technical-lead",
+        "sprint-planning",
+        "ai-agent"
+    ]
 };

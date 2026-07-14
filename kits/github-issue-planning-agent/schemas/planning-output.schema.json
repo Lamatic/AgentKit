@@ -8,6 +8,7 @@
         "schemaVersion",
         "analysis",
         "planning",
+        "engineeringInsights",
         "review",
         "report"
     ],
@@ -136,6 +137,73 @@
                             "minItems": 0,
                             "items": {
                                 "type": "string"
+                            }
+                        }
+                    }
+                },
+                "engineeringInsights": {
+                    "type": "object",
+                    "required": [
+                        "priority",
+                        "complexity",
+                        "storyPoints",
+                        "architectureImpact",
+                        "securityReview"
+                    ],
+                    "properties": {
+                        "priority": {
+                            "type": "string",
+                            "enum": [
+                                "Low",
+                                "Medium",
+                                "High",
+                                "Critical"
+                            ]
+                        },
+                        "complexity": {
+                            "type": "string",
+                            "enum": [
+                                "XS",
+                                "S",
+                                "M",
+                                "L",
+                                "XL"
+                            ]
+                        },
+                        "storyPoints": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 21
+                        },
+                        "architectureImpact": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "Frontend",
+                                    "Backend",
+                                    "Database",
+                                    "Infrastructure",
+                                    "Security"
+                                ]
+                            }
+                        },
+                        "securityReview": {
+                            "type": "object",
+                            "required": [
+                                "required",
+                                "findings"
+                            ],
+                            "properties": {
+                                "required": {
+                                    "type": "boolean"
+                                },
+                                "findings": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
                             }
                         }
                     }
