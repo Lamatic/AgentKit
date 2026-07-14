@@ -71,6 +71,37 @@ Enable secure Google authentication while maintaining compatibility with the exi
 
 ---
 
+## Expected Engineering Insights
+
+### Priority
+
+High
+
+### Complexity
+
+Medium
+
+### Story Points
+
+8
+
+### Architecture Impact
+
+- Frontend
+- Backend
+- Database
+- Security
+
+### Security Review
+
+- Verify Google ID tokens using Google's public keys.
+- Securely generate and validate JWTs after successful authentication.
+- Prevent duplicate account creation and safely link existing accounts by verified email.
+- Protect OAuth callback endpoints against CSRF and replay attacks.
+- Store authentication credentials and provider information securely.
+
+---
+
 ## Risks
 
 - Duplicate accounts
