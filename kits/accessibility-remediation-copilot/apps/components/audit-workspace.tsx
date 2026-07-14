@@ -141,7 +141,10 @@ export function AuditWorkspace() {
 
   useEffect(() => {
     if (!result) return;
-    document.querySelector("#audit-results")?.scrollIntoView({ behavior: "smooth" });
+    const resultsSection = document.querySelector<HTMLElement>("#audit-results");
+    if (!resultsSection) return;
+    resultsSection.focus({ preventScroll: true });
+    resultsSection.scrollIntoView({ behavior: "smooth" });
   }, [result]);
 
   async function submitAudit(values: AuditRequest) {

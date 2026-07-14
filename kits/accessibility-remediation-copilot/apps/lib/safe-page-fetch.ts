@@ -166,6 +166,7 @@ function requestPinnedPage(url: URL, pinnedAddress: ValidatedAddress, deadline: 
         const clearDeadline = () => clearTimeout(deadlineTimer);
         response.once("end", clearDeadline);
         response.once("close", clearDeadline);
+        response.once("error", clearDeadline);
         resolve(response);
       },
     );
