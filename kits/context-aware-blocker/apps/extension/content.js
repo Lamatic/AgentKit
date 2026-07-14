@@ -1,3 +1,21 @@
+// ** PRODUCTION LEVEL LOGIC: Safe Message Sender ** //
+// Prevents "Extension context invalidated" crashes when reloading the extension during development
+let contextAlive = true;
+
+function safeSendMessage(message) {
+  if (!contextAlive) return; // Don't even try if we already know the context is dead
+  try {
+    chrome.runtime.sendMessage(message);
+  } catch (error) {
+    if (error.message.includes("Extension context invalidated")) {
+      contextAlive = false; // Kill the polling loop permanently for this tab
+      console.warn("LamaBlock: Extension was reloaded. Please refresh this tab to reconnect.");
+    } else {
+      console.error("LamaBlock Message Error:", error);
+    }
+  }
+}
+
 // ** PRODUCTION LEVEL SCRIPT: Client-Side DOM Scraper ** //
 
 function scrapePageContext() {
@@ -24,11 +42,23 @@ function scrapePageContext() {
   };
 
   // Send the payload to our background service worker
-  chrome.runtime.sendMessage({ type: "PAGE_CONTEXT_SCRAPED", payload });
+  safeSendMessage({ type: "PAGE_CONTEXT_SCRAPED", payload });
 }
 
 // ** PRODUCTION LEVEL TRIGGER: Scrape on initial load ** //
 scrapePageContext();
+
+// ** PRODUCTION LEVEL TRIGGER: 5-Second DOM Polling Safety Net ** //
+// This acts as a safety net to catch time boundaries. 
+// It is perfectly safe because the Cache Bouncer in background.js protects the API!
+setInterval(() => {
+  // Stop polling entirely if the extension was reloaded (context is dead)
+  if (!contextAlive) return;
+  // Only poll if the page isn't already blocked by the physical overlay
+  if (!document.getElementById('lamablock-overlay')) {
+    scrapePageContext();
+  }
+}, 5000);
 
 // ** PRODUCTION LEVEL UX: Physical Block Overlay ** //
 function showBlockOverlay(commitName) {
@@ -96,7 +126,7 @@ function showBlockOverlay(commitName) {
   const button = document.createElement('button');
   button.innerText = 'Close Tab Now';
   // Send message to background to bypass window.close() restrictions
-  button.onclick = () => chrome.runtime.sendMessage({ type: "CLOSE_ACTIVE_TAB" });
+  button.onclick = () => safeSendMessage({ type: "CLOSE_ACTIVE_TAB" });
   button.style.cssText = `
     background-color: #ef4444; /* Vibrant red from the screenshot */
     color: white;
@@ -131,21 +161,26 @@ function showBlockOverlay(commitName) {
       if (countdownEl) countdownEl.innerText = `Closing tab in ${timeLeft}s...`;
     } else {
       clearInterval(timer);
-      chrome.runtime.sendMessage({ type: "CLOSE_ACTIVE_TAB" });
+      safeSendMessage({ type: "CLOSE_ACTIVE_TAB" });
     }
   }, 1000);
 }
 
 // ** PRODUCTION LEVEL TRIGGER: Listen for Background Worker Requests ** //
 // This guarantees we scrape whenever the background worker detects a reliable URL change
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "FORCE_SCRAPE") {
-    // Slight delay to allow DOM to finish rendering
-    setTimeout(scrapePageContext, 500);
-  } else if (message.type === "BLOCK_PAGE") {
-    showBlockOverlay(message.commitName);
-  }
-});
+try {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "FORCE_SCRAPE") {
+      // Slight delay to allow DOM to finish rendering
+      setTimeout(scrapePageContext, 500);
+    } else if (message.type === "BLOCK_PAGE") {
+      showBlockOverlay(message.commitName);
+    }
+  });
+} catch (e) {
+  // Silently handle if extension context is already dead
+  contextAlive = false;
+}
 
 // ** PRODUCTION LEVEL TRIGGER: LocalHost Storage Synchronization Bridge ** //
 // Because the Next.js app runs on http://localhost:3000, it cannot directly access chrome.storage.local.
@@ -156,7 +191,7 @@ if (window.location.origin === "http://localhost:3000") {
       const localCommits = localStorage.getItem("cab_commits");
       if (localCommits) {
         const parsed = JSON.parse(localCommits);
-        chrome.runtime.sendMessage({ type: "SYNC_COMMITS", commits: parsed });
+        safeSendMessage({ type: "SYNC_COMMITS", commits: parsed });
       }
     } catch (e) {
       // Fail silently if JSON parsing fails

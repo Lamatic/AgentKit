@@ -54,13 +54,19 @@ function isCommitCurrentlyActive(commit) {
   });
 }
 
-// ** PRODUCTION LEVEL LOGIC: Mock AI Evaluation (Immediate for Debugging) ** //
+// ** PRODUCTION LEVEL LOGIC: In-Memory Promise Cache ** //
+const aiEvaluationCache = new Map();
+const CACHE_TTL_MS = 1000 * 60 * 5; // 5 minutes
+
+// ** PRODUCTION LEVEL LOGIC: Mock AI Evaluation ** //
 const evaluateContext = async (payload, tabId) => {
-  // ** PRODUCTION LEVEL DB QUERY: Retrieve rules from Chrome local storage ** //
   chrome.storage.local.get(['cab_commits'], async (result) => {
     const commits = result.cab_commits || [];
     
-    // ** PRODUCTION LEVEL VALIDATION: Check if current domain is statically blocked ** //
+    // ========================================================
+    // STEP 1: THE FREE CHECKS (Time & Static Domains)
+    // ========================================================
+    let isAnyCommitActive = false;
     let isStaticallyBlocked = false;
     let matchingCommitTitle = "";
     const activeBlockedDomains = [];
@@ -71,18 +77,20 @@ const evaluateContext = async (payload, tabId) => {
       const currentHost = currentUrlObj.hostname.toLowerCase();
 
       for (const commit of commits) {
-        // ** PRODUCTION LEVEL CHECK: Only enforce rule if the block schedule is currently active ** //
         if (!isCommitCurrentlyActive(commit)) {
-          inactiveCommitDetails.push(`${commit.title} (Inactive now)`);
+          inactiveCommitDetails.push(`${commit.title} (Inactive)`);
           continue;
         }
+
+        // If we reach here, at least one commit is currently active!
+        isAnyCommitActive = true;
 
         if (!commit.blockedWebsites) continue;
 
         for (const web of commit.blockedWebsites) {
           if (!web.selected) continue;
 
-          // Clean blocked URL to match hostname format (e.g., "youtube.com")
+          // Clean blocked URL to match hostname format
           const cleanBlockedUrl = web.url.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '');
           activeBlockedDomains.push(`${cleanBlockedUrl} (from "${commit.title}")`);
           
@@ -93,12 +101,13 @@ const evaluateContext = async (payload, tabId) => {
         }
       }
     } catch (e) {
-      // Fallback simple string match if URL parsing fails
+      // Fallback simple string match
       commits.forEach(commit => {
         if (!isCommitCurrentlyActive(commit)) {
-          inactiveCommitDetails.push(`${commit.title} (Inactive now)`);
+          inactiveCommitDetails.push(`${commit.title} (Inactive)`);
           return;
         }
+        isAnyCommitActive = true;
 
         commit.blockedWebsites?.forEach(web => {
           if (web.selected) {
@@ -112,46 +121,95 @@ const evaluateContext = async (payload, tabId) => {
       });
     }
 
-    // ** PRODUCTION LEVEL LOGGING: Log validation decision to internal console and terminal bridge ** //
     console.log("=========================================");
-    console.log("🧠 [AI ENGINE] Evaluating Context:");
-    console.log("🔗 URL:", payload.url);
-    console.log("🏷️ Title:", payload.title);
-    if (payload.h1Text) console.log("📝 H1:", payload.h1Text);
-    console.log("🗄️ Active DB Rules:", activeBlockedDomains.join(", ") || "None");
-    if (inactiveCommitDetails.length > 0) {
-      console.log("💤 Scheduled Blocks (Sleeping):", inactiveCommitDetails.join(", "));
+    console.log("🧠 [AI ENGINE] Evaluating Context for:", payload.url);
+
+    // ** PRODUCTION LEVEL LOGGING: Terminal Bridge Helper ** //
+    const logToTerminal = async (logPayload) => {
+      try {
+        await fetch("http://localhost:3000/api/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(logPayload)
+        });
+      } catch (err) {} // Silently fail if dev server isn't running
+    };
+
+    // Scenario 1: Time is inactive
+    if (!isAnyCommitActive) {
+      console.log(`✅ STATUS: PASS (No active focus sessions right now)`);
+      if (inactiveCommitDetails.length > 0) {
+        console.log(`💤 Sleeping Blocks: ${inactiveCommitDetails.join(", ")}`);
+      }
+      console.log("=========================================");
+      logToTerminal({
+        ...payload,
+        sleepingBlocks: inactiveCommitDetails,
+        status: "PASS (No active focus sessions)"
+      });
+      return; // Stop instantly. Nothing is cached.
     }
-    
+
+    // Scenario 2: Time is active, and domain is explicitly blocked
     if (isStaticallyBlocked) {
-      console.log(`❌ STATUS: BLOCKED (Matched static rule in Block: "${matchingCommitTitle}")`);
-      // ** PRODUCTION LEVEL UX: Send block command to the active tab ** //
+      console.log(`❌ STATUS: BLOCKED (Matched static rule in: "${matchingCommitTitle}")`);
+      console.log("=========================================");
+      logToTerminal({
+        ...payload,
+        dbRules: activeBlockedDomains,
+        status: `BLOCKED (Static rule: "${matchingCommitTitle}")`
+      });
       if (tabId) {
         chrome.tabs.sendMessage(tabId, {
           type: "BLOCK_PAGE",
           commitName: matchingCommitTitle
         }).catch(() => {});
       }
-    } else {
-      console.log("✅ STATUS: PASS");
+      return; // Stop instantly. Zero AI money spent. Nothing is cached.
     }
-    console.log("=========================================");
 
-    // Send status to Next.js API terminal bridge
-    try {
-      await fetch("http://localhost:3000/api/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    // ========================================================
+    // STEP 2: THE BOUNCER CACHE (Only reached if time is Active AND site is Unknown)
+    // ========================================================
+    const now = Date.now();
+    if (aiEvaluationCache.has(payload.url)) {
+      const cached = aiEvaluationCache.get(payload.url);
+      if (now - cached.timestamp < CACHE_TTL_MS) {
+        console.log(`🛑 [CACHE HIT] Already evaluated. Skipping expensive AI call!`);
+        console.log("=========================================");
+        logToTerminal({
           ...payload,
           dbRules: activeBlockedDomains,
-          sleepingBlocks: inactiveCommitDetails,
-          status: isStaticallyBlocked ? `BLOCKED ("${matchingCommitTitle}")` : "PASS"
-        })
-      });
-    } catch (err) {
-      // Silently fail if the dev server isn't running
+          status: "🛑 CACHE HIT (Skipped AI call, saved money!)"
+        });
+        return cached.promise; // Stop instantly.
+      }
     }
+
+    // ========================================================
+    // STEP 3: THE EXPENSIVE AI CALL
+    // ========================================================
+    console.log(`🤖 [AI EVALUATION] New unknown URL. Sending to Lamatic AI...`);
+    
+    const evaluationPromise = new Promise(async (resolve) => {
+      // Send status to Next.js API terminal bridge (Mocking the AI call for now)
+      logToTerminal({
+        ...payload,
+        dbRules: activeBlockedDomains,
+        status: "🤖 AI EVALUATING (Mock PASS)"
+      });
+      
+      resolve("PASS");
+    });
+
+    // Save it in the cache so the next 5-second tick gets blocked at Step 2!
+    aiEvaluationCache.set(payload.url, {
+      timestamp: now,
+      promise: evaluationPromise
+    });
+
+    console.log("=========================================");
+    return evaluationPromise;
   });
 };
 
