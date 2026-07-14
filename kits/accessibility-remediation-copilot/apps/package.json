@@ -1,0 +1,28 @@
+{
+  "name": "accessibility-remediation-copilot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lamatic": "0.3.2",
+    "lucide-react": "1.14.0",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.30",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "typescript": "5.4.5"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
+  }
+}
