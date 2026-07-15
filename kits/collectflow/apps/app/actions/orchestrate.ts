@@ -66,6 +66,11 @@ type ActionResult<T> =
       error: string;
     };
 
+/**
+ * Retrieves a required Lamatic workflow ID from the environment.
+ * Throws an error if the variable is missing to prevent workflow execution
+ * with incomplete configuration.
+ */
 function getRequiredFlowId(name: string): string {
   const value = process.env[name];
 
@@ -76,6 +81,10 @@ function getRequiredFlowId(name: string): string {
   return value;
 }
 
+/**
+ * Converts unknown runtime errors into user-friendly messages that can be
+ * displayed in the CollectFlow interface.
+ */
 function getErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) {
     return "An unknown error occurred.";
@@ -95,6 +104,10 @@ function getErrorMessage(error: unknown): string {
   return error.message;
 }
 
+/**
+ * Executes the Portfolio Intelligence workflow and returns
+ * ranked customers with portfolio summary insights.
+ */
 export async function analyzePortfolio(
   customers: Customer[],
 ): Promise<ActionResult<PortfolioIntelligenceResult>> {
@@ -127,6 +140,10 @@ export async function analyzePortfolio(
   }
 }
 
+/**
+ * Executes the Customer Strategy workflow for a selected customer and
+ * returns the AI-generated next best action.
+ */
 export async function generateCustomerStrategy(
   customer: Customer,
 ): Promise<ActionResult<CustomerStrategyResult>> {
