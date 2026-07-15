@@ -17,9 +17,9 @@ const validCoins = coinList
       coin &&
       coin.name &&
       coin.symbol &&
-      Number.isFinite(Number(coin.current_price)) &&
-      Number.isFinite(Number(coin.price_change_percentage_24h)) &&
-      Number.isFinite(Number(coin.total_volume))
+      Number.isFinite(coin.current_price) &&
+      Number.isFinite(coin.price_change_percentage_24h) &&
+      Number.isFinite(coin.total_volume)
   )
   .map(coin => ({
     name: coin.name,
