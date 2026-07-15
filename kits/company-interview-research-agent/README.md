@@ -12,10 +12,8 @@ Company Interview Research Agent takes a **company name and job title** (no
 resume required) and generates a tailored interview preparation brief by:
 
 1. Performing live web research on the company
-2. Classifying the likely interview format for the role (technical/case-based
-   vs. behavioral/mixed)
-3. Generating a structured brief with company context, likely question
-   themes, and smart questions to ask the interviewer
+2. Classifying the likely interview format for the role (technical/case-based vs. behavioral/mixed)
+3. Generating a structured brief with company context, likely question themes, and smart questions to ask the interviewer
 
 This is complementary to resume-matching tools - instead of analyzing *your*
 fit against a job description, it researches *the company itself* to help
