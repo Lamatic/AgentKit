@@ -54,15 +54,52 @@ function isCommitCurrentlyActive(commit) {
   });
 }
 
-// ** PRODUCTION LEVEL LOGIC: In-Memory Promise Cache ** //
+// ** PRODUCTION LEVEL LOGIC: Rule-Aware In-Memory Cache ** //
+// Unlike a TTL-based cache, this cache has NO expiry timer.
+// Each entry is linked to a hash of the active rules at evaluation time.
+// If the rules change (commit added/deleted), the hash changes,
+// causing an automatic cache MISS — so the AI re-evaluates.
+// When SYNC_COMMITS fires, the entire cache is nuked as a safety net.
 const aiEvaluationCache = new Map();
-const CACHE_TTL_MS = 1000 * 60 * 5; // 5 minutes
+// Key: URL hostname (e.g. "youtube.com")
+// Value: { decision: "BLOCK"|"PASS", rulesHash: string, commitTitle: string }
 
-// ** PRODUCTION LEVEL LOGIC: Mock AI Evaluation ** //
+// ** PRODUCTION LEVEL: Generate a deterministic hash of the active rules ** //
+// This is used as part of the cache key so that when rules change,
+// all cached decisions automatically become stale.
+function generateRulesHash(commits) {
+  const activeRules = [];
+  for (const commit of commits) {
+    if (!isCommitCurrentlyActive(commit)) continue;
+    // Include static blocked websites in hash
+    if (commit.blockedWebsites) {
+      for (const web of commit.blockedWebsites) {
+        if (web.selected) activeRules.push(web.url.toLowerCase());
+      }
+    }
+    // Include AI rules in hash so cache invalidates when AI rules change
+    if (commit.aiRules) {
+      for (const rule of commit.aiRules) {
+        activeRules.push(`ai:${rule.toLowerCase()}`);
+      }
+    }
+  }
+  return activeRules.sort().join('|');
+}
+
+// ** PRODUCTION LEVEL LOGIC: Real AI Evaluation Engine ** //
 const evaluateContext = async (payload, tabId) => {
   chrome.storage.local.get(['cab_commits'], async (result) => {
     const commits = result.cab_commits || [];
     
+    // ========================================================
+    // STEP 0: WHITELIST (Never block our own dashboard)
+    // ========================================================
+    if (payload.url.includes("localhost:3000") || payload.url.includes("127.0.0.1:3000")) {
+      console.log(`✅ STATUS: PASS (Whitelisted LamaBlock Dashboard)`);
+      return; // Instantly allow
+    }
+
     // ========================================================
     // STEP 1: THE FREE CHECKS (Time & Static Domains)
     // ========================================================
@@ -70,6 +107,7 @@ const evaluateContext = async (payload, tabId) => {
     let isStaticallyBlocked = false;
     let matchingCommitTitle = "";
     const activeBlockedDomains = [];
+    const activeAiRules = []; // ** PRODUCTION LEVEL: Collect natural language AI rules **
     const inactiveCommitDetails = [];
 
     try {
@@ -84,6 +122,13 @@ const evaluateContext = async (payload, tabId) => {
 
         // If we reach here, at least one commit is currently active!
         isAnyCommitActive = true;
+
+        // Collect AI rules (natural language blocking instructions)
+        if (commit.aiRules && commit.aiRules.length > 0) {
+          for (const rule of commit.aiRules) {
+            activeAiRules.push(`${rule} (from "${commit.title}")`);
+          }
+        }
 
         if (!commit.blockedWebsites) continue;
 
@@ -109,6 +154,11 @@ const evaluateContext = async (payload, tabId) => {
         }
         isAnyCommitActive = true;
 
+        // Collect AI rules from fallback path
+        if (commit.aiRules && commit.aiRules.length > 0) {
+          commit.aiRules.forEach(rule => activeAiRules.push(`${rule} (from "${commit.title}")`));
+        }
+
         commit.blockedWebsites?.forEach(web => {
           if (web.selected) {
             activeBlockedDomains.push(`${web.url} (from "${commit.title}")`);
@@ -121,8 +171,16 @@ const evaluateContext = async (payload, tabId) => {
       });
     }
 
-    console.log("=========================================");
-    console.log("🧠 [AI ENGINE] Evaluating Context for:", payload.url);
+    console.log("\n=========================================");
+    console.log("🧠 [AI ENGINE] Evaluating Context:");
+    console.log("   🔗 URL:", payload.url);
+    console.log("   🏷️  Title:", payload.title || "(none)");
+    console.log("   📝 H1:", payload.h1Text || "(none)");
+    console.log("   📄 Meta:", payload.description || "(none)");
+    console.log("   📊 Total Commits:", commits.length, "| Active:", commits.filter(c => isCommitCurrentlyActive(c)).length);
+    console.log("   🗄️  Active Blocked Domains:", activeBlockedDomains.length > 0 ? activeBlockedDomains.join(", ") : "(none)");
+    console.log("   🤖 Active AI Rules:", activeAiRules.length > 0 ? activeAiRules.join(", ") : "(none)");
+    console.log("   💾 Cache Size:", aiEvaluationCache.size, "entries");
 
     // ** PRODUCTION LEVEL LOGGING: Terminal Bridge Helper ** //
     const logToTerminal = async (logPayload) => {
@@ -157,6 +215,7 @@ const evaluateContext = async (payload, tabId) => {
       logToTerminal({
         ...payload,
         dbRules: activeBlockedDomains,
+        aiRules: activeAiRules,
         status: `BLOCKED (Static rule: "${matchingCommitTitle}")`
       });
       if (tabId) {
@@ -168,48 +227,133 @@ const evaluateContext = async (payload, tabId) => {
       return; // Stop instantly. Zero AI money spent. Nothing is cached.
     }
 
+    // Scenario 2.5: Time is active, but NO rules (static or AI) are defined yet
+    if (activeBlockedDomains.length === 0 && activeAiRules.length === 0) {
+      console.log(`✅ STATUS: PASS (Active session, but no rules defined yet)`);
+      console.log("=========================================");
+      logToTerminal({
+        ...payload,
+        status: "PASS (Active session, but no rules defined)"
+      });
+      return; // Stop instantly. Zero AI money spent.
+    }
+
     // ========================================================
-    // STEP 2: THE BOUNCER CACHE (Only reached if time is Active AND site is Unknown)
+    // STEP 2: THE RULE-AWARE BOUNCER CACHE
+    // No TTL. Cache lives and dies with the rules themselves.
     // ========================================================
-    const now = Date.now();
+    const currentRulesHash = generateRulesHash(commits);
+    console.log("   🔑 Current Rules Hash:", currentRulesHash || "(empty)");
+
     if (aiEvaluationCache.has(payload.url)) {
       const cached = aiEvaluationCache.get(payload.url);
-      if (now - cached.timestamp < CACHE_TTL_MS) {
-        console.log(`🛑 [CACHE HIT] Already evaluated. Skipping expensive AI call!`);
+
+      // Only trust the cache if the rules haven't changed since evaluation
+      if (cached.rulesHash === currentRulesHash) {
+        console.log(`🛑 [CACHE HIT] Decision: ${cached.decision}`);
+        console.log(`   📦 Cached Rules Hash: ${cached.rulesHash}`);
+        console.log(`   💰 API call saved!`);
         console.log("=========================================");
         logToTerminal({
           ...payload,
           dbRules: activeBlockedDomains,
-          status: "🛑 CACHE HIT (Skipped AI call, saved money!)"
+          aiRules: activeAiRules,
+          status: `🛑 CACHE HIT: ${cached.decision} (Saved money!)`
         });
-        return cached.promise; // Stop instantly.
+
+        // If the cached decision was BLOCK, enforce it again
+        if (cached.decision === "BLOCK" && tabId) {
+          chrome.tabs.sendMessage(tabId, {
+            type: "BLOCK_PAGE",
+            commitName: cached.commitTitle || "Focus Session"
+          }).catch(() => {});
+        }
+        return; // Stop instantly. Zero API money spent.
+      } else {
+        // Rules changed! Invalidate this specific cache entry.
+        console.log(`♻️ [CACHE STALE] Rules changed since last evaluation. Re-evaluating...`);
+        aiEvaluationCache.delete(payload.url);
       }
     }
 
     // ========================================================
-    // STEP 3: THE EXPENSIVE AI CALL
+    // STEP 3: THE REAL LAMATIC AI CALL
+    // Only reached for genuinely new/unknown URLs with current rules.
     // ========================================================
     console.log(`🤖 [AI EVALUATION] New unknown URL. Sending to Lamatic AI...`);
-    
-    const evaluationPromise = new Promise(async (resolve) => {
-      // Send status to Next.js API terminal bridge (Mocking the AI call for now)
+    console.log(`   📤 Payload being sent:`);
+    console.log(`      url: ${payload.url}`);
+    console.log(`      title: ${payload.title}`);
+    console.log(`      h1: ${payload.h1Text || ""}`);
+    console.log(`      meta: ${payload.description || ""}`);
+    console.log(`      activeRules: ${activeBlockedDomains.join(", ")}`);
+    const aiStartTime = Date.now();
+    logToTerminal({
+      ...payload,
+      dbRules: activeBlockedDomains,
+      aiRules: activeAiRules,
+      status: "🤖 AI EVALUATING (Calling Lamatic AI...)"
+    });
+
+    try {
+      const response = await fetch("http://localhost:3000/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: payload.url,
+          title: payload.title,
+          h1Text: payload.h1Text || "",
+          description: payload.description || "",
+          dbRules: activeBlockedDomains,
+          aiRules: activeAiRules
+        })
+      });
+
+      const result = await response.json();
+      const decision = result.action || "PASS";
+      const aiDuration = Date.now() - aiStartTime;
+
+      console.log(`🎯 [AI DECISION] ${decision} for ${payload.url}`);
+      console.log(`   ⏱️  Lamatic responded in ${aiDuration}ms`);
+      console.log(`   📥 Full API response: ${JSON.stringify(result)}`);
+      console.log("=========================================");
+
+      // ** PRODUCTION LEVEL: Store in rule-aware cache ** //
+      // This entry will persist forever until:
+      //   1. The rules change (rulesHash mismatch → cache miss)
+      //   2. A commit is synced (SYNC_COMMITS → full cache wipe)
+      aiEvaluationCache.set(payload.url, {
+        decision: decision,
+        rulesHash: currentRulesHash,
+        commitTitle: "Focus Session"
+      });
+
       logToTerminal({
         ...payload,
         dbRules: activeBlockedDomains,
-        status: "🤖 AI EVALUATING (Mock PASS)"
+        aiRules: activeAiRules,
+        status: `🎯 AI DECISION: ${decision}`
       });
-      
-      resolve("PASS");
-    });
 
-    // Save it in the cache so the next 5-second tick gets blocked at Step 2!
-    aiEvaluationCache.set(payload.url, {
-      timestamp: now,
-      promise: evaluationPromise
-    });
-
-    console.log("=========================================");
-    return evaluationPromise;
+      // ** PRODUCTION LEVEL: Enforce the BLOCK if AI says so ** //
+      if (decision === "BLOCK" && tabId) {
+        chrome.tabs.sendMessage(tabId, {
+          type: "BLOCK_PAGE",
+          commitName: "AI Detected Distraction"
+        }).catch(() => {});
+      }
+    } catch (err) {
+      // ** PRODUCTION LEVEL: Fail-Open ** //
+      // If the API is unreachable, let the user through.
+      // Never brick the browser because of a network error.
+      console.error(`❌ [AI ERROR] Failed to reach /api/evaluate:`, err.message);
+      console.log("=========================================");
+      logToTerminal({
+        ...payload,
+        dbRules: activeBlockedDomains,
+        status: "❌ AI ERROR: Failed to reach API (Fail-Open PASS)"
+      });
+    }
   });
 };
 
@@ -219,6 +363,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     evaluateContext(message.payload, sender.tab?.id);
   } else if (message.type === "SYNC_COMMITS") {
     // ** PRODUCTION LEVEL SYNC: Bridge Next.js localStorage to Chrome Extension storage ** //
+    // When commits change (added/deleted), nuke the entire AI cache.
+    // This is the safety net that guarantees no stale BLOCK decisions persist
+    // after a user deletes a focus commitment.
+    aiEvaluationCache.clear();
+    console.log("🧹 [CACHE] Cleared entire AI cache (commits changed)");
     chrome.storage.local.set({ cab_commits: message.commits }, () => {
       console.log("🔄 [SYNC] Synchronized commits from LocalHost Dashboard to Chrome Storage!");
     });
