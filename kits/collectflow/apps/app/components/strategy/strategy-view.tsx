@@ -71,6 +71,7 @@ export function StrategyView({
   onBack,
 }: StrategyViewProps) {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
 
   const handleCopy = async () => {
     if (!strategy) return;
@@ -79,16 +80,27 @@ export function StrategyView({
 
 ${strategy.draft_message}`;
 
-    await navigator.clipboard.writeText(draft);
-    setCopied(true);
+    setCopyError("");
 
-    setTimeout(() => {
+    try {
+      await navigator.clipboard.writeText(draft);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch {
       setCopied(false);
-    }, 2000);
+      setCopyError("The draft could not be copied. Please copy it manually.");
+    }
   };
 
   const canExecuteStrategy =
     !strategy?.approval_required || approvalStatus === "APPROVED";
+
+  const latestOutcome = recordedOutcomes.at(-1);
+
+  const isCollectionComplete = latestOutcome?.outcome === "PAYMENT_RECEIVED";
 
   return (
     <div className="pt-10">
@@ -350,6 +362,7 @@ ${strategy.draft_message}`;
                     variant="outline"
                     size="sm"
                     onClick={handleCopy}
+                    disabled={!canExecuteStrategy}
                     className="w-fit gap-2 bg-transparent"
                   >
                     {copied ? (
@@ -366,6 +379,10 @@ ${strategy.draft_message}`;
                   </Button>
                 </div>
 
+                {copyError && (
+                  <p className="mt-2 text-sm text-destructive">{copyError}</p>
+                )}
+
                 <div className="mt-4 rounded-2xl border bg-muted/40 p-6">
                   <p className="text-sm font-semibold">
                     Subject: {strategy.draft_subject}
@@ -377,7 +394,7 @@ ${strategy.draft_message}`;
                 </div>
               </section>
 
-              {canExecuteStrategy && (
+              {canExecuteStrategy && !isCollectionComplete && (
                 <section>
                   <OutcomeCard onOutcomeRecorded={onOutcomeRecorded} />
                 </section>
@@ -468,7 +485,7 @@ ${strategy.draft_message}`;
                           recordedOutcomes[recordedOutcomes.length - 1],
                           strategy.next_follow_up_days,
                         )}
-                        status="current"
+                        status={isCollectionComplete ? "complete" : "current"}
                         isLast
                       />
                     </>
