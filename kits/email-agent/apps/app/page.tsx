@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Header } from "@/components/header"
 import { verifyEmail, replyEmail } from "@/actions/orchestrate"
-import { Loader2, ShieldCheck, MailCheck, Copy, Check, RotateCcw, AlertTriangle, ArrowRightLeft, PenTool, CheckCircle } from "lucide-react"
+import { Loader2, ShieldCheck, MailCheck, Copy, Check, RotateCcw, AlertTriangle, PenTool } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 
 type Mode = "verify" | "reply"
