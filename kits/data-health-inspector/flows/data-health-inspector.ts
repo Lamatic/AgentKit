@@ -191,14 +191,14 @@ export const nodes = [
           "nodeType": "graphqlResponseNode",
           "nodeName": "API Response",
           "values": {
-            "outputMapping": "{\n  \"health_score\": \"{{codeNode_724.output.health_score}}\",\n  \"health_status\": \"{{codeNode_724.output.health_status}}\",\n  \"row_count\": \"{{codeNode_951.output.row_count}}\",\n  \"col_count\": \"{{codeNode_951.output.col_count}}\",\n  \"summary\": \"{{codeNode_790.output.ai_interpretation.summary}}\",\n  \"dataset_readiness\": \"{{codeNode_790.output.ai_interpretation.dataset_readiness}}\",\n  \"major_risks\": \"{{codeNode_790.output.ai_interpretation.major_risks}}\",\n  \"recommendations\": \"{{codeNode_790.output.ai_interpretation.recommendations}}\"\n}",
+            "outputMapping": "{\n  \"health_score\": \"{{codeNode_724.output.health_score}}\",\n  \"health_status\": \"{{codeNode_724.output.health_status}}\",\n  \"row_count\": \"{{codeNode_951.output.row_count}}\",\n  \"col_count\": \"{{codeNode_951.output.col_count}}\",\n  \"summary\": \"{{codeNode_122.output.ai_interpretation.summary}}\",\n  \"dataset_readiness\": \"{{codeNode_122.output.ai_interpretation.dataset_readiness}}\",\n  \"major_risks\": \"{{codeNode_122.output.ai_interpretation.major_risks}}\",\n  \"recommendations\": \"{{codeNode_122.output.ai_interpretation.recommendations}}\"\n}",
             "webhookUrl": "",
             "headers": "{\"content-type\":\"application/json\"}",
             "retries": "0",
             "retry_delay": "0"
           },
           "needs": [
-            "codeNode_790"
+            "codeNode_122"
           ],
           "modes": {},
           "schema": {}
