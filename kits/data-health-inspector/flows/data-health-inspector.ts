@@ -3,15 +3,15 @@
 // -- Meta --
 export const meta = {
   "name": "Data-Health-Inspector",
-  "description": "",
-  "tags": [],
+  "description": "An AI agent that inspects datasets for quality issues, missing values, and anomalies.",
+  "tags": ["data", "quality", "inspector", "health"],
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {
     "name": "Anand Chaudhary",
-    "email": "221030123@juitsolan.in"
+    "email": "anandchaudhary3505@gmail.com"
   }
 };
 
