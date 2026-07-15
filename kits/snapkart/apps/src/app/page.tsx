@@ -1,9 +1,10 @@
+﻿/** Home page component displaying the three main feature cards for SnapKart dashboard. */
 import Link from "next/link"
 import { IconShoppingBag, IconMessageCircle, IconPackage } from "@/components/icons"
 
 const features = [
   { Icon: IconShoppingBag, title: "Order Feed", desc: "Live table of every WhatsApp order, with one-tap status updates and instant customer notifications.", href: "/orders" },
-  { Icon: IconMessageCircle, title: "Simulate Customer", desc: "Test the agent without WhatsApp — send Hinglish messages and watch orders land in real time.", href: "/simulate" },
+  { Icon: IconMessageCircle, title: "Simulate Customer", desc: "Test the agent without WhatsApp â€” send Hinglish messages and watch orders land in real time.", href: "/simulate" },
   { Icon: IconPackage, title: "Catalog Upload", desc: "Edit your inventory and push it straight to the vector index your agent searches.", href: "/catalog" },
 ]
 
@@ -56,7 +57,7 @@ export default function Home() {
           Your shop WhatsApp, now thinks for itself.
         </h1>
         <p style={{ fontSize: "17px", color: "var(--glow)", maxWidth: "480px", lineHeight: 1.65, position: "relative" }}>
-          SnapKart classifies Hinglish messages, extracts orders, checks your catalog, and replies — so you can run the counter, not the inbox.
+          SnapKart classifies Hinglish messages, extracts orders, checks your catalog, and replies â€” so you can run the counter, not the inbox.
         </p>
       </div>
 

@@ -1,3 +1,4 @@
+﻿/** Catalog page for editing and pushing product inventory to the Lamatic vector index. */
 "use client"
 import { useState } from "react"
 import { uploadCatalog } from "@/actions/webhook"
@@ -178,7 +179,7 @@ export default function CatalogPage() {
                   <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "9px" }}>
                     <p style={{ fontSize: "14px", fontWeight: 700, lineHeight: 1.4, letterSpacing: "-0.1px" }}>{item.name || "Unnamed item"}</p>
                     <p style={{ fontSize: "17px", fontWeight: 700, color: "var(--leaf)", fontFamily: "'JetBrains Mono', monospace" }}>
-                      {typeof item.price === "number" ? "₹" + item.price : "—"}
+                      {typeof item.price === "number" ? "â‚¹" + item.price : "â€”"}
                       {item.unit && <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--muted)", fontFamily: "'Space Grotesk', sans-serif" }}> / {item.unit}</span>}
                     </p>
                     <span

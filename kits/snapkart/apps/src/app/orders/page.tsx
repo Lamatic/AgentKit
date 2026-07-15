@@ -1,3 +1,4 @@
+﻿/** Orders page that fetches and displays live order feed from Airtable with status management. */
 import { fetchOrders, type Order } from "@/actions/orders"
 import OrdersClient from "./OrdersClient"
 

@@ -1,3 +1,4 @@
+﻿/** Simulate page allowing users to test the WhatsApp agent without a real phone number. */
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { sendMessage } from "@/actions/webhook"
