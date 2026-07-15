@@ -102,8 +102,8 @@ function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${lamaticApiKey}`,
-          "x-project-id": lamaticProjectId
+          "Authorization": `Bearer ${lamaticApiKey || ''}`,
+          "x-project-id": lamaticProjectId || ''
         },
         body: JSON.stringify({ query, variables })
       });
@@ -242,7 +242,6 @@ function App() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#8b949e', marginBottom: '5px' }}>Contracts (Lots)</label>
-                    {/* Added min="1" attribute and value sanitizer */}
                     <input 
                       type="number" 
                       min="1" 
@@ -362,3 +361,4 @@ function App() {
 }
 
 export default App;
+export {};
