@@ -2,9 +2,7 @@
 
 > AI-powered collection strategy engine that transforms Accounts Receivable portfolios into explainable, human-guided workflows. Built with [Lamatic AgentKit](https://lamatic.ai).
 
-**[Live Demo](https://collectflow-nine.vercel.app)** ·
-**[Walkthrough](#product-walkthrough)**
-**[Architecture](#how-it-works)**
+**[Live Demo](https://collectflow-nine.vercel.app)** · **[Walkthrough](#product-walkthrough)** · **[Architecture](#how-it-works)**
 
 ---
 
@@ -36,13 +34,13 @@ The result: collectors spend less time deciding _who_ and more time collecting _
 
 ### 1. Dashboard Overview
 
-CollectFlow syncs your AR portfolio and presents an at-a-glance view of aging, disputes, and collection status.
+CollectFlow demonstrates a synchronized Accounts Receivable portfolio using synthetic demo data.
 
 ![Landing](./assets/landing.png)
 
 ### 2. Customer Portfolio
 
-Review synchronized customer accounts with ageing buckets, payment status, and dispute flags before AI analysis begins.
+Review the demo customer portfolio before running AI analysis.
 
 ![Customer Portfolio](./assets/customer-portfolio.png)
 
@@ -66,13 +64,13 @@ High-risk strategies and large overdue amounts require human approval before exe
 
 ### 6. Outcome Recording
 
-Collectors record execution results and update customer status in real-time.
+Collectors record execution results and update the in-session customer journey.
 
 ![Outcome Recording](./assets/outcome-recording.png)
 
 ### 7. Collection Timeline
 
-The complete collection lifecycle from prioritization through resolution is captured and available for review at any time.
+The complete collection lifecycle from prioritization through resolution is captured and remains available throughout the current session.
 
 ![Collection Journey](./assets/collection-journey.png)
 
@@ -82,7 +80,7 @@ The complete collection lifecycle from prioritization through resolution is capt
 
 ### Architecture
 
-```
+```text
 Synchronized AR Portfolio
             │
             ▼
@@ -124,21 +122,21 @@ Both workflows are orchestrated using Lamatic AgentKit and use Groq for fast, st
 - Multi-factor prioritization (ageing, risk, payment history, dispute status)
 - Explainable priority scores with transparent reasoning
 - Risk classification and treatment lane assignment
-- Portfolio health summary and trend insights
+- Portfolio-level overdue and risk summary
 
 ### Customer Strategy
 
 - AI-generated Next Best Action (contact, escalate, dispute resolution, payment plan, etc.)
 - Recommended communication channel and optimal timing
-- Draft customer communication templates ready to send
+- Reviewable draft customer communication templates
 - Follow-up scheduling recommendations
-- Captured AI reasoning for audit trails and compliance
+- Captured AI reasoning for explainability and human review
 
 ### Human Approval
 
 - Manager approval gate for high-stakes strategies
 - Prevents autonomous execution—AI remains decision support
-- Approval workflows preserve operational safety and compliance
+- Approval workflows preserve operational safety
 
 ### Collection Journey
 
@@ -183,7 +181,7 @@ See [Environment Setup](#environment-variables) for configuration details.
 
 ## Project Structure
 
-```
+```text
 kits/collectflow/
 ├── apps/                          # Next.js frontend & API routes
 ├── assets/                        # README screenshots
@@ -212,9 +210,9 @@ Get API credentials from your [Lamatic workspace](https://lamatic.ai/dashboard).
 
 ## MVP Scope
 
-This MVP demonstrates one complete, production-ready collection workflow loop:
+This MVP demonstrates one complete end-to-end collection workflow:
 
-```
+```text
 Portfolio Analysis → Customer Prioritization → Strategy Generation
          ↓
     Manager Approval → Outcome Recording → Timeline Update
@@ -264,16 +262,16 @@ CollectFlow demonstrates how AI can support AR teams without replacing human jud
 
 ## Contributing
 
-We welcome contributions from AR professionals, AI engineers, and open source maintainers.
+We welcome contributions from AR professionals, AI engineers, and open-source maintainers.
 
-For guidelines, see [CONTRIBUTING.md].
+For contribution guidelines, please refer to the repository's `CONTRIBUTING.md`.
 
 ---
 
 ## Support & Documentation
 
 - **Agent Architecture:** See `agent.md`
-- **Lamatic Documentation:** https://lamatic.ai/docs
+- **Lamatic Documentation:** [https://lamatic.ai/docs](https://lamatic.ai/docs)
 
 ---
 

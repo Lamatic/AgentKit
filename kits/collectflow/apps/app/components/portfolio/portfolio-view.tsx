@@ -72,7 +72,11 @@ export function PortfolioView({
 }: PortfolioViewProps) {
   const rankedCustomers = customers
     .filter(isRankedCustomer)
-    .sort((a, b) => a.rank - b.rank);
+    .sort((firstCustomer, secondCustomer) => {
+      return firstCustomer.rank - secondCustomer.rank;
+    });
+
+  const hasRankingResults = rankedCustomers.length > 0;
 
   const fallbackTotalOverdue = customers.reduce(
     (total, customer) => total + customer.totalOverdue,
@@ -127,6 +131,7 @@ export function PortfolioView({
                 <p className="font-semibold">
                   Synchronized Accounts Receivable Portfolio
                 </p>
+
                 <p className="mt-1 text-sm text-muted-foreground">
                   Demo accounting data synchronized for intelligent collections
                   analysis.
@@ -161,13 +166,13 @@ export function PortfolioView({
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">
-                {hasAnalyzedPortfolio
+                {hasAnalyzedPortfolio && hasRankingResults
                   ? "AI collector queue"
                   : "Customer Portfolio"}
               </h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                {hasAnalyzedPortfolio
+                {hasAnalyzedPortfolio && hasRankingResults
                   ? "Customers ranked by urgency, risk and recommended treatment"
                   : "Review the synced customers, then run AI analysis to generate the prioritized collector queue."}
               </p>
@@ -193,9 +198,10 @@ export function PortfolioView({
               </Button>
             )}
 
-            {hasAnalyzedPortfolio && (
+            {hasAnalyzedPortfolio && hasRankingResults && (
               <Badge variant="outline" className="w-fit rounded-full">
-                {rankedCustomers.length} accounts analyzed
+                {rankedCustomers.length}{" "}
+                {rankedCustomers.length === 1 ? "account" : "accounts"} analyzed
               </Badge>
             )}
           </div>
@@ -208,6 +214,7 @@ export function PortfolioView({
                 <p className="font-medium">
                   Portfolio analysis could not be completed.
                 </p>
+
                 <p className="mt-1">{error}</p>
               </div>
             </div>
@@ -277,7 +284,7 @@ export function PortfolioView({
             </div>
           )}
 
-          {hasAnalyzedPortfolio && (
+          {hasAnalyzedPortfolio && hasRankingResults && (
             <div className="space-y-4">
               {rankedCustomers.map((customer) => (
                 <div
@@ -352,6 +359,36 @@ export function PortfolioView({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {hasAnalyzedPortfolio && !hasRankingResults && (
+            <div className="rounded-2xl border border-dashed bg-muted/20 p-8 text-center">
+              <p className="font-medium">No ranked customers were returned.</p>
+
+              <p className="mt-2 text-sm text-muted-foreground">
+                The portfolio analysis completed without usable ranking results.
+                Please run the analysis again.
+              </p>
+
+              <Button
+                onClick={onAnalyzePortfolio}
+                disabled={isLoading}
+                variant="outline"
+                className="mt-5 gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Analyzing portfolio
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="size-4" />
+                    Retry Analysis
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>

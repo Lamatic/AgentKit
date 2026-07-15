@@ -43,13 +43,19 @@ export function OutcomeCard({ onOutcomeRecorded }: OutcomeCardProps) {
   );
 
   const requiresPromiseDate = selectedOutcome === "PROMISE_TO_PAY";
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
+    .toISOString()
+    .slice(0, 10);
+
+  const hasInvalidPromiseDate =
+    requiresPromiseDate && (!promiseDate || promiseDate < today);
 
   const handleSave = async () => {
     if (!selectedOutcome || !selectedOption) {
       return;
     }
 
-    if (requiresPromiseDate && !promiseDate) {
+    if (hasInvalidPromiseDate) {
       return;
     }
 
@@ -82,8 +88,7 @@ export function OutcomeCard({ onOutcomeRecorded }: OutcomeCardProps) {
     }, 2000);
   };
 
-  const isSaveDisabled =
-    !selectedOutcome || isSaving || (requiresPromiseDate && !promiseDate);
+  const isSaveDisabled = !selectedOutcome || isSaving || hasInvalidPromiseDate;
 
   return (
     <Card className="rounded-2xl border bg-background/80 p-6 shadow-sm">
@@ -148,6 +153,7 @@ export function OutcomeCard({ onOutcomeRecorded }: OutcomeCardProps) {
               <input
                 id="promise-date"
                 type="date"
+                min={today}
                 value={promiseDate}
                 onChange={(event) => setPromiseDate(event.target.value)}
                 className="flex h-11 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm shadow-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
