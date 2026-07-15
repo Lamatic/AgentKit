@@ -97,11 +97,27 @@ export async function replyEmail(
     })
     console.log("[Email Agent] Verifier (summary) response:", JSON.stringify(verifierRes, null, 2))
 
-    // Extract summary string — if object, pull .summary field; else use as-is
+    // Extract verifier payload fields — if object, pull individual fields; else use as-is
     const verifierResponse = verifierRes?.result?.response
-    const summary = typeof verifierResponse === "object" && verifierResponse !== null
-      ? (verifierResponse as { summary?: string }).summary ?? JSON.stringify(verifierResponse)
-      : String(verifierResponse ?? "")
+    let verdict = ""
+    let confidence = 0
+    let reasons: string[] = []
+    let summary = ""
+
+    if (typeof verifierResponse === "object" && verifierResponse !== null) {
+      const r = verifierResponse as {
+        verdict?: string
+        confidence?: number
+        reasons?: string[]
+        summary?: string
+      }
+      verdict = r.verdict ?? ""
+      confidence = r.confidence ?? 0
+      reasons = r.reasons ?? []
+      summary = r.summary ?? ""
+    } else {
+      summary = String(verifierResponse ?? "")
+    }
 
     // Step 2: Run replier — generate-reply prompt uses {{email}} single variable
     const emailText = `From: ${sender}\nSubject: ${subject}\n\n${body}`
@@ -112,6 +128,9 @@ export async function replyEmail(
       body,
       summary,
       email: emailText,  // matches {{email}} in generate-reply_llmnode-934_user_1.md
+      verdict,
+      confidence,
+      reasons,
     })
     console.log("[Email Agent] Replier response:", JSON.stringify(replierRes, null, 2))
 
