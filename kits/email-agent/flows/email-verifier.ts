@@ -1,52 +1,3 @@
-/*
- * # Email Verifier
- * A single-flow, API-invoked verification endpoint that analyzes inbound email
- * content for authenticity, intent, urgency, and sender credibility, returning
- * a structured analysis to help teams triage and act on emails with confidence.
- *
- * ## Purpose
- * This flow accepts an email payload (sender, subject, body) and uses an LLM
- * to produce a structured verification report. It is designed to be called
- * synchronously by any HTTP/GraphQL-capable client — n8n, a custom UI, or a
- * helpdesk integration — immediately after an email is received.
- *
- * The output helps operators answer: Is this email legitimate? What does the
- * sender want? How urgent is it? Should it be escalated?
- *
- * ## When To Use
- * - Use when you need a fast AI-driven analysis of an inbound email before
- *   routing or acting on it.
- * - Use in triage pipelines where humans need a quick confidence signal on
- *   email authenticity or intent.
- * - Use as a pre-filter before an email reply or escalation flow.
- *
- * ## When Not To Use
- * - Do not use when no email body is available.
- * - Do not use for generating a reply — use the email-replier flow for that.
- * - Do not use as a definitive spam/phishing detector without additional
- *   signals; this is an LLM-based analysis, not a cryptographic verification.
- *
- * ## Inputs
- * | Field    | Type   | Required | Description                        |
- * |----------|--------|----------|------------------------------------|
- * | sender   | string | Yes      | The email sender address or name   |
- * | subject  | string | Yes      | The email subject line             |
- * | body     | string | Yes      | The full plain-text email body     |
- *
- * ## Outputs
- * | Field  | Type   | Description                                          |
- * |--------|--------|------------------------------------------------------|
- * | output | string | AI-generated verification and analysis report        |
- *
- * ## Dependencies
- * - Lamatic GraphQL trigger/response runtime
- * - LLM provider configured via `@model-configs/email-verifier_generate-text.ts`
- * - Prompt at `@prompts/email-verifier_generate-text_system.md`
- */
-
-// Flow: email-verifier
-
-// ── Meta ──────────────────────────────────────────────
 export const meta = {
   name: "Email Verifier",
   description:
@@ -64,7 +15,6 @@ export const meta = {
   },
 };
 
-// ── Inputs ────────────────────────────────────────────
 export const inputs = {
   sender: {
     type: "string",
@@ -80,7 +30,6 @@ export const inputs = {
   },
 };
 
-// ── References ────────────────────────────────────────
 export const references = {
   constitutions: {
     default: "@constitutions/default.md",

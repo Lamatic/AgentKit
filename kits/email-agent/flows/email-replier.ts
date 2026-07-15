@@ -1,51 +1,3 @@
-/*
- * # Email Replier
- * A single-flow, API-invoked reply generator that drafts professional,
- * context-aware email responses given a sender, subject, and body, enabling
- * teams to respond faster and more consistently.
- *
- * ## Purpose
- * This flow accepts an inbound email payload (sender, subject, body) and uses
- * an LLM to draft a suitable reply. It is called synchronously by any
- * HTTP/GraphQL-capable client — a Next.js app, n8n, or helpdesk integration —
- * immediately when a reply is needed.
- *
- * ## When To Use
- * - Use when you need a first-draft reply generated automatically for an
- *   inbound email.
- * - Use in support, sales, or partnership workflows to reduce manual writing
- *   time.
- * - Use as the reply stage in a larger email automation pipeline (after
- *   classification or verification).
- *
- * ## When Not To Use
- * - Do not use when no email body is available.
- * - Do not use for analyzing or verifying an email — use email-verifier for
- *   that.
- * - Do not use when the reply requires access to external systems (CRM, ticketing)
- *   without extending this flow.
- *
- * ## Inputs
- * | Field    | Type   | Required | Description                        |
- * |----------|--------|----------|------------------------------------|
- * | sender   | string | Yes      | The email sender address or name   |
- * | subject  | string | Yes      | The email subject line             |
- * | body     | string | Yes      | The full plain-text email body     |
- *
- * ## Outputs
- * | Field  | Type   | Description                                          |
- * |--------|--------|------------------------------------------------------|
- * | output | string | AI-generated reply draft ready to send or edit       |
- *
- * ## Dependencies
- * - Lamatic GraphQL trigger/response runtime
- * - LLM provider configured via `@model-configs/email-replier_generate-text.ts`
- * - Prompt at `@prompts/email-replier_generate-text_system.md`
- */
-
-// Flow: email-replier
-
-// ── Meta ──────────────────────────────────────────────
 export const meta = {
   name: "Email Replier",
   description:
@@ -63,7 +15,6 @@ export const meta = {
   },
 };
 
-// ── Inputs ────────────────────────────────────────────
 export const inputs = {
   sender: {
     type: "string",
@@ -91,7 +42,6 @@ export const inputs = {
   },
 };
 
-// ── References ────────────────────────────────────────
 export const references = {
   constitutions: {
     default: "@constitutions/default.md",
