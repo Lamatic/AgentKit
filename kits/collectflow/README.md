@@ -169,7 +169,7 @@ Timeline updates immediately and persists throughout the session.
 ## Quick Start
 
 ```bash
-git clone https://github.com/Sms1818/AgentKit.git
+git clone https://github.com/Lamatic/AgentKit.git
 cd AgentKit/kits/collectflow/apps
 
 npm install

@@ -28,13 +28,12 @@ export default {
       id: "collect-flow-customer-strategy",
       type: "mandatory" as const,
       envKey: "LAMATIC_CUSTOMER_STRATEGY_FLOW_ID",
-      prerequisiteSteps: ["collectflow-portfolio-intelligence"],
+      prerequisiteSteps: ["collect-flow-portfolio-intelligence"],
     },
   ],
 
   links: {
-    github:
-      "https://github.com/Sms1818/AgentKit/tree/feat/collectflow-kit/kits/collectflow",
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/collectflow",
     demo: "https://collectflow-nine.vercel.app",
     deploy: "https://collectflow-nine.vercel.app",
   },
