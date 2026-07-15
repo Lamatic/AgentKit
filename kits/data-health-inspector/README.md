@@ -31,4 +31,10 @@ The **Data Health Inspector** template takes a dataset URL as input and processe
 
 ## Usage
 
-Send a JSON payload containing the `dataset_url` string to the flow's endpoint. The flow will extract the CSV, run it through the 16-stage pipeline, and return a structured JSON response identifying any anomalies and offering recommendations for cleanup.
+Send a JSON payload containing the dataset URL, for example:
+
+```json
+{"dataset_url": "https://example.com/data.csv"}
+```
+
+The flow will extract the CSV, run it through the 16-stage pipeline, and return a structured JSON response identifying any anomalies and offering recommendations for cleanup.
