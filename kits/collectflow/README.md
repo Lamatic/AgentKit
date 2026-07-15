@@ -2,6 +2,12 @@
 
 > AI-powered collection strategy engine that transforms Accounts Receivable portfolios into explainable, human-guided workflows. Built with [Lamatic AgentKit](https://lamatic.ai).
 
+**[Live Demo](https://collectflow-nine.vercel.app)** ·
+**[Walkthrough](#product-walkthrough)**
+**[Architecture](#how-it-works)**
+
+---
+
 ## The Problem
 
 Accounts Receivable teams spend hours manually reviewing ageing reports, collector notes, and disputes to answer one question: **"Who should I call and why?"**
@@ -9,6 +15,8 @@ Accounts Receivable teams spend hours manually reviewing ageing reports, collect
 Traditional AR workflows explain _what is overdue_. They rarely explain _what should happen next_.
 
 Ageing reports are static. Customer circumstances change. Disputes emerge. Payment promises break. Yet every decision still relies on manual analysis, tribal knowledge, and inconsistent prioritization.
+
+This inefficiency costs time, consistency, and revenue recovery.
 
 ## The Solution
 
@@ -22,36 +30,71 @@ CollectFlow uses AI to transform AR portfolio data into an explainable collectio
 
 The result: collectors spend less time deciding _who_ and more time collecting _how_.
 
-## Quick Start
+---
 
-```bash
-git clone https://github.com/Sms1818/AgentKit.git
-cd AgentKit/kits/collectflow/apps
+## Product Walkthrough
 
-npm install
-cp .env.example .env.local
-npm run dev
-```
+### 1. Dashboard Overview
 
-See [Environment Setup](#environment-variables) for configuration.
+CollectFlow syncs your AR portfolio and presents an at-a-glance view of aging, disputes, and collection status.
+
+![Landing](./assets/landing.png)
+
+### 2. Customer Portfolio
+
+Review synchronized customer accounts with ageing buckets, payment status, and dispute flags before AI analysis begins.
+
+![Customer Portfolio](./assets/customer-portfolio.png)
+
+### 3. AI Portfolio Intelligence
+
+Customers are automatically ranked based on overdue amount, ageing, payment behavior, disputes, and broken promises. Explainable scores show _why_ each customer matters.
+
+![Portfolio Intelligence](./assets/portfolio-intelligence.png)
+
+### 4. Customer Strategy Generation
+
+AI generates an explainable Next Best Action with reasoning, recommended communication channels, and draft outreach templates tailored to each customer's situation.
+
+![Customer Strategy](./assets/customer-strategy.png)
+
+### 5. Manager Approval Gate
+
+High-risk strategies and large overdue amounts require human approval before execution. This preserves operational safety and keeps AI in a decision-support role.
+
+![Manager Approval](./assets/manager-approval.png)
+
+### 6. Outcome Recording
+
+Collectors record execution results and update customer status in real-time.
+
+![Outcome Recording](./assets/outcome-recording.png)
+
+### 7. Collection Timeline
+
+The complete collection lifecycle from prioritization through resolution is captured and available for review at any time.
+
+![Collection Journey](./assets/collection-journey.png)
+
+---
 
 ## How It Works
 
-### The Architecture
+### Architecture
 
 ```
 Synchronized AR Portfolio
             │
             ▼
     Portfolio Intelligence
-    (AI Workflow #1)
+       (AI Workflow #1)
             │
             ▼
    Ranked Collector Queue
             │
             ▼
    Customer Strategy Gen
-    (AI Workflow #2)
+       (AI Workflow #2)
             │
             ▼
     Manager Approval Gate
@@ -65,39 +108,41 @@ Synchronized AR Portfolio
 
 ### Two Core AI Workflows
 
-| Workflow                   | Input                       | Output                                                               |
-| -------------------------- | --------------------------- | -------------------------------------------------------------------- |
-| **Portfolio Intelligence** | AR portfolio snapshot       | Ranked queue, priority scores, risk levels, treatment lanes          |
-| **Customer Strategy**      | Selected customer + history | Next Best Action, reasoning, channel recommendation, draft messaging |
+| Workflow                   | Input                       | Output                                                                                        |
+| -------------------------- | --------------------------- | --------------------------------------------------------------------------------------------- |
+| **Portfolio Intelligence** | AR portfolio snapshot       | Ranked queue, priority scores, risk levels, treatment lanes, portfolio summary                |
+| **Customer Strategy**      | Selected customer + history | Next Best Action, AI reasoning, channel recommendation, draft messaging, approval requirement |
 
-Both workflows run on [Groq LLM](https://groq.com) via Lamatic, delivering fast, explainable recommendations.
+Both workflows are orchestrated using Lamatic AgentKit and use Groq for fast, structured inference, producing explainable recommendations for collectors.
+
+---
 
 ## Features
 
 ### Portfolio Intelligence
 
 - Multi-factor prioritization (ageing, risk, payment history, dispute status)
-- Explainable priority scores with reasoning
+- Explainable priority scores with transparent reasoning
 - Risk classification and treatment lane assignment
-- Portfolio health summary
+- Portfolio health summary and trend insights
 
 ### Customer Strategy
 
-- AI-generated Next Best Action (contact, escalate, dispute resolution, etc.)
-- Recommended communication channel and timing
-- Draft customer communication templates
+- AI-generated Next Best Action (contact, escalate, dispute resolution, payment plan, etc.)
+- Recommended communication channel and optimal timing
+- Draft customer communication templates ready to send
 - Follow-up scheduling recommendations
-- Captured AI reasoning for audit trails
+- Captured AI reasoning for audit trails and compliance
 
 ### Human Approval
 
 - Manager approval gate for high-stakes strategies
 - Prevents autonomous execution—AI remains decision support
-- Approval workflows preserve operational safety
+- Approval workflows preserve operational safety and compliance
 
 ### Collection Journey
 
-Record outcomes and track progress:
+Record outcomes and track progress in real-time:
 
 - Contacted Customer
 - Promise to Pay
@@ -105,7 +150,9 @@ Record outcomes and track progress:
 - No Response
 - Payment Received
 
-Timeline updates in real-time and persists for the session.
+Timeline updates immediately and persists throughout the session.
+
+---
 
 ## Tech Stack
 
@@ -117,17 +164,35 @@ Timeline updates in real-time and persists for the session.
 | **LLM**             | [Groq](https://groq.com) (fast inference)                                    |
 | **Deployment**      | [Vercel](https://vercel.com)                                                 |
 
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/Sms1818/AgentKit.git
+cd AgentKit/kits/collectflow/apps
+
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Visit `http://localhost:3000` to access the dashboard.
+
+See [Environment Setup](#environment-variables) for configuration details.
+
 ## Project Structure
 
 ```
 kits/collectflow/
-├── apps/                          # Next.js frontend
+├── apps/                          # Next.js frontend & API routes
+├── assets/                        # README screenshots
 ├── flows/                         # Lamatic workflow definitions
-├── prompts/                       # Workflow prompts
-├── model-configs/                 # LLM configurations
-├── constitutions/                 # Guardrails & constraints
-├── lamatic.config.ts              # Lamatic setup
-├── agent.md                       # Agent documentation
+├── prompts/                       # AI workflow prompts & instructions
+├── model-configs/                 # LLM model configurations
+├── constitutions/                 # Guardrails & safety constraints
+├── lamatic.config.ts              # Lamatic AgentKit configuration
+├── agent.md                       # Detailed agent architecture
 └── README.md
 ```
 
@@ -143,9 +208,11 @@ LAMATIC_CUSTOMER_STRATEGY_FLOW_ID=
 
 Get API credentials from your [Lamatic workspace](https://lamatic.ai/dashboard).
 
-## What's In Scope (MVP)
+---
 
-This MVP demonstrates one complete collection workflow loop:
+## MVP Scope
+
+This MVP demonstrates one complete, production-ready collection workflow loop:
 
 ```
 Portfolio Analysis → Customer Prioritization → Strategy Generation
@@ -153,53 +220,62 @@ Portfolio Analysis → Customer Prioritization → Strategy Generation
     Manager Approval → Outcome Recording → Timeline Update
 ```
 
-The MVP proves the core concept: AI-assisted collection workflows that respect human decision-making.
+**Why this scope?** It proves the core concept—AI-assisted collection workflows that respect human decision-making—without unnecessary complexity.
 
 ## What's Out of Scope (Intentional)
 
 The following are planned for future releases but outside the MVP:
 
 - ❌ ERP integrations (QuickBooks, SAP, NetSuite)
-- ❌ Persistent customer timelines / database
+- ❌ Persistent database and customer timelines
 - ❌ Automated email & SMS delivery
-- ❌ Collector assignment engine
+- ❌ Collector assignment optimization
 - ❌ Payment portal integration
 - ❌ Authentication & multi-user collaboration
-- ❌ Learning-based models (future)
+- ❌ Learning-based prioritization models
 
-## Why This Approach?
+## Design Philosophy: Responsible AI in Collections
 
-**CollectFlow demonstrates responsible AI in AR operations:**
+CollectFlow demonstrates how AI can support AR teams without replacing human judgment:
 
-| Responsibility       | Who Owns It |
-| -------------------- | ----------- |
-| Analysis & Reasoning | AI          |
-| Approval & Execution | Human       |
-| Communication        | Human       |
-| Outcome Recording    | Human       |
-| Learning & Iteration | Human       |
+| Responsibility         | Owner | Rationale                                      |
+| ---------------------- | ----- | ---------------------------------------------- |
+| Analysis & Reasoning   | AI    | Fast, consistent evaluation of complex factors |
+| Approval & Execution   | Human | Maintains accountability and compliance        |
+| Customer Communication | Human | Preserves relationship nuance                  |
+| Outcome Recording      | Human | Ensures data quality and feedback loops        |
+| Learning & Iteration   | Human | Keeps humans in control of system evolution    |
 
-This keeps the entire workflow transparent, explainable, and operationally safe. AI augments; humans decide.
+**Result:** Transparent, explainable, operationally safe workflows. AI augments; humans decide.
 
-## Demo & Documentation
-
-- **Live Demo**: [Coming Soon]
-- **Walkthrough Video**: [Coming Soon]
-- **Agent Architecture**: See `agent.md`
+---
 
 ## Roadmap
 
-- [ ] Live ERP integrations
-- [ ] Persistent collection timelines
-- [ ] Automated channel delivery (email, SMS, integrations)
+- [ ] Live ERP integrations (QuickBooks, SAP, NetSuite)
+- [ ] Persistent collection timelines and customer history
+- [ ] Automated channel delivery (email, SMS, payment links)
 - [ ] Collector assignment optimization
 - [ ] Payment portal integration
 - [ ] Learning-based prioritization models
 - [ ] Multi-user collaboration & audit trails
 
+---
+
 ## Contributing
 
-We welcome contributions from AR professionals, AI engineers, and open source maintainers. Please see [CONTRIBUTING.md] for guidelines.
+We welcome contributions from AR professionals, AI engineers, and open source maintainers.
+
+For guidelines, see [CONTRIBUTING.md].
+
+---
+
+## Support & Documentation
+
+- **Agent Architecture:** See `agent.md`
+- **Lamatic Documentation:** https://lamatic.ai/docs
+
+---
 
 ## License
 

@@ -33,9 +33,9 @@ export default {
   ],
 
   links: {
-    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/collectflow",
-    demo: "",
-    deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/collectflow/apps",
+    github:
+      "https://github.com/Sms1818/AgentKit/tree/feat/collectflow-kit/kits/collectflow",
+    demo: "https://collectflow-nine.vercel.app",
+    deploy: "https://collectflow-nine.vercel.app",
   },
 };
