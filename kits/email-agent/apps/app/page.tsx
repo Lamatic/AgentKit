@@ -269,7 +269,7 @@ export default function EmailAgentPage() {
                           )}
                         </Button>
                       </div>
-                      <div className="flex-1 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-150 dark:border-slate-800 rounded-lg overflow-y-auto max-h-[450px]">
+                      <div className="flex-1 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 rounded-lg overflow-y-auto max-h-[450px]">
                         <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-base prose-h2:text-sm prose-p:text-slate-600 dark:prose-p:text-slate-300">
                           <ReactMarkdown>{verifierResult}</ReactMarkdown>
                         </div>
@@ -306,7 +306,7 @@ export default function EmailAgentPage() {
                           )}
                         </Button>
                       </div>
-                      <div className="flex-1 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-150 dark:border-slate-800 rounded-lg overflow-y-auto max-h-[450px] whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700 dark:text-slate-350">
+                      <div className="flex-1 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 rounded-lg overflow-y-auto max-h-[450px] whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700 dark:text-slate-350">
                         {replierResult}
                       </div>
                     </div>
