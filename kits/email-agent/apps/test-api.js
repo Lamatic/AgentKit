@@ -1,5 +1,3 @@
-// API test script for debugging Lamatic flow execution
-// Copy .env.example to .env.local and fill in your credentials before running
 // Run: node --env-file=.env.local test-api.js
 
 const API_URL = process.env.LAMATIC_API_URL;

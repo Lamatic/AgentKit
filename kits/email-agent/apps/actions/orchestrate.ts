@@ -3,8 +3,6 @@
 import { lamaticClient } from "@/lib/lamatic-client"
 import { config } from "../orchestrate.js"
 
-// Verifier returns a JSON object: { verdict, confidence, reasons, summary }
-// Format it as readable Markdown for the UI
 function formatVerifierResult(response: Record<string, unknown> | string): string {
   if (typeof response === "string") return response
 
@@ -52,8 +50,7 @@ export async function verifyEmail(
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
     console.log("[Email Agent] Verifier response:", JSON.stringify(resData, null, 2))
 
-    // response can be a JSON object { verdict, confidence, reasons, summary } or a string
-    const response = resData?.result?.response
+    const response = resData?.result?.output
     if (!response) {
       throw new Error("No output analysis report found in response")
     }
@@ -90,51 +87,40 @@ export async function replyEmail(
       throw new Error("Replier workflow not found in configuration")
     }
 
-    // Step 1: Run verifier to get summary for context
-    console.log("[Email Agent] Step 1 — Running verifier to generate summary...")
+    console.log("[Email Agent] Step 1 — Running verifier...")
     const verifierRes = await lamaticClient.executeFlow(verifierFlow.workflowId, {
       sender, subject, body,
     })
-    console.log("[Email Agent] Verifier (summary) response:", JSON.stringify(verifierRes, null, 2))
+    console.log("[Email Agent] Verifier response:", JSON.stringify(verifierRes, null, 2))
 
-    // Extract verifier payload fields — if object, pull individual fields; else use as-is
-    const verifierResponse = verifierRes?.result?.response
+    const verifierResponse = verifierRes?.result?.output
     let verdict = ""
     let confidence = 0
     let reasons: string[] = []
-    let summary = ""
 
     if (typeof verifierResponse === "object" && verifierResponse !== null) {
       const r = verifierResponse as {
         verdict?: string
         confidence?: number
         reasons?: string[]
-        summary?: string
       }
       verdict = r.verdict ?? ""
       confidence = r.confidence ?? 0
       reasons = r.reasons ?? []
-      summary = r.summary ?? ""
-    } else {
-      summary = String(verifierResponse ?? "")
     }
 
-    // Step 2: Run replier — generate-reply prompt uses {{email}} single variable
-    const emailText = `From: ${sender}\nSubject: ${subject}\n\n${body}`
-    console.log("[Email Agent] Step 2 — Running replier with email:", emailText)
+    console.log("[Email Agent] Step 2 — Running replier...")
     const replierRes = await lamaticClient.executeFlow(replierFlow.workflowId, {
       sender,
       subject,
       body,
-      summary,
-      email: emailText,  // matches {{email}} in generate-reply_llmnode-934_user_1.md
       verdict,
       confidence,
       reasons,
     })
     console.log("[Email Agent] Replier response:", JSON.stringify(replierRes, null, 2))
 
-    const answer = replierRes?.result?.response
+    const answer = replierRes?.result?.output
     if (!answer) {
       throw new Error("No output reply draft found in response")
     }

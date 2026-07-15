@@ -6,14 +6,14 @@ export const config = {
       workflowId: process.env.EMAIL_VERIFIER_FLOW_ID,
       description: "Verifies and analyzes email sender, subject, and content.",
       mode: "sync",
-      expectedOutput: "response",
+      expectedOutput: "output",
       inputSchema: {
         sender: "string",
         subject: "string",
         body: "string"
       },
       outputSchema: {
-        response: "string"
+        output: "string"
       }
     },
     replier: {
@@ -21,19 +21,17 @@ export const config = {
       workflowId: process.env.EMAIL_REPLIER_FLOW_ID,
       description: "Generates context-aware reply drafts to inbound emails.",
       mode: "sync",
-      expectedOutput: "response",
+      expectedOutput: "output",
       inputSchema: {
         sender: "string",
         subject: "string",
         body: "string",
-        summary: "string",
-        email: "string",   // combined string: {{email}} in prompt
         verdict: "string",
         confidence: "number",
         reasons: "array"
       },
       outputSchema: {
-        response: "string"
+        output: "string"
       }
     }
   },

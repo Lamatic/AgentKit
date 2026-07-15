@@ -106,7 +106,6 @@ export default function EmailAgentPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Email Input Form */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="shadow-lg border-slate-200/60 dark:border-slate-800">
               <CardHeader className="pb-4">
@@ -205,7 +204,6 @@ export default function EmailAgentPage() {
             </Card>
           </div>
 
-          {/* Right Column: AI Action Workspace */}
           <div className="lg:col-span-7 space-y-6">
             <Card className="shadow-lg border-slate-200/60 dark:border-slate-800 min-h-[500px] flex flex-col">
               <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -215,7 +213,6 @@ export default function EmailAgentPage() {
                     <CardDescription>Toggle between verification audit and reply draft generation.</CardDescription>
                   </div>
 
-                  {/* Mode Toggler */}
                   <div className="inline-flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg shrink-0 w-fit self-start">
                     <button
                       type="button"
@@ -246,7 +243,6 @@ export default function EmailAgentPage() {
               </CardHeader>
 
               <CardContent className="flex-1 flex flex-col p-6">
-                {/* Result display */}
                 {mode === "verify" ? (
                   verifierResult ? (
                     <div className="flex-1 flex flex-col">
