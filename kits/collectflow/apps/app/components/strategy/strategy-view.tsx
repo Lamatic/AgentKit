@@ -49,6 +49,10 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
+/**
+ * Converts enum-style values into human-readable labels.
+ * Example: "PHONE_AND_EMAIL" -> "Phone And Email".
+ */
 function formatLabel(value: string): string {
   return value
     .toLowerCase()
@@ -57,6 +61,11 @@ function formatLabel(value: string): string {
     .join(" ");
 }
 
+/**
+ * Displays the AI-generated customer collection strategy,
+ * approval workflow, outreach draft, execution outcomes,
+ * and collection journey for the selected customer.
+ */
 export function StrategyView({
   customer,
   strategy,
@@ -509,6 +518,9 @@ ${strategy.draft_message}`;
   );
 }
 
+/**
+ * Displays a summary metric for the selected customer.
+ */
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border bg-background/80 p-5 shadow-sm">
@@ -521,6 +533,10 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * Renders a single AI reasoning statement explaining
+ * why the recommended collection strategy was selected.
+ */
 function ReasonCard({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-3 rounded-xl border bg-background/70 p-4">
@@ -531,6 +547,10 @@ function ReasonCard({ text }: { text: string }) {
   );
 }
 
+/**
+ * Generates a human-readable description for a recorded
+ * collection outcome displayed in the journey timeline.
+ */
 function getOutcomeDescription(outcome: RecordedOutcome): string {
   const note = outcome.note ? ` Note: ${outcome.note}` : "";
 
@@ -556,6 +576,10 @@ function getOutcomeDescription(outcome: RecordedOutcome): string {
   return `${descriptions[outcome.outcome]}${note}`;
 }
 
+/**
+ * Returns the current collection journey title based on
+ * the latest recorded customer outcome.
+ */
 function getCurrentJourneyTitle(outcome: RecordedOutcome): string {
   const titles: Record<RecordedOutcome["outcome"], string> = {
     CONTACTED: "Awaiting customer response",
@@ -568,6 +592,10 @@ function getCurrentJourneyTitle(outcome: RecordedOutcome): string {
   return titles[outcome.outcome];
 }
 
+/**
+ * Generates the next-step description shown in the
+ * collection journey timeline after the latest outcome.
+ */
 function getCurrentJourneyDescription(
   outcome: RecordedOutcome,
   followUpDays: number,
@@ -602,6 +630,10 @@ interface JourneyStepProps {
   isLast?: boolean;
 }
 
+/**
+ * Renders a single step in the customer collection journey
+ * with complete, current, or upcoming status.
+ */
 function JourneyStep({
   title,
   description,

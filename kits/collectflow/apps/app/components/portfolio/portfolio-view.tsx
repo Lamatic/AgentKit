@@ -32,6 +32,10 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
+/**
+ * Type guard that determines whether a customer includes
+ * AI-generated portfolio ranking information.
+ */
 function isRankedCustomer(
   customer: Customer | RankedCustomer,
 ): customer is RankedCustomer {
@@ -44,6 +48,10 @@ function isRankedCustomer(
   );
 }
 
+/**
+ * Converts a treatment lane identifier into a human-readable label.
+ * Example: "MANAGER_REVIEW" -> "Manager Review".
+ */
 function formatTreatmentLane(value: string): string {
   return value
     .toLowerCase()
@@ -52,6 +60,9 @@ function formatTreatmentLane(value: string): string {
     .join(" ");
 }
 
+/**
+ * Maps portfolio risk levels to the corresponding badge variant.
+ */
 function getRiskVariant(
   risk: string,
 ): "destructive" | "default" | "secondary" | "outline" {
@@ -77,6 +88,7 @@ export function PortfolioView({
     });
 
   const hasRankingResults = rankedCustomers.length > 0;
+  const showRankedResults = hasAnalyzedPortfolio && hasRankingResults;
 
   const fallbackTotalOverdue = customers.reduce(
     (total, customer) => total + customer.totalOverdue,
@@ -166,13 +178,13 @@ export function PortfolioView({
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">
-                {hasAnalyzedPortfolio && hasRankingResults
+                {showRankedResults
                   ? "AI collector queue"
                   : "Customer Portfolio"}
               </h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                {hasAnalyzedPortfolio && hasRankingResults
+                {showRankedResults
                   ? "Customers ranked by urgency, risk and recommended treatment"
                   : "Review the synced customers, then run AI analysis to generate the prioritized collector queue."}
               </p>
@@ -198,7 +210,7 @@ export function PortfolioView({
               </Button>
             )}
 
-            {hasAnalyzedPortfolio && hasRankingResults && (
+            {showRankedResults && (
               <Badge variant="outline" className="w-fit rounded-full">
                 {rankedCustomers.length}{" "}
                 {rankedCustomers.length === 1 ? "account" : "accounts"} analyzed
@@ -284,7 +296,7 @@ export function PortfolioView({
             </div>
           )}
 
-          {hasAnalyzedPortfolio && hasRankingResults && (
+          {showRankedResults && (
             <div className="space-y-4">
               {rankedCustomers.map((customer) => (
                 <div
@@ -447,7 +459,9 @@ export function PortfolioView({
     </div>
   );
 }
-
+/**
+ * Displays a portfolio summary metric.
+ */
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border bg-background/80 p-5 shadow-sm">
@@ -460,6 +474,9 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * Displays an individual portfolio metric value.
+ */
 function MetricCell({
   label,
   value,
