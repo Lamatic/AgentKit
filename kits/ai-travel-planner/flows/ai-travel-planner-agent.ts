@@ -164,6 +164,14 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
+    "id": "LLMNode_1-chatResponseNode_1",
+    "source": "LLMNode_1",
+    "target": "chatResponseNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
     "id": "response-chatResponseNode_1",
     "source": "chatTriggerNode_1",
     "target": "chatResponseNode_1",
