@@ -12,7 +12,7 @@ Data Health Inspector is an AI agent designed to automatically analyze datasets,
 
 ## Flow Descriptions
 
-The `data-health-inspector` flow extracts CSV data and processes it through a series of custom Code Nodes to mathematically detect data anomalies and calculate health scores. It then passes these metrics to an AI interpretation node to generate a narrative summary and actionable recommendations, returning a complete structured JSON report.
+The `data-health-inspector` flow reads sample data inputs, processes them through a series of custom Code Nodes to mathematically detect data anomalies, and passes these metrics to a configured LLM to generate a narrative summary, returning a structured report of the dataset's health.
 
 ## Guardrails
 
