@@ -1,11 +1,13 @@
-Document type: {{LLMNode_extractor.output.document_type}}
+Document type:
+{{InstructorLLMNode_462.output.document_type}}
 
 Extracted fields:
-{{LLMNode_extractor.output.extracted_fields}}
+{{InstructorLLMNode_462.output.extracted_fields}}
 
 Validation results:
-{{LLMNode_validator.output}}
+{{InstructorLLMNode_728.output.validation_results}}
 
-Confidence score: {{LLMNode_extractor.output.confidence_score}}
+Confidence score:
+{{InstructorLLMNode_462.output.confidence_score}}
 
 Please write the human-readable validation summary.

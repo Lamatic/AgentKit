@@ -36,7 +36,7 @@ You can upload `.txt`, `.pdf`, or Word (`.docx`) files, or just paste the text i
     "signature_present": true
   },
   "validation_results": [
-    { "check": "Expiry date valid", "status": "pass", "note": null },
+    { "check": "Expiry date valid", "status": "pass", "note": "" },
     { "check": "Signature present", "status": "fail", "note": "No signature detected on page 2" }
   ],
   "confidence_score": 0.91,
