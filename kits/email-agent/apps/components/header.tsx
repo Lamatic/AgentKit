@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Mail, Github, FileText } from "lucide-react"
+import { Github, FileText } from "lucide-react"
 import Image from "next/image"
 
 export function Header() {
