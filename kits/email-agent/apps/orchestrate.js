@@ -27,7 +27,10 @@ export const config = {
         subject: "string",
         body: "string",
         summary: "string",
-        email: "string"   // combined string: {{email}} in prompt
+        email: "string",   // combined string: {{email}} in prompt
+        verdict: "string",
+        confidence: "number",
+        reasons: "array"
       },
       outputSchema: {
         response: "string"

@@ -77,6 +77,18 @@ export const inputs = {
     type: "string",
     description: "The full plain-text body of the email to reply to",
   },
+  verdict: {
+    type: "string",
+    description: "The legitimacy verdict from the email verifier flow",
+  },
+  confidence: {
+    type: "number",
+    description: "The confidence percentage of the legitimacy verdict",
+  },
+  reasons: {
+    type: "array",
+    description: "The list of reasons justifying the legitimacy verdict",
+  },
 };
 
 // ── References ────────────────────────────────────────
@@ -108,7 +120,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"sender\": {\n      \"type\": \"string\"\n    },\n    \"subject\": {\n      \"type\": \"string\"\n    },\n    \"body\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"sender\",\n    \"subject\",\n    \"body\"\n  ]\n}"
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"sender\": {\n      \"type\": \"string\"\n    },\n    \"subject\": {\n      \"type\": \"string\"\n    },\n    \"body\": {\n      \"type\": \"string\"\n    },\n    \"verdict\": {\n      \"type\": \"string\"\n    },\n    \"confidence\": {\n      \"type\": \"number\"\n    },\n    \"reasons\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"sender\",\n    \"subject\",\n    \"body\"\n  ]\n}"
       }
     }
   },
@@ -133,7 +145,7 @@ export const nodes = [
           {
             "id": "email-replier-user-prompt",
             "role": "user",
-            "content": "Sender: {{triggerNode_1.output.sender}}\nSubject: {{triggerNode_1.output.subject}}\nBody:\n{{triggerNode_1.output.body}}"
+            "content": "Sender: {{triggerNode_1.output.sender}}\nSubject: {{triggerNode_1.output.subject}}\nBody:\n{{triggerNode_1.output.body}}\n\nVerification Audit:\nVerdict: {{triggerNode_1.output.verdict}}\nConfidence: {{triggerNode_1.output.confidence}}%\nReasons: {{triggerNode_1.output.reasons}}"
           }
         ],
         "memories": "@model-configs/email-replier_generate-text.ts",
