@@ -1,9 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Loader2, Receipt, Sparkles, ChevronDown } from "lucide-react";
 import { analyzeExpenses, type ExpenseAnalysis } from "@/actions/orchestrate";
 
-const CATEGORY_STAMP_COLOR: Record<string, string> = {
+const schema = z.object({
+  transactionText: z
+    .string()
+    .min(5, "Please enter at least one transaction."),
+  currency: z.enum(["USD", "INR", "EUR", "GBP"]),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const CATEGORY_COLOR: Record<string, string> = {
   Food: "border-stamp text-stamp",
   Transport: "border-ledger text-ledger",
   Rent: "border-flag text-flag",
@@ -21,28 +34,35 @@ Jan 8 - Rent Payment - $1200.00
 Jan 9 - Electricity Bill - $85.30`;
 
 export default function Home() {
-  const [transactionText, setTransactionText] = useState("");
-  const [currency, setCurrency] = useState("USD");
   const [result, setResult] = useState<ExpenseAnalysis | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    setError,
+    clearErrors,
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { transactionText: "", currency: "USD" },
+  });
+
+  function onSubmit(values: FormValues) {
+    clearErrors();
     startTransition(async () => {
-      const response = await analyzeExpenses(transactionText, currency);
+      const response = await analyzeExpenses(
+        values.transactionText,
+        values.currency
+      );
       if (response.success) {
         setResult(response.data);
       } else {
         setResult(null);
-        setError(response.error);
+        setError("transactionText", { message: response.error });
       }
     });
-  }
-
-  function useSample() {
-    setTransactionText(SAMPLE_INPUT);
   }
 
   return (
@@ -57,41 +77,45 @@ export default function Home() {
           </h1>
           <p className="mt-3 max-w-xl text-ink/70">
             Paste in a receipt, a few bank-statement lines, or any list of
-            transactions. Get them categorized instantly, plus one honest
-            note about where your money went.
+            transactions. Get them categorized instantly, plus one honest note
+            about where your money went.
           </p>
         </header>
 
         <div className="grid gap-8 sm:grid-cols-5">
-          {/* Input column */}
+          {/* ── Input column ── */}
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
             className="sm:col-span-2 flex flex-col gap-4"
           >
             <div>
               <div className="mb-1 flex items-center justify-between">
                 <label
-                  htmlFor="transactions"
+                  htmlFor="transactionText"
                   className="font-mono text-xs uppercase tracking-wide text-ink/60"
                 >
                   Transactions
                 </label>
                 <button
                   type="button"
-                  onClick={useSample}
+                  onClick={() => setValue("transactionText", SAMPLE_INPUT)}
                   className="font-mono text-xs text-ledger underline underline-offset-2 hover:text-ink"
                 >
                   Use sample
                 </button>
               </div>
               <textarea
-                id="transactions"
-                value={transactionText}
-                onChange={(e) => setTransactionText(e.target.value)}
-                placeholder={"Jan 5 - Starbucks - $6.50\nJan 6 - Uber - $18.20\n..."}
+                id="transactionText"
                 rows={10}
+                placeholder={"Jan 5 - Starbucks - $6.50\nJan 6 - Uber - $18.20\n..."}
+                {...register("transactionText")}
                 className="w-full resize-none rounded-md border border-ink/20 bg-white/60 p-3 font-mono text-sm text-ink placeholder:text-ink/30 focus:border-ledger focus:outline-none focus:ring-2 focus:ring-ledger/30"
               />
+              {errors.transactionText && (
+                <p className="mt-1 text-sm text-flag">
+                  {errors.transactionText.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -101,35 +125,44 @@ export default function Home() {
               >
                 Currency
               </label>
-              <select
-                id="currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full rounded-md border border-ink/20 bg-white/60 p-2 text-sm text-ink focus:border-ledger focus:outline-none focus:ring-2 focus:ring-ledger/30"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="INR">INR (₹)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
+              <div className="relative">
+                <select
+                  id="currency"
+                  {...register("currency")}
+                  className="w-full appearance-none rounded-md border border-ink/20 bg-white/60 p-2 pr-8 text-sm text-ink focus:border-ledger focus:outline-none focus:ring-2 focus:ring-ledger/30"
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="INR">INR (₹)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink/40"
+                />
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={isPending || !transactionText.trim()}
-              className="rounded-md bg-ledger px-4 py-2.5 font-medium text-paper transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isPending}
+              className="flex items-center justify-center gap-2 rounded-md bg-ledger px-4 py-2.5 font-medium text-paper transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isPending ? "Tallying up…" : "Tally it up"}
+              {isPending ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Tallying up…
+                </>
+              ) : (
+                <>
+                  <Receipt size={16} />
+                  Tally it up
+                </>
+              )}
             </button>
-
-            {error && (
-              <p className="rounded-md border border-flag/30 bg-flag/5 p-3 text-sm text-flag">
-                {error}
-              </p>
-            )}
           </form>
 
-          {/* Output column: the receipt */}
+          {/* ── Output column ── */}
           <div className="sm:col-span-3">
             {!result && !isPending && (
               <div className="flex h-full min-h-[320px] items-center justify-center rounded-md border border-dashed border-ink/20 p-8 text-center">
@@ -149,11 +182,8 @@ export default function Home() {
             )}
 
             {result && !isPending && (
-              <div className="animate-in fade-in duration-300">
-                <div
-                  className="receipt-edge-top"
-                  aria-hidden="true"
-                />
+              <div>
+                <div className="receipt-edge-top" aria-hidden="true" />
                 <div className="border-x border-ink/10 bg-white/70 px-6 py-6 shadow-sm">
                   <p className="text-center font-display text-lg font-semibold text-ink">
                     Spending Summary
@@ -177,8 +207,7 @@ export default function Home() {
                         </div>
                         <span
                           className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${
-                            CATEGORY_STAMP_COLOR[t.category] ??
-                            CATEGORY_STAMP_COLOR.Other
+                            CATEGORY_COLOR[t.category] ?? CATEGORY_COLOR.Other
                           }`}
                         >
                           {t.category}
@@ -195,17 +224,15 @@ export default function Home() {
                   <div className="flex items-center justify-between font-mono text-base font-semibold text-ink">
                     <span>Total spent</span>
                     <span>
-                      {currency} {result.totalSpent.toFixed(2)}
+                      {result.totalSpent.toFixed(2)}
                     </span>
                   </div>
                 </div>
-                <div
-                  className="receipt-edge-bottom"
-                  aria-hidden="true"
-                />
+                <div className="receipt-edge-bottom" aria-hidden="true" />
 
                 <div className="mt-6 rounded-md border border-stamp/30 bg-stamp/5 p-4">
-                  <p className="mb-1 font-mono text-xs uppercase tracking-wide text-stamp">
+                  <p className="mb-1 flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-stamp">
+                    <Sparkles size={12} />
                     A note from your copilot
                   </p>
                   <p className="text-sm leading-relaxed text-ink/80">
