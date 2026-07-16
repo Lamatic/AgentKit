@@ -14,6 +14,19 @@ export interface RunInvestigationResult {
   readonly error?: string;
 }
 
+/**
+ * Executes a TrustGuard AI investigation using the configured Lamatic flow.
+ *
+ * Normalises the form data into a Lamatic-compatible payload, calls the flow
+ * via the singleton SDK client, and validates the returned JSON against the
+ * Zod schema before returning it to the caller.  All errors are caught and
+ * surfaced as a typed failure result so the UI never sees an uncaught
+ * exception from this action.
+ *
+ * @param formData - Investigation form data collected from the UI input form.
+ * @returns A result object containing either the validated investigation
+ *   response (`success: true, data`) or an error message (`success: false, error`).
+ */
 export async function runInvestigation(
   formData: AnalyzeFormData
 ): Promise<RunInvestigationResult> {

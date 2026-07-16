@@ -12,10 +12,32 @@ interface ThreatCardProps {
   readonly delay?: number;
 }
 
+/**
+ * Result card that presents the complete threat analysis from the Lamatic flow.
+ *
+ * Renders a risk gauge via `RiskMeter`, a confidence percentage, a severity
+ * badge, a grouped list of high/medium/low threat indicator chips, and the
+ * AI reasoning summary.  All numeric values are normalised to 0–100 before
+ * display in case the API returns 0–1 decimals.
+ *
+ * @param analysis - Validated threat analysis data returned by the Lamatic flow.
+ * @param delay    - Framer Motion entry delay in seconds (default `0`).
+ * @returns An animated card element with the full threat analysis breakdown.
+ */
 export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
   const severityColors = getSeverityColor(analysis.severity);
 
   // Normalise 0-1 to 0-100 if the API returns decimals
+  /**
+   * Converts a numeric score to a whole-number percentage.
+   *
+   * Treats values in the 0–1 range as fractions and multiplies by 100;
+   * treats values already above 1 as percentage points and clamps them to
+   * the 0–100 range before rounding.
+   *
+   * @param v - Raw numeric value from the Lamatic response.
+   * @returns Integer percentage in the 0–100 range.
+   */
   const normalise = (v: number) => (v <= 1 ? Math.round(v * 100) : Math.round(clamp(v)));
 
   return (

@@ -24,10 +24,40 @@ const inputClass =
 
 const labelClass = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5";
 
+/**
+ * Controlled form component that collects all investigation parameters from
+ * the user before submitting to the TrustGuard AI analysis pipeline.
+ *
+ * Renders four fields — input type selector, language selector, content
+ * textarea, and an optional attachment URL — plus an animated submit button
+ * that shows a spinner while the request is in-flight.
+ *
+ * @param formData - Current snapshot of the form field values.
+ * @param onChange - Callback invoked with the updated `AnalyzeFormData`
+ *   whenever any field changes.
+ * @param onSubmit - Callback invoked when the form is submitted and the
+ *   content field is non-empty.
+ * @param loading  - When `true`, all fields are disabled and the button
+ *   shows a loading spinner instead of the submit label.
+ * @returns The animated investigation input form.
+ */
 export default function InputForm({ formData, onChange, onSubmit, loading }: InputFormProps) {
+  /**
+   * Immutable field setter that merges a single key-value pair into the
+   * current form data object and propagates the change via `onChange`.
+   *
+   * @param key   - The `AnalyzeFormData` field to update.
+   * @param value - The new value for the field.
+   */
   const set = <K extends keyof AnalyzeFormData>(key: K, value: AnalyzeFormData[K]) =>
     onChange({ ...formData, [key]: value });
 
+  /**
+   * Native form submit handler that prevents the default browser navigation,
+   * then delegates to `onSubmit` if the action is not already loading.
+   *
+   * @param e - The React synthetic form submission event.
+   */
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!loading) onSubmit();

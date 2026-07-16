@@ -12,6 +12,14 @@ interface ResultCardsProps {
   readonly data: InvestigationResponse;
 }
 
+/**
+ * Motion wrapper that applies a staggered fade-and-slide entrance animation
+ * to any result card it contains.
+ *
+ * @param children - The card component to animate.
+ * @param delay    - Framer Motion entry delay in seconds (default `0`).
+ * @returns An animated `<div>` that wraps its child with full height.
+ */
 const CardWrapper = ({
   children,
   delay = 0,
@@ -30,6 +38,20 @@ const CardWrapper = ({
 );
 
 // Generic info card (Investigation, Normalized)
+/**
+ * Generic glassmorphic card shell used for the Investigation and Normalized
+ * Content panels in the result grid.
+ *
+ * Renders a rounded card with a heading row (icon + title) followed by a
+ * vertically stacked content slot for child field rows.
+ *
+ * @param title    - Card heading text shown next to the icon.
+ * @param icon     - React node (typically a Lucide icon) displayed in the header.
+ * @param iconBg   - Tailwind CSS class for the icon container background and text colour.
+ * @param children - Field rows or other content rendered inside the card body.
+ * @param delay    - Framer Motion entry delay in seconds (default `0`).
+ * @returns An animated glassmorphic card element.
+ */
 function InfoCard({
   title,
   icon,
@@ -61,6 +83,16 @@ function InfoCard({
   );
 }
 
+/**
+ * Renders a single labelled field inside an `InfoCard`.
+ *
+ * Displays a small uppercase label above the field value.  When `value`
+ * is `undefined` or empty, renders an em-dash as a placeholder.
+ *
+ * @param label - Uppercase section label for the field.
+ * @param value - String value to display; renders `"—"` if `undefined`.
+ * @returns A two-line label + value element.
+ */
 function Field({ label, value }: { readonly label: string; readonly value: string | undefined }) {
   return (
     <div>
@@ -72,6 +104,15 @@ function Field({ label, value }: { readonly label: string; readonly value: strin
   );
 }
 
+/**
+ * Inline badge that colour-codes an investigation status value.
+ *
+ * Applies a cyan colour scheme for statuses of `"active"` or `"open"`,
+ * and a neutral slate colour for all other statuses.
+ *
+ * @param status - The raw status string from the investigation data.
+ * @returns A small pill-shaped `<span>` badge with the status label.
+ */
 function StatusBadge({ status }: { readonly status: string }) {
   const isActive =
     status?.toLowerCase() === "active" || status?.toLowerCase() === "open";
@@ -87,6 +128,18 @@ function StatusBadge({ status }: { readonly status: string }) {
   );
 }
 
+/**
+ * Assembles all investigation result cards into a responsive two-column grid.
+ *
+ * Renders five cards from the validated flow response: Investigation metadata,
+ * Normalized Content, Evidence badges, Threat Analysis (with risk meter), and
+ * the full-width Decision card.  Each card enters the viewport with a
+ * staggered animation delay.
+ *
+ * @param data - The complete validated investigation response from the
+ *   Lamatic flow, containing all sub-objects required by the child cards.
+ * @returns A `<section>` containing the full results grid.
+ */
 export default function ResultCards({ data }: ResultCardsProps) {
   const { investigation, normalized, evidence, analysis, decision } = data;
 

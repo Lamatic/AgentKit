@@ -1,6 +1,15 @@
 // app/loading.tsx
 // Shown by Next.js during initial page load suspense boundary
 
+/**
+ * Next.js suspense boundary loading screen shown while the main page
+ * segment is being streamed to the client on initial navigation.
+ *
+ * Renders a centred spinning indicator and a pulsing text label so users
+ * receive immediate visual feedback before the page becomes interactive.
+ *
+ * @returns A full-viewport centred loading spinner with a text label.
+ */
 export default function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
