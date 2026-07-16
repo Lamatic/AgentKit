@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server';
 
+/**
+ * A Next.js API route that acts as a secure logging bridge.
+ * 
+ * Since Chrome Extensions have isolated DevTools consoles that are often hidden 
+ * from the user, this endpoint allows the extension's background script to flush 
+ * its telemetry (e.g. AI decisions, parsed DOM contexts) directly into the Next.js 
+ * terminal window where the developer is actively watching.
+ * 
+ * @param {Request} req - The incoming HTTP POST request containing a JSON payload.
+ * @returns {Promise<NextResponse>} A JSON response indicating success or failure.
+ */
 export async function POST(req: Request) {
   try {
     const payload = await req.json();

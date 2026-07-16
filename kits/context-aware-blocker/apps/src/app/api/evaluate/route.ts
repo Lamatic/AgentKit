@@ -24,6 +24,16 @@ const lamaticClient = new Lamatic({
   apiKey: process.env.LAMATIC_API_KEY ?? "",
 });
 
+/**
+ * The core AI evaluator endpoint bridging the Chrome Extension and Lamatic Studio.
+ * 
+ * This route receives the scraped DOM context from the extension and the active 
+ * block rules from the local DB. It formats these into a standard payload and 
+ * fires it off to the remote Lamatic AI Flow for a "BLOCK" or "PASS" verdict.
+ * 
+ * @param {Request} req - The incoming POST request containing the DOM and rules payload.
+ * @returns {Promise<NextResponse>} A JSON response containing the AI's action verdict and raw LLM response.
+ */
 export async function POST(req: Request) {
   const startTime = Date.now();
   try {

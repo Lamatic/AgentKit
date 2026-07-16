@@ -13,6 +13,19 @@ interface CommitSettingsModalProps {
   commitId: string; // ** PRODUCTION LEVEL IDENTIFIER: Passed down to load specific commit config **
 }
 
+/**
+ * A master modal that orchestrates the configuration of a focus block.
+ * 
+ * It manages the transitions between the 'Active Time' and 'Blocked Content' sub-panes.
+ * It also handles global modal state like keyboard navigation (arrow keys) and scroll locking.
+ * 
+ * @param {CommitSettingsModalProps} props - Configuration options.
+ * @param {boolean} props.isOpen - Whether the modal is currently visible.
+ * @param {Function} props.onClose - Callback to trigger when the modal should close.
+ * @param {"time" | "block"} [props.initialPane] - Which sub-pane to render on first open.
+ * @param {string} props.commitId - The ID of the block being edited.
+ * @returns {JSX.Element | null} The rendered modal or null if closed.
+ */
 export function CommitSettingsModal({ isOpen, onClose, initialPane = "time", commitId }: CommitSettingsModalProps) {
   const { commits } = useCommitStore();
   const commit = commits.find(c => c.id === commitId);

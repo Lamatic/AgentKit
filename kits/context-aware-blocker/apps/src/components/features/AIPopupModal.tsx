@@ -3,6 +3,18 @@ interface AIPopupModalProps {
   onClose: () => void;
 }
 
+/**
+ * A placeholder modal for configuring AI-specific block logic.
+ * 
+ * TODO: This component is currently an empty shell ("Popup holder active"). It 
+ * needs to be wired up with a prompt engineering UI to allow users to override 
+ * default system prompts or set specific strictness thresholds for the LLM.
+ * 
+ * @param {AIPopupModalProps} props - Configuration options.
+ * @param {boolean} props.isOpen - Controls the visibility of the modal.
+ * @param {Function} props.onClose - Callback triggered when the close button is clicked.
+ * @returns {JSX.Element | null} The rendered modal or null if closed.
+ */
 export function AIPopupModal({ isOpen, onClose }: AIPopupModalProps) {
   if (!isOpen) return null;
 

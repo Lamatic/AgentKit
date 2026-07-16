@@ -12,6 +12,24 @@ interface CommitCardProps {
   onDeleteClick?: () => void;
 }
 
+/**
+ * Renders a visual representation of a single focus block (commit) on the dashboard.
+ * 
+ * Provides quick-action targets for editing the active time window, modifying 
+ * blocked content, or deleting the block entirely.
+ * 
+ * @param {CommitCardProps} props - The visual and interactive configuration.
+ * @param {string} [props.title="Focus"] - The display name of the block.
+ * @param {string} [props.iconName="menu_book"] - A Google Material Symbols font identifier.
+ * @param {boolean} [props.showRisk=false] - If true, highlights the skull icon indicating high-risk settings.
+ * @param {boolean} [props.hasTime=true] - If true, highlights the clock icon indicating active time rules exist.
+ * @param {boolean} [props.hasBlock=true] - If true, highlights the block icon indicating content rules exist.
+ * @param {Function} [props.onClick] - Callback when the main card body is clicked.
+ * @param {Function} [props.onTimeClick] - Callback when the clock quick-action is clicked.
+ * @param {Function} [props.onBlockClick] - Callback when the shield quick-action is clicked.
+ * @param {Function} [props.onDeleteClick] - Callback when the trash icon is clicked.
+ * @returns {JSX.Element} The rendered card component.
+ */
 export function CommitCard({
   title = "Focus",
   iconName = "menu_book",

@@ -8,6 +8,16 @@ if (window.lamaBlockInjected) {
 // Prevents "Extension context invalidated" crashes when reloading the extension during development
 let contextAlive = true;
 
+/**
+ * A wrapper around chrome.runtime.sendMessage that gracefully handles dead extension contexts.
+ * 
+ * NOTE: When an extension is reloaded or updated during development, existing background 
+ * ports are severed, throwing an "Extension context invalidated" error. This catches that 
+ * error, halts the polling loop for this specific tab, and prevents console spam.
+ * 
+ * @param {Object} message - The JSON payload to send to the background script.
+ * @returns {void}
+ */
 function safeSendMessage(message) {
   if (!contextAlive) return; // Don't even try if we already know the context is dead
   try {
@@ -24,6 +34,14 @@ function safeSendMessage(message) {
 
 // ** PRODUCTION LEVEL SCRIPT: Client-Side DOM Scraper ** //
 
+/**
+ * Extracts key metadata from the currently active DOM and transmits it to the background worker.
+ * 
+ * NOTE: We aggressively truncate the extracted text (especially H1 tags) to prevent 
+ * payload bloat and minimize the token count when sending this context to the AI evaluator.
+ * 
+ * @returns {void}
+ */
 function scrapePageContext() {
   // 1. Extract Page Title
   const title = document.title || "";
@@ -56,9 +74,11 @@ function scrapePageContext() {
 // ** PRODUCTION LEVEL TRIGGER: Scrape on initial load ** //
 scrapePageContext();
 
-// ** PRODUCTION LEVEL TRIGGER: 5-Second DOM Polling Safety Net ** //
-// This acts as a safety net to catch time boundaries. 
-// It is perfectly safe because the Cache Bouncer in background.js protects the API!
+// HACK: 5-Second DOM Polling Safety Net.
+// Relying on a setInterval to scrape the DOM is computationally expensive and generally 
+// bad practice for an extension. We are doing this as a brute-force workaround to catch 
+// time boundaries (e.g. crossing into a blocked time window while already on a page). 
+// Future refactor should replace this with chrome.alarms and a MutationObserver.
 setInterval(() => {
   // Stop polling entirely if the extension was reloaded (context is dead)
   if (!contextAlive) return;

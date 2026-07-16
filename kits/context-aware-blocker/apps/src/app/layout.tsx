@@ -17,6 +17,16 @@ export const metadata: Metadata = {
   description: "An AI-powered Chrome Extension that blocks distracting websites based on page context, not just URLs. Built with Lamatic.ai.",
 };
 
+/**
+ * The root layout for the Next.js application.
+ * 
+ * Injects global fonts (Geist and Material Symbols) and establishes the 
+ * base HTML structure for the React tree. This file wraps every page.
+ * 
+ * @param {Object} props - The layout props.
+ * @param {React.ReactNode} props.children - The specific page content to render.
+ * @returns {JSX.Element} The rendered HTML document structure.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

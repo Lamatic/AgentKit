@@ -1,3 +1,12 @@
+/**
+ * Renders a summary card displaying the next scheduled focus session.
+ * 
+ * TODO: Currently this component is static mock data. It needs to be wired up to 
+ * the Zustand store to dynamically calculate the next upcoming time window across 
+ * all active commits.
+ * 
+ * @returns {JSX.Element} The rendered upcoming block card.
+ */
 export function UpcomingBlocksCard() {
   return (
     <div className="w-full bg-[#151515] rounded-[32px] p-6 shadow-lg mb-8">

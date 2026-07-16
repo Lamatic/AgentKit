@@ -13,6 +13,26 @@ interface ConfirmationModalProps {
   onCancel: () => void;
 }
 
+/**
+ * A highly reusable modal component for prompting user confirmation.
+ * 
+ * It supports both simple string messages and complex ReactNode children 
+ * for injecting custom forms (e.g., date pickers). It automatically manages 
+ * background scroll locking when mounted.
+ * 
+ * @param {ConfirmationModalProps} props - Configuration options.
+ * @param {boolean} props.isOpen - Controls the visibility of the modal.
+ * @param {string} props.title - The primary heading.
+ * @param {string} [props.message] - Optional descriptive text below the title.
+ * @param {ReactNode} [props.children] - Optional custom React content injected above the buttons.
+ * @param {string} [props.confirmText="Confirm"] - Text for the primary action button.
+ * @param {string} [props.cancelText="Cancel"] - Text for the secondary action button.
+ * @param {string} [props.confirmColor="#e83a3a"] - Hex color for the primary action.
+ * @param {string} [props.cancelColor="#e83a3a"] - Hex color for the secondary action.
+ * @param {Function} props.onConfirm - Callback triggered when the primary button is clicked.
+ * @param {Function} props.onCancel - Callback triggered when the secondary button or background is clicked.
+ * @returns {JSX.Element | null} The rendered modal overlay or null if closed.
+ */
 export function ConfirmationModal({
   isOpen,
   title,

@@ -11,6 +11,18 @@ interface ActiveTimePaneProps {
   editedTitle?: string;
 }
 
+/**
+ * Renders the active time configuration pane for a focus block.
+ * 
+ * This component acts as an intermediary, managing local state for time windows 
+ * and active days before committing the final payload to the global Zustand store.
+ * 
+ * @param {ActiveTimePaneProps} props - Configuration and callbacks.
+ * @param {string} props.commitId - The unique identifier of the block being edited.
+ * @param {Function} props.onSave - Callback triggered upon a successful save.
+ * @param {string} [props.editedTitle] - An optional pending title string to sync.
+ * @returns {JSX.Element} The rendered pane.
+ */
 export function ActiveTimePane({ commitId, onSave, editedTitle }: ActiveTimePaneProps) {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
   const { commits, saveCommit } = useCommitStore();
@@ -33,20 +45,43 @@ export function ActiveTimePane({ commitId, onSave, editedTitle }: ActiveTimePane
     }
   }, [commitId, commits]);
 
+  /**
+   * Appends a new, default 9-to-5 time window to the current block.
+   */
   const addTimeWindow = () => {
     setTimeWindows([...timeWindows, { id: Math.random().toString(), start: "9:00 AM", end: "5:00 PM" }]);
   };
 
+  /**
+   * Removes a specific time window from the local state.
+   * 
+   * @param {string} idToRemove - The ID of the time window to drop.
+   */
   const removeTimeWindow = (idToRemove: string) => {
     setTimeWindows(timeWindows.filter(w => w.id !== idToRemove));
   };
 
+  /**
+   * Updates a specific field (start or end time) for a given time window.
+   * 
+   * @param {string} idToUpdate - The ID of the time window.
+   * @param {"start" | "end"} field - The field being mutated.
+   * @param {string} value - The new time string.
+   */
   const updateTimeWindow = (idToUpdate: string, field: "start" | "end", value: string) => {
     setTimeWindows(timeWindows.map(w => 
       w.id === idToUpdate ? { ...w, [field]: value } : w
     ));
   };
 
+  /**
+   * Validates constraints and persists the local pane state to the global store.
+   * 
+   * Includes a dynamic check against the Strict Lock to ensure existing blocks 
+   * cannot be maliciously edited while a lock is active.
+   * 
+   * @returns {Promise<void>}
+   */
   const handleSave = async () => {
     // Check lock first
     const { isStrictLockActive } = await import("@/lib/utils");

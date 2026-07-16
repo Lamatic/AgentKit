@@ -8,6 +8,15 @@ import { CommitSettingsModal } from "@/components/features/CommitSettingsModal";
 import { useCommitStore } from "@/hooks/useCommitStore";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
+/**
+ * The main dashboard page for the Context-Aware Blocker.
+ * 
+ * This component acts as the primary controller for the Next.js UI, hydrating 
+ * global state from the Zustand store and managing the highest-level modals 
+ * (Commit Settings, Delete Confirmations, and Strict Lock Settings).
+ * 
+ * @returns {JSX.Element} The rendered dashboard.
+ */
 export default function Home() {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
   const { commits, loadCommits, isLoaded, deleteCommit, addCommit } = useCommitStore();
@@ -41,6 +50,14 @@ export default function Home() {
     }
   }, [isLockModalOpen]);
 
+  /**
+   * Persists the strict lock settings to local storage.
+   * 
+   * Validates that the requested lock time does not attempt to reduce a currently 
+   * active lock. Once saved, it triggers an implicit sync to the background script.
+   * 
+   * @returns {void}
+   */
   const saveLockSettings = () => {
     if (!lockDate || !lockTime) {
       alert("Please select both a date and a time.");
@@ -72,18 +89,40 @@ export default function Home() {
     loadCommits();
   }, [loadCommits]);
 
+  /**
+   * Opens the overarching Commit Settings modal to a specific pane.
+   * 
+   * @param {"time" | "block"} pane - The initial configuration view to render.
+   * @param {string} commitId - The unique identifier of the block to edit.
+   */
   const openModal = (pane: "time" | "block", commitId: string) => {
     setModalConfig({ isOpen: true, initialPane: pane, commitId });
   };
 
+  /**
+   * Closes the Commit Settings modal and clears the active commit context.
+   */
   const closeModal = () => {
     setModalConfig((prev) => ({ ...prev, isOpen: false, commitId: null }));
   };
 
+  /**
+   * Stages a commit for deletion, opening the confirmation prompt.
+   * 
+   * @param {string} commitId - The unique identifier of the block.
+   * @param {string} title - The display name of the block (for UI feedback).
+   */
   const openDeleteModal = (commitId: string, title: string) => {
     setDeleteConfig({ isOpen: true, commitId, title });
   };
 
+  /**
+   * Executes the deletion of the staged commit after user confirmation.
+   * 
+   * Validates against the strict lock constraint dynamically to prevent bypassing.
+   * 
+   * @returns {Promise<void>}
+   */
   const confirmDelete = async () => {
     import("@/lib/utils").then(({ isStrictLockActive }) => {
       if (isStrictLockActive()) {
@@ -98,7 +137,12 @@ export default function Home() {
     });
   };
 
-  // ** PRODUCTION LEVEL ACTION: Create a new block ** //
+  /**
+   * Initializes a new block commit flow.
+   * 
+   * Generates a unique ID and immediately drops the user into the 'time' editing pane
+   * to reduce friction in the creation workflow.
+   */
   const handleAddCommit = () => {
     const newId = `commit-${Date.now()}`;
     // UX Polish: Automatically open the modal for the new block so they can edit it immediately!

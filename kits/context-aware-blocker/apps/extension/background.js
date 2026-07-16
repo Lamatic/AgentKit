@@ -10,7 +10,12 @@ const aiDebounceTimers = new Map(); // tabId -> timerId
 
 // ** PRODUCTION LEVEL LOGIC: Schedule Parsers & Validators ** //
 
-// Convert time strings like "09:00 AM" or "5:30 PM" to minutes from midnight
+/**
+ * Converts a formatted 12-hour time string into total minutes from midnight.
+ * 
+ * @param {string} timeStr - The time string to parse (e.g., "09:00 AM", "5:30 PM").
+ * @returns {number} The time represented as total minutes elapsed since 00:00.
+ */
 function parseTimeToMinutes(timeStr) {
   if (!timeStr) return 0;
   const match = timeStr.trim().match(/^(\d+):(\d+)\s*(AM|PM)$/i);
@@ -26,7 +31,15 @@ function parseTimeToMinutes(timeStr) {
   return hours * 60 + minutes;
 }
 
-// Check if a block commit is currently active based on current time and active days
+/**
+ * Evaluates whether a specific focus block (commit) is currently active.
+ * 
+ * Checks both the active days array and the specific time windows. Handles 
+ * standard daytime windows as well as overnight windows crossing midnight.
+ * 
+ * @param {Object} commit - The focus block configuration object.
+ * @returns {boolean} True if the current system time falls within the block's schedule.
+ */
 function isCommitCurrentlyActive(commit) {
   const now = new Date();
   

@@ -13,6 +13,18 @@ interface BlockedContentPaneProps {
   editedTitle?: string;
 }
 
+/**
+ * Renders the content filtering configuration pane for a focus block.
+ * 
+ * This component manages the specific URLs and natural language AI rules 
+ * that dictate what content is allowed or blocked when the commitment is active.
+ * 
+ * @param {BlockedContentPaneProps} props - Configuration and callbacks.
+ * @param {string} props.commitId - The unique identifier of the block being edited.
+ * @param {Function} props.onSave - Callback triggered upon a successful save.
+ * @param {string} [props.editedTitle] - An optional pending title string to sync.
+ * @returns {JSX.Element} The rendered pane.
+ */
 export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedContentPaneProps) {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
   const { commits, saveCommit } = useCommitStore();
@@ -39,6 +51,11 @@ export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedCon
     }
   }, [commitId, commits]);
 
+  /**
+   * Appends a new exact URL match to the blocked websites list.
+   * 
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleAddWeb = (e: React.FormEvent) => {
     e.preventDefault();
     if (!webInput.trim()) return;
@@ -46,6 +63,11 @@ export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedCon
     setWebInput("");
   };
 
+  /**
+   * Appends a new natural language rule to the AI evaluator array.
+   * 
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleAddAi = (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiInput.trim()) return;
@@ -53,10 +75,23 @@ export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedCon
     setAiInput("");
   };
 
+  /**
+   * Toggles the active state of a specific web URL rule without deleting it.
+   * 
+   * @param {string} id - The unique identifier of the web item.
+   */
   const toggleWeb = (id: string) => {
     setWebs(webs.map(w => w.id === id ? { ...w, selected: !w.selected } : w));
   };
 
+  /**
+   * Validates constraints and persists the local pane state to the global store.
+   * 
+   * Includes an auto-flush mechanism to capture any dangling input state that the 
+   * user forgot to manually "Add" before hitting save. Also checks strict lock rules.
+   * 
+   * @returns {Promise<void>}
+   */
   const handleSave = async () => {
     // Check lock first
     const { isStrictLockActive } = await import("@/lib/utils");

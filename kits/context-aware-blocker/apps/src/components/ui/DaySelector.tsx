@@ -17,6 +17,17 @@ interface DaySelectorProps {
   onChange: (days: string[]) => void;
 }
 
+/**
+ * Renders an interactive horizontal row of days of the week.
+ * 
+ * This is a controlled component. It does not manage its own state, but rather 
+ * relies on the parent to pass down the selected days array and an `onChange` callback.
+ * 
+ * @param {DaySelectorProps} props - Component configuration.
+ * @param {string[]} props.selectedDays - Array of day IDs currently active (e.g., ["mon", "tue"]).
+ * @param {Function} props.onChange - Callback fired when a day is toggled, receiving the new array.
+ * @returns {JSX.Element} The rendered selector.
+ */
 export function DaySelector({ selectedDays, onChange }: DaySelectorProps) {
   const toggleDay = (id: string) => {
     if (selectedDays.includes(id)) {
