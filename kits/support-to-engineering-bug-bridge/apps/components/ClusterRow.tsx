@@ -48,7 +48,7 @@ export function ClusterRow({ cluster, isSelected, onSelect }: ClusterRowProps) {
           <span className="singleton-label">No issue yet</span>
         )}
       </td>
-      <td className="timestamp">{date}</td>
+      <td className="timestamp" suppressHydrationWarning>{date}</td>
     </tr>
   );
 }

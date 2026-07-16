@@ -50,7 +50,7 @@ export function ClusterDetail({ cluster, onClose }: ClusterDetailProps) {
         </div>
         <div className="detail-stat">
           <span className="detail-label">Last Updated</span>
-          <span className="detail-value">
+          <span className="detail-value" suppressHydrationWarning>
             {cluster.last_updated
               ? new Date(cluster.last_updated).toLocaleString()
               : "—"}

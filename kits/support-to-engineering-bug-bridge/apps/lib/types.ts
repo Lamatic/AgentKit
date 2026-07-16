@@ -55,7 +55,7 @@ export function parseCluster(raw: Record<string, any>): ClusterSummary {
     ticket_count: ticketIds.length,
     ticket_ids: ticketIds,
     gh_issue_number: ghIssueNumber,
-    gh_issue_url: ghIssueNumber
+    gh_issue_url: ghIssueNumber && (raw.repo_owner || process.env.NEXT_PUBLIC_GITHUB_REPO_OWNER) && (raw.repo_name || process.env.NEXT_PUBLIC_GITHUB_REPO_NAME)
       ? `https://github.com/${raw.repo_owner || process.env.NEXT_PUBLIC_GITHUB_REPO_OWNER}/${raw.repo_name || process.env.NEXT_PUBLIC_GITHUB_REPO_NAME}/issues/${ghIssueNumber}`
       : null,
     last_updated: raw.updated_at ?? "",
