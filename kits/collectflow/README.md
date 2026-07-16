@@ -264,7 +264,7 @@ CollectFlow demonstrates how AI can support AR teams without replacing human jud
 
 We welcome contributions from AR professionals, AI engineers, and open-source maintainers.
 
-For contribution guidelines, please refer to the repository's `CONTRIBUTING.md`.
+For contribution guidelines, please refer to the repository's [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ---
 

@@ -43,9 +43,14 @@ export function OutcomeCard({ onOutcomeRecorded }: OutcomeCardProps) {
   );
 
   const requiresPromiseDate = selectedOutcome === "PROMISE_TO_PAY";
-  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 10);
+  const [today] = useState(() => {
+    const now = new Date();
+    const localDate = new Date(
+      now.getTime() - now.getTimezoneOffset() * 60_000,
+    );
+
+    return localDate.toISOString().slice(0, 10);
+  });
 
   const hasInvalidPromiseDate =
     requiresPromiseDate && (!promiseDate || promiseDate < today);
