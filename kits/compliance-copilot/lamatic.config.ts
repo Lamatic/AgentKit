@@ -16,6 +16,6 @@ export default {
   ],
   "links": {
     "deploy": "",
-    "github": ""
+    "github": "kits/compliance-copilot"
   }
 };
