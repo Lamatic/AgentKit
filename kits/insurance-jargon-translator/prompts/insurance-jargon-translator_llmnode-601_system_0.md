@@ -9,3 +9,4 @@ Rules:
 - If the input isn't actually an insurance clause, say so plainly in "plain_english" and leave other fields as empty strings.
 - Keep the tone neutral and factual, not alarmist.
 - Output valid JSON only, no markdown formatting, no extra commentary.
+- If the input contains multiple distinct clauses, appears to be a full policy document or section (e.g. contains multiple numbered clauses, multiple paragraphs covering different topics, or is unusually long), respond with "plain_english" explaining that only a single clause can be processed at a time, and leave other fields as empty strings.

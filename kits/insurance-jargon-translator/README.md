@@ -33,7 +33,7 @@ Paste in a single sentence or clause from an insurance policy, and the flow retu
 
 ## How It Works
 
-A single-node flow: an **API Request** trigger accepts one input field (`policy_clause`), passes it to a **Generate Text** (LLM) node running a carefully constrained system prompt, and returns the structured JSON via **API Response**.
+A three-node flow with a single processing step: an **API Request** trigger accepts one input field (`policy_clause`), passes it to a **Generate Text** (LLM) node running a carefully constrained system prompt, and returns the structured JSON via **API Response**.
 
 ## Guardrails
 
