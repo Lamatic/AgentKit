@@ -34,15 +34,19 @@ export function ClusterDetail({ cluster, onClose }: ClusterDetailProps) {
         <div className="detail-stat">
           <span className="detail-label">GitHub Issue</span>
           <span className="detail-value">
-            {cluster.gh_issue_number && cluster.gh_issue_url ? (
-              <a
-                href={cluster.gh_issue_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="issue-link"
-              >
-                #{cluster.gh_issue_number}
-              </a>
+            {cluster.gh_issue_number ? (
+              cluster.gh_issue_url ? (
+                <a
+                  href={cluster.gh_issue_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="issue-link"
+                >
+                  #{cluster.gh_issue_number}
+                </a>
+              ) : (
+                <span>#{cluster.gh_issue_number} (URL unconfigured)</span>
+              )
             ) : (
               <span className="singleton-label">No issue yet</span>
             )}

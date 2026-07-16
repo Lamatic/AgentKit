@@ -16,9 +16,19 @@ async function getClusters(): Promise<{
 }> {
   try {
     const isDev = process.env.NODE_ENV === "development";
-    const base = process.env.NEXT_PUBLIC_BASE_URL || (isDev ? `http://localhost:${process.env.PORT ?? 3000}` : "");
+    const vUrl =
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.VERCEL_URL;
+
+    const base =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (vUrl ? `https://${vUrl}` :
+        isDev ? `http://localhost:${process.env.PORT ?? 3000}` : "");
+
     if (!base) {
-      throw new Error("NEXT_PUBLIC_BASE_URL is required in production.");
+      throw new Error(
+        "A base URL is required in production. Set NEXT_PUBLIC_BASE_URL or deploy to Vercel."
+      );
     }
     const res = await fetch(`${base}/api/clusters`, {
       // Do not cache: data should reflect state as of page load
