@@ -47,13 +47,13 @@ export async function analyzeExpenses(
       insight?: string;
     };
 
-    let parsedTransactions: { transactions: Transaction[]; totalSpent: number };
+    let parsedTransactions: { transactions: Transaction[]; totalSpent: number } | undefined;
     try {
       const transactionsField =
         typeof raw.transactions === "string"
           ? JSON.parse(raw.transactions)
           : raw.transactions;
-      parsedTransactions = transactionsField;
+      parsedTransactions = transactionsField as typeof parsedTransactions;
     } catch {
       return {
         success: false,
@@ -64,8 +64,8 @@ export async function analyzeExpenses(
     return {
       success: true,
       data: {
-        transactions: parsedTransactions.transactions ?? [],
-        totalSpent: parsedTransactions.totalSpent ?? 0,
+        transactions: parsedTransactions?.transactions ?? [],
+        totalSpent: parsedTransactions?.totalSpent ?? 0,
         insight: raw.insight ?? "",
       },
     };
