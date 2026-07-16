@@ -72,6 +72,8 @@ curl -X POST "$LAMATIC_GRAPHQL_ENDPOINT" \
 ---
 
 ## Folder Structure
+
+```
 kits/company-interview-research-agent/
 ├── flows/
 │   └── company-interview-research-agent.ts   # The Lamatic flow code
@@ -89,7 +91,7 @@ kits/company-interview-research-agent/
 ├── lamatic.config.ts                         # Kit metadata
 ├── README.md                                 # This guide
 └── .gitignore
-
+```
 ---
 
 ## Example Output
