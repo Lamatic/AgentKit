@@ -11,7 +11,7 @@ Insurance policies are full of dense, legalistic language — exclusions, condit
 Paste in a single sentence or clause from an insurance policy, and the flow returns a structured response with:
 
 - **`plain_english`** — a 1-2 sentence explanation in everyday language, no legal jargon
-- **`category`** — classifies the clause as an `exclusion`, `condition`, `definition`, `limit`, or `other`
+- **`category`** — classifies the clause as one of: `exclusion`, `condition`, `definition`, `limit`, or `other`. If the input isn't a valid insurance clause, this field (along with the other fields) is returned as an empty string instead.
 - **`example_scenario`** — a concrete, realistic situation showing when the clause applies
 - **`why_it_exists`** — a brief note on why insurers typically include this type of clause
 
@@ -21,6 +21,7 @@ Paste in a single sentence or clause from an insurance policy, and the flow retu
 > "This policy excludes losses arising from wear and tear, gradual deterioration, or inherent vice."
 
 **Output:**
+
 ```json
 {
   "plain_english": "This policy does not pay for damage caused by things getting old, wearing out from normal use, or an item having a natural defect.",

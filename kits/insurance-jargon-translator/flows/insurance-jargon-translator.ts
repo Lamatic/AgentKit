@@ -103,7 +103,7 @@ export const nodes = [
       "nodeId": "graphqlResponseNode",
       "values": {
         "nodeName": "API Response",
-        "outputMapping": "{}",
+        "outputMapping": "{\n  \"result\": \"{{LLMNode_601.output.generatedResponse}}\"\n}",
         "webhookUrl": "",
         "headers": "{\"content-type\":\"application/json\"}",
         "retries": "0",
