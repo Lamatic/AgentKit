@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     console.log(`   📋 Active Rules: ${JSON.stringify(payload.dbRules)}`);
 
     // ** PRODUCTION LEVEL: Environment Validation ** //
-    const flowId = process.env.CONTEXT_AWARE_BLOCK_FLOW;
+    const flowId = process.env.CONTENT_CLASSIFICATION_FLOW_ID;
     const apiUrl = process.env.LAMATIC_API_URL;
     const projectId = process.env.LAMATIC_PROJECT_ID;
     const apiKey = process.env.LAMATIC_API_KEY;
@@ -47,10 +47,10 @@ export async function POST(req: Request) {
     console.log(`      LAMATIC_API_URL: ${apiUrl ? "✅ Set" : "❌ MISSING"}`);
     console.log(`      LAMATIC_PROJECT_ID: ${projectId ? "✅ Set" : "❌ MISSING"}`);
     console.log(`      LAMATIC_API_KEY: ${apiKey ? "✅ Set (" + apiKey.slice(0, 8) + "...)" : "❌ MISSING"}`);
-    console.log(`      CONTEXT_AWARE_BLOCK_FLOW: ${flowId ? "✅ " + flowId : "❌ MISSING"}`);
+    console.log(`      CONTENT_CLASSIFICATION_FLOW_ID: ${flowId ? "✅ " + flowId : "❌ MISSING"}`);
 
     if (!flowId) {
-      console.error("❌ [LAMATIC] Missing CONTEXT_AWARE_BLOCK_FLOW in .env.local");
+      console.error("❌ [LAMATIC] Missing CONTENT_CLASSIFICATION_FLOW_ID in .env.local");
       return NextResponse.json({ action: "PASS", error: "Missing Flow ID" });
     }
 

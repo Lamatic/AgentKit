@@ -10,7 +10,7 @@ export const storage = {
     if (isExtension) {
       return new Promise((resolve) => {
         chrome.storage.local.get([key], (result) => {
-          resolve(result[key] !== undefined ? result[key] : defaultValue);
+          resolve((result[key] !== undefined ? result[key] : defaultValue) as T);
         });
       });
     } else {

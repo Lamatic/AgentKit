@@ -4,6 +4,10 @@ chrome.action.onClicked.addListener(() => {
   });
 });
 
+// ** PRODUCTION LEVEL LOGIC: Debounce state for rapid tab switching ** //
+const aiDebounceTimers = new Map(); // tabId -> timerId
+
+
 // ** PRODUCTION LEVEL LOGIC: Schedule Parsers & Validators ** //
 
 // Convert time strings like "09:00 AM" or "5:30 PM" to minutes from midnight
@@ -280,79 +284,101 @@ const evaluateContext = async (payload, tabId) => {
     // STEP 3: THE REAL LAMATIC AI CALL
     // Only reached for genuinely new/unknown URLs with current rules.
     // ========================================================
-    console.log(`🤖 [AI EVALUATION] New unknown URL. Sending to Lamatic AI...`);
-    console.log(`   📤 Payload being sent:`);
-    console.log(`      url: ${payload.url}`);
-    console.log(`      title: ${payload.title}`);
-    console.log(`      h1: ${payload.h1Text || ""}`);
-    console.log(`      meta: ${payload.description || ""}`);
-    console.log(`      activeRules: ${activeBlockedDomains.join(", ")}`);
-    const aiStartTime = Date.now();
-    logToTerminal({
-      ...payload,
-      dbRules: activeBlockedDomains,
-      aiRules: activeAiRules,
-      status: "🤖 AI EVALUATING (Calling Lamatic AI...)"
-    });
-
-    try {
-      const response = await fetch("http://localhost:3000/api/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: payload.url,
-          title: payload.title,
-          h1Text: payload.h1Text || "",
-          description: payload.description || "",
-          dbRules: activeBlockedDomains,
-          aiRules: activeAiRules
-        })
-      });
-
-      const result = await response.json();
-      const decision = result.action || "PASS";
-      const aiDuration = Date.now() - aiStartTime;
-
-      console.log(`🎯 [AI DECISION] ${decision} for ${payload.url}`);
-      console.log(`   ⏱️  Lamatic responded in ${aiDuration}ms`);
-      console.log(`   📥 Full API response: ${JSON.stringify(result)}`);
-      console.log("=========================================");
-
-      // ** PRODUCTION LEVEL: Store in rule-aware cache ** //
-      // This entry will persist forever until:
-      //   1. The rules change (rulesHash mismatch → cache miss)
-      //   2. A commit is synced (SYNC_COMMITS → full cache wipe)
-      aiEvaluationCache.set(payload.url, {
-        decision: decision,
-        rulesHash: currentRulesHash,
-        commitTitle: "Focus Session"
-      });
-
+    
+    // Define the actual evaluation function
+    const executeAiEvaluation = async () => {
+      console.log(`🤖 [AI EVALUATION] New unknown URL. Sending to Lamatic AI...`);
+      console.log(`   📤 Payload being sent:`);
+      console.log(`      url: ${payload.url}`);
+      console.log(`      title: ${payload.title}`);
+      console.log(`      h1: ${payload.h1Text || ""}`);
+      console.log(`      meta: ${payload.description || ""}`);
+      console.log(`      activeRules: ${activeBlockedDomains.join(", ")}`);
+      const aiStartTime = Date.now();
       logToTerminal({
         ...payload,
         dbRules: activeBlockedDomains,
         aiRules: activeAiRules,
-        status: `🎯 AI DECISION: ${decision}`
+        status: "🤖 AI EVALUATING (Calling Lamatic AI...)"
       });
 
-      // ** PRODUCTION LEVEL: Enforce the BLOCK if AI says so ** //
-      if (decision === "BLOCK" && tabId) {
-        chrome.tabs.sendMessage(tabId, {
-          type: "BLOCK_PAGE",
-          commitName: "AI Detected Distraction"
-        }).catch(() => {});
+      if (tabId) {
+        chrome.tabs.sendMessage(tabId, { type: "SHOW_AI_EVALUATING" }).catch(() => {});
       }
-    } catch (err) {
-      // ** PRODUCTION LEVEL: Fail-Open ** //
-      // If the API is unreachable, let the user through.
-      // Never brick the browser because of a network error.
-      console.error(`❌ [AI ERROR] Failed to reach /api/evaluate:`, err.message);
-      console.log("=========================================");
-      logToTerminal({
-        ...payload,
-        dbRules: activeBlockedDomains,
-        status: "❌ AI ERROR: Failed to reach API (Fail-Open PASS)"
-      });
+
+      try {
+        const response = await fetch("http://localhost:3000/api/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: payload.url,
+            title: payload.title,
+            h1Text: payload.h1Text || "",
+            description: payload.description || "",
+            dbRules: activeBlockedDomains,
+            aiRules: activeAiRules
+          })
+        });
+
+        const result = await response.json();
+        const decision = result.action || "PASS";
+        const aiDuration = Date.now() - aiStartTime;
+
+        console.log(`🎯 [AI DECISION] ${decision} for ${payload.url}`);
+        console.log(`   ⏱️  Lamatic responded in ${aiDuration}ms`);
+        console.log(`   📥 Full API response: ${JSON.stringify(result)}`);
+        console.log("=========================================");
+
+        // ** PRODUCTION LEVEL: Store in rule-aware cache ** //
+        aiEvaluationCache.set(payload.url, {
+          decision: decision,
+          rulesHash: currentRulesHash,
+          commitTitle: "Focus Session"
+        });
+
+        logToTerminal({
+          ...payload,
+          dbRules: activeBlockedDomains,
+          aiRules: activeAiRules,
+          status: `🎯 AI DECISION: ${decision}`
+        });
+
+        // ** PRODUCTION LEVEL: Enforce the BLOCK if AI says so ** //
+        if (decision === "BLOCK" && tabId) {
+          chrome.tabs.sendMessage(tabId, {
+            type: "BLOCK_PAGE",
+            commitName: "AI Detected Distraction"
+          }).catch(() => {});
+        } else if (decision === "PASS" && tabId) {
+          chrome.tabs.sendMessage(tabId, { type: "HIDE_AI_EVALUATING" }).catch(() => {});
+        }
+      } catch (err) {
+        if (tabId) {
+          chrome.tabs.sendMessage(tabId, { type: "HIDE_AI_EVALUATING" }).catch(() => {});
+        }
+        // ** PRODUCTION LEVEL: Fail-Open ** //
+        console.error("AI Evaluation failed:", err);
+        logToTerminal({
+          ...payload,
+          dbRules: activeBlockedDomains,
+          status: "❌ AI ERROR: Failed to reach API (Fail-Open PASS)"
+        });
+      }
+    };
+
+    // Apply Debounce
+    if (tabId) {
+      if (aiDebounceTimers.has(tabId)) {
+        clearTimeout(aiDebounceTimers.get(tabId));
+      }
+      const timerId = setTimeout(() => {
+        aiDebounceTimers.delete(tabId);
+        executeAiEvaluation();
+      }, 1000); // 1-second debounce
+      aiDebounceTimers.set(tabId, timerId);
+    } else {
+      // If there's no tabId context (unlikely), evaluate immediately
+      executeAiEvaluation();
     }
   });
 };
@@ -370,6 +396,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("🧹 [CACHE] Cleared entire AI cache (commits changed)");
     chrome.storage.local.set({ cab_commits: message.commits }, () => {
       console.log("🔄 [SYNC] Synchronized commits from LocalHost Dashboard to Chrome Storage!");
+    });
+  } else if (message.type === "SYNC_LOCK_SETTINGS") {
+    // ** PRODUCTION LEVEL SYNC: Bridge lock settings **
+    chrome.storage.local.set({ lama_lock_settings: message.settings }, () => {
+      console.log("🔒 [SYNC] Synchronized Lock Settings to Chrome Storage!");
     });
   } else if (message.type === "CLOSE_ACTIVE_TAB") {
     // ** PRODUCTION LEVEL UX: Programmatically close the blocked tab ** //

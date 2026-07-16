@@ -58,8 +58,15 @@ export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedCon
   };
 
   const handleSave = async () => {
+    // Check lock first
+    const { isStrictLockActive } = await import("@/lib/utils");
+    if (commit && isStrictLockActive()) { // only block updates, not new creations
+      alert("Strict mode active: You cannot update blocks right now!");
+      return;
+    }
+
     // ** PRODUCTION LEVEL PERSISTENCE: Save configuration to Tiny DB ** //
-    const commit = commits.find(c => c.id === commitId);
+    const currentCommit = commits.find(c => c.id === commitId);
     
     // ** PRODUCTION LEVEL UX: Auto-flush pending inputs ** //
     // If the user typed a URL or AI rule but forgot to hit the '+' button, automatically include it!
@@ -74,8 +81,8 @@ export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedCon
     }
 
     // Construct the commit (either update existing or create new)
-    const updatedCommit = commit 
-      ? { ...commit, blockedWebsites: finalWebs, aiRules: finalAiRules }
+    const updatedCommit = currentCommit 
+      ? { ...currentCommit, blockedWebsites: finalWebs, aiRules: finalAiRules }
       : { 
           id: commitId, 
           title: "New Block", 
@@ -92,7 +99,7 @@ export function BlockedContentPane({ commitId, onSave, editedTitle }: BlockedCon
       updatedCommit.title = editedTitle.trim();
     }
 
-    if (commit) {
+    if (currentCommit) {
       await saveCommit(updatedCommit);
     } else {
       // ** PRODUCTION LEVEL ACTION: Create completely new block on first save ** //

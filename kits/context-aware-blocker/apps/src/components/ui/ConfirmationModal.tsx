@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
   title: string;
   message?: string;
+  children?: ReactNode;
   confirmText?: string;
   cancelText?: string;
   confirmColor?: string;
@@ -16,6 +17,7 @@ export function ConfirmationModal({
   isOpen,
   title,
   message,
+  children,
   confirmText = "Confirm",
   cancelText = "Cancel",
   confirmColor = "#e83a3a",
@@ -52,6 +54,13 @@ export function ConfirmationModal({
           <p className="text-center text-[15px] text-[#94a3b8] mb-6">
             {message}
           </p>
+        )}
+
+        {/* Custom Content (e.g. forms) */}
+        {children && (
+          <div className="mb-6">
+            {children}
+          </div>
         )}
 
         {/* Action Buttons Row */}

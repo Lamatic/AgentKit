@@ -1,3 +1,9 @@
+// ** PRODUCTION LEVEL LOGIC: Injection Guard ** //
+if (window.lamaBlockInjected) {
+  console.log("LamaBlock already active. Preventing duplicate execution.");
+} else {
+  window.lamaBlockInjected = true;
+
 // ** PRODUCTION LEVEL LOGIC: Safe Message Sender ** //
 // Prevents "Extension context invalidated" crashes when reloading the extension during development
 let contextAlive = true;
@@ -26,12 +32,14 @@ function scrapePageContext() {
   const metaDesc = document.querySelector('meta[name="description"]');
   const description = metaDesc ? metaDesc.getAttribute("content") : "";
 
-  // 3. Extract ALL Headings (H1s)
+  // 3. Extract first few visible Headings (H1s) — cap to prevent payload bloat
   const h1Elements = document.querySelectorAll('h1');
   const h1Text = Array.from(h1Elements)
+    .slice(0, 3) // Only first 3 H1s — pages like GitHub have dozens of hidden ones
     .map(el => el.innerText.trim())
-    .filter(text => text.length > 0)
-    .join(" | ");
+    .filter(text => text.length > 0 && text.length < 200) // Skip garbage/hidden UI text
+    .join(" | ")
+    .slice(0, 300); // Hard cap the total string
 
   // Combine into a lightweight payload for the AI
   const payload = {
@@ -166,6 +174,75 @@ function showBlockOverlay(commitName) {
   }, 1000);
 }
 
+// ** PRODUCTION LEVEL UX: AI Evaluating Overlay ** //
+function showAiEvaluatingOverlay() {
+  if (document.getElementById('lamablock-ai-overlay')) return;
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'lamablock-ai-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(26, 26, 26, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 2147483646; /* Just below the main block overlay */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: white;
+    pointer-events: none; /* User can click through the overlay */
+    transition: opacity 0.3s ease;
+  `;
+
+  // Loader animation style
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .lamablock-spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-left-color: #ef4444; /* Match brand red */
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
+    }
+  `;
+  document.head.appendChild(style);
+
+  const spinner = document.createElement('div');
+  spinner.className = 'lamablock-spinner';
+
+  const title = document.createElement('span');
+  title.innerText = 'AI is evaluating...';
+  title.style.cssText = `
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    color: #ffffff;
+  `;
+
+  overlay.appendChild(spinner);
+  overlay.appendChild(title);
+  
+  document.documentElement.appendChild(overlay);
+}
+
+function hideAiEvaluatingOverlay() {
+  const overlay = document.getElementById('lamablock-ai-overlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 300); // Smooth fade out
+  }
+}
+
+
 // ** PRODUCTION LEVEL TRIGGER: Listen for Background Worker Requests ** //
 // This guarantees we scrape whenever the background worker detects a reliable URL change
 try {
@@ -174,7 +251,12 @@ try {
       // Slight delay to allow DOM to finish rendering
       setTimeout(scrapePageContext, 500);
     } else if (message.type === "BLOCK_PAGE") {
+      hideAiEvaluatingOverlay(); // Clear AI loader if it's showing
       showBlockOverlay(message.commitName);
+    } else if (message.type === "SHOW_AI_EVALUATING") {
+      showAiEvaluatingOverlay();
+    } else if (message.type === "HIDE_AI_EVALUATING") {
+      hideAiEvaluatingOverlay();
     }
   });
 } catch (e) {
@@ -193,6 +275,12 @@ if (window.location.origin === "http://localhost:3000") {
         const parsed = JSON.parse(localCommits);
         safeSendMessage({ type: "SYNC_COMMITS", commits: parsed });
       }
+      
+      const localLockSettings = localStorage.getItem("lama_lock_settings");
+      if (localLockSettings) {
+        const parsedLock = JSON.parse(localLockSettings);
+        safeSendMessage({ type: "SYNC_LOCK_SETTINGS", settings: parsedLock });
+      }
     } catch (e) {
       // Fail silently if JSON parsing fails
     }
@@ -203,11 +291,17 @@ if (window.location.origin === "http://localhost:3000") {
 
   // Periodically poll for changes (since Next.js might modify localStorage without triggering a window 'storage' event on the same tab)
   let lastState = localStorage.getItem("cab_commits");
+  let lastLockState = localStorage.getItem("lama_lock_settings");
+  
   setInterval(() => {
     const currentState = localStorage.getItem("cab_commits");
-    if (currentState !== lastState) {
+    const currentLockState = localStorage.getItem("lama_lock_settings");
+    
+    if (currentState !== lastState || currentLockState !== lastLockState) {
       lastState = currentState;
+      lastLockState = currentLockState;
       syncStorage();
     }
   }, 1000);
+}
 }
