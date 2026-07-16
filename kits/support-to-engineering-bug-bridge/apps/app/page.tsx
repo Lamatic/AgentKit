@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ClusterSummary } from "@/lib/types";
 import { DashboardClient } from "@/components/DashboardClient";
-import "./globals.css";
+
 
 export const metadata: Metadata = {
   title: "Bug Bridge — Cluster Dashboard",

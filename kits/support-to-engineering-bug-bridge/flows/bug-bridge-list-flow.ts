@@ -66,7 +66,7 @@ export const nodes = [
       "nodeId": "vectorNode",
       "values": {
         "id": "vectorNode_889",
-        "limit": 100,
+        "limit": 1000,
         "action": "filter",
         "filters": "{\n  \"operator\": \"And\",\n  \"operands\": [\n    {\n      \"path\": [\n        \"cluster_id\"\n      ],\n      \"operator\": \"NotEqual\",\n      \"valueText\": \"__never_match__\"\n    }\n  ]\n}",
         "nodeName": "VectorDB",
