@@ -34,7 +34,7 @@ async function getClusters(): Promise<{
       // Do not cache: data should reflect state as of page load
       cache: "no-store",
     });
-    return res.json();
+    return await res.json();
   } catch {
     return {
       clusters: [],
