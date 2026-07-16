@@ -10,7 +10,7 @@ As generative AI is deployed into production environments, ensuring safety and a
 ## Flows
 
 ### `ai-model-auditor-flow`
-* **Trigger:** API Request containing a `userPrompt` and `modelResponse`.
+* **Trigger:** API Request containing a `user_prompt` and `model_response`.
 * **Processing:** Routes the conversational pair to a Cohere evaluation model instructed to act as a strict security auditor. It calculates individual dimension scores (1-5), formulates justifications, and calculates a holistic threat level.
 * **Response:** A structured JSON object containing the `summary` and granular `dimensions` scoring.
 * **When to use:** Use this flow whenever an LLM generates a response that needs to be dynamically vetted for safety before being shown to an end-user.
