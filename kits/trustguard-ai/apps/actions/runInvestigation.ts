@@ -4,12 +4,14 @@
 // NEVER imports client-only code. Uses server-only env vars.
 
 import { getLamaticClient, getFlowId } from "@/lib/lamatic";
-import type { AnalyzeFormData, InvestigationResponse } from "@/types/response";
+import { InvestigationResponseSchema } from "@/lib/schemas";
+import type { AnalyzeFormData } from "@/types/response";
+import type { ValidatedInvestigationResponse } from "@/lib/schemas";
 
 export interface RunInvestigationResult {
-  success: boolean;
-  data?: InvestigationResponse;
-  error?: string;
+  readonly success: boolean;
+  readonly data?: ValidatedInvestigationResponse;
+  readonly error?: string;
 }
 
 export async function runInvestigation(
@@ -32,16 +34,28 @@ export async function runInvestigation(
     const response = await lamatic.executeFlow(flowId, payload);
 
     if (response.status === "success" && response.result) {
-      return { success: true, data: response.result as InvestigationResponse };
+      const parsed = InvestigationResponseSchema.safeParse(response.result);
+
+      if (!parsed.success) {
+        console.error(
+          "[TrustGuard] Lamatic response validation failed:",
+          parsed.error
+        );
+        return {
+          success: false,
+          error: "Unable to process investigation.",
+        };
+      }
+
+      return { success: true, data: parsed.data };
     }
 
     return {
       success: false,
-      error: response.message || "Analysis failed. Please try again.",
+      error: "Unable to process investigation.",
     };
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "An unexpected error occurred.";
-    return { success: false, error: message };
+    console.error("[TrustGuard] Investigation error:", err);
+    return { success: false, error: "Unable to process investigation." };
   }
 }

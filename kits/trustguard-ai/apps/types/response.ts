@@ -1,71 +1,75 @@
 // types/response.ts
-// Full TypeScript interfaces matching the TrustGuard AI flow output schema
+// Full TypeScript interfaces matching the TrustGuard AI flow output schema.
+// NOTE: For runtime-validated types, prefer ValidatedInvestigationResponse
+// from @/lib/schemas (Zod-inferred). These interfaces remain for components
+// that receive already-validated data.
 
 export interface InvestigationInfo {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  workflow: string;
-  language: string;
+  readonly id: string;
+  readonly title: string;
+  readonly category: string;
+  readonly status: string;
+  readonly workflow: string;
+  readonly language: string;
 }
 
 export interface NormalizedContent {
-  clean_text: string;
-  summary: string;
-  detected_input_type: string;
+  readonly clean_text: string;
+  readonly summary: string;
+  readonly detected_input_type: string;
 }
 
 export interface EvidenceData {
-  urls: string[];
-  domains: string[];
-  emails: string[];
-  phone_numbers: string[];
-  money_amounts: string[];
-  brands: string[];
-  urgency_phrases: string[];
-  attachments: string[];
-  languages: string[];
-  entities: string[];
+  readonly urls: readonly string[];
+  readonly domains: readonly string[];
+  readonly emails: readonly string[];
+  readonly phone_numbers: readonly string[];
+  readonly money_amounts: readonly string[];
+  readonly brands: readonly string[];
+  readonly urgency_phrases: readonly string[];
+  readonly attachments: readonly string[];
+  readonly languages: readonly string[];
+  readonly entities: readonly string[];
 }
 
 export interface ThreatIndicators {
-  high: string[];
-  medium: string[];
-  low: string[];
+  readonly high: readonly string[];
+  readonly medium: readonly string[];
+  readonly low: readonly string[];
 }
 
 export interface ThreatAnalysis {
-  risk_score: number;
-  confidence: number;
-  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
-  indicators: ThreatIndicators;
-  matched_patterns: string[];
-  missing_information: string[];
-  reasoning_summary: string;
+  readonly risk_score: number;
+  readonly confidence: number;
+  /** Discriminated severity union — use Zod schema for runtime unknown values. */
+  readonly severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  readonly indicators: ThreatIndicators;
+  readonly matched_patterns: readonly string[];
+  readonly missing_information: readonly string[];
+  readonly reasoning_summary: string;
 }
 
 export interface DecisionData {
-  classification: string;
-  final_verdict: string;
-  recommended_action: string;
-  decision_reason: string;
-  priority: string;
-  human_review: boolean;
+  readonly classification: string;
+  readonly final_verdict: string;
+  readonly recommended_action: string;
+  readonly decision_reason: string;
+  readonly priority: string;
+  readonly human_review: boolean;
 }
 
 export interface ResponseMetadata {
-  workflow: string;
-  version: string;
+  readonly workflow: string;
+  readonly version: string;
 }
 
 export interface InvestigationResponse {
-  investigation: InvestigationInfo;
-  normalized: NormalizedContent;
-  evidence: EvidenceData;
-  analysis: ThreatAnalysis;
-  decision: DecisionData;
-  metadata: ResponseMetadata;
+  readonly investigation: InvestigationInfo;
+  readonly normalized: NormalizedContent;
+  readonly evidence: EvidenceData;
+  readonly analysis: ThreatAnalysis;
+  readonly decision: DecisionData;
+  readonly metadata: ResponseMetadata;
 }
 
 // Input form shape

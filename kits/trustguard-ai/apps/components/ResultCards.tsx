@@ -2,21 +2,22 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Search, AlignLeft } from "lucide-react";
 import EvidenceCard from "@/components/EvidenceCard";
 import ThreatCard from "@/components/ThreatCard";
 import DecisionCard from "@/components/DecisionCard";
 import type { InvestigationResponse } from "@/types/response";
 
 interface ResultCardsProps {
-  data: InvestigationResponse;
+  readonly data: InvestigationResponse;
 }
 
 const CardWrapper = ({
   children,
   delay = 0,
 }: {
-  children: React.ReactNode;
-  delay?: number;
+  readonly children: React.ReactNode;
+  readonly delay?: number;
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 24 }}
@@ -36,11 +37,11 @@ function InfoCard({
   children,
   delay = 0,
 }: {
-  title: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  children: React.ReactNode;
-  delay?: number;
+  readonly title: string;
+  readonly icon: React.ReactNode;
+  readonly iconBg: string;
+  readonly children: React.ReactNode;
+  readonly delay?: number;
 }) {
   return (
     <motion.div
@@ -60,7 +61,7 @@ function InfoCard({
   );
 }
 
-function Field({ label, value }: { label: string; value: string | undefined }) {
+function Field({ label, value }: { readonly label: string; readonly value: string | undefined }) {
   return (
     <div>
       <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -71,16 +72,15 @@ function Field({ label, value }: { label: string; value: string | undefined }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { readonly status: string }) {
   const isActive =
     status?.toLowerCase() === "active" || status?.toLowerCase() === "open";
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-        isActive
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${isActive
           ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
           : "bg-slate-500/20 text-slate-300 border-slate-500/40"
-      }`}
+        }`}
     >
       {status ?? "—"}
     </span>
@@ -114,11 +114,7 @@ export default function ResultCards({ data }: ResultCardsProps) {
             title="Investigation"
             delay={0.05}
             iconBg="bg-cyan-500/20 text-cyan-400"
-            icon={
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            }
+            icon={<Search className="h-4 w-4" aria-hidden="true" />}
           >
             <Field label="Investigation ID" value={investigation.id} />
             <Field label="Title" value={investigation.title} />
@@ -139,11 +135,7 @@ export default function ResultCards({ data }: ResultCardsProps) {
             title="Normalized Content"
             delay={0.1}
             iconBg="bg-blue-500/20 text-blue-400"
-            icon={
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-            }
+            icon={<AlignLeft className="h-4 w-4" aria-hidden="true" />}
           >
             <Field label="Detected Type" value={normalized.detected_input_type} />
             <Field label="Summary" value={normalized.summary} />

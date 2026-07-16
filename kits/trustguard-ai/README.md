@@ -137,7 +137,10 @@ trustguard-ai/
 │   │   ├── Badge.tsx              # Reusable severity badge
 │   │   └── LoadingSpinner.tsx     # Loading state indicator
 │   ├── lib/
-│   │   └── lamatic.ts             # Lamatic client initialization
+│   │   ├── lamatic.ts             # Lamatic client initialization
+│   │   ├── schemas.ts             # Zod runtime validation schema for the flow response
+│   │   ├── types.ts               # Re-exports from types/response.ts
+│   │   └── utils.ts               # Color helpers, formatters, and display logic
 │   ├── types/
 │   │   └── response.ts            # TypeScript interfaces for the full API response
 │   ├── public/                    # Static assets (logo, favicon)
