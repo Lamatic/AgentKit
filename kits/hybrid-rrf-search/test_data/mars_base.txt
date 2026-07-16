@@ -1,0 +1,17 @@
+# Mars Base Alpha - Operations Manual
+*Document ID: MBA-9932-REV-B*
+
+## 1. Primary Airlock Procedures
+All personnel must use Airlock X-42 when exiting the habitat for surface operations. The secondary airlock, Y-17, is strictly reserved for emergency decompression events. Before opening the outer door of X-42, the suit pressure gauge must read exactly 4.3 PSI.
+
+## 2. Dealing with Dust Storms
+If a massive planetary dust event is detected by the orbital satellite network, all rovers must immediately return to the main garage. Do not attempt to drive through low visibility. The solar panels will automatically retract to prevent abrasive damage. Switch to the geothermal backup generator located in Sector 7.
+
+## 3. Hydroponics Bay Management
+The hydroponics bay provides 80% of our daily caloric intake. The primary crop is engineered sweet potatoes (Strain SP-Alpha-9). The nutrient solution must be kept at a pH of exactly 6.2. If the pH drops below 5.5, the automated alarm system will sound a Code Green alert.
+
+## 4. Communication Protocols
+Direct communication with Earth has a delay of 3 to 22 minutes depending on planetary alignment. For emergency medical consultations, use the Quantum Encrypted Channel (Frequency 902.4 MHz). Routine daily reports should be batched and sent via the standard high-gain antenna at 0400 UTC.
+
+## 5. Rover Maintenance
+The primary transport vehicle is the 'Ares Rover Model 4'. The battery cells on this model require a full discharge and recharge cycle every 30 Martian days (Sols). Never mix synthetic grease with the axel lubricants, as the extreme cold will cause it to solidify and crack the housing.
