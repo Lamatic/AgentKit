@@ -4,7 +4,14 @@ import { lamaticClient } from "@/lib/lamatic-client"
 import { config } from "../orchestrate.js"
 
 function formatVerifierResult(response: Record<string, unknown> | string): string {
-  if (typeof response === "string") return response
+  if (typeof response === "string") {
+    try {
+      response = JSON.parse(response) as Record<string, unknown>
+    } catch {
+      // Not valid JSON — return the raw string as-is
+      return response
+    }
+  }
 
   const r = response as {
     verdict?: string
@@ -93,12 +100,23 @@ export async function replyEmail(
     })
     console.log("[Email Agent] Verifier response:", JSON.stringify(verifierRes, null, 2))
 
-    const verifierResponse = verifierRes?.result?.output
+    const verifierRaw = verifierRes?.result?.output
     let verdict = ""
     let confidence = 0
     let reasons: string[] = []
 
-    if (typeof verifierResponse === "object" && verifierResponse !== null) {
+    let verifierResponse: Record<string, unknown> | null = null
+    if (typeof verifierRaw === "string") {
+      try {
+        verifierResponse = JSON.parse(verifierRaw) as Record<string, unknown>
+      } catch {
+        // Not valid JSON — verifier fields remain as defaults
+      }
+    } else if (typeof verifierRaw === "object" && verifierRaw !== null) {
+      verifierResponse = verifierRaw as Record<string, unknown>
+    }
+
+    if (verifierResponse !== null) {
       const r = verifierResponse as {
         verdict?: string
         confidence?: number
