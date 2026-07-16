@@ -28,6 +28,19 @@ interface EvidenceCardProps {
   readonly delay?: number;
 }
 
+/**
+ * Result card that renders all extracted evidence items from the investigation
+ * as colour-coded pill badges grouped by evidence category.
+ *
+ * Iterates over the static `SECTION_CONFIG` to determine which evidence
+ * categories (URLs, domains, emails, etc.) have items and renders them
+ * in a scrollable badge grid.  Shows a placeholder message when the flow
+ * returned no evidence at all.
+ *
+ * @param evidence - Validated evidence data returned by the Lamatic flow.
+ * @param delay    - Framer Motion entry delay in seconds (default `0`).
+ * @returns An animated card element containing the evidence badge grid.
+ */
 export default function EvidenceCard({ evidence, delay = 0 }: EvidenceCardProps) {
   const hasAny = SECTION_CONFIG.some((s) => evidence[s.key].length > 0);
 

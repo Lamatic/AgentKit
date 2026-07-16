@@ -9,6 +9,19 @@ interface RiskMeterProps {
   label?: string;
 }
 
+/**
+ * Animated SVG half-circle gauge that visualises a 0–100 risk score.
+ *
+ * Draws a static grey track arc and an animated coloured arc whose length
+ * corresponds to the clamped risk value.  Colour transitions through green
+ * → yellow → orange → red as the score increases.  The numeric score is
+ * overlaid in the centre of the arc and animates in after the arc completes.
+ *
+ * @param value - Risk score in the 0–100 range; values outside this range
+ *   are clamped by `clamp()` before rendering.
+ * @param label - Text label displayed beneath the gauge (default `"Risk Score"`).
+ * @returns A flex column containing the SVG gauge and its label.
+ */
 export default function RiskMeter({ value, label = "Risk Score" }: RiskMeterProps) {
   const clamped = clamp(value);
 

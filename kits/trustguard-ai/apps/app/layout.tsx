@@ -33,6 +33,16 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Root layout for the entire TrustGuard AI application.
+ *
+ * Wraps every page with the Inter font, global CSS, and a Toaster notification
+ * provider.  Defines Next.js metadata (title, description, OpenGraph tags,
+ * and icons) used for SEO and browser tab display.
+ *
+ * @param children - Page or nested layout rendered inside the body element.
+ * @returns The `<html>` shell with all global providers applied.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

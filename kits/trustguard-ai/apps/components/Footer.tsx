@@ -3,6 +3,16 @@
 
 import { motion } from "framer-motion";
 
+/**
+ * Application footer displayed at the bottom of every page.
+ *
+ * Renders a row of technology attribution links (Next.js, Tailwind CSS,
+ * Lamatic AI, Gemini) alongside a copyright notice.  Animates in after the
+ * rest of the page content with a 0.6 s delay to avoid competing with
+ * primary interactive elements during load.
+ *
+ * @returns An animated `<footer>` element with tech attribution and copyright.
+ */
 export default function Footer() {
   return (
     <motion.footer

@@ -11,6 +11,18 @@ interface DecisionCardProps {
   readonly delay?: number;
 }
 
+/**
+ * Result card that presents the AI's final decision for an investigation.
+ *
+ * Displays the classification badge (e.g. "SCAM", "SAFE") with colour
+ * coding derived from `getDecisionColor`, followed by the final verdict,
+ * recommended action, priority level, and a human-review flag.  Animates
+ * in with a configurable entry delay to stagger the result card grid.
+ *
+ * @param decision - Validated decision data returned by the Lamatic flow.
+ * @param delay    - Framer Motion entry delay in seconds (default `0`).
+ * @returns An animated card element with the full decision breakdown.
+ */
 export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps) {
   const colors = getDecisionColor(decision.classification);
 
@@ -93,6 +105,19 @@ interface DetailRowProps {
   readonly valueClass?: string;
 }
 
+/**
+ * Renders a single labelled field row inside the DecisionCard details grid.
+ *
+ * Displays a small icon, an uppercase label, and the field value beneath
+ * it.  An optional `valueClass` prop allows callers to apply custom colour
+ * styles to the value text (e.g. red for high priority).
+ *
+ * @param icon       - Emoji or icon character shown before the label.
+ * @param label      - Uppercase section label for the field.
+ * @param value      - String value to display; falls back to `"—"` if falsy.
+ * @param valueClass - Tailwind CSS class applied to the value `<p>` element.
+ * @returns A two-line label + value row element.
+ */
 function DetailRow({
   icon,
   label,

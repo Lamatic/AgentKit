@@ -5,6 +5,17 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Github } from "lucide-react";
 
+/**
+ * Sticky top navigation header for the TrustGuard AI application.
+ *
+ * Renders the TrustGuard logo and name on the left, a centred title block
+ * (hidden on mobile), and external links to the GitHub repository and the
+ * Lamatic AI website on the right.  Slides down from the top of the viewport
+ * on initial mount with a smooth easing transition.
+ *
+ * @returns A sticky animated `<header>` element with brand identity and
+ *   navigation links.
+ */
 export default function Header() {
   return (
     <motion.header

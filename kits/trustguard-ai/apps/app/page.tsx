@@ -22,11 +22,29 @@ const DEFAULT_FORM: AnalyzeFormData = {
   memory_enabled: false,
 };
 
+/**
+ * Root page component for the TrustGuard AI single-page application.
+ *
+ * Manages the investigation lifecycle: holds form state, triggers the server
+ * action, displays a loading indicator while the pipeline runs, and renders
+ * the result cards once a validated response is available.
+ *
+ * @returns The full-page layout including the header, hero section, input
+ *   form, loading animation, result cards, and footer.
+ */
 export default function HomePage() {
   const [formData, setFormData] = useState<AnalyzeFormData>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ValidatedInvestigationResponse | null>(null);
 
+  /**
+   * Validates the form, calls the `runInvestigation` server action, and
+   * updates UI state based on the result.
+   *
+   * Shows a loading toast while the request is in-flight and swaps it for
+   * a success or error toast depending on the outcome.  Guards against
+   * duplicate submissions while a request is already loading.
+   */
   const handleAnalyze = async () => {
     if (loading) return;
     if (!formData.content.trim()) {
