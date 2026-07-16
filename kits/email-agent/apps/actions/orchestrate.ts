@@ -1,7 +1,7 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import { config } from "../orchestrate.js"
+import kitConfig from "../../lamatic.config"
 
 function formatVerifierResult(response: Record<string, unknown> | string): string {
   if (typeof response === "string") {
@@ -34,6 +34,14 @@ ${(r.reasons ?? []).map((reason) => `- ${reason}`).join("\n")}
 `
 }
 
+function getWorkflowId(stepId: string): string {
+  const step = kitConfig.steps.find((s) => s.id === stepId)
+  if (!step) throw new Error(`Step "${stepId}" not found in lamatic.config`)
+  const workflowId = process.env[step.envKey]
+  if (!workflowId) throw new Error(`Env var "${step.envKey}" is not set`)
+  return workflowId
+}
+
 export async function verifyEmail(
   sender: string,
   subject: string,
@@ -46,15 +54,11 @@ export async function verifyEmail(
   try {
     console.log("[Email Agent] Verifying email from:", sender)
 
-    const flow = config.flows.verifier
-    if (!flow || !flow.workflowId) {
-      throw new Error("Verifier workflow not found in configuration")
-    }
-
+    const workflowId = getWorkflowId("email-verifier")
     const inputs = { sender, subject, body }
 
-    console.log("[Email Agent] Executing verifier flow:", flow.workflowId, inputs)
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    console.log("[Email Agent] Executing verifier flow:", workflowId, inputs)
+    const resData = await lamaticClient.executeFlow(workflowId, inputs)
     console.log("[Email Agent] Verifier response:", JSON.stringify(resData, null, 2))
 
     const response = resData?.result?.output
@@ -84,57 +88,13 @@ export async function replyEmail(
   try {
     console.log("[Email Agent] Drafting reply for email from:", sender)
 
-    const verifierFlow = config.flows.verifier
-    const replierFlow = config.flows.replier
+    const workflowId = getWorkflowId("email-replier")
 
-    if (!verifierFlow || !verifierFlow.workflowId) {
-      throw new Error("Verifier workflow not found in configuration")
-    }
-    if (!replierFlow || !replierFlow.workflowId) {
-      throw new Error("Replier workflow not found in configuration")
-    }
-
-    console.log("[Email Agent] Step 1 — Running verifier...")
-    const verifierRes = await lamaticClient.executeFlow(verifierFlow.workflowId, {
-      sender, subject, body,
-    })
-    console.log("[Email Agent] Verifier response:", JSON.stringify(verifierRes, null, 2))
-
-    const verifierRaw = verifierRes?.result?.output
-    let verdict = ""
-    let confidence = 0
-    let reasons: string[] = []
-
-    let verifierResponse: Record<string, unknown> | null = null
-    if (typeof verifierRaw === "string") {
-      try {
-        verifierResponse = JSON.parse(verifierRaw) as Record<string, unknown>
-      } catch {
-        // Not valid JSON — verifier fields remain as defaults
-      }
-    } else if (typeof verifierRaw === "object" && verifierRaw !== null) {
-      verifierResponse = verifierRaw as Record<string, unknown>
-    }
-
-    if (verifierResponse !== null) {
-      const r = verifierResponse as {
-        verdict?: string
-        confidence?: number
-        reasons?: string[]
-      }
-      verdict = r.verdict ?? ""
-      confidence = r.confidence ?? 0
-      reasons = r.reasons ?? []
-    }
-
-    console.log("[Email Agent] Step 2 — Running replier...")
-    const replierRes = await lamaticClient.executeFlow(replierFlow.workflowId, {
+    console.log("[Email Agent] Running replier flow:", workflowId)
+    const replierRes = await lamaticClient.executeFlow(workflowId, {
       sender,
       subject,
       body,
-      verdict,
-      confidence,
-      reasons,
     })
     console.log("[Email Agent] Replier response:", JSON.stringify(replierRes, null, 2))
 
