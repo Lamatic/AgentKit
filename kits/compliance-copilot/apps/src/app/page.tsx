@@ -22,6 +22,10 @@ const SAMPLE_GUIDELINES = `GDPR Compliance Checklist:
 2. Data Sharing Opt-Out: Users must be able to opt-out of sharing their data with third parties for marketing purposes.
 3. Right to Erasure (Right to be Forgotten): Users must have the ability to request the deletion of their personal data.`;
 
+/**
+ * Main Home page component for the Compliance Copilot dashboard.
+ * Provides the UI for users to paste documents and guidelines, and displays the structured audit results.
+ */
 export default function Home() {
   const [documentText, setDocumentText] = useState("");
   const [guidelines, setGuidelines] = useState("");
@@ -29,6 +33,10 @@ export default function Home() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Pre-fills the input textareas with realistic sample data
+   * to allow reviewers to quickly test the application without typing manually.
+   */
   const handleLoadExample = () => {
     setDocumentText(SAMPLE_POLICY);
     setGuidelines(SAMPLE_GUIDELINES);
@@ -36,6 +44,10 @@ export default function Home() {
     setError(null);
   };
 
+  /**
+   * Submits the current document and guidelines to the backend Lamatic orchestration flow.
+   * Normalizes the response and updates the UI state with the structured audit results.
+   */
   const handleAudit = async () => {
     if (!documentText || !guidelines) {
       setError("Please provide both the document and the guidelines.");
