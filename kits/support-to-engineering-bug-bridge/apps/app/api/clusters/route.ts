@@ -5,7 +5,7 @@ import { parseCluster } from "@/lib/types";
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const endpoint = process.env.LAMATIC_API_URL?.trim() || "";
+  const endpoint = process.env.LAMATIC_API_URL?.trim() || "https://api.lamatic.ai/v1";
   const apiKey = process.env.LAMATIC_API_KEY?.trim() || "";
   const projectId = process.env.LAMATIC_PROJECT_ID?.trim() || "";
   const workflowId = process.env.BUG_BRIDGE_LIST_FLOW_ID?.trim() || "";
@@ -149,8 +149,10 @@ query CheckStatus($requestId: String!) {
 
     // Sort: P1 first, then by account count descending, then by last_updated descending
     clusters.sort((a, b) => {
-      const severity = { P1: 0, P2: 1, P3: 2, P4: 3 };
-      const sevDiff = severity[a.severity] - severity[b.severity];
+      const severity: Record<string, number> = { P1: 0, P2: 1, P3: 2, P4: 3 };
+      const sevA = severity[a.severity] ?? 99;
+      const sevB = severity[b.severity] ?? 99;
+      const sevDiff = sevA - sevB;
       if (sevDiff !== 0) return sevDiff;
       const countDiff = b.account_count - a.account_count;
       if (countDiff !== 0) return countDiff;

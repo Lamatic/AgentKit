@@ -60,7 +60,7 @@ Each run (every 5 minutes via GitHub Actions cron):
 
 5. **Create, update, reopen, or hold.** 
    - If confidence clears the threshold (0.70) and no issue exists: a structured issue is created with synthesized repro steps, affected-customer count, severity (computed from count, never from LLM opinion), and evidence links. 
-   - If an issue already exists: a comment is appended with the new affected customer and new evidence. 
+   - If an issue already exists: a comment is appended with the new affected customer and new evidence.
    - If confidence does not clear the threshold: the ticket is held as a monitored singleton for human review — no issue spam.
 
 ### Severity Rubric
@@ -79,7 +79,7 @@ Severity is computed deterministically from **distinct customer accounts**, neve
 ## Setup
 
 ### Prerequisites
-- A Lamatic account with a deployed Flow (see `lamatic.config.ts`)
+- A Lamatic account with the two required deployed Flows (see `lamatic.config.ts`)
 - A GitHub repository where issues will be filed
 - A Zendesk account with API access
 - A Groq API key (free tier works; see Rate Limit note below)
@@ -96,23 +96,26 @@ cp .env.example .env
 |---|---|---|
 | `GROQ_API_KEY` | LLM inference (judgment + drafting) | Free tier sufficient |
 | `LAMATIC_API_URL` | Lamatic flow endpoint | Your project URL |
+| `LAMATIC_PROJECT_ID` | Lamatic project ID | Found in your project settings |
 | `LAMATIC_API_KEY` | Lamatic authentication | Project-level key |
+| `BUG_BRIDGE_FLOW_ID` | Main Flow ID | Required for triggering the main flow |
+| `BUG_BRIDGE_LIST_FLOW_ID` | List Flow ID | Required for the Next.js dashboard |
 | `GITHUB_TOKEN` | GitHub issue/label write access | Fine-grained PAT: `Issues: Read & Write`, `Metadata: Read` on target repo only |
 | `GITHUB_REPO_OWNER` | Target repo owner | — |
 | `GITHUB_REPO_NAME` | Target repo name | — |
 | `ZENDESK_SUBDOMAIN` | Your Zendesk subdomain | — |
-| `ZENDESK_EMAIL` | Zendesk API credentials | Read-only token: no reply/close/macro permissions |
-| `ZENDESK_API_TOKEN` | Zendesk API token | — |
+| `ZENDESK_EMAIL` | Zendesk API username/email | The email address of the API user |
+| `ZENDESK_API_TOKEN` | Zendesk API token | Read-only token: no reply/close/macro permissions |
 | `BUG_BRIDGE_CONFIDENCE_THRESHOLD` | Min confidence to merge a ticket into a cluster (default: `0.70`) | — |
 | `BUG_BRIDGE_FETCH_WINDOW_MINS` | How far back to poll Zendesk per run (default: `10`) | — |
 
-### 2. Deploy the Lamatic Flow
+### 2. Deploy the Lamatic Flows
 
-Import `lamatic.config.ts` into your Lamatic project and deploy. The flow is configured for a 5-minute cron trigger via GitHub Actions.
+Import `lamatic.config.ts` into your Lamatic project and deploy the two required flows. The main `bug-bridge-flow` is configured for a 5-minute cron trigger via GitHub Actions.
 
 ### 3. Set Up GitHub Actions
 
-The `.github/workflows/` trigger calls the flow endpoint on a 5-minute schedule. Ensure `LAMATIC_API_KEY` and `LAMATIC_API_URL` are set as repository secrets.
+The `.github/workflows/` trigger calls the main flow endpoint on a 5-minute schedule. Ensure `LAMATIC_API_KEY`, `LAMATIC_API_URL`, and `BUG_BRIDGE_FLOW_ID` are set as repository secrets.
 
 > **Note:** GitHub Actions automatically disables scheduled workflows after 60 days with no repository commits. Make a maintenance commit periodically to keep it active.
 
@@ -140,7 +143,7 @@ The `apps/` directory contains a Next.js cluster tracker that visualizes accumul
 | Confidence gate | < 0.70 → hold for human review | Prefer a held ticket over a wrong tracker issue. Noise is the fastest way to get a tool disabled. |
 | Customer identity | Canonical account_id (not raw email) | One customer, multiple emails = one account. Prevents falsely inflating severity. |
 | PII handling | Raw text sent to Groq API | Explicitly documented trade-off for internal MVP. Groq's API-tier policy states they do not train on API inputs, but production deployments should evaluate local redaction steps. |
-| Model split | 8B for judgment, 70B for drafting | Cost/latency efficiency; 70B needed for structured prose generation. |
+| Model usage | 8B for judgment and drafting | Both tasks run efficiently on `llama-3.1-8b-instant`. |
 | Idempotency window | 10m fetch on 5m cron | Prevents dropped events during rate limit spikes (e.g. 429s). |
 | JSON validation | Explicit validation step | 8B model uses basic JSON mode; guards against schema mismatches before proceeding. |
 | Business Logic | Distributed across node types | Severity and routing logic are inlined as JavaScript inside Code Nodes, while GitHub integration is fully encapsulated within native API/HTTP nodes using configured endpoints and headers. |

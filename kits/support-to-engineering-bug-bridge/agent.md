@@ -3,7 +3,7 @@
 **Type:** Autonomous Triage Agent  
 **Architecture:** Lamatic Flow (Batched Cron Polling, 5-minute interval)  
 **Tracker:** GitHub Issues  
-**Classification Models:** `llama-3.1-8b-instant` (judgment), `llama-3.3-70b-versatile` (drafting)
+**Classification Models:** `llama-3.1-8b-instant` (judgment and drafting)
 
 ---
 
@@ -41,7 +41,7 @@ All read access is scoped to the minimum necessary:
 | Zendesk | Ticket ID, subject, description body, requester email, account ID, created-at timestamp, tags | Read-only. No reply, close, or macro permissions. |
 | Lamatic vector store | Cluster metadata: cluster ID, affected account IDs, ticket IDs, GitHub issue number, status, timestamps | Read during every run to retrieve candidate clusters |
 
-**PII note:** Raw ticket text (which may contain customer-identifiable information) is sent to the Hugging Face Serverless Inference API for embedding generation, and the Groq API for LLM judgment. Both Hugging Face and Groq's API-tier data policies state they explicitly do NOT use customer API payloads to train or refine their models, and retain logs transiently for abuse monitoring only. A deployment operator must verify these policies meet their organization's data handling requirements before enabling the agent on production support data.
+**PII note:** Raw ticket text (which may contain customer-identifiable information) is sent to the Mistral API for embedding generation, and the Groq API for LLM judgment. Both Mistral and Groq's API-tier data policies state they explicitly do NOT use customer API payloads to train or refine their models, and retain logs transiently for abuse monitoring only. A deployment operator must verify these policies meet their organization's data handling requirements before enabling the agent on production support data.
 
 ---
 
@@ -98,6 +98,6 @@ The agent never silently drops data. Every failure mode has a defined, logged, a
 | Singleton escalation gate | 2 distinct accounts | Hardcoded in Node 6 routing logic — deliberately not an env var. This threshold defines what "a pattern" means (1 would forward every ticket; 3+ would miss the first confirmation). Changing it changes the product's core behavior, not just its tuning. |
 | Severity tiers | P4 (1 acct), P3 (2–3), P2 (4–6), P1 (7+) | `constitutions/default.md` (requires redeploy) |
 | Judgment model | `llama-3.1-8b-instant` | `lamatic.config.ts` |
-| Drafting model | `llama-3.3-70b-versatile` | `lamatic.config.ts` |
+| Drafting model | `llama-3.1-8b-instant` | `lamatic.config.ts` |
 | Model temperature (judgment) | 0.0 | `lamatic.config.ts` |
 | Model temperature (drafting) | 0.3 | `lamatic.config.ts` |
