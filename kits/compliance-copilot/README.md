@@ -70,7 +70,7 @@ npm run dev
 
 ## 📂 Repo Structure
 
-```
+```text
 compliance-copilot/
 ├── .env.example              # Environment variable template
 ├── .gitignore

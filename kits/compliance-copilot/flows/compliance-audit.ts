@@ -10,8 +10,8 @@ export const meta = {
   "documentationUrl": "",
   "deployUrl": "",
   "author": {
-    "name": "defojo",
-    "email": "defojo7062@epaynine.com"
+    "name": "name",
+    "email": "mail.com"
   }
 };
 
@@ -71,7 +71,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"requirement\": {\n      \"type\": \"string\"\n    },\n    \"status\": {\n      \"type\": \"string\"\n    },\n    \"analysis\": {\n      \"type\": \"string\"\n    },\n    \"remediation\": {\n      \"type\": \"string\"\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"requirement\": {\n        \"type\": \"string\"\n      },\n      \"status\": {\n        \"type\": \"string\"\n      },\n      \"analysis\": {\n        \"type\": \"string\"\n      },\n      \"remediation\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
