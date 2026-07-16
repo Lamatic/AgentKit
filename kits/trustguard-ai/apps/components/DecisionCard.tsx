@@ -2,12 +2,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { CheckCircle2, UserCheck } from "lucide-react";
 import { getDecisionColor } from "@/lib/utils";
 import type { DecisionData } from "@/types/response";
 
 interface DecisionCardProps {
-  decision: DecisionData;
-  delay?: number;
+  readonly decision: DecisionData;
+  readonly delay?: number;
 }
 
 export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps) {
@@ -23,9 +24,7 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
       {/* Card header */}
       <div className="flex items-center gap-2 mb-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
         </div>
         <h3 className="text-sm font-semibold text-white">Decision</h3>
       </div>
@@ -62,25 +61,22 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
             decision.priority?.toUpperCase() === "HIGH"
               ? "text-red-400 font-semibold"
               : decision.priority?.toUpperCase() === "MEDIUM"
-              ? "text-orange-400 font-semibold"
-              : "text-green-400 font-semibold"
+                ? "text-orange-400 font-semibold"
+                : "text-green-400 font-semibold"
           }
         />
 
         {/* Human Review flag */}
         <div className="flex items-center justify-between pt-1 border-t border-white/[0.06] mt-3">
           <span className="text-xs text-slate-400 flex items-center gap-1.5">
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+            <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
             Needs Human Review
           </span>
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-              decision.human_review
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${decision.human_review
                 ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
                 : "bg-green-500/20 text-green-300 border-green-500/40"
-            }`}
+              }`}
           >
             {decision.human_review ? "Yes" : "No"}
           </span>
@@ -90,17 +86,19 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
   );
 }
 
+interface DetailRowProps {
+  readonly icon: string;
+  readonly label: string;
+  readonly value: string;
+  readonly valueClass?: string;
+}
+
 function DetailRow({
   icon,
   label,
   value,
   valueClass = "text-slate-200",
-}: {
-  icon: string;
-  label: string;
-  value: string;
-  valueClass?: string;
-}) {
+}: DetailRowProps) {
   return (
     <div>
       <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">

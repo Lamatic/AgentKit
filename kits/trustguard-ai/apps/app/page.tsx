@@ -11,7 +11,8 @@ import Footer from "@/components/Footer";
 import InputForm from "@/components/InputForm";
 import ResultCards from "@/components/ResultCards";
 import { runInvestigation } from "@/actions/runInvestigation";
-import type { AnalyzeFormData, InvestigationResponse } from "@/types/response";
+import type { AnalyzeFormData } from "@/types/response";
+import type { ValidatedInvestigationResponse } from "@/lib/schemas";
 
 const DEFAULT_FORM: AnalyzeFormData = {
   input_type: "Email",
@@ -24,7 +25,7 @@ const DEFAULT_FORM: AnalyzeFormData = {
 export default function HomePage() {
   const [formData, setFormData] = useState<AnalyzeFormData>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<InvestigationResponse | null>(null);
+  const [result, setResult] = useState<ValidatedInvestigationResponse | null>(null);
 
   const handleAnalyze = async () => {
     if (loading) return;

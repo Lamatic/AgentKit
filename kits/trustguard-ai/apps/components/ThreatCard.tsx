@@ -2,19 +2,18 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 import RiskMeter from "@/components/RiskMeter";
 import { getSeverityColor, getIndicatorLevelColor, formatPercent, clamp } from "@/lib/utils";
 import type { ThreatAnalysis } from "@/types/response";
 
 interface ThreatCardProps {
-  analysis: ThreatAnalysis;
-  delay?: number;
+  readonly analysis: ThreatAnalysis;
+  readonly delay?: number;
 }
 
 export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
   const severityColors = getSeverityColor(analysis.severity);
-  const riskScore = Math.round(clamp(analysis.risk_score * (analysis.risk_score > 1 ? 1 : 100)));
-  const confidenceScore = Math.round(clamp(analysis.confidence * (analysis.confidence > 1 ? 1 : 100)));
 
   // Normalise 0-1 to 0-100 if the API returns decimals
   const normalise = (v: number) => (v <= 1 ? Math.round(v * 100) : Math.round(clamp(v)));
@@ -29,9 +28,7 @@ export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
       {/* Card header */}
       <div className="flex items-center gap-2 mb-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/20 text-red-400">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
         </div>
         <h3 className="text-sm font-semibold text-white">Threat Analysis</h3>
       </div>

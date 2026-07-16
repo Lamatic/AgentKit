@@ -1,5 +1,6 @@
 // lib/types.ts
-// Re-export everything from types/response.ts for convenient imports
+// Re-exports from types/response.ts for convenient imports.
+// For runtime-validated types, import ValidatedInvestigationResponse from @/lib/schemas.
 export type {
   InvestigationInfo,
   NormalizedContent,
