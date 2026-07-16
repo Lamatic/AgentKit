@@ -15,9 +15,11 @@ async function getClusters(): Promise<{
   error?: string;
 }> {
   try {
-    const base =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      `http://localhost:${process.env.PORT ?? 3000}`;
+    const isDev = process.env.NODE_ENV === "development";
+    const base = process.env.NEXT_PUBLIC_BASE_URL || (isDev ? `http://localhost:${process.env.PORT ?? 3000}` : "");
+    if (!base) {
+      throw new Error("NEXT_PUBLIC_BASE_URL is required in production.");
+    }
     const res = await fetch(`${base}/api/clusters`, {
       // Do not cache: data should reflect state as of page load
       cache: "no-store",

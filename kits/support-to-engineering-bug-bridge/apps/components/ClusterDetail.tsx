@@ -34,7 +34,7 @@ export function ClusterDetail({ cluster, onClose }: ClusterDetailProps) {
         <div className="detail-stat">
           <span className="detail-label">GitHub Issue</span>
           <span className="detail-value">
-            {cluster.gh_issue_url ? (
+            {cluster.gh_issue_number && cluster.gh_issue_url ? (
               <a
                 href={cluster.gh_issue_url}
                 target="_blank"
