@@ -8,6 +8,7 @@ import { z } from "zod";
 // Sub-schemas
 // ---------------------------------------------------------------------------
 
+/** Zod schema for the investigation metadata block returned by the planner stage. */
 const InvestigationInfoSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -17,12 +18,14 @@ const InvestigationInfoSchema = z.object({
   language: z.string(),
 });
 
+/** Zod schema for the normalised content block produced by the evidence extractor stage. */
 const NormalizedContentSchema = z.object({
   clean_text: z.string(),
   summary: z.string(),
   detected_input_type: z.string(),
 });
 
+/** Zod schema for the evidence data block; all array fields default to empty arrays. */
 const EvidenceDataSchema = z.object({
   urls: z.array(z.string()).default([]),
   domains: z.array(z.string()).default([]),
@@ -36,12 +39,14 @@ const EvidenceDataSchema = z.object({
   entities: z.array(z.string()).default([]),
 });
 
+/** Zod schema for the grouped threat indicator lists (high, medium, low). */
 const ThreatIndicatorsSchema = z.object({
   high: z.array(z.string()).default([]),
   medium: z.array(z.string()).default([]),
   low: z.array(z.string()).default([]),
 });
 
+/** Zod schema for the threat analysis block; `severity` falls back to `"LOW"` for unknown values. */
 const ThreatAnalysisSchema = z.object({
   risk_score: z.number(),
   confidence: z.number(),
@@ -52,6 +57,7 @@ const ThreatAnalysisSchema = z.object({
   reasoning_summary: z.string(),
 });
 
+/** Zod schema for the decision engine output block. */
 const DecisionDataSchema = z.object({
   classification: z.string(),
   final_verdict: z.string(),
@@ -61,6 +67,7 @@ const DecisionDataSchema = z.object({
   human_review: z.boolean(),
 });
 
+/** Zod schema for the flow housekeeping metadata appended to every response. */
 const ResponseMetadataSchema = z.object({
   workflow: z.string(),
   version: z.string(),
@@ -70,6 +77,13 @@ const ResponseMetadataSchema = z.object({
 // Root schema — exported for use in the Server Action
 // ---------------------------------------------------------------------------
 
+/**
+ * Root Zod validation schema for the complete TrustGuard AI Lamatic flow response.
+ *
+ * Composed from all sub-schemas above and used inside the `runInvestigation`
+ * server action to validate the raw API response at runtime.  The inferred
+ * TypeScript type is exported as `ValidatedInvestigationResponse`.
+ */
 export const InvestigationResponseSchema = z.object({
   investigation: InvestigationInfoSchema,
   normalized: NormalizedContentSchema,
