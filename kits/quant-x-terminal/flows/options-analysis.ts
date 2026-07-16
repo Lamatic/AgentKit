@@ -11,8 +11,12 @@ export const flowConfig = {
     {
       id: "llm-generation",
       type: "llm",
-      prompt: "Analyze the provided stock market outlook and generate a standard options strategy risk profile.",
-      model: "gpt-4o"
+      name: "LLM Generation",
+      args: {
+        prompt: "Analyze the provided stock market outlook and generate a standard options strategy risk profile.",
+        model: "gpt-4o",
+        temperature: 0.7
+      }
     }
   ],
   response: {
