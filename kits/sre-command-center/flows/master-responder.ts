@@ -380,7 +380,7 @@ export const nodes = [
           {
             "label": "Slack Enabled",
             "value": "conditionNode_slack_check-slackNode_1",
-            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.notify_slack}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.input.notify_slack}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
           },
           {
             "label": "Slack Disabled",
@@ -407,7 +407,7 @@ export const nodes = [
           {
             "label": "Email Enabled",
             "value": "conditionNode_email_check-gmailNode_1",
-            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.notify_email}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.input.notify_email}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
           },
           {
             "label": "Email Disabled",
