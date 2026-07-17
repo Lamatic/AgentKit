@@ -9,7 +9,11 @@ let numCols = cols.filter(c => types[c].type === "NUMBER");
 
 // 1. Descriptive Stats & IQR Outliers
 numCols.forEach(c => {
-  let vals = data.map(r => Number(r[c])).filter(v => !isNaN(v));
+  let vals = data
+    .map(r => r[c])
+    .filter(v => v !== null && v !== undefined && v.toString().trim() !== '')
+    .map(v => Number(v))
+    .filter(v => !isNaN(v));
   if (vals.length === 0) return;
   vals.sort((a,b) => a-b);
   
@@ -31,12 +35,18 @@ for (let i = 0; i < numCols.length; i++) {
     let c1 = numCols[i], c2 = numCols[j];
     let sum1=0, sum2=0, sum1Sq=0, sum2Sq=0, pSum=0, n=0;
     data.forEach(r => {
-      let x = Number(r[c1]), y = Number(r[c2]);
-      if (!isNaN(x) && !isNaN(y)) {
-        sum1 += x; sum2 += y;
-        sum1Sq += x*x; sum2Sq += y*y;
-        pSum += x*y;
-        n++;
+      let val1 = r[c1], val2 = r[c2];
+      if (
+        val1 !== null && val1 !== undefined && val1.toString().trim() !== '' &&
+        val2 !== null && val2 !== undefined && val2.toString().trim() !== ''
+      ) {
+        let x = Number(val1), y = Number(val2);
+        if (!isNaN(x) && !isNaN(y)) {
+          sum1 += x; sum2 += y;
+          sum1Sq += x*x; sum2Sq += y*y;
+          pSum += x*y;
+          n++;
+        }
       }
     });
     if (n > 0) {

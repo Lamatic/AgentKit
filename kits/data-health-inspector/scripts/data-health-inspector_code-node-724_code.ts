@@ -60,18 +60,19 @@ defectPoints += (dupes * colCount * 1.0);
 let skewPenalty = 0;
 uniq.forEach(c => { if (c.dominant_pct > 95) skewPenalty += 2; });
 
-let rawScore = 100;
+let score = 0;
+let statusl = "CRITICAL";
+
 if (totalCells > 0) {
   let defectRatio = defectPoints / totalCells;
-  rawScore = 100 - (defectRatio * 100) - skewPenalty;
+  let rawScore = 100 - (defectRatio * 100) - skewPenalty;
+  score = Math.max(0, Math.round(rawScore));
+
+  statusl = "EXCELLENT";
+  if (score < 90) statusl = "GOOD";
+  if (score < 75) statusl = "FAIR";
+  if (score < 60) statusl = "POOR";
+  if (score < 40) statusl = "CRITICAL";
 }
-
-let score = Math.max(0, Math.round(rawScore));
-
-let statusl = "EXCELLENT";
-if (score < 90) statusl = "GOOD";
-if (score < 75) statusl = "FAIR";
-if (score < 60) statusl = "POOR";
-if (score < 40) statusl = "CRITICAL";
 
 output = { issues, health_score: score, health_status: statusl };
