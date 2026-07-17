@@ -53,25 +53,29 @@ while (attempts < 3 && !aiJson) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://lamatic.ai",
-        "X-Title": "AgentKit JSON API"
-      },
-      body: JSON.stringify({
-        model: "nvidia/nemotron-3-super-120b-a12b:free",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ]
-      })
-    });
-    clearTimeout(timeoutId);
+    let response;
+    try {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://lamatic.ai",
+          "X-Title": "AgentKit JSON API"
+        },
+        body: JSON.stringify({
+          model: "nvidia/nemotron-3-super-120b-a12b:free",
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const data = await response.json();
 

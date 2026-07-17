@@ -16,13 +16,20 @@ data.forEach(r => {
 
 const isValidDate = (str) => {
   const s = str.trim();
-  if (!/^(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4})$/.test(s)) return false;
-  const parts = s.split(/[-/]/).map(Number);
   let y, m, d;
-  if (parts[0] > 1000) { y = parts[0]; m = parts[1]; d = parts[2]; }
-  else if (parts[0] > 12) { d = parts[0]; m = parts[1]; y = parts[2]; }
-  else { m = parts[0]; d = parts[1]; y = parts[2]; }
-  const dateObj = new Date(y, m - 1, d);
+  let match = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    y = Number(match[1]); m = Number(match[2]); d = Number(match[3]);
+  } else if ((match = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) {
+    m = Number(match[1]); d = Number(match[2]); y = Number(match[3]);
+  } else if ((match = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/))) {
+    d = Number(match[1]); m = Number(match[2]); y = Number(match[3]);
+  } else {
+    return false;
+  }
+  const dateObj = new Date();
+  dateObj.setHours(0, 0, 0, 0);
+  dateObj.setFullYear(y, m - 1, d);
   return dateObj.getFullYear() === y && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
 };
 
@@ -50,7 +57,7 @@ cols.forEach(c => {
   });
   
   let validVals = rowCount - missing;
-  let maxFreq = Math.max(0, ...Object.values(freqs));
+  let maxFreq = Object.values(freqs).reduce((a, b) => Math.max(a, b), 0);
   
   completeness.push({ column: c, missing_count: missing, missing_pct: rowCount > 0 ? (missing/rowCount)*100 : 0 });
   uniqueness.push({ column: c, unique_count: Object.keys(freqs).length, dominant_pct: validVals>0?(maxFreq/validVals)*100:0 });
