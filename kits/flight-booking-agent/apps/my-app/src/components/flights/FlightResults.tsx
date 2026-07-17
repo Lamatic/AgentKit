@@ -44,7 +44,11 @@ export const FlightResults = ({
   if (flights.length === 0) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="mt-8"
+    >
       <FlightStats
         totalAvailable={totalAvailable}
         showing={flights.length}
@@ -55,7 +59,7 @@ export const FlightResults = ({
         cabinClass={cabinClass}
       />
 
-      <div>
+      <div className="space-y-4">
         {currentFlights.map((flight, index) => (
           <FlightCard
             key={flight.offerId || index}
