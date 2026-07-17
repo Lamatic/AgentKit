@@ -8,11 +8,19 @@ import { InvestigationResponseSchema } from "@/lib/schemas";
 import type { AnalyzeFormData } from "@/types/response";
 import type { ValidatedInvestigationResponse } from "@/lib/schemas";
 
+
+/**
+ * Discriminated result returned by the `runInvestigation` server action.
+ *
+ * On success, `success` is `true` and `data` holds the validated response.
+ * On failure, `success` is `false` and `error` contains a user-safe message.
+ */
 export interface RunInvestigationResult {
   readonly success: boolean;
   readonly data?: ValidatedInvestigationResponse;
   readonly error?: string;
 }
+
 
 /**
  * Executes a TrustGuard AI investigation using the configured Lamatic flow.

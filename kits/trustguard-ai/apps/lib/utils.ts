@@ -2,7 +2,12 @@
 // Utility helpers for colors, formatting, and display logic
 
 /**
- * Returns a Tailwind CSS text color class based on risk score (0-100)
+ * Returns a Tailwind CSS text color class based on risk score (0–100).
+ *
+ * Thresholds: ≥80 → red, ≥60 → orange, ≥40 → yellow, <40 → green.
+ *
+ * @param score - Numeric risk score in the 0–100 range.
+ * @returns A Tailwind `text-*` color class string.
  */
 export function getRiskColor(score: number): string {
   if (score >= 80) return "text-red-400";
@@ -12,7 +17,14 @@ export function getRiskColor(score: number): string {
 }
 
 /**
- * Returns a Tailwind CSS text + border color class based on severity string
+ * Returns Tailwind CSS colour classes for a severity badge based on the
+ * severity string returned by the Lamatic threat analyser stage.
+ *
+ * Recognised values (case-insensitive): `"CRITICAL"`, `"HIGH"`, `"MEDIUM"`, `"LOW"`.
+ * Any unrecognised value falls back to a neutral slate palette.
+ *
+ * @param severity - Raw severity string from the API response.
+ * @returns An object with `text`, `bg`, and `border` Tailwind class strings.
  */
 export function getSeverityColor(severity: string): {
   text: string;
@@ -34,7 +46,16 @@ export function getSeverityColor(severity: string): {
 }
 
 /**
- * Returns colors for the decision classification badge
+ * Returns Tailwind CSS colour classes for a decision classification badge.
+ *
+ * Keyword matching (case-insensitive):
+ * - `"SCAM"`, `"FRAUD"`, or `"MALICIOUS"` → red palette
+ * - `"SUSPICIOUS"` or `"UNCERTAIN"` → orange palette
+ * - `"SAFE"`, `"LEGITIMATE"`, or `"CLEAN"` → green palette
+ * - Anything else → cyan palette
+ *
+ * @param classification - Raw classification string from the API response.
+ * @returns An object with `text`, `bg`, `border`, and `glow` Tailwind class strings.
  */
 export function getDecisionColor(classification: string): {
   text: string;
@@ -76,7 +97,12 @@ export function getDecisionColor(classification: string): {
 }
 
 /**
- * Returns badge color styles for indicator level chips
+ * Returns Tailwind CSS class string for an indicator-level chip.
+ *
+ * Maps `"high"` → red, `"medium"` → orange, and `"low"` → green badge styles.
+ *
+ * @param level - Indicator severity level: `"high"`, `"medium"`, or `"low"`.
+ * @returns A Tailwind class string combining background, text, and border colours.
  */
 export function getIndicatorLevelColor(level: "high" | "medium" | "low"): string {
   switch (level) {
@@ -90,14 +116,26 @@ export function getIndicatorLevelColor(level: "high" | "medium" | "low"): string
 }
 
 /**
- * Clamp a number between min and max
+ * Clamps a number to the inclusive [min, max] range.
+ *
+ * @param value - The number to clamp.
+ * @param min   - Lower bound (default `0`).
+ * @param max   - Upper bound (default `100`).
+ * @returns The clamped value: `min` if `value < min`, `max` if `value > max`,
+ *   otherwise `value` unchanged.
  */
 export function clamp(value: number, min = 0, max = 100): number {
   return Math.min(max, Math.max(min, value));
 }
 
 /**
- * Format a percentage value with bounds checking
+ * Formats a numeric value as a percentage string, clamped to 0–100.
+ *
+ * Delegates to `clamp()` before rounding so out-of-range values from the
+ * API never produce strings like `"-5%"` or `"110%"`.
+ *
+ * @param value - Numeric value to format (expected range: 0–100).
+ * @returns A string in the form `"N%"` where N is an integer in 0–100.
  */
 export function formatPercent(value: number): string {
   return `${Math.round(clamp(value))}%`;

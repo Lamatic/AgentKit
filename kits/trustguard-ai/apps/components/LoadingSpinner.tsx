@@ -25,11 +25,13 @@ export default function LoadingSpinner({
   className = "",
 }: LoadingSpinnerProps) {
   return (
-    <Loader2
-      width={size}
-      height={size}
-      className={`animate-spin ${className}`}
-      aria-label="Loading"
-    />
+    <span role="status" aria-live="polite">
+      <Loader2
+        width={size}
+        height={size}
+        className={`animate-spin ${className}`}
+        aria-label="Loading"
+      />
+    </span>
   );
 }

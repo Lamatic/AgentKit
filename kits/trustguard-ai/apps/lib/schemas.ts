@@ -41,9 +41,9 @@ const EvidenceDataSchema = z.object({
 
 /** Zod schema for the grouped threat indicator lists (high, medium, low). */
 const ThreatIndicatorsSchema = z.object({
-  high: z.array(z.string()).default([]),
-  medium: z.array(z.string()).default([]),
-  low: z.array(z.string()).default([]),
+  high: z.array(z.string()).default([]).readonly(),
+  medium: z.array(z.string()).default([]).readonly(),
+  low: z.array(z.string()).default([]).readonly(),
 });
 
 /** Zod schema for the threat analysis block; `severity` falls back to `"LOW"` for unknown values. */

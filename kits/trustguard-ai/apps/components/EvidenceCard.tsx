@@ -42,7 +42,7 @@ interface EvidenceCardProps {
  * @returns An animated card element containing the evidence badge grid.
  */
 export default function EvidenceCard({ evidence, delay = 0 }: EvidenceCardProps) {
-  const hasAny = SECTION_CONFIG.some((s) => evidence[s.key].length > 0);
+  const hasAny = SECTION_CONFIG.some((s) => (evidence[s.key]?.length ?? 0) > 0);
 
   return (
     <motion.div
@@ -66,11 +66,11 @@ export default function EvidenceCard({ evidence, delay = 0 }: EvidenceCardProps)
         ) : (
           SECTION_CONFIG.map(({ key, label, color, icon }) => {
             const items = evidence[key];
-            if (items.length === 0) return null;
+            if ((items?.length ?? 0) === 0) return null;
             return (
               <div key={key}>
                 <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                  {icon} {label} ({items.length})
+                  {icon} {label} ({items?.length ?? 0})
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {items.map((item, idx) => (
