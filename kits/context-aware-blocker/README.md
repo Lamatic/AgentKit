@@ -38,8 +38,8 @@ This kit uses a Lamatic AI flow to read the **actual content** of a webpage — 
 ### 1. Rule-Aware Cache (No TTL)
 Instead of expiring cached AI decisions on a timer (which risks stale data), the extension generates a **deterministic hash of the active blocking rules**. When a rule changes, the hash changes, and all cached decisions automatically invalidate. This saves API calls without ever serving a stale BLOCK/PASS decision.
 
-### 2. Fail-Closed Strategy
-If the AI is uncertain or the API call fails, the system defaults to **BLOCK**. It is better to over-protect focus than accidentally allow a distraction through. This mirrors the security principle of failing safely.
+### 2. Fail-Open Strategy
+If the API or AI evaluation fails, the system returns or retains **PASS**. This prevents unexpectedly blocking the user from their work due to Lamatic API timeouts or misconfigurations.
 
 ### 3. The "Strict Bouncer" Feature
 The extension's background service worker monitors tab navigation. If the user tries to open `chrome://extensions` to disable the blocker during a focus session, the extension instantly closes the tab. This is a deliberate anti-circumvention technique inspired by native OS-level enforcement patterns.
@@ -63,7 +63,7 @@ The dashboard UI uses a storage adapter (`lib/storage.ts`) that automatically de
 2. Create a new flow named `content-classification`.
 3. Set up an **API Request** node → **InstructorLLMNode** → **API Response**.
 4. Deploy the flow and export it.
-5. Get your `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, and `FLOW_ID` from the dashboard.
+5. Get your `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, and `CONTENT_CLASSIFICATION_FLOW_ID` from the dashboard.
 
 ### 2. Run the Next.js Backend
 
@@ -129,7 +129,7 @@ kits/context-aware-blocker/
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend Dashboard | Next.js 16, React 19, Zustand, Tailwind CSS 4 |
+| Frontend Dashboard | Next.js 15, React 19, Zustand, Tailwind CSS 4 |
 | Chrome Extension | Manifest V3, Service Worker, Content Script |
 | AI Orchestration | Lamatic AI Flow (Instructor LLM Node) |
 | Deployment | Vercel (backend), Chrome Web Store (extension) |

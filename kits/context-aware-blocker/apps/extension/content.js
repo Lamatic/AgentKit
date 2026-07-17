@@ -74,19 +74,19 @@ function scrapePageContext() {
 // ** PRODUCTION LEVEL TRIGGER: Scrape on initial load ** //
 scrapePageContext();
 
-// HACK: 5-Second DOM Polling Safety Net.
-// Relying on a setInterval to scrape the DOM is computationally expensive and generally 
-// bad practice for an extension. We are doing this as a brute-force workaround to catch 
-// time boundaries (e.g. crossing into a blocked time window while already on a page). 
-// Future refactor should replace this with chrome.alarms and a MutationObserver.
-setInterval(() => {
-  // Stop polling entirely if the extension was reloaded (context is dead)
-  if (!contextAlive) return;
-  // Only poll if the page isn't already blocked by the physical overlay
-  if (!document.getElementById('lamablock-overlay')) {
-    scrapePageContext();
-  }
-}, 5000);
+let domDebounce = null;
+const observer = new MutationObserver(() => {
+  if (!contextAlive || document.getElementById('lamablock-overlay')) return;
+  clearTimeout(domDebounce);
+  domDebounce = setTimeout(scrapePageContext, 2000);
+});
+if (document.body) {
+  observer.observe(document.body, { childList: true, subtree: true });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
 
 // ** PRODUCTION LEVEL UX: Physical Block Overlay ** //
 function showBlockOverlay(commitName) {
@@ -143,7 +143,18 @@ function showBlockOverlay(commitName) {
   `;
 
   const subtitle = document.createElement('p');
-  subtitle.innerHTML = `This page is blocked by your "<strong>${commitName}</strong>" commit.<br><br><span id="lamablock-countdown" style="color: #ef4444; font-weight: bold;">Closing tab in 3s...</span>`;
+  subtitle.appendChild(document.createTextNode('This page is blocked by your "'));
+  const strong = document.createElement('strong');
+  strong.textContent = commitName;
+  subtitle.appendChild(strong);
+  subtitle.appendChild(document.createTextNode('" commit.'));
+  subtitle.appendChild(document.createElement('br'));
+  subtitle.appendChild(document.createElement('br'));
+  const countdownSpan = document.createElement('span');
+  countdownSpan.id = 'lamablock-countdown';
+  countdownSpan.style.cssText = 'color: #ef4444; font-weight: bold;';
+  countdownSpan.textContent = 'Closing tab in 3s...';
+  subtitle.appendChild(countdownSpan);
   subtitle.style.cssText = `
     font-size: 16px;
     color: #a1a1aa; /* Gray text */
@@ -291,16 +302,12 @@ if (window.location.origin === "http://localhost:3000") {
   const syncStorage = () => {
     try {
       const localCommits = localStorage.getItem("cab_commits");
-      if (localCommits) {
-        const parsed = JSON.parse(localCommits);
-        safeSendMessage({ type: "SYNC_COMMITS", commits: parsed });
-      }
+      const parsedCommits = localCommits ? JSON.parse(localCommits) : [];
+      safeSendMessage({ type: "SYNC_COMMITS", commits: parsedCommits });
       
       const localLockSettings = localStorage.getItem("lama_lock_settings");
-      if (localLockSettings) {
-        const parsedLock = JSON.parse(localLockSettings);
-        safeSendMessage({ type: "SYNC_LOCK_SETTINGS", settings: parsedLock });
-      }
+      const parsedLock = localLockSettings ? JSON.parse(localLockSettings) : null;
+      safeSendMessage({ type: "SYNC_LOCK_SETTINGS", settings: parsedLock });
     } catch (e) {
       // Fail silently if JSON parsing fails
     }

@@ -66,6 +66,11 @@ export default function Home() {
 
     const newTimestamp = new Date(`${lockDate}T${lockTime}`).getTime();
 
+    if (!isFinite(newTimestamp) || newTimestamp <= Date.now()) {
+      alert("Please select a valid future date and time.");
+      return;
+    }
+
     const saved = localStorage.getItem("lama_lock_settings");
     if (saved) {
       try {

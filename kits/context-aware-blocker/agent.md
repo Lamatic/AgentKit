@@ -52,8 +52,8 @@ The evaluation does not go straight to the AI. The extension runs a multi-step p
 
 ## Guardrails
 
-- **Fail-Closed Strategy:** If the AI is uncertain, it defaults to BLOCK to protect the user's focus.
-- **Privacy First:** Only the page title and URL are sent to the AI. No browsing history is stored or transmitted.
+- **Fail-Open Strategy:** If the API or AI evaluation fails, it returns or retains PASS to prevent unexpectedly blocking the user.
+- **Privacy First:** The extension transmits the URL, page title, H1 text, meta description, static rules, and AI rules, and explicitly the API logs these fields. No browsing history is stored or transmitted.
 - **No Hallucinations:** The agent is strictly constrained to output JSON schema via the Instructor node, preventing injection attacks and free-form responses.
 - **Anti-Circumvention:** The "Strict Bouncer" feature closes `chrome://extensions` tabs to prevent the user from disabling the extension during a focus session.
 

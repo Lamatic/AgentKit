@@ -28,8 +28,9 @@ export const storage = {
   async get<T>(key: string, defaultValue: T): Promise<T> {
     // NOTE: Extension Storage Retrieval
     if (isExtension) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         chrome.storage.local.get([key], (result) => {
+          if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
           resolve((result[key] !== undefined ? result[key] : defaultValue) as T);
         });
       });
@@ -59,8 +60,9 @@ export const storage = {
   async set<T>(key: string, value: T): Promise<void> {
     // NOTE: Extension Storage Persistence
     if (isExtension) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         chrome.storage.local.set({ [key]: value }, () => {
+          if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
           resolve();
         });
       });

@@ -6,6 +6,7 @@ chrome.action.onClicked.addListener(() => {
 
 // ** PRODUCTION LEVEL LOGIC: Debounce state for rapid tab switching ** //
 const aiDebounceTimers = new Map(); // tabId -> timerId
+const aiActiveEvalTokens = new Map(); // tabId -> symbol
 
 
 // ** PRODUCTION LEVEL LOGIC: Schedule Parsers & Validators ** //
@@ -42,17 +43,12 @@ function parseTimeToMinutes(timeStr) {
  */
 function isCommitCurrentlyActive(commit) {
   const now = new Date();
-  
-  // 1. Check if today is one of the active days (e.g. 'mon', 'tue')
   const daysMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   const currentDay = daysMap[now.getDay()];
-  if (!commit.activeDays || !commit.activeDays.includes(currentDay)) {
-    return false;
-  }
+  const prevDay = daysMap[(now.getDay() - 1 + 7) % 7];
   
-  // 2. Check if current time falls within any time window
   if (!commit.timeWindows || commit.timeWindows.length === 0) {
-    return true; // No time windows means active all day
+    return commit.activeDays && commit.activeDays.includes(currentDay);
   }
   
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -62,11 +58,11 @@ function isCommitCurrentlyActive(commit) {
     const endMins = parseTimeToMinutes(window.end);
     
     if (startMins <= endMins) {
-      // Standard window: e.g. 9:00 AM to 5:00 PM
-      return currentMinutes >= startMins && currentMinutes <= endMins;
+      return currentMinutes >= startMins && currentMinutes <= endMins && commit.activeDays.includes(currentDay);
     } else {
-      // Overnight window: e.g. 10:00 PM to 2:00 AM (crosses midnight)
-      return currentMinutes >= startMins || currentMinutes <= endMins;
+      if (currentMinutes >= startMins && commit.activeDays.includes(currentDay)) return true;
+      if (currentMinutes <= endMins && commit.activeDays.includes(prevDay)) return true;
+      return false;
     }
   });
 }
@@ -112,10 +108,13 @@ const evaluateContext = async (payload, tabId) => {
     // ========================================================
     // STEP 0: WHITELIST (Never block our own dashboard)
     // ========================================================
-    if (payload.url.includes("localhost:3000") || payload.url.includes("127.0.0.1:3000")) {
-      console.log(`✅ STATUS: PASS (Whitelisted LamaBlock Dashboard)`);
-      return; // Instantly allow
-    }
+    try {
+      const pageUrl = new URL(payload.url);
+      if (pageUrl.origin === "http://localhost:3000" || pageUrl.origin === "http://127.0.0.1:3000") {
+        console.log(`✅ STATUS: PASS (Whitelisted LamaBlock Dashboard)`);
+        return; // Instantly allow
+      }
+    } catch (e) {}
 
     // ========================================================
     // STEP 1: THE FREE CHECKS (Time & Static Domains)
@@ -319,6 +318,12 @@ const evaluateContext = async (payload, tabId) => {
         chrome.tabs.sendMessage(tabId, { type: "SHOW_AI_EVALUATING" }).catch(() => {});
       }
 
+      const evalToken = Symbol();
+      if (tabId) aiActiveEvalTokens.set(tabId, evalToken);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       try {
         const response = await fetch("http://localhost:3000/api/evaluate", {
           method: "POST",
@@ -330,10 +335,24 @@ const evaluateContext = async (payload, tabId) => {
             description: payload.description || "",
             dbRules: activeBlockedDomains,
             aiRules: activeAiRules
-          })
+          }),
+          signal: controller.signal
         });
-
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const result = await response.json();
+        if (result.error) throw new Error(result.error);
+
+        if (tabId && aiActiveEvalTokens.get(tabId) !== evalToken) {
+          console.log("Tab navigated or superseded. Ignoring response.");
+          return;
+        }
+        if (currentRulesHash !== generateRulesHash(commits)) {
+          console.log("Rules changed while waiting for AI. Ignoring response.");
+          return;
+        }
+
         const decision = result.action || "PASS";
         const aiDuration = Date.now() - aiStartTime;
 

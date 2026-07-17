@@ -88,41 +88,50 @@ export const useCommitStore = create<CommitState>((set, get) => ({
   isLoaded: false,
 
   loadCommits: async () => {
-    // NOTE: Attempt to load from storage. Fallback to default if null.
-    const saved = await storage.get<BlockCommit[] | null>(STORAGE_KEY, null);
-    set({ 
-      commits: saved ?? defaultCommits,
-      isLoaded: true 
-    });
-    
-    // NOTE: If it was null, initialize the storage immediately so the extension sync bridge picks it up.
-    if (!saved) {
-      await storage.set(STORAGE_KEY, defaultCommits);
+    try {
+      const saved = await storage.get<BlockCommit[] | null>(STORAGE_KEY, null);
+      if (saved && Array.isArray(saved) && saved.every(c => c.id && c.title)) {
+        set({ commits: saved, isLoaded: true });
+      } else {
+        set({ commits: defaultCommits, isLoaded: true });
+        await storage.set(STORAGE_KEY, defaultCommits);
+      }
+    } catch (e) {
+      set({ commits: defaultCommits, isLoaded: true });
+      await storage.set(STORAGE_KEY, defaultCommits).catch(() => {});
     }
   },
 
   saveCommit: async (updatedCommit: BlockCommit) => {
     const { commits } = get();
     const newCommits = commits.map(c => c.id === updatedCommit.id ? updatedCommit : c);
-    
-    // NOTE: Perform an optimistic UI update for instant feedback before waiting on the disk write.
     set({ commits: newCommits });
-    
-    // TODO: Add error boundary here. If storage.set fails, we should rollback the optimistic UI update.
-    await storage.set(STORAGE_KEY, newCommits);
+    try {
+      await storage.set(STORAGE_KEY, newCommits);
+    } catch (e) {
+      set({ commits });
+    }
   },
 
   addCommit: async (newCommit: BlockCommit) => {
     const { commits } = get();
     const newCommits = [...commits, newCommit];
     set({ commits: newCommits });
-    await storage.set(STORAGE_KEY, newCommits);
+    try {
+      await storage.set(STORAGE_KEY, newCommits);
+    } catch (e) {
+      set({ commits });
+    }
   },
 
   deleteCommit: async (id: string) => {
     const { commits } = get();
     const newCommits = commits.filter(c => c.id !== id);
     set({ commits: newCommits });
-    await storage.set(STORAGE_KEY, newCommits);
+    try {
+      await storage.set(STORAGE_KEY, newCommits);
+    } catch (e) {
+      set({ commits });
+    }
   }
 }));
