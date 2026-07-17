@@ -354,14 +354,68 @@ export const nodes = [
         "branches": [
           {
             "label": "Notify on Slack",
-            "value": "branchNode_1-slackNode_1"
+            "value": "branchNode_1-conditionNode_slack_check"
           },
           {
             "label": "Notify on Gmail",
-            "value": "branchNode_1-gmailNode_1"
+            "value": "branchNode_1-conditionNode_email_check"
           }
         ],
         "nodeName": "Notification Fan-Out"
+      }
+    }
+  },
+  {
+    "id": "conditionNode_slack_check",
+    "type": "conditionNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "conditionNode",
+      "values": {
+        "nodeName": "Evaluate Slack Flag",
+        "conditions": [
+          {
+            "label": "Slack Enabled",
+            "value": "conditionNode_slack_check-slackNode_1",
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.notify_slack}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
+          },
+          {
+            "label": "Slack Disabled",
+            "value": "conditionNode_slack_check-responseNode_triggerNode_1",
+            "condition": {}
+          }
+        ],
+        "allowMultipleConditionExecution": false
+      }
+    }
+  },
+  {
+    "id": "conditionNode_email_check",
+    "type": "conditionNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "conditionNode",
+      "values": {
+        "nodeName": "Evaluate Email Flag",
+        "conditions": [
+          {
+            "label": "Email Enabled",
+            "value": "conditionNode_email_check-gmailNode_1",
+            "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{triggerNode_1.output.notify_email}}\",\n      \"operator\": \"==\",\n      \"value\": \"true\"\n    }\n  ]\n}"
+          },
+          {
+            "label": "Email Disabled",
+            "value": "conditionNode_email_check-responseNode_triggerNode_1",
+            "condition": {}
+          }
+        ],
+        "allowMultipleConditionExecution": false
       }
     }
   },
@@ -458,12 +512,28 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "branchNode_1-slackNode_1",
+    "id": "branchNode_1-conditionNode_slack_check",
     "source": "branchNode_1",
-    "target": "slackNode_1",
+    "target": "conditionNode_slack_check",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "branchEdge"
+  },
+  {
+    "id": "conditionNode_slack_check-slackNode_1",
+    "source": "conditionNode_slack_check",
+    "target": "slackNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "conditionNode_slack_check-responseNode_triggerNode_1",
+    "source": "conditionNode_slack_check",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
   },
   {
     "id": "conditionNode_1-plus-node-addNode_666355",
@@ -498,12 +568,28 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "branchNode_1-gmailNode_1",
+    "id": "branchNode_1-conditionNode_email_check",
     "source": "branchNode_1",
-    "target": "gmailNode_1",
+    "target": "conditionNode_email_check",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "branchEdge"
+  },
+  {
+    "id": "conditionNode_email_check-gmailNode_1",
+    "source": "conditionNode_email_check",
+    "target": "gmailNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "conditionNode_email_check-responseNode_triggerNode_1",
+    "source": "conditionNode_email_check",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
   },
   {
     "id": "slackNode_1-responseNode_triggerNode_1",
