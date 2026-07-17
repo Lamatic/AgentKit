@@ -7,13 +7,19 @@ const SYNTHESIZE_FLOW_ID = process.env.SYNTHESIZE_DIGEST_FLOW_ID!;
 
 function formatLamaticNetworkError(label: string, err: unknown): Error {
   const msg = err instanceof Error ? err.message : String(err);
+  if (/EXECUTE_SOFT_TIMEOUT/i.test(msg)) {
+    return new Error(
+      `${label}: Lamatic did not return within 55s (realtime wait). ` +
+        `Set index-article → API Request → Response Type = async, then Deploy. ` +
+        `Also fix CodeNode204 so Vectorize gets string[] (not a string), or VectorDB stays empty.`
+    );
+  }
   if (/fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|UND_ERR/i.test(msg)) {
     return new Error(
       `${label}: connection dropped while waiting ("${msg}"). ` +
-        `Localhost uses the DEPLOYED API (not Studio Test). ` +
-        `On index-article → API Request, set Response Type to "async", Deploy, then retry. ` +
-        `Immediately open Studio → Logs: a new row should appear (requestId ≠ "studio"). ` +
-        `If no new log row appears, INDEX_ARTICLES_FLOW_ID / API URL / key in apps/.env.local are wrong.`
+        `Often the server action hits the 300s Hobby/local maxDuration while Lamatic is still on realtime. ` +
+        `Set API Request → async + Deploy. ` +
+        `If Studio Logs show Vectorize "array of strings…found string", fix CodeNode204 (output = string[]) before retrying.`
     );
   }
   return err instanceof Error ? err : new Error(msg);
@@ -168,7 +174,17 @@ async function runFlow(
       keys: Object.keys(payload),
     });
     const client = getLamaticClient();
-    let res = (await client.executeFlow(flowId, payload)) as LamaticRes;
+    const executeStarted = Date.now();
+    // Fail fast if Lamatic is still on realtime (holds HTTP open until scrape finishes).
+    let res = (await Promise.race([
+      client.executeFlow(flowId, payload),
+      new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error("EXECUTE_SOFT_TIMEOUT")),
+          55_000
+        );
+      }),
+    ])) as LamaticRes;
 
     // #region agent log
     fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
@@ -190,6 +206,8 @@ async function runFlow(
           resultKeys: res?.result ? Object.keys(res.result) : [],
           msgClass: classifyLamaticMessage(res?.message),
           messagePreview: (res?.message ?? "").slice(0, 220),
+          elapsedMs: Date.now() - executeStarted,
+          hasRequestId: !!extractRequestId(res?.result ?? undefined),
         },
         timestamp: Date.now(),
       }),
