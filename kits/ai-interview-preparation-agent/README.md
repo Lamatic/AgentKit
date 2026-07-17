@@ -1,79 +1,48 @@
-# AI Interview Preparation Agent
+# 🚀 AI Experiment Planner
 
-## Problem
+An AI-powered assistant that helps developers and students plan AI/ML projects from idea to implementation.
 
-Candidates often prepare for interviews using generic questions that do not match their resume or the requirements of a specific job description.
+---
 
-This leads to inefficient preparation and missed opportunities to identify important skill gaps.
+## ✨ Features
 
-## Solution
+- 🧠 Understands your project idea
+- 📂 Suggests folder structure
+- ⚙️ Recommends tech stack
+- 🤖 Suggests ML/DL models
+- 📊 Recommends evaluation metrics
+- 🗂️ Suggests datasets
+- 🚀 Provides deployment roadmap
+- 📅 Generates implementation milestones
 
-AI Interview Preparation Agent analyzes a candidate's resume together with a job description and generates:
+---
 
-* Strength analysis
-* Skill gap analysis
-* Personalized interview questions
-* Ideal answer guidance
+## 🛠 Tech Stack
 
-## Features
+- Lamatic AI
+- Next.js
+- React
+- TypeScript
 
-### Resume Analysis
+---
 
-Extracts candidate strengths and relevant experience.
+## Example
 
-### Skill Gap Detection
+### Input
 
-Compares resume content against job requirements.
-
-### Tailored Interview Questions
-
-Generates role-specific technical and behavioral questions.
-
-### Interview Preparation Guidance
-
-Provides ideal answer directions for each question.
-
-## Input
-
-```json
-{
-  "resumeText": "...",
-  "jobDescription": "..."
-}
+```
+Build a fake currency detection system.
 ```
 
-## Output
+### Output
 
-```json
-{
-  "strengths": [],
-  "gaps": [],
-  "questions": []
-}
-```
+- Problem Breakdown
+- Dataset Suggestions
+- Recommended Models
+- Folder Structure
+- Deployment Strategy
+- Future Improvements
 
-## Technology
+---
 
-* Lamatic AgentKit
-* Gemini / LLM Models
-* Structured JSON Output
-
-## Demo Video
-
-Watch the demo here:
-
-https://drive.google.com/file/d/1Da8nCZi_T6x1yJvCoDAsLesAXbICV1mh/view?usp=drive_link
-
-## Screenshots
-
-### Home Screen
-
-![deployed](ss/deployed.png)
-
-
-## Example Use Cases
-
-* AI Internship Preparation
-* Software Engineering Interviews
-* Resume Screening
-* Technical Assessment Preparation
+Built for the Lamatic AgentKit Challenge
