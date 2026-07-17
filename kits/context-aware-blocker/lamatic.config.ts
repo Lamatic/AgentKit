@@ -14,6 +14,6 @@ export default {
   ],
   links: {
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/context-aware-blocker",
-    deploy: "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fcontext-aware-blocker%2Fapps&env=LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL,CONTENT_CLASSIFICATION_FLOW_ID"
+    deploy: "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fcontext-aware-blocker%2Fapps&env=LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL,CONTENT_CLASSIFICATION_FLOW_ID&root-directory=kits/context-aware-blocker/apps"
   },
 };

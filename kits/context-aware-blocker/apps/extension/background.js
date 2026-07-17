@@ -423,10 +423,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// ** PRODUCTION LEVEL TRIGGER: Hook into Chrome Tab Navigation ** //
-// This is much more reliable than relying purely on client-side MutationObservers
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // We only want to trigger when the URL changes OR the page finishes loading
+/**
+ * Hook into Chrome Tab Navigation.
+ * This is much more reliable than relying purely on client-side MutationObservers
+ */
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+
+  // ** PRODUCTION LEVEL FEATURE: Strict Lock Enforcement ** //
+  // This check runs on EVERY onUpdated event (not just URL change or 'complete')
+  // because chrome:// pages have unpredictable event timing.
+  // We check both changeInfo.url (freshest source) and tab.url (fallback).
+  const currentUrl = changeInfo.url || tab.url || "";
+  if (currentUrl.startsWith("chrome://extensions")) {
+    const saved = await new Promise((resolve) => {
+      chrome.storage.local.get(["lama_lock_settings"], (result) => {
+        resolve(result.lama_lock_settings);
+      });
+    });
+
+    if (saved) {
+      try {
+        const parsed = typeof saved === 'string' ? JSON.parse(saved) : saved;
+        if (parsed.date && parsed.time) {
+          const lockTimestamp = new Date(`${parsed.date}T${parsed.time}`).getTime();
+          if (Date.now() < lockTimestamp) {
+            // HACK: chrome.tabs.update() cannot redirect chrome:// pages.
+            // Close the tab and open a fresh one with our lock page.
+            chrome.tabs.remove(tabId);
+            chrome.tabs.create({ url: chrome.runtime.getURL("strict.html") });
+            return;
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Normal content scraping — only trigger on URL change or page load complete
   if (changeInfo.url || changeInfo.status === 'complete') {
     // Send a message down to the content script to scrape the DOM
     chrome.tabs.sendMessage(tabId, { type: "FORCE_SCRAPE" }).catch(() => {
