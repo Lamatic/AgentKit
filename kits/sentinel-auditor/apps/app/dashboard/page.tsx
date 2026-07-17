@@ -138,13 +138,14 @@ export default function Dashboard() {
                         {key.replace('_', ' ')}
                       </h4>
                       <span className="text-xs font-bold bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                        Score: {value.score}
+                        Score: {value?.score ?? 'N/A'}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{value.justification}</p>
+                    <p className="text-sm text-muted-foreground">{value?.justification ?? 'No justification provided.'}</p>
                   </div>
                 ))}
               </div>
+               
 
               {/* Collapsible Raw JSON Toggle */}
               <details className="mt-4 group">
