@@ -103,9 +103,9 @@ export async function POST(req: NextRequest) {
   try {
     const { prompt } = await req.json();
 
-    if (!prompt) {
+    if (typeof prompt !== "string" || prompt.trim() === "") {
       return NextResponse.json(
-        { error: "prompt is required" },
+        { error: "prompt is required and must be a non-empty string" },
         { status: 400 }
       );
     }
@@ -123,8 +123,10 @@ export async function POST(req: NextRequest) {
     );
 
     if (res.error) {
-      // Fallback to demo alert if live flow errors
-      return NextResponse.json(generateDemoAlert(prompt));
+      return NextResponse.json(
+        { ...generateDemoAlert(prompt), synthetic: true, _error: res.error },
+        { status: 502 }
+      );
     }
 
     const alertResult = res.result?.alert || res.result;

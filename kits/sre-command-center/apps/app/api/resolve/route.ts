@@ -158,6 +158,27 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const alert = body?.alert && typeof body.alert === "object" ? body.alert : body;
 
+    if (!alert || typeof alert !== "object") {
+      return NextResponse.json(
+        { error: "Invalid alert payload: expected JSON object" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      alert.service &&
+      (typeof alert.service !== "string" ||
+        !/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(alert.service))
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "alert.service must be a valid Kubernetes DNS label (lowercase alphanumeric and hyphens without leading/trailing hyphens)",
+        },
+        { status: 400 }
+      );
+    }
+
     console.log("=== Flow 3 (Resolve/Triage) Triggered ===");
     console.log("Incoming Alert Payload:", JSON.stringify(alert, null, 2));
 
@@ -195,14 +216,22 @@ export async function POST(req: NextRequest) {
         workflowId: FLOW_ID,
         alert: JSON.stringify(alert),
         input: alert,
-        notify_slack: false,
-        notify_email: false,
-        email_address: "rajputnik911@gmail.com",
+        notify_slack: Boolean(body.notify_slack || alert.notify_slack),
+        notify_email: Boolean(body.notify_email || alert.notify_email),
+        ...(Boolean(body.notify_email || alert.notify_email) && {
+          email_address:
+            body.email_address ||
+            alert.email_address ||
+            alert.recipientEmail ||
+            process.env.LAMATIC_DEFAULT_RECIPIENT_EMAIL,
+        }),
       });
 
       if (res.error) {
-        console.warn("Lamatic API error in resolve, falling back to demo report:", res.error);
-        return NextResponse.json(generateDemoReport(alert));
+        return NextResponse.json(
+          { ...generateDemoReport(alert), synthetic: true, _error: res.error },
+          { status: 502 }
+        );
       }
 
       const result = res.result;
