@@ -21,7 +21,7 @@ export const SUGGESTIONS: Suggestion[] = [
 
 export const APP_CONFIG = {
   name: "FlightFinder",
-  tagline: "Find the cheapest flights instantly",
+  tagline: "Find budget-friendly flights in seconds",
   defaultCurrency: "ZAR",
   flightsPerPage: 10,
   minSearchLength: 3,
