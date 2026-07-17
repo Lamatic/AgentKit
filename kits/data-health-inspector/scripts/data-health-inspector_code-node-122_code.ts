@@ -1,4 +1,4 @@
-const OPENROUTER_API_KEY = "api_key";
+const OPENROUTER_API_KEY = "{{ env.OPENROUTER_API_KEY }}";
 // 2. Map Lamatic UI Variables to Standard JavaScript Variables
 // (Click "Add Variable" to inject the Lamatic tag on the right side of the equals sign)
 const rowCount = {{ codeNode_951.output.row_count }};
@@ -50,8 +50,12 @@ let lastError = null;
 while (attempts < 3 && !aiJson) {
   attempts++;
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
+      signal: controller.signal,
       headers: {
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
@@ -67,6 +71,7 @@ while (attempts < 3 && !aiJson) {
         ]
       })
     });
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -74,7 +79,18 @@ while (attempts < 3 && !aiJson) {
       let rawContent = data.choices[0].message.content;
       // Strip markdown backticks if the model hallucinates them
       rawContent = rawContent.replace(/^```json/mi, "").replace(/```$/m, "").trim();
-      aiJson = JSON.parse(rawContent);
+      const parsed = JSON.parse(rawContent);
+      if (
+        parsed && 
+        typeof parsed.summary === "string" &&
+        ["READY", "NEEDS_CLEANING", "NOT_READY"].includes(parsed.dataset_readiness) &&
+        Array.isArray(parsed.major_risks) &&
+        Array.isArray(parsed.recommendations)
+      ) {
+        aiJson = parsed;
+      } else {
+        throw new Error("Invalid schema returned by LLM");
+      }
     } else {
       lastError = data;
     }

@@ -9,8 +9,17 @@ cols.forEach(c => {
   let numCount = 0, boolCount = 0, dateCount = 0, strCount = 0, total = 0;
   let wsIssues = 0;
   
-  // Robust Regex for Dates (YYYY-MM-DD, MM/DD/YYYY, DD-MM-YYYY)
-  const dateRegex = /^(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4})$/;
+  const isValidDate = (str) => {
+    const s = str.trim();
+    if (!/^(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}-\d{1,2}-\d{4})$/.test(s)) return false;
+    const parts = s.split(/[-/]/).map(Number);
+    let y, m, d;
+    if (parts[0] > 1000) { y = parts[0]; m = parts[1]; d = parts[2]; }
+    else if (parts[0] > 12) { d = parts[0]; m = parts[1]; y = parts[2]; }
+    else { m = parts[0]; d = parts[1]; y = parts[2]; }
+    const dateObj = new Date(y, m - 1, d);
+    return dateObj.getFullYear() === y && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
+  };
 
   data.forEach(r => {
     let val = r[c];
@@ -21,7 +30,7 @@ cols.forEach(c => {
       
       if (!isNaN(Number(s))) numCount++;
       else if (s.toLowerCase() === 'true' || s.toLowerCase() === 'false') boolCount++;
-      else if (dateRegex.test(s.trim())) dateCount++;
+      else if (isValidDate(s)) dateCount++;
       else strCount++;
     }
   });
