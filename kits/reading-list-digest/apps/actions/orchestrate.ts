@@ -115,6 +115,20 @@ function requireFlowIds() {
  * Index flows should use API Request responseType "async" so localhost does not
  * hold one realtime HTTP connection open for the full Firecrawl+embed duration.
  */
+function classifyLamaticMessage(message: string | undefined): string {
+  const m = message ?? "";
+  if (/array of strings.*string|found data of type - 'string'/i.test(m)) {
+    return "vectorize_got_string";
+  }
+  if (/metadata or vectors is empty/i.test(m)) {
+    return "vectordb_empty";
+  }
+  if (/fetch failed|ECONNRESET|ETIMEDOUT/i.test(m)) {
+    return "network_drop";
+  }
+  return "other";
+}
+
 async function runFlow(
   flowId: string,
   payload: Record<string, unknown>,
@@ -124,11 +138,63 @@ async function runFlow(
   const pollTimeout = options?.pollTimeoutSec ?? 600;
   const flowHint = flowId ? `flow …${flowId.slice(-8)}` : "missing flow id";
   try {
+    // #region agent log
+    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "a1e01b",
+      },
+      body: JSON.stringify({
+        sessionId: "a1e01b",
+        hypothesisId: "E",
+        location: "orchestrate.ts:runFlow:start",
+        message: "executeFlow start",
+        data: {
+          label,
+          flowHint,
+          payloadKeys: Object.keys(payload),
+          sampleInputType: typeof payload.sampleInput,
+          sampleInputLen:
+            typeof payload.sampleInput === "string"
+              ? payload.sampleInput.length
+              : null,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     console.info(`[reading-list-digest] ${label} start (${flowHint})`, {
       keys: Object.keys(payload),
     });
     const client = getLamaticClient();
     let res = (await client.executeFlow(flowId, payload)) as LamaticRes;
+
+    // #region agent log
+    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "a1e01b",
+      },
+      body: JSON.stringify({
+        sessionId: "a1e01b",
+        hypothesisId: "A",
+        location: "orchestrate.ts:runFlow:afterExecute",
+        message: "executeFlow response",
+        data: {
+          label,
+          status: res?.status,
+          statusCode: res?.statusCode,
+          hasResult: !!res?.result,
+          resultKeys: res?.result ? Object.keys(res.result) : [],
+          msgClass: classifyLamaticMessage(res?.message),
+          messagePreview: (res?.message ?? "").slice(0, 220),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
 
     const isTimeout =
       res?.statusCode === 504 ||
@@ -142,6 +208,18 @@ async function runFlow(
             `Check Studio Logs for a new API run (not requestId "studio").`
         );
       }
+      const kind = classifyLamaticMessage(res?.message);
+      if (kind === "vectorize_got_string") {
+        throw new Error(
+          `${label} failed: Vectorize got a string, needs string[]. ` +
+            `In Studio CodeNode204: use {{chunkNode_….output.chunks}}, then output = array of pageContent strings (not return, not a single string). Deploy, retry.`
+        );
+      }
+      if (kind === "vectordb_empty") {
+        throw new Error(
+          `${label} failed: VectorDB got empty vectors/metadata (Vectorize failed upstream). Fix CodeNode204 → Vectorize first, then Deploy.`
+        );
+      }
       throw new Error(
         `${label} failed (${flowHint}): ${res.message || "Unknown Lamatic error"}. ` +
           `Check apps/.env.local flow IDs match Studio, project is Deployed, and credentials.`
@@ -152,7 +230,48 @@ async function runFlow(
     const requestId = extractRequestId(res?.result ?? undefined);
     if (requestId && res?.result && !looksLikeFinalIndexResult(res.result)) {
       console.info(`[reading-list-digest] ${label} polling requestId=${requestId}`);
+      // #region agent log
+      fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "a1e01b",
+        },
+        body: JSON.stringify({
+          sessionId: "a1e01b",
+          hypothesisId: "D",
+          location: "orchestrate.ts:runFlow:poll",
+          message: "polling async requestId",
+          data: { label, requestIdSuffix: requestId.slice(-12) },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion
       res = (await client.checkStatus(requestId, 5, pollTimeout)) as LamaticRes;
+      // #region agent log
+      fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "a1e01b",
+        },
+        body: JSON.stringify({
+          sessionId: "a1e01b",
+          hypothesisId: "A",
+          location: "orchestrate.ts:runFlow:afterPoll",
+          message: "checkStatus response",
+          data: {
+            label,
+            status: res?.status,
+            statusCode: res?.statusCode,
+            msgClass: classifyLamaticMessage(res?.message),
+            messagePreview: (res?.message ?? "").slice(0, 220),
+            resultKeys: res?.result ? Object.keys(res.result) : [],
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion
     }
 
     if (res?.status === "error") {
@@ -164,6 +283,18 @@ async function runFlow(
         throw new Error(
           `${label} timed out while polling (${flowHint}). ` +
             `Open Studio Logs for this requestId — the write may still complete. Refresh Data.`
+        );
+      }
+      const kind = classifyLamaticMessage(res?.message);
+      if (kind === "vectorize_got_string") {
+        throw new Error(
+          `${label} failed: Vectorize got a string, needs string[]. ` +
+            `Fix Studio CodeNode204 → output = string[]; bind Vectorize to that array; Deploy.`
+        );
+      }
+      if (kind === "vectordb_empty") {
+        throw new Error(
+          `${label} failed: VectorDB empty because Vectorize produced no vectors. Fix CodeNode204 first.`
         );
       }
       throw new Error(
@@ -180,8 +311,56 @@ async function runFlow(
       );
     }
 
+    // #region agent log
+    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "a1e01b",
+      },
+      body: JSON.stringify({
+        sessionId: "a1e01b",
+        hypothesisId: "C",
+        location: "orchestrate.ts:runFlow:success",
+        message: "flow returned result",
+        data: {
+          label,
+          indexed_count: raw.indexed_count ?? null,
+          resultKeys: Object.keys(raw),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
     return raw as Record<string, unknown>;
   } catch (err) {
+    // #region agent log
+    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "a1e01b",
+      },
+      body: JSON.stringify({
+        sessionId: "a1e01b",
+        hypothesisId: "A",
+        location: "orchestrate.ts:runFlow:catch",
+        message: "runFlow threw",
+        data: {
+          label,
+          errPreview: (err instanceof Error ? err.message : String(err)).slice(
+            0,
+            280
+          ),
+          msgClass: classifyLamaticMessage(
+            err instanceof Error ? err.message : String(err)
+          ),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     throw formatLamaticNetworkError(label, err);
   }
 }
