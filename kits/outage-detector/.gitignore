@@ -1,0 +1,6 @@
+apps/node_modules/
+apps/.next/
+apps/.env
+apps/.env.local
+apps/.env*.local
+.DS_Store
