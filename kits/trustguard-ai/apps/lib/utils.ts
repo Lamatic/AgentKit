@@ -5,11 +5,14 @@
  * Returns a Tailwind CSS text color class based on risk score (0–100).
  *
  * Thresholds: ≥80 → red, ≥60 → orange, ≥40 → yellow, <40 → green.
+ * Invalid scores (NaN) fall back to a neutral slate color instead of
+ * being silently classified as safe/green.
  *
  * @param score - Numeric risk score in the 0–100 range.
  * @returns A Tailwind `text-*` color class string.
  */
 export function getRiskColor(score: number): string {
+  if (!Number.isFinite(score)) return "text-slate-400";
   if (score >= 80) return "text-red-400";
   if (score >= 60) return "text-orange-400";
   if (score >= 40) return "text-yellow-400";

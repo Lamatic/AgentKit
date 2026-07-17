@@ -10,16 +10,15 @@ import type { ValidatedInvestigationResponse } from "@/lib/schemas";
 
 
 /**
- * Discriminated result returned by the `runInvestigation` server action.
+ * Discriminated union returned by the `runInvestigation` server action.
  *
- * On success, `success` is `true` and `data` holds the validated response.
- * On failure, `success` is `false` and `error` contains a user-safe message.
+ * Narrows automatically via the `success` discriminant:
+ * - `success: true`  → `data` is always present, `error` is absent.
+ * - `success: false` → `error` is always present, `data` is absent.
  */
-export interface RunInvestigationResult {
-  readonly success: boolean;
-  readonly data?: ValidatedInvestigationResponse;
-  readonly error?: string;
-}
+export type RunInvestigationResult =
+  | { readonly success: true;  readonly data: ValidatedInvestigationResponse }
+  | { readonly success: false; readonly error: string };
 
 
 /**
