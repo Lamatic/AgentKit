@@ -260,14 +260,29 @@ export default function Home() {
                   </>
                 )}
               </Button>
+              <p className="text-xs text-muted-foreground">
+                On success, the digest renders below. If Studio Logs show only{" "}
+                <code className="text-[11px]">requestId</code> for this flow, set
+                Synthesize → API Request → Response Type to{" "}
+                <strong>realtime</strong>, then Deploy (keep Index as async).
+              </p>
             </Card>
 
-            {digest && (
+            {digest ? (
               <Card className="p-6 mt-6">
                 <ScrollArea className="max-h-[70vh] pr-4">
                   <DigestView digest={digest} />
                 </ScrollArea>
               </Card>
+            ) : (
+              !synthesizing &&
+              !error && (
+                <Card className="p-6 mt-6 border-dashed">
+                  <p className="text-sm text-muted-foreground">
+                    Digest output will appear here after a successful synthesize run.
+                  </p>
+                </Card>
+              )
             )}
           </TabsContent>
         </Tabs>
