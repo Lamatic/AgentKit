@@ -51,7 +51,9 @@ for (let i = 0; i < numCols.length; i++) {
     });
     if (n > 0) {
       let num = pSum - (sum1*sum2/n);
-      let den = Math.sqrt((sum1Sq - sum1*sum1/n) * (sum2Sq - sum2*sum2/n));
+      let var1 = Math.max(0, sum1Sq - sum1*sum1/n);
+      let var2 = Math.max(0, sum2Sq - sum2*sum2/n);
+      let den = Math.sqrt(var1 * var2);
       if (den !== 0) {
         let r = num / den;
         if (Math.abs(r) > 0.85) {
