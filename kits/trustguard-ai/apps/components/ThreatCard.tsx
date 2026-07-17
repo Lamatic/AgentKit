@@ -38,7 +38,7 @@ export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
    * @param v - Raw numeric value from the Lamatic response.
    * @returns Integer percentage in the 0–100 range.
    */
-  const normalise = (v: number) => (v <= 1 ? Math.round(v * 100) : Math.round(clamp(v)));
+  const normalise = (v: number) => Math.round(clamp(v >= 0 && v <= 1 ? v * 100 : v));
 
   return (
     <motion.div
