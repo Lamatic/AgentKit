@@ -58,10 +58,10 @@ function isCommitCurrentlyActive(commit) {
     const endMins = parseTimeToMinutes(window.end);
     
     if (startMins <= endMins) {
-      return currentMinutes >= startMins && currentMinutes <= endMins && commit.activeDays.includes(currentDay);
+      return currentMinutes >= startMins && currentMinutes <= endMins && commit.activeDays?.includes(currentDay);
     } else {
-      if (currentMinutes >= startMins && commit.activeDays.includes(currentDay)) return true;
-      if (currentMinutes <= endMins && commit.activeDays.includes(prevDay)) return true;
+      if (currentMinutes >= startMins && commit.activeDays?.includes(currentDay)) return true;
+      if (currentMinutes <= endMins && commit.activeDays?.includes(prevDay)) return true;
       return false;
     }
   });

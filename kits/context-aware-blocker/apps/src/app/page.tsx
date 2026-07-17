@@ -7,6 +7,7 @@ import { CommitCard } from "@/components/features/CommitCard";
 import { CommitSettingsModal } from "@/components/features/CommitSettingsModal";
 import { useCommitStore } from "@/hooks/useCommitStore";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { Lock } from "lucide-react";
 
 /**
  * The main dashboard page for the Context-Aware Blocker.
@@ -175,12 +176,13 @@ export default function Home() {
             />
             <h1 className="text-2xl font-bold tracking-wide">LamaBlock</h1>
           </div>
-          <span 
-            className="material-symbols-outlined text-gray-400 text-[20px] cursor-pointer hover:text-white transition-colors"
+          <button 
+            className="text-gray-400 cursor-pointer hover:text-white transition-colors bg-transparent border-none p-0"
             onClick={() => setIsLockModalOpen(true)}
+            aria-label="Open Lock Settings"
           >
-            lock
-          </span>
+            <Lock className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Top Card */}

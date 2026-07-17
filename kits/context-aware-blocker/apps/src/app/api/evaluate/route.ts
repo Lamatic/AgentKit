@@ -93,6 +93,7 @@ export async function POST(req: Request) {
     console.log(`   🔗 Combined Rules String: ${activeRulesString || "(none)"}`);
     console.log(`   📤 Calling lamaticClient.executeFlow()...`);
 
+    let timeoutId: NodeJS.Timeout;
     // ** PRODUCTION LEVEL: Execute the Lamatic Flow ** //
     const resData = (await Promise.race([
       lamaticClient.executeFlow(flowId, {
@@ -101,8 +102,10 @@ export async function POST(req: Request) {
         h1: payload.h1Text || "",
         meta: payload.description || "",
         activeRules: activeRulesString,
-      }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Flow execution timeout")), 8000))
+      }).finally(() => clearTimeout(timeoutId)),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error("Flow execution timeout")), 8000);
+      })
     ])) as any;
 
     const elapsed = Date.now() - startTime;

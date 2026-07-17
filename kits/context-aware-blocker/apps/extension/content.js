@@ -300,18 +300,18 @@ try {
 // We act as a middleman: we watch the webpage's localStorage and sync changes to the extension.
 if (window.location.origin === "http://localhost:3000") {
   const syncStorage = () => {
-    try {
-      const localCommits = localStorage.getItem("cab_commits");
-      const parsedCommits = localCommits ? JSON.parse(localCommits) : [];
-      safeSendMessage({ type: "SYNC_COMMITS", commits: parsedCommits });
-      
-      const localLockSettings = localStorage.getItem("lama_lock_settings");
-      const parsedLock = localLockSettings ? JSON.parse(localLockSettings) : null;
-      safeSendMessage({ type: "SYNC_LOCK_SETTINGS", settings: parsedLock });
-    } catch (e) {
-      // Fail silently if JSON parsing fails
-    }
-  };
+      try {
+        const localCommits = localStorage.getItem("cab_commits");
+        const parsedCommits = localCommits ? JSON.parse(localCommits) : [];
+        safeSendMessage({ type: "SYNC_COMMITS", commits: parsedCommits });
+      } catch (e) {}
+
+      try {
+        const localLockSettings = localStorage.getItem("lama_lock_settings");
+        const parsedLock = localLockSettings ? JSON.parse(localLockSettings) : null;
+        safeSendMessage({ type: "SYNC_LOCK_SETTINGS", settings: parsedLock });
+      } catch (e) {}
+    };
 
   // Sync immediately when the dashboard is loaded
   syncStorage();
