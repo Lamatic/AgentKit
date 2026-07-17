@@ -35,27 +35,33 @@ export const FlightStats = ({
   };
 
   return (
-    <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-      <div>
-        <span>Found</span>
-        <span>{totalAvailable}</span>
-        <span>flights</span>
+    <motion.div
+      initial={{ y: -10, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-slate-800/30 rounded-xl border border-slate-700/30"
+    >
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-slate-400">Found</span>
+        <span className="font-bold text-white">{totalAvailable}</span>
+        <span className="text-slate-400">flights</span>
       </div>
 
-      <div />
+      <div className="w-px h-6 bg-slate-700" />
 
-      <div>
-        <span>Showing</span>
-        <span>{showing}</span>
-        <span>results</span>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-slate-400">Showing</span>
+        <span className="font-bold text-blue-400">{showing}</span>
+        <span className="text-slate-400">results</span>
       </div>
 
       {cabinClass && cabinClass !== "economy" && (
         <>
-          <div />
-          <div>
-            <span>Cabin</span>
-            <span>{getCabinDisplay(cabinClass)}</span>
+          <div className="w-px h-6 bg-slate-700" />
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-slate-400">Cabin</span>
+            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs border border-purple-500/20">
+              {getCabinDisplay(cabinClass)}
+            </span>
           </div>
         </>
       )}
@@ -65,20 +71,24 @@ export const FlightStats = ({
         mostExpensive !== null &&
         mostExpensive !== undefined && (
           <>
-            <div />
-            <div>
-              <span>Price Range</span>
-              <span>{formatPrice(cheapestPrice, currency)}</span>
-              <span>—</span>
-              <span>{formatPrice(mostExpensive, currency)}</span>
+            <div className="w-px h-6 bg-slate-700" />
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-slate-400">Price Range</span>
+              <span className="font-bold text-green-400">
+                {formatPrice(cheapestPrice, currency)}
+              </span>
+              <span className="text-slate-500">—</span>
+              <span className="font-bold text-red-400">
+                {formatPrice(mostExpensive, currency)}
+              </span>
             </div>
           </>
         )}
 
       {exchangeRate && (
         <>
-          <div />
-          <div>
+          <div className="w-px h-6 bg-slate-700" />
+          <div className="text-xs text-slate-500">
             Rate: 1 USD = {exchangeRate.toFixed(2)} {currency}
           </div>
         </>
