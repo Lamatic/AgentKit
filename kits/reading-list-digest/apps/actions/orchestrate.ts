@@ -144,37 +144,10 @@ async function runFlow(
   const pollTimeout = options?.pollTimeoutSec ?? 600;
   const flowHint = flowId ? `flow …${flowId.slice(-8)}` : "missing flow id";
   try {
-    // #region agent log
-    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "a1e01b",
-      },
-      body: JSON.stringify({
-        sessionId: "a1e01b",
-        hypothesisId: "E",
-        location: "orchestrate.ts:runFlow:start",
-        message: "executeFlow start",
-        data: {
-          label,
-          flowHint,
-          payloadKeys: Object.keys(payload),
-          sampleInputType: typeof payload.sampleInput,
-          sampleInputLen:
-            typeof payload.sampleInput === "string"
-              ? payload.sampleInput.length
-              : null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     console.info(`[reading-list-digest] ${label} start (${flowHint})`, {
       keys: Object.keys(payload),
     });
     const client = getLamaticClient();
-    const executeStarted = Date.now();
     // Fail fast if Lamatic is still on realtime (holds HTTP open until scrape finishes).
     let res = (await Promise.race([
       client.executeFlow(flowId, payload),
@@ -185,34 +158,6 @@ async function runFlow(
         );
       }),
     ])) as LamaticRes;
-
-    // #region agent log
-    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "a1e01b",
-      },
-      body: JSON.stringify({
-        sessionId: "a1e01b",
-        hypothesisId: "A",
-        location: "orchestrate.ts:runFlow:afterExecute",
-        message: "executeFlow response",
-        data: {
-          label,
-          status: res?.status,
-          statusCode: res?.statusCode,
-          hasResult: !!res?.result,
-          resultKeys: res?.result ? Object.keys(res.result) : [],
-          msgClass: classifyLamaticMessage(res?.message),
-          messagePreview: (res?.message ?? "").slice(0, 220),
-          elapsedMs: Date.now() - executeStarted,
-          hasRequestId: !!extractRequestId(res?.result ?? undefined),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
 
     const isTimeout =
       res?.statusCode === 504 ||
@@ -248,48 +193,7 @@ async function runFlow(
     const requestId = extractRequestId(res?.result ?? undefined);
     if (requestId && res?.result && !looksLikeFinalIndexResult(res.result)) {
       console.info(`[reading-list-digest] ${label} polling requestId=${requestId}`);
-      // #region agent log
-      fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "a1e01b",
-        },
-        body: JSON.stringify({
-          sessionId: "a1e01b",
-          hypothesisId: "D",
-          location: "orchestrate.ts:runFlow:poll",
-          message: "polling async requestId",
-          data: { label, requestIdSuffix: requestId.slice(-12) },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
       res = (await client.checkStatus(requestId, 5, pollTimeout)) as LamaticRes;
-      // #region agent log
-      fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "a1e01b",
-        },
-        body: JSON.stringify({
-          sessionId: "a1e01b",
-          hypothesisId: "A",
-          location: "orchestrate.ts:runFlow:afterPoll",
-          message: "checkStatus response",
-          data: {
-            label,
-            status: res?.status,
-            statusCode: res?.statusCode,
-            msgClass: classifyLamaticMessage(res?.message),
-            messagePreview: (res?.message ?? "").slice(0, 220),
-            resultKeys: res?.result ? Object.keys(res.result) : [],
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
     }
 
     if (res?.status === "error") {
@@ -329,56 +233,8 @@ async function runFlow(
       );
     }
 
-    // #region agent log
-    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "a1e01b",
-      },
-      body: JSON.stringify({
-        sessionId: "a1e01b",
-        hypothesisId: "C",
-        location: "orchestrate.ts:runFlow:success",
-        message: "flow returned result",
-        data: {
-          label,
-          indexed_count: raw.indexed_count ?? null,
-          resultKeys: Object.keys(raw),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-
     return raw as Record<string, unknown>;
   } catch (err) {
-    // #region agent log
-    fetch("http://127.0.0.1:7363/ingest/5a1f668d-5676-4753-801e-36deb310d5c8", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "a1e01b",
-      },
-      body: JSON.stringify({
-        sessionId: "a1e01b",
-        hypothesisId: "A",
-        location: "orchestrate.ts:runFlow:catch",
-        message: "runFlow threw",
-        data: {
-          label,
-          errPreview: (err instanceof Error ? err.message : String(err)).slice(
-            0,
-            280
-          ),
-          msgClass: classifyLamaticMessage(
-            err instanceof Error ? err.message : String(err)
-          ),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     throw formatLamaticNetworkError(label, err);
   }
 }
