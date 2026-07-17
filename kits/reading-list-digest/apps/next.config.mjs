@@ -11,6 +11,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Keep turbopack.root and outputFileTracingRoot aligned (Vercel monorepo).
+  outputFileTracingRoot: __dirname,
   turbopack: {
     root: __dirname,
   },
