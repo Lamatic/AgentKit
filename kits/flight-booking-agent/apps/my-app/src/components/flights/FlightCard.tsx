@@ -53,14 +53,20 @@ export const FlightCard = ({
       whileHover={{ scale: 1.01 }}
     >
       <Card hoverable>
-        <div>
-          <div>
-            <div>
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
               {flight.airlineLogo && (
-                <img src={flight.airlineLogo} alt={flight.airline} />
+                <img
+                  src={flight.airlineLogo}
+                  alt={flight.airline}
+                  className="h-8 w-auto rounded"
+                />
               )}
-              <span>{flight.airline}</span>
-              <span>• {flight.flightNumber}</span>
+              <span className="font-semibold text-white">{flight.airline}</span>
+              <span className="text-slate-500 text-sm">
+                • {flight.flightNumber}
+              </span>
 
               {flight.stops === 0 ? (
                 <Badge variant="success">Direct</Badge>
@@ -75,35 +81,54 @@ export const FlightCard = ({
               </Badge>
             </div>
 
-            <div>
-              <div>
-                <div>{flight.departureAirport}</div>
-                <ClientOnly fallback={<div>--:--</div>}>
-                  <div>{formatTime(flight.departureTime)}</div>
-                </ClientOnly>
-                <div>{formatDay(flight.departureTime)}</div>
-              </div>
-
-              <div>
-                <div>
-                  <div />
-                  <Plane />
+            <div className="flex items-center gap-3">
+              <div className="text-center min-w-15">
+                <div className="text-xl font-bold text-white">
+                  {flight.departureAirport}
                 </div>
-                <div>{flight.duration}</div>
+                <ClientOnly
+                  fallback={<div className="text-xs text-slate-400">--:--</div>}
+                >
+                  <div className="text-xs text-slate-400">
+                    {formatTime(flight.departureTime)}
+                  </div>
+                </ClientOnly>
+                <div className="text-[10px] text-slate-500">
+                  {formatDay(flight.departureTime)}
+                </div>
               </div>
 
-              <div>
-                <div>{flight.arrivalAirport}</div>
-                <ClientOnly fallback={<div>--:--</div>}>
-                  <div>{formatTime(flight.arrivalTime)}</div>
+              <div className="flex-1 flex flex-col items-center px-2">
+                <div className="relative w-full flex items-center">
+                  <div className="flex-1 h-px bg-linear-to-r from-slate-600 via-blue-500 to-slate-600" />
+                  <Plane className="w-3 h-3 text-blue-400 rotate-90 absolute" />
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  {flight.duration}
+                </div>
+              </div>
+
+              <div className="text-center min-w-15">
+                <div className="text-xl font-bold text-white">
+                  {flight.arrivalAirport}
+                </div>
+                <ClientOnly
+                  fallback={<div className="text-xs text-slate-400">--:--</div>}
+                >
+                  <div className="text-xs text-slate-400">
+                    {formatTime(flight.arrivalTime)}
+                  </div>
                 </ClientOnly>
-                <div>{formatDay(flight.arrivalTime)}</div>
+                <div className="text-[10px] text-slate-500">
+                  {formatDay(flight.arrivalTime)}
+                </div>
               </div>
             </div>
 
+            {/* Return info for round trip */}
             {flight.isRoundTrip && flight.returnFlightNumber && (
-              <div>
-                <ArrowRight />
+              <div className="mt-2 pt-2 border-t border-slate-700/30 flex items-center gap-2 text-xs text-slate-400">
+                <ArrowRight className="w-3 h-3" />
                 <span>Return: {flight.returnFlightNumber}</span>
                 <span>•</span>
                 <ClientOnly fallback={<span>--:--</span>}>
@@ -117,24 +142,32 @@ export const FlightCard = ({
             )}
           </div>
 
-          <div>
-            <div>{formatPrice(displayPrice, displayCurrency)}</div>
+          <div className="flex flex-col items-end min-w-35">
+            <div className="text-2xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {formatPrice(displayPrice, displayCurrency)}
+            </div>
             {flight.isConverted && flight.originalPrice && (
-              <div>
+              <div className="text-xs text-slate-500">
                 ${flight.originalPrice} USD
-                <span>(rate: {flight.exchangeRate?.toFixed(2)})</span>
+                <span className="text-[10px] text-slate-600 ml-1">
+                  (rate: {flight.exchangeRate?.toFixed(2)})
+                </span>
               </div>
             )}
             <Button
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onBook(flight);
               }}
+              className="mt-2 px-5"
             >
               Book Now
             </Button>
-            <ClientOnly fallback={<div>--</div>}>
-              <div>
+            <ClientOnly
+              fallback={<div className="text-[10px] text-slate-500">--</div>}
+            >
+              <div className="text-[10px] text-slate-500 mt-1">
                 expires {new Date(flight.expiresAt).toLocaleTimeString()}
               </div>
             </ClientOnly>
