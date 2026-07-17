@@ -15,7 +15,7 @@ export default {
     }
   ],
   "links": {
-    "deploy": "",
+    "deploy": "https://g-map-review.vercel.app/",
     "github": "https://github.com/Cvr421/AgentKit/tree/gmap-review-ai/kits/gmap-review-ai"
   }
 };
