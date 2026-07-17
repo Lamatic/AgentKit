@@ -60,7 +60,7 @@ export default function HomePage() {
     try {
       const response = await runInvestigation(formData);
 
-      if (response.success && response.data) {
+      if (response.success) {
         setResult(response.data);
         toast.success("Investigation complete!", { id: toastId });
       } else {
