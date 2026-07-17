@@ -19,13 +19,13 @@ export default function Dashboard() {
   const [auditResult, setAuditResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 2. Initialize react-hook-form
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    mode: "onChange", // <-- ADD THIS EXACT LINE HERE
     defaultValues: {
       userPrompt: "",
       modelResponse: "",
