@@ -235,12 +235,12 @@ export const nodes = [
         "conditions": [
           {
             "label": "Runbook Result",
-            "value": "conditionNode_1-addNode_101",
+            "value": "conditionNode_1-plus-node-addNode_666355",
             "condition": "{\n  \"operator\": null,\n  \"operands\": [\n    {\n      \"name\": \"{{searchNode_1.output.searchResults}}\",\n      \"operator\": \"!=\",\n      \"value\": \"[]\"\n    }\n  ]\n}"
           },
           {
             "label": "Web Search Fallback",
-            "value": "conditionNode_1-addNode_102",
+            "value": "conditionNode_1-webSearchNode_1",
             "condition": {}
           }
         ],

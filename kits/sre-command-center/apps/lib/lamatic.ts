@@ -50,8 +50,8 @@ export async function callLamaticGraphQL<T = unknown>(
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("Lamatic HTTP Error:", res.status, text);
-      return { error: `Lamatic GraphQL error (${res.status}): ${text}` };
+      console.error("Lamatic HTTP Error:", res.status, text.slice(0, 200));
+      return { error: `Lamatic GraphQL error (${res.status})` };
     }
 
     const json = (await res.json()) as LamaticGraphQLResponse<T>;

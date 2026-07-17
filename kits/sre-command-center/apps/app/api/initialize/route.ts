@@ -29,11 +29,16 @@ const GRAPHQL_QUERY = `
  */
 export async function POST(req: NextRequest) {
   try {
-    const { content, source } = await req.json();
+    const { content, source, tags } = await req.json();
 
-    if (!content || !source) {
+    if (
+      typeof content !== "string" ||
+      content.trim() === "" ||
+      typeof source !== "string" ||
+      source.trim() === ""
+    ) {
       return NextResponse.json(
-        { error: "content and source are required" },
+        { error: "content and source are required and must be non-empty strings" },
         { status: 400 }
       );
     }
@@ -51,17 +56,14 @@ export async function POST(req: NextRequest) {
     const res = await callLamaticGraphQL(GRAPHQL_QUERY, {
       workflowId: FLOW_ID,
       contents: [content],
-      metadata: [{ runbook_id: source }],
+      metadata: [{ runbook_id: source, tags: Array.isArray(tags) ? tags : [] }],
     });
 
     if (res.error) {
-      console.warn("Lamatic API error in initialize, falling back to simulated mode:", res.error);
-      return NextResponse.json({
-        success: true,
-        source,
-        chunks_indexed: Math.floor(content.length / 300) + 1,
-        mode: "demo",
-      });
+      return NextResponse.json(
+        { error: "Upstream ingestion failed: " + res.error },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({
