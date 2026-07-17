@@ -1,0 +1,66 @@
+# Reputation Pulse — Lamatic Studio "Config" tab YAML
+#
+# Fast path: create a new flow in Lamatic Studio, open the Config tab (next to the visual
+# canvas), paste this whole file in, then switch back to the visual view to confirm the four
+# nodes appeared and are wired correctly. Fill in the two placeholders marked below, then Deploy.
+#
+# If a field name here has drifted from your Studio version, the Config tab validates as you
+# type and will point at the exact line to fix — the fallback is to build the same four nodes
+# by hand using README.md's node-by-node blueprint, which uses the identical settings.
+
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    responeType: realtime
+    advance_schema: |-
+      {
+        "business_name": "string",
+        "business_maps_url": "string",
+        "competitor_maps_urls": "[string]",
+        "max_reviews_per_place": "int?",
+        "reviews_since": "string?"
+      }
+
+nodes:
+  - nodeId: codeNode_310
+    nodeType: codeNode
+    nodeName: Fetch Reviews (Apify)
+    needs:
+      - triggerNode_1
+    values:
+      # Paste the full contents of scripts/reputation-pulse_fetch-reviews.ts here.
+      # It expects a project secret named APIFY_API_TOKEN (Settings -> Secrets) — get one
+      # free at https://console.apify.com/settings/integrations.
+      code: "@scripts/reputation-pulse_fetch-reviews.ts"
+
+  - nodeId: LLMNode_540
+    nodeType: LLMNode
+    nodeName: Generate Reputation Pulse
+    needs:
+      - codeNode_310
+    values:
+      # Pick any chat-capable text generation model with a comfortably large context window.
+      generativeModelName: "<< select a model in Studio's model picker for this field >>"
+      prompts:
+        - role: system
+          # Paste the full contents of prompts/reputation-pulse_generate-pulse_system.md here.
+          content: "@prompts/reputation-pulse_generate-pulse_system.md"
+        - role: user
+          # Paste the full contents of prompts/reputation-pulse_generate-pulse_user.md here.
+          content: "@prompts/reputation-pulse_generate-pulse_user.md"
+
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  needs:
+    - LLMNode_540
+  values:
+    outputMapping: |-
+      {
+        "report": "{{LLMNode_540.output.generatedResponse}}",
+        "business_average_rating": "{{codeNode_310.output.businessReviewData.sampleAverageRating}}",
+        "business_total_reviews_fetched": "{{codeNode_310.output.businessReviewData.reviewsFetchedInThisRun}}"
+      }
