@@ -1,2 +1,2 @@
-Analyze the following production alert and provide structured triage classification:
-{{triggerNode_1.output.alert}}
+Analyze this incident alert and perform L1 triage:
+{{triggerNode_1.output.input}}

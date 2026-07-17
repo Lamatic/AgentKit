@@ -1,6 +1,11 @@
-// Model config: Vectorize Node (vectorizeNode_1)
-// Flow: data-ingestion
+// Model config: vectorize-node-1 (vectorizeNode)
 
 export default {
-  "embeddingModelName": "@model-configs/flow-1-data-ingestion-the-setup_vectorize-node-1_embedding-model-name.ts"
+  "embeddingModelName": {
+    "type": "embedder/text",
+    "model_name": "gemini/gemini-embedding-001(3072)",
+    "credentialId": "f5bc84f1-5979-4b62-bba2-84d788d0da72",
+    "provider_name": "gemini",
+    "credential_name": "Gemini"
+  }
 };
