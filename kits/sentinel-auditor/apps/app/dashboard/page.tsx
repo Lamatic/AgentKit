@@ -122,7 +122,8 @@ export default function Dashboard() {
                 <div className={`px-4 py-2 rounded-full font-bold text-sm ${
                   data?.summary?.risk_level === 'High' ? 'bg-destructive/20 text-destructive border border-destructive/30' : 
                   data?.summary?.risk_level === 'Medium' ? 'bg-orange-500/20 text-orange-600 border border-orange-500/30' : 
-                  'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
+                  data?.summary?.risk_level === 'Low' ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30' :
+                  'bg-muted text-muted-foreground border border-border'
                 }`}>
                   {data?.summary?.risk_level ?? 'Unknown'} Risk
                 </div>
