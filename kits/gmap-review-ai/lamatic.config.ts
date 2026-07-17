@@ -16,6 +16,6 @@ export default {
   ],
   "links": {
     "deploy": "",
-    "github": ""
+    "github": "https://github.com/Cvr421/AgentKit/tree/gmap-review-ai/kits/gmap-review-ai"
   }
 };
