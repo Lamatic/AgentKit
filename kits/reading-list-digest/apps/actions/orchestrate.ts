@@ -204,7 +204,7 @@ export async function indexSingleArticle(url: string): Promise<IndexResult> {
     INDEX_FLOW_ID,
     indexPayloadForUrl(trimmed),
     "Index Articles",
-    { pollTimeoutSec: 900 }
+    { pollTimeoutSec: 280 }
   );
   const parsed = unwrapRecord(raw);
 

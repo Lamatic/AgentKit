@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-/** Long index/synthesize server actions (Vercel / Next segment limit). */
-export const maxDuration = 800;
+/** Long index/synthesize server actions (Vercel Hobby max is 300s). */
+export const maxDuration = 300;
 
 export const metadata: Metadata = {
   title: "Reading List Digest",
