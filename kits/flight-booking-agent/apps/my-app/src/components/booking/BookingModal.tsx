@@ -60,6 +60,7 @@ export const BookingModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
@@ -67,42 +68,65 @@ export const BookingModal = ({
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 20, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl"
           >
             {status === "confirmed" ? (
-              <div>
-                <div>
-                  <CheckCircle />
+              <div className="text-center py-4">
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-green-400" />
                 </div>
-                <h3>Booking Confirmed! 🎉</h3>
-                <p>Your flight has been booked successfully.</p>
-                <div>
-                  <p>Booking Reference</p>
-                  <p>{bookingRef}</p>
+                <h3 className="text-xl font-bold text-white">
+                  Booking Confirmed! 🎉
+                </h3>
+                <p className="text-slate-400 text-sm mt-2">
+                  Your flight has been booked successfully.
+                </p>
+                <div className="mt-4 p-4 bg-slate-700/50 rounded-xl">
+                  <p className="text-sm text-slate-300">Booking Reference</p>
+                  <p className="text-xl font-mono font-bold text-blue-400">
+                    {bookingRef}
+                  </p>
                 </div>
-                <button onClick={onClose}>Done</button>
+                <button
+                  onClick={onClose}
+                  className="mt-4 px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white transition-colors"
+                >
+                  Done
+                </button>
               </div>
             ) : (
               <>
-                <div>
-                  <h3>Book Flight</h3>
-                  <button onClick={onClose}>
-                    <X />
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white">Book Flight</h3>
+                  <button
+                    onClick={onClose}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div>
-                  <div>
-                    <span>{flight.airline}</span>
-                    <span>{flight.flightNumber}</span>
+                <div className="mb-4 p-3 bg-slate-700/30 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">
+                      {flight.airline}
+                    </span>
+                    <span className="text-slate-400 text-sm">
+                      {flight.flightNumber}
+                    </span>
                   </div>
-                  <div>
+                  <div className="text-sm text-slate-300">
                     {flight.departureAirport} → {flight.arrivalAirport}
                   </div>
-                  <div>{formatDateFull(flight.departureTime)}</div>
-                  <div>{formatPrice(flight.price, flight.currency)}</div>
+                  <div className="text-xs text-slate-400">
+                    {formatDateFull(flight.departureTime)}
+                  </div>
+                  <div className="text-lg font-bold text-blue-400 mt-1">
+                    {formatPrice(flight.price, flight.currency)}
+                  </div>
                 </div>
 
-                <div>
+                <div className="space-y-3">
                   <Input
                     label="Full Name"
                     type="text"
@@ -127,6 +151,7 @@ export const BookingModal = ({
                     !name.trim() || !email.trim() || status === "loading"
                   }
                   fullWidth
+                  className="mt-4"
                 >
                   {status === "loading" ? "Processing..." : "Confirm Booking"}
                 </Button>
