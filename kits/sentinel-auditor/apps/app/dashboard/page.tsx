@@ -113,24 +113,24 @@ export default function Dashboard() {
           {auditResult && data && (
             <div className="space-y-6 animate-fade-in">
               
-              {/* Summary Badge */}
+             {/* Summary Badge */}
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                 <div>
                   <h3 className="text-lg font-bold">Operation Success</h3>
-                  <p className="text-sm text-muted-foreground">Overall Score: {data.summary.overall_score}</p>
+                  <p className="text-sm text-muted-foreground">Overall Score: {data?.summary?.overall_score ?? 'N/A'}</p>
                 </div>
                 <div className={`px-4 py-2 rounded-full font-bold text-sm ${
-                  data.summary.risk_level === 'High' ? 'bg-destructive/20 text-destructive border border-destructive/30' : 
-                  data.summary.risk_level === 'Medium' ? 'bg-orange-500/20 text-orange-600 border border-orange-500/30' : 
+                  data?.summary?.risk_level === 'High' ? 'bg-destructive/20 text-destructive border border-destructive/30' : 
+                  data?.summary?.risk_level === 'Medium' ? 'bg-orange-500/20 text-orange-600 border border-orange-500/30' : 
                   'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
                 }`}>
-                  {data.summary.risk_level} Risk
+                  {data?.summary?.risk_level ?? 'Unknown'} Risk
                 </div>
               </div>
 
               {/* Dimension Cards */}
               <div className="grid grid-cols-1 gap-3">
-                {Object.entries(data.dimensions).map(([key, value]: [string, any]) => (
+                {Object.entries(data?.dimensions || {}).map(([key, value]: [string, any]) => (
                   <div key={key} className="p-4 bg-card border border-border rounded-lg shadow-sm">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-semibold capitalize text-foreground">
