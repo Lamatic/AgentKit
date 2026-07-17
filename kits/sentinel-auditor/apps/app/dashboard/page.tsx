@@ -25,7 +25,7 @@ export default function Dashboard() {
     formState: { errors, isValid },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    mode: "onChange", // <-- ADD THIS EXACT LINE HERE
+    mode: "onChange", 
     defaultValues: {
       userPrompt: "",
       modelResponse: "",
