@@ -304,13 +304,17 @@ if (window.location.origin === "http://localhost:3000") {
         const localCommits = localStorage.getItem("cab_commits");
         const parsedCommits = localCommits ? JSON.parse(localCommits) : [];
         safeSendMessage({ type: "SYNC_COMMITS", commits: parsedCommits });
-      } catch (e) {}
+      } catch (e) {
+        console.error("Failed to parse cab_commits:", e);
+      }
 
       try {
         const localLockSettings = localStorage.getItem("lama_lock_settings");
         const parsedLock = localLockSettings ? JSON.parse(localLockSettings) : null;
         safeSendMessage({ type: "SYNC_LOCK_SETTINGS", settings: parsedLock });
-      } catch (e) {}
+      } catch (e) {
+        console.error("Failed to parse lama_lock_settings:", e);
+      }
     };
 
   // Sync immediately when the dashboard is loaded
