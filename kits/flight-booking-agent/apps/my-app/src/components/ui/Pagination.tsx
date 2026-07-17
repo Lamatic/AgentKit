@@ -54,7 +54,7 @@ export const Pagination = ({
             variant={page === currentPage ? "primary" : "secondary"}
             size="sm"
             onClick={() => onPageChange(page)}
-            className="min-w-[36px]"
+            className="min-w-9"
           >
             {page}
           </Button>
