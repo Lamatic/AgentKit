@@ -11,7 +11,7 @@ export default {
   links: {
     demo: "",
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/outage-detector",
-    deploy: "https://vercel.com/new/clone?repository-url=https://github.com/amanbud4530/AgentKit&root-directory=kits%2Foutage-detector%2Fapps&env=OUTAGE_DETECTOR,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20keys%20and%20deployed%20flow%20ID%20are%20required.",
+    deploy: "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Foutage-detector%2Fapps&env=OUTAGE_DETECTOR,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20keys%20and%20deployed%20flow%20ID%20are%20required.",
     docs: ""
   }
 };
