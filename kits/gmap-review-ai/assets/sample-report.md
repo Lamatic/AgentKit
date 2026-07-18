@@ -1,7 +1,7 @@
 # Sample Run — Worked Example (Real Data)
 
 This is a real worked example, not a mockup. While building this kit, the exact
-`compass/Google-Maps-Reviews-Scraper` Actor call in `scripts/reputation-pulse_fetch-reviews.ts`
+`compass/Google-Maps-Reviews-Scraper` Actor call in `scripts/gmap-review-ai_code-node-310_code.ts`
 was run live against two real, well-known Colaba, Mumbai cafes on Google Maps — **Leopold
 Cafe** as "the business" and **Cafe Mondegar** as a named competitor — with `maxReviews: 15`
 per place. The JSON that call returned was then reshaped exactly as the code node does, and run
@@ -21,15 +21,15 @@ useful report before asking a reviewer to trust the spec. This is that output.
 
 ---
 
-## Headline
+## Executive Summary
 Leopold Cafe is holding a strong **4.2★** all-time aggregate across **32,641** Google reviews, and the 14 most recent reviews in this sample average **4.21★** — a large, high-traffic listing with a steady stream of new reviews (several per day) and no sign of recent slippage.
 
-## What's Working
+## Top Positive Themes
 - **Food and drinks land well.** Several reviews call out the food specifically — cold coffee, and both savory and sweet dishes praised by name in one detailed review — roughly 4 of the 7 text reviews in the sample mention food positively.
 - **Broad, low-friction satisfaction.** Short, enthusiastic reviews ("Nice", "Great", "loving it") show visitors leaving happy without needing much to go right.
 - **Sustained volume at scale.** 9 of the 14 sampled reviews were 5-star, consistent with a venue carrying 32k+ lifetime reviews without its rating eroding.
 
-## What Needs Fixing
+## Highest Priority Improvements
 1. **Service lags food and atmosphere, even in happy visits.** One 5-star review rated service 3/5 while rating food and atmosphere 5/5 — a gap worth watching before it shows up in the star rating itself.
 2. **Crowding and wait times.** An international visitor's review specifically flags the venue being extremely crowded with long queues and little room to move — a recurring risk for a high-volume single location.
 3. **Low-rated reviews carry no explanation.** Both sub-3-star reviews in the sample (1★, 2★) were left with no text, so the specific cause of those visits going wrong isn't visible in this data — worth prompting for detail (e.g. a follow-up quick-reply) so future samples aren't blind here.

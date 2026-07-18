@@ -75,7 +75,7 @@ reasoning possible at all.
 ## The result
 
 See **[`assets/sample-report.md`](./assets/sample-report.md)** for a complete, real worked
-example. It is not a mockup — the Apify Actor call in `scripts/GMapReviewAI_fetch-reviews.ts`
+example. It is not a mockup — the Apify Actor call in `scripts/gmap-review-ai_code-node-310_code.ts`
 was run live during development against two real Google Maps listings (Leopold Cafe and Cafe
 Mondegar, both in Colaba, Mumbai), and the report was produced by hand-running that exact data
 through the exact prompts in `prompts/`. A short excerpt:
@@ -105,7 +105,7 @@ testing this kit — a few hundred reviews costs well under $1).
    | Node | Type | Key settings |
    |---|---|---|
    | `API Request` | `graphqlNode` (trigger) | Advance schema — see `flows/GMapReviewAI.ts` header or the YAML file above |
-   | `Fetch Reviews (Apify)` | `codeNode` | Code = contents of `scripts/GMapReviewAI_fetch-reviews.ts` |
+   | `Fetch Reviews (Apify)` | `codeNode` | Code = contents of `scripts/gmap-review-ai_code-node-310_code.ts` |
    | `Generate GMapReviewAI` | `LLMNode` | System/user prompts = contents of the two files in `prompts/`; pick any chat-capable model |
    | `API Response` | `graphqlResponseNode` | Output mapping — see the YAML file above |
 
