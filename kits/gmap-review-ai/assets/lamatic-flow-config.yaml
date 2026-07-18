@@ -15,13 +15,13 @@ triggerNode:
   values:
     responeType: realtime
     advance_schema: |-
-      {
-        "business_name": "string",
-        "business_maps_url": "string",
-        "competitor_maps_urls": "[string]",
-        "max_reviews_per_place": "int?",
-        "reviews_since": "string?"
-      }
+       {
+         "business_name": "string",
+         "business_maps_url": "string",
+         "competitor_maps_urls": "[string]",
+         "max_reviews_per_place": "int",
+         "reviews_since": "string"
+       }
 
 nodes:
   - nodeId: codeNode_310
@@ -30,10 +30,10 @@ nodes:
     needs:
       - triggerNode_1
     values:
-      # Paste the full contents of scripts/reputation-pulse_fetch-reviews.ts here.
+      # Paste the full contents of scripts/gmap-review-ai_fetch-reviews.ts here.
       # It expects a project secret named APIFY_API_TOKEN (Settings -> Secrets) — get one
       # free at https://console.apify.com/settings/integrations.
-      code: "@scripts/reputation-pulse_fetch-reviews.ts"
+      code: "@scripts/gmap-review-ai_code-node-310_code.ts"
 
   - nodeId: LLMNode_540
     nodeType: LLMNode
@@ -45,11 +45,11 @@ nodes:
       generativeModelName: "<< select a model in Studio's model picker for this field >>"
       prompts:
         - role: system
-          # Paste the full contents of prompts/reputation-pulse_generate-pulse_system.md here.
-          content: "@prompts/reputation-pulse_generate-pulse_system.md"
+          # Paste the full contents of prompts/gmap-review-ai_generate-pulse_system.md here.
+          content: "@prompts/gmap-review-ai_llmnode-540_system_0.md"
         - role: user
-          # Paste the full contents of prompts/reputation-pulse_generate-pulse_user.md here.
-          content: "@prompts/reputation-pulse_generate-pulse_user.md"
+          # Paste the full contents of prompts/gmap-review-ai_generate-pulse_user.md here.
+          content: "@prompts/gmap-review-ai_llmnode-540_user_1.md"
 
 responseNode:
   nodeId: responseNode_triggerNode_1
