@@ -1,14 +1,23 @@
 "use server";
 
 import { submitTicket, TicketPayload, FlowResult } from "@/lib/lamatic-client";
+import lamaticConfig from "../../lamatic.config";
 
 export async function processTicket(ticket: TicketPayload): Promise<FlowResult> {
   try {
-    return await submitTicket(ticket);
+    const step = lamaticConfig.steps.find((s) => s.id === "outage-detector");
+    const workflowEnvKey = step?.envKey ?? "OUTAGE_DETECTOR";
+    const workflowId = process.env[workflowEnvKey];
+
+    if (!workflowId) {
+      throw new Error(
+        `Workflow ID environment variable "${workflowEnvKey}" is not set. Please add it to your .env.local file.`
+      );
+    }
+
+    return await submitTicket(ticket, workflowId);
   } catch (err) {
     console.error("Flow execution failed:", err);
-    // Fallback shape mirrors the real "Else" branch shape so the UI doesn't
-    // need a separate error-state renderer — surfaced via `reasoning`.
     return {
       status: "Else",
       confidence: 0,
