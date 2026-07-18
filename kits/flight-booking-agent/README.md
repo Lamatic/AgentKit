@@ -1,14 +1,13 @@
 # ✈️ Flight Booking Agent
 
-**Live Demo:** []
+**Live Demo:**
 An AI-powered flight search agent that finds the cheapest flights using natural language.
 
-![Screenshot]()
-![Charts]()
+![Screenshot](./apps/my-app/public/home.png)
 
 ---
 
-## ✨ Features
+## Features
 
 - Natural Language Search – "Flights from JFK to LHR on July 20 for 2 people"
 - Real-Time Pricing – Duffel API integration with 300+ airlines
@@ -78,7 +77,7 @@ Add the environment variables in Vercel dashboard (same as above).
 
 Deploy.
 
-## 📝 Future Improvements
+## Future Improvements
 
 1. **Real Booking Integration** – Connect Duffel's order creation API to enable actual flight bookings with payment processing (Stripe/PayPal). This would transform the app from a search tool into a complete booking platform.
 
