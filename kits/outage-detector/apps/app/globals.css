@@ -1,3 +1,23 @@
+:root {
+  --color-bg: #0b0d12;
+  --color-text: #e6e8ec;
+  --color-text-muted: #9aa1ac;
+  --color-text-dim: #6b7280;
+  --color-text-subtle: #b7bcc5;
+  --color-white: #ffffff;
+
+  --color-accent: #4f7cff;
+  --color-disabled-bg: #2a2f3a;
+
+  --color-panel-bg: #12151c;
+  --color-panel-border: #232733;
+
+  --color-flagged-bg: #4a1d1d;
+  --color-flagged-text: #ff8a8a;
+  --color-normal-bg: #1d2a1d;
+  --color-normal-text: #8dff8a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -5,8 +25,8 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0b0d12;
-  color: #e6e8ec;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .container {
@@ -21,15 +41,15 @@ h1 {
 }
 
 .subtitle {
-  color: #9aa1ac;
+  color: var(--color-text-muted);
   font-size: 0.95rem;
   margin-bottom: 28px;
   line-height: 1.5;
 }
 
 button {
-  background: #4f7cff;
-  color: white;
+  background: var(--color-accent);
+  color: var(--color-white);
   border: none;
   padding: 10px 18px;
   border-radius: 8px;
@@ -38,9 +58,9 @@ button {
 }
 
 button:disabled {
-  background: #2a2f3a;
+  background: var(--color-disabled-bg);
   cursor: not-allowed;
-  color: #6b7280;
+  color: var(--color-text-dim);
 }
 
 .grid {
@@ -57,8 +77,8 @@ button:disabled {
 }
 
 .panel {
-  background: #12151c;
-  border: 1px solid #232733;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-panel-border);
   border-radius: 10px;
   padding: 16px;
 }
@@ -68,12 +88,12 @@ button:disabled {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #9aa1ac;
+  color: var(--color-text-muted);
 }
 
 .ticket-row {
   padding: 10px 0;
-  border-bottom: 1px solid #232733;
+  border-bottom: 1px solid var(--color-panel-border);
   font-size: 0.9rem;
 }
 
@@ -82,7 +102,7 @@ button:disabled {
 }
 
 .ticket-row.active {
-  color: #fff;
+  color: var(--color-white);
   font-weight: 600;
 }
 
@@ -96,21 +116,21 @@ button:disabled {
 }
 
 .badge.flagged {
-  background: #4a1d1d;
-  color: #ff8a8a;
+  background: var(--color-flagged-bg);
+  color: var(--color-flagged-text);
 }
 
 .badge.normal {
-  background: #1d2a1d;
-  color: #8dff8a;
+  background: var(--color-normal-bg);
+  color: var(--color-normal-text);
 }
 
 .detail-row {
   margin-top: 4px;
   font-size: 0.85rem;
-  color: #b7bcc5;
+  color: var(--color-text-subtle);
 }
 
 .detail-label {
-  color: #6b7280;
+  color: var(--color-text-dim);
 }
