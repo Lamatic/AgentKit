@@ -312,8 +312,9 @@ kits/smart-contract-audit-copilot/
 |-- prompts/
 |   |-- smart-contract-audit_system.md  # System prompt for audit behavior
 |   `-- smart-contract-audit_user.md    # User prompt with contract code
+|-- config.json              # Studio import config
 |-- model-configs/
-|   `-- smart-contract-audit_generate-report.ts  # LLM model configuration
+|   `-- smart-contract-audit_llm.ts  # LLM model configuration
 |-- .env.example             # Environment variable template
 `-- apps/
     |-- package.json         # Next.js app dependencies

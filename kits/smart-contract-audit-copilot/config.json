@@ -41,7 +41,7 @@
     "nodeType": "graphqlResponseNode",
     "nodeName": "API Response",
     "values": {
-      "outputMapping": "{\n  \"audit\": \"{{LLMNode_421.output.generatedResponse}}\"\n}",
+      "outputMapping": "{\n  \"auditReport\": \"{{LLMNode_421.output.generatedResponse}}\"\n}",
       "webhookUrl": "",
       "headers": "{}",
       "retries": "0",

@@ -6,7 +6,7 @@ export default {
   type: "kit" as const,
   author: {
     name: "Tanay Mitra",
-    email: "tanaymitra54@users.noreply.github.com",
+    email: "tanaymitra9@gmail.com",
   },
   tags: ["solidity", "security", "audit", "web3", "developer tools"],
   steps: [

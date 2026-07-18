@@ -167,7 +167,7 @@ export const nodes = [
         webhookUrl: "",
         retry_delay: "0",
         outputMapping:
-          '{\n  "audit": "{{LLMNode_421.output.generatedResponse}}"\n}',
+          '{\n  "auditReport": "{{LLMNode_421.output.generatedResponse}}"\n}',
       },
     },
   },
