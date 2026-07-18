@@ -22,8 +22,9 @@ unrelated or self-inflicted problem.
   internal note (impacted accounts, suspected component, recommended next
   step) and a customer-facing message — both referencing the actual
   correlated tickets rather than generic boilerplate.
-- Indexes every incoming ticket into its own vector store, so correlation
-  quality improves as more tickets are processed.
+- Indexes every incoming ticket into the shared `support-tickets` vector
+  store configured by the outage-detector flow, so correlation quality
+  improves as more tickets are processed.
 
 ## Non-goals
 
