@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -13,6 +16,24 @@ import {
   FileText,
 } from "lucide-react";
 import { scanDocument, redactDocument } from "@/actions/orchestrate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+const gateFormSchema = z.object({
+  document: z
+    .string()
+    .trim()
+    .min(1, "Paste a document first (or load the sample).")
+    .max(100_000, "Document is too large (max 100,000 characters)."),
+  policy: z
+    .string()
+    .max(2_000, "Policy is too long (max 2,000 characters).")
+    .optional(),
+});
+
+type GateFormValues = z.infer<typeof gateFormSchema>;
 
 const SAMPLE_DOCUMENT = `Meeting notes — Customer onboarding sync (2026-07-01)
 
@@ -99,36 +120,40 @@ function SeverityChip({ severity }: { severity: string }) {
 
 export default function Home() {
   const [tab, setTab] = useState<"scan" | "redact">("scan");
-  const [document, setDocument] = useState("");
-  const [policy, setPolicy] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<any>(null);
   const [redactResult, setRedactResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<GateFormValues>({
+    resolver: zodResolver(gateFormSchema),
+    defaultValues: { document: "", policy: "" },
+  });
+
   const loadSample = () => {
-    setDocument(SAMPLE_DOCUMENT);
-    setPolicy(SAMPLE_POLICY);
+    setValue("document", SAMPLE_DOCUMENT, { shouldValidate: true });
+    setValue("policy", SAMPLE_POLICY);
     setError(null);
   };
 
-  const run = async () => {
-    if (!document.trim()) {
-      setError("Paste a document first (or load the sample).");
-      return;
-    }
+  const onSubmit = async (values: GateFormValues) => {
     setLoading(true);
     setError(null);
     try {
       if (tab === "scan") {
         setScanResult(null);
-        const res = await scanDocument(document, policy);
+        const res = await scanDocument(values.document, values.policy);
         if (!res.success) throw new Error(res.error);
         setScanResult(res.data);
       } else {
         setRedactResult(null);
-        const res = await redactDocument(document, policy);
+        const res = await redactDocument(values.document, values.policy);
         if (!res.success) throw new Error(res.error);
         setRedactResult(res.data);
       }
@@ -196,47 +221,46 @@ export default function Home() {
       </div>
 
       {/* Input card */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      >
         <div className="mb-2 flex items-center justify-between">
-          <label
-            htmlFor="document-input"
-            className="text-sm font-semibold text-slate-700"
-          >
-            Document
-          </label>
-          <button
+          <Label htmlFor="document-input">Document</Label>
+          <Button
+            type="button"
+            variant="ghost"
             onClick={loadSample}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900"
+            className="gap-1.5 text-sm"
           >
             <FileText className="h-4 w-4" /> Load sample
-          </button>
+          </Button>
         </div>
-        <textarea
+        <Textarea
           id="document-input"
-          value={document}
-          onChange={(e) => setDocument(e.target.value)}
+          {...register("document")}
+          aria-invalid={!!errors.document}
           placeholder="Paste the document you want to check before ingesting it into your vector index…"
-          className="h-48 w-full resize-y rounded-lg border border-slate-200 p-3 font-mono text-sm outline-none focus:border-slate-400"
+          className="h-48"
         />
-        <label
-          htmlFor="policy-input"
-          className="mt-3 block text-sm font-semibold text-slate-700"
-        >
+        {errors.document && (
+          <p className="mt-1 text-sm text-red-600">{errors.document.message}</p>
+        )}
+        <Label htmlFor="policy-input" className="mt-3 block">
           Policy <span className="font-normal text-slate-400">(optional)</span>
-        </label>
-        <input
+        </Label>
+        <Input
           id="policy-input"
-          value={policy}
-          onChange={(e) => setPolicy(e.target.value)}
+          {...register("policy")}
+          aria-invalid={!!errors.policy}
           placeholder='e.g. "Internal names are acceptable. Credentials are never acceptable."'
-          className="mt-1 w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400"
+          className="mt-1"
         />
+        {errors.policy && (
+          <p className="mt-1 text-sm text-red-600">{errors.policy.message}</p>
+        )}
         <div className="mt-4 flex items-center gap-3">
-          <button
-            onClick={run}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={loading}>
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : tab === "scan" ? (
@@ -249,10 +273,10 @@ export default function Home() {
               : tab === "scan"
                 ? "Scan document"
                 : "Redact document"}
-          </button>
+          </Button>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
-      </section>
+      </form>
 
       {/* Scan results */}
       {tab === "scan" && analysis && (
