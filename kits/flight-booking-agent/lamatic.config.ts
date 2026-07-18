@@ -16,7 +16,7 @@ export default {
     },
   ],
   links: {
-    demo: "https://your-demo-url.vercel.app", // Replace with your Vercel URL
+    demo: "https://flight-booking-agent-pearl.vercel.app",
     github:
       "https://github.com/Lamatic/AgentKit/tree/main/kits/flight-booking-agent",
     deploy:
