@@ -16,6 +16,6 @@ export default {
   ],
   "links": {
     "deploy": "",
-    "github": ""
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/expense-budget-copilot"
   }
 };
