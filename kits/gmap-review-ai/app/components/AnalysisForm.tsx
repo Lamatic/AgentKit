@@ -11,10 +11,10 @@ export default function AnalysisForm({ onSubmit, isLoading }: any) {
   });
 
   const addCompetitor = () => {
-    setFormData({
-      ...formData, 
-       competitor_maps_urls: [...formData.competitor_maps_urls, '']
-    });
+    setFormData(prev => ({
+     ...prev, 
+      competitor_maps_urls: [...prev.competitor_maps_urls, '']
+   }));
   };
 
   const handleCompetitorChange = (index: number, value: string) => {
