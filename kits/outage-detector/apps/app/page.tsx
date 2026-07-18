@@ -50,18 +50,21 @@ export default function Page() {
           <h3 className="mt-0 mb-3 text-sm uppercase tracking-wide text-muted">
             Ticket queue
           </h3>
-          {tickets.slice(Math.max(0, index - 1), index + 3).map((t, i) => (
-            <div
-              key={t.ticket_id}
-              className={cn(
-                "py-2.5 text-[0.9rem] border-b border-panel-border last:border-none",
-                i === 1 && "text-foreground font-semibold"
-              )}
-            >
-              <strong>{t.ticket_id}</strong> · {t.account_name} ({t.account_tier})
-              <div>{t.subject}</div>
-            </div>
-          ))}
+          {(() => {
+            const sliceStart = Math.max(0, index - 1);
+            return tickets.slice(sliceStart, index + 3).map((t, i) => (
+              <div
+                key={t.ticket_id}
+                className={cn(
+                  "py-2.5 text-[0.9rem] border-b border-panel-border last:border-none",
+                  sliceStart + i === index && "text-foreground font-semibold"
+                )}
+              >
+                <strong>{t.ticket_id}</strong> · {t.account_name} ({t.account_tier})
+                <div>{t.subject}</div>
+              </div>
+            ));
+          })()}
         </div>
 
         <div className="bg-panel border border-panel-border rounded-[10px] p-4">
@@ -125,3 +128,4 @@ export default function Page() {
     </div>
   );
 }
+
