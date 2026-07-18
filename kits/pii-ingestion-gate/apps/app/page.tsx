@@ -198,7 +198,10 @@ export default function Home() {
       {/* Input card */}
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-700">
+          <label
+            htmlFor="document-input"
+            className="text-sm font-semibold text-slate-700"
+          >
             Document
           </label>
           <button
@@ -209,15 +212,20 @@ export default function Home() {
           </button>
         </div>
         <textarea
+          id="document-input"
           value={document}
           onChange={(e) => setDocument(e.target.value)}
           placeholder="Paste the document you want to check before ingesting it into your vector index…"
           className="h-48 w-full resize-y rounded-lg border border-slate-200 p-3 font-mono text-sm outline-none focus:border-slate-400"
         />
-        <label className="mt-3 block text-sm font-semibold text-slate-700">
+        <label
+          htmlFor="policy-input"
+          className="mt-3 block text-sm font-semibold text-slate-700"
+        >
           Policy <span className="font-normal text-slate-400">(optional)</span>
         </label>
         <input
+          id="policy-input"
           value={policy}
           onChange={(e) => setPolicy(e.target.value)}
           placeholder='e.g. "Internal names are acceptable. Credentials are never acceptable."'
@@ -309,7 +317,9 @@ export default function Home() {
                 Audit summary
               </h2>
               <pre className="whitespace-pre-wrap font-sans text-sm text-slate-600">
-                {report}
+                {typeof report === "string"
+                  ? report
+                  : JSON.stringify(report, null, 2)}
               </pre>
             </div>
           )}
@@ -394,7 +404,17 @@ export default function Home() {
       )}
 
       <footer className="mt-10 text-center text-xs text-slate-400">
-        Built on Lamatic flows — no document content is stored by this app.
+        Built on Lamatic flows — this app does not store document content
+        locally. Documents are processed by your own Lamatic project; see the{" "}
+        <a
+          href="https://lamatic.ai/docs"
+          target="_blank"
+          rel="noreferrer"
+          className="underline hover:text-slate-600"
+        >
+          Lamatic docs
+        </a>{" "}
+        for downstream data handling.
       </footer>
     </main>
   );

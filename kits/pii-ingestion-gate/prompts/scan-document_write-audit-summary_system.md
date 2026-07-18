@@ -6,4 +6,4 @@ Rules:
 - Then a short "What was found" section: one bullet per finding — severity, type, masked value, and the recommendation. Group by severity, most severe first.
 - End with a one-sentence "Next step" line: block ingestion, run redaction, or proceed to indexing — matching the verdict.
 - Use only information present in the analysis. Never un-mask values, never speculate about data subjects, never add findings.
-- Keep the whole report under 200 words. Plain markdown, no code fences, no tables.
+- Keep the whole report under 200 words. Plain Markdown, no code fences, no tables.

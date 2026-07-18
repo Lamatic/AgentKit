@@ -74,7 +74,7 @@ Replaces every sensitive span with a numbered, typed placeholder (`[REDACTED:EMA
 
 ## What's Inside
 
-```
+```text
 pii-ingestion-gate/
 ├── lamatic.config.ts        # kit metadata, 2 mandatory steps
 ├── agent.md                 # agent identity + capability doc
@@ -115,7 +115,7 @@ npm run dev                  # http://localhost:3000
 
 ### 3. Try it
 
-Click **Load sample** in the app — it inserts meeting notes seeded with a fake API key, SSN, email, phone number, and card fragment. Run **Scan** (expect `blocked`, risk ≳ 90, critical findings) then **Redact** (expect typed placeholders + audit trail).
+Click **Load sample** in the app — it inserts meeting notes seeded with a fake API key, SSN, email, phone number, and card fragment. Run **Scan** (expect `blocked`, risk ≳ 90, critical findings). Note that in a production pipeline a `blocked` document is **rejected** (and any exposed credentials rotated) — redaction is the path for `needs_redaction` verdicts. You can still run **Redact** on the sample to see how sanitization works (expect typed placeholders + audit trail).
 
 ## Testing Checklist
 

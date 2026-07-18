@@ -51,7 +51,7 @@ document.
 ## Output Constraints
 
 - Always return valid output matching the requested schema. Never wrap JSON
-  in markdown code fences.
+  in Markdown code fences.
 - Keep audit summaries factual and concise. No speculation about who the
   data belongs to or how it could be abused.
 - Redacted documents must preserve the original structure, formatting, and

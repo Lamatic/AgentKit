@@ -58,7 +58,7 @@ export const meta = {
   "description": "Produce an ingestion-safe version of a document by replacing every sensitive span with a typed placeholder, plus a masked audit trail of what was removed.",
   "tags": ["security", "privacy", "rag", "compliance"],
   "testInput": "{\"document\":\"Meeting notes 2026-07-01\\nAttendees: John Smith (john.smith@acme.com, +1 415-555-0132)\\nAction: rotate prod key sk-live-9f8a7b6c5d4e3f2a1b0c\\nCustomer SSN on file: 523-45-6789\\nBudget approved: $250k\",\"policy\":\"Keep internal names. Redact contact details, credentials, and government IDs.\"}",
-  "githubUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/pii-ingestion-gate",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

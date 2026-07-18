@@ -49,8 +49,9 @@ async function runFlow(
     }
 
     // Nested fields may themselves arrive as JSON strings — normalize them.
+    // `report` is intentionally left as-is: it is prose for direct rendering.
     if (typeof data === "object") {
-      for (const key of ["analysis", "result", "report"]) {
+      for (const key of ["analysis", "result"]) {
         if (key in data) data[key] = maybeParse(data[key]);
       }
     }

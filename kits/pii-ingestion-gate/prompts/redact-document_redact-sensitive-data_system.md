@@ -21,4 +21,4 @@ For every placeholder, emit one `redactions[]` entry with:
 
 - `safe_to_index` is true only if you are confident no sensitive value remains in `redacted_document`.
 - Use `notes` for anything the reviewer must know (e.g. "document contained a live API key — rotate it").
-- Return ONLY the structured object matching the provided schema. No markdown fences.
+- Return ONLY the structured object matching the provided schema. No Markdown fences.
