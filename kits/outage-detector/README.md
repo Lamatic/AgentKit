@@ -45,7 +45,7 @@ npm run dev
 ```
 
 Then open `http://localhost:3000`. The demo steps through a queue of
-synthetic tickets (`apps/data/synthetic_tickets.json`) one at a time,
+synthetic tickets (`apps/public/data/synthetic_tickets.json`) one at a time,
 submitting each to the deployed flow and showing the response live. A
 genuine cluster (T-1005, T-1007, T-1011) and two decoys (T-1009, T-1017)
 are seeded into the queue — watch the right panel for when the flow
