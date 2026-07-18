@@ -21,7 +21,7 @@ rather than surface wording similarity.
 
 ## Flow structure
 
-```
+```text
 API Trigger
   → Vector Search (top 8, certainty >= 0.7)
   → Vectorize → VectorDB write (indexes the new ticket for future searches)
@@ -30,7 +30,7 @@ API Trigger
       ├── "Condition 1" → Drafting Agent (internal_note + customer_message)
       └── "Else" → passthrough (fields stay empty)
   → API Response
-```
+```text
 
 Full node-level detail, error scenarios, and design notes are documented
 in the docblock at the top of `flows/outage-detector.ts`.
@@ -42,7 +42,7 @@ cd apps
 cp .env.example .env.local   # fill in real values — see below
 npm install
 npm run dev
-```
+```text
 
 Then open `http://localhost:3000`. The demo steps through a queue of
 synthetic tickets (`apps/public/data/synthetic_tickets.json`) one at a time,
