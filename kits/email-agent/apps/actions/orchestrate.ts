@@ -4,16 +4,19 @@ import { lamaticClient } from "@/lib/lamatic-client"
 import kitConfig from "../../lamatic.config"
 
 function formatVerifierResult(response: Record<string, unknown> | string): string {
+  let parsed: Record<string, unknown>
   if (typeof response === "string") {
     try {
-      response = JSON.parse(response) as Record<string, unknown>
+      parsed = JSON.parse(response) as Record<string, unknown>
     } catch {
       // Not valid JSON — return the raw string as-is
       return response
     }
+  } else {
+    parsed = response
   }
 
-  const r = response as {
+  const r = parsed as {
     verdict?: string
     confidence?: number
     reasons?: string[]
@@ -79,7 +82,10 @@ export async function verifyEmail(
 export async function replyEmail(
   sender: string,
   subject: string,
-  body: string
+  body: string,
+  verdict?: string,
+  confidence?: number,
+  reasons?: string[]
 ): Promise<{
   success: boolean
   data?: string
@@ -88,6 +94,51 @@ export async function replyEmail(
   try {
     console.log("[Email Agent] Drafting reply for email from:", sender)
 
+    let finalVerdict = verdict
+    let finalConfidence = confidence
+    let finalReasons = reasons
+
+    // Check if verification result is already available in the arguments
+    if (finalVerdict === undefined || finalConfidence === undefined || finalReasons === undefined) {
+      console.log("[Email Agent] Verification result not provided in arguments. Running verifier first...")
+      const verifierWorkflowId = getWorkflowId("email-verifier")
+      const verifierInputs = { sender, subject, body }
+
+      console.log("[Email Agent] Executing verifier flow:", verifierWorkflowId, verifierInputs)
+      const verifierRes = await lamaticClient.executeFlow(verifierWorkflowId, verifierInputs)
+      console.log("[Email Agent] Verifier response:", JSON.stringify(verifierRes, null, 2))
+
+      const response = verifierRes?.result?.output
+      if (!response) {
+        throw new Error("No output analysis report found in response")
+      }
+
+      let parsedResponse: any = response
+      if (typeof response === "string") {
+        try {
+          parsedResponse = JSON.parse(response)
+        } catch {
+          parsedResponse = {}
+        }
+      }
+
+      if (finalVerdict === undefined) {
+        finalVerdict = parsedResponse?.verdict ?? "unknown"
+      }
+      if (finalConfidence === undefined) {
+        finalConfidence = parsedResponse?.confidence ?? 0
+      }
+      if (finalReasons === undefined) {
+        finalReasons = parsedResponse?.reasons ?? []
+      }
+    } else {
+      console.log("[Email Agent] Reusing provided verification result:", {
+        verdict: finalVerdict,
+        confidence: finalConfidence,
+        reasons: finalReasons,
+      })
+    }
+
     const workflowId = getWorkflowId("email-replier")
 
     console.log("[Email Agent] Running replier flow:", workflowId)
@@ -95,6 +146,9 @@ export async function replyEmail(
       sender,
       subject,
       body,
+      verdict: finalVerdict,
+      confidence: finalConfidence,
+      reasons: finalReasons,
     })
     console.log("[Email Agent] Replier response:", JSON.stringify(replierRes, null, 2))
 
