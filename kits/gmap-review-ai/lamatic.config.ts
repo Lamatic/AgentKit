@@ -12,7 +12,7 @@ export default {
     {
       "id": "gmap-review-ai",
       "type": "mandatory",
-      "envKey": "FLOW_ENV_KEY"
+   
     }
   ],
   links: {
