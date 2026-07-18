@@ -62,8 +62,8 @@ export const meta = {
   "tags": ["security", "privacy", "rag", "compliance"],
   "testInput": "{\"document\":\"Meeting notes 2026-07-01\\nAttendees: John Smith (john.smith@acme.com, +1 415-555-0132)\\nAction: rotate prod key sk-live-9f8a7b6c5d4e3f2a1b0c\\nCustomer SSN on file: 523-45-6789\\nBudget approved: $250k\",\"policy\":\"Internal names are acceptable. Credentials and government IDs are never acceptable.\"}",
   "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/pii-ingestion-gate",
-  "documentationUrl": "",
-  "deployUrl": "",
+  "documentationUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/pii-ingestion-gate#readme",
+  "deployUrl": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fpii-ingestion-gate%2Fapps",
   "author": {
     "name": "Kritensh Kumar",
     "email": "kritensh.kumar@example.com"

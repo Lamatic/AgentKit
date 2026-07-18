@@ -9,7 +9,7 @@ export const Input = forwardRef<
   <input
     ref={ref}
     className={cn(
-      "w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 aria-[invalid=true]:border-red-400",
+      "w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 aria-invalid:border-red-400",
       className,
     )}
     {...props}

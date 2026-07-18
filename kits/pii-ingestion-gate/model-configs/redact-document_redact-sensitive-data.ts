@@ -10,7 +10,7 @@ export default {
     {
       type: "generator/text",
       params: {},
-      configName: "configA",
+      configName: "redact-sensitive-data-config",
       model_name: "",
       credentialId: "",
       provider_name: "",

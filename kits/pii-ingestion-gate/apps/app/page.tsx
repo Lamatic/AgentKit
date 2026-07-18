@@ -31,6 +31,7 @@ const gateFormSchema = z.object({
     .string()
     .max(2_000, "Policy is too long (max 2,000 characters).")
     .optional(),
+  accessCode: z.string().max(200).optional(),
 });
 
 type GateFormValues = z.infer<typeof gateFormSchema>;
@@ -133,7 +134,7 @@ export default function Home() {
     formState: { errors },
   } = useForm<GateFormValues>({
     resolver: zodResolver(gateFormSchema),
-    defaultValues: { document: "", policy: "" },
+    defaultValues: { document: "", policy: "", accessCode: "" },
   });
 
   const loadSample = () => {
@@ -148,12 +149,20 @@ export default function Home() {
     try {
       if (tab === "scan") {
         setScanResult(null);
-        const res = await scanDocument(values.document, values.policy);
+        const res = await scanDocument(
+          values.document,
+          values.policy,
+          values.accessCode,
+        );
         if (!res.success) throw new Error(res.error);
         setScanResult(res.data);
       } else {
         setRedactResult(null);
-        const res = await redactDocument(values.document, values.policy);
+        const res = await redactDocument(
+          values.document,
+          values.policy,
+          values.accessCode,
+        );
         if (!res.success) throw new Error(res.error);
         setRedactResult(res.data);
       }
@@ -259,6 +268,20 @@ export default function Home() {
         {errors.policy && (
           <p className="mt-1 text-sm text-red-600">{errors.policy.message}</p>
         )}
+        <Label htmlFor="access-code-input" className="mt-3 block">
+          Access code{" "}
+          <span className="font-normal text-slate-400">
+            (only if the deployer configured one)
+          </span>
+        </Label>
+        <Input
+          id="access-code-input"
+          type="password"
+          autoComplete="off"
+          {...register("accessCode")}
+          placeholder="Leave empty unless GATE_ACCESS_CODE is set"
+          className="mt-1"
+        />
         <div className="mt-4 flex items-center gap-3">
           <Button type="submit" disabled={loading}>
             {loading ? (

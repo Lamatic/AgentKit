@@ -115,7 +115,12 @@ npm run dev                  # http://localhost:3000
 
 ### 3. Try it
 
-Click **Load sample** in the app — it inserts meeting notes seeded with a fake API key, SSN, email, phone number, and card fragment. Run **Scan** (expect `blocked`, risk ≳ 90, critical findings). Note that in a production pipeline a `blocked` document is **rejected** (and any exposed credentials rotated) — redaction is the path for `needs_redaction` verdicts. You can still run **Redact** on the sample to see how sanitization works (expect typed placeholders + audit trail).
+Click **Load sample** in the app — it inserts meeting notes seeded with a fake API key, SSN, email, phone number, and card fragment.
+
+1. **Scan** the sample → expect `blocked` (risk ≳ 90, critical findings). Per the guardrail, a `blocked` document is **rejected** in a production pipeline — rotate the exposed credentials; do not sanitize or index it.
+2. Delete the API-key and SSN lines from the sample, then **Scan** again → expect `needs_redaction` (the email/phone remain as medium findings).
+3. Switch to **Redact** for that `needs_redaction` document → expect typed placeholders (`[REDACTED:EMAIL_1]`, `[REDACTED:PHONE_1]`) plus the masked audit trail, with everything else preserved verbatim.
+4. **Scan** the redacted output → expect `safe`. That closes the loop: gate → redact → verify → index.
 
 ## Testing Checklist
 

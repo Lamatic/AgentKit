@@ -7,10 +7,12 @@ import { getLamaticClient } from "@/lib/lamatic-client";
 type ActionResult = { success: boolean; data?: any; error?: string };
 type StepId = "scan-document" | "redact-document";
 
-// ── Request limits (sugg: basic abuse protection) ──────────────
-// This starter kit has no user accounts; deployers should put the app
-// behind their own auth (e.g. Vercel Deployment Protection, middleware,
-// or an identity provider). These limits bound abuse in the meantime.
+// ── Access control & request limits ──────────────────────────
+// This starter kit has no user accounts. Deployers can require an access
+// code by setting GATE_ACCESS_CODE in the environment: when set, every
+// request must supply the matching code before any document data is
+// forwarded to a flow. For production, put the app behind proper auth
+// (Vercel Deployment Protection, middleware, or an identity provider).
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX_REQUESTS = 10;
 const MAX_DOCUMENT_CHARS = 100_000;
@@ -64,13 +66,33 @@ function maybeParse(value: any) {
   }
 }
 
+/** Rejects the request when GATE_ACCESS_CODE is set and doesn't match. */
+function assertAuthorized(accessCode: string) {
+  const required = process.env.GATE_ACCESS_CODE;
+  if (required && accessCode !== required) {
+    throw new Error(
+      "Unauthorized: a valid access code is required. Enter the code configured in GATE_ACCESS_CODE.",
+    );
+  }
+}
+
 /** Validates inputs, enforces limits, executes the flow, normalizes output. */
 async function runFlow(
   stepId: StepId,
   document: string,
   policy: string,
+  accessCode: string,
 ): Promise<ActionResult> {
   try {
+    // Authorization and throttling run BEFORE any document data leaves
+    // this server action.
+    assertAuthorized(accessCode);
+    if (!withinRateLimit(await clientKey())) {
+      throw new Error(
+        `Rate limit exceeded (${RATE_MAX_REQUESTS} requests/minute). Try again shortly.`,
+      );
+    }
+
     if (!document?.trim()) {
       throw new Error("Document text is required.");
     }
@@ -82,11 +104,6 @@ async function runFlow(
     if (policy.length > MAX_POLICY_CHARS) {
       throw new Error(
         `Policy is too long (max ${MAX_POLICY_CHARS.toLocaleString()} characters).`,
-      );
-    }
-    if (!withinRateLimit(await clientKey())) {
-      throw new Error(
-        `Rate limit exceeded (${RATE_MAX_REQUESTS} requests/minute). Try again shortly.`,
       );
     }
 
@@ -139,8 +156,9 @@ async function runFlow(
 export async function scanDocument(
   document: string,
   policy?: string,
+  accessCode?: string,
 ): Promise<ActionResult> {
-  return runFlow("scan-document", document, policy ?? "");
+  return runFlow("scan-document", document, policy ?? "", accessCode ?? "");
 }
 
 /**
@@ -150,6 +168,7 @@ export async function scanDocument(
 export async function redactDocument(
   document: string,
   policy?: string,
+  accessCode?: string,
 ): Promise<ActionResult> {
-  return runFlow("redact-document", document, policy ?? "");
+  return runFlow("redact-document", document, policy ?? "", accessCode ?? "");
 }

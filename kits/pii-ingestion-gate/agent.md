@@ -59,7 +59,7 @@ Vector indexes make deletion nearly impossible: once PII is embedded, it resurfa
 2. Copy both Flow IDs and your API credentials.
 3. `cd apps && cp .env.example .env.local` and fill in the five variables.
 4. `npm install && npm run dev` → open `http://localhost:3000`.
-5. Click **Load sample** → **Scan document** → expect a `blocked` verdict with masked critical findings. In production, `blocked` documents are rejected outright (rotate any exposed credentials); redaction is the intended path for `needs_redaction` verdicts. For demo purposes you can switch to **Redact** on the same sample → expect placeholders + audit trail.
+5. Click **Load sample** → **Scan document** → expect a `blocked` verdict with masked critical findings. A `blocked` document is rejected outright (rotate any exposed credentials) — it is never sanitized or indexed. To exercise redaction, remove the credential/SSN lines from the sample so the scan returns `needs_redaction`, then switch to **Redact** → expect placeholders + audit trail, and a follow-up scan of the redacted text returns `safe`.
 
 ## Common Failure Modes
 

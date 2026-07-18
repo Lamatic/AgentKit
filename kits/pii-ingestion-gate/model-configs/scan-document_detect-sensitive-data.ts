@@ -9,7 +9,7 @@ export default {
     {
       type: "generator/text",
       params: {},
-      configName: "configA",
+      configName: "detect-sensitive-data-config",
       model_name: "",
       credentialId: "",
       provider_name: "",
