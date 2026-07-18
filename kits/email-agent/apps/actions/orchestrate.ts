@@ -4,27 +4,37 @@ import { lamaticClient } from "@/lib/lamatic-client"
 import kitConfig from "../../lamatic.config"
 
 function formatVerifierResult(response: Record<string, unknown> | string): string {
-  let parsed: Record<string, unknown>
+  let parsed: Record<string, unknown> = {}
+
   if (typeof response === "string") {
     try {
-      parsed = JSON.parse(response) as Record<string, unknown>
+      const json = JSON.parse(response)
+
+      if (json && typeof json === "object") {
+        parsed = json as Record<string, unknown>
+      }
     } catch {
-      // Not valid JSON — return the raw string as-is
       return response
     }
-  } else {
+  } else if (response && typeof response === "object") {
     parsed = response
   }
 
   const r = parsed as {
     verdict?: string
     confidence?: number
-    reasons?: string[]
+    reasons?: unknown
     summary?: string
   }
 
   const verdictEmoji =
-    r.verdict === "legit" ? "✅" : r.verdict === "suspicious" ? "⚠️" : "🚫"
+    r.verdict === "legit"
+      ? "✅"
+      : r.verdict === "suspicious"
+        ? "⚠️"
+        : "🚫"
+
+  const reasons = Array.isArray(r.reasons) ? r.reasons : []
 
   return `## ${verdictEmoji} Verdict: ${(r.verdict ?? "unknown").toUpperCase()}
 
@@ -33,10 +43,9 @@ function formatVerifierResult(response: Record<string, unknown> | string): strin
 **Summary:** ${r.summary ?? "N/A"}
 
 ### Reasons
-${(r.reasons ?? []).map((reason) => `- ${reason}`).join("\n")}
+${reasons.map((reason) => `- ${String(reason)}`).join("\n")}
 `
 }
-
 function getWorkflowId(stepId: string): string {
   const step = kitConfig.steps.find((s) => s.id === stepId)
   if (!step) throw new Error(`Step "${stepId}" not found in lamatic.config`)
@@ -113,23 +122,40 @@ export async function replyEmail(
         throw new Error("No output analysis report found in response")
       }
 
-      let parsedResponse: any = response
+      let parsedResponse: Record<string, unknown> = {}
+
       if (typeof response === "string") {
         try {
-          parsedResponse = JSON.parse(response)
+          const json = JSON.parse(response)
+
+          if (json && typeof json === "object") {
+            parsedResponse = json as Record<string, unknown>
+          }
         } catch {
           parsedResponse = {}
         }
+      } else if (response && typeof response === "object") {
+        parsedResponse = response as Record<string, unknown>
       }
 
       if (finalVerdict === undefined) {
-        finalVerdict = parsedResponse?.verdict ?? "unknown"
+        finalVerdict =
+          typeof parsedResponse.verdict === "string"
+            ? parsedResponse.verdict
+            : "unknown"
       }
+
       if (finalConfidence === undefined) {
-        finalConfidence = parsedResponse?.confidence ?? 0
+        finalConfidence =
+          typeof parsedResponse.confidence === "number"
+            ? parsedResponse.confidence
+            : 0
       }
+
       if (finalReasons === undefined) {
-        finalReasons = parsedResponse?.reasons ?? []
+        finalReasons = Array.isArray(parsedResponse.reasons)
+          ? (parsedResponse.reasons as string[])
+          : []
       }
     } else {
       console.log("[Email Agent] Reusing provided verification result:", {
