@@ -1,6 +1,6 @@
 # ✈️ Flight Booking Agent
 
-**Live Demo:**
+**Live Demo:**[https://flight-booking-agent-pearl.vercel.app]
 An AI-powered flight search agent that finds the cheapest flights using natural language.
 
 ![Screenshot](./apps/my-app/public/home.png)
@@ -59,7 +59,7 @@ LAMATIC_API_URL=your_api_url
 
 ### Run locally
 
-netlify dev
+npm run dev
 
 ## Deployment to Netlify
 
