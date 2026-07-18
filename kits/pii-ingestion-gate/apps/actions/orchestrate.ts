@@ -4,6 +4,16 @@ import { getLamaticClient } from "@/lib/lamatic-client";
 
 type ActionResult = { success: boolean; data?: any; error?: string };
 
+/** Parses a value if it's a JSON string, otherwise returns it unchanged. */
+function maybeParse(value: any) {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
 /**
  * Executes a deployed Lamatic flow and normalizes the response shape.
  */
@@ -22,10 +32,27 @@ async function runFlow(
     const client = getLamaticClient();
     const res = await client.executeFlow(flowId, inputs);
 
+    // Surface Lamatic-side errors (auth, deployment, quota) to the UI.
+    if (res?.status === "error" || res?.statusCode >= 400) {
+      throw new Error(
+        `Lamatic returned ${res?.statusCode ?? "an error"}: ${res?.message ?? "Unknown error"}. ` +
+          "Check that the flow is deployed and your API key/project ID are correct.",
+      );
+    }
+
     // Tolerate the response shapes the SDK may return.
-    const data = res?.result?.answer ?? res?.result ?? res?.output ?? res;
+    let data = maybeParse(
+      res?.result?.answer ?? res?.result ?? res?.output ?? res,
+    );
     if (!data) {
       throw new Error("No result returned from the flow.");
+    }
+
+    // Nested fields may themselves arrive as JSON strings — normalize them.
+    if (typeof data === "object") {
+      for (const key of ["analysis", "result", "report"]) {
+        if (key in data) data[key] = maybeParse(data[key]);
+      }
     }
 
     return { success: true, data };
