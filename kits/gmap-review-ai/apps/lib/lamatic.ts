@@ -1,5 +1,5 @@
 // lib/lamatic.ts
-
+'use server';
 const GQL_QUERY = `
 query ExecuteWorkflow(
   $workflowId: String!
@@ -25,10 +25,10 @@ query ExecuteWorkflow(
 }`;
 
 export const triggerGMapAnalysis = async (formData: any) => {
-  const apiKey = process.env.NEXT_PUBLIC_LAMATIC_API_KEY;
-  const projectId = process.env.NEXT_PUBLIC_LAMATIC_PROJECT_ID;
-  const workflowId = process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID;
-  const url = process.env.NEXT_PUBLIC_LAMATIC_GRAPHQL_URL;
+  const apiKey = process.env.LAMATIC_API_KEY;
+  const projectId = process.env.LAMATIC_PROJECT_ID;
+  const workflowId = process.env.LAMATIC_FLOW_ID;
+  const url = process.env.LAMATIC_GRAPHQL_URL;
 
   // Validate variables exist
   if (!apiKey || !projectId) {
