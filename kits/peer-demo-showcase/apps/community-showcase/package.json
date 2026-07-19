@@ -1,0 +1,9 @@
+{
+  "name": "community-showcase",
+  "version": "1.0.0",
+  "description": "Community Project Showcase — Dark-themed developer portal",
+  "scripts": {
+    "dev": "npx -y serve . -p 3000 --no-clipboard",
+    "start": "npx -y serve . -p 3000 --no-clipboard"
+  }
+}

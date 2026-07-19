@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Community Project Showcase — DevShowcase</title>
+<meta name="description" content="Submit your open-source project for sponsor matching and community recognition. Connect with tech sponsors and elevate your build."/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-surface": "#e8e2fc",
+            "on-secondary-fixed-variant": "#005969",
+            "surface": "#0e0c1e",
+            "primary-container": "#b28cff",
+            "on-error-container": "#ffb2b9",
+            "surface-bright": "#2d2845",
+            "outline": "#77728a",
+            "on-tertiary": "#006443",
+            "tertiary": "#9bffce",
+            "error-dim": "#d73357",
+            "secondary-fixed": "#65e1ff",
+            "outline-variant": "#49455a",
+            "on-primary-fixed-variant": "#390083",
+            "primary-fixed-dim": "#a67aff",
+            "on-primary-fixed": "#000000",
+            "on-background": "#e8e2fc",
+            "tertiary-dim": "#58e7ab",
+            "on-secondary": "#004b58",
+            "on-tertiary-fixed-variant": "#006544",
+            "secondary": "#53ddfc",
+            "tertiary-fixed-dim": "#58e7ab",
+            "on-secondary-fixed": "#003a45",
+            "primary-fixed": "#b28cff",
+            "surface-tint": "#bd9dff",
+            "tertiary-fixed": "#69f6b8",
+            "inverse-on-surface": "#565268",
+            "surface-container-lowest": "#000000",
+            "primary-dim": "#8952f0",
+            "on-tertiary-container": "#005a3c",
+            "surface-container-high": "#201c35",
+            "on-primary-container": "#2e006c",
+            "on-primary": "#3c0089",
+            "tertiary-container": "#69f6b8",
+            "on-tertiary-fixed": "#00452d",
+            "surface-dim": "#0e0c1e",
+            "primary": "#bd9dff",
+            "surface-container-low": "#141125",
+            "on-surface-variant": "#ada8c1",
+            "surface-container-highest": "#26223d",
+            "background": "#0e0c1e",
+            "secondary-fixed-dim": "#48d4f3",
+            "inverse-primary": "#7337d9",
+            "on-error": "#490013",
+            "secondary-dim": "#40ceed",
+            "error-container": "#a70138",
+            "inverse-surface": "#fdf8ff",
+            "secondary-container": "#00687a",
+            "surface-variant": "#26223d",
+            "surface-container": "#1a172d",
+            "error": "#ff6e84",
+            "on-secondary-container": "#ecfaff"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Space Grotesk"],
+            display: ["Space Grotesk"],
+            body: ["Inter"],
+            label: ["Public Sans"]
+          }
+        },
+      },
+    }
+</script>
+<style>
+  /* Glassmorphism utilities */
+  .glass-panel {
+    background: rgba(38, 34, 61, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(73, 69, 90, 0.5);
+  }
+  .glow-border-purple {
+    box-shadow: 0 0 25px -5px rgba(124, 58, 237, 0.2);
+  }
+  .glow-border-cyan {
+    box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.2);
+  }
+
+  /* Expandable row transitions */
+  .expand-row {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    opacity: 0;
+  }
+  .expand-row.open {
+    max-height: 120px;
+    opacity: 1;
+  }
+  .chevron-icon {
+    transition: transform 0.3s ease;
+  }
+  .chevron-icon.rotated {
+    transform: rotate(180deg);
+  }
+
+  /* Mobile card expand */
+  .mobile-expand {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.25s ease;
+    opacity: 0;
+    padding-top: 0;
+  }
+  .mobile-expand.open {
+    max-height: 100px;
+    opacity: 1;
+    padding-top: 0.75rem;
+  }
+
+  /* Sponsor card glow on hover */
+  .sponsor-card {
+    transition: all 0.3s ease;
+  }
+  .sponsor-card:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Smooth scroll */
+  html { scroll-behavior: smooth; }
+
+  /* Mobile card list — only shown on small screens */
+  .mobile-card-list { display: none; }
+  @media (max-width: 767px) {
+    .mobile-card-list { display: flex; }
+    .desktop-table { display: none; }
+  }
+  @media (min-width: 768px) {
+    .mobile-card-list { display: none; }
+    .desktop-table { display: block; }
+  }
+</style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col relative overflow-x-hidden">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- TopNavBar                                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<nav class="bg-surface/80 backdrop-blur-xl font-body text-sm font-medium tracking-wide sticky top-0 z-50 border-b border-outline-variant/30 shadow-sm">
+  <div class="flex justify-between items-center w-full px-4 md:px-6 py-3 max-w-screen-2xl mx-auto">
+    <div class="flex items-center gap-8">
+      <span class="text-xl font-headline font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">DevShowcase</span>
+      <div class="hidden md:flex gap-6 items-center">
+        <a class="text-primary border-b-2 border-primary pb-1" href="#">Dashboard</a>
+        <a class="text-on-surface-variant hover:text-on-surface transition-colors rounded-lg px-2 py-1" href="#">Explore</a>
+        <a class="text-on-surface-variant hover:text-on-surface transition-colors rounded-lg px-2 py-1" href="#">Sponsors</a>
+        <a class="text-on-surface-variant hover:text-on-surface transition-colors rounded-lg px-2 py-1" href="#">Community</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="relative hidden sm:block">
+        <input class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pl-4 pr-10 text-sm focus:outline-none focus:border-primary text-on-surface w-48" placeholder="Search..." type="text"/>
+        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+      </div>
+      <button class="hidden md:flex bg-primary text-on-primary px-4 py-2 rounded-full font-semibold hover:bg-primary-dim transition-colors items-center gap-2">
+        Submit Project
+      </button>
+      <!-- Mobile hamburger -->
+      <button class="md:hidden text-on-surface">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- Main Content                                    -->
+<!-- ═══════════════════════════════════════════════ -->
+<main class="flex-grow relative w-full flex flex-col items-center">
+
+  <!-- Hero Background Image -->
+  <div class="absolute inset-0 z-0">
+    <img alt="Background" class="w-full h-[60vh] object-cover opacity-40 mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoh7uppQFNxJOHvkAZQJpCmsgHbFEHhrbaJ_H6Snt9mr4FhqNaFc33b9prHAFzFq__kTaDog1FzN7z6p9-I2V0QVtZhLd3wJgkRAt06_Lmih8yROxme7SoT90sNqg7gtyu8g-t2Xh5Igp8lvuWp0uBoflQ9cn3aXnTCDd6RZkW5nSzpujOKgA0gLjEJrVBCAgoMUeVLUXu4gXnwtYQOtHXw3W2L6CV5s7nbRbxjorDDF56tlh8KfamScTyyknIpcb10KnLRSqM2Qk"/>
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background h-[60vh]"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- SECTION 1: Hero + Form + Results             -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="max-w-screen-2xl w-full px-4 md:px-6 py-10 lg:py-20 z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative">
+
+    <!-- Hero & Form Column -->
+    <div class="lg:col-span-7 flex flex-col gap-8">
+      <div>
+        <h1 id="page-heading" class="font-headline text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-on-surface mb-4">
+          🚀 Community Project Showcase
+        </h1>
+        <p class="text-base md:text-xl text-on-surface-variant font-label max-w-2xl">
+          Submit your open-source project for sponsor matching &amp; community recognition. Connect with tech giants and elevate your build.
+        </p>
+      </div>
+
+      <!-- Submission Form Card -->
+      <div id="submission-form-card" class="bg-surface-container-low/60 backdrop-blur-xl border border-primary/30 rounded-2xl p-6 md:p-8 glow-border-purple relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <form id="submission-form" class="flex flex-col gap-5 relative z-10">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-on-surface-variant" for="github-url">GitHub Repository URL</label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">code</span>
+              <input id="github-url" class="w-full bg-surface-container border border-outline-variant/50 rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="https://github.com/username/repo" type="url"/>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-on-surface-variant" for="your-name">Your Name</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+                <input id="your-name" class="w-full bg-surface-container border border-outline-variant/50 rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Jane Developer" type="text"/>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-on-surface-variant" for="email-address">Email Address</label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+                <input id="email-address" class="w-full bg-surface-container border border-outline-variant/50 rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="jane@example.com" type="email"/>
+              </div>
+            </div>
+          </div>
+          <button id="submit-btn" class="mt-2 bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity w-full sm:w-auto self-start shadow-lg shadow-primary/20" type="button">
+            Submit Project
+            <span class="material-symbols-outlined text-sm">rocket_launch</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Results Card Column -->
+    <div class="lg:col-span-5 flex flex-col gap-6 justify-center">
+      <div id="results-card" class="bg-surface-container-high/80 backdrop-blur-md rounded-2xl p-6 border border-secondary/30 glow-border-cyan relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-secondary/20 blur-3xl rounded-full"></div>
+        <h3 class="text-xl font-headline font-bold text-on-surface mb-6 flex items-center gap-2">
+          ✨ Match Results
+        </h3>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-on-surface-variant">Matched Sponsor</span>
+            <span class="px-3 py-1 bg-secondary/10 text-[#06B6D4] rounded-full text-xs font-semibold border border-secondary/20">Vercel</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-on-surface-variant">Category</span>
+            <span class="px-3 py-1 bg-[#10B981]/10 text-[#10B981] rounded-full text-xs font-semibold border border-[#10B981]/20">Developer Tools</span>
+          </div>
+          <div class="mt-2 p-4 bg-surface-container-lowest/50 rounded-lg border border-outline-variant/30">
+            <p class="text-sm text-on-surface-variant italic">
+              "Strong alignment with cloud infrastructure tooling. High community engagement metrics and active maintenance history."
+            </p>
+          </div>
+          <div class="mt-4">
+            <div class="flex justify-between text-xs mb-2">
+              <span class="text-on-surface-variant">Match Confidence</span>
+              <span class="text-secondary font-bold">92%</span>
+            </div>
+            <div class="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-primary to-secondary w-[92%] rounded-full shadow-[0_0_10px_rgba(83,221,252,0.5)]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- SECTION 2: Live Submissions Dashboard        -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="max-w-screen-2xl w-full px-4 md:px-6 pb-16 z-10">
+    <div class="bg-surface-container-low/50 backdrop-blur-lg rounded-2xl border border-outline-variant/30 overflow-hidden flex flex-col">
+      <div class="p-6 border-b border-outline-variant/30">
+        <h2 class="text-xl md:text-2xl font-headline font-bold text-on-surface">📊 Live Submissions Dashboard</h2>
+      </div>
+
+      <!-- ──── DESKTOP TABLE (md+) ──── -->
+      <div class="desktop-table overflow-x-auto">
+        <table id="dashboard-table" class="w-full text-left text-sm whitespace-nowrap">
+          <thead class="text-xs text-on-surface-variant uppercase bg-surface-container-high/50 border-b border-outline-variant/30">
+            <tr>
+              <th class="w-10 px-4 py-4" scope="col"></th>
+              <th class="px-6 py-4 font-medium" scope="col">Project Name</th>
+              <th class="px-6 py-4 font-medium" scope="col">Category</th>
+              <th class="px-6 py-4 font-medium" scope="col">Sponsor</th>
+              <th class="px-6 py-4 font-medium" scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/20" id="table-body">
+            <!-- Rows inserted by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ──── MOBILE CARD LIST (< md) ──── -->
+      <div class="mobile-card-list flex-col gap-3 p-4" id="mobile-cards">
+        <!-- Cards inserted by JS -->
+      </div>
+
+      <div class="p-4 border-t border-outline-variant/30 text-xs text-on-surface-variant text-right bg-surface-container-high/20">
+        showing 6 of 142 submissions
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- SECTION 3: Featured Sponsors                 -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="max-w-screen-2xl w-full px-4 md:px-6 pb-20 z-10">
+    <h2 class="text-2xl md:text-4xl font-headline font-bold text-on-surface mb-8">🏆 Featured Sponsors</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
+
+      <!-- Vercel -->
+      <div class="sponsor-card bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-5 md:p-6 rounded-2xl hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:border-primary/50">
+        <div class="flex flex-col items-center text-center gap-3 md:gap-4">
+          <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">V</div>
+          <div>
+            <h4 class="font-bold text-on-surface">Vercel</h4>
+            <p class="text-xs text-on-surface-variant">12 projects sponsored</p>
+          </div>
+          <a class="text-primary text-xs font-semibold hover:underline" href="#">View Profile →</a>
+        </div>
+      </div>
+
+      <!-- Auth0 -->
+      <div class="sponsor-card bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-5 md:p-6 rounded-2xl hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-secondary/50">
+        <div class="flex flex-col items-center text-center gap-3 md:gap-4">
+          <div class="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-xl">A</div>
+          <div>
+            <h4 class="font-bold text-on-surface">Auth0</h4>
+            <p class="text-xs text-on-surface-variant">8 projects sponsored</p>
+          </div>
+          <a class="text-secondary text-xs font-semibold hover:underline" href="#">View Profile →</a>
+        </div>
+      </div>
+
+      <!-- Datadog -->
+      <div class="sponsor-card bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-5 md:p-6 rounded-2xl hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:border-orange-500/50">
+        <div class="flex flex-col items-center text-center gap-3 md:gap-4">
+          <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-xl">D</div>
+          <div>
+            <h4 class="font-bold text-on-surface">Datadog</h4>
+            <p class="text-xs text-on-surface-variant">15 projects sponsored</p>
+          </div>
+          <a class="text-orange-400 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+        </div>
+      </div>
+
+      <!-- AWS -->
+      <div class="sponsor-card bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-5 md:p-6 rounded-2xl hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:border-amber-500/50">
+        <div class="flex flex-col items-center text-center gap-3 md:gap-4">
+          <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-xl">A</div>
+          <div>
+            <h4 class="font-bold text-on-surface">AWS</h4>
+            <p class="text-xs text-on-surface-variant">22 projects sponsored</p>
+          </div>
+          <a class="text-amber-400 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+        </div>
+      </div>
+
+      <!-- Figma -->
+      <div class="sponsor-card bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-5 md:p-6 rounded-2xl hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:border-pink-500/50">
+        <div class="flex flex-col items-center text-center gap-3 md:gap-4">
+          <div class="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 font-bold text-xl">F</div>
+          <div>
+            <h4 class="font-bold text-on-surface">Figma</h4>
+            <p class="text-xs text-on-surface-variant">10 projects sponsored</p>
+          </div>
+          <a class="text-pink-400 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+        </div>
+      </div>
+
+      <!-- Cloudflare -->
+      <div class="sponsor-card bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-5 md:p-6 rounded-2xl hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:border-orange-500/50">
+        <div class="flex flex-col items-center text-center gap-3 md:gap-4">
+          <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-xl">C</div>
+          <div>
+            <h4 class="font-bold text-on-surface">Cloudflare</h4>
+            <p class="text-xs text-on-surface-variant">18 projects sponsored</p>
+          </div>
+          <a class="text-orange-400 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- Footer                                          -->
+<!-- ═══════════════════════════════════════════════ -->
+<footer class="bg-surface-dim font-body text-xs text-on-surface-variant/70 w-full py-12 px-4 md:px-6 mt-auto border-t border-outline-variant/10">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto items-center">
+    <div>
+      <span class="font-headline text-lg font-bold text-primary block mb-2">DevShowcase</span>
+      <p>© 2024 Community Project Showcase. Built for Developers.</p>
+    </div>
+    <div class="flex flex-wrap gap-4 md:justify-end opacity-80 hover:opacity-100 transition-opacity">
+      <a class="text-on-surface-variant/80 hover:text-primary transition-colors" href="#">Documentation</a>
+      <a class="text-on-surface-variant/80 hover:text-primary transition-colors" href="#">API Reference</a>
+      <a class="text-on-surface-variant/80 hover:text-primary transition-colors" href="#">Terms</a>
+      <a class="text-on-surface-variant/80 hover:text-primary transition-colors" href="#">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- Interactive JavaScript                          -->
+<!-- ═══════════════════════════════════════════════ -->
+<script>
+  // ─── Data ───
+  const submissions = [
+    { name: "next-auth-kit", category: "Authentication", sponsor: "Auth0", status: "matched", desc: "A comprehensive authentication toolkit for Next.js apps with OAuth, JWT, and session management built in." },
+    { name: "react-chart-engine", category: "Data Visualization", sponsor: "Datadog", status: "matched", desc: "High-performance charting library with 50+ visualization types, real-time data streaming, and accessibility-first design." },
+    { name: "cli-deploy-tool", category: "DevOps", sponsor: "AWS", status: "pending", desc: "Zero-config CLI for deploying containerized applications to any cloud provider with rollback support." },
+    { name: "design-token-gen", category: "Design Systems", sponsor: "Figma", status: "matched", desc: "Automated design token generator that syncs Figma variables to CSS custom properties and Tailwind configs." },
+    { name: "ml-pipeline-sdk", category: "Machine Learning", sponsor: "Google Cloud", status: "pending", desc: "Python SDK for building reproducible ML pipelines with built-in experiment tracking and model registry." },
+    { name: "api-gateway-rust", category: "Infrastructure", sponsor: "Cloudflare", status: "matched", desc: "Blazing-fast API gateway written in Rust with rate limiting, circuit breaking, and WebSocket support." }
+  ];
+
+  // ─── Status badge HTML ───
+  function statusBadge(status) {
+    if (status === "matched") {
+      return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">✅ Matched</span>`;
+    }
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">🔄 Pending</span>`;
+  }
+
+  // ─── Render Desktop Table ───
+  const tbody = document.getElementById("table-body");
+  submissions.forEach((s, i) => {
+    const isExpanded = i < 2; // first 2 rows expanded
+    const altBg = i % 2 === 1 ? "bg-surface-container-lowest/20" : "";
+
+    // Main row
+    const mainRow = document.createElement("tr");
+    mainRow.className = `hover:bg-surface-container-high/30 transition-colors cursor-pointer ${altBg}`;
+    mainRow.setAttribute("data-index", i);
+    mainRow.innerHTML = `
+      <td class="px-4 py-4 text-center">
+        <span class="material-symbols-outlined chevron-icon ${isExpanded ? 'rotated' : ''} text-${isExpanded ? 'primary' : 'on-surface-variant/50'}">expand_more</span>
+      </td>
+      <td class="px-6 py-4 font-medium text-on-surface">${s.name}</td>
+      <td class="px-6 py-4 text-on-surface-variant">${s.category}</td>
+      <td class="px-6 py-4 text-on-surface-variant">${s.sponsor}</td>
+      <td class="px-6 py-4">${statusBadge(s.status)}</td>
+    `;
+
+    // Expand row
+    const expandRow = document.createElement("tr");
+    expandRow.className = "expand-row-wrapper";
+    expandRow.innerHTML = `
+      <td colspan="5" class="p-0">
+        <div class="expand-row ${isExpanded ? 'open' : ''}" data-expand="${i}">
+          <div class="px-14 py-4 text-sm text-on-surface-variant/80 italic">${s.desc}</div>
+        </div>
+      </td>
+    `;
+
+    tbody.appendChild(mainRow);
+    tbody.appendChild(expandRow);
+
+    // Click handler
+    mainRow.addEventListener("click", () => {
+      const expandDiv = document.querySelector(`[data-expand="${i}"]`);
+      const chevron = mainRow.querySelector(".chevron-icon");
+      expandDiv.classList.toggle("open");
+      chevron.classList.toggle("rotated");
+      if (expandDiv.classList.contains("open")) {
+        chevron.classList.remove("text-on-surface-variant/50");
+        chevron.classList.add("text-primary");
+      } else {
+        chevron.classList.add("text-on-surface-variant/50");
+        chevron.classList.remove("text-primary");
+      }
+    });
+  });
+
+  // ─── Render Mobile Cards ───
+  const mobileContainer = document.getElementById("mobile-cards");
+  submissions.forEach((s, i) => {
+    const isExpanded = i === 0; // first card expanded on mobile
+    const statusColor = s.status === "matched" ? "tertiary" : "on-surface-variant";
+    const statusBg = s.status === "matched" ? "tertiary/10" : "surface-bright/50";
+    const statusBorder = s.status === "matched" ? "tertiary/20" : "outline-variant/50";
+    const statusLabel = s.status === "matched" ? "Matched" : "Pending";
+    const borderClass = isExpanded ? "border-primary/30" : "border-outline-variant/30";
+
+    const card = document.createElement("div");
+    card.className = `glass-panel rounded-xl ${borderClass} p-4 flex flex-col gap-2 ${isExpanded ? '' : 'opacity-80 hover:opacity-100'} transition-all`;
+    card.innerHTML = `
+      <div class="flex justify-between items-start">
+        <div>
+          <h4 class="font-bold text-on-surface text-sm">${s.name}</h4>
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">${s.category}</span>
+        </div>
+        <button class="text-${isExpanded ? 'primary' : 'on-surface-variant'} mobile-chevron-btn">
+          <span class="material-symbols-outlined text-lg chevron-icon ${isExpanded ? 'rotated' : ''}">${isExpanded ? 'expand_less' : 'expand_more'}</span>
+        </button>
+      </div>
+      <div class="flex gap-2 mt-1">
+        <span class="text-[10px] bg-secondary/10 text-secondary px-2 py-1 rounded-full border border-secondary/20">${s.sponsor}</span>
+        <span class="text-[10px] bg-${statusBg} text-${statusColor} px-2 py-1 rounded-full border border-${statusBorder}">${statusLabel}</span>
+      </div>
+      <div class="mobile-expand ${isExpanded ? 'open' : ''} text-xs text-on-surface-variant/80 border-t border-outline-variant/30" data-mobile-expand="${i}">
+        ${s.desc}
+      </div>
+    `;
+    mobileContainer.appendChild(card);
+
+    // Click handler for mobile
+    const btn = card.querySelector(".mobile-chevron-btn");
+    btn.addEventListener("click", () => {
+      const expandDiv = card.querySelector(`[data-mobile-expand="${i}"]`);
+      const chevron = btn.querySelector(".chevron-icon");
+      expandDiv.classList.toggle("open");
+      chevron.classList.toggle("rotated");
+      if (expandDiv.classList.contains("open")) {
+        chevron.textContent = "expand_less";
+        card.classList.remove("opacity-80");
+        card.style.borderColor = "";
+      } else {
+        chevron.textContent = "expand_more";
+        card.classList.add("opacity-80");
+      }
+    });
+  });
+</script>
+</body>
+</html>
