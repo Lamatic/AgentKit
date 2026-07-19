@@ -55,7 +55,7 @@ export const Pagination = ({
             size="sm"
             onClick={() => onPageChange(page)}
             className="min-w-9"
-            aria-label="Previous page"
+            aria-label={`Page ${page}`}
           >
             {page}
           </Button>
