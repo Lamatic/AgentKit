@@ -8,5 +8,5 @@ export const generateBookingRef = (): string => {
 };
 
 export const generateBookingId = (): string => {
-  return `bok_${Date.now()}`;
+  return `bok_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 };
