@@ -65,7 +65,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\"sampleInput\":\"string\"}"
+        "advance_schema": "{\"document\":\"string\"}"
       }
     }
   },
