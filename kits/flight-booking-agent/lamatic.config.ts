@@ -13,14 +13,14 @@ export default {
     {
       id: "flight-search",
       type: "mandatory" as const,
+      envKey: "LAMATIC_WORKFLOW_ID",
     },
   ],
   links: {
-    demo: "https://flight-booking-agent-pearl.vercel.app",
     github:
       "https://github.com/Lamatic/AgentKit/tree/main/kits/flight-booking-agent",
     deploy:
       "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/flight-booking-agent/apps",
-    docs: "https://lamatic.ai/docs/",
+    demo: "https://flight-booking-agent-pearl.vercel.app",
   },
 };
