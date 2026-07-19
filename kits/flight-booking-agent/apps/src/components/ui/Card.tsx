@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import { motion, HTMLMotionProps } from "framer-motion";
+import { motion, HTMLMotionProps } from "motion/react";
 
 interface CardProps extends HTMLMotionProps<"div"> {
   hoverable?: boolean;
