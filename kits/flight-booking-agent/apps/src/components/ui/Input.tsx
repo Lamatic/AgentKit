@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, InputHTMLAttributes } from "react";
+import { forwardRef, InputHTMLAttributes, useId } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -9,7 +9,9 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, fullWidth = true, className = "", ...props }, ref) => {
+  ({ label, error, fullWidth = true, className = "", id, ...props }, ref) => {
+    const defaultId = useId();
+    const inputId = id || defaultId;
     return (
       <div className={`${fullWidth ? "w-full" : ""}`}>
         {label && (
@@ -17,6 +19,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
+          id={inputId}
           className={`
           w-full px-4 py-2 bg-slate-700/50 border 
           ${error ? "border-red-500" : "border-slate-600"} 
