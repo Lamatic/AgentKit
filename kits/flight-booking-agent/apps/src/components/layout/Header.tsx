@@ -37,6 +37,7 @@ export const Header = ({ bookingsCount, onBookingsClick }: HeaderProps) => {
               size="sm"
               onClick={onBookingsClick}
               className="flex items-center gap-2"
+              aria-label="Bookings"
             >
               <History className="w-4 h-4" />
               <span className="hidden sm:inline">Bookings</span>
