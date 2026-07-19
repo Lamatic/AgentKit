@@ -27,6 +27,15 @@ const sizes = {
   lg: "px-6 py-3 text-base",
 };
 
+/**
+ * Reusable button component with variants and loading state
+ * @param children - Button content
+ * @param loading - Shows spinner when true
+ * @param variant - Button style variant (primary, secondary, ghost, danger)
+ * @param size - Button size (sm, md, lg)
+ * @param fullWidth - Makes button take full width
+ * @param className - Optional additional CSS classes
+ */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {

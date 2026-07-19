@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 
+/**
+ * Custom hook for managing localStorage with React state
+ * @template T - The type of the stored value
+ * @param key - localStorage key
+ * @param initialValue - Initial value if no stored value exists
+ * @returns [storedValue, setValue] tuple
+ */
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,

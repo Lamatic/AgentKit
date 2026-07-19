@@ -3,6 +3,10 @@
 import { useState, useCallback } from "react";
 import { Flight } from "@/types";
 
+/**
+ * Custom hook for managing flight search state and operations
+ * @returns Flight state and search functions
+ */
 export function useFlights() {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
