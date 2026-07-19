@@ -6,12 +6,18 @@ const role_title = {{triggerNode_1.output.role_title}};
 const contact_method = {{triggerNode_1.output.contact_method}};
 const search_results = {{triggerNode_1.output.search_results}};
 
-const genericEmailDomains = ["gmail", "yahoo", "outlook", "hotmail"];
-const contactLower = (contact_method || "").toLowerCase();
-const emailLower = (sender_email || "").toLowerCase();
+const genericEmailDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"];
+
+function extractDomain(value) {
+  const match = (value || "").toLowerCase().match(/@([a-z0-9.-]+\.[a-z]{2,})/);
+  return match ? match[1] : "";
+}
+
+const contactDomain = extractDomain(contact_method);
+const emailDomain = extractDomain(sender_email);
 
 const emailDomainIsGeneric =
-  genericEmailDomains.some(d => contactLower.includes(d) || emailLower.includes(d));
+  genericEmailDomains.includes(contactDomain) || genericEmailDomains.includes(emailDomain);
 
 const searchLower = (search_results || "").toLowerCase();
 const hasVerifiableWebPresence =
