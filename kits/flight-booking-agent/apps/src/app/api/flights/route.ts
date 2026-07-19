@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       return NextResponse.json({
-        status: "no_results",
+        status: result?.status || "no_results",
         message: result?.message || "No flights found",
         flights: [],
       });
