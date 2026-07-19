@@ -14,21 +14,6 @@ import {
   outstanding,
 } from "@/lib/requirement-state";
 
-/**
- * DocSense intake orchestration.
- *
- * For each incoming document:
- *   1. Call the deployed Lamatic flow (extraction -> reasoning) to get
- *      the reasoning node's JSON (satisfies + triggers).
- *   2. Run the proposals through the deterministic state model:
- *      - returning clients: filter triggers to anomalies only.
- *      - apply the document -> grow the requirement list with an evidence trail.
- *   3. Return the updated outstanding list + what newly surfaced.
- *
- * The LLM proposes; the state model records, dedupes, and diffs. That split is
- * what keeps every "why is this required?" answer explainable.
- */
-
 interface ReasoningResult {
   satisfies?: string[];
   triggers?: InferredTrigger[];
@@ -43,12 +28,22 @@ interface IntakeResult {
 }
 
 /**
- * The flow returns { result: "<json string>" } where the string may be wrapped
- * in ```json ... ``` fences. Strip fences and parse defensively.
+ * The reasoning JSON can arrive wrapped a few ways depending on sync vs async:
+ *   - { result: "<fenced string>" }          (sync response node)
+ *   - { output: { ... } }                     (async checkStatus payload)
+ *   - "<fenced string>"                        (raw)
+ * Unwrap whichever layer we get, strip ```json fences, then parse.
  */
 function parseReasoning(raw: unknown): ReasoningResult {
   if (raw == null) return {};
-  if (typeof raw === "object") return raw as ReasoningResult;
+
+  if (typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    if (typeof obj.result === "string") return parseReasoning(obj.result);
+    if (obj.output != null) return parseReasoning(obj.output);
+    return obj as ReasoningResult;
+  }
+
   if (typeof raw !== "string") return {};
 
   const cleaned = raw
@@ -73,17 +68,33 @@ export async function intakeDocument(
 
     const inputs = { document: documentText };
 
-    const resData = await lamaticClient.executeFlow(
+    let resData = await lamaticClient.executeFlow(
       DOCSENSE_INTAKE_FLOW_ID,
       inputs
     );
 
-    // The flow's API Response maps the reasoning output to `result`.
-    const reasoning = parseReasoning(resData?.result);
+    // Async flows return only a requestId — fetch the real output via checkStatus.
+    const requestId = (resData?.result as { requestId?: string })?.requestId;
+    if (requestId) {
+      resData = await lamaticClient.checkStatus(requestId);
+    }
+
+    // DEBUG: dump the resolved response so we can confirm the shape.
+    console.log("=== RESOLVED ===", JSON.stringify(resData, null, 2));
+
+    if (resData?.status && resData.status !== "success") {
+      return {
+        success: false,
+        error: resData.message ?? "Flow execution failed",
+      };
+    }
+
+    const reasoning = parseReasoning(
+      resData?.data?.output?.result ?? resData?.result
+    );
     const satisfies: string[] = reasoning.satisfies ?? [];
     let triggers: InferredTrigger[] = reasoning.triggers ?? [];
 
-    // Returning clients: stay quiet on routine, surface only anomalies.
     if (current.clientType === "returning" && current.baseline) {
       triggers = detectAnomalies(current.baseline, triggers);
     }

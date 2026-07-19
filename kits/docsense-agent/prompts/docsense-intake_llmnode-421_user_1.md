@@ -22,7 +22,7 @@ Return this shape:
     { "requirementId": string, "label": string, "reason": string }
   ]
 }
-extractedFacts: 
-currentRequirements: 
-clientType: 
-baselineRoutine:
+extractedFacts: {{extraction.output.generatedResponse}}
+currentRequirements: []
+clientType: new
+baselineRoutine: []
