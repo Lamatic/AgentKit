@@ -6,7 +6,7 @@ import { FlightCard } from "./FlightCard";
 import { FlightStats } from "./FlightStats";
 import { Pagination } from "@/components/ui/Pagination";
 import { APP_CONFIG } from "@/lib/constants";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 interface FlightResultsProps {
   flights: Flight[];

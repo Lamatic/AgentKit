@@ -1,7 +1,7 @@
 "use client";
 
 import { Plane, Sparkles, History } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { APP_CONFIG } from "@/lib/constants";
 
