@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
       message: message,
     };
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     const response = await fetch(LAMATIC_API_URL, {
       method: "POST",
       headers: {
@@ -57,7 +60,10 @@ export async function POST(request: NextRequest) {
         "x-project-id": LAMATIC_PROJECT_ID,
       },
       body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const errorText = await response.text();
