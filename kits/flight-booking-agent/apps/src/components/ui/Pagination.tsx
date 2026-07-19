@@ -50,16 +50,17 @@ export const Pagination = ({
       {getPageNumbers().map((page, index) =>
         typeof page === "number" ? (
           <Button
-            key={index}
+            key={`page-${page}`}
             variant={page === currentPage ? "primary" : "secondary"}
             size="sm"
             onClick={() => onPageChange(page)}
             className="min-w-9"
+            aria-label="Previous page"
           >
             {page}
           </Button>
         ) : (
-          <span key={index} className="text-slate-500 px-1">
+          <span key={`ellipsis-${index}`} className="text-slate-500 px-1">
             …
           </span>
         ),
@@ -70,6 +71,7 @@ export const Pagination = ({
         size="sm"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
+        aria-label="Next page"
       >
         <ChevronRight className="w-4 h-4" />
       </Button>

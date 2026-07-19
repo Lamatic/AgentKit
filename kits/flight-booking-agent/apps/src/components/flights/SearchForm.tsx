@@ -53,6 +53,7 @@ export const SearchForm = ({
             placeholder="e.g., Flights from JFK to LHR on July 20 for 2 people"
             className="border-0 bg-transparent focus:ring-0 text-sm sm:text-base"
             disabled={loading}
+            aria-label="Search flights"
           />
           <Button type="submit" loading={loading} size="md" className="m-1.5">
             {loading ? "Searching..." : "Search"}
