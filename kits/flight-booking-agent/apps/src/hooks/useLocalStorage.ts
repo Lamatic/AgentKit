@@ -20,13 +20,16 @@ export function useLocalStorage<T>(
   }, [key]);
 
   const setValue = (value: T | ((prev: T) => T)) => {
-    try {
-      const newValue = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(newValue);
-      localStorage.setItem(key, JSON.stringify(newValue));
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
-    }
+    setStoredValue((prev) => {
+      try {
+        const newValue = value instanceof Function ? value(prev) : value;
+        localStorage.setItem(key, JSON.stringify(newValue));
+        return newValue;
+      } catch (error) {
+        console.error(`Error setting localStorage key "${key}":`, error);
+        return prev;
+      }
+    });
   };
 
   return [storedValue, setValue];
