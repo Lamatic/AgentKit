@@ -28,6 +28,293 @@ body {
   }
 }
 
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 0.5rem;
+}
+
+.light .skeleton {
+  background: linear-gradient(90deg, rgba(0,0,0,0.03) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.03) 75%) !important;
+  background-size: 800px 100%;
+}
+
+/* Light Mode Theme Overrides */
+.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+.light body {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light .bg-gray-950,
+.light .bg-\[\#0a0a0a\],
+.light .bg-\[\#030014\] {
+  background-color: #f8fafc !important;
+}
+
+.light .bg-gray-900 {
+  background-color: #ffffff !important;
+}
+
+.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .border-gray-800 {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light .border-gray-700\/50 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .bg-gray-800 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.light .bg-gray-800\/80 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .bg-gray-750 {
+  background-color: #e2e8f0 !important;
+}
+
+.light .bg-black\/40 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  color: #0f172a !important;
+}
+
+.light .bg-\[\#030014\]\/80 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.light .glass {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .glass-card {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Light mode text colors */
+.light .text-white {
+  color: #0f172a !important;
+}
+.light .text-gray-300 {
+  color: #1e293b !important;
+}
+.light .text-gray-400 {
+  color: #334155 !important;
+}
+.light .text-gray-400\/80 {
+  color: rgba(51, 65, 85, 0.8) !important;
+}
+.light .border-white\/5 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+.light .text-gray-500 {
+  color: #64748b !important;
+}
+.light .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+/* Header Text Gradient Override */
+.light h1.bg-clip-text {
+  background-image: linear-gradient(to bottom right, #0f172a 30%, #1e293b 70%, #64748b 100%) !important;
+}
+
+/* Admin Login Page Overrides */
+.light .bg-blue-900\/20 {
+  background-color: rgba(59, 130, 246, 0.06) !important;
+}
+
+.light .bg-purple-900\/20 {
+  background-color: rgba(168, 85, 247, 0.06) !important;
+}
+
+.light .text-blue-400 {
+  color: #2563eb !important;
+}
+
+.light .bg-blue-500\/10 {
+  background-color: rgba(37, 99, 235, 0.08) !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Nav specific light mode overrides */
+.light nav.bg-black\/60 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light nav .text-white {
+  color: #0f172a !important;
+}
+
+.light nav .text-gray-300 {
+  color: #475569 !important;
+}
+
+/* Form specific overrides */
+.light input {
+  color: #0f172a !important;
+}
+
+.light input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.light select {
+  color: #0f172a !important;
+}
+
+.light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Custom Dropdown Overrides */
+.light .bg-\[\#0c0a18\] {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .bg-\[\#0c0a18\] button {
+  color: #1e293b !important;
+}
+
+.light .bg-\[\#0c0a18\] button:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+}
+
+/* Mobile Navbar Overrides */
+.light .bg-\[\#070514\]\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .bg-\[\#070514\]\/95 a {
+  color: #475569 !important;
+  border-color: transparent !important;
+}
+
+.light .bg-\[\#070514\]\/95 a:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  color: #0f172a !important;
+}
+
+.light .bg-\[\#070514\]\/95 a[class*="bg-blue-600"] {
+  background-color: rgba(37, 99, 235, 0.08) !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+  color: #2563eb !important;
+}
+
+/* Light mode overrides for AI Agent Pipeline */
+.light .agent-pipeline {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+}
+
+.light .agent-pipeline div {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light .agent-pipeline rect {
+  fill: #f1f5f9 !important;
+  stroke: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .agent-pipeline rect[stroke="#0052FF"],
+.light .agent-pipeline rect[stroke="rgba(255,255,255,0.09)"] {
+  stroke: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .agent-pipeline rect[stroke="#0052FF"] {
+  fill: #eff6ff !important;
+  stroke: #2563eb !important;
+}
+
+.light .agent-pipeline text {
+  fill: #1e293b !important;
+}
+
+.light .agent-pipeline text[fill="rgba(255,255,255,0.28)"],
+.light .agent-pipeline text[fill="rgba(255,255,255,0.18)"] {
+  fill: #64748b !important;
+}
+
+.light .agent-pipeline text[fill="rgba(51,117,255,0.65)"] {
+  fill: #2563eb !important;
+}
+
+.light .agent-pipeline text[fill="rgba(0,82,255,0.4)"] {
+  fill: #3b82f6 !important;
+}
+
+.light .agent-pipeline text[fill="rgba(255,255,255,0.62)"] {
+  fill: #334155 !important;
+}
+
+.light .agent-pipeline span[class*="text-white/30"] {
+  color: #64748b !important;
+}
+
+.light .agent-pipeline span[class*="text-white/[0.18]"] {
+  color: #94a3b8 !important;
+}
+
+.light .agent-pipeline div[class*="text-white/[0.42]"] {
+  color: #334155 !important;
+}
+
+.light .agent-pipeline div[class*="text-white/[0.72]"] {
+  color: #0f172a !important;
+}
+
+.light .agent-pipeline div[class*="text-white/20"] {
+  color: #64748b !important;
+}
+
+.light .agent-pipeline div[class*="text-white/[0.18]"] {
+  color: #94a3b8 !important;
+}
+
+.light .agent-pipeline div[class*="text-[#0052FF]/55"] {
+  color: #2563eb !important;
+}
+
+.light .agent-pipeline path[stroke="rgba(255,255,255,0.08)"] {
+  stroke: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Light mode background glow */
+.light .animated-bg::before {
+  background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.08) 0%, #f8fafc 70%) !important;
+}
+
 /* Animated Gradient Background */
 .animated-bg {
   position: fixed;
@@ -57,6 +344,45 @@ body {
   50% { transform: scale(1.2) translate(-2%, 5%); opacity: 1; }
   100% { transform: scale(1) translate(2%, -5%); opacity: 0.8; }
 }
+
+/* Infinite Scroll Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.mask-marquee {
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+
+
+/* Hero Grid Mesh Texture */
+.grid-mesh {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at 50% 50%, black, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black, transparent 75%);
+}
+
+.light .grid-mesh {
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+}
+
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -92,3 +418,35 @@ html.lenis, html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* Animated Wave Animations */
+@keyframes wave-move-1 {
+  0% { transform: translateX(0) scaleY(1); }
+  50% { transform: translateX(-15%) scaleY(1.03); }
+  100% { transform: translateX(-30%) scaleY(1); }
+}
+
+@keyframes wave-move-2 {
+  0% { transform: translateX(-30%) scaleY(1.02); }
+  50% { transform: translateX(-15%) scaleY(0.97); }
+  100% { transform: translateX(0) scaleY(1.02); }
+}
+
+@keyframes wave-move-3 {
+  0% { transform: translateX(-10%) scaleY(0.98); }
+  50% { transform: translateX(-25%) scaleY(1.02); }
+  100% { transform: translateX(-40%) scaleY(0.98); }
+}
+
+.animate-wave-slow {
+  animation: wave-move-1 25s ease-in-out infinite alternate;
+}
+
+.animate-wave-medium {
+  animation: wave-move-2 20s ease-in-out infinite alternate;
+}
+
+.animate-wave-fast {
+  animation: wave-move-3 15s ease-in-out infinite alternate;
+}
+

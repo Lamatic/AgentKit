@@ -182,3 +182,23 @@ export async function addSponsor(name: string, description: string = '') {
 
   return response.result as { status: string };
 }
+
+export async function deleteSubmission(id: string) {
+  if (!id) throw new Error('Submission ID is required');
+
+  const deleteFlowId = process.env.LAMATIC_DELETE_SUBMISSION_FLOW_ID;
+  if (!deleteFlowId) {
+    console.warn('LAMATIC_DELETE_SUBMISSION_FLOW_ID is not defined, mock-deleting submission.');
+    return { status: 'success' };
+  }
+
+  const response = await lamaticClient.executeFlow(deleteFlowId, { id });
+
+  console.log('Lamatic deleteSubmission response:', JSON.stringify(response, null, 2));
+
+  if (response.status === 'error') {
+    throw new Error(response.message || 'Lamatic delete execution failed');
+  }
+
+  return { status: 'success' };
+}
