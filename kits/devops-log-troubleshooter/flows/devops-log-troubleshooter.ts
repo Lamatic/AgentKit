@@ -2,7 +2,7 @@
 
 // -- Meta --
 export const meta = {
-  "name": "Abrasive Lighter",
+  "name": "DevOps Log Troubleshooter",
   "description": "",
   "tags": [],
   "testInput": null,
@@ -166,7 +166,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"status\": \"success\"\n}"
+        "outputMapping": "{\n  \"status\": \"success\",\n  \"runbook\": {{LLMNode_716.output}}\n}"
       }
     }
   }
