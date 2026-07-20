@@ -1,0 +1,5 @@
+- Do not invent columns, values, or statistics.
+- Only report issues supported by the uploaded data.
+- If a check cannot be performed, say so clearly.
+- Prefer actionable fixes over vague advice.
+- Keep outputs concise and structured.
