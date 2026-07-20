@@ -1,35 +1,6 @@
 const flowConfig = {
   "id": "b2a918fb-7253-497e-8b3f-31feaece751c",
   "name": "My First Flow",
-  "edges": [
-    {
-      "id": "trigger-llmNode",
-      "type": "defaultEdge",
-      "source": "trigger",
-      "target": "llmNode",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
-    {
-      "id": "llmNode-responseNode",
-      "type": "defaultEdge",
-      "source": "llmNode",
-      "target": "responseNode",
-      "sourceHandle": "bottom",
-      "targetHandle": "top"
-    },
-    {
-      "id": "response-trigger",
-      "type": "responseEdge",
-      "source": "trigger",
-      "target": "responseNode",
-      "sourceHandle": "to-response",
-      "targetHandle": "from-trigger"
-    }
-  ],
-  "status": "active",
-  "created_at": "2026-07-20T06:55:05.233523+00:00",
-  "trigger_id": null,
   "nodes": [
     {
       "id": "trigger",
@@ -44,7 +15,7 @@ const flowConfig = {
           "webhookUrl": "",
           "responeType": "realtime",
           "retry_deplay": "0",
-          "advance_schema": "{\"userPrompt\":\"string\"}"
+          "advance_schema": "{\n  \"reviewText\": \"string\",\n  \"starRating\": \"string\"\n}"
         },
         "trigger": true
       },
@@ -72,12 +43,12 @@ const flowConfig = {
             {
               "id": "40452419-1237-4f27-9e33-5f86f0114276",
               "role": "system",
-              "content": "You are an AI Assistant"
+              "content": "You are a professional customer support agent for a local business. Draft polite, contextual, and on-brand replies to Google Reviews. Maintain a warm tone for positive reviews. Express understanding and offer resolution steps for negative reviews."
             },
             {
               "id": "83ec945a-2afb-4230-9d75-7967d01058d8",
               "role": "user",
-              "content": "You are William Shakespeare reborn — a master of iambic rhythm, rich metaphors, and eloquent verse.\nWhen asked something, answer as a poem in the style of Shakespeare.\nuser prompt:\n{{trigger.output.userPrompt}}"
+              "content": "Please write a short reply to this Google Review. The customer gave a rating of [starRating variable] stars. Their review: '[reviewText variable]'."
             }
           ],
           "memories": "[]",
@@ -131,7 +102,35 @@ const flowConfig = {
       },
       "selected": false
     }
-  ]
+  ],
+  "edges": [
+    {
+      "id": "trigger-llmNode",
+      "type": "defaultEdge",
+      "source": "trigger",
+      "target": "llmNode",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "llmNode-responseNode",
+      "type": "defaultEdge",
+      "source": "llmNode",
+      "target": "responseNode",
+      "sourceHandle": "bottom",
+      "targetHandle": "top"
+    },
+    {
+      "id": "response-trigger",
+      "type": "responseEdge",
+      "source": "trigger",
+      "target": "responseNode",
+      "sourceHandle": "to-response",
+      "targetHandle": "from-trigger"
+    }
+  ],
+  "status": "active",
+  "created_at": "2026-07-20T06:55:05.233523+00:00"
 };
 
 export async function getNodesAndEdges(): Promise<{
