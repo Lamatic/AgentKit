@@ -166,7 +166,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"status\": \"success\",\n  \"runbook\": {{LLMNode_716.output}}\n}"
+        "outputMapping": "{\n  \"status\": \"success\",\n  \"runbook\": \"{{LLMNode_716.output.generatedResponse}}\"\n}"
       }
     }
   }
