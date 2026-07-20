@@ -172,7 +172,7 @@ function SupplierAccordion({ supplier, index, onDraft }: {
         tabIndex={0}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen(!open)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!open); } }}
       >
         <div className={dotClass(supplier.risk_level)} />
         <div className="row-meta">
