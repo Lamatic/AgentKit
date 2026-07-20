@@ -163,7 +163,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "GraphQL Trigger — Master Responder",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"input\": {}\n}"
+        "advance_schema": "{\n  \"input\": {\n    \"notify_slack\": \"boolean\",\n    \"notify_email\": \"boolean\",\n    \"recipientEmail\": \"string\"\n  }\n}"
       }
     }
   },
