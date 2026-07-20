@@ -13,6 +13,25 @@ import {
   detectAnomalies,
   outstanding,
 } from "@/lib/requirement-state";
+import { z } from "zod";
+
+/**
+ * Validates the reasoning node's JSON before it reaches the state model.
+ * The LLM can drift (missing fields, wrong shapes), so we parse defensively
+ * rather than trusting the raw output.
+ */
+const ReasoningSchema = z.object({
+  satisfies: z.array(z.string()).optional(),
+  triggers: z
+    .array(
+      z.object({
+        requirementId: z.string(),
+        label: z.string(),
+        reason: z.string(),
+      })
+    )
+    .optional(),
+});
 
 interface ReasoningResult {
   satisfies?: string[];
@@ -79,9 +98,6 @@ export async function intakeDocument(
       resData = await lamaticClient.checkStatus(requestId);
     }
 
-    // DEBUG: dump the resolved response so we can confirm the shape.
-    console.log("=== RESOLVED ===", JSON.stringify(resData, null, 2));
-
     if (resData?.status && resData.status !== "success") {
       return {
         success: false,
@@ -89,18 +105,24 @@ export async function intakeDocument(
       };
     }
 
-    const reasoning = parseReasoning(
-      resData?.data?.output?.result ?? resData?.result
+    // Parse the reasoning output, then validate its shape before use.
+    const parsed = parseReasoning(
+      (resData as any)?.data?.output?.result ?? resData?.result
     );
-    const satisfies: string[] = reasoning.satisfies ?? [];
-    let triggers: InferredTrigger[] = reasoning.triggers ?? [];
+    const validated = ReasoningSchema.safeParse(parsed);
+    const satisfies: string[] = validated.success
+      ? validated.data.satisfies ?? []
+      : [];
+    let triggers: InferredTrigger[] = validated.success
+      ? (validated.data.triggers as InferredTrigger[]) ?? []
+      : [];
 
     if (current.clientType === "returning" && current.baseline) {
       triggers = detectAnomalies(current.baseline, triggers);
     }
 
     const doc: ReceivedDoc = {
-      docId: `doc-${Date.now()}`,
+      docId: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       docType: "unknown",
       extractedFacts: {},
       receivedAt: new Date().toISOString(),
