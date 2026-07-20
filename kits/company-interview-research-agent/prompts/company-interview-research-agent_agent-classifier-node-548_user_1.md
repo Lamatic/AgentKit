@@ -1,0 +1,1 @@
+Classify the likely interview format for this job title:{{triggerNode_1.output.job_title}}
