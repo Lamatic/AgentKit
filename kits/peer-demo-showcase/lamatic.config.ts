@@ -28,6 +28,10 @@ export default {
     {
       "id": "upvote-project-flow",
       "type": "mandatory"
+    },
+    {
+      "id": "delete-submission-flow",
+      "type": "mandatory"
     }
   ],
   "links": {
