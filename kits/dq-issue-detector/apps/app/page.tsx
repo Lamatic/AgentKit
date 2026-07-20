@@ -13,7 +13,7 @@ import {
   Upload,
   Info
 } from "lucide-react";
-import { analyzeDatasetQuality } from "../actions/orchestrate";
+import { orchestrateAnalysis } from "../actions/orchestrate";
 
 const SAMPLE_CSV = `id,name,email,age,signup_date,status
 1,John Doe,john.doe@example.com,28,2023-01-15,Active
@@ -89,7 +89,11 @@ export default function Home() {
     setIsAnalyzing(true);
 
     try {
-      const res = await analyzeDatasetQuality(csvContent, instructions);
+      const formData = new FormData();
+      const csvFile = new File([csvContent], "dataset.csv", { type: "text/csv" });
+      formData.append("file", csvFile);
+
+      const res = await orchestrateAnalysis(formData);
       if (res.success && res.data) {
         setAnalysisReport(res.data);
       } else {
