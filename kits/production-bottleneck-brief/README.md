@@ -1,4 +1,5 @@
 # Production Bottleneck Brief
+**[Live Demo](https://agent-r0yzvvrea-ibrahimkhan7208s-projects.vercel.app)**
 
 Turns messy production order data into a prioritized, plain-English brief on what's at risk — then answers follow-up questions about any specific order. Built for manufacturing and fulfillment teams (factories, print shops, custom production runs — anywhere orders move through sequential stages) who don't want to manually dig through spreadsheets to spot what's about to miss a deadline.
 
