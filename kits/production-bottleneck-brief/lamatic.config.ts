@@ -21,7 +21,8 @@ export default {
     }
   ],
   "links": {
-    "deploy": "",
+    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/production-bottleneck-brief/apps",
+    "demo": "https://agent-r0yzvvrea-ibrahimkhan7208s-projects.vercel.app",
     "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/production-bottleneck-brief"
   }
 };
