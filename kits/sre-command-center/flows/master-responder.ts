@@ -460,7 +460,7 @@ export const nodes = [
         "subject": "Incident Report: —{{InstructorLLMNode_1.output.category}}",
         "nodeName": "Email Incident Report",
         "credentials": "Gmail OAuth",
-        "recipient_email": "{{triggerNode_1.output.recipientEmail || 'sre-oncall@example.com'}}"
+        "recipient_email": "{{triggerNode_1.output.input.recipientEmail || 'sre-oncall@example.com'}}"
       }
     }
   },
