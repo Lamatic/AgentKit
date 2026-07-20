@@ -426,3 +426,11 @@ export const edges = [
 ];
 
 export default { meta, inputs, references, nodes, edges };
+
+// Additive export for Studio's Phase 2 runtime validator, which appears to
+// look for the node graph under a `config_json` key (matching Studio's
+// internal storage schema) rather than the top-level `nodes`/`edges`
+// exports documented in CONTRIBUTING.md. Kept alongside the existing
+// exports rather than replacing them, since other tooling may rely on the
+// documented top-level shape.
+export const config_json = { nodes, edges };
