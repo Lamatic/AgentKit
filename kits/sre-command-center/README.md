@@ -2,7 +2,7 @@
 
 An AI-powered Site Reliability Engineering Command Center that **simulates, triages, and auto-remediates production incidents** using a 3-flow Micro-Flow Architecture on Lamatic.ai.
   
----
+--- 
 
 ## 🔴 Live Demo & Walkthrough Video
 
