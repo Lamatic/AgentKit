@@ -1,0 +1,1 @@
+Order details: {{codeNode_797.output}}, User's question: {{triggerNode_1.output.question}}, Answer the question above using only the order details provided. Translate the field values into plain English — for example, say "2 days overdue" instead of "daysUntilDue: -2", and "flagged as at risk" instead of "atRisk: true". Never reference the raw field names themselves.
