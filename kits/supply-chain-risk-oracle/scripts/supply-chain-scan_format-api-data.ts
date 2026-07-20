@@ -3,7 +3,9 @@ let weatherData = {};
 
 try {
   const raw = input.news_response;
-  const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+  const parsed = typeof raw === "string" ? JSON.parse(
+    raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim()
+  ) : raw;
   newsArticles = (parsed?.articles ?? []).slice(0, 8).map((a) => ({
     title: a.title,
     description: a.description,

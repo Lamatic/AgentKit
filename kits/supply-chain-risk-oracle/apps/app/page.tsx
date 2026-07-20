@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { runSupplyChainScan, draftSupplierEmail } from "@/actions/orchestrate";
 import type { ScanResult, SupplierRisk, EmailDraft } from "@/lib/types";
 
@@ -50,6 +50,14 @@ function EmailModal({ supplier, onClose }: EmailModalProps) {
   const [error, setError]       = useState("");
   const [copied, setCopied]     = useState(false);
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   async function generate() {
     setLoading(true);
     setError("");
@@ -70,7 +78,7 @@ function EmailModal({ supplier, onClose }: EmailModalProps) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
 
         <div className="modal-head">
           <h2>Draft Supplier Email</h2>
@@ -99,7 +107,7 @@ function EmailModal({ supplier, onClose }: EmailModalProps) {
                 </div>
                 <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.06em" }}>Risk Factors</div>
                 <ul className="risk-factor-list">
-                  {supplier.risk_factors.map((f, i) => <li key={i}>{f}</li>)}
+                  {(supplier.risk_factors ?? []).map((f, i) => <li key={i}>{f}</li>)}
                 </ul>
               </div>
               <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={generate}>
@@ -158,7 +166,14 @@ function SupplierAccordion({ supplier, index, onDraft }: {
 
   return (
     <div className={`supplier-row ${open ? "expanded" : ""}`}>
-      <div className="supplier-row-head" onClick={() => setOpen(!open)}>
+      <div
+        className="supplier-row-head"
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen(!open)}
+      >
         <div className={dotClass(supplier.risk_level)} />
         <div className="row-meta">
           <div className="row-id">
@@ -185,7 +200,7 @@ function SupplierAccordion({ supplier, index, onDraft }: {
             <div className="detail-section">
               <div className="detail-section-label">Disruption Signals</div>
               <ul className="risk-factor-list">
-                {supplier.risk_factors.map((f, i) => <li key={i}>{f}</li>)}
+                {(supplier.risk_factors ?? []).map((f, i) => <li key={i}>{f}</li>)}
               </ul>
             </div>
             <div className="detail-section">

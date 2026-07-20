@@ -67,6 +67,8 @@ From each deployed flow's detail panel:
 - `SUPPLY_CHAIN_SCAN_FLOW_ID`
 - `SUPPLY_CHAIN_EMAIL_DRAFT_FLOW_ID`
 
+> **API Keys for NewsAPI and OpenWeatherMap:** Store these as environment variables directly inside Lamatic Studio (open your flow → Settings → Environment Variables). Reference them in your API nodes as `{{env.NEWS_API_KEY}}` and `{{env.WEATHER_API_KEY}}`. This keeps them out of execution logs and away from the app layer.
+
 ### 3. Run Locally
 
 ```bash

@@ -1,16 +1,25 @@
 const raw = input.parsed_suppliers;
 
-const suppliers = typeof raw === "string"
-  ? JSON.parse(raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim())
-  : Array.isArray(raw)
-    ? raw
-    : (raw?.suppliers ?? raw?.risk_matrix ?? Object.values(raw ?? {}));
+let suppliers = [];
+try {
+  const parsed = typeof raw === "string"
+    ? JSON.parse(raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim())
+    : raw;
+  const extracted = Array.isArray(parsed)
+    ? parsed
+    : (parsed?.suppliers ?? parsed?.risk_matrix ?? Object.values(parsed ?? {}));
+  suppliers = Array.isArray(extracted) ? extracted : [];
+} catch (e) {
+  suppliers = [];
+}
 
 const locationTerms = suppliers
-  .map((s) => s.location.split(",")[0].trim())
+  .map((s) => s?.location?.split(",")[0].trim())
+  .filter(Boolean)
   .join(" OR ");
 
-const newsQuery = `supply chain disruption OR labor strike OR port closure OR typhoon OR flood OR earthquake OR sanctions (${locationTerms})`;
+const locationQuery = locationTerms ? ` (${locationTerms})` : "";
+const newsQuery = `supply chain disruption OR labor strike OR port closure OR typhoon OR flood OR earthquake OR sanctions${locationQuery}`;
 
 const primarySupplier = suppliers[0];
 
