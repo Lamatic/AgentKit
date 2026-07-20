@@ -9,10 +9,11 @@ This Lamatic flow template creates a RAG-powered agent that ingests raw server a
 3. **Deploy:** Deploy the flow to generate your unique API Webhook URL.
 
 ## Usage Example
-Send a POST request to the API Response node with your raw deployment logs and target environment:
+Send a POST request to the webhook URL generated during deployment with your raw deployment logs and target environment:
 
 ```json
 {
   "build_logs": "nginx: [emerg] host not found in upstream \"backend\" in /etc/nginx/nginx.conf:24",
   "environment": "production"
 }
+```
