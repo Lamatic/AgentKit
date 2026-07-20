@@ -230,6 +230,35 @@ jobs:
             done
           done
 
+          # --- I. Check 7: Validate flow asset references ---
+          CHECK7_PASS=true
+
+          for kit_path in "${NEW_KITS[@]}"; do
+            flows_dir="$kit_path/flows"
+
+            if [ ! -d "$flows_dir" ]; then
+              continue
+            fi
+            for flow_file in "$flows_dir"/*.ts; do
+              [ -f "$flow_file" ] || continue
+          
+              refs=$(grep -oE '@(prompts|scripts|model-configs|constitutions|triggers/widgets|memory|tools)/[^"[:space:]]+\.(md|ts)' "$flow_file" || true)
+              while IFS= read -r ref; do
+                [ -z "$ref" ] && continue
+
+                ref_path="$kit_path/${ref#@}"
+
+                if [ ! -f "$ref_path" ]; then
+                  ERRORS+=("Flow $(basename "$flow_file") references \"$ref\" but the file does not exist in the kit")
+                  CHECK7_PASS=false
+                fi
+
+              done <<< "$refs"          
+            done
+
+          done
+          
+
           # --- I. Build summary ---
 
           SUMMARY_FILE="/tmp/pr_validation_summary.md"
@@ -275,6 +304,7 @@ jobs:
             [ "$CHECK3_PASS" = true ] && echo "| Flow .ts files present | :white_check_mark: Pass |" || echo "| Flow .ts files present | :x: Fail |"
             [ "$CHECK4_PASS" = true ] && echo "| lamatic.config.ts valid | :white_check_mark: Pass |" || echo "| lamatic.config.ts valid | :x: Fail |"
             [ "$CHECK5_WARN" = false ] && echo "| No changes outside kits/ | :white_check_mark: Pass |" || echo "| No changes outside kits/ | :warning: Warning |"
+            [ "$CHECK7_PASS" = true ] && echo "| Flow asset references valid | :white_check_mark: Pass |" || echo "| Flow asset references valid | :x: Fail |"
 
             echo ""
 
