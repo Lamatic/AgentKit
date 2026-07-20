@@ -8,7 +8,7 @@ This application is built with:
 - Framer Motion (Animations)
 - React Hot Toast
 
-## Running Locally
+## TrustGuard AI Setup
 
 To run this Next.js project locally, you need to set up your environment variables to connect to your Lamatic AI project.
 

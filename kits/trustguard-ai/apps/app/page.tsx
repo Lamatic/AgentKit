@@ -99,7 +99,7 @@ export default function HomePage() {
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
             Detect Fraud &amp; Scams
             <br />
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
               Instantly with AI
             </span>
           </h1>
