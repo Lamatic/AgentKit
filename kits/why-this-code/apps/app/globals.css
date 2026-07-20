@@ -1,0 +1,146 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #0B0C0E;
+  --foreground: #D1D5DB;
+  --card: #111215;
+  --card-foreground: #E5E7EB;
+  --popover: #111215;
+  --popover-foreground: #E5E7EB;
+  --primary: #FFFFFF;
+  --primary-foreground: #0B0C0E;
+  --secondary: #1F2937;
+  --secondary-foreground: #9CA3AF;
+  --muted: #18191D;
+  --muted-foreground: #6B7280;
+  --accent: #252830;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #1E2026;
+  --input: #15161A;
+  --ring: #4B5563;
+  --radius: 0.375rem;
+}
+
+@theme inline {
+  --font-sans: "Inter", "system-ui", "sans-serif";
+  --font-mono: "Fira Code", "Geist Mono", "monospace";
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/10 transition-colors duration-150 ease-out;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-white/10 selection:text-white;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272930;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
+}
+
+/* Animations */
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-slide {
+  animation: fade-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3D Cube utilities for Tech Dice Loader */
+.perspective-600 {
+  perspective: 600px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.translate-z-6 {
+  transform: translateZ(1.5rem);
+}
+.rotate-y-180-translate-z-6 {
+  transform: rotateY(180deg) translateZ(1.5rem);
+}
+.rotate-y-90-translate-z-6 {
+  transform: rotateY(90deg) translateZ(1.5rem);
+}
+.rotate-y-neg90-translate-z-6 {
+  transform: rotateY(-90deg) translateZ(1.5rem);
+}
+.rotate-x-90-translate-z-6 {
+  transform: rotateX(90deg) translateZ(1.5rem);
+}
+.rotate-x-neg90-translate-z-6 {
+  transform: rotateX(-90deg) translateZ(1.5rem);
+}
+
+@keyframes spin-tech-dice {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg);
+  }
+}
+
+.animate-spin-tech-dice {
+  animation: spin-tech-dice 6s infinite linear;
+}
+
+/* Editor adjustments */
+.code-viewport::-webkit-scrollbar-thumb {
+  background: #1F2128;
+}
+.code-viewport::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
