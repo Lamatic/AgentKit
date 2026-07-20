@@ -33,3 +33,15 @@ export const edges = [
   { from: "extract_data", to: "analyze_quality" },
   { from: "analyze_quality", to: "format_report" }
 ];
+
+export const references = {
+  "prompts": {
+    "data_quality_analysis": "@prompts/data-quality_analysis.md"
+  },
+  "scripts": {
+    "data_quality_extract": "@scripts/data-quality-extract.ts",
+    "data_quality_format": "@scripts/data-quality-format.ts"
+  }
+};
+
+export default { meta, inputs, references, nodes, edges };
