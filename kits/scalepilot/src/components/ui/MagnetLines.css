@@ -1,0 +1,13 @@
+.magnetLines-container {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+
+.magnetLines-container span {
+  display: block;
+  transform-origin: center;
+  will-change: transform;
+  transform: rotate(var(--rotate));
+  transition: transform 0.1s ease-out;
+}

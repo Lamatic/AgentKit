@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+:root {
+  --bg-light: #FFFFFF;
+  --surface-card: #F8F8F6;
+  --border-hairline: #E2E2DF;
+  --yellow-gold: #FCDD2D;
+  --mint-green: #89FA91;
+  --coral-risk: #E55836;
+  --text-primary: #0D0D0B;
+  --text-secondary: #555550;
+  --text-muted: #888880;
+}
+
+@theme inline {
+  --color-background: #FFFFFF;
+  --color-surface: #F8F8F6;
+  --color-border: #E2E2DF;
+  --color-gold: #FCDD2D;
+  --color-mint: #89FA91;
+  --color-coral: #E55836;
+  --color-text-primary: #0D0D0B;
+  --color-text-secondary: #555550;
+  --color-text-muted: #888880;
+  
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: clip;
+  width: 100%;
+}
+
+body {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Helpers */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* Technical L-shaped Corner Markers (10x10px, Yellow #FCDD2D / Dark #0D0D0B) */
+.corner-marker-tl {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 3px solid #0D0D0B;
+  border-left: 3px solid #0D0D0B;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.corner-marker-tr {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 3px solid #0D0D0B;
+  border-right: 3px solid #0D0D0B;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.corner-marker-bl {
+  position: absolute;
+  bottom: -25px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border-bottom: 3px solid #0D0D0B;
+  border-left: 3px solid #0D0D0B;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.corner-marker-br {
+  position: absolute;
+  bottom: -25px;
+  right: -1px;
+  width: 14px;
+  height: 14px;
+  border-bottom: 3px solid #0D0D0B;
+  border-right: 3px solid #0D0D0B;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Scroll reveal class */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Smooth ambient pulse for hero glow */
+@keyframes heroGlowPulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  50% {
+    opacity: 0.80;
+    transform: translate(-50%, -50%) scale(1.10);
+  }
+}
+
+.animate-glow-pulse {
+  animation: heroGlowPulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: opacity, transform;
+}
+
+/* Custom Scrollbar for technical feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E2DF;
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FCDD2D;
+}
+
+/* Continuous Right-to-Left Infinity Marquee with Hover Pause */
+@keyframes continuousMarquee {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-33.3333%, 0, 0);
+  }
+}
+
+.animate-infinite-marquee {
+  animation: continuousMarquee 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-infinite-marquee:hover {
+  animation-play-state: paused;
+}
+
+
+
