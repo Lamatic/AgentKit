@@ -3,4 +3,5 @@
 .env
 .claude
 REFACTOR_PLAN.md
-scriptsnode_modules/
+scripts
+node_modules/
