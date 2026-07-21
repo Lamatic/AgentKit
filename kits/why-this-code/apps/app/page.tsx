@@ -189,8 +189,8 @@ export default function WhyThisCodePage() {
 
         // Prepend target/definition file
         if (raw.fileContent) {
-          const isAlreadyIncluded = mappedFiles.some(f => f.path === parsedCoordinate.path)
-          if (!isAlreadyIncluded) {
+          const existingFile = mappedFiles.find(f => f.path === parsedCoordinate.path)
+          if (!existingFile) {
             const definitionInvocations = []
             for (let line = parsedCoordinate.startLine; line <= parsedCoordinate.endLine; line++) {
               definitionInvocations.push({ line, snippet: "" })
@@ -202,6 +202,9 @@ export default function WhyThisCodePage() {
               invocations: definitionInvocations,
               isDefinition: true
             })
+          } else {
+            existingFile.isDefinition = true
+            existingFile.fullContent = existingFile.fullContent || raw.fileContent
           }
         }
 
@@ -320,7 +323,7 @@ export default function WhyThisCodePage() {
     }
     return (
       <span className={`text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${classes}`}>
-        {status}
+        {labelPrefix}: {status}
       </span>
     )
   }
@@ -415,20 +418,20 @@ export default function WhyThisCodePage() {
                           onChange={(e) => setInputUrl(e.target.value)}
                           placeholder="Paste GitHub permalink (e.g. https://github.com/.../orchestrate.ts)"
                           aria-label="GitHub permalink"
-                          className="w-full bg-transparent text-white border-0 outline-none placeholder:text-neutral-600 text-xs px-1"
+                          className="w-full bg-transparent text-white border-0 outline-hidden placeholder:text-neutral-600 text-xs px-1"
                         />
                         <button
                           type="submit"
                           disabled={!inputUrl.trim() || !urlValidation.isValid}
                           aria-label="Analyze URL"
-                          className="p-1.5 rounded border border-neutral-800 bg-neutral-900 text-neutral-400 disabled:opacity-30 disabled:pointer-events-none hover:text-white hover:border-neutral-600 transition flex-shrink-0"
+                          className="p-1.5 rounded border border-neutral-800 bg-neutral-900 text-neutral-400 disabled:opacity-30 disabled:pointer-events-none hover:text-white hover:border-neutral-600 transition shrink-0"
                         >
                           <ArrowRight className="h-3 w-3" />
                         </button>
                       </div>
                       {!urlValidation.isValid ? (
                         <p className="text-[10px] text-rose-400 flex items-center gap-1 font-sans">
-                          <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                          <AlertTriangle className="h-3 w-3 shrink-0" />
                           {urlValidation.error}
                         </p>
                       ) : (
@@ -480,20 +483,20 @@ export default function WhyThisCodePage() {
               }`}
             >
               <div className="flex items-center gap-3 px-2">
-                <Search className="h-4 w-4 text-neutral-500 flex-shrink-0" />
+                <Search className="h-4 w-4 text-neutral-500 shrink-0" />
                 <input
                   type="text"
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
                   placeholder="Paste GitHub permalink (e.g. https://github.com/.../orchestrate.ts)"
                   aria-label="GitHub permalink"
-                  className="w-full py-2.5 bg-transparent text-white border-0 outline-none placeholder:text-neutral-600 text-xs"
+                  className="w-full py-2.5 bg-transparent text-white border-0 outline-hidden placeholder:text-neutral-600 text-xs"
                 />
                 <button
                   type="submit"
                   disabled={!inputUrl.trim() || !urlValidation.isValid}
                   aria-label="Analyze URL"
-                  className="p-2 rounded border border-neutral-800 bg-neutral-900 text-neutral-400 disabled:opacity-30 disabled:pointer-events-none hover:text-white hover:border-neutral-600 hover:bg-neutral-800/40 transition flex-shrink-0"
+                  className="p-2 rounded border border-neutral-800 bg-neutral-900 text-neutral-400 disabled:opacity-30 disabled:pointer-events-none hover:text-white hover:border-neutral-600 hover:bg-neutral-800/40 transition shrink-0"
                 >
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
@@ -504,7 +507,7 @@ export default function WhyThisCodePage() {
             <div className="mt-2.5 px-1 flex items-center justify-between text-[10.5px]">
               {!urlValidation.isValid ? (
                 <p className="text-rose-400 flex items-center gap-1.5 font-medium animate-fade-in">
-                  <AlertTriangle className="h-3.5 w-3.5 text-rose-400 flex-shrink-0" />
+                  <AlertTriangle className="h-3.5 w-3.5 text-rose-400 shrink-0" />
                   {urlValidation.error}
                 </p>
               ) : (
@@ -733,9 +736,9 @@ export default function WhyThisCodePage() {
                         return (
                           <div key={i} className="flex gap-2.5 items-start">
                             {isWarning ? (
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
                             ) : (
-                              <Info className="h-3.5 w-3.5 text-neutral-500 mt-0.5 flex-shrink-0" />
+                              <Info className="h-3.5 w-3.5 text-neutral-500 mt-0.5 shrink-0" />
                             )}
                             <span className="text-xs text-neutral-400 leading-relaxed">{text}</span>
                           </div>
@@ -863,7 +866,7 @@ export default function WhyThisCodePage() {
                           className="w-full px-4 py-3 flex items-center justify-between text-left focus:outline-none bg-neutral-950/45 border-b border-neutral-900/50"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <FileCode className={`h-4.5 w-4.5 flex-shrink-0 transition-colors ${isFileExpanded ? "text-white" : "text-neutral-500"
+                            <FileCode className={`h-4.5 w-4.5 shrink-0 transition-colors ${isFileExpanded ? "text-white" : "text-neutral-500"
                               }`} />
                             <div className="min-w-0">
                               <span className="text-xs text-neutral-300 font-mono block truncate transition">
@@ -874,7 +877,7 @@ export default function WhyThisCodePage() {
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="flex items-center gap-3 shrink-0">
                             {isFileExpanded ? <ChevronUp className="h-4 w-4 text-neutral-400" /> : <ChevronDown className="h-4 w-4 text-neutral-400" />}
                           </div>
                         </button>
@@ -984,7 +987,7 @@ export default function WhyThisCodePage() {
                                 className="w-full px-4 py-3 flex items-center justify-between text-left focus:outline-none bg-neutral-950/45 border-b border-neutral-900/50"
                               >
                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                  <FileCode className={`h-4.5 w-4.5 flex-shrink-0 transition-colors ${isExpanded ? "text-white" : "text-neutral-500"
+                                  <FileCode className={`h-4.5 w-4.5 shrink-0 transition-colors ${isExpanded ? "text-white" : "text-neutral-500"
                                     }`} />
                                   <div className="min-w-0">
                                     <span className="text-xs text-neutral-300 font-mono block truncate transition">
@@ -996,7 +999,7 @@ export default function WhyThisCodePage() {
                                   </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 flex-shrink-0">
+                                <div className="flex items-center gap-3 shrink-0">
                                   <span className="text-[9px] px-1.5 py-0.2 rounded border border-neutral-900 bg-neutral-950/60 text-neutral-400 font-mono">
                                     import: {file.resolvedLocalName}
                                   </span>
@@ -1068,7 +1071,7 @@ export default function WhyThisCodePage() {
                                       {file.invocations.map((inv, i) => (
                                         <div key={i} className="flex flex-col gap-1.5 transition-all duration-300">
                                           <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-mono text-neutral-500 w-8 flex-shrink-0">L{inv.line}</span>
+                                            <span className="text-[10px] font-mono text-neutral-500 w-8 shrink-0">L{inv.line}</span>
                                             {renderKindPill(inv.kind)}
                                           </div>
                                           <div className="ml-10 bg-[#06080F]/50 rounded border border-neutral-900/60 p-2 overflow-x-auto">
@@ -1119,7 +1122,7 @@ export default function WhyThisCodePage() {
           {/* ERROR DISPLAY CARD */}
           <div className="mt-8 w-full p-5 rounded-lg border border-rose-500/30 bg-[#140C0E]/90 shadow-2xl space-y-2">
             <div className="flex items-center gap-2 text-rose-400 text-[11px] font-mono uppercase font-semibold tracking-wider">
-              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
               <span>Error Details</span>
             </div>
             <p className="text-xs text-neutral-200 font-mono leading-relaxed select-text bg-[#0A0708] p-3 rounded border border-rose-950/80 whitespace-pre-wrap">
