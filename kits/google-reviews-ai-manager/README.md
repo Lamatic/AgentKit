@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://lamatic.ai/favicon.ico" alt="Lamatic Logo" width="80" height="80" />
+  <img src="apps/public/logo.png" alt="Lamatic Logo" width="80" height="80" />
   <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" width="80" height="80" style="margin-left: 20px;" />
   
   <br/>
