@@ -28,24 +28,27 @@ export default function Home() {
   const [newlySurfaced, setNewlySurfaced] = useState<SurfacedItem[] | null>(null)
   const [outstanding, setOutstanding] = useState<OutstandingItem[] | null>(null)
 
-  async function handleAnalyze() {
+ async function handleAnalyze() {
     if (!documentText.trim()) return
     setLoading(true)
     setError(null)
     setNewlySurfaced(null)
     setOutstanding(null)
 
-    const res = await intakeDocument(null, `client-${Date.now()}`, documentText)
-
-    if (res.success) {
-      setNewlySurfaced(res.newlySurfaced ?? [])
-      setOutstanding(res.outstanding ?? [])
-    } else {
-      setError(res.error ?? "Something went wrong.")
+    try {
+      const res = await intakeDocument(null, `client-${Date.now()}`, documentText)
+      if (res.success) {
+        setNewlySurfaced(res.newlySurfaced ?? [])
+        setOutstanding(res.outstanding ?? [])
+      } else {
+        setError(res.error ?? "Something went wrong.")
+      }
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
