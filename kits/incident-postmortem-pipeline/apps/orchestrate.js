@@ -16,7 +16,7 @@ export const config = {
               "postmortem": "string"
           },
           "mode": "sync",
-          "polling": "false"
+          "polling": false
       }
     },
     "api": {
