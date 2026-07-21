@@ -29,7 +29,7 @@ The point is simple: see your own profile the way a stranger would, while you ca
 
 This is a single-flow Template built entirely in Lamatic Studio:
 
-```
+```text
 Chat Widget → Generate JSON (Instructor LLM) → Chat Response
 ```
 
