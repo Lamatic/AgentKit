@@ -1,0 +1,1 @@
+Topic: {{triggerNode_1.output.topic}} Position A: {{triggerNode_1.output.positionA}} Position B: {{triggerNode_1.output.positionB}} Debate Transcript: {{triggerNode_1.output.transcript}} Evaluate the debate above and produce your verdict as valid JSON matching the output schema.
