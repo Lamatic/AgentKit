@@ -1,10 +1,9 @@
-// Flow: get-sponsors-flow
+// Flow: event-config-flow (Consolidated Flow 5/5)
 
-// -- Meta --
 export const meta = {
-  "name": "get-sponsors-flow",
-  "description": "Fetch all sponsors from the sponsors table",
-  "tags": [],
+  "name": "event-config-flow",
+  "description": "Consolidated flow for reading and updating event deadline configuration",
+  "tags": ["config", "event"],
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
@@ -15,21 +14,14 @@ export const meta = {
   }
 };
 
-// -- Inputs --
 export const inputs = {};
-
-// -- References --
 export const references = {};
 
-// -- Nodes & Edges --
 export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "graphqlNode",
       "trigger": true,
@@ -37,41 +29,35 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{}"
+        "advance_schema": "{\n  \"action\": \"string\",\n  \"key\": \"string\",\n  \"value\": \"string\"\n}"
       }
     }
   },
   {
     "id": "tablesNode_1",
     "type": "dynamicNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_1",
         "data": "{}",
-        "limit": "100",
-        "query": "SELECT * FROM sponsors",
+        "limit": "50",
+        "query": "",
         "where": "",
-        "action": "query",
+        "action": "select",
         "offset": "0",
         "columns": "*",
         "orderBy": "",
         "nodeName": "Tables",
-        "tableName": "sponsors"
+        "tableName": "event_config"
       }
     }
   },
   {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
@@ -81,7 +67,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"sponsors\": \"{{tablesNode_1.output}}\"\n}"
+        "outputMapping": "{\n  \"config\": {{tablesNode_1.output}}\n}"
       }
     }
   }

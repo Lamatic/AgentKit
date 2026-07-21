@@ -1,10 +1,9 @@
-// Flow: add-sponsor-flow
+// Flow: sponsors-manager-flow (Consolidated Flow 3/5)
 
-// -- Meta --
 export const meta = {
-  "name": "add-sponsor-flow",
-  "description": "Add a new sponsor to the sponsors table",
-  "tags": [],
+  "name": "sponsors-manager-flow",
+  "description": "Consolidated flow for reading available sponsors and adding new sponsor tracks",
+  "tags": ["sponsors", "management"],
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
@@ -15,21 +14,14 @@ export const meta = {
   }
 };
 
-// -- Inputs --
 export const inputs = {};
-
-// -- References --
 export const references = {};
 
-// -- Nodes & Edges --
 export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "graphqlNode",
       "trigger": true,
@@ -37,26 +29,23 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"name\": \"string\",\n  \"description\": \"string\"\n}"
+        "advance_schema": "{\n  \"action\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\"\n}"
       }
     }
   },
   {
     "id": "tablesNode_1",
     "type": "dynamicNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_1",
-        "data": "{\n  \"name\": \"{{triggerNode_1.output.name}}\",\n  \"description\": \"{{triggerNode_1.output.description}}\"\n}",
-        "limit": "10",
+        "data": "{}",
+        "limit": "50",
         "query": "",
         "where": "",
-        "action": "insert",
+        "action": "select",
         "offset": "0",
         "columns": "*",
         "orderBy": "",
@@ -68,10 +57,7 @@ export const nodes = [
   {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
@@ -81,7 +67,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"status\": \"success\"\n}"
+        "outputMapping": "{\n  \"sponsors\": {{tablesNode_1.output}}\n}"
       }
     }
   }

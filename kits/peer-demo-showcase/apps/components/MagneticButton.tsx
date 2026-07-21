@@ -33,6 +33,7 @@ export default function MagneticButton({ children, className, ...props }: Magnet
       onMouseLeave={reset}
       animate={{ x: position.x, y: position.y }}
       transition={{ type: 'spring', stiffness: 200, damping: 15, mass: 0.1 }}
+      suppressHydrationWarning
       {...props}
     >
       {children}

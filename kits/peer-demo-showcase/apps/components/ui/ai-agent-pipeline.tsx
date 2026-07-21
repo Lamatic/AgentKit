@@ -170,26 +170,26 @@ export function EnterpriseAIPipeline({
   };
 
   return (
-    <div className="agent-pipeline bg-[#090909] border border-white/[0.08] rounded-[14px] overflow-hidden font-sans w-full max-w-[720px] mx-auto shadow-2xl backdrop-blur-xl">
+    <div className="agent-pipeline bg-[#090909] border border-white/[0.12] rounded-2xl overflow-hidden font-sans w-full max-w-full mx-auto shadow-2xl backdrop-blur-2xl p-2 sm:p-4">
       {/* Header */}
-      <div className="px-[18px] py-[11px] border-b border-white/[0.06] flex items-center justify-between">
-        <div className="flex items-center gap-[7px]">
+      <div className="px-5 py-3.5 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
           <motion.span
-            className="w-[6px] h-[6px] rounded-full bg-green-500 inline-block"
-            animate={{ opacity: [1, 0.2, 1] }}
+            className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block shadow-[0_0_10px_rgba(34,197,94,0.6)]"
+            animate={{ opacity: [1, 0.3, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
-          <span className="text-[10px] text-white/30 tracking-[0.1em] font-mono">
-            AGENT PIPELINE · {loading ? "PROCESSING" : "LIVE"}
+          <span className="text-xs text-white/50 tracking-wider font-mono font-semibold">
+            AI AGENT PIPELINE · {loading ? "PROCESSING MATCH..." : "LIVE TRACKER"}
           </span>
         </div>
-        <span className="text-[10px] text-white/[0.18] font-mono">
+        <span className="text-xs text-white/30 font-mono">
           3 nodes · {error ? "1 error" : "0 errors"}
         </span>
       </div>
 
       {/* SVG Pipeline Visualization */}
-      <svg width="100%" viewBox="0 0 580 172" className="block select-none">
+      <svg width="100%" viewBox="0 0 580 172" className="block select-none my-2">
         <defs>
           <marker
             id="ma"
@@ -460,9 +460,9 @@ export function EnterpriseAIPipeline({
       </svg>
 
       {/* Message Display */}
-      <div className="border-t border-white/[0.06] px-[18px] py-[9px] h-[52px]">
-        <div className="flex gap-2 items-start h-full">
-          <span className="text-[#0052FF]/55 font-mono text-[13px] leading-[1.5] shrink-0">
+      <div className="border-t border-white/[0.08] px-5 py-3 h-[60px]">
+        <div className="flex gap-2.5 items-start h-full">
+          <span className="text-[#3b82f6] font-mono text-base leading-tight shrink-0 font-bold">
             ›
           </span>
           <div className="relative flex-1 overflow-hidden h-full">
@@ -473,7 +473,7 @@ export function EnterpriseAIPipeline({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
                 transition={{ duration: 0.25 }}
-                className="font-mono text-[10px] text-white/[0.42] leading-[1.55] absolute inset-0"
+                className="font-mono text-xs sm:text-sm text-gray-300 leading-relaxed absolute inset-0 font-medium"
               >
                 {logMessage}
               </motion.div>
@@ -483,24 +483,24 @@ export function EnterpriseAIPipeline({
       </div>
 
       {/* Stats Footer */}
-      <div className="border-t border-white/[0.06] px-[18px] py-[10px] flex gap-[22px] items-center">
+      <div className="border-t border-white/[0.08] px-5 py-3 flex gap-6 sm:gap-8 items-center flex-wrap">
         <div>
-          <div className="text-[9px] text-white/20 tracking-[0.09em] mb-[3px]">EXECUTIONS</div>
-          <div className="text-[16px] text-white/[0.72] font-mono">
+          <div className="text-[10px] text-white/40 tracking-wider mb-1 font-semibold">EXECUTIONS</div>
+          <div className="text-lg text-white font-mono font-bold">
             {pipelinesExecuted}
           </div>
         </div>
         <div>
-          <div className="text-[9px] text-white/20 tracking-[0.09em] mb-[3px]">API STATUS</div>
-          <div className="text-[16px] text-emerald-400 font-mono">200 OK</div>
+          <div className="text-[10px] text-white/40 tracking-wider mb-1 font-semibold">API STATUS</div>
+          <div className="text-lg text-emerald-400 font-mono font-bold">200 OK</div>
         </div>
         <div>
-          <div className="text-[9px] text-white/20 tracking-[0.09em] mb-[3px]">LATENCY</div>
-          <div className="text-[16px] text-white/[0.72] font-mono">{loading ? "Calcul..." : "342ms"}</div>
+          <div className="text-[10px] text-white/40 tracking-wider mb-1 font-semibold">LATENCY</div>
+          <div className="text-lg text-blue-400 font-mono font-bold">{loading ? "Analyzing..." : "342ms"}</div>
         </div>
         <div className="ml-auto text-right">
-          <div className="text-[9px] text-white/[0.18] tracking-[0.09em] mb-[3px]">PROVIDER</div>
-          <div className="text-[10px] text-[#0052FF]/55 font-mono">Lamatic AI</div>
+          <div className="text-[10px] text-white/30 tracking-wider mb-1 font-semibold">PROVIDER</div>
+          <div className="text-xs text-blue-400 font-mono font-semibold">Lamatic AI</div>
         </div>
       </div>
     </div>

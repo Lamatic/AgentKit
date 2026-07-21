@@ -22,10 +22,18 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Protect /judge routes, but allow /judge/login
+  if (request.nextUrl.pathname.startsWith('/judge') && request.nextUrl.pathname !== '/judge/login') {
+    const judgeSessionCookie = request.cookies.get('judge_session');
+    if (!judgeSessionCookie) {
+      return NextResponse.redirect(new URL('/judge/login', request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  // Protect all routes under /admin
-  matcher: '/admin/:path*',
+  // Protect all routes under /admin and /judge
+  matcher: ['/admin/:path*', '/judge/:path*'],
 };

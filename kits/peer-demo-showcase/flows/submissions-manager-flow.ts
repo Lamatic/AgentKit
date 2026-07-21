@@ -1,10 +1,9 @@
-// Flow: upvote-project-flow
+// Flow: submissions-manager-flow (Consolidated Flow 2/5)
 
-// -- Meta --
 export const meta = {
-  "name": "upvote-project-flow",
-  "description": "Increment upvote count for a specific project",
-  "tags": [],
+  "name": "submissions-manager-flow",
+  "description": "Consolidated manager flow for reading, upvoting, updating status, updating details, and deleting project submissions",
+  "tags": ["submissions", "management"],
   "testInput": null,
   "githubUrl": "",
   "documentationUrl": "",
@@ -15,21 +14,14 @@ export const meta = {
   }
 };
 
-// -- Inputs --
 export const inputs = {};
-
-// -- References --
 export const references = {};
 
-// -- Nodes & Edges --
 export const nodes = [
   {
     "id": "triggerNode_1",
     "type": "triggerNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "graphqlNode",
       "trigger": true,
@@ -37,29 +29,26 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"id\": \"string\"\n}"
+        "advance_schema": "{\n  \"action\": \"string\",\n  \"id\": \"string\",\n  \"status\": \"string\",\n  \"github_url\": \"string\",\n  \"project_title\": \"string\",\n  \"category\": \"string\",\n  \"matched_sponsor\": \"string\",\n  \"tech_stack\": \"string\",\n  \"description\": \"string\",\n  \"breakout_table\": \"string\"\n}"
       }
     }
   },
   {
     "id": "tablesNode_1",
     "type": "dynamicNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_1",
         "data": "{}",
-        "limit": "10",
-        "query": "UPDATE showcase_submissions SET breakout_table = (CASE WHEN INSTR(breakout_table, '|') > 0 THEN SUBSTR(breakout_table, 1, INSTR(breakout_table, '|') - 1) ELSE breakout_table END) || '|upvotes:' || (CAST((CASE WHEN INSTR(breakout_table, 'upvotes:') > 0 THEN SUBSTR(breakout_table, INSTR(breakout_table, 'upvotes:') + 8) ELSE '0' END) AS INTEGER) + 1) WHERE CAST(id AS TEXT) = '{{triggerNode_1.output.id}}'",
+        "limit": "100",
+        "query": "",
         "where": "",
-        "action": "query",
+        "action": "select",
         "offset": "0",
         "columns": "*",
-        "orderBy": "",
+        "orderBy": "created_at DESC",
         "nodeName": "Tables",
         "tableName": "showcase_submissions"
       }
@@ -68,10 +57,7 @@ export const nodes = [
   {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
+    "position": { "x": 0, "y": 0 },
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
@@ -81,7 +67,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"status\": \"success\"\n}"
+        "outputMapping": "{\n  \"submissions\": {{tablesNode_1.output}}\n}"
       }
     }
   }
