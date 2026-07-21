@@ -140,13 +140,7 @@ export default function WhyThisCodePage() {
     if (view === "loading") {
       setLoadingStep(0)
       interval = setInterval(() => {
-        setLoadingStep((prev) => {
-          if (prev >= loadingSteps.length - 1) {
-            clearInterval(interval)
-            return prev
-          }
-          return prev + 1
-        })
+        setLoadingStep((prev) => (prev >= loadingSteps.length - 1 ? prev : prev + 1))
       }, 950)
     }
     return () => clearInterval(interval)
@@ -420,11 +414,13 @@ export default function WhyThisCodePage() {
                           value={inputUrl}
                           onChange={(e) => setInputUrl(e.target.value)}
                           placeholder="Paste GitHub permalink (e.g. https://github.com/.../orchestrate.ts)"
+                          aria-label="GitHub permalink"
                           className="w-full bg-transparent text-white border-0 outline-none placeholder:text-neutral-600 text-xs px-1"
                         />
                         <button
                           type="submit"
                           disabled={!inputUrl.trim() || !urlValidation.isValid}
+                          aria-label="Analyze URL"
                           className="p-1.5 rounded border border-neutral-800 bg-neutral-900 text-neutral-400 disabled:opacity-30 disabled:pointer-events-none hover:text-white hover:border-neutral-600 transition flex-shrink-0"
                         >
                           <ArrowRight className="h-3 w-3" />
@@ -490,11 +486,13 @@ export default function WhyThisCodePage() {
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
                   placeholder="Paste GitHub permalink (e.g. https://github.com/.../orchestrate.ts)"
+                  aria-label="GitHub permalink"
                   className="w-full py-2.5 bg-transparent text-white border-0 outline-none placeholder:text-neutral-600 text-xs"
                 />
                 <button
                   type="submit"
                   disabled={!inputUrl.trim() || !urlValidation.isValid}
+                  aria-label="Analyze URL"
                   className="p-2 rounded border border-neutral-800 bg-neutral-900 text-neutral-400 disabled:opacity-30 disabled:pointer-events-none hover:text-white hover:border-neutral-600 hover:bg-neutral-800/40 transition flex-shrink-0"
                 >
                   <ArrowRight className="h-3.5 w-3.5" />
