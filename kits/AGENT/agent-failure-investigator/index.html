@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Failure Investigator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="eyebrow">Diagnostic tooling for agent developers</div>
+      <h1>Agent Failure <span class="accent">Investigator</span></h1>
+      <p class="tagline">
+        Every AI team asks the same question: <em>why did the agent fail?</em>
+        Load a trace — conversation, logs, tool calls, retrieved docs, final response —
+        and get a deterministic failure report with evidence you can click.
+      </p>
+    </header>
+
+    <div class="fw-strip">
+      <span class="fw-strip-label">Import traces from</span>
+      <span class="fw-badge">✓ LangGraph</span>
+      <span class="fw-badge">✓ OpenAI Agents</span>
+      <span class="fw-badge">✓ CrewAI</span>
+      <span class="fw-badge">✓ AutoGen</span>
+      <span class="fw-badge">✓ Lamatic</span>
+      <span class="fw-badge">✓ Native</span>
+    </div>
+
+    <div class="section-title">Open a case</div>
+    <div id="cases"></div>
+    <div class="picker-actions">
+      <button id="run-btn" class="primary" disabled>Run investigation</button>
+      <button id="custom-toggle" class="ghost">Paste your own trace (JSON)</button>
+      <label class="ghost upload-label" for="trace-file">Upload trace.json — auto-detects format</label>
+      <input type="file" id="trace-file" accept=".json,application/json" hidden />
+      <span id="format-pill" class="format-pill hidden"></span>
+    </div>
+    <div id="custom-area" class="hidden">
+      <textarea id="custom-json" spellcheck="false"
+        placeholder='{ "system_prompt": "...", "conversation": [...], "available_tools": [...], "tool_calls": [...], "retrieved_docs": [...], "logs": [...], "final_response": { "ts": "...", "content": "..." } }'></textarea>
+    </div>
+
+    <div id="results" class="hidden">
+
+      <div class="section-title">Failure propagation</div>
+      <div class="panel">
+        <div id="graph-scroll"><div id="causality-graph"></div></div>
+      </div>
+
+      <div class="section-title">Timeline</div>
+      <div class="panel">
+        <div id="timeline-scroll"><div id="timeline-svg"></div></div>
+        <div id="timeline-labels"></div>
+      </div>
+
+      <div class="section-title">Failure report</div>
+      <div class="report-grid">
+        <div class="panel">
+          <div class="report-head">
+            <div class="stamp" id="stamp">—</div>
+            <div class="confidence-block">
+              <div class="confidence-line">
+                <span id="confidence">—</span>
+                <span class="confidence-label">Confidence</span>
+              </div>
+              <div class="confidence-track"><span id="confidence-bar"></span></div>
+              <div id="confidence-note"></div>
+            </div>
+          </div>
+
+          <div class="field-title">Evidence</div>
+          <div id="evidence"></div>
+
+          <div class="field-title">Root cause</div>
+          <p id="root-cause"></p>
+          <div class="mode-tag" id="root-cause-mode"></div>
+          <div class="llm-row">
+            <input id="api-key" type="password" placeholder="Optional: Anthropic API key for LLM narration" autocomplete="off" />
+            <button id="llm-btn" class="ghost">Compose with Claude</button>
+          </div>
+          <div class="llm-note">The LLM only narrates the findings above — the diagnosis itself is deterministic. Key stays in memory, never stored.</div>
+
+          <div class="field-title">Contributing factors</div>
+          <div id="contributing"></div>
+
+          <div class="field-title">Recommended fixes</div>
+          <ul class="actions" id="fixes"></ul>
+
+          <div class="field-title">Preventive actions</div>
+          <ul class="actions" id="preventive"></ul>
+
+          <div class="field-title">Remediation playbook</div>
+          <div id="remediation"></div>
+
+          <div class="export-row">
+            <button id="export-md" class="ghost">Export Markdown</button>
+            <button id="export-pdf" class="ghost">Export PDF</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-subtitle">Rule engine</div>
+          <div id="rule-panel"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Raw trace</div>
+      <div class="panel">
+        <div id="trace-viewer"></div>
+      </div>
+
+    </div>
+
+    <div class="section-title">Compare two runs (before / after a fix)</div>
+    <div class="panel">
+      <div class="cmp-pickers">
+        <div>
+          <div class="field-title">Trace A — before</div>
+          <select id="cmp-a"></select>
+          <label class="ghost upload-label small" for="cmp-a-file">or upload</label>
+          <input type="file" id="cmp-a-file" accept=".json" hidden />
+        </div>
+        <div class="cmp-vs">vs</div>
+        <div>
+          <div class="field-title">Trace B — after</div>
+          <select id="cmp-b"></select>
+          <label class="ghost upload-label small" for="cmp-b-file">or upload</label>
+          <input type="file" id="cmp-b-file" accept=".json" hidden />
+        </div>
+        <button id="cmp-run" class="primary">Compare</button>
+      </div>
+      <div id="cmp-result"></div>
+    </div>
+
+    <footer>
+      <span>Agent Failure Investigator — deterministic rule engine + optional LLM narration</span>
+      <span>13 pluggable rules · 5 failure categories · 6 trace formats · zero build step</span>
+    </footer>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script src="js/traces.js"></script>
+  <script src="rules/core.js"></script>
+  <script src="rules/tool_failure.js"></script>
+  <script src="rules/hallucination.js"></script>
+  <script src="rules/rag.js"></script>
+  <script src="rules/prompt.js"></script>
+  <script src="rules/wrong_tool.js"></script>
+  <script src="js/adapters.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/advisor.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/compare.js"></script>
+  <script src="js/report.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
