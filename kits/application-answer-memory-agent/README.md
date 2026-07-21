@@ -103,7 +103,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Project Structure
 
-```
+```text
 application-answer-memory-agent/
 ├── agent.md               # Agent identity and capability doc
 ├── lamatic.config.ts      # Kit metadata
@@ -133,7 +133,7 @@ application-answer-memory-agent/
 
 **Past answers:**
 
-```
+```text
 Q: Why do you want to work with us?
 A: Honestly, I got tired of just calling an API and hoping the output made
 sense. I built a job-matching bot using the Claude API — it scrapes
@@ -144,7 +144,7 @@ underneath: retrieval, orchestration, deployment. Not just prompting.
 
 **New question:**
 
-```
+```text
 What excites you about this role?
 ```
 
