@@ -2,11 +2,23 @@
 
 import { draftAnswer } from '@/lib/lamatic-client';
 import { DraftAnswerInput, ApiResponse } from '@/types';
+import kitConfig from '../../lamatic.config';
+
+const flowStep = kitConfig.steps.find(
+  (step) => step.id === 'application-answer-memory-agent'
+);
 
 export async function generateDraftAnswer(
   input: DraftAnswerInput
 ): Promise<ApiResponse> {
   try {
+    if (!flowStep) {
+      return {
+        success: false,
+        error: 'Kit misconfigured: flow step not found in lamatic.config.',
+      };
+    }
+
     if (!input.new_question?.trim()) {
       return { success: false, error: 'The new question is required.' };
     }
