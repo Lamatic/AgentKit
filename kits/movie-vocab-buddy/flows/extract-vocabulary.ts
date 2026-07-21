@@ -1,12 +1,9 @@
-// Flow 1: Extraction + difficulty tagging
-// Trigger: manual (called from the frontend when a user uploads/pastes a transcript)
-
 export default {
   meta: {
     name: "extract-vocabulary",
     description:
-      "Extracts notable vocabulary/phrases from a movie or show transcript, " +
-      "tags each with a difficulty level, and stores them.",
+      "Extracts notable vocabulary/phrases from a movie or show transcript and " +
+      "tags each with a difficulty level.",
   },
   inputs: {
     transcript_text: { type: "string", required: true },
@@ -32,21 +29,13 @@ export default {
       },
     },
     {
-      nodeId: "StoreWordsNode",
-      type: "code",
-      values: {
-        script: "@scripts/extract-vocabulary_code-node.ts",
-      },
-    },
-    {
       nodeId: "OutputNode",
       type: "output",
-      values: { returns: "StoreWordsNode.words" },
+      values: { returns: "LLMNode.words_json" },
     },
   ],
   edges: [
     { from: "InputNode", to: "LLMNode" },
-    { from: "LLMNode", to: "StoreWordsNode" },
-    { from: "StoreWordsNode", to: "OutputNode" },
+    { from: "LLMNode", to: "OutputNode" },
   ],
 };

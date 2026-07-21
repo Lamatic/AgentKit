@@ -1,8 +1,4 @@
-// Called after the user submits their weekly quiz answers.
-// Updates correct_count and last_reviewed for each word based on results.
-// This is the ONLY place retention state is written — post-movie quiz
-// results never touch this table.
-
+// @ts-nocheck
 import { Client } from "pg";
 
 interface QuizResult {
@@ -10,20 +6,38 @@ interface QuizResult {
   correct: boolean;
 }
 
-export default async function run(input: { results: QuizResult[] }) {
+// Lamatic Code nodes take no input argument — the submitted results come
+// from the manual "submit" trigger via a template variable at deploy time.
+const RESULTS = "{{SubmitTrigger.results}}";
+
+export default async function run() {
+  const results: QuizResult[] = JSON.parse(RESULTS);
+
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
 
-  for (const r of input.results) {
-    await client.query(
-      `UPDATE words
-       SET correct_count = CASE WHEN $2 THEN correct_count + 1 ELSE 0 END,
-           last_reviewed = now()
-       WHERE id = $1`,
-      [r.word_id, r.correct]
-    );
-  }
+  try {
+    if (results.length === 0) {
+      return { updated: 0 };
+    }
 
-  await client.end();
-  return { updated: input.results.length };
+    // Single batched UPDATE via unnest() instead of one round-trip per row.
+    const wordIds = results.map((r) => r.word_id);
+    const corrects = results.map((r) => r.correct);
+
+    await client.query(
+      `UPDATE words AS w
+       SET correct_count = CASE WHEN u.correct THEN w.correct_count + 1 ELSE 0 END,
+           last_reviewed = now()
+       FROM (
+         SELECT * FROM unnest($1::int[], $2::boolean[]) AS t(word_id, correct)
+       ) AS u
+       WHERE w.id = u.word_id`,
+      [wordIds, corrects]
+    );
+
+    return { updated: results.length };
+  } finally {
+    await client.end();
+  }
 }

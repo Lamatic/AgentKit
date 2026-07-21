@@ -4,11 +4,10 @@ const LAMATIC_API_URL = process.env.LAMATIC_API_URL!;
 const LAMATIC_API_KEY = process.env.LAMATIC_API_KEY!;
 const LAMATIC_PROJECT_ID = process.env.LAMATIC_PROJECT_ID!;
 
-/**
- * Lamatic flows are invoked over a single GraphQL endpoint, not REST.
- * Every flow exposes the same `executeWorkflow` query shape; only the
- * `workflowId` and the `payload` fields differ per flow.
- */
+// Guards against a slow/hung Lamatic API response blocking the calling
+// server action's request thread indefinitely.
+const FETCH_TIMEOUT_MS = 30000;
+
 
 function buildVariableDeclarations(payload: Record<string, unknown>): string {
   return Object.keys(payload)
@@ -51,18 +50,32 @@ export async function callFlow(stepId: string, payload: Record<string, unknown>)
     }
   `;
 
-  const res = await fetch(LAMATIC_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${LAMATIC_API_KEY}`,
-      "x-project-id": LAMATIC_PROJECT_ID,
-    },
-    body: JSON.stringify({
-      query,
-      variables: { workflowId: flowId, ...stringPayload },
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(LAMATIC_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LAMATIC_API_KEY}`,
+        "x-project-id": LAMATIC_PROJECT_ID,
+      },
+      body: JSON.stringify({
+        query,
+        variables: { workflowId: flowId, ...stringPayload },
+      }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Lamatic flow ${stepId} timed out after ${FETCH_TIMEOUT_MS}ms`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     throw new Error(`Lamatic flow ${stepId} failed: ${res.status} ${await res.text()}`);
