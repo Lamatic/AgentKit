@@ -21,7 +21,7 @@ function computeStats(orders) {
       currentStage: o.currentStage,
       daysInStage,
       daysUntilDue,
-      pctComplete: Math.round(pctComplete * 100),
+      pctComplete,
       stagesRemaining,
       atRisk
     };
