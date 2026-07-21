@@ -214,6 +214,7 @@ export default function WhyThisCodePage() {
         const mappedAnalysis: AnalysisData = {
           coordinate: parsedCoordinate,
           unifiedPurpose: aiResponse.unifiedPurpose || "No unified purpose provided.",
+          purposeBasis: aiResponse.purposeBasis,
           docstring: raw.docstring || undefined,
           coverageDashboard: {
             commitHistory: aiResponse.coverageDashboard?.commitHistory || "NOT FOUND",
@@ -223,7 +224,8 @@ export default function WhyThisCodePage() {
           },
           architecturalIntent: {
             summary: aiResponse.architecturalIntent?.summary || "No architectural summary generated.",
-            warningsOrCaveats: aiResponse.architecturalIntent?.warningsOrCaveats || []
+            dependencies: aiResponse.architecturalIntent?.dependencies || [],
+            notes: aiResponse.architecturalIntent?.notes || []
           },
           originHistory: {
             summary: aiResponse.originHistory?.summary || "No origin narrative generated.",

@@ -30,7 +30,7 @@ This agent automates that exploration into a single cohesive narrative:
   7. `codeNode_508` (Trim Larger Files): Formats and bounds large file context buffers for prompt efficiency.
   8. `InstructorLLMNode_662` (LLM Call): Performs AI inference to synthesize findings into a structured schema (`aiResponse` and `context`).
 - **Response**: `{ aiResponse, context, status, validationError }`.
-- **Dependencies**: `prompts/why_this_code_instructor_llmnode_662_system_0.md`, `prompts/why_this_code_instructor_llmnode_662_user_1.md`, `constitutions/default.md`.
+- **Dependencies**: `prompts/why-this-code_instructor-llmnode-662_system_0.md`, `prompts/why-this-code_instructor-llmnode-662_user_1.md`, `constitutions/default.md`.
 
 ## Guardrails
 

@@ -1,7 +1,7 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import { config } from "../orchestrate"
+import kitConfig from "../../lamatic.config"
 
 function extractValidationError(data: any): string | null {
   if (!data) return null
@@ -30,21 +30,20 @@ export async function explainCode(url: string): Promise<{
   try {
     console.log("[why-this-code] Explaining URL:", url)
 
-    if (!process.env.WHY_THIS_CODE) {
-      throw new Error(
-        "WHY_THIS_CODE environment variable is not set. Please add it to your .env.local or .env file."
-      )
-    }
+    const step = kitConfig.steps.find((s) => s.id === "why-this-code")
+    const envKey = step?.envKey || "WHY_THIS_CODE"
+    const workflowId = process.env[envKey]
 
-    const flow = config.flows.step1
-    if (!flow.workflowId) {
-      throw new Error("Workflow not found in config.")
+    if (!workflowId) {
+      throw new Error(
+        `${envKey} environment variable is not set. Please add it to your .env.local or .env file.`
+      )
     }
 
     const inputs = { url }
     console.log("[why-this-code] Sending inputs:", inputs)
 
-    let resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    let resData = await lamaticClient.executeFlow(workflowId, inputs)
     console.log("[why-this-code] Response status:", resData?.status)
 
     const validationError = extractValidationError(resData)
@@ -63,7 +62,6 @@ export async function explainCode(url: string): Promise<{
       }
     }
 
-    // Handle async polling if needed (if Lamatic processes the flow in the background)
     if (resData?.result?.requestId && (!resData?.result?.aiResponse && !resData?.result?.context)) {
       const requestId = resData.result.requestId
       console.log("[why-this-code] Async execution, polling requestId:", requestId)
@@ -87,7 +85,6 @@ export async function explainCode(url: string): Promise<{
       resData = asyncResult
     }
 
-    // Extract outputs from the response result
     const aiResponse =
       resData?.result?.aiResponse ||
       (resData as any)?.data?.output?.result?.aiResponse ||

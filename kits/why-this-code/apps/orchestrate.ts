@@ -1,10 +1,12 @@
+import kitConfig from "../lamatic.config";
+
 export const config = {
   type: "single",
   flows: {
     step1: {
-      name: "Why This Code",
+      name: kitConfig.name,
       workflowId: process.env.WHY_THIS_CODE,
-      description: "Explains code purpose, origin, and usages",
+      description: kitConfig.description,
       mode: "sync",
       expectedOutput: "answer",
       inputSchema: {

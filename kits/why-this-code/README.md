@@ -78,8 +78,8 @@ Deploy the `apps` directory to Vercel and configure the 4 environment variables 
 
 #### 4. Example
 
-Sample Input: [here](./sample_input.json)
-Sample Output: [here](./sample_output.json)
+Sample Input: [sample_input.json](./sample_input.json)
+Sample Output: [sample_output.json](./sample_output.json)
 Note: Raw context provided to the LLM for inference is available in the `aiResponse.context` field in the sample output.
 
 ### Project structure
