@@ -3,7 +3,7 @@ export default {
   description:
     "AI-powered flight search agent that finds the cheapest flights using natural language. Integrates with Duffel API for real-time pricing and currency conversion.",
   version: "1.0.0",
-  type: "kit" as const,
+  type: "kit",
   author: {
     name: "Nhlalonhle",
     email: "nhlalonkosi@gmail.com",
@@ -11,9 +11,8 @@ export default {
   tags: ["ai", "flights", "travel", "search", "duffel"],
   steps: [
     {
-      id: "flight-search",
-      type: "mandatory" as const,
-      envKey: "LAMATIC_WORKFLOW_ID",
+      id: "flight-booking-agent",
+      type: "mandatory",
     },
   ],
   links: {
