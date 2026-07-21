@@ -38,16 +38,13 @@ export default function Home() {
     <main className="min-h-screen">
       <div className="mx-auto max-w-2xl px-6 py-16">
         <header className="mb-10">
-          <p
-            className="text-xs font-medium uppercase tracking-wide mb-3"
-            style={{ color: 'var(--accent)' }}
-          >
+          <p className="text-xs font-medium uppercase tracking-wide mb-3 text-(--accent)">
             Application Answer Memory Agent
           </p>
-          <h1 className="font-display text-3xl mb-3" style={{ color: 'var(--ink)' }}>
+          <h1 className="font-display text-3xl mb-3 text-(--ink)">
             Don't rewrite the same answer twice.
           </h1>
-          <p className="text-sm leading-relaxed" style={{ color: '#57534e' }}>
+          <p className="text-sm leading-relaxed text-[#57534e]">
             Paste what you've already written for other applications, then
             paste a new question. The agent adapts your real answers to fit
             it — it won't invent anything you haven't actually said.
@@ -66,10 +63,7 @@ export default function Home() {
           </div>
         )}
 
-        <footer
-          className="mt-16 border-t pt-6 text-xs"
-          style={{ borderColor: 'var(--rule)', color: '#a8a29e' }}
-        >
+        <footer className="mt-16 border-t pt-6 text-xs border-(--rule) text-[#a8a29e]">
           Built on Lamatic.ai
         </footer>
       </div>
