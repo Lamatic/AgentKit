@@ -1,3 +1,1 @@
-Words to quiz on:
-
-{{extracted_words_json}}
+Words to quiz on: {{triggerNode_1.output.extracted_words_json}}

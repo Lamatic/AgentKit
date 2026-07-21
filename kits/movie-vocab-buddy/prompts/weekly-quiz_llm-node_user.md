@@ -1,3 +1,1 @@
-Words selected for this week's review:
-
-{{selected_words_json}}
+Woords saved over the past few weeks: {{postgresNode_140.output.queryResult}}

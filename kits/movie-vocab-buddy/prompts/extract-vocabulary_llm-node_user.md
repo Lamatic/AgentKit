@@ -1,5 +1,2 @@
-Transcript / subtitle text:
-
-{{transcript_text}}
-
-Source title: {{source_title}}
+Transcript / subtitle text: {{triggerNode_1.output.transcript_text}}
+Source title:{{triggerNode_1.output.source_title}}
