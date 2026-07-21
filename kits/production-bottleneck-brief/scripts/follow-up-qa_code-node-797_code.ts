@@ -7,9 +7,9 @@ function computeStats(order) {
   const dueDate = new Date(order.dueDate);
   const quantity = Number(order.quantity);
   const completedQuantity = Number(order.completedQuantity);
-  const daysInStage = Math.floor((today - stageEntered) / 86400000);
-  const daysUntilDue = Math.floor((dueDate - today) / 86400000);
-  const pctComplete = Math.round((completedQuantity / quantity) * 100);
+  const daysInStage = Math.floor((today.getTime() - stageEntered.getTime()) / 86400000);
+  const daysUntilDue = Math.floor((dueDate.getTime() - today.getTime()) / 86400000);
+  const pctComplete = quantity > 0 ? Math.round((completedQuantity / quantity) * 100) : 0;
   const stageIndex = order.stages.indexOf(order.currentStage);
   const stagesRemaining = order.stages.length - stageIndex - 1;
   const atRisk = daysUntilDue < (stagesRemaining * 3) || daysUntilDue < 0;

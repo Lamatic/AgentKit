@@ -8,9 +8,9 @@ function computeStats(orders) {
     const quantity = Number(o.quantity);
     const completedQuantity = Number(o.completedQuantity);
 
-    const daysInStage = Math.floor((today - stageEntered) / 86400000);
-    const daysUntilDue = Math.floor((dueDate - today) / 86400000);
-    const pctComplete = completedQuantity / quantity;
+    const daysInStage = Math.floor((today.getTime() - stageEntered.getTime()) / 86400000);
+    const daysUntilDue = Math.floor((dueDate.getTime() - today.getTime()) / 86400000);
+    const pctComplete = quantity > 0 ? Math.round((completedQuantity / quantity) * 100) : 0;
     const stageIndex = o.stages.indexOf(o.currentStage);
     const stagesRemaining = o.stages.length - stageIndex - 1;
 
