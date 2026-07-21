@@ -19,7 +19,7 @@ export async function login(password: string) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7 // 1 week
+      maxAge: 60 * 60 * 2 // 2 hours auto-expire
     });
     return { success: true };
   }
@@ -31,4 +31,36 @@ export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete('admin_session');
   redirect('/admin/login');
+}
+
+export async function judgeLogin(password: string, name?: string) {
+  const cookieStore = await cookies();
+  const obscuredToken = btoa(password).split('').reverse().join('');
+  
+  cookieStore.set('judge_session', obscuredToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 2 // 2 hours auto-expire
+  });
+
+  if (name) {
+    cookieStore.set('judge_name', name, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 2 // 2 hours auto-expire
+    });
+  }
+
+  return { success: true };
+}
+
+export async function judgeLogout() {
+  const cookieStore = await cookies();
+  cookieStore.delete('judge_session');
+  cookieStore.delete('judge_name');
+  redirect('/judge/login');
 }

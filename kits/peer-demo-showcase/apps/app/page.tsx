@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
-import { submitProject } from '../actions/orchestrate';
-import { Github, User, Mail, Check, MapPin, Award, Sparkles, AlertCircle, Globe, Twitter, Linkedin, Link2 } from 'lucide-react';
+import { submitProject, getEventConfig } from '../actions/orchestrate';
+import { Github, User, Mail, Check, MapPin, Award, Sparkles, AlertCircle, Globe, Twitter, Linkedin, Link2, Clock, Lock } from 'lucide-react';
 import MagneticButton from '../components/MagneticButton';
 import TiltCard from '../components/TiltCard';
 import { toast } from 'sonner';
@@ -61,6 +61,60 @@ export default function Home() {
   const [stepStatuses, setStepStatuses] = useState<Array<'idle' | 'loading' | 'completed' | 'failed'>>(['idle', 'idle', 'idle', 'idle']);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
+
+  // Event Deadline state
+  const [isExpired, setIsExpired] = useState(false);
+  const [deadlineText, setDeadlineText] = useState('');
+  const [rawDeadline, setRawDeadline] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const config = await getEventConfig();
+        if (config.submission_deadline) {
+          setRawDeadline(config.submission_deadline);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchConfig();
+  }, []);
+
+  useEffect(() => {
+    if (!rawDeadline) return;
+    const initialDiff = new Date(rawDeadline).getTime() - Date.now();
+    let wasActiveBeforeExpiry = initialDiff > 0;
+    let hasReloaded = false;
+
+    const updateTimer = () => {
+      const target = new Date(rawDeadline).getTime();
+      const now = Date.now();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        setIsExpired(true);
+        setDeadlineText('00:00:00 - Submissions Closed');
+        if (wasActiveBeforeExpiry && !hasReloaded) {
+          hasReloaded = true;
+          window.location.reload();
+        }
+        return;
+      }
+
+      setIsExpired(false);
+      const totalSecs = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSecs / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      setDeadlineText(`Submissions Close In: ${pad(hours)}:${pad(mins)}:${pad(secs)}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [rawDeadline]);
 
   function validateForm(): boolean {
     const errors: Record<string, string> = {};
@@ -204,8 +258,15 @@ export default function Home() {
             />
           </motion.div>
           <motion.p variants={itemVariants} className="text-sm md:text-base font-mono text-gray-400/80 max-w-2xl mx-auto leading-relaxed tracking-tight border-t border-white/5 pt-6 mt-6">
-            Submit your GitHub repository and let our AI agents instantly match you with the perfect sponsor and breakout session.
+            Submit your GitHub repository and let our AI agents instantly match you with the perfect sponsor track and breakout session.
           </motion.p>
+
+          {deadlineText && (
+            <motion.div variants={itemVariants} className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20 backdrop-blur-md shadow-lg">
+              <Clock className="w-4 h-4 text-purple-400 animate-pulse" />
+              <span>{deadlineText}</span>
+            </motion.div>
+          )}
         </motion.header>
 
         <motion.div 
@@ -217,7 +278,14 @@ export default function Home() {
           {/* Submission Form Column */}
           <div className="lg:col-span-2">
             <div className="glass-card rounded-2xl p-8 space-y-6">
-              <h3 className="text-xl font-bold mb-4">Project Details</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">Project Details</h3>
+                {isExpired && (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-md">
+                    <Lock className="w-3.5 h-3.5" /> Submissions Closed
+                  </span>
+                )}
+              </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">GitHub URL</label>
                 <div className="relative group">
@@ -251,7 +319,7 @@ export default function Home() {
                 {validationErrors.hostedLink && <p className="text-red-400 text-xs mt-1">{validationErrors.hostedLink}</p>}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Your Name</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Builder / Team Name(s)</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <User className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
@@ -260,7 +328,7 @@ export default function Home() {
                     type="text"
                     value={builderName}
                     onChange={(e) => { setBuilderName(e.target.value); setValidationErrors(prev => { const n = { ...prev }; delete n.builderName; return n; }); }}
-                    placeholder="Avadhut Kaskar"
+                    placeholder="e.g. Sarah Jenkins or Team CyberPulse (Avadhut, Sarah, Alex)"
                     className={`w-full bg-white/5 border rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:bg-white/10 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all ${validationErrors.builderName ? 'border-red-500/50' : 'border-white/10'}`}
                   />
                 </div>
@@ -286,10 +354,11 @@ export default function Home() {
               <div className="pt-2">
                 <MagneticButton 
                   onClick={handleSubmit}
-                  disabled={Boolean(loading || !githubUrl || !builderName || !contactEmail)}
+                  disabled={Boolean(loading || isExpired || !githubUrl || !builderName || !contactEmail)}
+                  suppressHydrationWarning
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-500 rounded-xl px-4 py-4 font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] disabled:shadow-none"
                 >
-                  {loading ? 'Analyzing Project...' : 'Submit Project'}
+                  {isExpired ? 'Submissions Closed' : loading ? 'Analyzing Project...' : 'Submit Project'}
                 </MagneticButton>
               </div>
             </div>
@@ -327,7 +396,7 @@ export default function Home() {
                       <div className="flex-shrink-0">
                         <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.25)] backdrop-blur-md">
                           <Sparkles className="w-4 h-4 text-blue-400" />
-                          98% MATCH
+                          AI SUGGESTED
                         </span>
                       </div>
                     </div>
@@ -350,7 +419,7 @@ export default function Home() {
                       <div className="relative bg-[#030014]/80 backdrop-blur-xl rounded-xl p-6 h-full border border-emerald-500/20">
                         <div className="flex items-center space-x-2 mb-3">
                           <Award className="w-5 h-5 text-emerald-400" />
-                          <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest">Sponsor Spotlight</span>
+                          <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest">Suggested Mentor Track</span>
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-2">{result.matched_sponsor}</h3>
                         <p className="text-gray-400 text-sm leading-relaxed">{result.match_justification}</p>

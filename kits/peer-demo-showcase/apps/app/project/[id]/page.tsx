@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ThumbsUp, Award, Github, Globe, MapPin, Mail, User, Sparkles, Loader2 } from 'lucide-react';
-import { getSubmissions, upvoteProject } from '../../../actions/orchestrate';
+import { ArrowLeft, ThumbsUp, Award, Github, Globe, MapPin, Mail, User, Sparkles, Loader2, Trophy, RefreshCw, Edit3, X } from 'lucide-react';
+import { getSubmissions, upvoteProject, resubmitProject } from '../../../actions/orchestrate';
 import { toast } from 'sonner';
 
 interface Project {
@@ -22,12 +22,17 @@ interface Project {
   hosted_link: string;
   upvotes: number;
   hasUpvoted?: boolean;
+  status?: string;
 }
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateGithubUrl, setUpdateGithubUrl] = useState('');
+  const [updateHostedLink, setUpdateHostedLink] = useState('');
+  const [resubmitting, setResubmitting] = useState(false);
 
   useEffect(() => {
     async function fetchProject() {
@@ -35,11 +40,20 @@ export default function ProjectDetailPage() {
         setLoading(true);
         const allProjects = await getSubmissions();
         const found = allProjects.find((p: any) => p.id === id);
+        
+        let upvotedIds: string[] = [];
+        try {
+          const stored = localStorage.getItem('showcase_upvoted_ids');
+          if (stored) upvotedIds = JSON.parse(stored);
+        } catch (e) {}
+
         if (found) {
           setProject({
             ...found,
-            hasUpvoted: false,
+            hasUpvoted: upvotedIds.includes(found.id?.toString()),
           });
+          setUpdateGithubUrl(found.github_url || '');
+          setUpdateHostedLink(found.hosted_link || '');
         } else {
           toast.error('Project not found.');
         }
@@ -58,21 +72,77 @@ export default function ProjectDetailPage() {
   const handleUpvote = async () => {
     if (!project) return;
 
+    let upvotedIds: string[] = [];
+    try {
+      const stored = localStorage.getItem('showcase_upvoted_ids');
+      if (stored) upvotedIds = JSON.parse(stored);
+    } catch (e) {}
+
+    if (upvotedIds.includes(project.id) || project.hasUpvoted) {
+      toast.error('You have already upvoted this project!');
+      return;
+    }
+
     const originalProject = { ...project };
-    const isUpvoted = !project.hasUpvoted;
+
+    // Update localStorage
+    try {
+      localStorage.setItem('showcase_upvoted_ids', JSON.stringify([...upvotedIds, project.id]));
+    } catch (e) {}
 
     setProject({
       ...project,
-      upvotes: project.upvotes + (isUpvoted ? 1 : -1),
-      hasUpvoted: isUpvoted,
+      upvotes: project.upvotes + 1,
+      hasUpvoted: true,
     });
 
     try {
-      await upvoteProject(project.id);
+      await upvoteProject(project.id, project.upvotes);
       toast.success('Vote registered!');
     } catch (err) {
       toast.error('Failed to save upvote');
+      try {
+        localStorage.setItem('showcase_upvoted_ids', JSON.stringify(upvotedIds));
+      } catch (e) {}
       setProject(originalProject);
+    }
+  };
+
+  const handleResubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!project) return;
+
+    if (!updateGithubUrl.startsWith('https://github.com/')) {
+      toast.error('GitHub URL must start with https://github.com/');
+      return;
+    }
+
+    try {
+      setResubmitting(true);
+      const newMatch = await resubmitProject(
+        project.id,
+        updateGithubUrl,
+        project.builder_name,
+        project.contact_email,
+        updateHostedLink
+      );
+      setProject({
+        ...project,
+        github_url: updateGithubUrl,
+        hosted_link: updateHostedLink,
+        category: newMatch.category,
+        matched_sponsor: newMatch.matched_sponsor,
+        breakout_table: newMatch.breakout_table,
+        tech_stack: newMatch.tech_stack || project.tech_stack,
+        description: newMatch.match_justification || project.description,
+        status: 'submitted'
+      });
+      setShowUpdateModal(false);
+      toast.success('Project resubmitted & AI track re-calculated!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update submission');
+    } finally {
+      setResubmitting(false);
     }
   };
 
@@ -126,8 +196,19 @@ export default function ProjectDetailPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
               <Award className="w-4 h-4" />
-              Sponsor Match: {project.matched_sponsor}
+              Recommended Track: {project.matched_sponsor}
             </span>
+            {project.status && (
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
+                project.status === 'winner' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
+                project.status === 'shortlisted' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                project.status === 'under_review' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                'bg-gray-800 text-gray-400 border border-gray-700/50'
+              }`}>
+                {project.status === 'winner' && <Trophy className="w-4 h-4 text-amber-400" />}
+                Status: {project.status.replace('_', ' ')}
+              </span>
+            )}
           </div>
 
           {/* Title */}
@@ -188,7 +269,7 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <button
             onClick={handleUpvote}
             className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold tracking-wide transition-all ${
@@ -201,6 +282,14 @@ export default function ProjectDetailPage() {
             <span>Upvote Project ({project.upvotes})</span>
           </button>
 
+          <button
+            onClick={() => setShowUpdateModal(true)}
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/20 transition-all"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span>Update Submission</span>
+          </button>
+
           <div className="flex flex-1 gap-4">
             {project.github_url && (
               <a
@@ -210,7 +299,7 @@ export default function ProjectDetailPage() {
                 className="flex-1 flex items-center justify-center gap-2 bg-gray-900 border border-gray-800 hover:bg-gray-850 hover:border-gray-700 text-white py-4 rounded-2xl font-bold transition-all shadow-lg"
               >
                 <Github className="w-5 h-5" />
-                <span>View Code</span>
+                <span>Code</span>
               </a>
             )}
             {project.hosted_link && (
@@ -221,11 +310,88 @@ export default function ProjectDetailPage() {
                 className="flex-1 flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/20 py-4 rounded-2xl font-bold transition-all shadow-lg"
               >
                 <Globe className="w-5 h-5" />
-                <span>Live Demo</span>
+                <span>Demo</span>
               </a>
             )}
           </div>
         </div>
+
+        {/* Update Submission Modal */}
+        {showUpdateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+            <div className="bg-[#0c0a1d] border border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
+              <button
+                onClick={() => setShowUpdateModal(false)}
+                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white rounded-full bg-white/5 border border-white/10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20">
+                  <Edit3 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Update Submission</h3>
+                  <p className="text-xs text-gray-400">Re-submit your code repo or live link to re-trigger AI track matching.</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleResubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    GitHub Repository URL *
+                  </label>
+                  <input
+                    type="url"
+                    required
+                    value={updateGithubUrl}
+                    onChange={(e) => setUpdateGithubUrl(e.target.value)}
+                    placeholder="https://github.com/username/repo"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Hosted Live Demo URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={updateHostedLink}
+                    onChange={(e) => setUpdateHostedLink(e.target.value)}
+                    placeholder="https://my-demo-app.vercel.app"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500/50"
+                  />
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowUpdateModal(false)}
+                    className="flex-1 py-3 rounded-xl font-semibold bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resubmitting}
+                    className="flex-1 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-colors text-sm flex items-center justify-center gap-2"
+                  >
+                    {resubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Re-analyzing...</span>
+                      </>
+                    ) : (
+                      <span>Save & Re-Match</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );

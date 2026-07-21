@@ -24,6 +24,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/', label: 'Submit' },
     { href: '/gallery', label: 'Gallery' },
+    { href: '/judge', label: 'Judge' },
     { href: '/admin', label: 'Admin' },
   ];
 

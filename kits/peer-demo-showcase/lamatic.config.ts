@@ -1,36 +1,32 @@
 export default {
-  "name": "showcase-submission-flow",
-  "description": "",
+  "name": "peer-demo-showcase",
+  "description": "AI-Powered Sponsor Track Matching & Hackathon Showcase Kit",
   "version": "1.0.0",
   "type": "kit",
   "author": {
     "name": "Avadhut",
     "email": "avadhutscasual@gmail.com"
   },
-  "tags": [],
+  "tags": ["ai", "showcase", "hackathon", "sponsors", "judging"],
   "steps": [
     {
       "id": "showcase-submission-flow",
       "type": "mandatory"
     },
     {
-      "id": "get-submissions-flow",
+      "id": "submissions-manager-flow",
       "type": "mandatory"
     },
     {
-      "id": "add-sponsor-flow",
+      "id": "sponsors-manager-flow",
       "type": "mandatory"
     },
     {
-      "id": "get-sponsors-flow",
+      "id": "judging-manager-flow",
       "type": "mandatory"
     },
     {
-      "id": "upvote-project-flow",
-      "type": "mandatory"
-    },
-    {
-      "id": "delete-submission-flow",
+      "id": "event-config-flow",
       "type": "mandatory"
     }
   ],
