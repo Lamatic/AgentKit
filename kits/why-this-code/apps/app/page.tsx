@@ -183,18 +183,20 @@ export default function WhyThisCodePage() {
             path: file.path,
             resolvedLocalName: file.resolvedLocalName,
             fullContent: file.content || file.fullContent || matchingUsage?.content || undefined,
-            invocations: file.invocations || []
+            invocations: file.invocations || [],
+            isDefinition: false
           }
         })
 
         // Prepend target/definition file
         if (raw.fileContent) {
-          const existingFile = mappedFiles.find(f => f.path === parsedCoordinate.path)
-          if (!existingFile) {
-            const definitionInvocations = []
-            for (let line = parsedCoordinate.startLine; line <= parsedCoordinate.endLine; line++) {
-              definitionInvocations.push({ line, snippet: "" })
-            }
+          const definitionInvocations = []
+          for (let line = parsedCoordinate.startLine; line <= parsedCoordinate.endLine; line++) {
+            definitionInvocations.push({ line, snippet: "" })
+          }
+
+          const existingFileIdx = mappedFiles.findIndex(f => f.path === parsedCoordinate.path)
+          if (existingFileIdx === -1) {
             mappedFiles.unshift({
               path: parsedCoordinate.path,
               resolvedLocalName: parsedCoordinate.symbolName,
@@ -203,8 +205,18 @@ export default function WhyThisCodePage() {
               isDefinition: true
             })
           } else {
+            // Intercept, upgrade, and relocate to the front
+            const existingFile = mappedFiles.splice(existingFileIdx, 1)[0]
             existingFile.isDefinition = true
             existingFile.fullContent = existingFile.fullContent || raw.fileContent
+            
+            const existingLines = new Set(existingFile.invocations.map((i: any) => i.line))
+            for (const newInv of definitionInvocations) {
+              if (!existingLines.has(newInv.line)) {
+                existingFile.invocations.push(newInv)
+              }
+            }
+            mappedFiles.unshift(existingFile)
           }
         }
 
