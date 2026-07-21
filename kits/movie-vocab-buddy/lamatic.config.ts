@@ -7,10 +7,9 @@ export default {
   tags: ["language-learning", "education", "rag", "vocabulary", "spaced-repetition"],
   steps: [
     { id: "extract-vocabulary", type: "mandatory" as const, envKey: "EXTRACT_VOCAB_FLOW_ID" },
-    { id: "post-movie-quiz", type: "mandatory" as const, envKey: "POST_MOVIE_QUIZ_FLOW_ID" }
-    // weekly-quiz runs on a Cron trigger inside Lamatic Studio, not an API trigger,
-    // so it has no invocable flow ID — the frontend reads its output straight from
-    // the weekly_quizzes table instead.
+    { id: "post-movie-quiz", type: "mandatory" as const, envKey: "POST_MOVIE_QUIZ_FLOW_ID" },
+  
+    { id: "weekly-quiz", type: "mandatory" as const }
   ],
   links: {
     demo: "",
