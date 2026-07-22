@@ -12,7 +12,7 @@ export default {
     { id: "weekly-quiz", type: "mandatory" as const }
   ],
   links: {
-    demo: "",
+    demo: "https://agent-kit-3nnn-git-feat-movie-vo-21decd-nandithasalims-projects.vercel.app",
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/movie-vocab-buddy",
     deploy: "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/movie-vocab-buddy/apps",
     docs: ""
