@@ -7,4 +7,4 @@ build
 .env*.local
 *.log
 .DS_Store
-_debug_*.json
+next-env.d.ts
