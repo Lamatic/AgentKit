@@ -57,7 +57,7 @@ export interface Booking {
   passengerName: string;
   passengerEmail: string;
   bookedAt: string;
-  status: "confirmed" | "pending" | "cancelled";
+  status: "demo" | "pending" | "cancelled";
 }
 
 export interface Suggestion {

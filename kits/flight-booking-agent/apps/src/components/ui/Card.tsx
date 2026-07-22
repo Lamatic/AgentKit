@@ -1,45 +1,23 @@
 "use client";
 
-import { forwardRef } from "react";
-import { motion, HTMLMotionProps } from "motion/react";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-interface CardProps extends HTMLMotionProps<"div"> {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
-  variant?: "default" | "glass" | "dark";
 }
 
-const variants = {
-  default: "bg-slate-800/40 border border-slate-700/30",
-  glass: "bg-slate-800/40 backdrop-blur-sm border border-slate-700/30",
-  dark: "bg-slate-800 border border-slate-700",
-};
-
-export const Card = forwardRef<HTMLDivElement, CardProps>(
-  (
-    {
-      children,
-      hoverable = false,
-      variant = "glass",
-      className = "",
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <motion.div
-        ref={ref}
-        className={`
-        ${variants[variant]}
-        ${hoverable ? "hover:border-blue-500/30 hover:bg-slate-800/60 transition-all duration-300 cursor-pointer" : ""}
-        rounded-2xl p-5
-        ${className}
-      `}
-        {...props}
-      >
-        {children}
-      </motion.div>
-    );
-  },
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, hoverable = false, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-xl border bg-card text-card-foreground shadow",
+        hoverable && "hover:shadow-lg transition-shadow duration-300",
+        className,
+      )}
+      {...props}
+    />
+  ),
 );
-
 Card.displayName = "Card";

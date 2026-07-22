@@ -22,7 +22,7 @@ export const Suggestions = ({ suggestions, onSelect }: SuggestionsProps) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onSelect(suggestion.query)}
-          className="px-4 py-1.5 text-xs bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/30 rounded-full text-slate-300 transition-all duration-200"
+          className="px-4 py-1.5 text-xs bg-muted/50 hover:bg-muted/80 border border-border rounded-full text-muted-foreground transition-all duration-200"
         >
           {suggestion.label}
         </motion.button>

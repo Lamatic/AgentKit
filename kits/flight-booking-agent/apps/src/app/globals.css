@@ -25,14 +25,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-@layer utilities {
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
+@utility animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
 
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {

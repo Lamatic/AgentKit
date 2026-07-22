@@ -16,7 +16,7 @@ An AI-powered flight search agent that finds budget-friendly flights using natur
 - Cabin Class Support – Economy, Premium Economy, Business, First
 - Price Range Display – Cheapest and most expensive flights
 - Round-Trip Support – Handles both one-way and round-trip searches
-  -Booking History – Saves bookings locally in the browser
+- Booking History – Saves bookings locally in the browser
 
 ---
 
@@ -43,18 +43,20 @@ An AI-powered flight search agent that finds budget-friendly flights using natur
 
 ```bash
 git clone git@github.com:YOUR_USERNAME/AgentKit.git
-cd AgentKit/kits/flight-booking-agent
+cd AgentKit/kits/flight-booking-agent/apps
 npm install
-```
 
 ### Environment Variables
 
 ```
+
 # Lamatic API
+
 LAMATIC_API_KEY=your_lamatic_api_key
 LAMATIC_PROJECT_ID=your_project_id
 LAMATIC_WORKFLOW_ID=your_workflow_id
 LAMATIC_API_URL=your_api_url
+
 ```
 
 ### Run locally
@@ -98,3 +100,4 @@ Next.js – React framework
 Tailwind CSS – Styling
 
 Framer Motion – Animations
+```

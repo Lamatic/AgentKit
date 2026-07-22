@@ -1,11 +1,12 @@
 /**
  * Formats a date string to a readable format (e.g., "Jan 20, 2:30 PM")
  * @param dateString - ISO date string to format
- * @returns Formatted date string or 'N/A' if invalid
+ * @returns Formatted date string or 'N/A' or 'Invalid Date' if invalid
  */
 export const formatDate = (dateString: string): string => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -71,10 +72,14 @@ export const formatPrice = (
   price: number,
   currency: string = "ZAR",
 ): string => {
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price);
+  try {
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price);
+  } catch {
+    return `${currency} ${price.toFixed(2)}`;
+  }
 };
