@@ -15,6 +15,7 @@ export default function UploadDropzone({
   function readFile(f: File) {
     const r = new FileReader();
     r.onload = () => onCsv(String(r.result || ""));
+    r.onerror = () => onCsv(""); // surfaces a parse/validation error to the user rather than failing silently
     r.readAsText(f);
   }
 
@@ -27,6 +28,7 @@ export default function UploadDropzone({
 
   async function useSample() {
     const res = await fetch("/sample-trades.csv");
+    if (!res.ok) { onCsv(""); return; } // avoid feeding an error page into the CSV parser
     onCsv(await res.text());
   }
 

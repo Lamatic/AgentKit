@@ -54,6 +54,7 @@ export default function ChatPanel({ analysis }: { analysis: Analysis }) {
         }}
       >
         <input
+          aria-label="Ask a question about your journal"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Ask a question…"

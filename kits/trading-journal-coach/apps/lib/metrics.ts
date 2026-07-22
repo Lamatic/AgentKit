@@ -69,6 +69,7 @@ function istParts(iso: string) {
   return { epoch, hour: h, minute: min, dow, dateKey, tod: h * 60 + min };
 }
 function todBucket(tod: number): string {
+  if (tod < 555) return "pre_market";             // before 09:15 IST open — keeps pre-market out of the open window
   if (tod < 600) return "open_0915_1000";        // primary window
   if (tod < 690) return "morning_1000_1130";
   if (tod < 810) return "midday_1130_1330";
@@ -178,22 +179,23 @@ export function computeMetrics(rawTrades: Trade[]) {
   for (const [k, idxs] of dayEntries) {
     if (idxs.length > 1) daysMultiple++;
     let lossSeen = false;
+    let lastLossIdx: number | null = null; // measure the re-entry against the actual loss, not just the previous trade
     idxs.forEach((gi, pos) => {
       const t = trades[gi];
       if (pos > 0) { extraTrades++; pnlOnExtra += t.pnl; }
-      if (lossSeen) {
-        const prev = trades[idxs[pos - 1]];
+      if (lossSeen && lastLossIdx != null) {
+        const prev = trades[lastLossIdx];
         const from = prev.exitDate ? istParts(prev.exitDate).epoch : istParts(prev.date).epoch;
         const gap = (istParts(t.date).epoch - from) / 60000;
         const withinCooldown = gap >= 0 && gap <= THRESHOLDS.cooldownMin;
         if (withinCooldown) hotRevenge++;
         revengeDetail.push({
-          afterTradeIndex: idxs[pos - 1], dateKey: k, gapMinutes: round(gap, 1),
+          afterTradeIndex: lastLossIdx, dateKey: k, gapMinutes: round(gap, 1),
           qtyRatio: prev.qty > 0 ? round(t.qty / prev.qty, 2) : 1, withinCooldown, pnl: round(t.pnl),
         });
         pnlOnRevenge += t.pnl;
       }
-      if (t.pnl < 0) lossSeen = true;
+      if (t.pnl < 0) { lossSeen = true; lastLossIdx = gi; }
     });
   }
   const overtradingDays = dayEntries

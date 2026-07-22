@@ -17,7 +17,7 @@ export default function MetricsCards({ analysis }: { analysis: Analysis }) {
     { label: "Expectancy / trade", value: inr(p.expectancyPerTrade), cls: p.expectancyPerTrade >= 0 ? "pos" : "neg" },
     { label: "Max drawdown", value: inr(r.maxDrawdown), cls: "neg" },
     { label: "Trades", value: String(analysis.metrics.tradeCount) },
-    { label: "Discipline score", value: analysis.mock ? "—" : `${score}/100` },
+    { label: "Discipline score", value: analysis.mock || score == null ? "—" : `${score}/100` },
   ];
 
   return (
