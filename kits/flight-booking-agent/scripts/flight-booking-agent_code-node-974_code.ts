@@ -3,7 +3,7 @@
  * Extracts flight parameters, searches Duffel API, and returns cheapest options
  */
 
-const flightParams = {{codeNode_383.output}};
+const flightParams = workflow.codeNode_383.output;
 
 // ============================================
 //  CHECK FOR VAGUE REQUEST FIRST
@@ -59,7 +59,12 @@ if (!origin || !destination || !departureDate) {
     if (!destination) missingFields.push('destination');
     if (!departureDate) missingFields.push('departure date');
     
-const today = new Date().toISOString().split('T')[0]
+// Get the user's local date in YYYY-MM-DD format
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, '0');
+const day = String(now.getDate()).padStart(2, '0');
+const today = `${year}-${month}-${day}`;
 
     const missingMessage = `I need more information to find flights. Please specify your ${missingFields.join(', ')}. Example: Flights from JFK to LHR on ${today}`;
     
@@ -106,7 +111,6 @@ async function getExchangeRate(fromCurrency, toCurrency) {
         const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`, {
             signal: controller.signal
         });
-        clearTimeout(timeoutId);
         const data = await response.json();
         const rate = data.rates[toCurrency];
         if (!rate) {
@@ -116,7 +120,7 @@ async function getExchangeRate(fromCurrency, toCurrency) {
         console.log(`Exchange rate: 1 ${fromCurrency} = ${rate} ${toCurrency}`);
         return rate;
     } catch (error) {
-        clearTimeout(timeoutId);
+    
         console.error('Error fetching exchange rate:', error.message);
         const fallbackRates = {
             'USD': 1,
@@ -126,7 +130,9 @@ async function getExchangeRate(fromCurrency, toCurrency) {
             'GBP': 0.78,
         };
         return fallbackRates[toCurrency] || 1;
-    }
+    } finally {
+    clearTimeout(timeoutId);
+}
 }
 
 /**
