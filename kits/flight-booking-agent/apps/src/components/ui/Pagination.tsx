@@ -51,8 +51,9 @@ export const Pagination = ({
         size="sm"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        aria-label="Previous page"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <ChevronLeft className="w-4 h-4" aria-hidden="true" />
       </Button>
 
       {getPageNumbers().map((page, index) =>
@@ -64,11 +65,15 @@ export const Pagination = ({
             onClick={() => onPageChange(page)}
             className="min-w-9"
             aria-label={`Page ${page}`}
+            aria-current={page === currentPage ? "page" : undefined}
           >
             {page}
           </Button>
         ) : (
-          <span key={`ellipsis-${index}`} className="text-slate-500 px-1">
+          <span
+            key={`ellipsis-${index}`}
+            className="text-muted-foreground px-1"
+          >
             …
           </span>
         ),
@@ -81,7 +86,7 @@ export const Pagination = ({
         disabled={currentPage === totalPages}
         aria-label="Next page"
       >
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-4 h-4" aria-hidden="true" />
       </Button>
     </div>
   );

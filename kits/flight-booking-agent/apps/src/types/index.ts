@@ -55,7 +55,7 @@ export interface Booking {
   flight: Flight;
   bookingReference: string;
   passengerName: string;
-  passengerEmail: string;
+  passengerEmail?: string;
   bookedAt: string;
   status: "demo" | "pending" | "cancelled";
 }
