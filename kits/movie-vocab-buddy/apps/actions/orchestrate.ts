@@ -2,6 +2,23 @@
 
 import { callFlow } from "../lib/lamatic-client";
 import { Client } from "pg";
+import { z } from "zod";
+
+const ExtractVocabularyInput = z.object({
+  transcript_text: z
+    .string()
+    .min(1, "Please paste a transcript before extracting vocabulary.")
+    .max(20000, "Transcript is too long — please keep it under 20,000 characters."),
+  source_title: z
+    .string()
+    .min(1, "Please enter a movie or show title.")
+    .max(200, "Title is too long — please keep it under 200 characters."),
+  user_id: z.string().min(1, "Missing user id."),
+});
+
+const GeneratePostMovieQuizInput = z.object({
+  extracted_words_json: z.string().min(1, "No vocabulary words were provided for the quiz."),
+});
 
 // Parses a JSON-encoded string safely, tolerating null/undefined/empty
 function decodeHtmlEntities(str: string): string {
@@ -76,6 +93,8 @@ export async function extractVocabulary(input: {
   source_title: string;
   user_id: string;
 }) {
+  input = ExtractVocabularyInput.parse(input);
+
 
   const MAX_ATTEMPTS = 5;
   let lastError: string | null = null;
@@ -145,8 +164,8 @@ export async function extractVocabulary(input: {
 
   return { words };
 }
-
 export async function generatePostMovieQuiz(input: { extracted_words_json: string }) {
+  input = GeneratePostMovieQuizInput.parse(input);
 
   const MAX_ATTEMPTS = 3;
   let lastErr: unknown = null;
