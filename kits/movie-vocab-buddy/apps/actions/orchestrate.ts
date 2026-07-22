@@ -96,7 +96,8 @@ export async function extractVocabulary(input: {
   input = ExtractVocabularyInput.parse(input);
 
 
-  const MAX_ATTEMPTS = 5;
+  const MAX_ATTEMPTS = 3;
+  const BACKOFF_MS = 2000;
   let lastError: string | null = null;
   let words: any[] = [];
   let succeeded = false;
@@ -134,7 +135,7 @@ export async function extractVocabulary(input: {
       lastError = err instanceof Error ? err.message : String(err);
       console.warn(`[extractVocabulary] attempt ${attempt} failed: ${lastError}`);
       if (attempt < MAX_ATTEMPTS) {
-        await sleep(3000 * attempt);
+        await sleep(BACKOFF_MS);
         continue;
       }
     }
@@ -164,10 +165,12 @@ export async function extractVocabulary(input: {
 
   return { words };
 }
+
 export async function generatePostMovieQuiz(input: { extracted_words_json: string }) {
   input = GeneratePostMovieQuizInput.parse(input);
 
   const MAX_ATTEMPTS = 3;
+  const BACKOFF_MS = 2000;
   let lastErr: unknown = null;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -198,7 +201,7 @@ export async function generatePostMovieQuiz(input: { extracted_words_json: strin
       lastErr = err;
       console.warn(`[generatePostMovieQuiz] attempt ${attempt} failed:`, err);
       if (attempt < MAX_ATTEMPTS) {
-        await sleep(1500 * attempt);
+        await sleep(BACKOFF_MS);
         continue;
       }
     }
