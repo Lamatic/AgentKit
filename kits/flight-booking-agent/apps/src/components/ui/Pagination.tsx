@@ -12,10 +12,11 @@ interface PaginationProps {
 
 /**
  * Pagination component for navigating through pages of results
- * @param currentPage - Current active page number
- * @param totalPages - Total number of pages
- * @param onPageChange - Callback function when page changes
- * @param className - Optional additional CSS classes
+ * @param props - Component props
+ * @param props.currentPage - Current active page number
+ * @param props.totalPages - Total number of pages
+ * @param props.onPageChange - Callback function when page changes
+ * @param props.className - Optional additional CSS classes
  */
 export const Pagination = ({
   currentPage,
