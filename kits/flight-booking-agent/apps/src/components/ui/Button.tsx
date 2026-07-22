@@ -29,12 +29,17 @@ const sizes = {
 
 /**
  * Reusable button component with variants and loading state
- * @param children - Button content
- * @param loading - Shows spinner when true
- * @param variant - Button style variant (primary, secondary, ghost, danger)
- * @param size - Button size (sm, md, lg)
- * @param fullWidth - Makes button take full width
- * @param className - Optional additional CSS classes
+ * @param props - Component props
+ * @param props.children - Button content
+ * @param props.loading - Shows spinner when true
+ * @param props.variant - Button style variant (primary, secondary, ghost, danger)
+ * @param props.size - Button size (sm, md, lg)
+ * @param props.fullWidth - Makes button take full width
+ * @param props.className - Optional additional CSS classes
+ * @param props.disabled - Disables the button
+ * @param props.onClick - Click handler
+ * @param props.type - Button type (button, submit, reset)
+ * @param props.ref - Forwarded ref
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
