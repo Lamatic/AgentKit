@@ -49,7 +49,7 @@ const cabinClass = flightParams.cabinClass || 'economy';
 //  CHECK FOR MISSING REQUIRED FIELDS
 // ============================================
 if (!origin || !destination || !departureDate) {
-    console.error('❌ Missing required fields!');
+    console.error('Missing required fields!');
     console.error('  origin:', origin);
     console.error('  destination:', destination);
     console.error('  departureDate:', departureDate);
@@ -59,7 +59,9 @@ if (!origin || !destination || !departureDate) {
     if (!destination) missingFields.push('destination');
     if (!departureDate) missingFields.push('departure date');
     
-    const missingMessage = `I need more information to find flights. Please specify your ${missingFields.join(', ')}. Example: Flights from JFK to LHR on July 20`;
+const today = new Date().toISOString().split('T')[0]
+
+    const missingMessage = `I need more information to find flights. Please specify your ${missingFields.join(', ')}. Example: Flights from JFK to LHR on ${today}`;
     
     output = {
         status: 'vague_request',
@@ -97,8 +99,14 @@ const DUFFEL_API_KEY = {{secrets.project.DuffelAPIKEY}};
 async function getExchangeRate(fromCurrency, toCurrency) {
     if (fromCurrency === toCurrency) return 1;
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
+    
     try {
-        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         const data = await response.json();
         const rate = data.rates[toCurrency];
         if (!rate) {
@@ -108,6 +116,7 @@ async function getExchangeRate(fromCurrency, toCurrency) {
         console.log(`Exchange rate: 1 ${fromCurrency} = ${rate} ${toCurrency}`);
         return rate;
     } catch (error) {
+        clearTimeout(timeoutId);
         console.error('Error fetching exchange rate:', error.message);
         const fallbackRates = {
             'USD': 1,
