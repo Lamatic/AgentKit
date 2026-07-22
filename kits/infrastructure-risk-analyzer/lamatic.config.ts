@@ -11,6 +11,6 @@ export default {
   links: {
     //  leaving these blank for now until getting PR link
     deploy: "",
-    github: ""
+    github: "kits/infrastructure-risk-analyzer"
   }
 };
