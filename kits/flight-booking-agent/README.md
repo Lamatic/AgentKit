@@ -1,7 +1,7 @@
 # ✈️ Flight Booking Agent
 
 [Live Demo](https://flight-booking-agent-pearl.vercel.app):
-An AI-powered flight search agent that finds the cheapest flights using natural language.
+An AI-powered flight search agent that finds budget-friendly flights using natural language.
 
 ![Screenshot](./apps/public/home.png)
 
