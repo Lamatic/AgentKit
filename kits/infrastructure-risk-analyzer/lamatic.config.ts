@@ -11,6 +11,6 @@ export default {
   links: {
     //  leaving these blank for now until getting PR link
     deploy: "",
-    github: "kits/infrastructure-risk-analyzer"
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/infrastructure-risk-analyzer"
   }
 };
