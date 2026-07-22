@@ -73,7 +73,7 @@ Set the Root Directory to kits/flight-booking-agent/apps
 
 Build settings will be auto‑detected (Next.js).
 
-Add the environment variables in Vercel dashboard (same as above).
+Add the environment variables in Vercel dashboard.
 
 Deploy.
 
