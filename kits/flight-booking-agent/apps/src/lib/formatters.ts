@@ -18,11 +18,12 @@ export const formatDate = (dateString: string): string => {
 /**
  * Formats a date string to show only the time (e.g., "2:30 PM")
  * @param dateString - ISO date string to format
- * @returns Formatted time string or 'N/A' if invalid
+ * @returns Formatted time string or 'N/A' or 'Invalid Date' if invalid
  */
 export const formatTime = (dateString: string): string => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -32,11 +33,12 @@ export const formatTime = (dateString: string): string => {
 /**
  * Formats a date string to show the day and month (e.g., "Mon, Jan 20")
  * @param dateString - ISO date string to format
- * @returns Formatted day string or 'N/A' if invalid
+ * @returns Formatted day string or 'N/A' or 'Invalid Date' if invalid
  */
 export const formatDay = (dateString: string): string => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleString("en-US", {
     weekday: "short",
     month: "short",
@@ -47,11 +49,12 @@ export const formatDay = (dateString: string): string => {
 /**
  * Formats a date string to show full date and time (e.g., "Monday, January 20, 2026, 2:30 PM")
  * @param dateString - ISO date string to format
- * @returns Formatted full date string or 'N/A' if invalid
+ * @returns Formatted full date string or 'N/A' or 'Invalid Date' if invalid
  */
 export const formatDateFull = (dateString: string): string => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
   return date.toLocaleString("en-US", {
     weekday: "long",
     month: "long",
@@ -80,6 +83,6 @@ export const formatPrice = (
       maximumFractionDigits: 2,
     }).format(price);
   } catch {
-    return `${currency} ${price.toFixed(2)}`;
+    return `${currency} ${price?.toFixed(2) || "0.00"}`;
   }
 };

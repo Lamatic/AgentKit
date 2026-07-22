@@ -67,9 +67,8 @@ export default function Home() {
   const handleBookingConfirm = async (
     flight: Flight,
     name: string,
-    email: string,
   ): Promise<Booking | null> => {
-    return addBooking(flight, name, email);
+    return addBooking(flight, name);
   };
 
   return (
@@ -77,7 +76,7 @@ export default function Home() {
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent/5 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
       <Header
@@ -100,7 +99,7 @@ export default function Home() {
               className="text-3xl sm:text-4xl font-bold mb-3"
             >
               Where to next?
-              <span className="block text-slate-400 text-lg sm:text-xl font-normal mt-2">
+              <span className="block text-muted-foreground text-lg sm:text-xl font-normal mt-2">
                 Just tell me where you want to go
               </span>
             </motion.h2>
@@ -146,8 +145,8 @@ export default function Home() {
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center py-20"
               >
-                <Loader2 className="w-12 h-12 text-blue-400 animate-spin" />
-                <p className="mt-4 text-slate-400 text-sm">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                <p className="mt-4 text-muted-foreground text-sm">
                   Searching for the best deals...
                 </p>
               </motion.div>
@@ -162,10 +161,10 @@ export default function Home() {
                 className="text-center py-20"
               >
                 <div className="text-6xl mb-4">✈️</div>
-                <h3 className="text-xl font-medium text-slate-300">
+                <h3 className="text-xl font-medium text-foreground/80">
                   No flights found
                 </h3>
-                <p className="text-slate-500 text-sm mt-2">
+                <p className="text-muted-foreground text-sm mt-2">
                   Try different dates or destinations
                 </p>
               </motion.div>

@@ -16,14 +16,14 @@ export const BookingHistory = ({
   onCancel,
 }: BookingHistoryProps) => {
   return (
-    <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-2xl p-6">
+    <div className="bg-card/40 backdrop-blur-sm border border-border rounded-2xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
+        <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground">
           Your Bookings
         </h3>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-white transition-colors"
+          className="text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Close booking history"
         >
           <X className="w-4 h-4" aria-hidden="true" />
@@ -31,7 +31,7 @@ export const BookingHistory = ({
       </div>
 
       {bookings.length === 0 ? (
-        <p className="text-slate-400 text-sm text-center py-8">
+        <p className="text-muted-foreground text-sm text-center py-8">
           No bookings yet. Start searching and book your first flight!
         </p>
       ) : (
@@ -46,54 +46,53 @@ export const BookingHistory = ({
                 key={booking.id}
                 className={`p-4 rounded-xl border ${
                   booking.status === "cancelled"
-                    ? "bg-red-500/5 border-red-500/20 opacity-60"
+                    ? "bg-destructive/5 border-destructive/20 opacity-60"
                     : booking.status === "demo"
-                      ? "bg-blue-500/5 border-blue-500/20"
-                      : "bg-slate-700/30 border-slate-600/30"
+                      ? "bg-primary/5 border-primary/20"
+                      : "bg-muted/30 border-border"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-foreground">
                         {booking.flight.airline}
                       </span>
-                      <span className="text-xs text-slate-400">•</span>
-                      <span className="text-sm text-slate-300">
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-sm text-foreground/80">
                         {booking.flight.flightNumber}
                       </span>
 
                       {booking.status === "demo" && (
-                        <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full">
                           Demo Saved
                         </span>
                       )}
                       {booking.status === "cancelled" && (
-                        <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-destructive/20 text-destructive rounded-full">
                           Removed
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-slate-300">
+                    <div className="text-sm text-foreground/80">
                       {booking.flight.departureAirport} →{" "}
                       {booking.flight.arrivalAirport}
                     </div>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs text-muted-foreground">
                       {formatDateFull(booking.flight.departureTime)}
                     </div>
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-muted-foreground/70 mt-1">
                       Ref: {booking.bookingReference} • {booking.passengerName}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <div className="text-lg font-bold text-blue-400">
+                    <div className="text-lg font-bold text-primary">
                       {formatPrice(displayPrice, displayCurrency)}
                     </div>
-                    {/* ✅ Remove button for demo bookings */}
                     {booking.status === "demo" && (
                       <button
                         onClick={() => onCancel(booking.id)}
-                        className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                        className="text-xs text-destructive hover:text-destructive/80 transition-colors"
                       >
                         Remove
                       </button>

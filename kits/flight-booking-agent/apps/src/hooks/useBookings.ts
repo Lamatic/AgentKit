@@ -16,21 +16,18 @@ export function useBookings() {
   );
 
   /**
-   * Adds a new booking to the list
+   * Adds a new booking to the list (demo only, no real booking)
    * @param flight - The flight to book
    * @param passengerName - Full name of the passenger
-   * @param passengerEmail - Email of the passenger
    * @returns The created booking object
    */
-
   const addBooking = useCallback(
-    (flight: Flight, passengerName: string, passengerEmail: string) => {
+    (flight: Flight, passengerName: string) => {
       const newBooking: Booking = {
         id: generateBookingId(),
         flight,
         bookingReference: generateBookingRef(),
         passengerName: passengerName.trim(),
-        passengerEmail: passengerEmail.trim(),
         bookedAt: new Date().toISOString(),
         status: "demo",
       };
@@ -41,6 +38,10 @@ export function useBookings() {
     [setBookings],
   );
 
+  /**
+   * Cancels a booking by ID (marks as cancelled)
+   * @param bookingId - ID of the booking to cancel
+   */
   const cancelBooking = useCallback(
     (bookingId: string) => {
       setBookings((prev) =>
@@ -52,10 +53,22 @@ export function useBookings() {
     [setBookings],
   );
 
+  /**
+   * Permanently removes a booking from the list
+   * @param bookingId - ID of the booking to remove
+   */
+  const removeBooking = useCallback(
+    (bookingId: string) => {
+      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+    },
+    [setBookings],
+  );
+
   return {
     bookings,
     addBooking,
     cancelBooking,
+    removeBooking,
     totalBookings: bookings.length,
     confirmedBookings: bookings.filter((b) => b.status === "demo").length,
   };
