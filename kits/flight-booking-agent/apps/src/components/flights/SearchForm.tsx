@@ -3,7 +3,7 @@
 import { useState, FormEvent, useEffect } from "react";
 import { motion } from "motion/react";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/Input";
 
 interface SearchFormProps {
@@ -55,7 +55,7 @@ export const SearchForm = ({
             disabled={loading}
             aria-label="Search flights"
           />
-          <Button type="submit" loading={loading} size="md" className="m-1.5">
+          <Button type="submit" disabled={loading} className="m-1.5">
             {loading ? "Searching..." : "Search"}
           </Button>
         </div>

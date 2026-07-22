@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Flight, Booking } from "@/types";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/Input";
 import { formatDateFull, formatPrice } from "@/lib/formatters";
 
@@ -241,10 +241,8 @@ export const BookingModal = ({
 
                   <Button
                     type="submit"
-                    loading={isSubmitting}
                     disabled={isSubmitting}
-                    fullWidth
-                    className="mt-4"
+                    className="w-full mt-4"
                   >
                     {isSubmitting ? "Processing..." : "Save to Demo"}
                   </Button>

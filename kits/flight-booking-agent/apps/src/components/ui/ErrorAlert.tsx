@@ -21,6 +21,7 @@ export const ErrorAlert = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
+          role="alert"
           className={`mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm flex items-center justify-between gap-3 ${className}`}
         >
           <span>{message}</span>

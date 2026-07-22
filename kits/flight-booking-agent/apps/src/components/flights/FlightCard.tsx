@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { Plane, ArrowRight } from "lucide-react";
 import { Flight } from "@/types";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import ClientOnly from "@/components/ClientOnly";
@@ -155,7 +155,6 @@ export const FlightCard = ({
               </div>
             )}
             <Button
-              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onBook(flight);
