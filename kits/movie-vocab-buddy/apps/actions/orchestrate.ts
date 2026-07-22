@@ -7,17 +7,32 @@ import { z } from "zod";
 const ExtractVocabularyInput = z.object({
   transcript_text: z
     .string()
+    .trim()
     .min(1, "Please paste a transcript before extracting vocabulary.")
     .max(20000, "Transcript is too long — please keep it under 20,000 characters."),
   source_title: z
     .string()
+    .trim()
     .min(1, "Please enter a movie or show title.")
     .max(200, "Title is too long — please keep it under 200 characters."),
   user_id: z.string().min(1, "Missing user id."),
 });
 
 const GeneratePostMovieQuizInput = z.object({
-  extracted_words_json: z.string().min(1, "No vocabulary words were provided for the quiz."),
+  extracted_words_json: z
+    .string()
+    .min(1, "No vocabulary words were provided for the quiz.")
+    .refine(
+      (value) => {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) && parsed.length > 0;
+        } catch {
+          return false;
+        }
+      },
+      { message: "No vocabulary words were provided for the quiz." }
+    ),
 });
 
 // Parses a JSON-encoded string safely, tolerating null/undefined/empty
@@ -112,7 +127,7 @@ export async function extractVocabulary(input: {
         throw new Error(dbError);
       }
 
-  
+
       let inner: unknown = result;
       if (inner && typeof inner === "object" && "result" in (inner as any)) {
         inner = (inner as any).result;
