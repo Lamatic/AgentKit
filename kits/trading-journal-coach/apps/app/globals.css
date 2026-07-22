@@ -75,6 +75,7 @@ html, body {
 .finding .ev { color: var(--muted); font-size: 13px; margin: 4px 0; }
 .rule { font-size: 13px; margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--accent); }
 .score { font-size: 40px; font-weight: 800; letter-spacing: -0.03em; }
+.score-rationale { margin-top: -4px; margin-bottom: 12px; }
 .encourage { margin-top: 12px; font-size: 13px; color: var(--green); border-top: 1px solid var(--border); padding-top: 12px; }
 
 /* Chat */

@@ -22,14 +22,20 @@ export default function UploadDropzone({
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     setDrag(false);
+    if (loading) return; // don't start a second analysis while one is already running
     const f = e.dataTransfer.files?.[0];
     if (f) readFile(f);
   }
 
   async function useSample() {
-    const res = await fetch("/sample-trades.csv");
-    if (!res.ok) { onCsv(""); return; } // avoid feeding an error page into the CSV parser
-    onCsv(await res.text());
+    if (loading) return;
+    try {
+      const res = await fetch("/sample-trades.csv");
+      if (!res.ok) { onCsv(""); return; } // avoid feeding an error page into the CSV parser
+      onCsv(await res.text());
+    } catch {
+      onCsv(""); // network failure → surface a clear parse/validation error
+    }
   }
 
   return (

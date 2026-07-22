@@ -24,9 +24,7 @@ export default function FindingsList({ analysis }: { analysis: Analysis }) {
             </div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>{c.headline}</div>
           </div>
-          {c.scoreRationale && (
-            <div className="ev" style={{ marginTop: -4, marginBottom: 12 }}>{c.scoreRationale}</div>
-          )}
+          {c.scoreRationale && <div className="ev score-rationale">{c.scoreRationale}</div>}
 
           {findings.map((f, idx) => (
             <div className="finding" key={idx}>
