@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Lamatic } from "lamatic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,52 +31,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const query = `
-      query ExecuteWorkflow($workflowId: String!, $message: String!) {
-        executeWorkflow(
-          workflowId: $workflowId
-          payload: {
-            message: $message
-          }
-        ) {
-          status
-          result
-        }
-      }
-    `;
-
-    const variables = {
-      workflowId: LAMATIC_WORKFLOW_ID,
-      message: message,
-    };
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
-    const response = await fetch(LAMATIC_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LAMATIC_API_KEY}`,
-        "Content-Type": "application/json",
-        "x-project-id": LAMATIC_PROJECT_ID,
-      },
-      body: JSON.stringify({ query, variables }),
-      signal: controller.signal,
+    const lamatic = new Lamatic({
+      apiKey: LAMATIC_API_KEY,
+      projectId: LAMATIC_PROJECT_ID,
+      endpoint: LAMATIC_API_URL,
     });
 
-    clearTimeout(timeout);
+    const response = await lamatic.executeFlow(LAMATIC_WORKFLOW_ID, {
+      message,
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Lamatic API error:", response.status, errorText);
-      return NextResponse.json(
-        { error: `Lamatic API error: ${response.status}` },
-        { status: response.status },
-      );
-    }
-
-    const data = await response.json();
-    const result = data.data?.executeWorkflow?.result;
+    const result = response.result;
 
     if (result && result.flights && result.flights.length > 0) {
       return NextResponse.json({
