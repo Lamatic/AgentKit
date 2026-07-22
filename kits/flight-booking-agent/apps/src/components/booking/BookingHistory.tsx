@@ -24,8 +24,9 @@ export const BookingHistory = ({
         <button
           onClick={onClose}
           className="text-slate-400 hover:text-white transition-colors"
+          aria-label="Close booking history"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -36,12 +37,9 @@ export const BookingHistory = ({
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
           {bookings.map((booking) => {
-            const displayPrice = booking.flight.isConverted
-              ? booking.flight.price
-              : booking.flight.originalPrice || booking.flight.price;
-            const displayCurrency = booking.flight.isConverted
-              ? booking.flight.currency
-              : booking.flight.originalCurrency || "ZAR";
+            const displayPrice =
+              booking.flight.price || booking.flight.originalPrice || 0;
+            const displayCurrency = booking.flight.currency || "ZAR";
 
             return (
               <div
@@ -49,7 +47,9 @@ export const BookingHistory = ({
                 className={`p-4 rounded-xl border ${
                   booking.status === "cancelled"
                     ? "bg-red-500/5 border-red-500/20 opacity-60"
-                    : "bg-slate-700/30 border-slate-600/30"
+                    : booking.status === "demo"
+                      ? "bg-blue-500/5 border-blue-500/20"
+                      : "bg-slate-700/30 border-slate-600/30"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -62,14 +62,15 @@ export const BookingHistory = ({
                       <span className="text-sm text-slate-300">
                         {booking.flight.flightNumber}
                       </span>
-                      {booking.status === "confirmed" && (
-                        <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full">
-                          ✓ Confirmed
+
+                      {booking.status === "demo" && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full">
+                          Demo Saved
                         </span>
                       )}
                       {booking.status === "cancelled" && (
                         <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full">
-                          Cancelled
+                          Removed
                         </span>
                       )}
                     </div>
@@ -88,12 +89,13 @@ export const BookingHistory = ({
                     <div className="text-lg font-bold text-blue-400">
                       {formatPrice(displayPrice, displayCurrency)}
                     </div>
-                    {booking.status === "confirmed" && (
+                    {/* ✅ Remove button for demo bookings */}
+                    {booking.status === "demo" && (
                       <button
                         onClick={() => onCancel(booking.id)}
                         className="text-xs text-red-400 hover:text-red-300 transition-colors"
                       >
-                        Cancel
+                        Remove
                       </button>
                     )}
                   </div>

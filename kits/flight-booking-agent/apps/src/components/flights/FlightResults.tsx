@@ -51,7 +51,7 @@ export const FlightResults = ({
     >
       <FlightStats
         totalAvailable={totalAvailable}
-        showing={flights.length}
+        showing={currentFlights.length}
         cheapestPrice={cheapestPrice}
         mostExpensive={mostExpensive}
         currency={currency}

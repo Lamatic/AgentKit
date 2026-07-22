@@ -148,7 +148,7 @@ export const FlightCard = ({
             </div>
             {flight.isConverted && flight.originalPrice && (
               <div className="text-xs text-slate-500">
-                ${flight.originalPrice} USD
+                {flight.originalPrice} {flight.originalCurrency}
                 <span className="text-[10px] text-slate-600 ml-1">
                   (rate: {flight.exchangeRate?.toFixed(2)})
                 </span>

@@ -9,28 +9,33 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, fullWidth = true, className = "", id, ...props }, ref) => {
-    const defaultId = useId();
-    const inputId = id || defaultId;
+  ({ label, error, fullWidth = true, className = "", ...props }, ref) => {
+    const id = useId();
+
     return (
       <div className={`${fullWidth ? "w-full" : ""}`}>
         {label && (
-          <label className="text-sm text-slate-400 block mb-1">{label}</label>
+          <label
+            htmlFor={id}
+            className="text-sm text-muted-foreground block mb-1"
+          >
+            {label}
+          </label>
         )}
         <input
+          id={id}
           ref={ref}
-          id={inputId}
           className={`
-          w-full px-4 py-2 bg-slate-700/50 border 
-          ${error ? "border-red-500" : "border-slate-600"} 
-          rounded-lg text-white placeholder-slate-500 
-          focus:outline-none focus:border-blue-500 
-          transition-colors disabled:opacity-50
-          ${className}
-        `}
+            w-full px-4 py-2 bg-muted/50 border 
+            ${error ? "border-destructive" : "border-border"} 
+            rounded-lg text-foreground placeholder-muted-foreground 
+            focus:outline-none focus:border-primary 
+            transition-colors disabled:opacity-50
+            ${className}
+          `}
           {...props}
         />
-        {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
+        {error && <p className="text-destructive text-sm mt-1">{error}</p>}
       </div>
     );
   },

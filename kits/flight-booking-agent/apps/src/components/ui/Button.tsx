@@ -1,14 +1,15 @@
 "use client";
 
-import { forwardRef, ButtonHTMLAttributes } from "react";
-import { motion } from "motion/react";
+import { forwardRef } from "react";
+import { motion, HTMLMotionProps } from "motion/react";
 import { Loader2 } from "lucide-react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   loading?: boolean;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
+  children?: React.ReactNode;
 }
 
 const variants = {
@@ -51,7 +52,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth = false,
       disabled = false,
       className = "",
-      onClick,
       ...props
     },
     ref,
@@ -62,7 +62,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         whileHover={!disabled ? { scale: 1.02 } : undefined}
         whileTap={!disabled ? { scale: 0.98 } : undefined}
         disabled={disabled || loading}
-        onClick={onClick}
         className={`
         ${variants[variant]}
         ${sizes[size]}
@@ -72,7 +71,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         flex items-center justify-center gap-2
         ${className}
       `}
-        {...(props as any)} // ← Use type assertion to bypass the type issue
+        {...props}
       >
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
         {children}

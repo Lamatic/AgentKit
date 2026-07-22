@@ -32,7 +32,7 @@ export function useBookings() {
         passengerName: passengerName.trim(),
         passengerEmail: passengerEmail.trim(),
         bookedAt: new Date().toISOString(),
-        status: "confirmed",
+        status: "demo",
       };
 
       setBookings((prev) => [newBooking, ...prev]);
@@ -57,6 +57,6 @@ export function useBookings() {
     addBooking,
     cancelBooking,
     totalBookings: bookings.length,
-    confirmedBookings: bookings.filter((b) => b.status === "confirmed").length,
+    confirmedBookings: bookings.filter((b) => b.status === "demo").length,
   };
 }
