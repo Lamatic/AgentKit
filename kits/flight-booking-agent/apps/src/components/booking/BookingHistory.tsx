@@ -7,13 +7,13 @@ import { formatDateFull, formatPrice } from "@/lib/formatters";
 interface BookingHistoryProps {
   bookings: Booking[];
   onClose: () => void;
-  onCancel: (bookingId: string) => void;
+  onRemove: (bookingId: string) => void; // ✅ Renamed from onCancel
 }
 
 export const BookingHistory = ({
   bookings,
   onClose,
-  onCancel,
+  onRemove,
 }: BookingHistoryProps) => {
   return (
     <div className="bg-card/40 backdrop-blur-sm border border-border rounded-2xl p-6">
@@ -91,7 +91,7 @@ export const BookingHistory = ({
                     </div>
                     {booking.status === "demo" && (
                       <button
-                        onClick={() => onCancel(booking.id)}
+                        onClick={() => onRemove(booking.id)}
                         className="text-xs text-destructive hover:text-destructive/80 transition-colors"
                       >
                         Remove

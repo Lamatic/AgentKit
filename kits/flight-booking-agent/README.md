@@ -50,9 +50,9 @@ npm install
 
 ### Environment Variables
 
+```dotenv
 # Lamatic API
 
-```dotenv
 LAMATIC_API_KEY=your_lamatic_api_key
 LAMATIC_PROJECT_ID=your_project_id
 LAMATIC_WORKFLOW_ID=your_workflow_id

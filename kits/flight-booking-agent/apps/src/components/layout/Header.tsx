@@ -2,7 +2,7 @@
 
 import { Plane, Sparkles, History } from "lucide-react";
 import { motion } from "motion/react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { APP_CONFIG } from "@/lib/constants";
 
 interface HeaderProps {
@@ -34,7 +34,6 @@ export const Header = ({ bookingsCount, onBookingsClick }: HeaderProps) => {
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
-              size="sm"
               onClick={onBookingsClick}
               className="flex items-center gap-2"
               aria-label="Bookings"

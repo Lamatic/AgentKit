@@ -45,7 +45,7 @@ export interface SearchResponse {
     passengers: number;
     minPrice?: number | null;
     maxPrice?: number | null;
-    cabinClass?: string; // ✅ Added
+    cabinClass?: string;
   };
   flights: Flight[];
 }
@@ -55,7 +55,6 @@ export interface Booking {
   flight: Flight;
   bookingReference: string;
   passengerName: string;
-  passengerEmail?: string;
   bookedAt: string;
   status: "demo" | "pending" | "cancelled";
 }

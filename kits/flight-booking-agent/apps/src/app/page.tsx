@@ -42,7 +42,8 @@ export default function Home() {
     clearError,
   } = useFlights();
 
-  const { bookings, addBooking, cancelBooking, totalBookings } = useBookings();
+  const { bookings, addBooking, cancelBooking, removeBooking, totalBookings } =
+    useBookings();
 
   const openBookingModal = (flight: Flight) => {
     setSelectedFlight(flight);
@@ -130,7 +131,7 @@ export default function Home() {
                 <BookingHistory
                   bookings={bookings}
                   onClose={() => setShowHistory(false)}
-                  onCancel={cancelBooking}
+                  onRemove={removeBooking}
                 />
               </motion.div>
             )}
