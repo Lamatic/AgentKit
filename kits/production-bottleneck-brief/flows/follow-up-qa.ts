@@ -168,7 +168,7 @@ export const nodes = [
             "content": "Role: user, Content: {{triggerNode_1.output.question}}"
           },
           {
-            "role": "user",
+            "role": "assistant",
             "content": "Role: assistant, Content: {{LLMNode_222.output.generatedResponse}}"
           }
         ],

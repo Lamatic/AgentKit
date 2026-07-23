@@ -541,14 +541,11 @@ button:hover:not(:disabled) .spinner {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 4px 4px 4px 0;
+  padding: 8px;
   margin-bottom: 8px;
-}
-.chat-thread {
   background: #f4f1ea;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 8px;
 }
 
 .chat-thread::-webkit-scrollbar { width: 7px; }
