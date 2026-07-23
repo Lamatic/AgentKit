@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { ProblemStatement } from "@/components/ProblemStatement";
@@ -9,11 +10,40 @@ import { BentoGrid } from "@/components/BentoGrid";
 import { SocialProof } from "@/components/SocialProof";
 import { CTA } from "@/components/CTA";
 import { Footer } from "@/components/Footer";
-import { AnalyzerModal, StackConfig } from "@/components/AnalyzerModal";
+import { StackConfig } from "@/components/AnalyzerModal";
 import { ReportPreview } from "@/components/ReportPreview";
 
+function SearchParamsHandler({
+  setActiveConfig,
+  setIsReportOpen,
+}: {
+  setActiveConfig: (config: StackConfig) => void;
+  setIsReportOpen: (open: boolean) => void;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const showReport = searchParams.get("report");
+    if (showReport === "true") {
+      const configData: StackConfig = {
+        backend: searchParams.get("backend") || "Node.js",
+        database: searchParams.get("database") || "PostgreSQL",
+        cloud: searchParams.get("cloud") || "AWS",
+        users: searchParams.get("users") || "100k MAU",
+        challenge: searchParams.get("challenge") || "High latency during peak traffic",
+      };
+      setActiveConfig(configData);
+      setIsReportOpen(true);
+      router.replace("/");
+    }
+  }, [searchParams, router, setActiveConfig, setIsReportOpen]);
+
+  return null;
+}
+
 export default function Home() {
-  const [isAnalyzerOpen, setIsAnalyzerOpen] = useState(false);
+  const router = useRouter();
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [activeConfig, setActiveConfig] = useState<StackConfig | null>(null);
 
@@ -37,7 +67,7 @@ export default function Home() {
   }, []);
 
   const handleOpenAnalyzer = () => {
-    setIsAnalyzerOpen(true);
+    router.push("/sign-up");
   };
 
   const handleOpenSampleReport = () => {
@@ -48,12 +78,6 @@ export default function Home() {
       users: "120,000 Active Users",
       challenge: "High latency during peak traffic",
     });
-    setIsReportOpen(true);
-  };
-
-  const handleGenerateReport = (config: StackConfig) => {
-    setActiveConfig(config);
-    setIsAnalyzerOpen(false);
     setIsReportOpen(true);
   };
 
@@ -91,12 +115,9 @@ export default function Home() {
       {/* Footer */}
       <Footer />
 
-      {/* Interactive Analyzer Form Modal */}
-      <AnalyzerModal
-        isOpen={isAnalyzerOpen}
-        onClose={() => setIsAnalyzerOpen(false)}
-        onGenerateReport={handleGenerateReport}
-      />
+      <Suspense fallback={null}>
+        <SearchParamsHandler setActiveConfig={setActiveConfig} setIsReportOpen={setIsReportOpen} />
+      </Suspense>
 
       {/* Full Generated Architecture Report Preview Modal */}
       <ReportPreview

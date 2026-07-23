@@ -170,5 +170,109 @@ body {
   animation-play-state: paused;
 }
 
+/* Premium 3D Illustration Custom Animations */
+
+/* 2D Labels Floating Animations */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) translateZ(10px); }
+  50% { transform: translateY(-4px) translateZ(10px); }
+}
+@keyframes floatMedium {
+  0%, 100% { transform: translateY(0px) translateZ(10px); }
+  50% { transform: translateY(-5px) translateZ(10px); }
+}
+@keyframes floatFast {
+  0%, 100% { transform: translateY(0px) translateZ(10px); }
+  50% { transform: translateY(-3px) translateZ(10px); }
+}
+@keyframes floatSlowest {
+  0%, 100% { transform: translateY(0px) translateZ(10px); }
+  50% { transform: translateY(-6px) translateZ(10px); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+.animate-float-medium {
+  animation: floatMedium 5s ease-in-out infinite;
+}
+.animate-float-fast {
+  animation: floatFast 4s ease-in-out infinite;
+}
+.animate-float-slowest {
+  animation: floatSlowest 7.5s ease-in-out infinite;
+}
+
+/* Telemetry Bar Pulse (GPU-accelerated scaleY) */
+@keyframes telemetryScale {
+  0%, 100% { transform: scaleY(0.95); }
+  50% { transform: scaleY(0.35); }
+}
+
+.animate-telemetry-bar {
+  animation: telemetryScale 2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* Dotted Line Network Flow Packet */
+@keyframes flowPacket {
+  from { stroke-dashoffset: 88; }
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-flow-packet {
+  animation: flowPacket 3.2s linear infinite;
+}
+
+/* Orbit Particles around the logo */
+@keyframes orbitA {
+  0% { transform: rotate(0deg) translate(56px) rotate(0deg); }
+  100% { transform: rotate(360deg) translate(56px) rotate(-360deg); }
+}
+
+@keyframes orbitB {
+  0% { transform: rotate(120deg) translate(56px) rotate(-120deg); }
+  100% { transform: rotate(480deg) translate(56px) rotate(-480deg); }
+}
+
+.animate-orbit-a {
+  animation: orbitA 12s linear infinite;
+  transform-origin: center;
+}
+
+.animate-orbit-b {
+  animation: orbitB 16s linear infinite;
+  transform-origin: center;
+}
+
+/* Fallback for browsers that do not support CSS 3D transforms */
+@supports not (transform-style: preserve-3d) {
+  .stack-container-3d {
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: auto !important;
+    width: auto !important;
+  }
+  .stack-container-3d > div {
+    position: static !important;
+    transform: none !important;
+    margin: 0 !important;
+    box-shadow: 0 4px 12px rgba(13, 13, 11, 0.08) !important;
+  }
+}
+
+/* Fade in animation utility */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
 
 
