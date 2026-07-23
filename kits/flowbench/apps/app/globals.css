@@ -1,3 +1,19 @@
 @import "tailwindcss";
 
-/* TODO: Add FlowBench-specific global styles / CSS custom properties here */
+@theme {
+  --color-background: #020817; /* slate-950 equivalent */
+  --color-foreground: #f8fafc; /* slate-50 equivalent */
+  
+  --color-primary: #0891b2; /* cyan-600 */
+  --color-primary-foreground: #ffffff;
+  
+  --color-destructive: #f87171; /* red-400 */
+  --color-destructive-foreground: #020817;
+  
+  --color-muted: #0f172a;
+  --color-muted-foreground: #94a3b8; /* slate-400 */
+  
+  --color-input: #1e293b; /* slate-800 */
+  --color-border: #1e293b;
+  --color-ring: #0891b2;
+}

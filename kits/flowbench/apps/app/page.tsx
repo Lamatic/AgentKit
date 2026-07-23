@@ -81,8 +81,8 @@ export default async function HomePage() {
                         </div>
                       </div>
                       <div className="text-right hidden sm:block">
-                        <div className="text-slate-400 mb-1">Avg Latency</div>
-                        <div className="font-semibold text-slate-200">{avgLatency !== null ? `${avgLatency}ms` : "—"}</div>
+                        <div className="text-muted-foreground mb-1">Avg Latency</div>
+                        <div className="font-semibold text-foreground">{avgLatency !== null ? `${avgLatency}ms` : "—"}</div>
                       </div>
                     </div>
                   </div>
