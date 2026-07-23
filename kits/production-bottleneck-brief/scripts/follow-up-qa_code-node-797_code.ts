@@ -15,6 +15,7 @@ function computeStats(order) {
     !isNaN(dueDate.getTime()) &&
     Number.isFinite(quantity) && quantity >= 0 &&
     Number.isFinite(completedQuantity) && completedQuantity >= 0 &&
+    completedQuantity <= quantity &&
     stages.length > 0 &&
     stageIndex !== -1;
 
