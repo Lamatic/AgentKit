@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface NavbarProps {
   onOpenModal: () => void;
@@ -107,31 +108,29 @@ export function Navbar({ onOpenModal, onSelectSampleReport }: NavbarProps) {
           </button>
         </nav>
 
-        {/* Action Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <button
-            onClick={onOpenModal}
+          <Link
+            href="/sign-in"
             className="px-3.5 py-1.5 text-xs font-mono uppercase tracking-wider text-[#555550] hover:text-[#0D0D0B] transition-colors cursor-pointer"
           >
             Sign In
-          </button>
-          <button
-            onClick={onOpenModal}
+          </Link>
+          <Link
+            href="/sign-up"
             className="px-4 py-2 bg-[#FCDD2D] hover:bg-[#ebd028] text-[#0D0D0B] border border-[#0D0D0B] font-mono text-[11px] uppercase tracking-widest font-bold transition-all cursor-pointer shadow-none flex items-center gap-2"
           >
             <span>Get Started</span>
             <span className="text-[#0D0D0B]">→</span>
-          </button>
+          </Link>
         </div>
 
-        {/* Mobile Menu Toggle Button */}
         <div className="flex md:hidden items-center gap-2">
-          <button
-            onClick={onOpenModal}
-            className="px-2.5 py-1.5 bg-[#FCDD2D] text-[#0D0D0B] font-mono text-[10px] font-bold uppercase tracking-wider border border-[#0D0D0B]"
+          <Link
+            href="/sign-up"
+            className="px-2.5 py-1.5 bg-[#FCDD2D] text-[#0D0D0B] font-mono text-[10px] font-bold uppercase tracking-wider border border-[#0D0D0B] text-center"
           >
             Analyze
-          </button>
+          </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
@@ -193,15 +192,13 @@ export function Navbar({ onOpenModal, onSelectSampleReport }: NavbarProps) {
             </button>
           </div>
           <div className="pt-2 flex flex-col gap-2">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenModal();
-              }}
+            <Link
+              href="/sign-up"
+              onClick={() => setMobileMenuOpen(false)}
               className="w-full py-3 bg-[#FCDD2D] text-[#0D0D0B] font-bold border border-[#0D0D0B] font-mono text-center text-xs uppercase tracking-widest"
             >
               Analyze Your Architecture →
-            </button>
+            </Link>
           </div>
         </div>
       )}
