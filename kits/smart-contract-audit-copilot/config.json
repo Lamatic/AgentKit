@@ -1,0 +1,52 @@
+{
+  "triggerNode": {
+    "nodeId": "triggerNode_1",
+    "nodeType": "graphqlNode",
+    "nodeName": "API Request",
+    "values": {
+      "advance_schema": "",
+      "responeType": "realtime"
+    }
+  },
+  "nodes": [
+    {
+      "nodeId": "LLMNode_421",
+      "nodeType": "LLMNode",
+      "nodeName": "Generate Audit Report",
+      "values": {
+        "prompts": [
+          {
+            "id": "6f1e5d68-4a35-4c52-a220-smart-contract-audit-system",
+            "role": "system",
+            "content": "@prompts/smart-contract-audit_system.md"
+          },
+          {
+            "id": "6f1e5d68-4a35-4c52-a220-smart-contract-audit-user",
+            "role": "user",
+            "content": "@prompts/smart-contract-audit_user.md"
+          }
+        ],
+        "tools": [],
+        "credentials": "@model-configs/smart-contract-audit_llm.ts",
+        "messages": "@model-configs/smart-contract-audit_llm.ts",
+        "memories": "@model-configs/smart-contract-audit_llm.ts",
+        "attachments": "@model-configs/smart-contract-audit_llm.ts",
+        "generativeModelName": "@model-configs/smart-contract-audit_llm.ts"
+      },
+      "needs": ["triggerNode_1"]
+    }
+  ],
+  "responseNode": {
+    "nodeId": "responseNode_triggerNode_1",
+    "nodeType": "graphqlResponseNode",
+    "nodeName": "API Response",
+    "values": {
+      "outputMapping": "{\n  \"auditReport\": \"{{LLMNode_421.output.generatedResponse}}\"\n}",
+      "webhookUrl": "",
+      "headers": "{}",
+      "retries": "0",
+      "retry_delay": "0"
+    },
+    "needs": ["LLMNode_421"]
+  }
+}
