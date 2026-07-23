@@ -10,6 +10,7 @@ const VERDICT_LABELS: Record<string, string> = {
   NEEDS_IMPROVEMENT: "Needs Improvement",
   NOT_PRODUCTION_READY: "Not Production Ready",
   PARTIAL_AUDIT_STATIC_ONLY: "Partial Audit (Static Only)",
+  FLOW_ERROR: "Flow Error",
 }
 
 const CATEGORY_LABELS: Record<string, string> = {

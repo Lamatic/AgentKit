@@ -1,5 +1,5 @@
-const targetEndpoint = {{triggerNode_1.output.targetEndpoint}};
-const llmProbes = {{InstructorLLMNode_186.output.probes}};
+const targetEndpoint = {{triggerNode_1.output.targetEndpoint}} || { url: "", authHeader: "" };
+const llmProbes = {{InstructorLLMNode_186.output.probes}} || [];
 
 const TIMEOUT_MS = 15000;
 const RELIABILITY_SAMPLE_SIZE = 3;
@@ -139,11 +139,13 @@ async function callTarget(probe) {
     let responseText;
     try {
       const json = JSON.parse(rawText);
-      responseText = json.response || json.message || json.text || JSON.stringify(json);
+      const candidate = json.response ?? json.message ?? json.text ?? json;
+      responseText = typeof candidate === "string" ? candidate : JSON.stringify(candidate);
     } catch {
       responseText = rawText;
     }
-    if (typeof responseText === "string" && responseText.length > MAX_RESPONSE_CHARS) {
+    responseText = String(responseText);
+    if (responseText.length > MAX_RESPONSE_CHARS) {
       responseText = responseText.slice(0, MAX_RESPONSE_CHARS) + "… [truncated]";
     }
 
@@ -191,10 +193,20 @@ async function run() {
     };
   }
 
-  const results = [];
-  for (const probe of probes) {
-    results.push(await callTarget(probe));
+  const results = new Array(probes.length);
+  const CONCURRENCY = 5;
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < probes.length) {
+      const current = nextIndex++;
+      results[current] = await callTarget(probes[current]);
+    }
   }
+
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, probes.length) }, () => worker())
+  );
 
   const reliabilityRuns = [];
   for (const probe of probes.slice(0, RELIABILITY_SAMPLE_SIZE)) {

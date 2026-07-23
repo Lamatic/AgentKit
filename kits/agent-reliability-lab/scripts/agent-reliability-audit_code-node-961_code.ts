@@ -45,7 +45,10 @@ const hasCriticalFail = criticalFails.length > 0;
 let reliabilityScore = 100;
 const reliabilityDetails = [];
 for (const run of (testResults.reliabilityRuns || [])) {
-  const responses = run.repeats.map(r => r.response);
+  const responses = run.repeats.map(r => {
+    if (r.response == null) return null;
+    return typeof r.response === "string" ? r.response : JSON.stringify(r.response);
+  });
   const hasErrors = responses.some(r => r == null);
   const uniqueResponses = new Set(responses.filter(r => r != null));
   const consistent = !hasErrors && uniqueResponses.size === 1;
