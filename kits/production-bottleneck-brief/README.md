@@ -1,29 +1,45 @@
 # Production Bottleneck Brief
-**[Live Demo](https://agent-r0yzvvrea-ibrahimkhan7208s-projects.vercel.app)**
 
-Turns messy production order data into a prioritized, plain-English brief on what's at risk — then answers follow-up questions about any specific order. Built for manufacturing and fulfillment teams (factories, print shops, custom production runs — anywhere orders move through sequential stages) who don't want to manually dig through spreadsheets to spot what's about to miss a deadline.
+**[Live Demo](https://your-actual-vercel-url.vercel.app)**
+
+Turns messy production order data into a prioritized, plain-English brief on what's at risk of missing its deadline — then lets you have an ongoing conversation about any specific order, with the assistant remembering what's already been discussed. Built for manufacturing and fulfillment teams (factories, print shops, custom production runs — anywhere orders move through sequential stages) who don't want to manually dig through spreadsheets to spot what's about to slip.
 
 ## The problem
 
-Most production tracking systems store the raw data — due dates, current stage, quantities completed — but don't tell you *what to look at first*. Someone has to manually scan every open order, do the math on days remaining vs. stages left, and figure out what's actually urgent. That doesn't scale past a handful of orders, and it's easy to miss the one that's already overdue.
+Most production tracking systems store the raw data — due dates, current stage, quantities completed — but don't tell you *what to look at first* or *what to actually do about it*. Someone has to manually scan every open order, do the math on days remaining vs. stages left, and figure out what's urgent. That doesn't scale past a handful of orders, and it's easy to miss the one that's already overdue.
 
-## How it works
+## How it's built — Lamatic Studio flows
 
-This kit is two Lamatic flows plus a thin Next.js UI:
+This kit is two Lamatic flows, built entirely from Studio's node canvas, plus a thin Next.js UI on top.
 
-**1. Production Brief flow** — takes a full list of orders and returns:
-- A short natural-language brief flagging at-risk and overdue orders, the likely bottleneck stage, and what to address first
-- A structured stats table (per-order risk data) for at-a-glance scanning
+### Flow 1: `production-bottleneck-brief`
 
-**2. Order Q&A flow** — given one order ID and a free-text question, returns a direct, plain-English answer about that specific order (e.g. *"why is this flagged?"*, *"how many days behind is it?"*).
+API Request → Code Node → Generate Text (brief) → Generate Text (email draft) → API Response
 
-### Design decision: code does the math, the LLM does the writing
+- **API Request** — accepts a full `orders` array (id, dueDate, stages, currentStage, stageEnteredDate, quantity, completedQuantity)
+- **Code Node** — deterministically computes risk stats per order: days in current stage, days until due, % complete, stages remaining, and an `atRisk` flag. Also validates input (invalid dates, non-numeric quantities, or an unknown `currentStage` are caught and flagged rather than silently producing `NaN`)
+- **Generate Text (brief)** — synthesizes those stats into a short, prioritized narrative: which orders are at risk and why, the likely bottleneck stage, and a concrete recovery action (e.g. reassign resources, escalate a stage-specific delay, deprioritize behind an order with more slack) — not just "look at this first"
+- **Generate Text (email draft)** — takes the brief and reformats it into a ready-to-send internal alert email (subject + body), grounded only in what the brief already said
+- **API Response** — returns `{ brief, stats, emailDraft }`
 
-Risk detection (days until due, days in current stage, % complete, overdue status) is computed **deterministically in a code node** — not by the LLM. The LLM's only job is to synthesize those precomputed numbers into a prioritized narrative, and to translate raw field values into plain language rather than echoing variable names. This keeps the output reliable and reproducible: the same input always produces the same risk flags, and the LLM can't hallucinate a risk status that the data doesn't support.
+### Flow 2: `follow-up-qa`
+
+API Request → Code Node → Memory Retrieve → Generate Text → Memory Add → API Response
+
+- **API Request** — accepts the full `orders` array, an `orderId`, and a free-text `question`
+- **Code Node** — isolates and computes stats for just the one order in question, same validation as Flow 1
+- **Memory Retrieve** — searches previously stored facts about *this specific order* (filtered by `uniqueId = orderId`), so the assistant has context from earlier questions
+- **Generate Text** — answers the question directly, using the current stats plus any retrieved memory, in plain English (no raw field names surfaced). If asked what to do, it gives a concrete recovery action rather than repeating the risk summary
+- **Memory Add** — extracts durable facts from the exchange (the question, the answer, and any new specifics) and stores them under the order's ID for future questions to build on
+- **API Response** — returns the answer
+
+### Why this design
+
+**Deterministic code does the math, the LLM does the synthesis.** Risk detection is never left to model judgment — it's computed the same way every time in a Code Node. The LLM's job is purely to turn already-correct numbers into something readable and actionable, and it's explicitly instructed never to invent information the input doesn't contain.
+
+**Memory is scoped per order, not per user or session.** A follow-up question about PO-016 has access to everything previously discussed about PO-016 — regardless of who's asking — which matches how a team actually works (anyone on ops asking about the same order should see the same accumulated context).
 
 ## Input schema
-
-Both flows expect orders in this shape:
 
 ```json
 {
@@ -41,16 +57,9 @@ Both flows expect orders in this shape:
 }
 ```
 
-The Order Q&A flow additionally takes `orderId` (string) and `question` (string).
+The Q&A flow additionally takes `orderId` (string) and `question` (string).
 
-This is intentionally generic — not tied to any specific industry's terminology — so it maps onto whatever fields your ERP or tracking system already stores per order.
-
-## Flows in this kit
-
-| Flow | Purpose |
-|---|---|
-| `production-bottleneck-brief` | Analyzes the full order set, computes risk stats, generates the prioritized brief |
-| `follow-up-qa` | Answers a targeted question about one specific order |
+The UI accepts a bare array of orders (as shown above); the flow API itself expects it wrapped as `{ "orders": [...] }`.
 
 ## Running locally
 
@@ -75,10 +84,12 @@ Open `http://localhost:3000`.
 
 ## What this kit does NOT do
 
-Scoped out on purpose, to keep this focused:
-- No live ERP/database integration — you paste or upload order data, it doesn't pull from a live system
-- No scheduling or reassignment logic — it reports risk, it doesn't act on it
-- No multi-tenant auth — this is a single-user demo, not a production multi-team tool
+Scoped out on purpose:
+
+- **No live ERP/database integration** — you paste or upload order data, it doesn't pull from a live system
+- **No automated sending** — the email draft is copy-to-clipboard only, never sent automatically. A natural extension would be creating the draft directly in Gmail via Lamatic's Gmail node (`GMAIL_CREATE_EMAIL_DRAFT`), which we explored but requires a Pro-tier ETL connector — kept the draft copy-paste-ready instead so the feature works for anyone testing this kit regardless of plan
+- **Memory has no expiry or lifecycle management** — it's scoped per order and persists indefinitely, appropriate for a demo but a production version would need memory cleanup/expiry policy
+- **No multi-tenant auth** — single-user demo, not a production multi-team tool
 
 ## Try it
 
@@ -92,7 +103,7 @@ Paste this into the Order Data box and click Analyze:
 ]
 ```
 
-Then try asking about `PO-016`: *"Why is this order flagged?"*
+Then in the Q&A card, ask about `PO-016`: *"Why is this order flagged?"* — followed by *"What should I do about it?"* to see the assistant build on its own prior answer.
 
 ## Author
 
