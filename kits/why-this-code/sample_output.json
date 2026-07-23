@@ -1,0 +1,147 @@
+{
+    "aiResponse": {
+        "unifiedPurpose": "The BootstrapService coordinates remote service lifecycle execution stages, specifically managing the initialization and teardown of the local CGS workspace.",
+        "purposeBasis": "issue-title-fallback",
+        "coverageDashboard": {
+            "commitHistory": "STRONG",
+            "prsIssues": "WEAK",
+            "documentation": "STRONG",
+            "invocations": "STRONG"
+        },
+        "originHistory": {
+            "summary": "Created whole in a single commit (79fac6e) during initial remote service scaffolding and workspace configuration.",
+            "originCommitFound": true
+        },
+        "usagePattern": {
+            "summary": "Registered as a Fastify decorator at plugin load time to serve as a shared application-wide service, alongside typing enhancements to expose it on the FastifyInstance interface.",
+            "externalCrossFile": [
+                {
+                    "path": "apps/remote-service/src/types/fastify.d.ts",
+                    "resolvedLocalName": "BootstrapService",
+                    "invocations": [
+                        {
+                            "line": "4",
+                            "snippet": "import { BootstrapService } from \"../services/bootstrap/bootstrap-service\";",
+                            "kind": "type-only"
+                        },
+                        {
+                            "line": "11",
+                            "snippet": "bootstrapService: BootstrapService;",
+                            "kind": "type-only"
+                        }
+                    ]
+                },
+                {
+                    "path": "apps/remote-service/src/plugins/services-plugin.ts",
+                    "resolvedLocalName": "BootstrapService",
+                    "invocations": [
+                        {
+                            "line": "4",
+                            "snippet": "import { BootstrapService } from \"../services/bootstrap/bootstrap-service.js\";",
+                            "kind": "type-only"
+                        },
+                        {
+                            "line": "9",
+                            "snippet": "app.decorate(\"bootstrapService\", new BootstrapService(workspaceService, app.log));",
+                            "kind": "framework-registration"
+                        }
+                    ]
+                }
+            ]
+        },
+        "architecturalIntent": {
+            "summary": "App-wide singleton lifecycle manager registered as a Fastify decorator. It orchestrates the workspace service initialization and destruction phases during service boot and shutdown.",
+            "dependencies": [
+                "WorkspaceService",
+                "FastifyBaseLogger"
+            ],
+            "notes": [
+                "GAP: PR bodies and issues contain no detailed prose explanation, relying solely on brief issue/PR titles for context."
+            ]
+        }
+    },
+    "context": {
+        "owner": "suu-b",
+        "repo": "renaissance",
+        "ref": "main",
+        "path": "apps/remote-service/src/services/bootstrap/bootstrap-service.ts",
+        "profile": "typescript",
+        "fileContent": "import { FastifyBaseLogger } from \"fastify\";\nimport { WorkspaceService } from \"../workspace/workspace-service\";\n\n/**\n * Executions specific to various lifecycle stages of the Remote service\n */\nexport class BootstrapService {\n    private workspaceService: WorkspaceService;\n    private logger: FastifyBaseLogger;\n\n    constructor(workspaceService: WorkspaceService, logger: FastifyBaseLogger) {\n        this.workspaceService = workspaceService;\n        this.logger = logger;\n    }\n\n    async initialize() {\n        this.logger.info(\"Starting BootstrapService initialization...\");\n        // clone a local copy of CGS-repo\n        await this.workspaceService.initialize();\n        this.logger.info(\"BootstrapService initialization complete.\");\n    }\n\n    async shutdown() {\n        this.logger.info(\"Starting BootstrapService shutdown...\");\n        // destroy the local copy\n        await this.workspaceService.destroy();\n        this.logger.info(\"BootstrapService shutdown complete.\");\n    }\n\n}",
+        "startLine": 7,
+        "endLine": 30,
+        "declarationValid": "",
+        "symbolName": "BootstrapService",
+        "docstring": "/**\n * Executions specific to various lifecycle stages of the Remote service\n */",
+        "history": {
+            "status": "STRONG",
+            "commits": [
+                {
+                    "oid": "79fac6e832017f10b245252a0f6bd5176ff13985",
+                    "message": "remote service scaffolding + cgs-local creation (#25) (#26)",
+                    "isLikelyOrigin": true
+                }
+            ],
+            "originFound": true
+        },
+        "discussions": {
+            "status": "STRONG",
+            "prs": [
+                {
+                    "number": 26,
+                    "title": "remote service scaffolding + cgs-local creation (#25)",
+                    "body": "Resolves #25 "
+                },
+                {
+                    "number": 25,
+                    "title": "remote service scaffolding + cgs-local creation",
+                    "body": "#20 "
+                }
+            ],
+            "issues": [
+                {
+                    "number": 20,
+                    "title": "Remote Service Scaffolding + CGS repo cloning capability",
+                    "body": ""
+                }
+            ]
+        },
+        "usages": {
+            "status": "STRONG",
+            "files": [
+                {
+                    "path": "apps/remote-service/src/types/fastify.d.ts",
+                    "resolvedLocalName": "BootstrapService",
+                    "invocations": [
+                        {
+                            "line": 4,
+                            "snippet": "import { BootstrapService } from \"../services/bootstrap/bootstrap-service\";"
+                        },
+                        {
+                            "line": 11,
+                            "snippet": "bootstrapService: BootstrapService;"
+                        }
+                    ],
+                    "content": "import \"fastify\";\n\nimport { WorkspaceService } from \"../services/workspace/workspace-service\";\nimport { BootstrapService } from \"../services/bootstrap/bootstrap-service\";\nimport { SupabaseClient } from \"@supabase/supabase-js\";\nimport { UserRepositoryService } from \"../services/repository/user-repository-service\";\n\ndeclare module \"fastify\" {\n    interface FastifyInstance {\n        workspaceService: WorkspaceService;\n        bootstrapService: BootstrapService;\n        supabase: SupabaseClient;\n        userRepository: UserRepositoryService;\n    }\n}"
+                },
+                {
+                    "path": "apps/remote-service/src/plugins/services-plugin.ts",
+                    "resolvedLocalName": "BootstrapService",
+                    "invocations": [
+                        {
+                            "line": 4,
+                            "snippet": "import { BootstrapService } from \"../services/bootstrap/bootstrap-service.js\";"
+                        },
+                        {
+                            "line": 9,
+                            "snippet": "app.decorate(\"bootstrapService\", new BootstrapService(workspaceService, app.log));"
+                        }
+                    ],
+                    "content": "import fp from \"fastify-plugin\";\nimport { FastifyInstance } from \"fastify\";\nimport { WorkspaceService } from \"../services/workspace/workspace-service.js\";\nimport { BootstrapService } from \"../services/bootstrap/bootstrap-service.js\";\n\nexport default fp(async (app: FastifyInstance) => {\n    const workspaceService = new WorkspaceService(app.log);\n    app.decorate(\"workspaceService\", workspaceService);\n    app.decorate(\"bootstrapService\", new BootstrapService(workspaceService, app.log));\n});\n"
+                }
+            ]
+        },
+        "usage": ""
+    },
+    "status": "success",
+    "validationError": "none"
+}
