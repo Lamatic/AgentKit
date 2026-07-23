@@ -1,0 +1,1 @@
+Here is the risk brief to turn into an email: {{LLMNode_303.output.generatedResponse}}

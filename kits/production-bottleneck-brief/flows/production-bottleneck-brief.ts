@@ -23,6 +23,13 @@ export const inputs = {
       "label": "Generative Model Name",
       "type": "model"
     }
+  ],
+  "LLMNode_430": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
   ]
 };
 
@@ -33,10 +40,13 @@ export const references = {
   },
   "prompts": {
     "production_bottleneck_brief_llmnode_303_system_0": "@prompts/production-bottleneck-brief_llmnode-303_system_0.md",
-    "production_bottleneck_brief_llmnode_303_user_1": "@prompts/production-bottleneck-brief_llmnode-303_user_1.md"
+    "production_bottleneck_brief_llmnode_303_user_1": "@prompts/production-bottleneck-brief_llmnode-303_user_1.md",
+    "production_bottleneck_brief_llmnode_430_system_0": "@prompts/production-bottleneck-brief_llmnode-430_system_0.md",
+    "production_bottleneck_brief_llmnode_430_user_1": "@prompts/production-bottleneck-brief_llmnode-430_user_1.md"
   },
   "modelConfigs": {
-    "production_bottleneck_brief_llmnode_303_generative_model_name": "@model-configs/production-bottleneck-brief_llmnode-303_generative-model-name.ts"
+    "production_bottleneck_brief_llmnode_303_generative_model_name": "@model-configs/production-bottleneck-brief_llmnode-303_generative-model-name.ts",
+    "production_bottleneck_brief_llmnode_430_generative_model_name": "@model-configs/production-bottleneck-brief_llmnode-430_generative-model-name.ts"
   },
   "scripts": {
     "production_bottleneck_brief_code_node_969_code": "@scripts/production-bottleneck-brief_code-node-969_code.ts"
@@ -111,6 +121,38 @@ export const nodes = [
     }
   },
   {
+    "id": "LLMNode_430",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "LLMNode",
+      "values": {
+        "tools": [],
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/production-bottleneck-brief_llmnode-430_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/production-bottleneck-brief_llmnode-430_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Generate Text",
+        "attachments": "",
+        "credentials": "",
+        "generativeModelName": "@model-configs/production-bottleneck-brief_llmnode-430_generative-model-name.ts"
+      }
+    }
+  },
+  {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
     "position": {
@@ -126,7 +168,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"output\": \"{{LLMNode_303.output.generatedResponse}}\"\n}"
+        "outputMapping": "{\n  \"brief\": \"{{LLMNode_303.output.generatedResponse}}\",\n  \"stats\": \"{{codeNode_969.output}}\",\n  \"emailDraft\": \"{{LLMNode_430.output.generatedResponse}}\"\n}"
       }
     }
   }
@@ -150,15 +192,23 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "LLMNode_303-responseNode_triggerNode_1",
+    "id": "LLMNode_303-LLMNode_430",
     "source": "LLMNode_303",
+    "target": "LLMNode_430",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "LLMNode_430-responseNode_triggerNode_1",
+    "source": "LLMNode_430",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "response-trigger_triggerNode_1",
+    "id": "response-responseNode_triggerNode_1",
     "source": "triggerNode_1",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "to-response",

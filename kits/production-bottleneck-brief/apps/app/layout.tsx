@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
+import { Oswald, Inter, JetBrains_Mono, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 
 const heading = Oswald({
@@ -20,6 +20,12 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const display = Bebas_Neue({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-display",
+});
+
 export const metadata: Metadata = {
   title: "Production Bottleneck Brief",
   description: "Turn production order data into a prioritized, plain-English ops brief.",
@@ -27,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${heading.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${heading.variable} ${body.variable} ${mono.variable} ${display.variable}`}>
       <body>{children}</body>
     </html>
   );

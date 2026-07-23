@@ -15,16 +15,18 @@ export type Order = {
 export type OrderStat = {
   id: string;
   currentStage: string;
-  daysInStage: number;
-  daysUntilDue: number;
-  pctComplete: number;
-  stagesRemaining: number;
+  daysInStage?: number;
+  daysUntilDue?: number;
+  pctComplete?: number;
+  stagesRemaining?: number;
   atRisk: boolean;
+  error?: string;
 };
 
 export type BriefResult = {
   brief: string;
   stats: OrderStat[];
+  emailDraft: string;
 };
 
 export async function getBottleneckBrief(orders: Order[]): Promise<BriefResult> {
@@ -33,6 +35,7 @@ export async function getBottleneckBrief(orders: Order[]): Promise<BriefResult> 
   return {
     brief: response?.result?.brief ?? "No response received.",
     stats: response?.result?.stats ?? [],
+    emailDraft: response?.result?.emailDraft ?? "",
   };
 }
 
