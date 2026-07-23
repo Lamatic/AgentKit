@@ -94,11 +94,11 @@ export default function RunForm() {
             name="flowId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-300">Lamatic Flow ID</FormLabel>
+                <FormLabel className="text-foreground">Lamatic Flow ID</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="e.g. ea04774a-bc7e-4134-b022-352056971fcf"
-                    className="bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-600 focus-visible:ring-cyan-500/50"
+                    className="bg-background border-input text-foreground placeholder-muted-foreground focus-visible:ring-ring/50"
                     {...field}
                   />
                 </FormControl>
@@ -112,43 +112,45 @@ export default function RunForm() {
             name="file"
             render={({ field: { value, onChange, ...fieldProps } }) => (
               <FormItem>
-                <FormLabel className="text-slate-300">Test Cases (.jsonl)</FormLabel>
-                <FormControl>
+                <FormLabel className="text-foreground">Test Cases (.jsonl)</FormLabel>
+                <div>
                   <label 
                     htmlFor="jsonl-file-input"
-                    className="block w-full bg-slate-950 border border-slate-800 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-950/50 transition-colors focus-within:ring-2 focus-within:ring-cyan-500/50 focus-within:border-cyan-500"
+                    className="block w-full bg-background border border-input border-dashed rounded-lg px-4 py-6 text-center cursor-pointer hover:border-ring/50 hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring/50 focus-within:border-ring"
                   >
-                    <input
-                      id="jsonl-file-input"
-                      type="file"
-                      accept=".jsonl"
-                      className="sr-only"
-                      onChange={(e) => {
-                        const selectedFile = e.target.files?.[0] || null;
-                        onChange(selectedFile);
-                      }}
-                      {...fieldProps}
-                    />
+                    <FormControl>
+                      <input
+                        id="jsonl-file-input"
+                        type="file"
+                        accept=".jsonl"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const selectedFile = e.target.files?.[0] || null;
+                          onChange(selectedFile);
+                        }}
+                        {...fieldProps}
+                      />
+                    </FormControl>
                     {value ? (
-                      <div className="flex items-center justify-center gap-2 text-cyan-400">
+                      <div className="flex items-center justify-center gap-2 text-primary">
                         <FileJson className="w-5 h-5" />
                         <span className="font-medium">{value.name}</span>
                       </div>
                     ) : (
-                      <div className="text-slate-500">
+                      <div className="text-muted-foreground">
                         <FileJson className="w-6 h-6 mx-auto mb-2 opacity-50" />
                         <span>Click to select a JSONL file</span>
                       </div>
                     )}
                   </label>
-                </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
           />
 
           {error && (
-            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-3">
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm flex gap-3">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p className="whitespace-pre-wrap">{error}</p>
             </div>
@@ -157,7 +159,7 @@ export default function RunForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
           >
             {loading ? (
               <>

@@ -55,9 +55,9 @@ export default async function ReportPage({
               {totalCount === 0 ? "—" : `${Math.round((passCount / totalCount) * 100)}%`}
             </div>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 min-w-[120px]">
-            <div className="text-sm text-slate-400 mb-1">Latency p50</div>
-            <div className="text-2xl font-bold text-slate-200">
+          <div className="bg-background border border-border rounded-lg p-4 min-w-[120px]">
+            <div className="text-sm text-muted-foreground mb-1">Latency p50</div>
+            <div className="text-2xl font-bold text-foreground">
               {p50 !== null ? `${p50}ms` : "—"}
             </div>
           </div>
