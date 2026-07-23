@@ -1,25 +1,19 @@
-// Mustache placeholders are substituted as raw text by the platform before this
-// code runs, so they must be wrapped in quotes (as every other node in this kit
-// does, e.g. "queryField": "{{triggerNode_1.output.message}}") — otherwise the
-// substituted value produces invalid syntax, and "batch" never becomes a real
-// array to iterate over.
-let single_name = "{{triggerNode_1.output.pattern_name}}"
-let single_content = "{{triggerNode_1.output.content}}"
-let batchRaw = "{{triggerNode_1.output.patterns}}"
+// Lamatic Code node scripts read upstream values through the runtime `workflow`
+// object (workflow.<nodeId>.output.<field>) — Mustache expressions inside the
+// script body resolve to literal path strings, not substituted values.
+// `workflow` and `output` are injected by the Lamatic runtime at execution
+// time; declared here only so the editor/TS language server recognizes them.
+declare const workflow: any
+declare let output: any
 
-let batch = null
-try {
-  const parsed = JSON.parse(batchRaw)
-  if (Array.isArray(parsed)) {
-    batch = parsed
-  }
-} catch (e) {
-  batch = null
-}
+const input = workflow.triggerNode_1.output
+const single_name = input.pattern_name
+const single_content = input.content
+const batch = Array.isArray(input.patterns) ? input.patterns : null
 
 // Simple deterministic hash so records get a stable, collision-resistant ID
 // even when two patterns share the same pattern_name.
-function stableId(name, content) {
+function stableId(name: string, content: string) {
   let hash = 5381
   const str = String(name) + "|" + String(content)
   for (let i = 0; i < str.length; i++) {
@@ -40,7 +34,7 @@ if (batch && batch.length > 0) {
       content: p.content
     })
   }
-} else if (single_name && single_name !== "undefined" && single_content && single_content !== "undefined") {
+} else if (single_name && single_content) {
   vectorData.push("pattern: " + single_name + " | details: " + single_content)
   metaData.push({
     id: stableId(single_name, single_content),
