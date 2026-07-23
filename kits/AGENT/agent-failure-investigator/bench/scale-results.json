@@ -1,0 +1,37 @@
+{
+  "generated": "2026-07-14T16:38:56.052Z",
+  "node": "v22.22.2",
+  "traces_per_size": 60,
+  "results": [
+    {
+      "events_per_trace": 100,
+      "traces": 60,
+      "avg_ms": 0.24,
+      "p50_ms": 0.18,
+      "p95_ms": 0.56,
+      "max_ms": 2.16,
+      "traces_per_second": 4229,
+      "verdicts_stable": "60/60"
+    },
+    {
+      "events_per_trace": 1000,
+      "traces": 60,
+      "avg_ms": 1.2,
+      "p50_ms": 0.95,
+      "p95_ms": 3.09,
+      "max_ms": 5.55,
+      "traces_per_second": 833,
+      "verdicts_stable": "60/60"
+    },
+    {
+      "events_per_trace": 10000,
+      "traces": 60,
+      "avg_ms": 12.19,
+      "p50_ms": 9.3,
+      "p95_ms": 29.97,
+      "max_ms": 63.17,
+      "traces_per_second": 82,
+      "verdicts_stable": "60/60"
+    }
+  ]
+}
