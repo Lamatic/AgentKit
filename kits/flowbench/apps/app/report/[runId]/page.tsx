@@ -22,8 +22,8 @@ export default async function ReportPage({
   const noBlockingRegressions = diff.blockingRegressions.length === 0;
   
   // Calculate P50
-  const sortedLatencies = [...run.cases].map(c => c.latencyMs).sort((a, b) => a - b);
-  const p50 = sortedLatencies[Math.floor(sortedLatencies.length / 2)] || 0;
+  const validLatencies = run.cases.filter(c => c.latencyMs > 0).map(c => c.latencyMs).sort((a, b) => a - b);
+  const p50 = validLatencies.length > 0 ? validLatencies[Math.floor(validLatencies.length / 2)] : null;
 
   return (
     <main className="max-w-6xl mx-auto py-12 px-6">
@@ -52,13 +52,13 @@ export default async function ReportPage({
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 min-w-[120px]">
             <div className="text-sm text-slate-400 mb-1">Pass Rate</div>
             <div className={`text-2xl font-bold ${allPassed ? 'text-emerald-400' : 'text-red-400'}`}>
-              {Math.round((passCount / totalCount) * 100)}%
+              {totalCount === 0 ? "—" : `${Math.round((passCount / totalCount) * 100)}%`}
             </div>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 min-w-[120px]">
             <div className="text-sm text-slate-400 mb-1">Latency p50</div>
             <div className="text-2xl font-bold text-slate-200">
-              {p50}ms
+              {p50 !== null ? `${p50}ms` : "—"}
             </div>
           </div>
         </div>
