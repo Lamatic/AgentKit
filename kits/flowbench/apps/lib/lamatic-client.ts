@@ -186,6 +186,10 @@ export interface ExecuteFlowOptions {
  * Execute a Lamatic flow via the GraphQL API and return the result with
  * client-measured latency.
  *
+ * NOTE: This function uses native fetch instead of the Lamatic SDK to support
+ * AbortSignal-based timeout cancellation passed via options?.signal from runFlow.ts.
+ * This should not be replaced with the SDK unless it supports equivalent cancellation.
+ *
  * @param flowId  - The Lamatic workflow/flow ID to execute.
  * @param payload - Flow-specific input fields (e.g. `{ userPrompt: "..." }`).
  *                  Keys become GraphQL variables mapped into the payload arg.

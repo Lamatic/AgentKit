@@ -5,17 +5,41 @@ import { executeBenchmark, type OrchestrationResult } from "../actions/orchestra
 import { Play, Loader2, FileJson, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+const formSchema = z.object({
+  flowId: z.string().min(1, "Flow ID is required"),
+  file: z.any().refine((val) => val instanceof File, "A .jsonl file is required"),
+});
 
 export default function RunForm() {
-  const [flowId, setFlowId] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const handleRun = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      flowId: "",
+      file: undefined,
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { flowId, file } = values;
     if (!flowId.trim() || !file) return;
 
     setLoading(true);
@@ -63,77 +87,92 @@ export default function RunForm() {
         New Benchmark Run
       </h2>
       
-      <form onSubmit={handleRun} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Lamatic Flow ID
-          </label>
-          <input
-            type="text"
-            required
-            value={flowId}
-            onChange={(e) => setFlowId(e.target.value)}
-            placeholder="e.g. ea04774a-bc7e-4134-b022-352056971fcf"
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Test Cases (.jsonl)
-          </label>
-          <label 
-            htmlFor="jsonl-file-input"
-            className="block w-full bg-slate-950 border border-slate-800 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-950/50 transition-colors focus-within:ring-2 focus-within:ring-cyan-500/50 focus-within:border-cyan-500"
-          >
-            <input
-              id="jsonl-file-input"
-              type="file"
-              required
-              accept=".jsonl"
-              ref={fileInputRef}
-              className="sr-only"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
-            {file ? (
-              <div className="flex items-center justify-center gap-2 text-cyan-400">
-                <FileJson className="w-5 h-5" />
-                <span className="font-medium">{file.name}</span>
-              </div>
-            ) : (
-              <div className="text-slate-500">
-                <FileJson className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                <span>Click to select a JSONL file</span>
-              </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="flowId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-slate-300">Lamatic Flow ID</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g. ea04774a-bc7e-4134-b022-352056971fcf"
+                    className="bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-600 focus-visible:ring-cyan-500/50"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </label>
-        </div>
+          />
 
-        {error && (
-          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-3">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <p className="whitespace-pre-wrap">{error}</p>
-          </div>
-        )}
+          <FormField
+            control={form.control}
+            name="file"
+            render={({ field: { value, onChange, ...fieldProps } }) => (
+              <FormItem>
+                <FormLabel className="text-slate-300">Test Cases (.jsonl)</FormLabel>
+                <FormControl>
+                  <label 
+                    htmlFor="jsonl-file-input"
+                    className="block w-full bg-slate-950 border border-slate-800 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer hover:border-cyan-500/50 hover:bg-slate-950/50 transition-colors focus-within:ring-2 focus-within:ring-cyan-500/50 focus-within:border-cyan-500"
+                  >
+                    <input
+                      id="jsonl-file-input"
+                      type="file"
+                      accept=".jsonl"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const selectedFile = e.target.files?.[0] || null;
+                        onChange(selectedFile);
+                      }}
+                      {...fieldProps}
+                    />
+                    {value ? (
+                      <div className="flex items-center justify-center gap-2 text-cyan-400">
+                        <FileJson className="w-5 h-5" />
+                        <span className="font-medium">{value.name}</span>
+                      </div>
+                    ) : (
+                      <div className="text-slate-500">
+                        <FileJson className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                        <span>Click to select a JSONL file</span>
+                      </div>
+                    )}
+                  </label>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <button
-          type="submit"
-          disabled={loading || !flowId || !file}
-          className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Running Benchmark...
-            </>
-          ) : (
-            <>
-              <Play className="w-5 h-5" />
-              Run Benchmark
-            </>
+          {error && (
+            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p className="whitespace-pre-wrap">{error}</p>
+            </div>
           )}
-        </button>
-      </form>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Running Benchmark...
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5" />
+                Run Benchmark
+              </>
+            )}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

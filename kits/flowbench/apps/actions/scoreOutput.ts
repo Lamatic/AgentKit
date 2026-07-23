@@ -1,7 +1,10 @@
-// scoreOutput.ts — Compute output quality score for a single test case
-//
-// Uses local sentence embeddings via @xenova/transformers (ONNX runtime).
-// Fully offline — zero external API calls, zero ongoing cost per test run.
+
+/**
+ * Scores model outputs locally using sentence embeddings
+ * (Xenova/all-MiniLM-L6-v2 via Transformers.js). No external API calls
+ * are made for scoring — runs offline after the model is downloaded
+ * on first use.
+ */
 
 import { cosineSimilarity } from "../lib/metrics";
 

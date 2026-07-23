@@ -36,9 +36,12 @@ export default async function HomePage() {
               const totalCount = run.cases.length;
               const allPassed = passCount === totalCount;
               
-              const avgLatency = Math.round(
-                run.cases.reduce((acc, curr) => acc + curr.latencyMs, 0) / (totalCount || 1)
-              );
+              const validLatencyCases = run.cases.filter((c) => c.latencyMs > 0);
+              const avgLatency = validLatencyCases.length > 0
+                ? Math.round(
+                    validLatencyCases.reduce((acc, curr) => acc + curr.latencyMs, 0) / validLatencyCases.length
+                  )
+                : null;
 
               const date = new Date(run.timestamp);
 
@@ -74,12 +77,12 @@ export default async function HomePage() {
                       <div className="text-right">
                         <div className="text-slate-400 mb-1">Pass Rate</div>
                         <div className={`font-semibold ${allPassed ? "text-emerald-400" : "text-red-400"}`}>
-                          {Math.round((passCount / totalCount) * 100)}% ({passCount}/{totalCount})
+                          {totalCount === 0 ? "—" : `${Math.round((passCount / totalCount) * 100)}%`} ({passCount}/{totalCount})
                         </div>
                       </div>
                       <div className="text-right hidden sm:block">
                         <div className="text-slate-400 mb-1">Avg Latency</div>
-                        <div className="font-semibold text-slate-200">{avgLatency}ms</div>
+                        <div className="font-semibold text-slate-200">{avgLatency !== null ? `${avgLatency}ms` : "—"}</div>
                       </div>
                     </div>
                   </div>
