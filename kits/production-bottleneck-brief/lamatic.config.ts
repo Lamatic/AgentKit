@@ -22,7 +22,7 @@ export default {
   ],
   "links": {
     "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/production-bottleneck-brief/apps",
-    "demo": "https://agent-r0yzvvrea-ibrahimkhan7208s-projects.vercel.app",
+    "demo": "https://agent-kit-sigma.vercel.app",
     "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/production-bottleneck-brief"
   }
 };
