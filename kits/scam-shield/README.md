@@ -19,6 +19,7 @@ India-focused UPI/banking scams tend to follow a small set of well-known social-
 ## Quickstart
 
 ### Step 1: Import the Flows
+
 1. Log in to your [Lamatic workspace](https://studio.lamatic.ai).
 2. Navigate to **Flows → Import Flow**.
 3. Upload `flows/index-scam-patterns.ts` and `flows/scam-message-triage.ts`.
@@ -26,16 +27,21 @@ India-focused UPI/banking scams tend to follow a small set of well-known social-
 5. Create a vector store named `scampatterns`.
 
 ### Step 2: Populate the Knowledge Base
+
 Run `index-scam-patterns` once with either a single pattern:
+
 ```json
 { "pattern_name": "Fake KYC Update", "content": "..." }
 ```
+
 or a batch:
+
 ```json
 { "patterns": [ { "pattern_name": "...", "content": "..." }, ... ] }
 ```
 
 ### Step 3: Deploy and Retrieve the API Endpoint
+
 Deploy `scam-message-triage`, then open its Trigger Node (API Request) to copy the GraphQL endpoint URL and Bearer token.
 
 ### Environment Variables
@@ -50,9 +56,13 @@ Copy `.env.example` to `.env` and fill in your project credentials from **Settin
 
 ## Test
 
-Once `scam-message-triage` is deployed, you can call it directly via its GraphQL trigger endpoint (found in the flow's Trigger Node details panel) using your API key as the bearer token:
+Once `scam-message-triage` is deployed, you can call it directly via its GraphQL trigger endpoint (found in the flow's Trigger Node details panel) using your API key as the bearer token.
+
+Load the variables from `.env` into your shell before running the example, otherwise `LAMATIC_API_URL` and `LAMATIC_API_KEY` will be empty:
 
 ```bash
+export $(grep -v '^#' .env | xargs)
+
 curl -X POST "$LAMATIC_API_URL" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $LAMATIC_API_KEY" \
@@ -62,11 +72,12 @@ curl -X POST "$LAMATIC_API_URL" \
 ```
 
 **Example response:**
+
 ```json
 {
   "modelResponse": {
     "risk_score": 100,
-    "red_flags": ["someone saying they are from my bank", "account will be blocked", "share the OTP"],
+    "red_flags": ["caller claimed to be from the bank", "threatened account block", "requested OTP"],
     "explanation": "This interaction matches the 'OTP Request Call' scam pattern. The caller is using high-pressure tactics to manipulate you into revealing a sensitive OTP.",
     "recommended_action": "Hang up immediately, do not share the OTP, and contact your bank using the official number on your card.",
     "report_channel": "cybercrime.gov.in or helpline 1930"
@@ -79,7 +90,7 @@ curl -X POST "$LAMATIC_API_URL" \
 
 ## Folder Structure
 
-```
+```text
 kits/scam-shield/
 ├── flows/
 │   ├── index-scam-patterns.ts        # Ingests fraud patterns into the vector store
@@ -98,4 +109,5 @@ kits/scam-shield/
 ---
 
 ## Author
+
 **Raz**

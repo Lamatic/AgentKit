@@ -115,7 +115,7 @@ export const nodes = [
         "nodeName": "VectorDB",
         "vectorDB": "scampatterns",
         "primaryKeys": [
-          "pattern_name"
+          "id"
         ],
         "vectorsField": "{{vectorizeNode_808.output.vectors}}",
         "metadataField": "{{codeNode_948.output.metaData}}",
