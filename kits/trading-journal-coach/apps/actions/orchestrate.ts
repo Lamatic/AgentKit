@@ -32,6 +32,26 @@ function tryParse(s: any): any {
   try { return JSON.parse(t); } catch { return null; }
 }
 
+// Read a value by key anywhere in the flow response. The API Response node exposes mapped
+// keys (answer, coaching, patterns); their nesting depth varies by SDK response shape.
+function deepFind(obj: any, key: string, depth = 0): any {
+  if (!obj || depth > 9 || typeof obj !== "object") return undefined;
+  if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
+  for (const v of Object.values(obj)) {
+    const r = deepFind(v, key, depth + 1);
+    if (r !== undefined) return r;
+  }
+  return undefined;
+}
+function asCoaching(v: any): any {
+  const o = typeof v === "string" ? tryParse(v) : v;
+  return o && typeof o === "object" && o.disciplineScore != null ? o : null;
+}
+function asPatterns(v: any): any[] | null {
+  const a = typeof v === "string" ? tryParse(v) : v;
+  return Array.isArray(a) ? a : null;
+}
+
 function blankCoaching() {
   return { disciplineScore: 0, scoreRationale: "", headline: "", findings: [], topPriority: "", encouragement: "" };
 }
@@ -64,15 +84,18 @@ export async function analyzeJournal(
       const raw = await runFlow("analyze-journal", { trades: JSON.stringify(trades) });
       const flowErr = findError(raw);
       if (flowErr) throw new Error(flowErr);
-      let patterns: any[] = [];
-      let coaching: any = null;
-      for (const g of collectGenerated(raw)) {
-        const p = tryParse(g);
-        if (Array.isArray(p)) patterns = p;
-        else if (p && typeof p === "object" && p.disciplineScore != null) coaching = p;
+      // Preferred: the API Response node's mapped keys (coaching, patterns).
+      let coaching: any = asCoaching(deepFind(raw, "coaching"));
+      let patterns: any[] = asPatterns(deepFind(raw, "patterns")) ?? [];
+      // Fallback: a full-trace response shape that exposes generatedResponse strings.
+      if (!coaching || patterns.length === 0) {
+        for (const g of collectGenerated(raw)) {
+          const p = tryParse(g);
+          if (Array.isArray(p) && patterns.length === 0) patterns = p;
+          else if (p && typeof p === "object" && p.disciplineScore != null && !coaching) coaching = p;
+        }
       }
       if (!coaching) {
-        try { console.log("[analyze-journal] no coaching in trace. gens:", collectGenerated(raw).length, "| top keys:", Object.keys(raw ?? {})); } catch {}
         throw new Error("Flow ran but the coaching wasn't found in the response.");
       }
       return { ok: true, analysis: { status, message, metrics, patterns, coaching } };
@@ -103,8 +126,12 @@ export async function chatWithJournal(
   try {
     if (isConfigured("chat-with-journal")) {
       const raw = await runFlow("chat-with-journal", { question, analysis: JSON.stringify(analysis) });
-      const gens = collectGenerated(raw);
-      return { ok: true, answer: gens[gens.length - 1] || "No answer returned." };
+      let answer = deepFind(raw, "answer");
+      if (typeof answer !== "string" || !answer.trim()) {
+        const gens = collectGenerated(raw);
+        answer = gens[gens.length - 1] || "No answer returned.";
+      }
+      return { ok: true, answer };
     }
     return { ok: true, answer: localAnswer(question, analysis) };
   } catch (e) {
