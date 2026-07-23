@@ -1,7 +1,8 @@
 .lamatic/
 node_modules/
-.env
 .env.local
+.env*
+!.env.example
 
 # Local-only demo UI for video walkthrough — never part of this bundle
 index.html
