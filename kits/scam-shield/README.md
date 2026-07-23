@@ -37,7 +37,12 @@ Run `index-scam-patterns` once with either a single pattern:
 or a batch:
 
 ```json
-{ "patterns": [ { "pattern_name": "...", "content": "..." }, ... ] }
+{
+  "patterns": [
+    { "pattern_name": "Fake KYC Update", "content": "Caller claims your KYC has expired and asks you to click a link or share an OTP to 're-verify' your account." },
+    { "pattern_name": "Screen-Sharing Scam", "content": "Caller poses as bank support and asks you to install a remote-access app, then walks you through 'fixing' an issue while capturing your credentials." }
+  ]
+}
 ```
 
 ### Step 3: Deploy and Retrieve the API Endpoint
