@@ -1,7 +1,7 @@
 "use server"
 
 import lamaticConfig from "../../lamatic.config"
-import { lamaticClient } from "@/lib/lamatic-client"
+import { getLamaticClient } from "@/lib/lamatic-client"
 
 export interface AuditReport {
   overallScore: number
@@ -43,6 +43,8 @@ export async function runAudit(
   input: AuditInput
 ): Promise<{ success: boolean; data?: AuditReport; error?: string }> {
   try {
+    const lamaticClient = getLamaticClient()
+
     const auditFlowStep = lamaticConfig.steps[0]
     const flowId = auditFlowStep.envKey ? process.env[auditFlowStep.envKey] : undefined
 

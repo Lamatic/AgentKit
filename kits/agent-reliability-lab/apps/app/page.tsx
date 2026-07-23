@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { runAudit, type AuditInput, type AuditReport } from "@/actions/orchestrate"
 
 const DEPTH_OPTIONS: AuditInput["depth"][] = ["quick", "standard", "deep"]
@@ -51,7 +51,7 @@ export default function Home() {
   const [report, setReport] = useState<AuditReport | null>(null)
 
   /** Validates the form, then submits it to runAudit and stores the result. */
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
     try {
