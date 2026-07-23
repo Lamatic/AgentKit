@@ -25,7 +25,7 @@ export const Header = ({ bookingsCount, onBookingsClick }: HeaderProps) => {
               <Plane className="w-6 h-6 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 {APP_CONFIG.name}
               </h1>
               <p className="text-xs text-slate-400">{APP_CONFIG.tagline}</p>
@@ -36,7 +36,6 @@ export const Header = ({ bookingsCount, onBookingsClick }: HeaderProps) => {
               variant="secondary"
               onClick={onBookingsClick}
               className="flex items-center gap-2"
-              aria-label="Bookings"
             >
               <History className="w-4 h-4" />
               <span className="hidden sm:inline">Bookings</span>

@@ -187,7 +187,7 @@ export default function Home() {
         </motion.div>
       </main>
 
-      <Footer bookingsCount={totalBookings} />
+      <Footer />
 
       <BookingModal
         isOpen={bookingModalOpen}

@@ -54,7 +54,6 @@ export const FlightResults = ({
     setCurrentPage(page);
   };
 
-  // Generate page numbers
   const getPageNumbers = () => {
     const pages: number[] = [];
     const maxVisible = 5;
@@ -62,7 +61,7 @@ export const FlightResults = ({
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1);
-      if (currentPage > 3) pages.push(0); // 0 represents ellipsis
+      if (currentPage > 3) pages.push(0);
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
       for (let i = start; i <= end; i++) pages.push(i);
@@ -128,7 +127,11 @@ export const FlightResults = ({
                   <PaginationLink
                     onClick={() => handlePageChange(page)}
                     isActive={page === currentPage}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${
+                      page === currentPage
+                        ? "bg-primary/20 text-primary hover:bg-primary/30"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
                   >
                     {page}
                   </PaginationLink>

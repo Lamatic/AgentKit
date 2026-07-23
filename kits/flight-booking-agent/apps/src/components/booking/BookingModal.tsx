@@ -15,20 +15,11 @@ interface BookingModalProps {
   isOpen: boolean;
   flight: Flight | null;
   onClose: () => void;
-  onConfirm: (
-    flight: Flight,
-    name: string,
-    email: string,
-  ) => Promise<Booking | null>;
+  onConfirm: (flight: Flight, name: string) => Promise<Booking | null>;
 }
 
-// Zod schema for form validation
 const bookingSchema = z.object({
   name: z.string().min(2, "Full name is required").max(100, "Name is too long"),
-  email: z
-    .string()
-    .email("Please enter a valid email address")
-    .min(1, "Email is required"),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -56,11 +47,9 @@ export const BookingModal = ({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       name: "",
-      email: "",
     },
   });
 
-  // Clear timer on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -69,12 +58,9 @@ export const BookingModal = ({
     };
   }, []);
 
-  // Focus management
   useEffect(() => {
     if (isOpen) {
-      // Store the currently focused element
       previousFocusRef.current = document.activeElement as HTMLElement;
-      // Focus the modal after a short delay
       setTimeout(() => {
         const firstInput = modalRef.current?.querySelector("input");
         if (firstInput) {
@@ -82,13 +68,11 @@ export const BookingModal = ({
         }
       }, 100);
     } else if (previousFocusRef.current) {
-      // Restore focus when modal closes
       previousFocusRef.current.focus();
       previousFocusRef.current = null;
     }
   }, [isOpen]);
 
-  // Handle Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen && status !== "demo") {
@@ -118,7 +102,7 @@ export const BookingModal = ({
     if (!flight) return;
 
     setStatus("loading");
-    const booking = await onConfirm(flight, data.name, data.email);
+    const booking = await onConfirm(flight, data.name);
 
     if (booking) {
       setBookingRef(booking.bookingReference);
@@ -229,14 +213,6 @@ export const BookingModal = ({
                     disabled={isSubmitting}
                     error={errors.name?.message}
                     {...register("name")}
-                  />
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="john@example.com"
-                    disabled={isSubmitting}
-                    error={errors.email?.message}
-                    {...register("email")}
                   />
 
                   <Button
