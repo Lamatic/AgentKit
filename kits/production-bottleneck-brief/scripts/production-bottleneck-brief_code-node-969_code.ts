@@ -3,6 +3,15 @@ const orders = {{triggerNode_1.output.orders}};
 function computeStats(orders) {
   const today = new Date();
   return orders.map(o => {
+    if (!o || typeof o !== "object") {
+      return {
+        id: o?.id ?? "unknown",
+        currentStage: o?.currentStage ?? "unknown",
+        error: "Invalid or incomplete order data",
+        atRisk: true
+      };
+    }
+
     const stageEntered = new Date(o.stageEnteredDate);
     const dueDate = new Date(o.dueDate);
     const quantity = Number(o.quantity);
