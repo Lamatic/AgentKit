@@ -210,7 +210,7 @@ export default function WhyThisCodePage() {
             existingFile.isDefinition = true
             existingFile.fullContent = existingFile.fullContent || raw.fileContent
             
-            const existingLines = new Set(existingFile.invocations.map((i: any) => i.line))
+            const existingLines = new Set(existingFile.invocations.map((i: any) => Number(i.line)))
             for (const newInv of definitionInvocations) {
               if (!existingLines.has(newInv.line)) {
                 existingFile.invocations.push(newInv)
@@ -377,11 +377,11 @@ export default function WhyThisCodePage() {
       {/* HEADER BAR */}
       <header className="border-b border-border bg-[#0B0C0E]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="cursor-pointer group" onClick={handleReset}>
+          <button type="button" className="cursor-pointer group text-left focus:outline-none" onClick={handleReset}>
             <h1 className="text-xs font-semibold tracking-wide text-neutral-300 group-hover:text-white uppercase transition">
               Why This Code?
             </h1>
-          </div>
+          </button>
 
           <div className="flex items-center gap-4">
             {view === "dashboard" && (
@@ -850,7 +850,7 @@ export default function WhyThisCodePage() {
                 const definitionFile = analysis.usages.files.find(f => f.isDefinition)
                 if (!definitionFile) return null
                 const isFileExpanded = !!expandedFiles[definitionFile.path]
-                const highlightLines = new Set(definitionFile.invocations.map(inv => inv.line))
+                const highlightLines = new Set(definitionFile.invocations.map(inv => Number(inv.line)))
 
                 return (
                   <div className="flex flex-col">
