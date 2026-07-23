@@ -9,21 +9,22 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, fullWidth = true, className = "", ...props }, ref) => {
-    const id = useId();
+  ({ label, error, fullWidth = true, className = "", id, ...props }, ref) => {
+    const generatedId = useId();
+    const inputId = id || generatedId;
 
     return (
       <div className={`${fullWidth ? "w-full" : ""}`}>
         {label && (
           <label
-            htmlFor={id}
+            htmlFor={inputId}
             className="text-sm text-muted-foreground block mb-1"
           >
             {label}
           </label>
         )}
         <input
-          id={id}
+          id={inputId}
           ref={ref}
           className={`
             w-full px-4 py-2 bg-muted/50 border 

@@ -43,9 +43,9 @@ export const SearchForm = ({
       className="relative"
     >
       <div className="relative group">
-        <div className="absolute inset-0 bg-linear-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-500" />
-        <div className="relative flex items-center bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden focus-within:border-blue-500/50 transition-all duration-300">
-          <Search className="w-5 h-5 text-slate-400 ml-4 shrink-0" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-500" />
+        <div className="relative flex items-center bg-muted/80 backdrop-blur-sm border border-border rounded-2xl overflow-hidden focus-within:border-primary/50 transition-all duration-300">
+          <Search className="w-5 h-5 text-muted-foreground ml-4 shrink-0" />
           <Input
             type="text"
             value={query}

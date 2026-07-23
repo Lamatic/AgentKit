@@ -7,7 +7,7 @@ import { formatDateFull, formatPrice } from "@/lib/formatters";
 interface BookingHistoryProps {
   bookings: Booking[];
   onClose: () => void;
-  onRemove: (bookingId: string) => void; // ✅ Renamed from onCancel
+  onRemove: (bookingId: string) => void;
 }
 
 export const BookingHistory = ({
