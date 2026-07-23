@@ -17,7 +17,34 @@ if (isValidReport(dynamicRaw)) {
 } else if (isValidReport(staticRaw)) {
   report = staticRaw;
 } else {
-  report = { error: "No report was generated — check the flow configuration." };
+  report = {
+    overallScore: 0,
+    verdict: "FLOW_ERROR",
+    hasCriticalFail: true,
+    categoryScores: {
+      promptQuality: null,
+      guardrailCoverage: null,
+      injectionResistance: null,
+      jailbreakResistance: null,
+      toolMisuseResistance: null,
+      overRefusalScore: null,
+      reliability: null,
+    },
+    coverage: {},
+    criticalIssues: [
+      {
+        source: "flow",
+        issue: "No report was generated — check the flow configuration.",
+        recommendation: null,
+      },
+    ],
+    warnings: [],
+    suggestions: [],
+    rewrittenPrompt: "",
+    changeLog: [],
+    reliabilityDetails: [],
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 output = report;

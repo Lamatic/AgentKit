@@ -184,7 +184,8 @@ button {
   color: var(--amber);
 }
 
-.verdict-NOT_PRODUCTION_READY {
+.verdict-NOT_PRODUCTION_READY,
+.verdict-FLOW_ERROR {
   background: var(--red-dim);
   color: var(--red);
 }
