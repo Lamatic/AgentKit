@@ -162,4 +162,36 @@ describe("DaytonaSandboxRuntime", () => {
     expect(calls.filter(({ name }) => name === "executeCommand")).toHaveLength(3);
     expect(calls[2]?.args.at(-1)).toBe(45);
   });
+
+  test("redacts common credentials and caps captured command output", async () => {
+    const oversized = `API_KEY=super-secret\n${"x".repeat(70_000)}`;
+    const { client } = fakeDaytona([
+      { exitCode: 0, result: "" },
+      { exitCode: 0, result: "" },
+      {
+        exitCode: 0,
+        result: JSON.stringify({
+          exitCode: 0,
+          stdout: oversized,
+          stderr: "Authorization: Bearer secret-token",
+        }),
+      },
+    ]);
+    const runtime = new DaytonaSandboxRuntime(client, () => 1_000);
+
+    const result = await runtime.runProbe({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      probe: {
+        command: "env && generate-lots-of-output",
+        assertions: [{ kind: "exit_code", equals: 0 }],
+      },
+    });
+
+    expect(result.observation.stdout).not.toContain("super-secret");
+    expect(result.observation.stderr).not.toContain("secret-token");
+    expect(result.observation.stdout).toContain("[REDACTED]");
+    expect(result.observation.stdout).toEndWith("\n[output truncated]");
+    expect(result.observation.stdout.length).toBeLessThanOrEqual(65_536);
+  });
 });

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
 import { certifyEvidence } from "./evidence";
+import { createGitHubIssueReader } from "./github";
 import { probeSpecSchema } from "./probe";
 
 type RuntimeFactory = () => Pick<
@@ -12,6 +13,41 @@ type RuntimeFactory = () => Pick<
 
 function createIsolateServer(runtimeFactory: RuntimeFactory) {
   const server = new McpServer({ name: "isolate", version: "0.1.0" });
+
+  server.registerTool(
+    "get_github_issue",
+    {
+      title: "Read public GitHub issue",
+      description:
+        "Fetches and normalizes one public GitHub issue into trusted reproduction input.",
+      inputSchema: z.object({ issueUrl: z.string().url() }),
+      outputSchema: z.object({
+        url: z.string().url(),
+        repositoryUrl: z.string().url(),
+        owner: z.string(),
+        repository: z.string(),
+        number: z.number().int().positive(),
+        title: z.string(),
+        body: z.string(),
+        state: z.enum(["open", "closed"]),
+        author: z.string(),
+        labels: z.array(z.string()),
+      }),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    async ({ issueUrl }) => {
+      const output = await createGitHubIssueReader().read(issueUrl);
+      return {
+        content: [{ type: "text", text: JSON.stringify(output) }],
+        structuredContent: output,
+      };
+    },
+  );
 
   server.registerTool(
     "echo",

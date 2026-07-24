@@ -35,6 +35,7 @@ The language model explores. The deterministic runtime verifies.
 | Tool | Purpose |
 | --- | --- |
 | `echo` | Verify authenticated Lamatic-to-runtime connectivity. |
+| `get_github_issue` | Fetch and normalize one public GitHub issue without repository credentials. |
 | `create_sandbox` | Clone a public GitHub repository into an expiring private sandbox. |
 | `run_probe` | Execute one bounded command and evaluate explicit assertions. |
 | `certify_reproduction` | Run the candidate twice and a negative control once, then return structured JSON evidence and a portable Markdown report. |
@@ -85,6 +86,7 @@ reproduction instructions.
 - Node.js, TypeScript, Bun, and terminal/CLI issues are the initial target.
 - Private, non-public sandboxes with a 30-minute maximum lifetime.
 - Commands are bounded to 120 seconds.
+- Captured stdout and stderr are redacted and capped at 64 KiB each.
 - No repository credentials are mounted in the sandbox.
 - No pushes, package publication, pull requests, or fix generation.
 - Repository and issue contents are treated as untrusted input.
