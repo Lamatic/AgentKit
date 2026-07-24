@@ -64,3 +64,5 @@ export function evaluateProbe(
     },
   };
 }
+
+export type ProbeEvaluation = ReturnType<typeof evaluateProbe>;
