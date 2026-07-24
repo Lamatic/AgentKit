@@ -419,7 +419,6 @@ export const edges = [
   { id: "InstructorLLMNode_311-conditionNode_526", type: "defaultEdge", source: "InstructorLLMNode_311", target: "conditionNode_526", sourceHandle: "bottom", targetHandle: "top" },
   { id: "conditionNode_526-addNode_601", data: { condition: "Else", branchName: "Else" }, type: "conditionEdge", source: "conditionNode_526", target: "addNode_601", sourceHandle: "bottom", targetHandle: "top" },
   { id: "addNode_601-responseNode_triggerNode_1", type: "defaultEdge", source: "addNode_601", target: "responseNode_triggerNode_1", sourceHandle: "bottom", targetHandle: "top" },
-  { id: "xy-edge__addNode_601bottom-responseNode_triggerNode_1from-trigger", data: { condition: false }, type: "defaultEdge", source: "addNode_601", target: "responseNode_triggerNode_1", sourceHandle: "bottom", targetHandle: "top" },
   { id: "conditionNode_526-InstructorLLMNode_837-699", data: { condition: "Condition 1", branchName: "Condition 1" }, type: "conditionEdge", source: "conditionNode_526", target: "InstructorLLMNode_837", sourceHandle: "bottom", targetHandle: "top" },
   { id: "InstructorLLMNode_837-responseNode_triggerNode_1-732", type: "defaultEdge", source: "InstructorLLMNode_837", target: "responseNode_triggerNode_1", sourceHandle: "bottom", targetHandle: "top" },
   { id: "response-trigger_triggerNode_1", type: "responseEdge", source: "triggerNode_1", target: "responseNode_triggerNode_1", sourceHandle: "to-response", targetHandle: "from-trigger" }
