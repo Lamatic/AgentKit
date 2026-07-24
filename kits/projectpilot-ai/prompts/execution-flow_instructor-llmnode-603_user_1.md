@@ -1,0 +1,1 @@
+Given project "{{triggerNode_1.selectedIdea}}" with this technical blueprint: {{triggerNode_1.blueprint}}, and a timeline of {{triggerNode_1.duration}}, generate: a week-by-week roadmap (array of week number and task), an abstract of about 150 words, 5 viva questions ranging from beginner to advanced, and 3 ATS-friendly resume bullet points.
