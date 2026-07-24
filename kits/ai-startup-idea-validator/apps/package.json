@@ -1,0 +1,7 @@
+{
+  "name": "ai-startup-idea-validator",
+  "private": true,
+  "scripts": {
+    "dev": "echo AgentKit placeholder app"
+  }
+}
