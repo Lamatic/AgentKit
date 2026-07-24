@@ -9,7 +9,6 @@ import type { ThreatAnalysis } from "@/types/response";
 
 interface ThreatCardProps {
   readonly analysis: ThreatAnalysis;
-  readonly delay?: number;
 }
 
 /**
@@ -24,7 +23,7 @@ interface ThreatCardProps {
  * @param delay    - Framer Motion entry delay in seconds (default `0`).
  * @returns An animated card element with the full threat analysis breakdown.
  */
-export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
+export default function ThreatCard({ analysis }: ThreatCardProps) {
   const severityColors = getSeverityColor(analysis.severity);
 
   // Normalise 0-1 to 0-100 if the API returns decimals
@@ -41,11 +40,8 @@ export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
   const normalise = (v: number) => Math.round(clamp(v >= 0 && v <= 1 ? v * 100 : v));
 
   return (
-    <motion.div
+    <div
       className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm p-5 shadow-xl h-full"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4 }}
     >
       {/* Card header */}
       <div className="flex items-center gap-2 mb-4">
@@ -114,6 +110,6 @@ export default function ThreatCard({ analysis, delay = 0 }: ThreatCardProps) {
           </p>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
