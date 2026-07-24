@@ -50,7 +50,8 @@ async function sendConfirmationEmail({
       if (res.error) {
         console.error('Resend email error:', res.error);
         if (res.error.message?.includes('only send testing emails to your own email address')) {
-          console.warn(`[Resend Notice] Resend testing domain onboarding@resend.dev requires 'to' address to be the account owner email (avadhutscasual@gmail.com). Verify a custom domain at resend.com/domains to send to any recipient.`);
+          const accountOwner = process.env.RESEND_ACCOUNT_EMAIL ? ` (${process.env.RESEND_ACCOUNT_EMAIL})` : '';
+          console.warn(`[Resend Notice] Resend testing domain onboarding@resend.dev requires 'to' address to be the registered account owner email${accountOwner}. Verify a custom domain at resend.com/domains to send to any recipient.`);
         }
       } else {
         console.log(`Successfully dispatched Resend confirmation email to ${to}`);
@@ -215,6 +216,23 @@ export async function submitProject(
   return result;
 }
 
+/**
+ * ARCHITECTURAL NOTICE: DEMO MOCK FALLBACK STORES
+ * 
+ * The MOCK_* mutable objects in this server module (MOCK_UPVOTES, MOCK_STATUSES, 
+ * MOCK_SPONSORS, MOCK_SCORES, MOCK_JUDGES, MOCK_EVENT_CONFIG) serve as fallback 
+ * in-memory data stores when Lamatic.ai flow environment variables are not present.
+ * 
+ * Ephemeral & Instance-Local Nature:
+ * - These stores are instance-local and held in Node.js module memory on the current server process.
+ * - Fallback-mode writes (upvotes, statuses, sponsors, judge accounts, scores, event config) 
+ *   will reset upon redeployments, container restarts, or serverless cold starts.
+ * - Concurrent serverless instances maintain isolated memory states and may diverge.
+ * 
+ * Production Deployment:
+ * - Configure all active LAMATIC_*_FLOW_ID environment variables in .env.local to route all 
+ *   queries and mutations directly to persistent Lamatic Cloud D1 database tables.
+ */
 const MOCK_UPVOTES: Record<string, number> = {};
 
 export async function getSubmissions() {
@@ -327,6 +345,21 @@ export async function updateProjectStatus(id: string, status: string) {
       await lamaticClient.executeFlow(flowId, { action: 'update_status', id, status });
     } catch (err: any) {
       console.warn('Lamatic updateProjectStatus executeFlow failed:', err.message);
+    }
+  }
+
+  return { status: 'success' };
+}
+
+export async function updateProjectSponsor(id: string, matched_sponsor: string) {
+  if (!id) throw new Error('Submission ID is required');
+
+  const flowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPDATE_STATUS_FLOW_ID;
+  if (flowId) {
+    try {
+      await lamaticClient.executeFlow(flowId, { action: 'update_sponsor', id, matched_sponsor });
+    } catch (err: any) {
+      console.warn('Lamatic updateProjectSponsor executeFlow failed:', err.message);
     }
   }
 
@@ -476,10 +509,34 @@ let MOCK_SCORES: JudgeScore[] = [
   }
 ];
 
-let MOCK_JUDGES = [
-  { id: 'j1', name: 'Judge Sarah', email: 'sarah@judge.com', password: 'judge' },
-  { id: 'j2', name: 'Judge Alex', email: 'alex@judge.com', password: 'judge' }
+let MOCK_JUDGES: Array<{ id: string; name: string; email: string; password?: string }> = [
+  { id: 'j1', name: 'Judge Sarah', email: 'sarah@judge.com' },
+  { id: 'j2', name: 'Judge Alex', email: 'alex@judge.com' }
 ];
+
+export async function verifyJudgeCredentials(password: string, name?: string): Promise<{ valid: boolean; judgeName: string }> {
+  const configuredPassword = process.env.JUDGE_PASSWORD || process.env.ADMIN_PASSWORD || 'judge';
+  const judges = await manageJudges('list');
+  const list = Array.isArray(judges) ? judges : [];
+
+  const matchedJudge = list.find((j: any) => {
+    if (name && name.trim()) {
+      return j.name && j.name.toLowerCase().trim() === name.toLowerCase().trim();
+    }
+    return true;
+  });
+
+  const isPasswordValid = password === configuredPassword || list.some((j: any) => j.password && j.password === password);
+
+  if (isPasswordValid && (matchedJudge || !name || !name.trim())) {
+    return {
+      valid: true,
+      judgeName: (name && name.trim()) || matchedJudge?.name || 'Judge'
+    };
+  }
+
+  return { valid: false, judgeName: '' };
+}
 
 export async function submitScore(
   projectId: string,
@@ -512,18 +569,23 @@ export async function submitScore(
     return { status: 'success', score: newScore };
   }
 
-  const response = await lamaticClient.executeFlow(flowId, {
-    action: 'submit_score',
-    project_id: projectId,
-    judge_name: judgeName,
-    innovation,
-    execution,
-    impact,
-    presentation,
-    notes
-  });
+  let response: any;
+  try {
+    response = await lamaticClient.executeFlow(flowId, {
+      action: 'submit_score',
+      project_id: projectId,
+      judge_name: judgeName,
+      innovation,
+      execution,
+      impact,
+      presentation,
+      notes
+    });
+  } catch (err: any) {
+    console.warn('Lamatic submitScore executeFlow failed:', err.message);
+  }
 
-  if (response.status === 'error') {
+  if (response && response.status === 'error') {
     throw new Error(response.message || 'Failed to submit score');
   }
 
@@ -647,8 +709,14 @@ export async function setEventConfig(key: string, value: string) {
     return { status: 'success' };
   }
 
-  const response = await lamaticClient.executeFlow(flowId, { action: 'set_config', key, value });
-  if (response.status === 'error') {
+  let response: any;
+  try {
+    response = await lamaticClient.executeFlow(flowId, { action: 'set_config', key, value });
+  } catch (err: any) {
+    console.warn('Lamatic setEventConfig executeFlow failed:', err.message);
+  }
+
+  if (response && response.status === 'error') {
     throw new Error(response.message || 'Failed to update config');
   }
 

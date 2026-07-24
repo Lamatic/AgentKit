@@ -170,7 +170,7 @@
     </div>
     <div class="flex items-center gap-4">
       <div class="relative hidden sm:block">
-        <input class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pl-4 pr-10 text-sm focus:outline-none focus:border-primary text-on-surface w-48" placeholder="Search..." type="text"/>
+        <input aria-label="Search projects" class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pl-4 pr-10 text-sm focus:outline-none focus:border-primary text-on-surface w-48" placeholder="Search..." type="text"/>
         <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
       </div>
       <button class="hidden md:flex bg-primary text-on-primary px-4 py-2 rounded-full font-semibold hover:bg-primary-dim transition-colors items-center gap-2">
@@ -455,7 +455,9 @@
     mainRow.setAttribute("data-index", i);
     mainRow.innerHTML = `
       <td class="px-4 py-4 text-center">
-        <span class="material-symbols-outlined chevron-icon ${isExpanded ? 'rotated' : ''} text-${isExpanded ? 'primary' : 'on-surface-variant/50'}">expand_more</span>
+        <button type="button" class="expand-toggle inline-flex items-center justify-center p-1 rounded-md hover:bg-surface-bright/50 focus:outline-none focus:ring-1 focus:ring-primary" aria-label="Toggle details for ${s.name}" aria-expanded="${isExpanded}">
+          <span class="material-symbols-outlined chevron-icon ${isExpanded ? 'rotated' : ''} text-${isExpanded ? 'primary' : 'on-surface-variant/50'}">expand_more</span>
+        </button>
       </td>
       <td class="px-6 py-4 font-medium text-on-surface">${s.name}</td>
       <td class="px-6 py-4 text-on-surface-variant">${s.category}</td>
@@ -477,20 +479,26 @@
     tbody.appendChild(mainRow);
     tbody.appendChild(expandRow);
 
-    // Click handler
-    mainRow.addEventListener("click", () => {
+    // Toggle button handler
+    const toggleBtn = mainRow.querySelector(".expand-toggle");
+    const handleToggle = (e) => {
+      e.stopPropagation();
       const expandDiv = document.querySelector(`[data-expand="${i}"]`);
-      const chevron = mainRow.querySelector(".chevron-icon");
-      expandDiv.classList.toggle("open");
+      const chevron = toggleBtn.querySelector(".chevron-icon");
+      const isOpen = expandDiv.classList.toggle("open");
       chevron.classList.toggle("rotated");
-      if (expandDiv.classList.contains("open")) {
+      toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (isOpen) {
         chevron.classList.remove("text-on-surface-variant/50");
         chevron.classList.add("text-primary");
       } else {
         chevron.classList.add("text-on-surface-variant/50");
         chevron.classList.remove("text-primary");
       }
-    });
+    };
+
+    toggleBtn.addEventListener("click", handleToggle);
+    mainRow.addEventListener("click", handleToggle);
   });
 
   // ─── Render Mobile Cards ───

@@ -6,9 +6,7 @@
 
 ## 📹 Video Walkthrough (Loom)
 
-[![Watch Demo](https://img.shields.io/badge/Loom_Demo-Watch_Video-625DF5?style=for-the-badge&logo=loom&logoColor=white)](YOUR_LOOM_VIDEO_LINK_HERE)
-
-> 📌 **Insert Loom Link**: Replace `YOUR_LOOM_VIDEO_LINK_HERE` with your recorded 2-minute video walkthrough link!
+[![Watch Demo](https://img.shields.io/badge/Loom_Demo-Watch_Video-625DF5?style=for-the-badge&logo=loom&logoColor=white)](https://www.loom.com/share/ee030ec4015d4bc299da327ec0dd34e5)
 
 ---
 

@@ -94,7 +94,7 @@ export const nodes = [
       },
       "values": {
         "id": "firecrawlNode_927",
-        "url": "{{triggerNode_1.output.github_url}}   ",
+        "url": "{{triggerNode_1.output.github_url}}",
         "mode": "syncSingleScrape",
         "urls": "",
         "delay": 0,
@@ -180,7 +180,7 @@ export const nodes = [
       "values": {
         "data": "{}",
         "limit": "10",
-        "query": "SELECT * FROM test",
+        "query": "SELECT * FROM sponsors",
         "where": "",
         "action": "query",
         "offset": "0",

@@ -11,27 +11,32 @@ export default {
   "steps": [
     {
       "id": "showcase-submission-flow",
-      "type": "mandatory"
+      "type": "mandatory",
+      "envKey": "LAMATIC_SUBMISSION_FLOW_ID"
     },
     {
       "id": "submissions-manager-flow",
-      "type": "mandatory"
+      "type": "mandatory",
+      "envKey": "LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID"
     },
     {
       "id": "sponsors-manager-flow",
-      "type": "mandatory"
+      "type": "mandatory",
+      "envKey": "LAMATIC_SPONSORS_MANAGER_FLOW_ID"
     },
     {
       "id": "judging-manager-flow",
-      "type": "mandatory"
+      "type": "mandatory",
+      "envKey": "LAMATIC_JUDGING_MANAGER_FLOW_ID"
     },
     {
       "id": "event-config-flow",
-      "type": "mandatory"
+      "type": "mandatory",
+      "envKey": "LAMATIC_EVENT_CONFIG_FLOW_ID"
     }
   ],
   "links": {
-    "deploy": "",
-    "github": ""
+    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Avad05/AgentKit&root-directory=kits/peer-demo-showcase/apps",
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/peer-demo-showcase"
   }
 };

@@ -18,19 +18,23 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       touchMultiplier: 2,
     });
 
+    let rafId: number;
+
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
     // Force recalculating page dimensions
-    setTimeout(() => {
+    const resizeTimer = setTimeout(() => {
       lenis.resize();
     }, 100);
 
     return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(resizeTimer);
       lenis.destroy();
     };
   }, [pathname]);

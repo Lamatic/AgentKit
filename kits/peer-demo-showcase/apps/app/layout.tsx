@@ -15,8 +15,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+  ? process.env.NEXT_PUBLIC_APP_URL
+  : process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "https://peer-demo-showcase.vercel.app";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://peer-demo-showcase.vercel.app"),
+  metadataBase: new URL(baseUrl),
   title: {
     default: "Peer Demo Showcase | AI-Powered Project Matching",
     template: "%s | Peer Demo Showcase",
@@ -60,7 +66,7 @@ export default function RootLayout({
     >
       <body className="bg-[#030014] text-white">
         <Toaster
-          theme="dark"
+          theme="system"
           position="top-right"
           richColors
           toastOptions={{

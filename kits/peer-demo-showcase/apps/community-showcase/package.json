@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Community Project Showcase — Dark-themed developer portal",
   "scripts": {
-    "dev": "npx -y serve . -p 3000 --no-clipboard",
-    "start": "npx -y serve . -p 3000 --no-clipboard"
+    "dev": "serve . -p 3000 --no-clipboard",
+    "start": "serve . -p 3000 --no-clipboard"
+  },
+  "devDependencies": {
+    "serve": "14.2.4"
   }
 }

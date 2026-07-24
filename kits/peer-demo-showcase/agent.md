@@ -7,6 +7,7 @@ This agent accepts a GitHub repository URL, crawls the README, extracts project 
 - github_url: The GitHub repository URL of the submitted project
 - builder_name: Name of the person submitting
 - contact_email: Contact email of the submitter
+- sponsors_list: Comma-separated string of active sponsor track names available for matching (e.g., "Google Cloud, Vercel, Supabase")
 
 ## Outputs
 - project_title: Extracted project name
