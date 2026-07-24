@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050505;
+  --foreground: #ffffff;
+  --accent: #2dd4bf;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "ss01", "ss02", "cv01", "cv03";
+}
+
+::selection {
+  background: rgba(45, 212, 191, 0.3);
+  color: white;
+}

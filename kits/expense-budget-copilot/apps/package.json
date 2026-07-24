@@ -1,0 +1,8 @@
+{
+  "name": "expense-budget-copilot-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "expense-budget-copilot"
+  ]
+}
