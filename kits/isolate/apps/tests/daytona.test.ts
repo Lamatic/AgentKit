@@ -82,6 +82,31 @@ describe("DaytonaSandboxRuntime", () => {
     expect(calls).toHaveLength(0);
   });
 
+  test("checks out an immutable commit when the ref is a full SHA", async () => {
+    const { client, calls } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(client);
+    const commit = "0123456789abcdef0123456789abcdef01234567";
+
+    await runtime.create({
+      repositoryUrl: "https://github.com/example/buggy-cli",
+      ref: commit,
+    });
+
+    expect(calls[1]).toEqual({
+      name: "clone",
+      args: [
+        "https://github.com/example/buggy-cli",
+        "workspace/repo",
+        undefined,
+        commit,
+        undefined,
+        undefined,
+        false,
+        1,
+      ],
+    });
+  });
+
   test("runs a probe and evaluates separately captured stdout and stderr", async () => {
     const { client, calls } = fakeDaytona([
       { exitCode: 0, result: "" },

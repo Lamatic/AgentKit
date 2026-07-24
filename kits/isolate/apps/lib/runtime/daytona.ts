@@ -76,11 +76,14 @@ export class DaytonaSandboxRuntime {
       { timeout: 90 },
     );
 
+    const commitId = ref && /^[a-f0-9]{40}$/i.test(ref) ? ref : undefined;
+    const branch = commitId ? undefined : ref;
+
     await sandbox.git.clone(
       repositoryUrl,
       workspace,
-      ref,
-      undefined,
+      branch,
+      commitId,
       undefined,
       undefined,
       false,
