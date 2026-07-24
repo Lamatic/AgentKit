@@ -76,28 +76,29 @@ export const nodes = [
       "nodeId": "chatTriggerNode",
       "trigger": true,
       "values": {
+        "id": "triggerNode_1",
         "chat": "",
         "domains": [
           "*"
         ],
         "nodeName": "Chat Widget",
         "chatConfig": {
-          "botName": "Lamatic Bot",
+          "botName": "ScalePilot",
           "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
           "position": "right",
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
           "displayMode": "popup",
-          "placeholder": "Compose your message",
+          "placeholder": "Enter your Architecture",
           "suggestions": [
-            "What is lamatic?",
-            "How do I add data to my chatbot?",
-            "Explain this product to me"
+            "Review my microservices architecture",
+            "Analyze my system design",
+            "Generate an Architecture Evolution Report"
           ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+          "greetingMessage": "Hi! I'm ScalePilot. Describe your software architecture and I'll help analyze it.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",

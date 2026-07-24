@@ -164,6 +164,8 @@ Evaluate whether the architecture appropriately balances infrastructure cost, op
 Evaluate deployment complexity, operational overhead, maintenance effort, incident response complexity, and day-to-day operational burden.
 ### Future Readiness
 Evaluate how easily the architecture can evolve to support future business requirements, increasing scale, new features, and technology evolution.
+### Resilience
+Evaluate the system's ability to withstand failures, recover gracefully from disruptions, maintain critical functionality during adverse conditions, and minimize downtime through fault tolerance and recovery mechanisms.
 For every attribute classify the current engineering state as one of:
 - Excellent
 - Good
