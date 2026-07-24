@@ -1,78 +1,61 @@
 # ScalePilot
 
-ScalePilot is an AI-powered Software Architecture Review Assistant built with [Lamatic.ai](https://lamatic.ai). It analyzes software architectures described in natural language, identifies missing information, asks follow-up questions when needed, and generates a structured Architecture Evolution Report with actionable recommendations.
+## About This Flow
+
+ScalePilot is an AI-powered Software Architecture Review Assistant built with Lamatic.ai. It analyzes software architectures described in natural language, identifies missing architectural information, asks follow-up questions when required, and generates a structured Architecture Evolution Report with actionable recommendations.
+
+This template is designed for software engineers, architects, startups, and development teams who want to evaluate and improve their existing system architecture.
 
 ---
 
-## How It Works
+## Flow Components
 
-1. **Architecture Input** – The user describes their existing software architecture in plain English.
-2. **Architecture Parsing** – The flow extracts important architectural details such as frontend, backend, database, infrastructure, scale, caching, and deployment strategy.
-3. **Missing Information Check** – If essential details are missing, the assistant asks follow-up questions instead of making assumptions.
-4. **Architecture Analysis** – Once enough context is available, the architecture is analyzed for potential bottlenecks, risks, and scalability concerns.
-5. **Architecture Evolution Report** – A detailed report is generated containing observations, risks, recommendations, and suggested improvements.
+This workflow consists of the following nodes:
 
----
+- Chat Trigger
+- Generate JSON
+- Condition
+- Generate Text (Follow-up Questions)
+- Generate Text (Architecture Evolution Report)
+- Chat Response
 
-## Setup
-
-### 1. Deploy the Flow
-
-Deploy the exported ScalePilot flow from Lamatic Studio and note the following values:
-
-- Project ID
-- Flow ID
-- API Endpoint
-- API Key
-
-### 2. Environment Variables
-
-Create a `.env.local` file inside the `apps` directory.
-
-```env
-LAMATIC_PROJECT_API_KEY=your_api_key
-LAMATIC_PROJECT_ENDPOINT=your_graphql_endpoint
-LAMATIC_PROJECT_ID=your_project_id
-LAMATIC_FLOW_ID=your_flow_id
-```
-
-### 3. Install & Run
-
-```bash
-cd apps
-npm install
-npm run dev
-```
-
-The application will be available at:
-
-```
-http://localhost:3000
-```
+These nodes work together to collect architectural information, validate completeness, and generate a comprehensive architecture review.
 
 ---
 
-## Project Structure
+## Files Included
 
-```
-|-- apps/                  # Next.js frontend
-|-- flows/                 # Exported Lamatic flow
-|-- prompts/             # Prompt definitions
-|-- model-configs/         # Model configuration
-|-- constitutions/         # AI constitutions
-|-- lamatic.config.ts
-|-- README.md
-```
+This template includes:
+
+- `flows/` – Exported Lamatic flow definition
+- `prompts/` – Prompt templates used by the LLM nodes
+- `model-configs/` – Model configuration files
+- `constitutions/` – AI behavior and guardrail definitions
+- `lamatic.config.ts` – Template metadata
+- `agent.md` – Agent overview and capabilities
+- `README.md` – Documentation
+
 ---
 
 ## Features
 
 - Analyze software architectures from natural language
+- Extract key architectural components
 - Detect missing architectural information
 - Ask intelligent follow-up questions
-- Identify scalability bottlenecks
-- Generate Architecture Evolution Reports
-- Built entirely using Lamatic AgentKit
+- Identify scalability risks and bottlenecks
+- Generate structured Architecture Evolution Reports
+- Built using Lamatic AgentKit
+
+---
+
+## Usage
+
+1. Import this template into your Lamatic workspace.
+2. Configure your preferred AI model and required credentials.
+3. Deploy the flow from Lamatic Studio.
+4. Test the flow using the Chat Trigger.
+5. Integrate the deployed flow into your application if required.
 
 ---
 
@@ -80,7 +63,7 @@ http://localhost:3000
 
 ### Input
 
-```
+```text
 We have a React frontend, Node.js backend, PostgreSQL database, and around 5,000 users. The application becomes slow during flash sales.
 ```
 
@@ -93,10 +76,45 @@ If required information is missing, ScalePilot asks follow-up questions such as:
 - Is the application containerized?
 - Are background jobs handled through a message queue?
 
-Once sufficient information is available, it generates a complete Architecture Evolution Report.
+Once sufficient information is available, the assistant generates a comprehensive Architecture Evolution Report containing:
+
+- Architecture Summary
+- Strengths
+- Risks and Bottlenecks
+- Scalability Recommendations
+- Security Recommendations
+- Infrastructure Improvements
+- Suggested Next Steps
 
 ---
 
-## Contributing
+## Use Cases
 
-Please refer to the main repository's `CONTRIBUTING.md` for contribution guidelines.
+ScalePilot can be used for:
+
+- Software architecture reviews
+- System design validation
+- Technical due diligence
+- Scalability assessments
+- Cloud migration planning
+- Engineering design discussions
+
+---
+
+## Support
+
+For questions or improvements:
+
+- Review the Lamatic documentation.
+- Open an issue in the AgentKit repository.
+- Contribute enhancements through a Pull Request.
+
+---
+
+## Tags
+
+software-architecture, system-design, ai, architecture-review
+
+---
+
+*Built with Lamatic AgentKit.*
