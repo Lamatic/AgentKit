@@ -114,7 +114,7 @@ function StatusBadge({ status }: { readonly status: string }) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${isActive
-          ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+          ? "bg-[var(--accent-cyan)]/20 text-[var(--accent-cyan)] border-[var(--accent-cyan)]/40"
           : "bg-slate-500/20 text-slate-300 border-slate-500/40"
         }`}
     >
@@ -146,11 +146,11 @@ export default function ResultCards({ data }: ResultCardsProps) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500/30 to-transparent" />
-        <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-widest">
+        <div className="h-px flex-1 bg-linear-to-r from-transparent via-[var(--accent-cyan)]/30 to-transparent" />
+        <h2 className="text-sm font-semibold text-[var(--accent-cyan)] uppercase tracking-widest">
           Investigation Results
         </h2>
-        <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500/30 to-transparent" />
+        <div className="h-px flex-1 bg-linear-to-r from-transparent via-[var(--accent-cyan)]/30 to-transparent" />
       </motion.div>
 
       {/* Card Grid — 2 col desktop/tablet, 1 col phone */}
@@ -160,7 +160,7 @@ export default function ResultCards({ data }: ResultCardsProps) {
         <CardWrapper delay={0.05}>
           <InfoCard
             title="Investigation"
-            iconBg="bg-cyan-500/20 text-cyan-400"
+            iconBg="bg-[var(--accent-cyan)]/20 text-[var(--accent-cyan)]"
             icon={<Search className="h-4 w-4" aria-hidden="true" />}
           >
             <Field label="Investigation ID" value={investigation.id} />
