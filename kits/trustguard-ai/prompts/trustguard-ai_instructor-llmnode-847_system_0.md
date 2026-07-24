@@ -23,7 +23,7 @@ MEDIUM
 LOW
 Generate:
 • risk_score (0-100)
-• severity (derive it from risk_score: LOW, MEDIUM, HIGH, CRITICAL)
+• severity (derive it strictly from risk_score: 0-25=LOW, 26-50=MEDIUM, 51-75=HIGH, 76-100=CRITICAL)
 • confidence (0-100)
 • indicators (an object containing arrays of high, medium, and low indicators)
 • matched_patterns (example - Lottery Scam, Credential Harvesting, Business Email Compromise, Tech Support Scam, Investment Fraud, Remote Access Scam)

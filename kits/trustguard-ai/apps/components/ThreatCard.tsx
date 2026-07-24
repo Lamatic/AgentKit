@@ -25,18 +25,15 @@ interface ThreatCardProps {
 export default function ThreatCard({ analysis }: ThreatCardProps) {
   const severityColors = getSeverityColor(analysis.severity);
 
-  // Normalise 0-1 to 0-100 if the API returns decimals
   /**
    * Converts a numeric score to a whole-number percentage.
    *
-   * Treats values in the 0–1 range as fractions and multiplies by 100;
-   * treats values already above 1 as percentage points and clamps them to
-   * the 0–100 range before rounding.
+   * Clamps the supplied value to the 0–100 range before rounding.
    *
    * @param v - Raw numeric value from the Lamatic response.
    * @returns Integer percentage in the 0–100 range.
    */
-  const normalise = (v: number) => Math.round(clamp(v >= 0 && v <= 1 ? v * 100 : v));
+  const normalise = (v: number) => Math.round(clamp(v));
 
   return (
     <div

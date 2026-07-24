@@ -3,6 +3,7 @@
 // Next.js Server Action — calls the TrustGuard AI Lamatic flow.
 // NEVER imports client-only code. Uses server-only env vars.
 
+import { z } from "zod";
 import { getLamaticClient, getFlowId } from "@/lib/lamatic";
 import { InvestigationResponseSchema } from "@/lib/schemas";
 import type { AnalyzeFormData } from "@/types/response";
@@ -40,6 +41,20 @@ export async function runInvestigation(
   try {
     const lamatic = getLamaticClient();
     const flowId = getFlowId();
+
+    const RuntimeInputSchema = z.object({
+      input_type: z.enum(["Email", "SMS", "URL", "Document", "Text"]),
+      language: z.enum(["Auto", "English", "Hindi", "Bengali"]),
+      content: z.string().min(1),
+      attachment_url: z.string().optional(),
+      memory_enabled: z.boolean().optional(),
+    });
+
+    const parsedInput = RuntimeInputSchema.safeParse(formData);
+    if (!parsedInput.success) {
+      console.error("[TrustGuard] Invalid input data:", parsedInput.error);
+      return { success: false, error: "Invalid input provided." };
+    }
 
     const generateInvId = () => {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

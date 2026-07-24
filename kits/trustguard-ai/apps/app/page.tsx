@@ -89,9 +89,9 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 px-4 py-1.5 mb-5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-cyan)] animate-pulse" />
-            <span className="text-xs font-semibold text-[var(--accent-cyan)] tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 mb-5">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
+            <span className="text-xs font-semibold text-brand tracking-wide uppercase">
               Powered by Lamatic AI &amp; Gemini
             </span>
           </div>
@@ -99,7 +99,7 @@ export default function HomePage() {
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
             Detect Fraud &amp; Scams
             <br />
-            <span className="bg-linear-to-r from-[var(--accent-cyan)] via-[var(--accent-blue)] to-[var(--accent-cyan)] bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-brand via-[var(--accent-blue)] to-brand bg-clip-text text-transparent">
               Instantly with AI
             </span>
           </h1>
