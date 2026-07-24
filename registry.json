@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "generated": "2026-06-24T15:59:50.185Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 79,
+  "count": 80,
   "typeCounts": {
-    "kit": 30,
+    "kit": 31,
     "bundle": 6,
     "template": 43
   },
@@ -3146,6 +3146,71 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "projectpilot-ai",
+      "name": "projectpilot-ai",
+      "description": "AI-powered final year project mentor guiding engineering students from project ideation through completion, including project recommendations, tech stack and architecture blueprints, and development roadmaps with documentation and viva/resume preparation.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "education",
+        "ai",
+        "student-projects",
+        "career-guidance",
+        "final-year-project"
+      ],
+      "author": {
+        "name": "Kishan C",
+        "email": "kishanc5980@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "discovery-flow",
+          "type": "mandatory",
+          "envKey": "DISCOVERY_FLOW_ID"
+        },
+        {
+          "id": "blueprint-flow",
+          "type": "mandatory",
+          "envKey": "BLUEPRINT_FLOW_ID"
+        },
+        {
+          "id": "execution-flow",
+          "type": "mandatory",
+          "envKey": "EXECUTION_FLOW_ID"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/projectpilot-ai",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/projectpilot-ai/apps"
+      },
+      "path": "kits/projectpilot-ai",
+      "flows": {
+        "count": 3,
+        "names": [
+          "blueprint-flow",
+          "discovery-flow",
+          "execution-flow"
+        ]
+      },
+      "resources": {
+        "prompts": 6,
+        "scripts": 0,
+        "modelConfigs": 3,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }

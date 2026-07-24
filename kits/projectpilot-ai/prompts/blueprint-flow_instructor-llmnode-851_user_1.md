@@ -1,0 +1,1 @@
+Given this project idea: {{triggerNode_1.selectedIdea}}, for a {{triggerNode_1.skillLevel}} student, recommend a frontend stack, backend stack, database, AI/ML frameworks if relevant, and a deployment platform. Explain the system architecture in 3-4 sentences. Also list 2-3 useful datasets or APIs.
