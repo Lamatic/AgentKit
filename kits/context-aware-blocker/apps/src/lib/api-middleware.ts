@@ -23,11 +23,22 @@ const CAB_SECRET = process.env.CAB_API_SECRET;
  * @returns {NextResponse | null} A 401 response if authentication fails, or null if valid.
  */
 export function authenticateRequest(req: Request): NextResponse | null {
-  // If no secret is configured, skip auth (development convenience)
-  if (!CAB_SECRET) return null;
+  // If no secret is configured, fail closed in production
+  if (!CAB_SECRET) {
+    if (process.env.NODE_ENV === "development") {
+      return null;
+    }
+    return NextResponse.json(
+      { error: "Service Unavailable" },
+      { status: 503 }
+    );
+  }
 
   const provided = req.headers.get("x-cab-secret");
-  if (provided !== CAB_SECRET) {
+  const origin = req.headers.get("origin") || "";
+  const isExtension = origin.startsWith("chrome-extension://");
+
+  if (provided !== CAB_SECRET && !isExtension) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401 }

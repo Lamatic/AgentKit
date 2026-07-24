@@ -17,14 +17,6 @@ export function cn(...classes: (string | undefined | null | false)[]) {
  * This prevents the user from circumventing block rules by disabling the extension
  * or modifying the UI. It reads the globally synced `lama_lock_settings` from localStorage.
  * 
- * **Clock bypass defense**: In addition to checking if `Date.now() < lockTimestamp`, 
- * we also verify that the elapsed wall-clock time since `lockSetAt` (when the lock was 
- * originally saved) hasn't exceeded the expected lock duration. If the user rolls back 
- * their OS clock, `Date.now()` would appear to be before the lock expiry, but the 
- * elapsed time since `lockSetAt` would be inconsistent — so we use the more conservative 
- * of the two checks. This makes casual clock-rolling significantly harder without 
- * requiring a network call to an NTP server.
- * 
  * @returns {boolean} True if the current time is before the locked time, false otherwise.
  */
 export function isStrictLockActive(): boolean {
@@ -42,21 +34,6 @@ export function isStrictLockActive(): boolean {
         // Primary check: is the current time before the lock expiry?
         if (now < lockTimestamp) {
           return true;
-        }
-
-        // Clock bypass defense: if lockSetAt is available, verify elapsed time
-        // is consistent. If the user rolled their clock forward to expire the lock,
-        // the actual elapsed time since lockSetAt would be much less than expected.
-        if (parsed.lockSetAt && typeof parsed.lockSetAt === 'number') {
-          const expectedDuration = lockTimestamp - parsed.lockSetAt;
-          const actualElapsed = now - parsed.lockSetAt;
-
-          // If less real time has passed than the lock duration, the lock should still be active.
-          // This catches the case where someone fast-forwards their clock past the lock,
-          // then sets it back to normal — actualElapsed would be less than expectedDuration.
-          if (actualElapsed < expectedDuration && expectedDuration > 0) {
-            return true;
-          }
         }
       }
     } catch (e) {

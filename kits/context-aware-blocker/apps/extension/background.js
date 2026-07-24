@@ -1,9 +1,5 @@
-// ** PRODUCTION LEVEL: Shared API Secret for Localhost Authentication ** //
-// This secret must match the CAB_API_SECRET in the Next.js .env.local file.
-// Since this extension only communicates with localhost:3000, hardcoding here
-// is acceptable — it prevents other local network actors from hitting the API.
-const CAB_API_SECRET = "cab-local-dev-secret-change-me";
-
+// ** PRODUCTION LEVEL: Authentication ** //
+// The API now authenticates this extension via the chrome-extension:// origin.
 chrome.action.onClicked.addListener(() => {
   chrome.tabs.create({
     url: "http://localhost:3000"
@@ -209,7 +205,7 @@ const evaluateContext = async (payload, tabId) => {
       try {
         await fetch("http://localhost:3000/api/log", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CAB-Secret": CAB_API_SECRET },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(logPayload)
         });
       } catch (err) {} // Silently fail if dev server isn't running
@@ -333,7 +329,7 @@ const evaluateContext = async (payload, tabId) => {
       try {
         const response = await fetch("http://localhost:3000/api/evaluate", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CAB-Secret": CAB_API_SECRET },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             url: payload.url,
             title: payload.title,
