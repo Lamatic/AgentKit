@@ -25,7 +25,6 @@ https://agent-kit-nu.vercel.app/
 
 ---
 
-
 ## 💡 Why This Kit Matters for Aman Sharma & the Lamatic.ai Team
 
 As a co-founder of **Lamatic.ai**, **Aman Sharma** and the engineering team are building the future of agentic AI workflow orchestration. This project serves as a showcase demonstration and template for **Lamatic AgentKit**:

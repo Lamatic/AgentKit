@@ -27,6 +27,7 @@ export default function MagneticButton({ children, className, ...props }: Magnet
 
   return (
     <motion.button
+      {...props}
       ref={buttonRef}
       className={cn("relative", className)}
       onMouseMove={handleMouseMove}
@@ -34,7 +35,6 @@ export default function MagneticButton({ children, className, ...props }: Magnet
       animate={{ x: position.x, y: position.y }}
       transition={{ type: 'spring', stiffness: 200, damping: 15, mass: 0.1 }}
       suppressHydrationWarning
-      {...props}
     >
       {children}
     </motion.button>

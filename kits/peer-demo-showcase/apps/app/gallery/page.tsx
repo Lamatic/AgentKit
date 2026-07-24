@@ -451,8 +451,15 @@ export default function GalleryPage() {
               {(() => {
                 const winnerProjects = projects
                   .filter((p) => p.status === 'winner')
-                  .concat(projects.filter((p) => p.status !== 'winner').sort((a, b) => b.upvotes - a.upvotes))
                   .slice(0, 3);
+
+                if (winnerProjects.length === 0) {
+                  return (
+                    <div className="col-span-3 text-center py-8 bg-black/40 border border-white/10 rounded-xl text-amber-200/70 text-sm">
+                      Official winners have not been declared yet. Check back when the winner declaration countdown expires!
+                    </div>
+                  );
+                }
 
                 const podiumStyles = [
                   {
