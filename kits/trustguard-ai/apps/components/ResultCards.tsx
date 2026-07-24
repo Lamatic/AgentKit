@@ -49,7 +49,6 @@ const CardWrapper = ({
  * @param icon     - React node (typically a Lucide icon) displayed in the header.
  * @param iconBg   - Tailwind CSS class for the icon container background and text colour.
  * @param children - Field rows or other content rendered inside the card body.
- * @param delay    - Framer Motion entry delay in seconds (default `0`).
  * @returns An animated glassmorphic card element.
  */
 function InfoCard({

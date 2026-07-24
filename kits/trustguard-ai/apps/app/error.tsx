@@ -33,13 +33,13 @@ export default function ErrorPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-red-500/20 bg-red-500/5 backdrop-blur-sm p-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400">
+      <div className="w-full max-w-md rounded-2xl border border-[var(--accent-error)]/20 bg-[var(--accent-error)]/5 backdrop-blur-sm p-8 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-error)]/10 text-[var(--accent-error)]">
           <TriangleAlert className="h-7 w-7" aria-hidden="true" />
         </div>
         <h1 className="text-lg font-semibold text-white mb-2">Something went wrong</h1>
         <p className="text-sm text-slate-400 mb-6">
-          {error.message || "An unexpected error occurred. Please try again."}
+          An unexpected error occurred. Please try again.
         </p>
         <button
           onClick={reset}

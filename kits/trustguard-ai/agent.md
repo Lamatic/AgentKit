@@ -131,11 +131,20 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 **Purpose:** Produce the final verdict and recommended action.
 
 **Responsibilities:**
-- Classify the content (e.g. SCAM, PHISHING, LEGITIMATE, SUSPICIOUS, UNKNOWN)
+- Classify the content into one of the following exact values:
+  - `SCAM`: Fraudulent schemes (e.g., lottery, investment)
+  - `PHISHING`: Attempts to steal sensitive information
+  - `MALWARE`: Content delivering malicious software
+  - `SPAM`: Unsolicited bulk messaging
+  - `CREDENTIAL_THEFT`: Targeted credential harvesting
+  - `BUSINESS_EMAIL_COMPROMISE`: CEO fraud or invoice redirection
+  - `LEGITIMATE`: Safe, verified content
+  - `SUSPICIOUS`: Ambiguous content requiring caution
+  - `UNKNOWN`: Insufficient evidence to classify
 - Write a clear `final_verdict` statement in plain language
 - Recommend a concrete `recommended_action` the user should take
 - Explain the `decision_reason` based on the analysis
-- Set a `priority` level (LOW / MEDIUM / HIGH / CRITICAL)
+- Set a `priority` level (LOW, MEDIUM, HIGH, CRITICAL)
 - Flag `human_review: true` if the confidence is low or the evidence is ambiguous
 
 **Strict limits:** This agent must NOT re-extract entities, re-score indicators, or re-normalize the input. It only decides.

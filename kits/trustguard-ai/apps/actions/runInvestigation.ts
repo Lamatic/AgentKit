@@ -17,7 +17,7 @@ import type { ValidatedInvestigationResponse } from "@/lib/schemas";
  * - `success: false` → `error` is always present, `data` is absent.
  */
 export type RunInvestigationResult =
-  | { readonly success: true;  readonly data: ValidatedInvestigationResponse }
+  | { readonly success: true; readonly data: ValidatedInvestigationResponse }
   | { readonly success: false; readonly error: string };
 
 
@@ -41,11 +41,29 @@ export async function runInvestigation(
     const lamatic = getLamaticClient();
     const flowId = getFlowId();
 
+    const generateInvId = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = 'INV-';
+      for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+
+    const languageMap = {
+      Auto: "auto",
+      English: "en",
+      Hindi: "hi",
+      Bengali: "bn",
+    } as const;
+
     const payload = {
+      investigation_id: generateInvId(),
       input_type: formData.input_type.toLowerCase(),
       content: formData.content,
       attachment_url: formData.attachment_url || "",
-      language: formData.language === "Auto" ? "auto" : formData.language,
+      // language: formData.language === "Auto" ? "auto" : formData.language,
+      language: languageMap[formData.language],
       memory_enabled: false,
       tenant_id: "default",
       user_id: "anonymous",

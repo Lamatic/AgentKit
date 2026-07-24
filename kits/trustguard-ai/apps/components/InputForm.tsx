@@ -134,7 +134,7 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
         {/* Content */}
         <div>
           <label className={labelClass} htmlFor="content">
-            Content <span className="text-red-400">*</span>
+            Content <span className="text-[var(--accent-error)]">*</span>
           </label>
           <textarea
             id="content"
