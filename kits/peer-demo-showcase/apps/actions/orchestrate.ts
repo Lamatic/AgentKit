@@ -1,102 +1,109 @@
 'use server';
 
-import { lamaticClient, flowId } from '../lib/lamatic-client';
+import { lamaticClient } from '../lib/lamatic-client';
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 
-async function sendConfirmationEmail({
-  to,
-  builderName,
-  projectTitle,
-  category,
-  matchedSponsor,
-  breakoutTable
-}: {
+const flowId = process.env.LAMATIC_SUBMISSION_FLOW_ID || 'showcase-submission-flow';
+
+const resendApiKey = process.env.RESEND_API_KEY;
+const resendFromEmail = process.env.RESEND_FROM || 'onboarding@resend.dev';
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
+
+interface EmailOptions {
   to: string;
   builderName: string;
   projectTitle: string;
   category: string;
   matchedSponsor: string;
   breakoutTable: string;
-}) {
-  const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f19; color: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-      <h2 style="color: #60a5fa; margin-top: 0;">Congratulations ${builderName}! 🚀</h2>
-      <p style="color: #9ca3af; line-height: 1.6;">
-        Your project <strong>"${projectTitle}"</strong> has been analyzed and matched by our AI agent pipeline!
-      </p>
-      <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
-        <p style="margin: 4px 0;"><strong>📋 Category:</strong> ${category}</p>
-        <p style="margin: 4px 0;"><strong>🎯 Recommended Track:</strong> <span style="color: #10b981;">${matchedSponsor}</span></p>
-        <p style="margin: 4px 0;"><strong>📍 Breakout Session:</strong> ${breakoutTable}</p>
-      </div>
-      <p style="color: #9ca3af; font-size: 14px;">Good luck with your submission!</p>
-    </div>
-  `;
+}
 
-  const subject = `🎉 Your Sponsor Track Assignment: ${matchedSponsor}`;
+async function sendConfirmationEmail(options: EmailOptions) {
+  const { to, builderName, projectTitle, category, matchedSponsor, breakoutTable } = options;
 
-  // Option 1: Send via Resend if RESEND_API_KEY is configured
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const res = await resend.emails.send({
-        from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-        to,
-        subject,
-        html: htmlContent
-      });
-
-      if (res.error) {
-        console.error('Resend email error:', res.error);
-        if (res.error.message?.includes('only send testing emails to your own email address')) {
-          const accountOwner = process.env.RESEND_ACCOUNT_EMAIL ? ` (${process.env.RESEND_ACCOUNT_EMAIL})` : '';
-          console.warn(`[Resend Notice] Resend testing domain onboarding@resend.dev requires 'to' address to be the registered account owner email${accountOwner}. Verify a custom domain at resend.com/domains to send to any recipient.`);
-        }
-      } else {
-        console.log(`Successfully dispatched Resend confirmation email to ${to}`);
-        return;
-      }
-    } catch (err) {
-      console.error('Failed to send Resend email:', err);
-    }
-  }
-
-  // Option 2: Send via SMTP if SMTP credentials are configured
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
-  if (host && user && pass) {
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       const transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass }
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
+        secure: process.env.SMTP_PORT === '465',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
       });
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"Hackathon Showcase" <${user}>`,
+        from: process.env.SMTP_FROM || `Peer Showcase <${process.env.SMTP_USER}>`,
         to,
-        subject,
-        html: htmlContent
+        subject: `🚀 Submission Confirmed: ${projectTitle} @ Peer Demo Showcase`,
+        html: `
+          <div style="font-family: sans-serif; background-color: #030014; color: #ffffff; padding: 32px; borderRadius: 16px;">
+            <h2 style="color: #60a5fa;">Hey ${builderName}! 🚀</h2>
+            <p style="font-size: 16px; color: #e2e8f0;">Your project <strong>${projectTitle}</strong> has been successfully submitted and matched by our AI Agent flow!</p>
+            <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin: 24px 0;">
+              <p style="margin: 8px 0; color: #94a3b8;"><strong>Category:</strong> ${category}</p>
+              <p style="margin: 8px 0; color: #94a3b8;"><strong>Matched Sponsor:</strong> <span style="color: #38bdf8;">${matchedSponsor}</span></p>
+              <p style="margin: 8px 0; color: #94a3b8;"><strong>Assigned Breakout Table:</strong> <span style="color: #facc15;">${breakoutTable}</span></p>
+            </div>
+            <p style="color: #94a3b8; font-size: 14px;">Good luck on Demo Day!</p>
+          </div>
+        `
       });
-      console.log(`Successfully dispatched SMTP confirmation email to ${to}`);
       return;
-    } catch (err) {
-      console.error('Failed to send SMTP email:', err);
+    } catch (err: any) {
+      console.warn('SMTP confirmation email failed:', err.message);
     }
   }
 
-  console.log('Neither RESEND_API_KEY nor SMTP credentials are set, skipping email dispatch.');
+  if (!resend) {
+    return;
+  }
+
+  const accountEmail = process.env.RESEND_ACCOUNT_EMAIL;
+  let targetToEmail = to;
+
+  if (resendFromEmail.includes('resend.dev')) {
+    if (accountEmail) {
+      targetToEmail = accountEmail;
+    } else {
+      console.warn(
+        `Resend is using unverified default domain (${resendFromEmail}). ` +
+        `To deliver emails to external addresses like ${to}, verify a custom domain in Resend ` +
+        `or configure RESEND_ACCOUNT_EMAIL in .env.local to target your account email address.`
+      );
+    }
+  }
+
+  try {
+    await resend.emails.send({
+      from: resendFromEmail,
+      to: [targetToEmail],
+      subject: `🚀 Submission Confirmed: ${projectTitle} @ Peer Demo Showcase`,
+      html: `
+        <div style="font-family: sans-serif; background-color: #030014; color: #ffffff; padding: 32px; border-radius: 16px;">
+          <h2 style="color: #60a5fa;">Hey ${builderName}! 🚀</h2>
+          <p style="font-size: 16px; color: #e2e8f0;">Your project <strong>${projectTitle}</strong> has been successfully submitted and matched by our AI Agent flow!</p>
+          <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin: 24px 0;">
+            <p style="margin: 8px 0; color: #94a3b8;"><strong>Category:</strong> ${category}</p>
+            <p style="margin: 8px 0; color: #94a3b8;"><strong>Matched Sponsor:</strong> <span style="color: #38bdf8;">${matchedSponsor}</span></p>
+            <p style="margin: 8px 0; color: #94a3b8;"><strong>Assigned Breakout Table:</strong> <span style="color: #facc15;">${breakoutTable}</span></p>
+          </div>
+          <p style="color: #94a3b8; font-size: 14px;">Good luck on Demo Day!</p>
+        </div>
+      `
+    });
+  } catch (err: any) {
+    console.warn('Resend confirmation email failed:', err.message);
+  }
 }
 
-function inferTechStack(url: string = '', title: string = '', category: string = '', rawTechStack?: string): string {
-  if (rawTechStack && rawTechStack.trim() !== '' && rawTechStack !== 'N/A' && rawTechStack !== 'None') {
-    return rawTechStack.trim();
+function inferTechStack(url: string, title: string, category: string, existingStack?: string): string {
+  if (existingStack && existingStack.trim() && existingStack !== 'TypeScript, React, Node.js') {
+    return existingStack;
   }
+
   const text = (url + ' ' + title + ' ' + category).toLowerCase();
 
   if (text.includes('ai') || text.includes('gpt') || text.includes('llm') || text.includes('rag') || text.includes('python') || text.includes('fastapi') || text.includes('synthesizer') || category === 'AI/ML') {
@@ -127,6 +134,14 @@ function validateSubmissionInputs(githubUrl: string, contactEmail: string, hoste
   }
 }
 
+/**
+ * Submits a new project for AI sponsor matching and D1 persistence.
+ * @param githubUrl - Public GitHub repository URL.
+ * @param builderName - Name of project builder or team lead.
+ * @param contactEmail - Contact email address.
+ * @param hostedLink - Optional live demo or deployment URL.
+ * @returns Object containing project title, category, matched sponsor, justification, and breakout table.
+ */
 export async function submitProject(
   githubUrl: string,
   builderName: string,
@@ -135,7 +150,6 @@ export async function submitProject(
 ) {
   validateSubmissionInputs(githubUrl, contactEmail, hostedLink);
 
-  // Deduplication check: check if this repository has already been submitted
   try {
     const existing = await getSubmissions();
     const cleanInputUrl = githubUrl.toLowerCase().trim().replace(/\/+$/, '').replace(/\.git$/, '');
@@ -188,8 +202,6 @@ export async function submitProject(
         tech_stack: 'Next.js, TypeScript, Tailwind, Lamatic'
       };
 
-  // Smart post-processing: If Lamatic returned "Other", "Sponsor information missing", or blank sponsor,
-  // apply intelligent keyword matching from the repository URL/title to avoid generic "Other" matches
   if (!result.matched_sponsor || result.matched_sponsor === 'Other' || result.matched_sponsor.includes('missing') || result.matched_sponsor.includes('None')) {
     const urlLower = (githubUrl + ' ' + (result.project_title || '') + ' ' + (result.tech_stack || '')).toLowerCase();
     
@@ -217,7 +229,6 @@ export async function submitProject(
 
   result.tech_stack = inferTechStack(githubUrl, result.project_title, result.category, result.tech_stack);
 
-  // Trigger confirmation email asynchronously (via Resend or SMTP)
   sendConfirmationEmail({
     to: contactEmail,
     builderName,
@@ -230,25 +241,12 @@ export async function submitProject(
   return result;
 }
 
-/**
- * ARCHITECTURAL NOTICE: DEMO MOCK FALLBACK STORES
- * 
- * The MOCK_* mutable objects in this server module (MOCK_UPVOTES, MOCK_STATUSES, 
- * MOCK_SPONSORS, MOCK_SCORES, MOCK_JUDGES, MOCK_EVENT_CONFIG) serve as fallback 
- * in-memory data stores when Lamatic.ai flow environment variables are not present.
- * 
- * Ephemeral & Instance-Local Nature:
- * - These stores are instance-local and held in Node.js module memory on the current server process.
- * - Fallback-mode writes (upvotes, statuses, sponsors, judge accounts, scores, event config) 
- *   will reset upon redeployments, container restarts, or serverless cold starts.
- * - Concurrent serverless instances maintain isolated memory states and may diverge.
- * 
- * Production Deployment:
- * - Configure all active LAMATIC_*_FLOW_ID environment variables in .env.local to route all 
- *   queries and mutations directly to persistent Lamatic Cloud D1 database tables.
- */
 const MOCK_UPVOTES: Record<string, number> = {};
 
+/**
+ * Retrieves all submitted projects from Lamatic Cloud D1 database or mock fallback.
+ * @returns Promise resolving to an array of submission records.
+ */
 export async function getSubmissions() {
   const getSubmissionsFlowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_GET_SUBMISSIONS_FLOW_ID;
   
@@ -306,16 +304,13 @@ export async function getSubmissions() {
   const submissionsList = Array.isArray(result) ? result : (result?.submissions || []);
 
   return submissionsList.map((sub: any, idx: number) => {
-    // Unpack githubUrl and hosted_link
     const githubParts = (sub.github_url || '').split('|');
     const githubUrl = githubParts[0] || '';
     const hostedLink = githubParts[1] || '';
 
-    // Unpack breakout_table and upvotes
     const tableParts = (sub.breakout_table || '').split('|');
     const breakoutTable = tableParts[0] || 'N/A';
     
-    // Read upvotes from sub.upvotes database column (or breakout_table fallback / mock fallback)
     let upvotes = typeof sub.upvotes === 'number' ? sub.upvotes : (parseInt(sub.upvotes || '0', 10) || 0);
     const upvotePart = tableParts.find((p: string) => p.startsWith('upvotes:'));
     if (upvotePart) {
@@ -348,6 +343,12 @@ const MOCK_STATUSES: Record<string, string> = {
   '2': 'submitted'
 };
 
+/**
+ * Updates the review/curation status of a project submission.
+ * @param id - Unique submission ID.
+ * @param status - Target status string ('submitted' | 'shortlisted' | 'winner' | 'rejected').
+ * @returns Status object indicating success.
+ */
 export async function updateProjectStatus(id: string, status: string) {
   if (!id) throw new Error('Submission ID is required');
 
@@ -365,6 +366,12 @@ export async function updateProjectStatus(id: string, status: string) {
   return { status: 'success' };
 }
 
+/**
+ * Reassigns the matched sponsor track for a project submission.
+ * @param id - Unique submission ID.
+ * @param matched_sponsor - Name of the newly assigned sponsor.
+ * @returns Status object indicating success.
+ */
 export async function updateProjectSponsor(id: string, matched_sponsor: string) {
   if (!id) throw new Error('Submission ID is required');
 
@@ -380,6 +387,15 @@ export async function updateProjectSponsor(id: string, matched_sponsor: string) 
   return { status: 'success' };
 }
 
+/**
+ * Re-evaluates AI sponsor matching and updates existing project submission metadata.
+ * @param id - Unique submission ID.
+ * @param githubUrl - GitHub repository URL.
+ * @param builderName - Builder name.
+ * @param contactEmail - Contact email address.
+ * @param hostedLink - Optional live demo URL.
+ * @returns Promise resolving to updated matching result.
+ */
 export async function resubmitProject(
   id: string,
   githubUrl: string,
@@ -389,7 +405,6 @@ export async function resubmitProject(
 ) {
   if (!id) throw new Error('Submission ID is required');
 
-  // First run matching flow to get fresh AI results
   const newMatch = await submitProject(githubUrl, builderName, contactEmail, hostedLink);
 
   const updateFlowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPDATE_SUBMISSION_FLOW_ID;
@@ -414,6 +429,12 @@ export async function resubmitProject(
   return newMatch;
 }
 
+/**
+ * Increments community upvote count for a given project submission.
+ * @param id - Project submission ID.
+ * @param currentCount - Current upvote count baseline.
+ * @returns Status object containing updated upvote count.
+ */
 export async function upvoteProject(id: string, currentCount: number = 0) {
   if (!id) throw new Error('Project ID is required');
 
@@ -434,6 +455,10 @@ export async function upvoteProject(id: string, currentCount: number = 0) {
 
 let MOCK_SPONSORS = ['Google Cloud', 'Vercel', 'Supabase', 'Stitch', 'MongoDB'];
 
+/**
+ * Retrieves the catalog of active hackathon sponsors.
+ * @returns Promise resolving to an array of sponsor names.
+ */
 export async function getSponsors() {
   const getSponsorsFlowId = process.env.LAMATIC_SPONSORS_MANAGER_FLOW_ID || process.env.LAMATIC_GET_SPONSORS_FLOW_ID;
   if (!getSponsorsFlowId) {
@@ -459,6 +484,12 @@ export async function getSponsors() {
   return sponsorsList.map((s: any) => typeof s === 'string' ? s : s.name);
 }
 
+/**
+ * Adds a new sponsor track to the event sponsor catalog.
+ * @param name - Sponsor company or track name.
+ * @param description - Optional description or focus area.
+ * @returns Status object indicating success.
+ */
 export async function addSponsor(name: string, description: string = '') {
   if (!name || name.trim() === '') {
     throw new Error('Sponsor name cannot be empty');
@@ -480,6 +511,11 @@ export async function addSponsor(name: string, description: string = '') {
   return { status: 'success' };
 }
 
+/**
+ * Deletes a project submission from the platform.
+ * @param id - Unique submission ID to remove.
+ * @returns Status object indicating success.
+ */
 export async function deleteSubmission(id: string) {
   if (!id) throw new Error('Submission ID is required');
 
@@ -494,8 +530,6 @@ export async function deleteSubmission(id: string) {
 
   return { status: 'success' };
 }
-
-// -- Judge Management & Scoring Actions --
 
 export interface JudgeScore {
   id: string;
@@ -528,6 +562,12 @@ let MOCK_JUDGES: Array<{ id: string; name: string; email: string; password?: str
   { id: 'j2', name: 'Judge Alex', email: 'alex@judge.com' }
 ];
 
+/**
+ * Verifies judge credentials against configured passwords and judge registry.
+ * @param password - Access code or password to verify.
+ * @param name - Optional judge display name.
+ * @returns Object indicating whether credentials are valid and returning matching judge name.
+ */
 export async function verifyJudgeCredentials(password: string, name?: string): Promise<{ valid: boolean; judgeName: string }> {
   const configuredPassword = process.env.JUDGE_PASSWORD || process.env.ADMIN_PASSWORD;
   if (!configuredPassword) {
@@ -556,6 +596,17 @@ export async function verifyJudgeCredentials(password: string, name?: string): P
   return { valid: false, judgeName: '' };
 }
 
+/**
+ * Submits judge evaluation scores and feedback notes for a project.
+ * @param projectId - Target project ID.
+ * @param judgeName - Name of evaluating judge.
+ * @param innovation - Score for innovation (1-10).
+ * @param execution - Score for technical execution (1-10).
+ * @param impact - Score for potential impact (1-10).
+ * @param presentation - Score for presentation (1-10).
+ * @param notes - Optional evaluation feedback notes.
+ * @returns Status object containing saved score record.
+ */
 export async function submitScore(
   projectId: string,
   judgeName: string,
@@ -610,6 +661,10 @@ export async function submitScore(
   return { status: 'success', score: newScore };
 }
 
+/**
+ * Retrieves all submitted judge evaluation scores.
+ * @returns Promise resolving to an array of judge evaluation scores.
+ */
 export async function getScores() {
   const flowId = process.env.LAMATIC_JUDGING_MANAGER_FLOW_ID || process.env.LAMATIC_GET_SCORES_FLOW_ID;
   if (!flowId) {
@@ -634,6 +689,12 @@ export async function getScores() {
   return list.length > 0 ? list : MOCK_SCORES;
 }
 
+/**
+ * Manages judge accounts (list, add, or remove judges).
+ * @param action - Action to perform ('add' | 'list' | 'remove').
+ * @param judgeData - Optional judge data object for add/remove operations.
+ * @returns Promise resolving to judge list or status result.
+ */
 export async function manageJudges(
   action: 'add' | 'list' | 'remove',
   judgeData?: { id?: string; name?: string; email?: string; password?: string }
@@ -685,12 +746,14 @@ export async function manageJudges(
   return { status: 'success' };
 }
 
-// -- Event Configuration Actions (Deadline settings) --
-
 let MOCK_EVENT_CONFIG: Record<string, string> = {
-  submission_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // default: 7 days from now
+  submission_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 };
 
+/**
+ * Retrieves the global event configuration settings (e.g., submission deadline).
+ * @returns Promise resolving to a key-value record of event settings.
+ */
 export async function getEventConfig() {
   const flowId = process.env.LAMATIC_EVENT_CONFIG_FLOW_ID || process.env.LAMATIC_GET_EVENT_CONFIG_FLOW_ID;
   if (!flowId) {
@@ -717,6 +780,12 @@ export async function getEventConfig() {
   return map;
 }
 
+/**
+ * Updates or sets a global event configuration setting.
+ * @param key - Event configuration key (e.g., 'submission_deadline').
+ * @param value - Setting value string (e.g., ISO timestamp).
+ * @returns Status object indicating success.
+ */
 export async function setEventConfig(key: string, value: string) {
   if (!key) throw new Error('Config key is required');
 
