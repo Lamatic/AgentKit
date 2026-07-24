@@ -2,7 +2,7 @@ export default {
   "name": "ScalePilot",
   "description": "AI-powered software architecture review assistant that analyzes software architectures, identifies missing information, asks follow-up questions, and generates a professional Architecture Evolution Report.",
   "version": "1.0.0",
-  "type": "template",
+  "type": "template" as const,
   "author": {
     "name": "Samakcha Mishra",
     "email": "samakchakrmishra03@gmail.com"
@@ -14,7 +14,7 @@ export default {
   "steps": [
     {
       "id": "scale-pilot",
-      "type": "mandatory"
+      "type": "mandatory" as const,
     }
   ],
   "links": {
