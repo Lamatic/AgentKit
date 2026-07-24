@@ -2,6 +2,7 @@ import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
+import { certifyEvidence } from "./evidence";
 import { probeSpecSchema } from "./probe";
 
 type RuntimeFactory = () => Pick<
@@ -151,6 +152,74 @@ function createIsolateServer(runtimeFactory: RuntimeFactory) {
     },
     async ({ sandboxId }) => {
       const output = await runtimeFactory().delete(sandboxId);
+      return {
+        content: [{ type: "text", text: JSON.stringify(output) }],
+        structuredContent: output,
+      };
+    },
+  );
+
+  server.registerTool(
+    "certify_reproduction",
+    {
+      title: "Certify reproduction evidence",
+      description:
+        "Runs a candidate probe twice and a negative control once, then deterministically decides whether the issue was reproduced.",
+      inputSchema: z.object({
+        sandboxId: z.string().min(1),
+        workspace: z.literal("workspace/repo"),
+        timeoutSeconds: z.number().int().min(1).max(120).default(60),
+        candidateProbe: probeSpecSchema,
+        controlProbe: probeSpecSchema,
+      }),
+      outputSchema: z.object({
+        outcome: z.enum([
+          "reproduced",
+          "not_reproduced_under_tested_conditions",
+        ]),
+        gate: z.object({
+          repeatCount: z.literal(2),
+          allCandidateRunsPassed: z.boolean(),
+          controlRejected: z.boolean(),
+        }),
+        evidence: z.object({
+          candidateRuns: z.array(z.unknown()).length(2),
+          controlRun: z.unknown(),
+        }),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    async ({
+      sandboxId,
+      workspace,
+      timeoutSeconds,
+      candidateProbe,
+      controlProbe,
+    }) => {
+      const runtime = runtimeFactory();
+      const shared = { sandboxId, workspace, timeoutSeconds };
+      const firstCandidate = await runtime.runProbe({
+        ...shared,
+        probe: candidateProbe,
+      });
+      const secondCandidate = await runtime.runProbe({
+        ...shared,
+        probe: candidateProbe,
+      });
+      const controlRun = await runtime.runProbe({
+        ...shared,
+        probe: controlProbe,
+      });
+      const output = certifyEvidence({
+        candidateRuns: [firstCandidate, secondCandidate],
+        controlRun,
+      });
+
       return {
         content: [{ type: "text", text: JSON.stringify(output) }],
         structuredContent: output,

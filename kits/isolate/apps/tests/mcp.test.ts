@@ -252,4 +252,85 @@ describe("POST /api/mcp", () => {
       sandboxId: "sandbox_123",
     });
   });
+
+  test("certifies reproduction only after repeat and control probes", async () => {
+    const calls: unknown[] = [];
+    const passingRun = {
+      passed: true,
+      assertions: [
+        { kind: "exit_code" as const, passed: true, expected: 1, actual: 1 },
+      ],
+      observation: {
+        command: "bun test repro.test.ts",
+        exitCode: 1,
+        stdout: "",
+        stderr: "bug observed\n",
+        durationMs: 20,
+      },
+    };
+    const runtime = {
+      create: async () => {
+        throw new Error("not used");
+      },
+      runProbe: async (input: unknown) => {
+        calls.push(input);
+        return calls.length < 3
+          ? passingRun
+          : {
+              ...passingRun,
+              passed: false,
+              assertions: [
+                {
+                  kind: "exit_code" as const,
+                  passed: false,
+                  expected: 1,
+                  actual: 0,
+                },
+              ],
+            };
+      },
+      delete: async () => {
+        throw new Error("not used");
+      },
+    };
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 7,
+          method: "tools/call",
+          params: {
+            name: "certify_reproduction",
+            arguments: {
+              sandboxId: "sandbox_123",
+              workspace: "workspace/repo",
+              timeoutSeconds: 60,
+              candidateProbe: {
+                command: "bun test repro.test.ts",
+                assertions: [{ kind: "exit_code", equals: 1 }],
+              },
+              controlProbe: {
+                command: "bun test control.test.ts",
+                assertions: [{ kind: "exit_code", equals: 1 }],
+              },
+            },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      () => runtime,
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.structuredContent).toMatchObject({
+      outcome: "reproduced",
+      gate: {
+        repeatCount: 2,
+        allCandidateRunsPassed: true,
+        controlRejected: true,
+      },
+    });
+    expect(calls).toHaveLength(3);
+  });
 });
