@@ -171,7 +171,7 @@ trustguard-ai/
 
 Before you start, make sure you have the following:
 
-- **Node.js** v18 or newer
+- **Node.js** v20.9 or newer
 - **npm** v9 or newer (comes with Node.js)
 - A **Lamatic AI** account with a project set up at [lamatic.ai](https://lamatic.ai)
 - The TrustGuard AI flow deployed inside your Lamatic project

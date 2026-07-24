@@ -38,7 +38,6 @@ interface EvidenceCardProps {
  * returned no evidence at all.
  *
  * @param evidence - Validated evidence data returned by the Lamatic flow.
- * @param delay    - Framer Motion entry delay in seconds (default `0`).
  * @returns An animated card element containing the evidence badge grid.
  */
 export default function EvidenceCard({ evidence }: EvidenceCardProps) {

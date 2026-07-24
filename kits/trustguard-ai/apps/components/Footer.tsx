@@ -32,7 +32,7 @@ export default function Footer() {
             href="https://lamatic.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-cyan-500 font-medium hover:text-cyan-400 transition-colors"
+            className="text-[var(--accent-cyan)] font-medium hover:text-[var(--accent-cyan)]/80 transition-colors"
           >
             Lamatic AI
           </a>

@@ -20,7 +20,6 @@ interface ThreatCardProps {
  * display in case the API returns 0–1 decimals.
  *
  * @param analysis - Validated threat analysis data returned by the Lamatic flow.
- * @param delay    - Framer Motion entry delay in seconds (default `0`).
  * @returns An animated card element with the full threat analysis breakdown.
  */
 export default function ThreatCard({ analysis }: ThreatCardProps) {

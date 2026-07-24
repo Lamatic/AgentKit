@@ -46,15 +46,11 @@ const ThreatIndicatorsSchema = z.object({
   low: z.array(z.string()).default([]).readonly(),
 });
 
-/** Zod schema for the threat analysis block; `severity` falls back to `"LOW"` for unknown values. */
+/** Zod schema for the threat analysis block; unexpected labels cause safeParse to reject the analysis. */
 const ThreatAnalysisSchema = z.object({
   risk_score: z.number().min(0).max(100),
   confidence: z.number().min(0).max(100),
-  // PRESERVED: CodeRabbit suggested removing .catch("LOW") here.
-  // However, removing .catch() would cause runtime validation to throw an error 
-  // and break the flow if the LLM hallucinated an unknown severity value. 
-  // Keeping .catch("LOW") preserves graceful fallback and backward compatibility.
-  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).catch("LOW"),
+  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   indicators: ThreatIndicatorsSchema,
   matched_patterns: z.array(z.string()).default([]),
   missing_information: z.array(z.string()).default([]),

@@ -89,9 +89,9 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/5 px-4 py-1.5 mb-5">
-            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-xs font-semibold text-cyan-400 tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-cyan)]/20 bg-[var(--accent-cyan)]/5 px-4 py-1.5 mb-5">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-cyan)] animate-pulse" />
+            <span className="text-xs font-semibold text-[var(--accent-cyan)] tracking-wide uppercase">
               Powered by Lamatic AI &amp; Gemini
             </span>
           </div>
@@ -99,7 +99,7 @@ export default function HomePage() {
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
             Detect Fraud &amp; Scams
             <br />
-            <span className="bg-linear-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-[var(--accent-cyan)] via-[var(--accent-blue)] to-[var(--accent-cyan)] bg-clip-text text-transparent">
               Instantly with AI
             </span>
           </h1>
@@ -149,11 +149,11 @@ export default function HomePage() {
               exit={{ opacity: 0 }}
             >
               <div className="relative">
-                <div className="h-16 w-16 rounded-full border-2 border-cyan-500/20 animate-ping absolute inset-0" />
-                <div className="h-16 w-16 rounded-full border-2 border-transparent border-t-cyan-500 border-r-cyan-500/50 animate-spin relative" />
+                <div className="h-16 w-16 rounded-full border-2 border-[var(--accent-cyan)]/20 animate-ping absolute inset-0" />
+                <div className="h-16 w-16 rounded-full border-2 border-transparent border-t-[var(--accent-cyan)] border-r-[var(--accent-cyan)]/50 animate-spin relative" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-cyan-400">
+                <p className="text-sm font-semibold text-[var(--accent-cyan)]">
                   Analyzing content…
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
@@ -180,7 +180,7 @@ export default function HomePage() {
                       repeat: Infinity,
                     }}
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-cyan)] animate-pulse" />
                     {stage}
                   </motion.span>
                 ))}

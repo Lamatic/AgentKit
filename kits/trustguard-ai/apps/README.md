@@ -15,6 +15,7 @@ To run this Next.js project locally, you need to set up your environment variabl
 ### 1. Set up Environment Variables
 
 Copy the example environment file:
+
 ```bash
 cp .env.example .env.local
 ```
@@ -53,7 +54,7 @@ If you are contributing to this project and creating a Pull Request, please use 
 
 For example, when submitting your PR, use a commit message like:
 
-```
+```text
 feat(trustguard-ai): update web app UI and fix README
 ```
 
