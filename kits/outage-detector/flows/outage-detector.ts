@@ -425,8 +425,6 @@ export const edges = [
   { id: "response-trigger_triggerNode_1", type: "responseEdge", source: "triggerNode_1", target: "responseNode_triggerNode_1", sourceHandle: "to-response", targetHandle: "from-trigger" }
 ];
 
-export default { meta, inputs, references, nodes, edges };
-
 // Additive export for Studio's Phase 2 runtime validator, which appears to
 // look for the node graph under a `config_json` key (matching Studio's
 // internal storage schema) rather than the top-level `nodes`/`edges`
@@ -434,3 +432,5 @@ export default { meta, inputs, references, nodes, edges };
 // exports rather than replacing them, since other tooling may rely on the
 // documented top-level shape.
 export const config_json = { nodes, edges };
+
+export default { meta, inputs, references, nodes, edges, config_json };
