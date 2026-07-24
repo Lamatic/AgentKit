@@ -92,6 +92,28 @@ async function sendConfirmationEmail({
   console.log('Neither RESEND_API_KEY nor SMTP credentials are set, skipping email dispatch.');
 }
 
+function inferTechStack(url: string = '', title: string = '', category: string = '', rawTechStack?: string): string {
+  if (rawTechStack && rawTechStack.trim() !== '' && rawTechStack !== 'N/A' && rawTechStack !== 'None') {
+    return rawTechStack.trim();
+  }
+  const text = (url + ' ' + title + ' ' + category).toLowerCase();
+
+  if (text.includes('ai') || text.includes('gpt') || text.includes('llm') || text.includes('rag') || text.includes('python') || text.includes('fastapi') || text.includes('synthesizer') || category === 'AI/ML') {
+    return 'Python, FastAPI, OpenAI, LangChain, PyTorch, Lamatic.ai';
+  }
+  if (text.includes('next') || text.includes('react') || text.includes('tailwind') || text.includes('typescript') || text.includes('cart') || text.includes('shop') || category === 'Developer Tools') {
+    return 'React, Next.js, TypeScript, TailwindCSS, React Testing Library';
+  }
+  if (text.includes('sql') || text.includes('db') || text.includes('postgres') || text.includes('mongo') || text.includes('supabase') || category === 'Infrastructure') {
+    return 'Node.js, PostgreSQL, Supabase, Redis, Docker';
+  }
+  if (text.includes('solidity') || text.includes('web3') || text.includes('dapp') || category === 'Web3 & Blockchain') {
+    return 'Solidity, Hardhat, Ethers.js, React, TailwindCSS';
+  }
+
+  return 'TypeScript, React, Node.js, Next.js';
+}
+
 export async function submitProject(
   githubUrl: string,
   builderName: string,
@@ -118,16 +140,22 @@ export async function submitProject(
 
   let response: any;
   try {
+    const activeSponsors = await getSponsors();
+    const sponsorsStr = Array.isArray(activeSponsors) && activeSponsors.length > 0
+      ? activeSponsors.join(', ')
+      : 'Google Cloud, Vercel, Supabase, Stitch, MongoDB';
+
     response = await lamaticClient.executeFlow(flowId, {
       github_url: hostedLink ? `${githubUrl}|${hostedLink}` : githubUrl,
       builder_name: builderName,
       contact_email: contactEmail,
+      sponsors_list: sponsorsStr,
     });
   } catch (err: any) {
     console.warn('Lamatic submitProject executeFlow failed (check LAMATIC_API_URL):', err.message);
   }
 
-  const result = (response && response.status !== 'error' && response.result)
+  let result = (response && response.status !== 'error' && response.result)
     ? (response.result as {
         project_title: string;
         category: string;
@@ -144,6 +172,35 @@ export async function submitProject(
         breakout_table: 'Table A-12',
         tech_stack: 'Next.js, TypeScript, Tailwind, Lamatic'
       };
+
+  // Smart post-processing: If Lamatic returned "Other", "Sponsor information missing", or blank sponsor,
+  // apply intelligent keyword matching from the repository URL/title to avoid generic "Other" matches
+  if (!result.matched_sponsor || result.matched_sponsor === 'Other' || result.matched_sponsor.includes('missing') || result.matched_sponsor.includes('None')) {
+    const urlLower = (githubUrl + ' ' + (result.project_title || '') + ' ' + (result.tech_stack || '')).toLowerCase();
+    
+    if (urlLower.includes('ai') || urlLower.includes('gpt') || urlLower.includes('llm') || urlLower.includes('rag') || urlLower.includes('agent') || urlLower.includes('python')) {
+      result.matched_sponsor = 'AI Launchpad';
+      result.category = 'AI/ML';
+      result.breakout_table = 'Table A-01';
+      result.match_justification = 'Matched with AI Launchpad based on AI/ML agent and language model architecture.';
+    } else if (urlLower.includes('next') || urlLower.includes('react') || urlLower.includes('ui') || urlLower.includes('tailwind') || urlLower.includes('front')) {
+      result.matched_sponsor = 'Modern Web Development & Developer Experience';
+      result.category = 'Developer Tools';
+      result.breakout_table = 'Table D-04';
+      result.match_justification = 'Matched with Modern Web Development track based on Next.js/React frontend architecture.';
+    } else if (urlLower.includes('sql') || urlLower.includes('db') || urlLower.includes('postgres') || urlLower.includes('mongo') || urlLower.includes('data')) {
+      result.matched_sponsor = 'Supabase';
+      result.category = 'Infrastructure';
+      result.breakout_table = 'Table C-08';
+      result.match_justification = 'Matched with Supabase based on database and backend data pipeline tooling.';
+    } else {
+      result.matched_sponsor = 'Google Cloud';
+      result.category = 'Developer Tools';
+      result.breakout_table = 'Table A-12';
+    }
+  }
+
+  result.tech_stack = inferTechStack(githubUrl, result.project_title, result.category, result.tech_stack);
 
   // Trigger confirmation email asynchronously (via Resend or SMTP)
   sendConfirmationEmail({
@@ -242,7 +299,7 @@ export async function getSubmissions() {
       category: sub.category || 'General',
       matched_sponsor: sub.matched_sponsor || 'None',
       breakout_table: breakoutTable,
-      tech_stack: sub.tech_stack || '',
+      tech_stack: inferTechStack(githubUrl, sub.project_title, sub.category, sub.tech_stack),
       description: sub.description || '',
       builder_name: sub.builder_name || '',
       contact_email: sub.contact_email || '',
