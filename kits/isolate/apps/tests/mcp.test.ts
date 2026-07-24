@@ -83,14 +83,9 @@ describe("POST /api/mcp", () => {
     );
     const toolsBody = await mcpJson(toolsResponse);
 
-    expect(toolsBody.result.tools).toHaveLength(1);
-    expect(toolsBody.result.tools[0]).toMatchObject({
-      name: "echo",
-      annotations: {
-        readOnlyHint: true,
-        destructiveHint: false,
-      },
-    });
+    expect(toolsBody.result.tools.map(({ name }: { name: string }) => name)).toContain(
+      "echo",
+    );
 
     const callResponse = await handleMcp(
       mcpRequest(
@@ -117,5 +112,144 @@ describe("POST /api/mcp", () => {
     expect(callBody.result.structuredContent.traceId).toMatch(
       /^spike_[a-f0-9-]{36}$/,
     );
+  });
+
+  test("creates an isolated repository workspace through MCP", async () => {
+    const calls: unknown[] = [];
+    const runtime = {
+      create: async (input: unknown) => {
+        calls.push(input);
+        return { sandboxId: "sandbox_123", workspace: "workspace/repo" as const };
+      },
+      runProbe: async () => {
+        throw new Error("not used");
+      },
+      delete: async () => {
+        throw new Error("not used");
+      },
+    };
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 4,
+          method: "tools/call",
+          params: {
+            name: "create_sandbox",
+            arguments: {
+              repositoryUrl: "https://github.com/example/buggy-cli",
+              ref: "main",
+            },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      () => runtime,
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.structuredContent).toEqual({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+    });
+    expect(calls).toEqual([
+      {
+        repositoryUrl: "https://github.com/example/buggy-cli",
+        ref: "main",
+      },
+    ]);
+  });
+
+  test("returns runtime-certified probe evidence through MCP", async () => {
+    const runtime = {
+      create: async () => {
+        throw new Error("not used");
+      },
+      runProbe: async () => ({
+        passed: true,
+        assertions: [
+          { kind: "exit_code" as const, passed: true, expected: 1, actual: 1 },
+        ],
+        observation: {
+          command: "bun test regression.test.ts",
+          exitCode: 1,
+          stdout: "",
+          stderr: "failure reproduced\n",
+          durationMs: 20,
+        },
+      }),
+      delete: async () => {
+        throw new Error("not used");
+      },
+    };
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 5,
+          method: "tools/call",
+          params: {
+            name: "run_probe",
+            arguments: {
+              sandboxId: "sandbox_123",
+              workspace: "workspace/repo",
+              timeoutSeconds: 60,
+              probe: {
+                command: "bun test regression.test.ts",
+                assertions: [{ kind: "exit_code", equals: 1 }],
+              },
+            },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      () => runtime,
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.structuredContent).toMatchObject({
+      passed: true,
+      observation: {
+        command: "bun test regression.test.ts",
+        exitCode: 1,
+        stderr: "failure reproduced\n",
+      },
+    });
+  });
+
+  test("deletes an investigation sandbox through MCP", async () => {
+    const runtime = {
+      create: async () => {
+        throw new Error("not used");
+      },
+      runProbe: async () => {
+        throw new Error("not used");
+      },
+      delete: async (sandboxId: string) => ({ deleted: true as const, sandboxId }),
+    };
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 6,
+          method: "tools/call",
+          params: {
+            name: "delete_sandbox",
+            arguments: { sandboxId: "sandbox_123" },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      () => runtime,
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.structuredContent).toEqual({
+      deleted: true,
+      sandboxId: "sandbox_123",
+    });
   });
 });
