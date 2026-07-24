@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../mono"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}
