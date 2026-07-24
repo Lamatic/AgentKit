@@ -492,11 +492,15 @@ export function EnterpriseAIPipeline({
         </div>
         <div>
           <div className="text-[10px] text-white/40 tracking-wider mb-1 font-semibold">API STATUS</div>
-          <div className="text-lg text-emerald-400 font-mono font-bold">200 OK</div>
+          <div className={`text-lg font-mono font-bold ${error ? 'text-red-400' : 'text-emerald-400'}`}>
+            {error ? '500 ERROR' : '200 OK'}
+          </div>
         </div>
         <div>
           <div className="text-[10px] text-white/40 tracking-wider mb-1 font-semibold">LATENCY</div>
-          <div className="text-lg text-blue-400 font-mono font-bold">{loading ? "Analyzing..." : "342ms"}</div>
+          <div className="text-lg text-blue-400 font-mono font-bold">
+            {loading ? "Analyzing..." : error ? "--" : "342ms"}
+          </div>
         </div>
         <div className="ml-auto text-right">
           <div className="text-[10px] text-white/30 tracking-wider mb-1 font-semibold">PROVIDER</div>

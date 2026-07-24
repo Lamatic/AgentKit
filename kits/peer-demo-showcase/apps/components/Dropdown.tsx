@@ -20,6 +20,7 @@ interface DropdownProps {
 export default function Dropdown({ value, onChange, options, placeholder = 'Select option', icon }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Normalize options to DropdownOption format
   const normalizedOptions: DropdownOption[] = options.map((opt) => {
@@ -40,15 +41,30 @@ export default function Dropdown({ value, onChange, options, placeholder = 'Sele
         setIsOpen(false);
       }
     }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   return (
     <div ref={containerRef} className="relative z-40 w-full sm:w-48 text-left">
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white hover:bg-white/5 focus:border-blue-500/50 transition-all cursor-pointer shadow-md select-none"
       >
@@ -71,6 +87,7 @@ export default function Dropdown({ value, onChange, options, placeholder = 'Sele
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
+            role="listbox"
             className="absolute z-50 w-full mt-2 bg-[#0c0a18] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl max-h-60 overflow-y-auto"
           >
             <div className="py-1">
@@ -80,9 +97,12 @@ export default function Dropdown({ value, onChange, options, placeholder = 'Sele
                   <button
                     key={opt.value}
                     type="button"
+                    role="option"
+                    aria-selected={isSelected}
                     onClick={() => {
                       onChange(opt.value);
                       setIsOpen(false);
+                      triggerRef.current?.focus();
                     }}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer select-none ${
                       isSelected

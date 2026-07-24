@@ -3,23 +3,26 @@
 import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
+function applyThemeClass(theme: 'dark' | 'light') {
+  if (theme === 'light') {
+    document.documentElement.classList.add('light');
+    document.documentElement.classList.remove('dark');
+  } else {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+  }
+}
+
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
-    // Check initial theme from documentElement class list or localStorage
     const isLight = document.documentElement.classList.contains('light');
     const localTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
 
     if (localTheme) {
       setTheme(localTheme);
-      if (localTheme === 'light') {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      } else {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      }
+      applyThemeClass(localTheme);
     } else if (isLight) {
       setTheme('light');
     }
@@ -29,14 +32,7 @@ export default function ThemeToggle() {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     localStorage.setItem('theme', nextTheme);
-
-    if (nextTheme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    }
+    applyThemeClass(nextTheme);
   };
 
   return (

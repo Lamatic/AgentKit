@@ -20,9 +20,6 @@ export default function SponsorMarquee() {
     { name: 'Lamatic.ai', icon: <Sparkles className="w-4 h-4" />, color: 'group-hover:text-cyan-400' },
   ];
 
-  // Repeat twice for infinite loop
-  const duplicatedSponsors = [...sponsors, ...sponsors];
-
   return (
     <div className="mt-20 border-t border-white/5 pt-10 pb-6 w-full overflow-hidden relative">
       {/* Title */}
@@ -33,9 +30,9 @@ export default function SponsorMarquee() {
       {/* Marquee Track Wrapper with fade masks */}
       <div className="w-full overflow-hidden mask-marquee">
         <div className="animate-marquee flex gap-6 py-2">
-          {duplicatedSponsors.map((sponsor, idx) => (
+          {sponsors.map((sponsor, idx) => (
             <div
-              key={idx}
+              key={`primary-${idx}`}
               className="group flex items-center justify-center gap-3 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 text-gray-400 hover:text-white transition-all duration-300 font-semibold tracking-wide select-none min-w-[170px] cursor-pointer shadow-sm hover:shadow-lg"
             >
               <span className={`transition-colors duration-300 ${sponsor.color}`}>
@@ -46,6 +43,21 @@ export default function SponsorMarquee() {
               </span>
             </div>
           ))}
+          <div className="flex gap-6" aria-hidden="true">
+            {sponsors.map((sponsor, idx) => (
+              <div
+                key={`dup-${idx}`}
+                className="group flex items-center justify-center gap-3 px-8 py-3.5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 text-gray-400 hover:text-white transition-all duration-300 font-semibold tracking-wide select-none min-w-[170px] cursor-pointer shadow-sm hover:shadow-lg"
+              >
+                <span className={`transition-colors duration-300 ${sponsor.color}`}>
+                  {sponsor.icon}
+                </span>
+                <span className="text-sm font-sans tracking-tight">
+                  {sponsor.name}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
