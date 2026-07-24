@@ -18,7 +18,10 @@ const issueResponseSchema = z.object({
   pull_request: z.unknown().optional(),
 });
 
-type FetchLike = typeof fetch;
+type FetchLike = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
 
 export class GitHubIssueReader {
   constructor(private readonly request: FetchLike = fetch) {}
