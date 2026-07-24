@@ -172,7 +172,7 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
           disabled={loading || !formData.content.trim()}
           whileHover={{ scale: loading ? 1 : 1.01 }}
           whileTap={{ scale: loading ? 1 : 0.99 }}
-          className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all hover:shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all hover:shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {loading ? (
             <>

@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, UserCheck } from "lucide-react";
+import { CheckCircle2, UserCheck, ClipboardList, Target, Zap } from "lucide-react";
 import { getDecisionColor } from "@/lib/utils";
 import type { DecisionData } from "@/types/response";
 
@@ -27,11 +27,8 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
   const colors = getDecisionColor(decision.classification);
 
   return (
-    <motion.div
+    <div
       className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm p-5 shadow-xl h-full"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4 }}
     >
       {/* Card header */}
       <div className="flex items-center gap-2 mb-4">
@@ -56,17 +53,17 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
       {/* Details grid */}
       <div className="space-y-3">
         <DetailRow
-          icon="📋"
+          icon={<ClipboardList className="h-3 w-3" aria-hidden="true" />}
           label="Final Verdict"
           value={decision.final_verdict}
         />
         <DetailRow
-          icon="🎯"
+          icon={<Target className="h-3 w-3" aria-hidden="true" />}
           label="Recommended Action"
           value={decision.recommended_action}
         />
         <DetailRow
-          icon="⚡"
+          icon={<Zap className="h-3 w-3" aria-hidden="true" />}
           label="Priority"
           value={decision.priority}
           valueClass={
@@ -86,20 +83,20 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
           </span>
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${decision.human_review
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                : "bg-green-500/20 text-green-300 border-green-500/40"
+              ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+              : "bg-green-500/20 text-green-300 border-green-500/40"
               }`}
           >
             {decision.human_review ? "Yes" : "No"}
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 interface DetailRowProps {
-  readonly icon: string;
+  readonly icon: React.ReactNode;
   readonly label: string;
   readonly value: string;
   readonly valueClass?: string;
@@ -126,9 +123,9 @@ function DetailRow({
 }: DetailRowProps) {
   return (
     <div>
-      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
+      <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
         {icon} {label}
-      </p>
+      </div>
       <p className={`text-sm leading-relaxed ${valueClass}`}>{value ?? "—"}</p>
     </div>
   );

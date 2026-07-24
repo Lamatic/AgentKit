@@ -1,6 +1,7 @@
 // components/Header.tsx
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Github } from "lucide-react";
@@ -17,6 +18,8 @@ import { Github } from "lucide-react";
  *   navigation links.
  */
 export default function Header() {
+  const [logoFailed, setLogoFailed] = useState(false);
+
   return (
     <motion.header
       className="sticky top-0 z-50 w-full border-b border-white/[0.06] bg-slate-950/80 backdrop-blur-xl"
@@ -43,7 +46,7 @@ export default function Header() {
         </div>
 
         {/* Center — Title */}
-        <div className="hidden sm absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+        <div className="hidden sm:flex absolute left-1/2 -translate-x-1/2 flex-col items-center">
           <span className="text-base font-bold text-white tracking-tight">
             TrustGuard AI
           </span>
@@ -74,20 +77,20 @@ export default function Header() {
             className="flex items-center justify-center h-8 px-2 rounded-lg bg-white/[1.00] hover:bg-white/[0.80] border border-white/[0.08] transition-colors"
           >
             {/* Try to load user-supplied lamatic-logo.png, fall back to text */}
-            <Image
-              src="/lamatic-logo.png"
-              alt="Lamatic AI"
-              width={68}
-              height={20}
-              className="object-contain h-5 w-auto"
-              onError={(e) => {
-                // Hide broken image, show text fallback handled in JSX below
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-            <span className="lamatic-text-fallback text-xs font-semibold text-cyan-400 hidden">
-              Lamatic
-            </span>
+            {!logoFailed ? (
+              <Image
+                src="/lamatic-logo.png"
+                alt="Lamatic AI"
+                width={68}
+                height={20}
+                className="object-contain h-5 w-auto"
+                onError={() => setLogoFailed(true)}
+              />
+            ) : (
+              <span className="lamatic-text-fallback text-xs font-semibold text-cyan-400">
+                Lamatic
+              </span>
+            )}
           </a>
         </div>
       </div>

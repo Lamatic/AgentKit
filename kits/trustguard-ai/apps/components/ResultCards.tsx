@@ -57,20 +57,15 @@ function InfoCard({
   icon,
   iconBg,
   children,
-  delay = 0,
 }: {
   readonly title: string;
   readonly icon: React.ReactNode;
   readonly iconBg: string;
   readonly children: React.ReactNode;
-  readonly delay?: number;
 }) {
   return (
-    <motion.div
+    <div
       className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm p-5 shadow-xl h-full"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4 }}
     >
       <div className="flex items-center gap-2 mb-4">
         <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${iconBg}`}>
@@ -79,7 +74,7 @@ function InfoCard({
         <h3 className="text-sm font-semibold text-white">{title}</h3>
       </div>
       <div className="space-y-3">{children}</div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -151,11 +146,11 @@ export default function ResultCards({ data }: ResultCardsProps) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+        <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500/30 to-transparent" />
         <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-widest">
           Investigation Results
         </h2>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+        <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500/30 to-transparent" />
       </motion.div>
 
       {/* Card Grid — 2 col desktop/tablet, 1 col phone */}
@@ -165,7 +160,6 @@ export default function ResultCards({ data }: ResultCardsProps) {
         <CardWrapper delay={0.05}>
           <InfoCard
             title="Investigation"
-            delay={0.05}
             iconBg="bg-cyan-500/20 text-cyan-400"
             icon={<Search className="h-4 w-4" aria-hidden="true" />}
           >
@@ -186,7 +180,6 @@ export default function ResultCards({ data }: ResultCardsProps) {
         <CardWrapper delay={0.1}>
           <InfoCard
             title="Normalized Content"
-            delay={0.1}
             iconBg="bg-blue-500/20 text-blue-400"
             icon={<AlignLeft className="h-4 w-4" aria-hidden="true" />}
           >
@@ -207,12 +200,12 @@ export default function ResultCards({ data }: ResultCardsProps) {
 
         {/* Card 3 — Evidence */}
         <CardWrapper delay={0.15}>
-          <EvidenceCard evidence={evidence} delay={0.15} />
+          <EvidenceCard evidence={evidence} />
         </CardWrapper>
 
         {/* Card 4 — Threat Analysis */}
         <CardWrapper delay={0.2}>
-          <ThreatCard analysis={analysis} delay={0.2} />
+          <ThreatCard analysis={analysis} />
         </CardWrapper>
 
         {/* Card 5 — Decision (full width) */}

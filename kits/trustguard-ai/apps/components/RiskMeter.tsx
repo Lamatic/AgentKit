@@ -48,7 +48,15 @@ export default function RiskMeter({ value, label = "Risk Score" }: RiskMeterProp
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: 180, height: 100 }}>
+      <div
+        className="relative"
+        style={{ width: 180, height: 100 }}
+        role="meter"
+        aria-label={label}
+        aria-valuenow={clamped}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <svg
           width={180}
           height={100}
