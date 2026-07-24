@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Community Project Showcase</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Public+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface": "#e8e2fc",
+                      "on-secondary-fixed-variant": "#005969",
+                      "surface": "#0e0c1e",
+                      "primary-container": "#b28cff",
+                      "on-error-container": "#ffb2b9",
+                      "surface-bright": "#2d2845",
+                      "outline": "#77728a",
+                      "on-tertiary": "#006443",
+                      "tertiary": "#9bffce",
+                      "error-dim": "#d73357",
+                      "secondary-fixed": "#65e1ff",
+                      "outline-variant": "#49455a",
+                      "on-primary-fixed-variant": "#390083",
+                      "primary-fixed-dim": "#a67aff",
+                      "on-primary-fixed": "#000000",
+                      "on-background": "#e8e2fc",
+                      "tertiary-dim": "#58e7ab",
+                      "on-secondary": "#004b58",
+                      "on-tertiary-fixed-variant": "#006544",
+                      "secondary": "#53ddfc",
+                      "tertiary-fixed-dim": "#58e7ab",
+                      "on-secondary-fixed": "#003a45",
+                      "primary-fixed": "#b28cff",
+                      "surface-tint": "#bd9dff",
+                      "tertiary-fixed": "#69f6b8",
+                      "inverse-on-surface": "#565268",
+                      "surface-container-lowest": "#000000",
+                      "primary-dim": "#8952f0",
+                      "on-tertiary-container": "#005a3c",
+                      "surface-container-high": "#201c35",
+                      "on-primary-container": "#2e006c",
+                      "on-primary": "#3c0089",
+                      "tertiary-container": "#69f6b8",
+                      "on-tertiary-fixed": "#00452d",
+                      "surface-dim": "#0e0c1e",
+                      "primary": "#bd9dff",
+                      "surface-container-low": "#141125",
+                      "on-surface-variant": "#ada8c1",
+                      "surface-container-highest": "#26223d",
+                      "background": "#0e0c1e",
+                      "secondary-fixed-dim": "#48d4f3",
+                      "inverse-primary": "#7337d9",
+                      "on-error": "#490013",
+                      "secondary-dim": "#40ceed",
+                      "error-container": "#a70138",
+                      "inverse-surface": "#fdf8ff",
+                      "secondary-container": "#00687a",
+                      "surface-variant": "#26223d",
+                      "surface-container": "#1a172d",
+                      "error": "#ff6e84",
+                      "on-secondary-container": "#ecfaff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Space Grotesk"
+                      ],
+                      "display": [
+                              "Space Grotesk"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Public Sans"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- TopNavBar Component -->
+<nav class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl font-body text-label-sm font-medium tracking-wide docked full-width top-0 sticky z-50 border-b border-outline-variant/30 shadow-sm transition-all duration-300 ease-in-out active:scale-95">
+<div class="flex justify-between items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-headline-sm font-headline font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">DevShowcase</span>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-primary dark:text-primary-fixed border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-bright/50 dark:hover:bg-surface-container-highest/50 rounded-lg px-2 py-1" href="#">Explore</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-bright/50 dark:hover:bg-surface-container-highest/50 rounded-lg px-2 py-1" href="#">Sponsors</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors hover:bg-surface-bright/50 dark:hover:bg-surface-container-highest/50 rounded-lg px-2 py-1" href="#">Community</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<input class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pl-4 pr-10 text-sm focus:outline-none focus:border-primary text-on-surface w-48" placeholder="Search..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-full font-semibold hover:bg-primary-dim transition-colors flex items-center gap-2">
+                    Submit Project
+                </button>
+<img alt="Developer Profile" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A detailed 50-100 word prompt describing a high-quality, abstract tech-themed avatar icon for a developer profile. Use a dark background with subtle neon blue and purple accents to match a modern dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAA6yzuu8V3KUKDYR0Hjq5AdLD3eHIqoELANOjlcYnvaDBF0Xo7dcURdJwqN8rnoS5ragOJp2UDMk5rJEut5AXAQo3ONfPmOQRYjN6n3rqZv1Qv9CXg9Q2X7V558aAV2pHKHbBiPYiqkEWBiaxEO57z4VmobkCM_0urUQTs6akdndp7aQ31bdTHM0g1NzQlQN5nK1pv9bqZhC3_1ZbrwIEZde7NQiXy_ljtCxI3qzNjPdospV633ZNhVlR77J_Yo1Z1Nas0EasDUZ8"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-grow relative w-full flex flex-col items-center">
+<!-- Hero Background Image -->
+<div class="absolute inset-0 z-0">
+<img alt="Background" class="w-full h-[60vh] object-cover opacity-40 mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoh7uppQFNxJOHvkAZQJpCmsgHbFEHhrbaJ_H6Snt9mr4FhqNaFc33b9prHAFzFq__kTaDog1FzN7z6p9-I2V0QVtZhLd3wJgkRAt06_Lmih8yROxme7SoT90sNqg7gtyu8g-t2Xh5Igp8lvuWp0uBoflQ9cn3aXnTCDd6RZkW5nSzpujOKgA0gLjEJrVBCAgoMUeVLUXu4gXnwtYQOtHXw3W2L6CV5s7nbRbxjorDDF56tlh8KfamScTyyknIpcb10KnLRSqM2Qk"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background h-[60vh]"></div>
+</div>
+<div class="max-w-screen-2xl w-full px-6 py-12 lg:py-20 z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 relative">
+<!-- Hero & Form Column -->
+<div class="lg:col-span-7 flex flex-col gap-8">
+<div>
+<h1 class="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-on-surface mb-4">
+                        🚀 Community Project Showcase
+                    </h1>
+<p class="text-lg md:text-xl text-on-surface-variant font-label max-w-2xl">
+                        Submit your open-source project for sponsor matching &amp; community recognition. Connect with tech giants and elevate your build.
+                    </p>
+</div>
+<!-- Submission Form Card -->
+<div class="bg-surface-container-low/60 backdrop-blur-xl border border-primary/30 rounded-2xl p-8 shadow-[0_0_30px_-5px_rgba(124,58,237,0.15)] relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<form class="flex flex-col gap-5 relative z-10">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-on-surface-variant">GitHub Repository URL</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">code</span>
+<input class="w-full bg-surface-container border border-outline-variant/50 rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="https://github.com/username/repo" type="url"/>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-on-surface-variant">Your Name</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+<input class="w-full bg-surface-container border border-outline-variant/50 rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Jane Developer" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-on-surface-variant">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+<input class="w-full bg-surface-container border border-outline-variant/50 rounded-lg py-3 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="jane@example.com" type="email"/>
+</div>
+</div>
+</div>
+<button class="mt-4 bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity w-full sm:w-auto self-start shadow-lg shadow-primary/20" type="button">
+                            Submit Project
+                            <span class="material-symbols-outlined text-sm">rocket_launch</span>
+</button>
+</form>
+</div>
+</div>
+<!-- Results Card Column -->
+<div class="lg:col-span-5 flex flex-col gap-6 justify-center">
+<div class="bg-surface-container-high/80 backdrop-blur-md rounded-2xl p-6 border border-secondary/30 relative overflow-hidden">
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-secondary/20 blur-3xl rounded-full"></div>
+<h3 class="text-xl font-headline font-bold text-on-surface mb-6 flex items-center gap-2">
+                        ✨ Match Results
+                    </h3>
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Matched Sponsor</span>
+<span class="px-3 py-1 bg-secondary/10 text-[#06B6D4] rounded-full text-xs font-semibold border border-secondary/20">Vercel</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Category</span>
+<span class="px-3 py-1 bg-[#10B981]/10 text-[#10B981] rounded-full text-xs font-semibold border border-[#10B981]/20">Developer Tools</span>
+</div>
+<div class="mt-2 p-4 bg-surface-container-lowest/50 rounded-lg border border-outline-variant/30">
+<p class="text-sm text-on-surface-variant italic">
+                                "Strong alignment with modern edge computing paradigms and seamless integration with existing cloud infrastructure tooling."
+                            </p>
+</div>
+<div class="mt-4">
+<div class="flex justify-between text-xs mb-2">
+<span class="text-on-surface-variant">Match Confidence</span>
+<span class="text-secondary font-bold">92%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[92%] rounded-full shadow-[0_0_10px_rgba(83,221,252,0.5)]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Dashboard Table Section -->
+<div class="max-w-screen-2xl w-full px-6 pb-20 z-10">
+<div class="bg-surface-container-low/50 backdrop-blur-lg rounded-2xl border border-outline-variant/30 overflow-hidden flex flex-col">
+<div class="p-6 border-b border-outline-variant/30">
+<h2 class="text-2xl font-headline font-bold text-on-surface">📊 Live Submissions Dashboard</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm whitespace-nowrap">
+<thead class="text-xs text-on-surface-variant uppercase bg-surface-container-high/50 border-b border-outline-variant/30">
+<tr>
+<th class="w-10 px-4 py-4" scope="col"></th><th class="px-6 py-4 font-medium" scope="col">Project Name</th>
+<th class="px-6 py-4 font-medium" scope="col">Category</th>
+<th class="px-6 py-4 font-medium" scope="col">Sponsor</th>
+<th class="px-6 py-4 font-medium" scope="col">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20"><tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-4 py-4 text-center"><span class="material-symbols-outlined text-primary transition-transform rotate-90">expand_more</span></td>
+<td class="px-6 py-4 font-medium text-on-surface">next-auth-kit</td>
+<td class="px-6 py-4 text-on-surface-variant">Authentication</td>
+<td class="px-6 py-4 text-on-surface-variant">Auth0</td>
+<td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">✅ Matched</span></td>
+</tr>
+<tr class="bg-surface-container-low/30">
+<td class="px-14 py-4 text-sm text-on-surface-variant/80 italic border-b border-outline-variant/10" colspan="5">A comprehensive authentication toolkit for Next.js applications, supporting multiple providers and secure session management.</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors bg-surface-container-lowest/20">
+<td class="px-4 py-4 text-center"><span class="material-symbols-outlined text-primary transition-transform rotate-90">expand_more</span></td>
+<td class="px-6 py-4 font-medium text-on-surface">react-chart-engine</td>
+<td class="px-6 py-4 text-on-surface-variant">Data Visualization</td>
+<td class="px-6 py-4 text-on-surface-variant">Datadog</td>
+<td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">✅ Matched</span></td>
+</tr>
+<tr class="bg-surface-container-low/30">
+<td class="px-14 py-4 text-sm text-on-surface-variant/80 italic border-b border-outline-variant/10" colspan="5">High-performance charting library for React with real-time data streaming and customizable SVG rendering.</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-4 py-4 text-center"><span class="material-symbols-outlined text-on-surface-variant/50">expand_more</span></td>
+<td class="px-6 py-4 font-medium text-on-surface">cli-deploy-tool</td>
+<td class="px-6 py-4 text-on-surface-variant">DevOps</td>
+<td class="px-6 py-4 text-on-surface-variant">AWS</td>
+<td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">🔄 Pending</span></td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors bg-surface-container-lowest/20">
+<td class="px-4 py-4 text-center"><span class="material-symbols-outlined text-on-surface-variant/50">expand_more</span></td>
+<td class="px-6 py-4 font-medium text-on-surface">design-token-gen</td>
+<td class="px-6 py-4 text-on-surface-variant">Design Systems</td>
+<td class="px-6 py-4 text-on-surface-variant">Figma</td>
+<td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">✅ Matched</span></td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="px-4 py-4 text-center"><span class="material-symbols-outlined text-on-surface-variant/50">expand_more</span></td>
+<td class="px-6 py-4 font-medium text-on-surface">ml-pipeline-sdk</td>
+<td class="px-6 py-4 text-on-surface-variant">Machine Learning</td>
+<td class="px-6 py-4 text-on-surface-variant">Google Cloud</td>
+<td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">🔄 Pending</span></td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors bg-surface-container-lowest/20">
+<td class="px-4 py-4 text-center"><span class="material-symbols-outlined text-on-surface-variant/50">expand_more</span></td>
+<td class="px-6 py-4 font-medium text-on-surface">api-gateway-rust</td>
+<td class="px-6 py-4 text-on-surface-variant">Infrastructure</td>
+<td class="px-6 py-4 text-on-surface-variant">Cloudflare</td>
+<td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">✅ Matched</span></td>
+</tr></tbody>
+</table>
+</div>
+<div class="p-4 border-t border-outline-variant/30 text-xs text-on-surface-variant text-right bg-surface-container-high/20">
+                    showing 6 of 142 submissions
+                </div>
+</div>
+</div><section class="max-w-screen-2xl w-full px-6 pb-20 z-10">
+<h2 class="text-4xl font-headline font-bold text-on-surface mb-8">🏆 Featured Sponsors</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-6 rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:border-primary/50 group">
+<div class="flex flex-col items-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">V</div>
+<div>
+<h4 class="font-bold text-on-surface">Vercel</h4>
+<p class="text-xs text-on-surface-variant">12 projects sponsored</p>
+</div>
+<a class="text-primary text-xs font-semibold hover:underline" href="#">View Profile →</a>
+</div>
+</div>
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-6 rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-secondary/50 group">
+<div class="flex flex-col items-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-xl">A</div>
+<div>
+<h4 class="font-bold text-on-surface">Auth0</h4>
+<p class="text-xs text-on-surface-variant">8 projects sponsored</p>
+</div>
+<a class="text-secondary text-xs font-semibold hover:underline" href="#">View Profile →</a>
+</div>
+</div>
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-6 rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:border-amber-500/50 group">
+<div class="flex flex-col items-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-xl">D</div>
+<div>
+<h4 class="font-bold text-on-surface">Datadog</h4>
+<p class="text-xs text-on-surface-variant">15 projects sponsored</p>
+</div>
+<a class="text-amber-500 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+</div>
+</div>
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-6 rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:border-amber-500/50 group">
+<div class="flex flex-col items-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-xl">A</div>
+<div>
+<h4 class="font-bold text-on-surface">AWS</h4>
+<p class="text-xs text-on-surface-variant">24 projects sponsored</p>
+</div>
+<a class="text-amber-500 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+</div>
+</div>
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-6 rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:border-primary/50 group">
+<div class="flex flex-col items-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">F</div>
+<div>
+<h4 class="font-bold text-on-surface">Figma</h4>
+<p class="text-xs text-on-surface-variant">10 projects sponsored</p>
+</div>
+<a class="text-primary text-xs font-semibold hover:underline" href="#">View Profile →</a>
+</div>
+</div>
+<div class="bg-surface-container-low/40 backdrop-blur-md border border-outline-variant/30 p-6 rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:border-amber-500/50 group">
+<div class="flex flex-col items-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-xl">C</div>
+<div>
+<h4 class="font-bold text-on-surface">Cloudflare</h4>
+<p class="text-xs text-on-surface-variant">18 projects sponsored</p>
+</div>
+<a class="text-amber-500 text-xs font-semibold hover:underline" href="#">View Profile →</a>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="bg-surface-dim dark:bg-surface-container-lowest font-body text-xs text-on-surface-variant/70 full-width py-12 px-6 mt-auto border-t border-outline-variant/10">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto items-center">
+<div>
+<span class="font-headline text-lg font-bold text-primary block mb-2">DevShowcase</span>
+<p>© 2024 Community Project Showcase. Built for Developers.</p>
+</div>
+<div class="flex flex-wrap gap-4 md:justify-end opacity-80 hover:opacity-100 transition-opacity">
+<a class="text-on-surface-variant/80 hover:text-on-surface transition-colors hover:text-primary" href="#">Documentation</a>
+<a class="text-on-surface-variant/80 hover:text-on-surface transition-colors hover:text-primary" href="#">API Reference</a>
+<a class="text-on-surface-variant/80 hover:text-on-surface transition-colors hover:text-primary" href="#">Terms</a>
+<a class="text-on-surface-variant/80 hover:text-on-surface transition-colors hover:text-primary" href="#">Privacy</a>
+</div>
+</div>
+</footer>
+</body></html>
