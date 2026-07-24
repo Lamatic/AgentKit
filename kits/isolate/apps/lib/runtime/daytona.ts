@@ -79,16 +79,21 @@ export class DaytonaSandboxRuntime {
     const commitId = ref && /^[a-f0-9]{40}$/i.test(ref) ? ref : undefined;
     const branch = commitId ? undefined : ref;
 
-    await sandbox.git.clone(
-      repositoryUrl,
-      workspace,
-      branch,
-      commitId,
-      undefined,
-      undefined,
-      false,
-      1,
-    );
+    try {
+      await sandbox.git.clone(
+        repositoryUrl,
+        workspace,
+        branch,
+        commitId,
+        undefined,
+        undefined,
+        false,
+        1,
+      );
+    } catch (error) {
+      await this.client.delete(sandbox, 60, true).catch(() => undefined);
+      throw error;
+    }
 
     return { sandboxId: sandbox.id, workspace };
   }

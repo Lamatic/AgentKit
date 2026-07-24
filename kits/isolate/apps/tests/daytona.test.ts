@@ -28,7 +28,7 @@ function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }>
     delete: async (...args: unknown[]) => calls.push({ name: "delete", args }),
   };
 
-  return { client, calls };
+  return { client, calls, sandbox };
 }
 
 describe("DaytonaSandboxRuntime", () => {
@@ -80,6 +80,21 @@ describe("DaytonaSandboxRuntime", () => {
       runtime.create({ repositoryUrl: "ssh://git@github.com/private/repo" }),
     ).rejects.toThrow("Only public HTTPS GitHub repositories are supported.");
     expect(calls).toHaveLength(0);
+  });
+
+  test("deletes a sandbox immediately when repository cloning fails", async () => {
+    const { client, calls, sandbox } = fakeDaytona();
+    sandbox.git.clone = async () => {
+      throw new Error("clone failed");
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await expect(
+      runtime.create({ repositoryUrl: "https://github.com/example/missing" }),
+    ).rejects.toThrow("clone failed");
+
+    expect(calls.map(({ name }) => name)).toEqual(["create", "delete"]);
+    expect(calls[1]?.args.slice(1)).toEqual([60, true]);
   });
 
   test("checks out an immutable commit when the ref is a full SHA", async () => {
