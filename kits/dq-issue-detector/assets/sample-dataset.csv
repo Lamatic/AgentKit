@@ -1,0 +1,10 @@
+id,name,email,age,signup_date,status
+1,John Doe,john.doe@example.com,28,2023-01-15,Active
+2,Jane Smith,jane.smith@example.org,34,2023-02-20,Active
+3,Bob Johnson,,forty-five,2023-03-10,Pending
+4,Alice Williams,alice.w@example,22,04-12-2023,Active
+5,Charlie Brown,charlie@example.com,31,,Inactive
+2,Jane Smith,jane.smith@example.org,34,2023-02-20,Active
+7,David Lee,david.lee@domain.com,255,2023-05-02,Active
+8,Eva Green,eva.green@example.com,-5,2023-06-15,Active
+9,Frank Wright,frank@example.com,40,2023-07-22,unknown
