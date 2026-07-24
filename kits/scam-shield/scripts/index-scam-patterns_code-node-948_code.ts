@@ -21,7 +21,7 @@ const { createHash } = require("crypto")
 // name/content pair, with the existing human-readable name-based prefix
 // preserved so IDs stay legible while avoiding 32-bit hash collisions.
 function stableId(name: string, content: string) {
-  const canonical = String(name) + "|" + String(content)
+  const canonical = JSON.stringify([String(name), String(content)])
   const digest = createHash("sha256").update(canonical, "utf8").digest("hex")
   return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) + "-" + digest
 }
