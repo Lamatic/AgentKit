@@ -56,6 +56,20 @@ interface DaytonaLike {
 }
 
 const workspace = "workspace/repo" as const;
+const maximumOutputLength = 65_536;
+
+function sanitizeOutput(value: string) {
+  const redacted = value
+    .replace(
+      /(\b(?:api[_-]?key|token|secret|password)\b\s*[:=]\s*)([^\s]+)/gi,
+      "$1[REDACTED]",
+    )
+    .replace(/(\bauthorization\b\s*:\s*bearer\s+)([^\s]+)/gi, "$1[REDACTED]");
+
+  if (redacted.length <= maximumOutputLength) return redacted;
+  const marker = "\n[output truncated]";
+  return `${redacted.slice(0, maximumOutputLength - marker.length)}${marker}`;
+}
 
 export class DaytonaSandboxRuntime {
   constructor(
@@ -139,7 +153,12 @@ export class DaytonaSandboxRuntime {
       .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
       .parse(JSON.parse(collected.result));
 
-    return evaluateProbe(probe, { ...observation, durationMs });
+    return evaluateProbe(probe, {
+      ...observation,
+      stdout: sanitizeOutput(observation.stdout),
+      stderr: sanitizeOutput(observation.stderr),
+      durationMs,
+    });
   }
 
   async delete(sandboxId: string) {
