@@ -17,6 +17,8 @@
 @theme inline {
   --color-background: var(--bg-base);
   --color-foreground: var(--text-primary);
+  --color-brand: var(--accent-cyan);
+  --color-error: var(--accent-error);
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 

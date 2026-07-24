@@ -3,6 +3,7 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, UserCheck, ClipboardList, Target, Zap } from "lucide-react";
+import type { ElementType } from "react";
 import { getDecisionColor } from "@/lib/utils";
 import type { DecisionData } from "@/types/response";
 
@@ -53,17 +54,17 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
       {/* Details grid */}
       <div className="space-y-3">
         <DetailRow
-          icon={<ClipboardList className="h-3 w-3" aria-hidden="true" />}
+          icon={ClipboardList}
           label="Final Verdict"
           value={decision.final_verdict}
         />
         <DetailRow
-          icon={<Target className="h-3 w-3" aria-hidden="true" />}
+          icon={Target}
           label="Recommended Action"
           value={decision.recommended_action}
         />
         <DetailRow
-          icon={<Zap className="h-3 w-3" aria-hidden="true" />}
+          icon={Zap}
           label="Priority"
           value={decision.priority}
           valueClass={
@@ -96,7 +97,7 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
 }
 
 interface DetailRowProps {
-  readonly icon: React.ReactNode;
+  readonly icon: ElementType;
   readonly label: string;
   readonly value: string;
   readonly valueClass?: string;
@@ -109,14 +110,14 @@ interface DetailRowProps {
  * it.  An optional `valueClass` prop allows callers to apply custom colour
  * styles to the value text (e.g. red for high priority).
  *
- * @param icon       - Emoji or icon character shown before the label.
+ * @param icon       - React.ReactNode, including lucide-react icons, shown before the label.
  * @param label      - Uppercase section label for the field.
  * @param value      - String value to display; falls back to `"—"` if falsy.
  * @param valueClass - Tailwind CSS class applied to the value `<p>` element.
  * @returns A two-line label + value row element.
  */
 function DetailRow({
-  icon,
+  icon: Icon,
   label,
   value,
   valueClass = "text-slate-200",
@@ -124,7 +125,7 @@ function DetailRow({
   return (
     <div>
       <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
-        {icon} {label}
+        <Icon className="h-3 w-3" aria-hidden="true" /> {label}
       </div>
       <p className={`text-sm leading-relaxed ${valueClass}`}>{value ?? "—"}</p>
     </div>
