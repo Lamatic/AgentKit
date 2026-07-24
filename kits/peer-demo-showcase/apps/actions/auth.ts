@@ -7,6 +7,12 @@ import { verifyJudgeCredentials } from './orchestrate';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
+/**
+ * Authenticates an admin user against the environment ADMIN_PASSWORD.
+ * Creates a server-side signed session token and sets an HTTP-only cookie.
+ * @param password - Password string entered by admin.
+ * @returns Promise resolving to an object indicating authentication success or error message.
+ */
 export async function login(password: string) {
   if (!ADMIN_PASSWORD) {
     throw new Error('ADMIN_PASSWORD environment variable is not set.');
@@ -28,6 +34,9 @@ export async function login(password: string) {
   return { success: false, error: 'Invalid password' };
 }
 
+/**
+ * Logs out the active admin session by revoking the session token and removing session cookies.
+ */
 export async function logout() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('admin_session');
@@ -38,6 +47,12 @@ export async function logout() {
   redirect('/admin/login');
 }
 
+/**
+ * Authenticates a judge user against configured judge credentials.
+ * @param password - Judge access code or password string.
+ * @param name - Optional judge display name.
+ * @returns Promise resolving to an object indicating authentication success or error message.
+ */
 export async function judgeLogin(password: string, name?: string) {
   if (!password) {
     return { success: false, error: 'Password is required' };
@@ -70,6 +85,9 @@ export async function judgeLogin(password: string, name?: string) {
   return { success: true };
 }
 
+/**
+ * Logs out the active judge session and removes judge session cookies.
+ */
 export async function judgeLogout() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('judge_session');
