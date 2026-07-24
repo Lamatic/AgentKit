@@ -1,8 +1,5 @@
-export const maxDuration = 10;
 import { NextResponse } from 'next/server';
 import { Lamatic } from 'lamatic';
-import { z } from 'zod';
-import { authenticateRequest, rateLimit } from '@/lib/api-middleware';
 
 // ══════════════════════════════════════════════════════════════════
 // PRODUCTION LEVEL: Lamatic AI Evaluation Endpoint
@@ -18,17 +15,6 @@ import { authenticateRequest, rateLimit } from '@/lib/api-middleware';
 //        background.js          this file              Studio Diagram
 // ══════════════════════════════════════════════════════════════════
 
-// ** PRODUCTION LEVEL: Strict Zod Schema for Incoming Payloads ** //
-// Rejects unknown fields, enforces bounded string lengths, and validates types.
-const EvaluatePayloadSchema = z.object({
-  url: z.string().max(2000),
-  title: z.string().max(500),
-  h1Text: z.string().max(500).optional().default(""),
-  description: z.string().max(1000).optional().default(""),
-  dbRules: z.array(z.string().max(200)).max(50).optional().default([]),
-  aiRules: z.array(z.string().max(500)).max(20).optional().default([]),
-}).strict();
-
 // ** PRODUCTION LEVEL: Singleton Lamatic Client ** //
 // Initialized once at module load, reused across all requests.
 // This avoids creating a new client on every API call.
@@ -38,48 +24,18 @@ const lamaticClient = new Lamatic({
   apiKey: process.env.LAMATIC_API_KEY ?? "",
 });
 
-/**
- * The core AI evaluator endpoint bridging the Chrome Extension and Lamatic Studio.
- * 
- * This route receives the scraped DOM context from the extension and the active 
- * block rules from the local DB. It formats these into a standard payload and 
- * fires it off to the remote Lamatic AI Flow for a "BLOCK" or "PASS" verdict.
- * 
- * @param {Request} req - The incoming POST request containing the DOM and rules payload.
- * @returns {Promise<NextResponse>} A JSON response containing the AI's action verdict and raw LLM response.
- */
 export async function POST(req: Request) {
-  // ** PRODUCTION LEVEL: Authentication Gate ** //
-  const authError = authenticateRequest(req);
-  if (authError) return authError;
-
-  // ** PRODUCTION LEVEL: Rate Limiting Gate ** //
-  const rateLimitError = rateLimit(req);
-  if (rateLimitError) return rateLimitError;
-
   const startTime = Date.now();
   try {
-    const rawPayload = await req.json();
-
-    // ** PRODUCTION LEVEL: Schema Validation ** //
-    const parseResult = EvaluatePayloadSchema.safeParse(rawPayload);
-    if (!parseResult.success) {
-      console.warn(`⚠️ [EVALUATE] Invalid payload rejected:`, parseResult.error.flatten());
-      return NextResponse.json({ action: "PASS" });
-    }
-    const payload = parseResult.data;
+    const payload = await req.json();
 
     console.log(`\n═══════════════════════════════════════════`);
     console.log(`🚀 [LAMATIC AI] /api/evaluate HIT`);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`   🔗 URL: ${payload.url}`);
-      console.log(`   🏷️  Title: ${payload.title}`);
-      console.log(`   📝 H1: ${payload.h1Text || "(none)"}`);
-      console.log(`   📄 Meta: ${payload.description || "(none)"}`);
-      console.log(`   📋 Active Rules: ${JSON.stringify(payload.dbRules)}`);
-    } else {
-      console.log(`   🔗 Evaluating URL...`);
-    }
+    console.log(`   🔗 URL: ${payload.url}`);
+    console.log(`   🏷️  Title: ${payload.title}`);
+    console.log(`   📝 H1: ${payload.h1Text || "(none)"}`);
+    console.log(`   📄 Meta: ${payload.description || "(none)"}`);
+    console.log(`   📋 Active Rules: ${JSON.stringify(payload.dbRules)}`);
 
     // ** PRODUCTION LEVEL: Environment Validation ** //
     const flowId = process.env.CONTENT_CLASSIFICATION_FLOW_ID;
@@ -90,7 +46,7 @@ export async function POST(req: Request) {
     console.log(`   🔧 Config Check:`);
     console.log(`      LAMATIC_API_URL: ${apiUrl ? "✅ Set" : "❌ MISSING"}`);
     console.log(`      LAMATIC_PROJECT_ID: ${projectId ? "✅ Set" : "❌ MISSING"}`);
-    console.log(`      LAMATIC_API_KEY: ${apiKey ? "✅ Set" : "❌ MISSING"}`);
+    console.log(`      LAMATIC_API_KEY: ${apiKey ? "✅ Set (" + apiKey.slice(0, 8) + "...)" : "❌ MISSING"}`);
     console.log(`      CONTENT_CLASSIFICATION_FLOW_ID: ${flowId ? "✅ " + flowId : "❌ MISSING"}`);
 
     if (!flowId) {
@@ -119,27 +75,17 @@ export async function POST(req: Request) {
     console.log(`   🔗 Combined Rules String: ${activeRulesString || "(none)"}`);
     console.log(`   📤 Calling lamaticClient.executeFlow()...`);
 
-    let timeoutId: NodeJS.Timeout;
     // ** PRODUCTION LEVEL: Execute the Lamatic Flow ** //
-    const resData = (await Promise.race([
-      lamaticClient.executeFlow(flowId, {
-        url: payload.url || "",
-        title: payload.title || "",
-        h1: payload.h1Text || "",
-        meta: payload.description || "",
-        activeRules: activeRulesString,
-      }).finally(() => clearTimeout(timeoutId)),
-      new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error("Flow execution timeout")), 8000);
-      })
-    ])) as any;
+    const resData = await lamaticClient.executeFlow(flowId, {
+      url: payload.url || "",
+      title: payload.title || "",
+      h1: payload.h1Text || "",
+      meta: payload.description || "",
+      activeRules: activeRulesString,
+    });
 
     const elapsed = Date.now() - startTime;
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`   📥 Raw Lamatic Response: ${JSON.stringify(resData)}`);
-    } else {
-      console.log(`   📥 Received response from AI`);
-    }
+    console.log(`   📥 Raw Lamatic Response: ${JSON.stringify(resData)}`);
     console.log(`   ⏱️  Lamatic SDK call took ${elapsed}ms`);
 
     // ** PRODUCTION LEVEL: Response Parsing ** //

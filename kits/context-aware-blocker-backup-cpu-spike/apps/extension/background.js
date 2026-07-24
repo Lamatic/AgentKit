@@ -1,9 +1,3 @@
-// ** PRODUCTION LEVEL: Shared API Secret for Localhost Authentication ** //
-// This secret must match the CAB_API_SECRET in the Next.js .env.local file.
-// Since this extension only communicates with localhost:3000, hardcoding here
-// is acceptable — it prevents other local network actors from hitting the API.
-const CAB_API_SECRET = "cab-local-dev-secret-change-me";
-
 chrome.action.onClicked.addListener(() => {
   chrome.tabs.create({
     url: "http://localhost:3000"
@@ -12,17 +6,11 @@ chrome.action.onClicked.addListener(() => {
 
 // ** PRODUCTION LEVEL LOGIC: Debounce state for rapid tab switching ** //
 const aiDebounceTimers = new Map(); // tabId -> timerId
-const aiActiveEvalTokens = new Map(); // tabId -> symbol
 
 
 // ** PRODUCTION LEVEL LOGIC: Schedule Parsers & Validators ** //
 
-/**
- * Converts a formatted 12-hour time string into total minutes from midnight.
- * 
- * @param {string} timeStr - The time string to parse (e.g., "09:00 AM", "5:30 PM").
- * @returns {number} The time represented as total minutes elapsed since 00:00.
- */
+// Convert time strings like "09:00 AM" or "5:30 PM" to minutes from midnight
 function parseTimeToMinutes(timeStr) {
   if (!timeStr) return 0;
   const match = timeStr.trim().match(/^(\d+):(\d+)\s*(AM|PM)$/i);
@@ -38,23 +26,20 @@ function parseTimeToMinutes(timeStr) {
   return hours * 60 + minutes;
 }
 
-/**
- * Evaluates whether a specific focus block (commit) is currently active.
- * 
- * Checks both the active days array and the specific time windows. Handles 
- * standard daytime windows as well as overnight windows crossing midnight.
- * 
- * @param {Object} commit - The focus block configuration object.
- * @returns {boolean} True if the current system time falls within the block's schedule.
- */
+// Check if a block commit is currently active based on current time and active days
 function isCommitCurrentlyActive(commit) {
   const now = new Date();
+  
+  // 1. Check if today is one of the active days (e.g. 'mon', 'tue')
   const daysMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   const currentDay = daysMap[now.getDay()];
-  const prevDay = daysMap[(now.getDay() - 1 + 7) % 7];
+  if (!commit.activeDays || !commit.activeDays.includes(currentDay)) {
+    return false;
+  }
   
+  // 2. Check if current time falls within any time window
   if (!commit.timeWindows || commit.timeWindows.length === 0) {
-    return commit.activeDays && commit.activeDays.includes(currentDay);
+    return true; // No time windows means active all day
   }
   
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -64,11 +49,11 @@ function isCommitCurrentlyActive(commit) {
     const endMins = parseTimeToMinutes(window.end);
     
     if (startMins <= endMins) {
-      return currentMinutes >= startMins && currentMinutes <= endMins && commit.activeDays?.includes(currentDay);
+      // Standard window: e.g. 9:00 AM to 5:00 PM
+      return currentMinutes >= startMins && currentMinutes <= endMins;
     } else {
-      if (currentMinutes >= startMins && commit.activeDays?.includes(currentDay)) return true;
-      if (currentMinutes <= endMins && commit.activeDays?.includes(prevDay)) return true;
-      return false;
+      // Overnight window: e.g. 10:00 PM to 2:00 AM (crosses midnight)
+      return currentMinutes >= startMins || currentMinutes <= endMins;
     }
   });
 }
@@ -114,13 +99,10 @@ const evaluateContext = async (payload, tabId) => {
     // ========================================================
     // STEP 0: WHITELIST (Never block our own dashboard)
     // ========================================================
-    try {
-      const pageUrl = new URL(payload.url);
-      if (pageUrl.origin === "http://localhost:3000" || pageUrl.origin === "http://127.0.0.1:3000") {
-        console.log(`✅ STATUS: PASS (Whitelisted LamaBlock Dashboard)`);
-        return; // Instantly allow
-      }
-    } catch (e) {}
+    if (payload.url.includes("localhost:3000") || payload.url.includes("127.0.0.1:3000")) {
+      console.log(`✅ STATUS: PASS (Whitelisted LamaBlock Dashboard)`);
+      return; // Instantly allow
+    }
 
     // ========================================================
     // STEP 1: THE FREE CHECKS (Time & Static Domains)
@@ -209,7 +191,7 @@ const evaluateContext = async (payload, tabId) => {
       try {
         await fetch("http://localhost:3000/api/log", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CAB-Secret": CAB_API_SECRET },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(logPayload)
         });
       } catch (err) {} // Silently fail if dev server isn't running
@@ -324,16 +306,10 @@ const evaluateContext = async (payload, tabId) => {
         chrome.tabs.sendMessage(tabId, { type: "SHOW_AI_EVALUATING" }).catch(() => {});
       }
 
-      const evalToken = Symbol();
-      if (tabId) aiActiveEvalTokens.set(tabId, evalToken);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
       try {
         const response = await fetch("http://localhost:3000/api/evaluate", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-CAB-Secret": CAB_API_SECRET },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             url: payload.url,
             title: payload.title,
@@ -341,24 +317,10 @@ const evaluateContext = async (payload, tabId) => {
             description: payload.description || "",
             dbRules: activeBlockedDomains,
             aiRules: activeAiRules
-          }),
-          signal: controller.signal
+          })
         });
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
         const result = await response.json();
-        if (result.error) throw new Error(result.error);
-
-        if (tabId && aiActiveEvalTokens.get(tabId) !== evalToken) {
-          console.log("Tab navigated or superseded. Ignoring response.");
-          return;
-        }
-        if (currentRulesHash !== generateRulesHash(commits)) {
-          console.log("Rules changed while waiting for AI. Ignoring response.");
-          return;
-        }
-
         const decision = result.action || "PASS";
         const aiDuration = Date.now() - aiStartTime;
 
@@ -435,11 +397,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.set({ cab_commits: message.commits }, () => {
       console.log("🔄 [SYNC] Synchronized commits from LocalHost Dashboard to Chrome Storage!");
     });
-  } else if (message.type === "SYNC_LOCK_SETTINGS") {
-    // ** PRODUCTION LEVEL SYNC: Bridge lock settings **
-    chrome.storage.local.set({ lama_lock_settings: message.settings }, () => {
-      console.log("🔒 [SYNC] Synchronized Lock Settings to Chrome Storage!");
-    });
   } else if (message.type === "CLOSE_ACTIVE_TAB") {
     // ** PRODUCTION LEVEL UX: Programmatically close the blocked tab ** //
     if (sender.tab && sender.tab.id) {
@@ -448,42 +405,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-/**
- * Hook into Chrome Tab Navigation.
- * This is much more reliable than relying purely on client-side MutationObservers
- */
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-
-  // ** PRODUCTION LEVEL FEATURE: Strict Lock Enforcement ** //
-  // This check runs on EVERY onUpdated event (not just URL change or 'complete')
-  // because chrome:// pages have unpredictable event timing.
-  // We check both changeInfo.url (freshest source) and tab.url (fallback).
-  const currentUrl = changeInfo.url || tab.url || "";
-  if (currentUrl.startsWith("chrome://extensions")) {
-    const saved = await new Promise((resolve) => {
-      chrome.storage.local.get(["lama_lock_settings"], (result) => {
-        resolve(result.lama_lock_settings);
-      });
-    });
-
-    if (saved) {
-      try {
-        const parsed = typeof saved === 'string' ? JSON.parse(saved) : saved;
-        if (parsed.date && parsed.time) {
-          const lockTimestamp = new Date(`${parsed.date}T${parsed.time}`).getTime();
-          if (Date.now() < lockTimestamp) {
-            // HACK: chrome.tabs.update() cannot redirect chrome:// pages.
-            // Close the tab and open a fresh one with our lock page.
-            chrome.tabs.remove(tabId);
-            chrome.tabs.create({ url: chrome.runtime.getURL("strict.html") });
-            return;
-          }
-        }
-      } catch (e) {}
-    }
-  }
-
-  // Normal content scraping — only trigger on URL change or page load complete
+// ** PRODUCTION LEVEL TRIGGER: Hook into Chrome Tab Navigation ** //
+// This is much more reliable than relying purely on client-side MutationObservers
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // We only want to trigger when the URL changes OR the page finishes loading
   if (changeInfo.url || changeInfo.status === 'complete') {
     // Send a message down to the content script to scrape the DOM
     chrome.tabs.sendMessage(tabId, { type: "FORCE_SCRAPE" }).catch(() => {

@@ -2,12 +2,29 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { UpcomingBlocksCard } from "@/components/ui/UpcomingBlocksCard";
 import { CommitCard } from "@/components/features/CommitCard";
 import { CommitSettingsModal } from "@/components/features/CommitSettingsModal";
 import { useCommitStore } from "@/hooks/useCommitStore";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Lock } from "lucide-react";
+
+// ** PRODUCTION LEVEL: Zod schema for lock settings form validation ** //
+const lockFormSchema = z.object({
+  lockDate: z.string().min(1, "Date is required").regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  lockTime: z.string().min(1, "Time is required").regex(/^\d{2}:\d{2}$/, "Invalid time format"),
+}).refine((data) => {
+  const timestamp = new Date(`${data.lockDate}T${data.lockTime}`).getTime();
+  return isFinite(timestamp) && timestamp > Date.now();
+}, {
+  message: "Please select a valid future date and time.",
+  path: ["lockDate"],
+});
+
+type LockFormData = z.infer<typeof lockFormSchema>;
 
 /**
  * The main dashboard page for the Context-Aware Blocker.
@@ -35,8 +52,12 @@ export default function Home() {
   });
 
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-  const [lockDate, setLockDate] = useState("");
-  const [lockTime, setLockTime] = useState("");
+
+  // ** PRODUCTION LEVEL: react-hook-form + Zod for lock settings ** //
+  const lockForm = useForm<LockFormData>({
+    resolver: zodResolver(lockFormSchema),
+    defaultValues: { lockDate: "", lockTime: "" },
+  });
 
   useEffect(() => {
     if (isLockModalOpen) {
@@ -44,33 +65,25 @@ export default function Home() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed.date) setLockDate(parsed.date);
-          if (parsed.time) setLockTime(parsed.time);
+          if (parsed.date) lockForm.setValue("lockDate", parsed.date);
+          if (parsed.time) lockForm.setValue("lockTime", parsed.time);
         } catch (e) {}
       }
     }
-  }, [isLockModalOpen]);
+  }, [isLockModalOpen, lockForm]);
 
   /**
    * Persists the strict lock settings to local storage.
    * 
-   * Validates that the requested lock time does not attempt to reduce a currently 
-   * active lock. Once saved, it triggers an implicit sync to the background script.
+   * Validates via Zod schema that the lock time is a valid future datetime,
+   * and enforces the "can only extend" constraint against any existing lock.
+   * Also persists `lockSetAt` for OS clock bypass defense (Step 4).
    * 
+   * @param {LockFormData} data - The validated form data.
    * @returns {void}
    */
-  const saveLockSettings = () => {
-    if (!lockDate || !lockTime) {
-      alert("Please select both a date and a time.");
-      return;
-    }
-
-    const newTimestamp = new Date(`${lockDate}T${lockTime}`).getTime();
-
-    if (!isFinite(newTimestamp) || newTimestamp <= Date.now()) {
-      alert("Please select a valid future date and time.");
-      return;
-    }
+  const saveLockSettings = (data: LockFormData) => {
+    const newTimestamp = new Date(`${data.lockDate}T${data.lockTime}`).getTime();
 
     const saved = localStorage.getItem("lama_lock_settings");
     if (saved) {
@@ -79,14 +92,20 @@ export default function Home() {
         if (parsed.date && parsed.time) {
           const oldTimestamp = new Date(`${parsed.date}T${parsed.time}`).getTime();
           if (newTimestamp <= oldTimestamp) {
-            alert("Strict mode active: You can only extend the lock time. You cannot reduce it.");
-            return; // Block save
+            lockForm.setError("lockDate", {
+              message: "Strict mode active: You can only extend the lock time.",
+            });
+            return;
           }
         }
       } catch (e) {}
     }
 
-    localStorage.setItem("lama_lock_settings", JSON.stringify({ date: lockDate, time: lockTime }));
+    localStorage.setItem("lama_lock_settings", JSON.stringify({
+      date: data.lockDate,
+      time: data.lockTime,
+      lockSetAt: Date.now(),
+    }));
     setIsLockModalOpen(false);
   };
 
@@ -156,11 +175,11 @@ export default function Home() {
   };
 
   if (!isLoaded) {
-    return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#e83a3a] border-t-transparent rounded-full animate-spin"></div></div>;
+    return <div className="min-h-screen bg-bg-primary flex items-center justify-center"><div className="w-8 h-8 border-2 border-accent-red border-t-transparent rounded-full animate-spin"></div></div>;
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] font-sans text-[#f8fafc] p-8 relative">
+    <div className="min-h-screen bg-bg-primary font-sans text-text-primary p-8 relative">
       <div className="max-w-md mx-auto pt-6 pb-20">
         
         {/* Header */}
@@ -193,7 +212,7 @@ export default function Home() {
           <h2 className="text-2xl font-bold tracking-wide">Blocks</h2>
           <button 
             onClick={handleAddCommit}
-            className="bg-[#151515] text-[#f8fafc] px-5 py-2 rounded-full font-medium text-lg hover:bg-[#1f1f1f] transition-colors shadow-sm"
+            className="bg-bg-surface text-text-primary px-5 py-2 rounded-full font-medium text-lg hover:bg-bg-surface-hover transition-colors shadow-sm"
           >
             + Add
           </button>
@@ -214,7 +233,7 @@ export default function Home() {
             />
           ))}
           {commits.length === 0 && (
-            <p className="text-[#94a3b8] text-center py-6">No blocks added yet.</p>
+            <p className="text-text-muted text-center py-6">No blocks added yet.</p>
           )}
         </div>
 
@@ -250,68 +269,92 @@ export default function Home() {
         cancelText="Close"
         confirmColor="#e83a3a"
         cancelColor="#94a3b8"
-        onConfirm={saveLockSettings}
+        onConfirm={lockForm.handleSubmit(saveLockSettings)}
         onCancel={() => setIsLockModalOpen(false)}
       >
         <div className="flex flex-col gap-4 mt-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#94a3b8]">Select Date</label>
-            <input 
-              type="date" 
-              value={lockDate} 
-              onChange={(e) => setLockDate(e.target.value)}
-              className="bg-[#1a1a1a] text-[#f8fafc] p-3 rounded-xl border border-transparent outline-none focus:border-[#404040] transition-colors"
+            <label className="text-sm font-medium text-text-muted">Select Date</label>
+            <Controller
+              name="lockDate"
+              control={lockForm.control}
+              render={({ field }) => (
+                <input 
+                  type="date" 
+                  {...field}
+                  className="bg-bg-input text-text-primary p-3 rounded-xl border border-transparent outline-none focus:border-border-focus transition-colors"
+                />
+              )}
             />
+            {lockForm.formState.errors.lockDate && (
+              <p className="text-accent-red text-xs mt-1">{lockForm.formState.errors.lockDate.message}</p>
+            )}
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#94a3b8]">Select Time</label>
-            <div className="flex gap-2">
-              <select 
-                value={lockTime.split(':')[0] ? (parseInt(lockTime.split(':')[0]) % 12 || 12).toString().padStart(2, '0') : "12"}
-                onChange={(e) => {
-                  const currentMins = lockTime.split(':')[1] || "00";
-                  const currentAmpm = (parseInt(lockTime.split(':')[0] || "12") >= 12) ? "PM" : "AM";
-                  let newHour = parseInt(e.target.value);
-                  if (currentAmpm === "PM" && newHour < 12) newHour += 12;
-                  if (currentAmpm === "AM" && newHour === 12) newHour = 0;
-                  setLockTime(`${newHour.toString().padStart(2, '0')}:${currentMins}`);
-                }}
-                className="bg-[#1a1a1a] text-[#f8fafc] p-3 rounded-xl border border-transparent outline-none focus:border-[#404040] transition-colors w-full appearance-none"
-              >
-                {Array.from({length: 12}, (_, i) => {
-                  const hr = (i === 0 ? 12 : i).toString().padStart(2, '0');
-                  return <option key={hr} value={hr}>{hr}</option>
-                })}
-              </select>
-              <span className="flex items-center text-gray-400 font-bold">:</span>
-              <select 
-                value={lockTime.split(':')[1] || "00"}
-                onChange={(e) => {
-                  const currentHour = lockTime.split(':')[0] || "12";
-                  setLockTime(`${currentHour}:${e.target.value}`);
-                }}
-                className="bg-[#1a1a1a] text-[#f8fafc] p-3 rounded-xl border border-transparent outline-none focus:border-[#404040] transition-colors w-full appearance-none"
-              >
-                {Array.from({length: 60}, (_, i) => {
-                  const min = i.toString().padStart(2, '0');
-                  return <option key={min} value={min}>{min}</option>
-                })}
-              </select>
-              <select 
-                value={(parseInt(lockTime.split(':')[0] || "12") >= 12) ? "PM" : "AM"}
-                onChange={(e) => {
-                  const currentMins = lockTime.split(':')[1] || "00";
-                  let currentHour = parseInt(lockTime.split(':')[0] || "12");
-                  if (e.target.value === "PM" && currentHour < 12) currentHour += 12;
-                  if (e.target.value === "AM" && currentHour >= 12) currentHour -= 12;
-                  setLockTime(`${currentHour.toString().padStart(2, '0')}:${currentMins}`);
-                }}
-                className="bg-[#1a1a1a] text-[#f8fafc] p-3 rounded-xl border border-transparent outline-none focus:border-[#404040] transition-colors w-full appearance-none"
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
-            </div>
+            <label className="text-sm font-medium text-text-muted">Select Time</label>
+            <Controller
+              name="lockTime"
+              control={lockForm.control}
+              render={({ field }) => {
+                const timeValue = field.value || "12:00";
+                const [hourStr, minStr] = timeValue.split(":");
+                const hour24 = parseInt(hourStr || "12");
+                const displayHour = (hour24 % 12 || 12).toString().padStart(2, "0");
+                const displayMin = minStr || "00";
+                const displayAmpm = hour24 >= 12 ? "PM" : "AM";
+
+                const updateTime = (newHour24: number, newMin: string) => {
+                  field.onChange(`${newHour24.toString().padStart(2, "0")}:${newMin}`);
+                };
+
+                return (
+                  <div className="flex gap-2">
+                    <select
+                      value={displayHour}
+                      onChange={(e) => {
+                        let newHour = parseInt(e.target.value);
+                        if (displayAmpm === "PM" && newHour < 12) newHour += 12;
+                        if (displayAmpm === "AM" && newHour === 12) newHour = 0;
+                        updateTime(newHour, displayMin);
+                      }}
+                      className="bg-bg-input text-text-primary p-3 rounded-xl border border-transparent outline-none focus:border-border-focus transition-colors w-full appearance-none"
+                    >
+                      {Array.from({length: 12}, (_, i) => {
+                        const hr = (i === 0 ? 12 : i).toString().padStart(2, "0");
+                        return <option key={hr} value={hr}>{hr}</option>
+                      })}
+                    </select>
+                    <span className="flex items-center text-gray-400 font-bold">:</span>
+                    <select
+                      value={displayMin}
+                      onChange={(e) => updateTime(hour24, e.target.value)}
+                      className="bg-bg-input text-text-primary p-3 rounded-xl border border-transparent outline-none focus:border-border-focus transition-colors w-full appearance-none"
+                    >
+                      {Array.from({length: 60}, (_, i) => {
+                        const min = i.toString().padStart(2, "0");
+                        return <option key={min} value={min}>{min}</option>
+                      })}
+                    </select>
+                    <select
+                      value={displayAmpm}
+                      onChange={(e) => {
+                        let h = hour24;
+                        if (e.target.value === "PM" && h < 12) h += 12;
+                        if (e.target.value === "AM" && h >= 12) h -= 12;
+                        updateTime(h, displayMin);
+                      }}
+                      className="bg-bg-input text-text-primary p-3 rounded-xl border border-transparent outline-none focus:border-border-focus transition-colors w-full appearance-none"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                );
+              }}
+            />
+            {lockForm.formState.errors.lockTime && (
+              <p className="text-accent-red text-xs mt-1">{lockForm.formState.errors.lockTime.message}</p>
+            )}
           </div>
         </div>
       </ConfirmationModal>

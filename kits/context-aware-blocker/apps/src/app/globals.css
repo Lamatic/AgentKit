@@ -7,6 +7,16 @@
   --muted: #a1a1aa;
   --accent: #ef4444;
   --border: #e4e4e7;
+
+  /* Lamatic dark palette — used across the dashboard and modals */
+  --bg-primary: #0a0a0a;
+  --bg-surface: #151515;
+  --bg-surface-hover: #1f1f1f;
+  --bg-input: #1a1a1a;
+  --text-primary: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-red: #e83a3a;
+  --border-focus: #404040;
 }
 
 @theme inline {
@@ -16,6 +26,17 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-border: var(--border);
+
+  /* Lamatic palette tokens for Tailwind utility classes */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-hover: var(--bg-surface-hover);
+  --color-bg-input: var(--bg-input);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-red: var(--accent-red);
+  --color-border-focus: var(--border-focus);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

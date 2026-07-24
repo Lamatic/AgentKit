@@ -63,15 +63,15 @@ export function ConfirmationModal({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-8">
       {/* Modal Content Box */}
-      <div className="w-full max-w-[340px] bg-[#151515] rounded-[24px] p-6 shadow-2xl">
+      <div className="w-full max-w-[340px] bg-bg-surface rounded-[24px] p-6 shadow-2xl">
         {/* Title */}
-        <h2 className="text-center text-xl font-bold text-[#f8fafc] mb-2">
+        <h2 className="text-center text-xl font-bold text-text-primary mb-2">
           {title}
         </h2>
 
         {/* Message */}
         {message && (
-          <p className="text-center text-[15px] text-[#94a3b8] mb-6">
+          <p className="text-center text-[15px] text-text-muted mb-6">
             {message}
           </p>
         )}

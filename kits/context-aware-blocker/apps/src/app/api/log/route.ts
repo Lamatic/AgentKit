@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authenticateRequest, rateLimit } from '@/lib/api-middleware';
 
 /**
  * A Next.js API route that acts as a secure logging bridge.
@@ -12,6 +13,14 @@ import { NextResponse } from 'next/server';
  * @returns {Promise<NextResponse>} A JSON response indicating success or failure.
  */
 export async function POST(req: Request) {
+  // ** PRODUCTION LEVEL: Authentication Gate ** //
+  const authError = authenticateRequest(req);
+  if (authError) return authError;
+
+  // ** PRODUCTION LEVEL: Rate Limiting Gate ** //
+  const rateLimitError = rateLimit(req);
+  if (rateLimitError) return rateLimitError;
+
   try {
     const payload = await req.json();
     
