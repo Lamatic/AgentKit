@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isValidAdminSession, isValidJudgeSession } from './lib/session';
 
+/**
+ * Next.js proxy middleware function to protect admin and judge routes.
+ * Intercepts incoming requests and validates active session cookies.
+ * @param request - Incoming NextRequest object.
+ * @returns NextResponse redirect or next response object.
+ */
 export function proxy(request: NextRequest) {
   const adminPassword = process.env.ADMIN_PASSWORD;
   
@@ -9,13 +15,11 @@ export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/admin') && request.nextUrl.pathname !== '/admin/login') {
     const sessionCookie = request.cookies.get('admin_session');
 
-    // If there's no password set in env, we might want to block access entirely in prod, 
-    // but for the template let's just enforce the check if the env is present.
     if (!adminPassword) {
       console.warn("ADMIN_PASSWORD is not set in environment variables.");
     }
 
-    // Verify the session cookie is a valid active server-side session token
+    // Verify the session cookie is a valid active signed session token
     if (!sessionCookie || !isValidAdminSession(sessionCookie.value)) {
       // Redirect to login page
       return NextResponse.redirect(new URL('/admin/login', request.url));
