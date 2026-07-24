@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Shield, Loader2, Plus, LogOut, Trash2, Trophy, Clock, CheckCircle2, Award, Calendar, UserPlus, UserCheck, Star } from 'lucide-react';
-import { getSubmissions, getSponsors, addSponsor, deleteSubmission, updateProjectStatus, getEventConfig, setEventConfig, manageJudges, getScores, JudgeScore } from '../../actions/orchestrate';
+import { getSubmissions, getSponsors, addSponsor, deleteSubmission, updateProjectStatus, updateProjectSponsor, getEventConfig, setEventConfig, manageJudges, getScores, JudgeScore } from '../../actions/orchestrate';
 import { logout } from '../../actions/auth';
 import { toast } from 'sonner';
 import Dropdown from '../../components/Dropdown';
@@ -17,6 +17,25 @@ interface Submission {
   builder_name?: string;
   status?: string;
 }
+
+const MANAGED_SPONSORS: Array<{ name: string; domain: string; logo: string }> = [
+  { name: 'Google Cloud', domain: 'cloud.google.com', logo: 'https://logo.clearbit.com/cloud.google.com' },
+  { name: 'Vercel', domain: 'vercel.com', logo: 'https://logo.clearbit.com/vercel.com' },
+  { name: 'Supabase', domain: 'supabase.com', logo: 'https://logo.clearbit.com/supabase.com' },
+  { name: 'Neon', domain: 'neon.tech', logo: 'https://logo.clearbit.com/neon.tech' },
+  { name: 'Stitch', domain: 'stitch.com', logo: 'https://logo.clearbit.com/stitch.com' },
+  { name: 'MongoDB', domain: 'mongodb.com', logo: 'https://logo.clearbit.com/mongodb.com' },
+  { name: 'Resend', domain: 'resend.com', logo: 'https://logo.clearbit.com/resend.com' },
+  { name: 'Lamatic.ai', domain: 'lamatic.ai', logo: 'https://logo.clearbit.com/lamatic.ai' },
+  { name: 'OpenAI', domain: 'openai.com', logo: 'https://logo.clearbit.com/openai.com' },
+  { name: 'GitHub', domain: 'github.com', logo: 'https://logo.clearbit.com/github.com' },
+  { name: 'Anthropic', domain: 'anthropic.com', logo: 'https://logo.clearbit.com/anthropic.com' },
+  { name: 'Stripe', domain: 'stripe.com', logo: 'https://logo.clearbit.com/stripe.com' },
+  { name: 'Cloudflare', domain: 'cloudflare.com', logo: 'https://logo.clearbit.com/cloudflare.com' },
+  { name: 'PostHog', domain: 'posthog.com', logo: 'https://logo.clearbit.com/posthog.com' },
+  { name: 'Pinecone', domain: 'pinecone.io', logo: 'https://logo.clearbit.com/pinecone.io' },
+  { name: 'LangChain', domain: 'langchain.com', logo: 'https://logo.clearbit.com/langchain.com' }
+];
 
 export default function AdminPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -100,9 +119,18 @@ export default function AdminPage() {
 
   const handleSaveDeadline = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!deadline || !deadline.trim()) {
+      toast.error('Please select or enter a valid deadline date.');
+      return;
+    }
+    const dateObj = new Date(deadline);
+    if (isNaN(dateObj.getTime())) {
+      toast.error('Invalid deadline date format. Please select a valid date.');
+      return;
+    }
     try {
       setSavingDeadline(true);
-      const isoDate = new Date(deadline).toISOString();
+      const isoDate = dateObj.toISOString();
       await setEventConfig('submission_deadline', isoDate);
       toast.success('Submission deadline updated successfully.');
     } catch (err: any) {
@@ -114,9 +142,18 @@ export default function AdminPage() {
 
   const handleSaveWinnerTimer = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!winnerDeclarationTime || !winnerDeclarationTime.trim()) {
+      toast.error('Please select or enter a valid winner declaration date.');
+      return;
+    }
+    const dateObj = new Date(winnerDeclarationTime);
+    if (isNaN(dateObj.getTime())) {
+      toast.error('Invalid winner declaration date format. Please select a valid date.');
+      return;
+    }
     try {
       setSavingWinnerTimer(true);
-      const isoDate = new Date(winnerDeclarationTime).toISOString();
+      const isoDate = dateObj.toISOString();
       await setEventConfig('winner_declaration_time', isoDate);
       toast.success('Winner declaration countdown timer updated successfully!');
     } catch (err: any) {
@@ -154,16 +191,20 @@ export default function AdminPage() {
     }
   };
 
-  const handleSponsorChange = (id: string, newSponsor: string) => {
-    setSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === id ? { ...sub, matched_sponsor: newSponsor } : sub
-      )
-    );
-    
-    const sub = submissions.find(s => s.id === id);
-    if (sub) {
-      toast.success(`Reassigned "${sub.project_title}" to ${newSponsor}`);
+  const handleSponsorChange = async (id: string, newSponsor: string) => {
+    const sub = submissions.find((s) => s.id === id);
+    try {
+      await updateProjectSponsor(id, newSponsor);
+      setSubmissions((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, matched_sponsor: newSponsor } : item
+        )
+      );
+      if (sub) {
+        toast.success(`Reassigned "${sub.project_title}" to ${newSponsor}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reassign sponsor.');
     }
   };
 
@@ -271,17 +312,27 @@ export default function AdminPage() {
                   onChange={async (e) => {
                     const val = e.target.value;
                     setNewSponsorName(val);
-                    if (val.length > 1) {
+                    if (val.trim().length > 1) {
                       setFetchingSuggestions(true);
                       try {
-                        const res = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(val)}`);
-                        if (res.ok) {
-                          const data = await res.json();
-                          setSuggestions(data);
+                        const queryLower = val.toLowerCase().trim();
+                        const matches = MANAGED_SPONSORS.filter(
+                          (s) => s.name.toLowerCase().includes(queryLower) || s.domain.toLowerCase().includes(queryLower)
+                        );
+
+                        if (matches.length > 0) {
+                          setSuggestions(matches);
                           setShowSuggestions(true);
+                        } else {
+                          setSuggestions([]);
+                          setShowSuggestions(false);
+                          toast.info('No matching managed sponsor found. You can enter custom details below.', { id: 'sponsor-lookup-notice' });
                         }
                       } catch (err) {
-                        console.error('Failed to fetch suggestions', err);
+                        console.error('Failed to fetch sponsor suggestions', err);
+                        setSuggestions([]);
+                        setShowSuggestions(false);
+                        toast.error('Sponsorship lookup unavailable. You can enter the sponsor name manually.');
                       } finally {
                         setFetchingSuggestions(false);
                       }

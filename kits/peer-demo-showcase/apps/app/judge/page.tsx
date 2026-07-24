@@ -43,7 +43,7 @@ export default function JudgeDashboardPage() {
         setLoading(true);
         const [allSubmissions, allScores] = await Promise.all([getSubmissions(), getScores()]);
         // Filter shortlisted projects
-        const shortlisted = allSubmissions.filter((p: any) => p.status === 'shortlisted' || p.status === 'winner' || true); // fallback to all if none shortlisted for easy testing
+        const shortlisted = allSubmissions.filter((p: any) => p.status === 'shortlisted' || p.status === 'winner');
         setProjects(shortlisted);
         setScores(allScores);
 

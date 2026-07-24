@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { isValidAdminSession, isValidJudgeSession } from './lib/session';
 
 export function proxy(request: NextRequest) {
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -14,9 +15,8 @@ export function proxy(request: NextRequest) {
       console.warn("ADMIN_PASSWORD is not set in environment variables.");
     }
 
-    // Verify the session cookie matches the obscured password
-    const expectedToken = btoa(adminPassword || '').split('').reverse().join('');
-    if (!sessionCookie || sessionCookie.value !== expectedToken) {
+    // Verify the session cookie is a valid active server-side session token
+    if (!sessionCookie || !isValidAdminSession(sessionCookie.value)) {
       // Redirect to login page
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
@@ -25,7 +25,7 @@ export function proxy(request: NextRequest) {
   // Protect /judge routes, but allow /judge/login
   if (request.nextUrl.pathname.startsWith('/judge') && request.nextUrl.pathname !== '/judge/login') {
     const judgeSessionCookie = request.cookies.get('judge_session');
-    if (!judgeSessionCookie) {
+    if (!judgeSessionCookie || !isValidJudgeSession(judgeSessionCookie.value)) {
       return NextResponse.redirect(new URL('/judge/login', request.url));
     }
   }

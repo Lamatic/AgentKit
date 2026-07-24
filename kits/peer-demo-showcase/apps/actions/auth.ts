@@ -2,6 +2,8 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { createAdminSession, revokeAdminSession, createJudgeSession, revokeJudgeSession } from '../lib/session';
+import { verifyJudgeCredentials } from './orchestrate';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -12,9 +14,8 @@ export async function login(password: string) {
 
   if (password === ADMIN_PASSWORD) {
     const cookieStore = await cookies();
-    // Simple obscuration so the raw password isn't visible in the DevTools Cookies tab
-    const obscuredToken = btoa(password).split('').reverse().join('');
-    cookieStore.set('admin_session', obscuredToken, {
+    const sessionToken = createAdminSession(60 * 60 * 2 * 1000);
+    cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -29,15 +30,28 @@ export async function login(password: string) {
 
 export async function logout() {
   const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('admin_session');
+  if (sessionCookie?.value) {
+    revokeAdminSession(sessionCookie.value);
+  }
   cookieStore.delete('admin_session');
   redirect('/admin/login');
 }
 
 export async function judgeLogin(password: string, name?: string) {
+  if (!password) {
+    return { success: false, error: 'Password is required' };
+  }
+
+  const { valid, judgeName } = await verifyJudgeCredentials(password, name);
+  if (!valid) {
+    return { success: false, error: 'Invalid judge credentials' };
+  }
+
   const cookieStore = await cookies();
-  const obscuredToken = btoa(password).split('').reverse().join('');
+  const sessionToken = createJudgeSession(60 * 60 * 2 * 1000);
   
-  cookieStore.set('judge_session', obscuredToken, {
+  cookieStore.set('judge_session', sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -45,21 +59,23 @@ export async function judgeLogin(password: string, name?: string) {
     maxAge: 60 * 60 * 2 // 2 hours auto-expire
   });
 
-  if (name) {
-    cookieStore.set('judge_name', name, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 2 // 2 hours auto-expire
-    });
-  }
+  cookieStore.set('judge_name', judgeName, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 2 // 2 hours auto-expire
+  });
 
   return { success: true };
 }
 
 export async function judgeLogout() {
   const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('judge_session');
+  if (sessionCookie?.value) {
+    revokeJudgeSession(sessionCookie.value);
+  }
   cookieStore.delete('judge_session');
   cookieStore.delete('judge_name');
   redirect('/judge/login');
