@@ -1,6 +1,7 @@
 // lib/lamatic.ts
 // Server-only Lamatic SDK singleton factory.
 // This file must ONLY be imported in server-side code (Server Actions, Route Handlers).
+import "server-only";
 
 import { Lamatic } from "lamatic";
 

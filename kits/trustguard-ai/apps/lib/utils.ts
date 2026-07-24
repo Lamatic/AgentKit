@@ -115,6 +115,8 @@ export function getIndicatorLevelColor(level: "high" | "medium" | "low"): string
       return "bg-orange-500/20 text-orange-300 border border-orange-500/40";
     case "low":
       return "bg-green-500/20 text-green-300 border border-green-500/40";
+    default:
+      return "bg-slate-500/20 text-slate-300 border border-slate-500/40";
   }
 }
 

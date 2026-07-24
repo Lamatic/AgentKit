@@ -43,7 +43,7 @@ export default function ErrorPage({
         </p>
         <button
           onClick={reset}
-          className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all"
+          className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-[var(--accent-cyan)] to-[var(--accent-blue)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--glow-cyan)] hover:shadow-[var(--accent-cyan)]/30 transition-all"
         >
           Try Again
         </button>

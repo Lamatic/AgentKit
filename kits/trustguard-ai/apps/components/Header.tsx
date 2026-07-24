@@ -50,7 +50,7 @@ export default function Header() {
           <span className="text-base font-bold text-white tracking-tight">
             TrustGuard AI
           </span>
-          <span className="text-[10px] text-cyan-400/80 tracking-widest uppercase font-medium">
+          <span className="text-[10px] text-[var(--accent-cyan)]/80 tracking-widest uppercase font-medium">
             Fraud &amp; Scam Detector
           </span>
         </div>
@@ -87,7 +87,7 @@ export default function Header() {
                 onError={() => setLogoFailed(true)}
               />
             ) : (
-              <span className="lamatic-text-fallback text-xs font-semibold text-cyan-400">
+              <span className="lamatic-text-fallback text-xs font-semibold text-[var(--accent-cyan)]">
                 Lamatic
               </span>
             )}
