@@ -1,4 +1,4 @@
-# ⚡ Peer Demo Showcase & AI Matcher Kit (Powered by Lamatic.ai)
+# Peer Demo Showcase & AI Matcher Kit (Powered by Lamatic.ai)
 
 > An enterprise-grade, multi-agent AI hackathon showcase & sponsor matching platform built with **Next.js 15**, **Lamatic.ai Flow Orchestration Engine**, **Framer Motion**, and **TailwindCSS**.
 
@@ -9,6 +9,11 @@
 [![Watch Demo](https://img.shields.io/badge/Loom_Demo-Watch_Video-625DF5?style=for-the-badge&logo=loom&logoColor=white)](YOUR_LOOM_VIDEO_LINK_HERE)
 
 > 📌 https://www.loom.com/share/ee030ec4015d4bc299da327ec0dd34e5
+
+---
+
+## Live 
+https://agent-kit-nu.vercel.app/
 
 ---
 
