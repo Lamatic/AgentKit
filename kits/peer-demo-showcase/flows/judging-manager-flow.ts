@@ -41,11 +41,11 @@ export const nodes = [
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_1",
-        "data": "{}",
+        "data": "{\n  \"project_id\": \"{{triggerNode_1.output.project_id}}\",\n  \"judge_name\": \"{{triggerNode_1.output.judge_name}}\",\n  \"innovation\": \"{{triggerNode_1.output.innovation}}\",\n  \"execution\": \"{{triggerNode_1.output.execution}}\",\n  \"impact\": \"{{triggerNode_1.output.impact}}\",\n  \"presentation\": \"{{triggerNode_1.output.presentation}}\",\n  \"notes\": \"{{triggerNode_1.output.notes}}\"\n}",
         "limit": "100",
         "query": "",
         "where": "",
-        "action": "select",
+        "action": "{{triggerNode_1.output.action || 'select'}}",
         "offset": "0",
         "columns": "*",
         "orderBy": "created_at DESC",

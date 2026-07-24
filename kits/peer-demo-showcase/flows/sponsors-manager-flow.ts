@@ -41,11 +41,11 @@ export const nodes = [
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_1",
-        "data": "{}",
+        "data": "{\n  \"name\": \"{{triggerNode_1.output.name}}\",\n  \"description\": \"{{triggerNode_1.output.description}}\"\n}",
         "limit": "50",
         "query": "",
         "where": "",
-        "action": "select",
+        "action": "{{triggerNode_1.output.action || 'select'}}",
         "offset": "0",
         "columns": "*",
         "orderBy": "",
