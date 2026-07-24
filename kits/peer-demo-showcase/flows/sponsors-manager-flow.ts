@@ -45,7 +45,7 @@ export const nodes = [
         "limit": "50",
         "query": "",
         "where": "",
-        "action": "{{triggerNode_1.output.action || 'select'}}",
+        "action": "{{(triggerNode_1.output.action == 'add_sponsor' || triggerNode_1.output.action == 'insert') ? 'insert' : ((triggerNode_1.output.action == 'update_sponsor' || triggerNode_1.output.action == 'upvote') ? 'update' : 'select')}}",
         "offset": "0",
         "columns": "*",
         "orderBy": "",

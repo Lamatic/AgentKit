@@ -1,14 +1,12 @@
 # Peer Demo Showcase & AI Matcher Kit (Powered by Lamatic.ai)
 
-> An enterprise-grade, multi-agent AI hackathon showcase & sponsor matching platform built with **Next.js 15**, **Lamatic.ai Flow Orchestration Engine**, **Framer Motion**, and **TailwindCSS**.
+> An enterprise-grade, multi-agent AI hackathon showcase & sponsor matching platform built with **Next.js 16.2.10**, **Lamatic.ai Flow Orchestration Engine**, **Framer Motion**, and **TailwindCSS**.
 
 ---
 
 ## 📹 Video Walkthrough (Loom)
 
-[![Watch Demo](https://img.shields.io/badge/Loom_Demo-Watch_Video-625DF5?style=for-the-badge&logo=loom&logoColor=white)](YOUR_LOOM_VIDEO_LINK_HERE)
-
-> 📌 https://www.loom.com/share/ee030ec4015d4bc299da327ec0dd34e5
+[![Watch Demo](https://img.shields.io/badge/Loom_Demo-Watch_Video-625DF5?style=for-the-badge&logo=loom&logoColor=white)](https://www.loom.com/share/ee030ec4015d4bc299da327ec0dd34e5)
 
 ---
 
@@ -146,10 +144,20 @@ LAMATIC_EVENT_CONFIG_FLOW_ID=your_event_config_flow_id
 # Security & Credentials
 ADMIN_PASSWORD=your_admin_password
 
-# Email Notifications (Resend)
+# Email Notifications (Resend API or SMTP)
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM="onboarding@resend.dev"
+RESEND_ACCOUNT_EMAIL=your_account_email@domain.com
+
+# Alternative SMTP Configuration (Optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@domain.com
+SMTP_PASS=your_app_password
+SMTP_FROM="your_email@domain.com"
 ```
+
+> ℹ️ **Note on Email Delivery**: The default `onboarding@resend.dev` sender address in Resend sandbox mode can only deliver emails to your registered Resend account address (`RESEND_ACCOUNT_EMAIL`). To send confirmation emails to external recipient addresses, configure custom domain verification in Resend or set SMTP parameters (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`).
 
 ---
 

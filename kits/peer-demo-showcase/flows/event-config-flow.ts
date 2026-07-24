@@ -45,7 +45,7 @@ export const nodes = [
         "limit": "50",
         "query": "",
         "where": "",
-        "action": "{{triggerNode_1.output.action || 'select'}}",
+        "action": "{{triggerNode_1.output.action == 'set_config' ? 'upsert' : 'select'}}",
         "offset": "0",
         "columns": "*",
         "orderBy": "",

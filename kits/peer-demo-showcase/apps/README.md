@@ -112,14 +112,17 @@ graph TD
 
 ## ⚙️ Environment Variables Setup
 
-Create an `apps/.env.local` file with the following variables:
+From the `kits/peer-demo-showcase/apps` directory, copy `.env.example` to create your `.env.local` file:
+
+```bash
+cp .env.example .env.local
+```
 
 ```env
 # Lamatic Credentials
 LAMATIC_API_KEY=your_lamatic_api_key
 LAMATIC_PROJECT_ID=your_lamatic_project_id
 LAMATIC_API_URL=https://your-org.lamatic.dev
-LAMATIC_SECRET_KEY=your_lamatic_secret_key
 
 # Lamatic Flow IDs
 LAMATIC_SUBMISSION_FLOW_ID=your_submission_flow_id
@@ -142,8 +145,8 @@ RESEND_FROM="onboarding@resend.dev"
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Avad05/peer-demo-showcase.git
-   cd peer-demo-showcase/apps
+   git clone https://github.com/Lamatic/AgentKit.git
+   cd AgentKit/kits/peer-demo-showcase/apps
    ```
 
 2. **Install dependencies**:

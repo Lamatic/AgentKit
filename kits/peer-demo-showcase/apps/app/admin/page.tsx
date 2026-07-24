@@ -80,8 +80,15 @@ export default function AdminPage() {
         ]);
         setSubmissions(submissionsData);
         setSponsors(sponsorsData);
-        setDeadline(configData.submission_deadline ? configData.submission_deadline.slice(0, 16) : '');
-        setWinnerDeclarationTime(configData.winner_declaration_time ? configData.winner_declaration_time.slice(0, 16) : '');
+        const formatIsoToLocalInput = (isoStr?: string) => {
+          if (!isoStr) return '';
+          const d = new Date(isoStr);
+          if (isNaN(d.getTime())) return '';
+          const pad = (n: number) => n.toString().padStart(2, '0');
+          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+        setDeadline(formatIsoToLocalInput(configData.submission_deadline));
+        setWinnerDeclarationTime(formatIsoToLocalInput(configData.winner_declaration_time));
         setJudges((judgeList as any[]) || []);
         setScores(scoreList || []);
       } catch (err: any) {

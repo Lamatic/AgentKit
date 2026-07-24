@@ -8,21 +8,28 @@ interface MagneticButtonProps extends HTMLMotionProps<"button"> {
   children: React.ReactNode;
 }
 
-export default function MagneticButton({ children, className, ...props }: MagneticButtonProps) {
+export default function MagneticButton({ children, className, onMouseMove, onMouseLeave, ...props }: MagneticButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!buttonRef.current) return;
-    const { clientX, clientY } = e;
-    const { height, width, left, top } = buttonRef.current.getBoundingClientRect();
-    const middleX = clientX - (left + width / 2);
-    const middleY = clientY - (top + height / 2);
-    setPosition({ x: middleX * 0.3, y: middleY * 0.3 }); // 0.3 pull strength
+    if (buttonRef.current) {
+      const { clientX, clientY } = e;
+      const { height, width, left, top } = buttonRef.current.getBoundingClientRect();
+      const middleX = clientX - (left + width / 2);
+      const middleY = clientY - (top + height / 2);
+      setPosition({ x: middleX * 0.3, y: middleY * 0.3 }); // 0.3 pull strength
+    }
+    if (onMouseMove) {
+      onMouseMove(e);
+    }
   };
 
-  const reset = () => {
+  const reset = (e: React.MouseEvent<HTMLButtonElement>) => {
     setPosition({ x: 0, y: 0 });
+    if (onMouseLeave) {
+      onMouseLeave(e);
+    }
   };
 
   return (

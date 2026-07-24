@@ -231,7 +231,7 @@ export const nodes = [
         "id": "tablesNode_942",
         "data": "{  \"project_title\": \"{{InstructorLLMNode_297.output.project_title}}\",  \"description\": \"{{InstructorLLMNode_297.output.description}}\",  \"tech_stack\": \"{{InstructorLLMNode_297.output.tech_stack}}\",  \"category\": \"{{InstructorLLMNode_297.output.category}}\",  \"matched_sponsor\": \"{{InstructorLLMNode_517.output.matched_sponsor}}\",  \"match_justification\": \"{{InstructorLLMNode_517.output.match_justification}}\",  \"breakout_table\": \"{{InstructorLLMNode_517.output.breakout_table}}\",  \"builder_name\": \"{{triggerNode_1.output.builder_name}}\",  \"contact_email\": \"{{triggerNode_1.output.contact_email}}\",  \"github_url\": \"{{triggerNode_1.output.github_url}}\"}",
         "limit": "10",
-        "query": "SELECT * FROM your_table WHERE id = ?",
+        "query": "",
         "where": "",
         "action": "insert",
         "offset": "0",
