@@ -29,7 +29,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"action\": \"string\",\n  \"id\": \"string\",\n  \"status\": \"string\",\n  \"github_url\": \"string\",\n  \"project_title\": \"string\",\n  \"category\": \"string\",\n  \"matched_sponsor\": \"string\",\n  \"tech_stack\": \"string\",\n  \"description\": \"string\",\n  \"breakout_table\": \"string\"\n}"
+        "advance_schema": "{\n  \"action\": \"string\",\n  \"id\": \"string\",\n  \"status\": \"string\",\n  \"github_url\": \"string\",\n  \"project_title\": \"string\",\n  \"category\": \"string\",\n  \"matched_sponsor\": \"string\",\n  \"tech_stack\": \"string\",\n  \"description\": \"string\",\n  \"breakout_table\": \"string\",\n  \"upvotes\": \"number\"\n}"
       }
     }
   },
@@ -45,7 +45,7 @@ export const nodes = [
         "limit": "100",
         "query": "",
         "where": "",
-        "action": "{{triggerNode_1.output.action || 'select'}}",
+        "action": "{{triggerNode_1.output.action == 'delete' ? 'delete' : (triggerNode_1.output.action == 'add' ? 'insert' : (triggerNode_1.output.action == 'select' || !triggerNode_1.output.action ? 'select' : 'update'))}}",
         "offset": "0",
         "columns": "*",
         "orderBy": "created_at DESC",

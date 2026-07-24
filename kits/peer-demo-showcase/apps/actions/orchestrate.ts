@@ -115,12 +115,26 @@ function inferTechStack(url: string = '', title: string = '', category: string =
   return 'TypeScript, React, Node.js, Next.js';
 }
 
+function validateSubmissionInputs(githubUrl: string, contactEmail: string, hostedLink: string = '') {
+  if (!githubUrl || !githubUrl.startsWith('https://github.com/')) {
+    throw new Error('Invalid GitHub URL: Must start with https://github.com/');
+  }
+  if (!contactEmail || !/\S+@\S+\.\S+/.test(contactEmail)) {
+    throw new Error('Invalid contact email address');
+  }
+  if (hostedLink && hostedLink.trim() && !/^https?:\/\//.test(hostedLink.trim())) {
+    throw new Error('Invalid hosted link: Must start with http:// or https://');
+  }
+}
+
 export async function submitProject(
   githubUrl: string,
   builderName: string,
   contactEmail: string,
   hostedLink: string = ''
 ) {
+  validateSubmissionInputs(githubUrl, contactEmail, hostedLink);
+
   // Deduplication check: check if this repository has already been submitted
   try {
     const existing = await getSubmissions();
@@ -515,7 +529,11 @@ let MOCK_JUDGES: Array<{ id: string; name: string; email: string; password?: str
 ];
 
 export async function verifyJudgeCredentials(password: string, name?: string): Promise<{ valid: boolean; judgeName: string }> {
-  const configuredPassword = process.env.JUDGE_PASSWORD || process.env.ADMIN_PASSWORD || 'judge';
+  const configuredPassword = process.env.JUDGE_PASSWORD || process.env.ADMIN_PASSWORD;
+  if (!configuredPassword) {
+    return { valid: false, judgeName: '' };
+  }
+
   const judges = await manageJudges('list');
   const list = Array.isArray(judges) ? judges : [];
 
