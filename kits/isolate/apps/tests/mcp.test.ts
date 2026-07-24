@@ -208,7 +208,6 @@ describe("POST /api/mcp", () => {
       () => runtime,
     );
     const body = await mcpJson(response);
-
     expect(body.result.structuredContent).toMatchObject({
       passed: true,
       observation: {
@@ -323,6 +322,7 @@ describe("POST /api/mcp", () => {
     );
     const body = await mcpJson(response);
 
+    const markdown = String(body.result.structuredContent.report.content);
     expect(body.result.structuredContent).toMatchObject({
       outcome: "reproduced",
       gate: {
@@ -330,7 +330,14 @@ describe("POST /api/mcp", () => {
         allCandidateRunsPassed: true,
         controlRejected: true,
       },
+      report: {
+        format: "markdown",
+        content: expect.stringContaining("# Isolate reproduction report"),
+      },
     });
+    expect(markdown.includes("**Outcome:** `reproduced`")).toBe(true);
+    expect(markdown.includes("`bun test repro.test.ts`")).toBe(true);
+    expect(markdown.includes("bug observed")).toBe(true);
     expect(calls).toHaveLength(3);
   });
 });

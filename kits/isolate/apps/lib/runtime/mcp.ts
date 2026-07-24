@@ -186,6 +186,10 @@ function createIsolateServer(runtimeFactory: RuntimeFactory) {
           candidateRuns: z.array(z.unknown()).length(2),
           controlRun: z.unknown(),
         }),
+        report: z.object({
+          format: z.literal("markdown"),
+          content: z.string(),
+        }),
       }),
       annotations: {
         readOnlyHint: false,

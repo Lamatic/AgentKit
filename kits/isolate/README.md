@@ -37,12 +37,16 @@ The language model explores. The deterministic runtime verifies.
 | `echo` | Verify authenticated Lamatic-to-runtime connectivity. |
 | `create_sandbox` | Clone a public GitHub repository into an expiring private sandbox. |
 | `run_probe` | Execute one bounded command and evaluate explicit assertions. |
-| `certify_reproduction` | Run the candidate twice and a negative control once, then issue the outcome. |
+| `certify_reproduction` | Run the candidate twice and a negative control once, then return structured JSON evidence and a portable Markdown report. |
 | `delete_sandbox` | Delete the sandbox after evidence collection. |
 
 `reproduced` is unavailable to the agent unless the deterministic evidence gate
 passes. Failed or non-specific probes become
 `not_reproduced_under_tested_conditions`.
+
+The certification response preserves the complete machine-readable evidence and
+includes a Markdown artifact with the outcome, commands, assertions, exit codes,
+durations, stdout, and stderr for both candidate runs and the negative control.
 
 ## Local verification
 
