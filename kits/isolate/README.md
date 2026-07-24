@@ -3,16 +3,16 @@
 > Turn vague GitHub issues into verified reproduction evidence.
 
 Isolate investigates public GitHub issues inside disposable sandboxes. A Lamatic
-agent explores the repository, forms hypotheses, and chooses probes. A
+planner interprets the issue and repository snapshot, forms a hypothesis, and chooses probes. A
 deterministic runtime executes those probes, evaluates explicit assertions, and
 records evidence. The agent can investigate; it cannot declare its own work
 successful.
 
 ## Status
 
-Active implementation. The authenticated MCP runtime, Daytona sandbox adapter,
-bounded probe execution, and repeat-plus-control evidence gate are working and
-covered by automated tests.
+The reviewer UI, Lamatic planner flow, authenticated MCP runtime, Daytona
+sandbox adapter, bounded probe execution, and repeat-plus-control evidence gate
+are deployed and covered by automated tests.
 
 ## Why Isolate
 
@@ -20,12 +20,14 @@ Issue reports often describe symptoms without recording the repository state,
 setup, command, or environment needed to observe them. Isolate converts that
 ambiguity into an auditable report:
 
-1. A Lamatic agent reads the issue and investigates the repository.
+1. Isolate deterministically fetches and normalizes the public GitHub issue.
 2. Isolate creates a private, expiring Daytona sandbox and clones the public
    repository at the requested ref.
-3. The agent proposes commands and explicit assertions.
-4. The runtime captures exit code, stdout, stderr, and duration.
-5. A reproduction is certified only after two matching candidate runs and a
+3. The runtime captures a bounded repository snapshot and asks the deployed
+   Lamatic flow for a hypothesis, probe commands, and explicit assertions.
+4. Isolate enforces its command policy and captures exit code, stdout, stderr,
+   and duration for every run.
+5. A reproduction is certified only after two passing candidate runs and a
    negative control that rejects the same hypothesis.
 
 The language model explores. The deterministic runtime verifies.
@@ -61,16 +63,22 @@ bun run typecheck
 bun run build
 ```
 
-The deployed runtime requires:
+The deployed application requires:
 
 - `ISOLATE_RUNTIME_SECRET`: bearer secret configured in Lamatic's saved MCP
   connection headers.
 - `DAYTONA_API_KEY`: server-side credential used only to create and manage
   sandboxes.
+- `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_URL`, and
+  `ISOLATE_REPRODUCTION_FLOW_ID`: server-side access to the deployed planner.
 
 Add the runtime URL under **Connections → MCP/Tools** in Lamatic and configure
 `Authorization: Bearer <ISOLATE_RUNTIME_SECRET>` in the saved connection. Do
 not place either credential inside an agent prompt or inline code node.
+
+The reviewer-facing application is deployed at
+https://isolate-agentkit.vercel.app. Its public investigation endpoint is
+rate-limited; the MCP endpoint separately requires the saved bearer secret.
 
 ## Evaluation fixture
 

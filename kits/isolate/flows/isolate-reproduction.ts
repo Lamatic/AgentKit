@@ -1,39 +1,42 @@
-/*
- * Isolate's Lamatic control-plane flow.
- *
- * The Supervisor investigates a public GitHub issue and delegates every
- * workspace mutation and command to the saved, authenticated Isolate Runtime
- * MCP connection. The runtime—not the model—decides whether the collected
- * evidence satisfies the reproduction gate.
- */
+// Exported from the deployed Lamatic Studio flow.
 
 export const meta = {
   name: "Isolate Reproduction",
   description:
-    "Reproduce a vague GitHub issue in a disposable sandbox and return evidence-backed findings.",
-  tags: ["Developer Tools", "GitHub", "MCP"],
-  testInput: {
-    repositoryUrl: "https://github.com/Dhruv2mars/isolate-cli-testbed",
-    issueUrl:
-      "https://github.com/Dhruv2mars/isolate-cli-testbed/issues/1",
-    ref: "main",
-  },
-  githubUrl:
-    "https://github.com/Lamatic/AgentKit/tree/main/kits/isolate",
+    "Plan a safe terminal reproduction probe from a normalized GitHub issue and repository snapshot.",
+  tags: ["Developer Tools", "GitHub", "Reproduction"],
+  testInput: null,
+  githubUrl: "https://github.com/Lamatic/AgentKit/tree/main/kits/isolate",
   documentationUrl:
     "https://github.com/Lamatic/AgentKit/tree/main/kits/isolate/README.md",
   deployUrl: "https://studio.lamatic.ai",
   author: {
     name: "Dhruv Sharma",
-    email: "dhruv2mars@gmail.com",
+    email: "dhruv.sharma10102005@gmail.com",
   },
 };
 
-export const inputs = {};
+export const inputs = {
+  LLMNode_887: [
+    {
+      name: "generativeModelName",
+      label: "Generative Model Name",
+      type: "model",
+    },
+  ],
+};
 
 export const references = {
-  constitutions: {
-    default: "@constitutions/default.md",
+  constitutions: { default: "@constitutions/default.md" },
+  prompts: {
+    isolate_reproduction_llmnode_887_system_0:
+      "@prompts/isolate-reproduction-system.md",
+    isolate_reproduction_llmnode_887_user_1:
+      "@prompts/isolate-reproduction-user.md",
+  },
+  modelConfigs: {
+    isolate_reproduction_llmnode_887_generative_model_name:
+      "@model-configs/isolate-reproduction-model.ts",
   },
 };
 
@@ -46,74 +49,58 @@ export const nodes = [
       nodeId: "graphqlNode",
       trigger: true,
       values: {
+        id: "triggerNode_1",
         nodeName: "API Request",
         responeType: "realtime",
-        advance_schema: JSON.stringify({
-          type: "object",
-          required: ["repositoryUrl", "issueUrl"],
-          properties: {
-            repositoryUrl: { type: "string", format: "uri" },
-            issueUrl: { type: "string", format: "uri" },
-            ref: { type: "string", default: "main" },
-          },
-        }),
+        advance_schema:
+          '{\n  "issue": "string",\n  "repositoryContext": "string",\n  "ref": "string"\n}',
       },
     },
   },
   {
-    id: "agentNode_isolate",
-    type: "agentNode",
+    id: "LLMNode_887",
+    type: "dynamicNode",
     position: { x: 0, y: 0 },
     data: {
-      nodeId: "agentNode",
+      nodeId: "LLMNode",
       values: {
-        nodeName: "Isolate Supervisor",
-        tools: ["Isolate Runtime"],
-        agents: [],
+        tools: [],
         prompts: [
           {
-            id: "isolate-supervisor-system",
+            id: "187c2f4b-c23d-4545-abef-73dc897d6b7b",
             role: "system",
-            content:
-              "Investigate the supplied public GitHub issue. Use only the saved Isolate Runtime MCP tools for sandbox and command operations. Form a concrete hypothesis, create a sandbox, run focused probes, and call certify_reproduction with repeated candidate runs plus a rejecting control. Never claim reproduction unless the deterministic certification tool returns reproduced. Always delete the sandbox before finishing and report the commands, observations, and certification outcome.",
+            content: "@prompts/isolate-reproduction-system.md",
           },
           {
-            id: "isolate-supervisor-user",
+            id: "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             role: "user",
-            content:
-              "Repository: {{triggerNode_1.output.repositoryUrl}}\nIssue: {{triggerNode_1.output.issueUrl}}\nRef: {{triggerNode_1.output.ref}}",
+            content: "@prompts/isolate-reproduction-user.md",
           },
         ],
+        memories: "[]",
         messages: "[]",
-        stopWord: "",
-        connectedTo: "agentLoopEndNode_isolate",
-        maxIterations: 12,
-        generativeModelName: {},
+        nodeName: "Generate Text",
+        attachments: "",
+        credentials: "",
+        generativeModelName: "@model-configs/isolate-reproduction-model.ts",
       },
     },
   },
   {
-    id: "agentLoopEndNode_isolate",
-    type: "agentLoopEndNode",
-    position: { x: 0, y: 0 },
-    data: {
-      nodeId: "agentLoopEndNode",
-      values: {
-        nodeName: "Agent Loop End",
-        connectedTo: "agentNode_isolate",
-      },
-    },
-  },
-  {
-    id: "graphqlResponseNode_isolate",
-    type: "dynamicNode",
+    id: "responseNode_triggerNode_1",
+    type: "responseNode",
     position: { x: 0, y: 0 },
     data: {
       nodeId: "graphqlResponseNode",
       values: {
+        id: "responseNode_triggerNode_1",
+        headers: '{"content-type":"application/json"}',
+        retries: "0",
         nodeName: "API Response",
+        webhookUrl: "",
+        retry_delay: "0",
         outputMapping:
-          '{\n  "report": "{{agentLoopEndNode_isolate.output.finalResponse}}"\n}',
+          '{\n  "plan": "{{LLMNode_887.output.generatedResponse}}"\n}',
       },
     },
   },
@@ -121,43 +108,25 @@ export const nodes = [
 
 export const edges = [
   {
-    id: "trigger-supervisor",
+    id: "triggerNode_1-LLMNode_887",
     source: "triggerNode_1",
-    target: "agentNode_isolate",
+    target: "LLMNode_887",
+    sourceHandle: "bottom",
+    targetHandle: "top",
     type: "defaultEdge",
-    sourceHandle: "bottom",
-    targetHandle: "top",
   },
   {
-    id: "supervisor-loop-end",
-    source: "agentNode_isolate",
-    target: "agentLoopEndNode_isolate",
-    type: "agentLoopEdge",
+    id: "LLMNode_887-responseNode_triggerNode_1",
+    source: "LLMNode_887",
+    target: "responseNode_triggerNode_1",
     sourceHandle: "bottom",
     targetHandle: "top",
-    data: { condition: "Agent Loop End", invisible: true },
-  },
-  {
-    id: "loop-end-supervisor",
-    source: "agentLoopEndNode_isolate",
-    target: "agentNode_isolate",
-    type: "agentLoopEdge",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    data: { condition: "Agent Loop End", invisible: false },
-  },
-  {
-    id: "loop-end-response",
-    source: "agentLoopEndNode_isolate",
-    target: "graphqlResponseNode_isolate",
     type: "defaultEdge",
-    sourceHandle: "bottom",
-    targetHandle: "top",
   },
   {
-    id: "trigger-response",
+    id: "response-trigger_triggerNode_1",
     source: "triggerNode_1",
-    target: "graphqlResponseNode_isolate",
+    target: "responseNode_triggerNode_1",
     sourceHandle: "to-response",
     targetHandle: "from-trigger",
     type: "responseEdge",
