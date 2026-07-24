@@ -8,9 +8,18 @@
 
 [![Watch Demo](https://img.shields.io/badge/Loom_Demo-Watch_Video-625DF5?style=for-the-badge&logo=loom&logoColor=white)](YOUR_LOOM_VIDEO_LINK_HERE)
 
-> 📌 **Insert Loom Link**: Replace `YOUR_LOOM_VIDEO_LINK_HERE` with your recorded 2-minute video walkthrough link!
+> 📌 https://www.loom.com/share/ee030ec4015d4bc299da327ec0dd34e5
 
 ---
+
+## Lamatic.ai Flows
+
+<img width="450" height="628" alt="image" src="https://github.com/user-attachments/assets/200b9c79-7212-4d66-aae5-9938a411758a" />
+<img width="520" height="628" alt="image" src="https://github.com/user-attachments/assets/1f2a74f4-996c-4edf-9106-2a5eabf4ff2e" />
+<img width="974" height="524" alt="image" src="https://github.com/user-attachments/assets/e106fcfd-f721-4e2f-a6b3-621fef240ab4" />
+
+---
+
 
 ## 💡 Why This Kit Matters for Aman Sharma & the Lamatic.ai Team
 
