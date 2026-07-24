@@ -15,6 +15,7 @@ export const lamaticClient = new Lamatic({
   apiKey: process.env.LAMATIC_API_KEY,
 });
 
+// Matches triggerNode_1's advance_schema in flows/outage-detector.ts exactly.
 export type TicketPayload = {
   ticket_id: string;
   account_id: string;
@@ -25,8 +26,15 @@ export type TicketPayload = {
   body: string;
 };
 
+// Matches responseNode_triggerNode_1's outputMapping exactly, plus a client-side
+// "Error" state (never returned by the flow itself) used when the flow call
+// fails outright — see actions/orchestrate.ts. Keeping this distinct from
+// "Else" matters: "Else" means the flow genuinely ran and found no
+// correlation; "Error" means the flow never ran at all.
+// internal_note / customer_message are only populated on the "Condition 1"
+// branch — legitimately empty strings on "Else"/"Error", not a bug.
 export type FlowResult = {
-  status: "Condition 1" | "Else";
+  status: "Condition 1" | "Else" | "Error";
   confidence: number;
   matched_ticket_ids: string[];
   suspected_component: string;
@@ -40,5 +48,14 @@ export async function submitTicket(ticket: TicketPayload, workflowId: string): P
     throw new Error("workflowId is required to submit a ticket.");
   }
   const response = await lamaticClient.executeFlow(workflowId, ticket);
-  return (response?.result ?? response) as FlowResult;
+  const raw = (response?.result ?? response) as Record<string, unknown>;
+
+  // The real flow response returns `status` wrapped in a single-element
+  // array (e.g. ["Condition 1"], ["Else"]), not a plain string — this
+  // normalizes it so the rest of the app can rely on FlowResult.status
+  // being a plain string as declared.
+  const rawStatus = raw?.status;
+  const status = Array.isArray(rawStatus) ? rawStatus[0] : rawStatus;
+
+  return { ...raw, status } as FlowResult;
 }
