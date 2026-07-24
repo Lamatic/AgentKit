@@ -1,0 +1,192 @@
+// components/InputForm.tsx
+"use client";
+
+import { motion } from "framer-motion";
+import { ClipboardList, ChevronDown, ShieldCheck } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import type { AnalyzeFormData, InputType, LanguageOption } from "@/types/response";
+
+const INPUT_TYPES: readonly InputType[] = ["Email", "SMS", "URL", "Document", "Text"];
+const LANGUAGES: readonly LanguageOption[] = ["Auto", "English", "Hindi", "Bengali"];
+
+interface InputFormProps {
+  readonly formData: AnalyzeFormData;
+  readonly onChange: (data: AnalyzeFormData) => void;
+  readonly onSubmit: () => void;
+  readonly loading: boolean;
+}
+
+const selectClass =
+  "w-full rounded-xl bg-white/[0.05] border border-white/[0.08] px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-[var(--accent-cyan)]/60 focus:ring-1 focus:ring-[var(--accent-cyan)]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed appearance-none cursor-pointer";
+
+const inputClass =
+  "w-full rounded-xl bg-white/[0.05] border border-white/[0.08] px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-[var(--accent-cyan)]/60 focus:ring-1 focus:ring-[var(--accent-cyan)]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed";
+
+const labelClass = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5";
+
+/**
+ * Controlled form component that collects all investigation parameters from
+ * the user before submitting to the TrustGuard AI analysis pipeline.
+ *
+ * Renders four fields — input type selector, language selector, content
+ * textarea, and an optional attachment URL — plus an animated submit button
+ * that shows a spinner while the request is in-flight.
+ *
+ * @param formData - Current snapshot of the form field values.
+ * @param onChange - Callback invoked with the updated `AnalyzeFormData`
+ *   whenever any field changes.
+ * @param onSubmit - Callback invoked when the form is submitted and the
+ *   content field is non-empty.
+ * @param loading  - When `true`, all fields are disabled and the button
+ *   shows a loading spinner instead of the submit label.
+ * @returns The animated investigation input form.
+ */
+export default function InputForm({ formData, onChange, onSubmit, loading }: InputFormProps) {
+  /**
+   * Immutable field setter that merges a single key-value pair into the
+   * current form data object and propagates the change via `onChange`.
+   *
+   * @param key   - The `AnalyzeFormData` field to update.
+   * @param value - The new value for the field.
+   */
+  const set = <K extends keyof AnalyzeFormData>(key: K, value: AnalyzeFormData[K]) =>
+    onChange({ ...formData, [key]: value });
+
+  /**
+   * Native form submit handler that prevents the default browser navigation,
+   * then delegates to `onSubmit` if the action is not already loading.
+   *
+   * @param e - The React synthetic form submission event.
+   */
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!loading) onSubmit();
+  };
+
+  return (
+    <motion.div
+      className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm p-6 shadow-2xl"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, duration: 0.5 }}
+    >
+      <h2 className="text-base font-semibold text-white mb-5 flex items-center gap-2">
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--accent-cyan)]/20 text-[var(--accent-cyan)]">
+          <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+        Investigation Input
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Row 1: Input Type + Language */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Input Type */}
+          <div>
+            <label className={labelClass} htmlFor="input-type">
+              Input Type
+            </label>
+            <div className="relative">
+              <select
+                id="input-type"
+                value={formData.input_type}
+                onChange={(e) => set("input_type", e.target.value as InputType)}
+                disabled={loading}
+                className={selectClass}
+              >
+                {INPUT_TYPES.map((t) => (
+                  <option key={t} value={t} className="bg-slate-900">
+                    {t}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
+
+          {/* Language */}
+          <div>
+            <label className={labelClass} htmlFor="language">
+              Language
+            </label>
+            <div className="relative">
+              <select
+                id="language"
+                value={formData.language}
+                onChange={(e) => set("language", e.target.value as LanguageOption)}
+                disabled={loading}
+                className={selectClass}
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l} value={l} className="bg-slate-900">
+                    {l}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div>
+          <label className={labelClass} htmlFor="content">
+            Content <span className="text-[var(--accent-error)]">*</span>
+          </label>
+          <textarea
+            id="content"
+            rows={5}
+            placeholder="Paste the suspicious email, SMS, URL, or text content here…"
+            value={formData.content}
+            onChange={(e) => set("content", e.target.value)}
+            disabled={loading}
+            required
+            className={`${inputClass} resize-none`}
+          />
+        </div>
+
+        {/* Attachment URL */}
+        <div>
+          <label className={labelClass} htmlFor="attachment-url">
+            Attachment URL{" "}
+            <span className="normal-case text-slate-600 font-normal">(optional)</span>
+          </label>
+          <input
+            id="attachment-url"
+            type="url"
+            placeholder="https://example.com/file.pdf"
+            value={formData.attachment_url}
+            onChange={(e) => set("attachment_url", e.target.value)}
+            disabled={loading}
+            className={inputClass}
+          />
+        </div>
+
+
+        {/* Submit */}
+        <motion.button
+          type="submit"
+          disabled={loading || !formData.content.trim()}
+          whileHover={{ scale: loading ? 1 : 1.01 }}
+          whileTap={{ scale: loading ? 1 : 0.99 }}
+          className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-linear-to-r from-[var(--accent-cyan)] to-[var(--accent-blue)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--glow-cyan)] transition-all hover:shadow-[var(--accent-cyan)]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+        >
+          {loading ? (
+            <>
+              <LoadingSpinner size={16} className="text-white" />
+              <span>Analyzing…</span>
+            </>
+          ) : (
+            <>
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              <span>Run Investigation</span>
+            </>
+          )}
+        </motion.button>
+      </form>
+    </motion.div>
+  );
+}
