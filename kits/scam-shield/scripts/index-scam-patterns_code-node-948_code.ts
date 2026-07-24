@@ -11,15 +11,19 @@ const single_name = input.pattern_name
 const single_content = input.content
 const batch = Array.isArray(input.patterns) ? input.patterns : null
 
-// Simple deterministic hash so records get a stable, collision-resistant ID
-// even when two patterns share the same pattern_name.
+// Node's crypto module is available in the Lamatic Code node runtime;
+// declared here only so the editor/TS language server recognizes it
+// (no @types/node in this project, so we keep this loosely typed).
+declare function require(module: string): any
+const { createHash } = require("crypto")
+
+// Deterministic, collision-resistant ID: a SHA-256 digest of the canonical
+// name/content pair, with the existing human-readable name-based prefix
+// preserved so IDs stay legible while avoiding 32-bit hash collisions.
 function stableId(name: string, content: string) {
-  let hash = 5381
-  const str = String(name) + "|" + String(content)
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0
-  }
-  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) + "-" + hash.toString(36)
+  const canonical = String(name) + "|" + String(content)
+  const digest = createHash("sha256").update(canonical, "utf8").digest("hex")
+  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) + "-" + digest
 }
 
 let vectorData = []
