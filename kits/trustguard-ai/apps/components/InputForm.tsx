@@ -1,9 +1,13 @@
 // components/InputForm.tsx
 "use client";
 
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { ClipboardList, ChevronDown, ShieldCheck } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { AnalyzeFormDataSchema } from "@/types/response";
 import type { AnalyzeFormData, InputType, LanguageOption } from "@/types/response";
 
 const INPUT_TYPES: readonly InputType[] = ["Email", "SMS", "URL", "Document", "Text"];
@@ -42,24 +46,20 @@ const labelClass = "block text-xs font-semibold text-slate-400 uppercase trackin
  * @returns The animated investigation input form.
  */
 export default function InputForm({ formData, onChange, onSubmit, loading }: InputFormProps) {
-  /**
-   * Immutable field setter that merges a single key-value pair into the
-   * current form data object and propagates the change via `onChange`.
-   *
-   * @param key   - The `AnalyzeFormData` field to update.
-   * @param value - The new value for the field.
-   */
-  const set = <K extends keyof AnalyzeFormData>(key: K, value: AnalyzeFormData[K]) =>
-    onChange({ ...formData, [key]: value });
+  const { register, handleSubmit, watch, formState: { isValid } } = useForm<AnalyzeFormData>({
+    resolver: zodResolver(AnalyzeFormDataSchema),
+    defaultValues: formData,
+    mode: "onChange",
+  });
 
-  /**
-   * Native form submit handler that prevents the default browser navigation,
-   * then delegates to `onSubmit` if the action is not already loading.
-   *
-   * @param e - The React synthetic form submission event.
-   */
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  useEffect(() => {
+    const subscription = watch((value) => {
+      onChange(value as AnalyzeFormData);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onChange]);
+
+  const onFormSubmit = () => {
     if (!loading) onSubmit();
   };
 
@@ -77,7 +77,7 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
         Investigation Input
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
         {/* Row 1: Input Type + Language */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Input Type */}
@@ -88,10 +88,9 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
             <div className="relative">
               <select
                 id="input-type"
-                value={formData.input_type}
-                onChange={(e) => set("input_type", e.target.value as InputType)}
                 disabled={loading}
                 className={selectClass}
+                {...register("input_type")}
               >
                 {INPUT_TYPES.map((t) => (
                   <option key={t} value={t} className="bg-slate-900">
@@ -113,10 +112,9 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
             <div className="relative">
               <select
                 id="language"
-                value={formData.language}
-                onChange={(e) => set("language", e.target.value as LanguageOption)}
                 disabled={loading}
                 className={selectClass}
+                {...register("language")}
               >
                 {LANGUAGES.map((l) => (
                   <option key={l} value={l} className="bg-slate-900">
@@ -140,11 +138,9 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
             id="content"
             rows={5}
             placeholder="Paste the suspicious email, SMS, URL, or text content here…"
-            value={formData.content}
-            onChange={(e) => set("content", e.target.value)}
             disabled={loading}
-            required
             className={`${inputClass} resize-none`}
+            {...register("content")}
           />
         </div>
 
@@ -158,10 +154,9 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
             id="attachment-url"
             type="url"
             placeholder="https://example.com/file.pdf"
-            value={formData.attachment_url}
-            onChange={(e) => set("attachment_url", e.target.value)}
             disabled={loading}
             className={inputClass}
+            {...register("attachment_url")}
           />
         </div>
 
@@ -169,7 +164,7 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
         {/* Submit */}
         <motion.button
           type="submit"
-          disabled={loading || !formData.content.trim()}
+          disabled={loading || !isValid}
           whileHover={{ scale: loading ? 1 : 1.01 }}
           whileTap={{ scale: loading ? 1 : 0.99 }}
           className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-linear-to-r from-[var(--accent-cyan)] to-[var(--accent-blue)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--glow-cyan)] transition-all hover:shadow-[var(--accent-cyan)]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"

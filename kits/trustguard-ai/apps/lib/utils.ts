@@ -52,7 +52,7 @@ export function getSeverityColor(severity: string): {
  * Returns Tailwind CSS colour classes for a decision classification badge.
  *
  * Keyword matching (case-insensitive):
- * - `"SCAM"`, `"FRAUD"`, or `"MALICIOUS"` → red palette
+ * - `"SCAM"`, `"FRAUD"`, `"MALICIOUS"`, `"PHISHING"`, `"MALWARE"`, `"CREDENTIAL_THEFT"`, or `"BUSINESS_EMAIL_COMPROMISE"` → red palette
  * - `"SUSPICIOUS"` or `"UNCERTAIN"` → orange palette
  * - `"SAFE"`, `"LEGITIMATE"`, or `"CLEAN"` → green palette
  * - Anything else → cyan palette
@@ -67,7 +67,15 @@ export function getDecisionColor(classification: string): {
   glow: string;
 } {
   const upper = classification?.toUpperCase() ?? "";
-  if (upper.includes("SCAM") || upper.includes("FRAUD") || upper.includes("MALICIOUS")) {
+  if (
+    upper.includes("SCAM") ||
+    upper.includes("FRAUD") ||
+    upper.includes("MALICIOUS") ||
+    upper.includes("PHISHING") ||
+    upper.includes("MALWARE") ||
+    upper.includes("CREDENTIAL_THEFT") ||
+    upper.includes("BUSINESS_EMAIL_COMPROMISE")
+  ) {
     return {
       text: "text-red-300",
       bg: "bg-red-500/20",
