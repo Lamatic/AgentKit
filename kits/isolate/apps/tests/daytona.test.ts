@@ -358,6 +358,33 @@ describe("DaytonaSandboxRuntime", () => {
     expect(policies.at(-1)).toEqual({ networkBlockAll: true });
   });
 
+  test("re-blocks network when the allowlist transition mutates then fails", async () => {
+    const { client } = fakeDaytona();
+    const policies: Array<{ networkBlockAll?: boolean; domainAllowList?: string }> = [];
+    client.updateNetworkSettings = async (...args: unknown[]) => {
+      const settings = args[1] as {
+        networkBlockAll?: boolean;
+        domainAllowList?: string;
+      };
+      policies.push(settings);
+      if (settings.domainAllowList) {
+        throw new Error("provider failed after applying network policy");
+      }
+      return 0;
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
+
+    await expect(
+      runtime.resetWorkspace({
+        sandboxId: "sandbox_123",
+        workspace: "workspace/repo",
+        timeoutSeconds: 20,
+      }),
+    ).rejects.toThrow("provider failed after applying network policy");
+    expect(policies.at(-1)).toEqual({ networkBlockAll: true });
+  });
+
   test("uses the cleanup reserve to remove probe artifacts", async () => {
     let now = 0;
     const { client, calls, sandbox } = fakeDaytona();
