@@ -36,9 +36,12 @@ export async function investigateIssue(
     { maximumMilliseconds: 10_000 },
   );
   const assertion = tryExtractIssueEvidenceAssertion(issue.body);
-  const ref = input.ref?.trim() || "main";
+  const ref = input.ref?.trim();
   const sandbox = await runtime.create(
-    { repositoryUrl: issue.repositoryUrl, ref },
+    {
+      repositoryUrl: issue.repositoryUrl,
+      ...(ref ? { ref } : {}),
+    },
     deadline,
   );
 
@@ -64,7 +67,7 @@ export async function investigateIssue(
           {
             issue: JSON.stringify(issue),
             repositoryContext: snapshot.observation.stdout,
-            ref,
+            ref: ref ?? "default branch",
           },
           { signal },
         ),
@@ -84,7 +87,7 @@ export async function investigateIssue(
 
     return {
       issue,
-      ref,
+      ref: ref ?? "default",
       hypothesis: plan.hypothesis,
       setup: null,
       ...certification,

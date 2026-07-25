@@ -1,6 +1,10 @@
-import { describe, expect, spyOn, test } from "bun:test";
+import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 
 import { handleMcp } from "../lib/runtime/mcp";
+import {
+  acquireInvestigationSlot,
+  resetInvestigationSlotsForTest,
+} from "../lib/concurrency";
 
 const secret = "test-mcp-secret";
 
@@ -31,6 +35,8 @@ async function mcpJson(response: Response) {
 }
 
 describe("POST /api/mcp", () => {
+  beforeEach(resetInvestigationSlotsForTest);
+
   test("rejects discovery without the configured bearer secret", async () => {
     const response = await handleMcp(
       mcpRequest({
@@ -330,5 +336,46 @@ describe("POST /api/mcp", () => {
 
     expect(body.result.isError).toBe(true);
     expect(creates).toBe(0);
+  });
+
+  test("rejects certification while both investigation slots are in flight", async () => {
+    const releaseFirst = acquireInvestigationSlot();
+    const releaseSecond = acquireInvestigationSlot();
+    let runtimeAllocations = 0;
+    try {
+      const response = await handleMcp(
+        mcpRequest(
+          {
+            jsonrpc: "2.0",
+            id: 10,
+            method: "tools/call",
+            params: {
+              name: "certify_reproduction",
+              arguments: {
+                issueUrl: "https://github.com/example/buggy-cli/issues/1",
+                candidateCommand: "bun test repro.test.ts",
+                controlCommand: "bun test control.test.ts",
+              },
+            },
+          },
+          `Bearer ${secret}`,
+        ),
+        secret,
+        () => {
+          runtimeAllocations += 1;
+          throw new Error("must not allocate");
+        },
+      );
+      const body = await mcpJson(response);
+
+      expect(body.result.isError).toBe(true);
+      expect(JSON.stringify(body.result.content)).toContain(
+        "Too many investigations",
+      );
+      expect(runtimeAllocations).toBe(0);
+    } finally {
+      releaseFirst?.();
+      releaseSecond?.();
+    }
   });
 });

@@ -65,6 +65,14 @@ const packageRegistryAllowList =
 function sanitizeOutput(value: string) {
   const redacted = value
     .replace(
+      /("(?:api[_-]?key|token|secret|password)"\s*:\s*")([^"]+)(")/gi,
+      "$1[REDACTED]$3",
+    )
+    .replace(
+      /("authorization"\s*:\s*"bearer\s+)([^"]+)(")/gi,
+      "$1[REDACTED]$3",
+    )
+    .replace(
       /(\b(?:api[_-]?key|token|secret|password)\b\s*[:=]\s*)([^\s]+)/gi,
       "$1[REDACTED]",
     )
@@ -400,10 +408,19 @@ export class DaytonaSandboxRuntime {
   }
 }
 
+export function resolveDaytonaApiUrl(
+  environment: Record<string, string | undefined>,
+) {
+  return (
+    environment.DAYTONA_API_URL ??
+    environment.DAYTONA_SERVER_URL ??
+    "https://app.daytona.io/api"
+  ).replace(/\/$/, "");
+}
+
 export function createDaytonaRuntime() {
   const daytona = new Daytona();
-  const apiUrl = (process.env.DAYTONA_API_URL ?? "https://app.daytona.io/api")
-    .replace(/\/$/, "");
+  const apiUrl = resolveDaytonaApiUrl(process.env);
   const credential = process.env.DAYTONA_API_KEY ?? process.env.DAYTONA_JWT_TOKEN;
   const organizationId = process.env.DAYTONA_ORGANIZATION_ID;
   const client: DaytonaLike = {
