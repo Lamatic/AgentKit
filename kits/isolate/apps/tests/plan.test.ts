@@ -54,5 +54,23 @@ describe("reproduction plan boundary", () => {
         "Hello, isolatecli!",
       ),
     ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("bun run /tmp/repro.js", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("npm test --prefix /tmp", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand(
+        "bun run --preload=/tmp/repro.js test",
+        "Hello",
+      ),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("NODE_OPTIONS=--require=./repro.js bun test", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("bun test ../outside.test.ts", "Hello"),
+    ).toThrow("command policy");
   });
 });

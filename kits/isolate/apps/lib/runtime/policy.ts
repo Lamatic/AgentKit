@@ -31,20 +31,99 @@ export function assertSafeCommand(command: string) {
   return command;
 }
 
-const repositoryRunnerSegment =
-  /^(?:[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_./:@%+,-]+\s+)*(?:bun|npm|pnpm|yarn)\s+(?:run|test)\b[^;&|<>]*$/i;
 const boundedDelaySegment = /^sleep\s+\d+(?:\.\d+)?$/;
+const runnerNames = new Set(["bun", "npm", "pnpm", "yarn"]);
+const forbiddenRunnerOptions = new Set([
+  "--config",
+  "--cwd",
+  "--dir",
+  "--eval",
+  "--globalconfig",
+  "--import",
+  "--loader",
+  "--package",
+  "--prefix",
+  "--preload",
+  "--require",
+  "--userconfig",
+  "-c",
+  "-e",
+  "-r",
+]);
+const forbiddenEnvironmentNames = /^(?:BUN_INSTALL|BUN_OPTIONS|HOME|INIT_CWD|LD_.*|DYLD_.*|NODE_OPTIONS|NODE_PATH|NPM_CONFIG_.*|PATH|PNPM_.*|PWD|YARN_.*)$/i;
+
+function shellTokens(segment: string) {
+  return segment.match(/'(?:[^']*)'|"(?:\\.|[^"\\])*"|[^\s]+/g) ?? [];
+}
+
+function unquote(token: string) {
+  if (
+    token.length >= 2 &&
+    ((token.startsWith("'") && token.endsWith("'")) ||
+      (token.startsWith('"') && token.endsWith('"')))
+  ) {
+    return token.slice(1, -1);
+  }
+  return token;
+}
+
+function referencesOutsideRepository(token: string) {
+  const value = unquote(token);
+  return (
+    value.startsWith("/") ||
+    value.startsWith("~") ||
+    /(^|\/)\.\.(?:\/|$)/.test(value) ||
+    /^file:/i.test(value)
+  );
+}
+
+function isRepositoryRunnerSegment(segment: string) {
+  const tokens = shellTokens(segment);
+  let index = 0;
+  while (index < tokens.length) {
+    const assignment = tokens[index]?.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.+)$/);
+    if (!assignment) break;
+    if (
+      forbiddenEnvironmentNames.test(assignment[1] ?? "") ||
+      referencesOutsideRepository(assignment[2] ?? "")
+    ) {
+      return false;
+    }
+    index += 1;
+  }
+
+  const runner = tokens[index]?.toLowerCase();
+  const verb = tokens[index + 1]?.toLowerCase();
+  if (!runner || !runnerNames.has(runner) || !verb || !["run", "test"].includes(verb)) {
+    return false;
+  }
+  const arguments_ = tokens.slice(index + 2);
+  if (verb === "run" && (!arguments_[0] || unquote(arguments_[0]).startsWith("-"))) {
+    return false;
+  }
+
+  return arguments_.every((token) => {
+    const value = unquote(token);
+    const option = value.split("=", 1)[0]?.toLowerCase() ?? "";
+    return (
+      !referencesOutsideRepository(token) &&
+      !forbiddenRunnerOptions.has(option) &&
+      !/^--(?:cwd|dir|prefix|preload|require|loader|import|config)=/i.test(value)
+    );
+  });
+}
 
 export function assertCertificationCommand(command: string, signature: string) {
   assertSafeCommand(command);
   const segments = command.split(/\s*(?:&&|&)\s*/).filter(Boolean);
   if (
     /[\r\n]/.test(command) ||
-    /[&|;]\s*$/.test(command) ||
-    !segments.some((segment) => repositoryRunnerSegment.test(segment)) ||
+    /[|;<>]/.test(command) ||
+    /&\s*$/.test(command) ||
+    !segments.some((segment) => isRepositoryRunnerSegment(segment)) ||
     segments.some(
       (segment) =>
-        !repositoryRunnerSegment.test(segment) && !boundedDelaySegment.test(segment),
+        !isRepositoryRunnerSegment(segment) && !boundedDelaySegment.test(segment),
     ) ||
     command.toLowerCase().includes(signature.toLowerCase())
   ) {
