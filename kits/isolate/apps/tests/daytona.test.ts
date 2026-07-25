@@ -129,6 +129,21 @@ describe("DaytonaSandboxRuntime", () => {
     });
   });
 
+  test("deletes the sandbox when deterministic dependency installation fails", async () => {
+    const { client, calls } = fakeDaytona([{ exitCode: 1, result: "install failed" }]);
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await expect(
+      runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" }),
+    ).rejects.toThrow("dependency installation failed");
+    expect(calls.map(({ name }) => name)).toEqual([
+      "create",
+      "clone",
+      "executeCommand",
+      "delete",
+    ]);
+  });
+
   test("checks out an immutable commit when the ref is a full SHA", async () => {
     const { client, calls } = fakeDaytona();
     const runtime = new DaytonaSandboxRuntime(client);
@@ -234,6 +249,18 @@ describe("DaytonaSandboxRuntime", () => {
         20,
       ],
     });
+  });
+
+  test("fails closed when the workspace cannot be restored", async () => {
+    const { client } = fakeDaytona([{ exitCode: 1, result: "reset failed" }]);
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await expect(
+      runtime.resetWorkspace({
+        sandboxId: "sandbox_123",
+        workspace: "workspace/repo",
+      }),
+    ).rejects.toThrow("restored cleanly");
   });
 
   test("redacts common credentials and caps captured command output", async () => {

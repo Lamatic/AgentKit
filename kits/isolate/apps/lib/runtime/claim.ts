@@ -40,8 +40,10 @@ export function extractIssueEvidenceAssertion(body: string): IssueEvidenceAssert
   const value = (inlineValue ?? plainValue ?? "").trim();
 
   if (!value) throw new MissingIssueEvidenceContractError();
-  return {
+  const parsed = issueEvidenceAssertionSchema.safeParse({
     kind: field.toLowerCase() === "stdout" ? "stdout_contains" : "stderr_contains",
     value,
-  };
+  });
+  if (!parsed.success) throw new MissingIssueEvidenceContractError();
+  return parsed.data;
 }

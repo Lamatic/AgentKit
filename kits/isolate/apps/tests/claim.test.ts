@@ -29,5 +29,8 @@ describe("issue evidence contract", () => {
         "Observed stdout: `one`\nObserved stderr: `two`",
       ),
     ).toThrow(MissingIssueEvidenceContractError);
+    expect(() => extractIssueEvidenceAssertion("Observed stdout: `x`")).toThrow(
+      MissingIssueEvidenceContractError,
+    );
   });
 });

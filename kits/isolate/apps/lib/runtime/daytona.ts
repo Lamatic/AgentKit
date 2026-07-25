@@ -63,7 +63,7 @@ const dependencyInstallCommand = [
   "if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile --ignore-scripts",
   "elif [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --ignore-scripts",
   "elif [ -f package-lock.json ]; then npm ci --ignore-scripts --no-audit --no-fund",
-  "elif [ -f yarn.lock ]; then yarn install --ignore-scripts --non-interactive",
+  "elif [ -f yarn.lock ]; then yarn install --frozen-lockfile --ignore-scripts --non-interactive",
   "fi",
 ].join("; ");
 
@@ -122,12 +122,15 @@ export class DaytonaSandboxRuntime {
         false,
         1,
       );
-      await sandbox.process.executeCommand(
+      const install = await sandbox.process.executeCommand(
         dependencyInstallCommand,
         workspace,
         undefined,
         60,
       );
+      if (install.exitCode !== 0) {
+        throw new Error("Deterministic dependency installation failed.");
+      }
       await sandbox
         .updateNetworkSettings({ networkBlockAll: true })
         .catch((error: unknown) => {
@@ -218,12 +221,15 @@ export class DaytonaSandboxRuntime {
 
   async resetWorkspace(input: { sandboxId: string; workspace: typeof workspace }) {
     const sandbox = await this.client.get(z.string().min(1).parse(input.sandboxId));
-    await sandbox.process.executeCommand(
+    const reset = await sandbox.process.executeCommand(
       "git reset --hard HEAD && git clean -fd -e node_modules -e '*/node_modules'",
       workspace,
       undefined,
       20,
     );
+    if (reset.exitCode !== 0) {
+      throw new Error("The sandbox workspace could not be restored cleanly.");
+    }
   }
 
   async delete(sandboxId: string) {

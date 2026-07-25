@@ -4,7 +4,7 @@
 
 Isolate investigates public GitHub issues inside disposable sandboxes. A Lamatic
 planner interprets the issue and repository snapshot, forms a hypothesis, and chooses probes. A
-deterministic runtime executes those probes, evaluates explicit assertions, and
+deterministic runtime executes those probes, evaluates issue-derived assertions, and
 records evidence. The agent can investigate; it cannot declare its own work
 successful.
 
