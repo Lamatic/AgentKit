@@ -1,9 +1,9 @@
 import { createDaytonaRuntime } from "./runtime/daytona";
-import { certifyEvidence } from "./runtime/evidence";
+import { runCertification } from "./runtime/certification";
+import { extractIssueEvidenceAssertion } from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
-import { assertSafeCommand } from "./runtime/plan";
-import type { ProbeSpec } from "./runtime/probe";
 import { requestLamaticPlan } from "./lamatic-planner";
+import { InvestigationDeadline } from "./deadline";
 
 const repositorySnapshotCommand = [
   "printf '%s\\n' '--- files ---'",
@@ -27,14 +27,16 @@ export async function investigateIssue(
   const issueReader = dependencies.issueReader ?? createGitHubIssueReader();
   const runtime = dependencies.runtime ?? createDaytonaRuntime();
   const planner = dependencies.planner ?? requestLamaticPlan;
+  const deadline = new InvestigationDeadline();
   const issue = await issueReader.read(input.issueUrl);
+  const assertion = extractIssueEvidenceAssertion(issue.body);
   const ref = input.ref?.trim() || "main";
   const sandbox = await runtime.create({ repositoryUrl: issue.repositoryUrl, ref });
 
   try {
     const snapshot = await runtime.runProbe({
       ...sandbox,
-      timeoutSeconds: 30,
+      timeoutSeconds: deadline.probeTimeoutSeconds(20, 5),
       probe: {
         command: repositorySnapshotCommand,
         assertions: [{ kind: "exit_code", equals: 0 }],
@@ -49,15 +51,11 @@ export async function investigateIssue(
       repositoryContext: snapshot.observation.stdout,
       ref,
     });
-    [plan.setupCommand, plan.candidateCommand, plan.controlCommand]
-      .filter(Boolean)
-      .forEach(assertSafeCommand);
-
     let setup = null;
     if (plan.setupCommand) {
       setup = await runtime.runProbe({
         ...sandbox,
-        timeoutSeconds: 120,
+        timeoutSeconds: deadline.probeTimeoutSeconds(30, 4),
         probe: {
           command: plan.setupCommand,
           assertions: [{ kind: "exit_code", equals: 0 }],
@@ -68,32 +66,13 @@ export async function investigateIssue(
       }
     }
 
-    const candidateProbe: ProbeSpec = {
-      command: plan.candidateCommand,
-      assertions: plan.candidateAssertions,
-    };
-    const controlProbe: ProbeSpec = {
-      command: plan.controlCommand,
-      assertions: plan.controlAssertions,
-    };
-    const firstCandidate = await runtime.runProbe({
+    const certification = await runCertification({
+      runtime,
       ...sandbox,
-      timeoutSeconds: 120,
-      probe: candidateProbe,
-    });
-    const secondCandidate = await runtime.runProbe({
-      ...sandbox,
-      timeoutSeconds: 120,
-      probe: candidateProbe,
-    });
-    const controlRun = await runtime.runProbe({
-      ...sandbox,
-      timeoutSeconds: 120,
-      probe: controlProbe,
-    });
-    const certification = certifyEvidence({
-      candidateRuns: [firstCandidate, secondCandidate],
-      controlRun,
+      timeoutSeconds: deadline.probeTimeoutSeconds(30, 3),
+      candidateCommand: plan.candidateCommand,
+      controlCommand: plan.controlCommand,
+      assertion,
     });
 
     return {

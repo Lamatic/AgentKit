@@ -2,6 +2,7 @@ import { Daytona } from "@daytona/sdk";
 import { z } from "zod";
 
 import { evaluateProbe, probeSpecSchema } from "./probe";
+import { assertSafeCommand } from "./policy";
 
 const publicGitHubRepositorySchema = z
   .string()
@@ -19,7 +20,7 @@ const createSandboxInputSchema = z.object({
 const runProbeInputSchema = z.object({
   sandboxId: z.string().min(1),
   workspace: z.literal("workspace/repo"),
-  timeoutSeconds: z.number().int().min(1).max(120).default(60),
+  timeoutSeconds: z.number().int().min(1).max(40).default(40),
   probe: probeSpecSchema,
 });
 
@@ -27,6 +28,7 @@ type ExecuteResult = { exitCode: number; result: string };
 
 interface SandboxLike {
   id: string;
+  updateNetworkSettings(settings: { networkBlockAll: boolean }): Promise<unknown>;
   git: {
     clone(
       url: string,
@@ -87,7 +89,7 @@ export class DaytonaSandboxRuntime {
         ttlMinutes: 30,
         labels: { product: "isolate", purpose: "issue-reproduction" },
       },
-      { timeout: 90 },
+      { timeout: 60 },
     );
 
     const commitId = ref && /^[a-f0-9]{40}$/i.test(ref) ? ref : undefined;
@@ -104,6 +106,7 @@ export class DaytonaSandboxRuntime {
         false,
         1,
       );
+      await sandbox.updateNetworkSettings({ networkBlockAll: true });
     } catch (error) {
       await this.client.delete(sandbox, 60, true).catch(() => undefined);
       throw error;
@@ -114,6 +117,7 @@ export class DaytonaSandboxRuntime {
 
   async runProbe(input: z.input<typeof runProbeInputSchema>) {
     const { sandboxId, probe, timeoutSeconds } = runProbeInputSchema.parse(input);
+    assertSafeCommand(probe.command);
     const sandbox = await this.client.get(sandboxId);
     const runId = crypto.randomUUID();
     const scriptPath = `/tmp/isolate-${runId}.sh`;
@@ -122,43 +126,54 @@ export class DaytonaSandboxRuntime {
     const exitPath = `/tmp/isolate-${runId}.exit`;
     const encodedCommand = Buffer.from(probe.command).toString("base64");
 
-    await sandbox.process.executeCommand(
-      `printf '%s' '${encodedCommand}' | base64 -d > '${scriptPath}'`,
-      workspace,
-      undefined,
-      10,
-    );
+    try {
+      await sandbox.process.executeCommand(
+        `printf '%s' '${encodedCommand}' | base64 -d > '${scriptPath}'`,
+        workspace,
+        undefined,
+        10,
+      );
 
-    const startedAt = this.now();
-    await sandbox.process.executeCommand(
-      `bash '${scriptPath}' > '${stdoutPath}' 2> '${stderrPath}'; printf '%s' "$?" > '${exitPath}'`,
-      workspace,
-      undefined,
-      timeoutSeconds,
-    );
-    const durationMs = this.now() - startedAt;
+      const startedAt = this.now();
+      await sandbox.process.executeCommand(
+        `ulimit -f 128; setsid timeout --signal=TERM --kill-after=5s ${timeoutSeconds}s bash '${scriptPath}' > '${stdoutPath}' 2> '${stderrPath}' & probe_pid=$!; wait "$probe_pid"; probe_status=$?; kill -TERM -- "-$probe_pid" 2>/dev/null || true; sleep 0.2; kill -KILL -- "-$probe_pid" 2>/dev/null || true; printf '%s' "$probe_status" > '${exitPath}'`,
+        workspace,
+        undefined,
+        timeoutSeconds + 10,
+      );
+      const durationMs = this.now() - startedAt;
 
-    const collector = [
-      "const fs=require('fs')",
-      `const output={exitCode:Number(fs.readFileSync('${exitPath}','utf8')),stdout:fs.readFileSync('${stdoutPath}','utf8'),stderr:fs.readFileSync('${stderrPath}','utf8')}`,
-      "process.stdout.write(JSON.stringify(output))",
-    ].join(";");
-    const collected = await sandbox.process.executeCommand(
-      `node -e "${collector.replaceAll('"', '\\"')}"`,
-      workspace,
-      undefined,
-      10,
-    );
-    const observation = z
-      .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
-      .parse(JSON.parse(collected.result));
+      const collector = [
+        "const fs=require('fs')",
+        `const output={exitCode:Number(fs.readFileSync('${exitPath}','utf8')),stdout:fs.readFileSync('${stdoutPath}','utf8'),stderr:fs.readFileSync('${stderrPath}','utf8')}`,
+        "process.stdout.write(JSON.stringify(output))",
+      ].join(";");
+      const collected = await sandbox.process.executeCommand(
+        `node -e "${collector.replaceAll('"', '\\"')}"`,
+        workspace,
+        undefined,
+        10,
+      );
+      const observation = z
+        .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
+        .parse(JSON.parse(collected.result));
 
-    return evaluateProbe(probe, {
-      ...observation,
-      stdout: sanitizeOutput(observation.stdout),
-      stderr: sanitizeOutput(observation.stderr),
-      durationMs,
-    });
+      return evaluateProbe(probe, {
+        ...observation,
+        stdout: sanitizeOutput(observation.stdout),
+        stderr: sanitizeOutput(observation.stderr),
+        durationMs,
+      });
+    } finally {
+      await sandbox.process
+        .executeCommand(
+          `rm -f '${scriptPath}' '${stdoutPath}' '${stderrPath}' '${exitPath}'`,
+          workspace,
+          undefined,
+          10,
+        )
+        .catch(() => undefined);
+    }
   }
 
   async delete(sandboxId: string) {

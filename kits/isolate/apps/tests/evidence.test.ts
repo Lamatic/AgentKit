@@ -66,4 +66,20 @@ describe("certifyEvidence", () => {
     expect(report.outcome).toBe("not_reproduced_under_tested_conditions");
     expect(report.gate.controlRejected).toBe(false);
   });
+
+  test("rejects candidate and control runs evaluated against different claims", () => {
+    const unrelatedControl = {
+      ...failingControl,
+      assertions: [
+        { kind: "exit_code" as const, passed: false, expected: 0, actual: 1 },
+      ],
+    };
+
+    expect(() =>
+      certifyEvidence({
+        candidateRuns: [passingRun, passingRun],
+        controlRun: unrelatedControl,
+      }),
+    ).toThrow("same issue-derived assertion");
+  });
 });

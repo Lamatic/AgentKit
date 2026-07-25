@@ -9,7 +9,7 @@ const issue = {
   repository: "cli",
   number: 1,
   title: "Names look wrong",
-  body: "The CLI changes my name.",
+  body: "The CLI changes my name.\n\nObserved stdout: `lower`",
   state: "open" as const,
   author: "maintainer",
   labels: ["bug"],
@@ -58,9 +58,7 @@ function harness(options: { plannerFails?: boolean } = {}) {
       hypothesis: "Case is normalized unexpectedly.",
       setupCommand: "bun install --frozen-lockfile",
       candidateCommand: "bun run cli",
-      candidateAssertions: [{ kind: "stdout_contains" as const, value: "lower" }],
       controlCommand: "bun run cli --preserve-case",
-      controlAssertions: [{ kind: "stdout_contains" as const, value: "lower" }],
     };
   };
   return { calls, runtime, planner };

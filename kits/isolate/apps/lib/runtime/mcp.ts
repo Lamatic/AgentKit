@@ -1,17 +1,24 @@
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
+import { runCertification } from "./certification";
+import { extractIssueEvidenceAssertion } from "./claim";
 import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
-import { certifyEvidence } from "./evidence";
+import { certificationSchema } from "./evidence";
 import { createGitHubIssueReader } from "./github";
-import { probeSpecSchema } from "./probe";
+import { probeEvaluationSchema, probeSpecSchema } from "./probe";
 
 type RuntimeFactory = () => Pick<
   DaytonaSandboxRuntime,
   "create" | "runProbe" | "delete"
 >;
 
-function createIsolateServer(runtimeFactory: RuntimeFactory) {
+type IssueReader = Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
+
+function createIsolateServer(
+  runtimeFactory: RuntimeFactory,
+  issueReader: IssueReader,
+) {
   const server = new McpServer({ name: "isolate", version: "0.1.0" });
 
   server.registerTool(
@@ -41,7 +48,7 @@ function createIsolateServer(runtimeFactory: RuntimeFactory) {
       },
     },
     async ({ issueUrl }) => {
-      const output = await createGitHubIssueReader().read(issueUrl);
+      const output = await issueReader.read(issueUrl);
       return {
         content: [{ type: "text", text: JSON.stringify(output) }],
         structuredContent: output,
@@ -127,31 +134,10 @@ function createIsolateServer(runtimeFactory: RuntimeFactory) {
       inputSchema: z.object({
         sandboxId: z.string().min(1),
         workspace: z.literal("workspace/repo"),
-        timeoutSeconds: z.number().int().min(1).max(120).default(60),
+        timeoutSeconds: z.number().int().min(1).max(40).default(40),
         probe: probeSpecSchema,
       }),
-      outputSchema: z.object({
-        passed: z.boolean(),
-        assertions: z.array(
-          z.object({
-            kind: z.enum([
-              "exit_code",
-              "stdout_contains",
-              "stderr_contains",
-            ]),
-            passed: z.boolean(),
-            expected: z.union([z.string(), z.number()]),
-            actual: z.union([z.string(), z.number()]),
-          }),
-        ),
-        observation: z.object({
-          command: z.string(),
-          exitCode: z.number().int(),
-          stdout: z.string(),
-          stderr: z.string(),
-          durationMs: z.number().int().nonnegative(),
-        }),
-      }),
+      outputSchema: probeEvaluationSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -200,33 +186,16 @@ function createIsolateServer(runtimeFactory: RuntimeFactory) {
     {
       title: "Certify reproduction evidence",
       description:
-        "Runs a candidate probe twice and a negative control once, then deterministically decides whether the issue was reproduced.",
+        "Runs candidate and control commands against one exact issue-derived signature, then deterministically decides whether the issue was reproduced.",
       inputSchema: z.object({
+        issueUrl: z.string().url(),
         sandboxId: z.string().min(1),
         workspace: z.literal("workspace/repo"),
-        timeoutSeconds: z.number().int().min(1).max(120).default(60),
-        candidateProbe: probeSpecSchema,
-        controlProbe: probeSpecSchema,
+        timeoutSeconds: z.number().int().min(1).max(40).default(40),
+        candidateCommand: z.string().trim().min(1).max(4_000),
+        controlCommand: z.string().trim().min(1).max(4_000),
       }),
-      outputSchema: z.object({
-        outcome: z.enum([
-          "reproduced",
-          "not_reproduced_under_tested_conditions",
-        ]),
-        gate: z.object({
-          repeatCount: z.literal(2),
-          allCandidateRunsPassed: z.boolean(),
-          controlRejected: z.boolean(),
-        }),
-        evidence: z.object({
-          candidateRuns: z.array(z.unknown()).length(2),
-          controlRun: z.unknown(),
-        }),
-        report: z.object({
-          format: z.literal("markdown"),
-          content: z.string(),
-        }),
-      }),
+      outputSchema: certificationSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -235,29 +204,24 @@ function createIsolateServer(runtimeFactory: RuntimeFactory) {
       },
     },
     async ({
+      issueUrl,
       sandboxId,
       workspace,
       timeoutSeconds,
-      candidateProbe,
-      controlProbe,
+      candidateCommand,
+      controlCommand,
     }) => {
       const runtime = runtimeFactory();
-      const shared = { sandboxId, workspace, timeoutSeconds };
-      const firstCandidate = await runtime.runProbe({
-        ...shared,
-        probe: candidateProbe,
-      });
-      const secondCandidate = await runtime.runProbe({
-        ...shared,
-        probe: candidateProbe,
-      });
-      const controlRun = await runtime.runProbe({
-        ...shared,
-        probe: controlProbe,
-      });
-      const output = certifyEvidence({
-        candidateRuns: [firstCandidate, secondCandidate],
-        controlRun,
+      const issue = await issueReader.read(issueUrl);
+      const assertion = extractIssueEvidenceAssertion(issue.body);
+      const output = await runCertification({
+        runtime,
+        sandboxId,
+        workspace,
+        timeoutSeconds,
+        candidateCommand,
+        controlCommand,
+        assertion,
       });
 
       return {
@@ -274,6 +238,7 @@ export async function handleMcp(
   request: Request,
   secret: string | undefined,
   runtimeFactory: RuntimeFactory = createDaytonaRuntime,
+  issueReader: IssueReader = createGitHubIssueReader(),
 ) {
   if (
     !secret ||
@@ -297,7 +262,7 @@ export async function handleMcp(
   }
 
   const mcpHandler = createMcpHandler(
-    () => createIsolateServer(runtimeFactory),
+    () => createIsolateServer(runtimeFactory, issueReader),
     {
       legacy: "stateless",
       responseMode: "json",

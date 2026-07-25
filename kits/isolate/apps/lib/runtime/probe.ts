@@ -25,6 +25,19 @@ export const commandObservationSchema = z.object({
   durationMs: z.number().int().nonnegative(),
 });
 
+export const assertionEvaluationSchema = z.object({
+  kind: z.enum(["exit_code", "stdout_contains", "stderr_contains"]),
+  passed: z.boolean(),
+  expected: z.union([z.string(), z.number()]),
+  actual: z.union([z.string(), z.number()]),
+});
+
+export const probeEvaluationSchema = z.object({
+  passed: z.boolean(),
+  assertions: z.array(assertionEvaluationSchema),
+  observation: commandObservationSchema.extend({ command: z.string() }),
+});
+
 export type ProbeSpec = z.infer<typeof probeSpecSchema>;
 export type CommandObservation = z.infer<typeof commandObservationSchema>;
 
@@ -65,4 +78,4 @@ export function evaluateProbe(
   };
 }
 
-export type ProbeEvaluation = ReturnType<typeof evaluateProbe>;
+export type ProbeEvaluation = z.infer<typeof probeEvaluationSchema>;

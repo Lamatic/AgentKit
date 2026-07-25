@@ -6,6 +6,8 @@ function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }>
   const calls: Array<{ name: string; args: unknown[] }> = [];
   const sandbox = {
     id: "sandbox_123",
+    updateNetworkSettings: async (...args: unknown[]) =>
+      calls.push({ name: "updateNetworkSettings", args }),
     git: {
       clone: async (...args: unknown[]) => calls.push({ name: "clone", args }),
     },
@@ -53,7 +55,7 @@ describe("DaytonaSandboxRuntime", () => {
             ttlMinutes: 30,
             labels: { product: "isolate", purpose: "issue-reproduction" },
           },
-          { timeout: 90 },
+          { timeout: 60 },
         ],
       },
       {
@@ -68,6 +70,10 @@ describe("DaytonaSandboxRuntime", () => {
           false,
           1,
         ],
+      },
+      {
+        name: "updateNetworkSettings",
+        args: [{ networkBlockAll: true }],
       },
     ]);
   });
@@ -120,6 +126,10 @@ describe("DaytonaSandboxRuntime", () => {
         1,
       ],
     });
+    expect(calls[2]).toEqual({
+      name: "updateNetworkSettings",
+      args: [{ networkBlockAll: true }],
+    });
   });
 
   test("runs a probe and evaluates separately captured stdout and stderr", async () => {
@@ -140,7 +150,7 @@ describe("DaytonaSandboxRuntime", () => {
     const result = await runtime.runProbe({
       sandboxId: "sandbox_123",
       workspace: "workspace/repo",
-      timeoutSeconds: 45,
+      timeoutSeconds: 40,
       probe: {
         command: "bun test regression.test.ts",
         assertions: [
@@ -159,8 +169,25 @@ describe("DaytonaSandboxRuntime", () => {
       durationMs: 0,
     });
     expect(calls[0]).toEqual({ name: "get", args: ["sandbox_123"] });
-    expect(calls.filter(({ name }) => name === "executeCommand")).toHaveLength(3);
-    expect(calls[2]?.args.at(-1)).toBe(45);
+    expect(calls.filter(({ name }) => name === "executeCommand")).toHaveLength(4);
+    expect(calls[2]?.args.at(-1)).toBe(50);
+  });
+
+  test("rejects unsafe probes before accessing a sandbox", async () => {
+    const { client, calls } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await expect(
+      runtime.runProbe({
+        sandboxId: "sandbox_123",
+        workspace: "workspace/repo",
+        probe: {
+          command: "git push origin main",
+          assertions: [{ kind: "exit_code", equals: 0 }],
+        },
+      }),
+    ).rejects.toThrow("command policy");
+    expect(calls).toHaveLength(0);
   });
 
   test("redacts common credentials and caps captured command output", async () => {
@@ -183,7 +210,7 @@ describe("DaytonaSandboxRuntime", () => {
       sandboxId: "sandbox_123",
       workspace: "workspace/repo",
       probe: {
-        command: "env && generate-lots-of-output",
+        command: "bun run generate-lots-of-output",
         assertions: [{ kind: "exit_code", equals: 0 }],
       },
     });
@@ -193,5 +220,36 @@ describe("DaytonaSandboxRuntime", () => {
     expect(result.observation.stdout).toContain("[REDACTED]");
     expect(result.observation.stdout).toEndWith("\n[output truncated]");
     expect(result.observation.stdout.length).toBeLessThanOrEqual(65_536);
+  });
+
+  test("caps files before collection and removes every probe artifact", async () => {
+    const { client, calls } = fakeDaytona([
+      { exitCode: 0, result: "" },
+      { exitCode: 0, result: "" },
+      {
+        exitCode: 0,
+        result: JSON.stringify({ exitCode: 0, stdout: "ok", stderr: "" }),
+      },
+      { exitCode: 0, result: "" },
+    ]);
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await runtime.runProbe({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      probe: {
+        command: "bun test",
+        assertions: [{ kind: "exit_code", equals: 0 }],
+      },
+    });
+
+    const commands = calls
+      .filter(({ name }) => name === "executeCommand")
+      .map(({ args }) => String(args[0]));
+    expect(commands[1]).toContain("ulimit -f 128");
+    expect(commands[1]).toContain("setsid timeout --signal=TERM --kill-after=5s");
+    expect(commands[1]).toContain('kill -TERM -- "-$probe_pid"');
+    expect(commands[1]).toContain('kill -KILL -- "-$probe_pid"');
+    expect(commands.at(-1)).toStartWith("rm -f ");
   });
 });

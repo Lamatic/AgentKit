@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { handleMcp } from "../lib/runtime/mcp";
+import { DaytonaSandboxRuntime } from "../lib/runtime/daytona";
 
 const secret = "test-mcp-secret";
 
@@ -194,7 +195,7 @@ describe("POST /api/mcp", () => {
             arguments: {
               sandboxId: "sandbox_123",
               workspace: "workspace/repo",
-              timeoutSeconds: 60,
+              timeoutSeconds: 40,
               probe: {
                 command: "bun test regression.test.ts",
                 assertions: [{ kind: "exit_code", equals: 1 }],
@@ -216,6 +217,47 @@ describe("POST /api/mcp", () => {
         stderr: "failure reproduced\n",
       },
     });
+  });
+
+  test("rejects unsafe commands at the MCP runtime boundary", async () => {
+    let sandboxLookups = 0;
+    const runtime = new DaytonaSandboxRuntime({
+      create: async () => { throw new Error("not used"); },
+      get: async () => {
+        sandboxLookups += 1;
+        throw new Error("must not access sandbox");
+      },
+      delete: async () => undefined,
+    });
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 51,
+          method: "tools/call",
+          params: {
+            name: "run_probe",
+            arguments: {
+              sandboxId: "sandbox_123",
+              workspace: "workspace/repo",
+              timeoutSeconds: 40,
+              probe: {
+                command: "git push origin main",
+                assertions: [{ kind: "exit_code", equals: 0 }],
+              },
+            },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      () => runtime,
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.isError).toBe(true);
+    expect(JSON.stringify(body.result.content)).toContain("command policy");
+    expect(sandboxLookups).toBe(0);
   });
 
   test("deletes an investigation sandbox through MCP", async () => {
@@ -256,9 +298,12 @@ describe("POST /api/mcp", () => {
     const calls: unknown[] = [];
     const passingRun = {
       passed: true,
-      assertions: [
-        { kind: "exit_code" as const, passed: true, expected: 1, actual: 1 },
-      ],
+      assertions: [{
+        kind: "stderr_contains" as const,
+        passed: true,
+        expected: "bug observed",
+        actual: "bug observed\n",
+      }],
       observation: {
         command: "bun test repro.test.ts",
         exitCode: 1,
@@ -278,14 +323,13 @@ describe("POST /api/mcp", () => {
           : {
               ...passingRun,
               passed: false,
-              assertions: [
-                {
-                  kind: "exit_code" as const,
-                  passed: false,
-                  expected: 1,
-                  actual: 0,
-                },
-              ],
+              assertions: [{
+                kind: "stderr_contains" as const,
+                passed: false,
+                expected: "bug observed",
+                actual: "",
+              }],
+              observation: { ...passingRun.observation, stderr: "" },
             };
       },
       delete: async () => {
@@ -301,17 +345,12 @@ describe("POST /api/mcp", () => {
           params: {
             name: "certify_reproduction",
             arguments: {
+              issueUrl: "https://github.com/example/buggy-cli/issues/1",
               sandboxId: "sandbox_123",
               workspace: "workspace/repo",
-              timeoutSeconds: 60,
-              candidateProbe: {
-                command: "bun test repro.test.ts",
-                assertions: [{ kind: "exit_code", equals: 1 }],
-              },
-              controlProbe: {
-                command: "bun test control.test.ts",
-                assertions: [{ kind: "exit_code", equals: 1 }],
-              },
+              timeoutSeconds: 40,
+              candidateCommand: "bun test repro.test.ts",
+              controlCommand: "bun test control.test.ts",
             },
           },
         },
@@ -319,6 +358,20 @@ describe("POST /api/mcp", () => {
       ),
       secret,
       () => runtime,
+      {
+        read: async () => ({
+          url: "https://github.com/example/buggy-cli/issues/1",
+          repositoryUrl: "https://github.com/example/buggy-cli",
+          owner: "example",
+          repository: "buggy-cli",
+          number: 1,
+          title: "Regression fails",
+          body: "Observed stderr: `bug observed`",
+          state: "open" as const,
+          author: "maintainer",
+          labels: ["bug"],
+        }),
+      },
     );
     const body = await mcpJson(response);
 
