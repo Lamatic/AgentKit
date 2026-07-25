@@ -45,5 +45,14 @@ describe("reproduction plan boundary", () => {
     expect(() =>
       assertCertificationCommand("base64 -d payload; bun test", "Hello"),
     ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("bun test\nprintf 'Hello'", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand(
+        "bun run nonexistent\nprintf \"Hello, \\x69solatecli!\"",
+        "Hello, isolatecli!",
+      ),
+    ).toThrow("command policy");
   });
 });

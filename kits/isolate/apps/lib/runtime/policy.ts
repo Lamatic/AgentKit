@@ -39,6 +39,7 @@ export function assertCertificationCommand(command: string, signature: string) {
   assertSafeCommand(command);
   const segments = command.split(/\s*(?:&&|&)\s*/).filter(Boolean);
   if (
+    /[\r\n]/.test(command) ||
     /[&|;]\s*$/.test(command) ||
     !segments.some((segment) => repositoryRunnerSegment.test(segment)) ||
     segments.some(

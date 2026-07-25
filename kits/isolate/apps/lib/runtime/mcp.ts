@@ -2,10 +2,14 @@ import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 import { runCertification } from "./certification";
-import { extractIssueEvidenceAssertion } from "./claim";
+import {
+  extractIssueEvidenceAssertion,
+  MissingIssueEvidenceContractError,
+} from "./claim";
 import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
 import { certificationSchema } from "./evidence";
 import { createGitHubIssueReader } from "./github";
+import { UnsafeCommandError } from "./policy";
 
 type RuntimeFactory = () => Pick<
   DaytonaSandboxRuntime,
@@ -13,6 +17,28 @@ type RuntimeFactory = () => Pick<
 >;
 
 type IssueReader = Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
+
+function mcpToolError(error: unknown) {
+  if (
+    error instanceof MissingIssueEvidenceContractError ||
+    error instanceof UnsafeCommandError
+  ) {
+    return {
+      isError: true as const,
+      content: [{ type: "text" as const, text: error.message }],
+    };
+  }
+  console.error("Isolate MCP tool failed", error);
+  return {
+    isError: true as const,
+    content: [
+      {
+        type: "text" as const,
+        text: "Isolate could not complete the requested operation.",
+      },
+    ],
+  };
+}
 
 function createIsolateServer(
   runtimeFactory: RuntimeFactory,
@@ -47,11 +73,15 @@ function createIsolateServer(
       },
     },
     async ({ issueUrl }) => {
-      const output = await issueReader.read(issueUrl);
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
+      try {
+        const output = await issueReader.read(issueUrl);
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(output) }],
+          structuredContent: output,
+        };
+      } catch (error) {
+        return mcpToolError(error);
+      }
     },
   );
 
@@ -122,31 +152,34 @@ function createIsolateServer(
       candidateCommand,
       controlCommand,
     }) => {
-      const runtime = runtimeFactory();
-      const issue = await issueReader.read(issueUrl);
-      const assertion = extractIssueEvidenceAssertion(issue.body);
-      const sandbox = await runtime.create({
-        repositoryUrl: issue.repositoryUrl,
-        ref: ref?.trim() || "main",
-      });
-      let output;
       try {
-        output = await runCertification({
-          runtime,
-          ...sandbox,
-          timeoutSeconds,
-          candidateCommand,
-          controlCommand,
-          assertion,
+        const runtime = runtimeFactory();
+        const issue = await issueReader.read(issueUrl);
+        const assertion = extractIssueEvidenceAssertion(issue.body);
+        const sandbox = await runtime.create({
+          repositoryUrl: issue.repositoryUrl,
+          ref: ref?.trim() || "main",
         });
-      } finally {
-        await runtime.delete(sandbox.sandboxId).catch(() => undefined);
-      }
+        try {
+          const output = await runCertification({
+            runtime,
+            ...sandbox,
+            timeoutSeconds,
+            candidateCommand,
+            controlCommand,
+            assertion,
+          });
 
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
+          return {
+            content: [{ type: "text" as const, text: JSON.stringify(output) }],
+            structuredContent: output,
+          };
+        } finally {
+          await runtime.delete(sandbox.sandboxId).catch(() => undefined);
+        }
+      } catch (error) {
+        return mcpToolError(error);
+      }
     },
   );
 
