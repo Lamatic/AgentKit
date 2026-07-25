@@ -1,6 +1,6 @@
 "use server";
 
-import { getLamaticClient, unwrap, unwrapRecord } from "@/lib/lamatic-client";
+import { getLamaticClient, unwrap, unwrapRecord, asArray } from "@/lib/lamatic-client";
 
 const INDEX_FLOW_ID = process.env.INDEX_ARTICLES_FLOW_ID!;
 const SYNTHESIZE_FLOW_ID = process.env.SYNTHESIZE_DIGEST_FLOW_ID!;
@@ -254,9 +254,18 @@ async function runFlow(
           `${label} failed: VectorDB got empty vectors/metadata (Vectorize failed upstream). Fix CodeNode204 → Vectorize first, then Deploy.`
         );
       }
+      if (/reading ['"]?output['"]?/i.test(res?.message ?? "")) {
+        throw new Error(
+          `${label} failed (${flowHint}): ${res.message}. ` +
+            `Code node template has undefined.output — usually a HAND-TYPED {{ searchNode_….output… }}. ` +
+            `In CodeNode174: delete that {{ }}, insert with (x) → Vector Search → searchResults (not .hits). ` +
+            `Typed ids often fail even when Logs show searchNode_651. Test → Deploy → retry.`
+        );
+      }
       throw new Error(
         `${label} failed (${flowHint}): ${res.message || "Unknown Lamatic error"}. ` +
-          `Check apps/.env.local flow IDs match Studio, project is Deployed, and credentials.`
+          `Studio Test (requestId "studio") uses the canvas draft; localhost/hosted use the last Deploy. ` +
+          `After fixing Code nodes, click Deploy, then retry. Match flow IDs in apps/.env.local.`
       );
     }
 
@@ -296,8 +305,15 @@ async function runFlow(
           `${label} failed: VectorDB empty because Vectorize produced no vectors. Fix CodeNode204 first.`
         );
       }
+      const rid = extractRequestId(
+        coerceFlowResult(res?.result) ??
+          (res?.result as Record<string, unknown> | null) ??
+          undefined
+      );
       throw new Error(
-        `${label} failed (${flowHint}): ${res.message || "Workflow execution error in Studio"}`
+        `${label} failed (${flowHint}): ${res.message || "Workflow execution error in Studio"}` +
+          (rid ? ` requestId=${rid}.` : ".") +
+          ` Open Studio Logs for that API requestId (not "studio"). If Test works but API fails, Deploy the flow.`
       );
     }
 
@@ -425,21 +441,20 @@ export async function synthesizeDigest(
   const parsed = unwrapRecord(raw);
 
   // Plain JSON only — Lamatic sometimes returns shapes that break RSC serialization in production.
+  // API Response often maps missing fields as "" instead of [] — coerce with asArray.
   return JSON.parse(
     JSON.stringify({
       query: String(parsed.query ?? query),
-      executive_brief:
-        (unwrap(parsed.executive_brief) as DigestResult["executive_brief"]) ??
-        [],
-      article_summaries:
-        (unwrap(parsed.article_summaries) as ArticleSummary[]) ?? [],
-      cross_cutting_themes:
-        (unwrap(parsed.cross_cutting_themes) as string[]) ?? [],
-      cross_source_contradictions:
-        (unwrap(parsed.cross_source_contradictions) as Contradiction[]) ?? [],
-      consensus_points:
-        (unwrap(parsed.consensus_points) as ConsensusPoint[]) ?? [],
-      warnings: (unwrap(parsed.warnings) as DigestWarning[]) ?? [],
+      executive_brief: asArray<
+        string | { type: "sources"; items: SourceItem[] }
+      >(parsed.executive_brief),
+      article_summaries: asArray<ArticleSummary>(parsed.article_summaries),
+      cross_cutting_themes: asArray<string>(parsed.cross_cutting_themes),
+      cross_source_contradictions: asArray<Contradiction>(
+        parsed.cross_source_contradictions
+      ),
+      consensus_points: asArray<ConsensusPoint>(parsed.consensus_points),
+      warnings: asArray<DigestWarning>(parsed.warnings),
     })
   ) as DigestResult;
 }

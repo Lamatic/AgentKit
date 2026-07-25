@@ -9,7 +9,7 @@ import { ExternalLink } from "lucide-react";
 function renderInlineHtml(text: string) {
   return (
     <span
-      className="[&_mark]:rounded [&_mark]:bg-amber-200/80 [&_mark]:px-0.5 [&_mark]:text-foreground dark:[&_mark]:bg-amber-500/30"
+      className="[&_mark]:rounded [&_mark]:bg-primary/15 [&_mark]:px-0.5 [&_mark]:text-foreground dark:[&_mark]:bg-primary/25"
       dangerouslySetInnerHTML={{ __html: text }}
     />
   );
@@ -40,13 +40,29 @@ function SourcesList({ items }: { items: SourceItem[] }) {
 }
 
 export function DigestView({ digest }: { digest: DigestResult }) {
-  const briefStrings = digest.executive_brief.filter(
+  const brief = Array.isArray(digest.executive_brief)
+    ? digest.executive_brief
+    : [];
+  const briefStrings = brief.filter(
     (item): item is string => typeof item === "string"
   );
-  const sourcesBlock = digest.executive_brief.find(
+  const sourcesBlock = brief.find(
     (item): item is { type: "sources"; items: SourceItem[] } =>
       typeof item === "object" && item !== null && item.type === "sources"
   );
+  const contradictions = Array.isArray(digest.cross_source_contradictions)
+    ? digest.cross_source_contradictions
+    : [];
+  const consensus = Array.isArray(digest.consensus_points)
+    ? digest.consensus_points
+    : [];
+  const themes = Array.isArray(digest.cross_cutting_themes)
+    ? digest.cross_cutting_themes
+    : [];
+  const summaries = Array.isArray(digest.article_summaries)
+    ? digest.article_summaries
+    : [];
+  const warnings = Array.isArray(digest.warnings) ? digest.warnings : [];
 
   return (
     <div className="space-y-8">
@@ -57,25 +73,32 @@ export function DigestView({ digest }: { digest: DigestResult }) {
 
       <section className="space-y-3">
         <h3 className="text-lg font-semibold">Executive brief</h3>
-        <ul className="space-y-3 list-disc pl-5 text-sm leading-relaxed">
-          {briefStrings.map((bullet, i) => (
-            <li key={i}>{renderInlineHtml(bullet)}</li>
-          ))}
-        </ul>
+        {briefStrings.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No brief content returned. Check Studio API Response mapping and that
+            CodeNode128 / LLM produced arrays (not empty strings).
+          </p>
+        ) : (
+          <ul className="space-y-3 list-disc pl-5 text-sm leading-relaxed">
+            {briefStrings.map((bullet, i) => (
+              <li key={i}>{renderInlineHtml(bullet)}</li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {sourcesBlock && (
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Sources</h3>
-          <SourcesList items={sourcesBlock.items} />
+          <SourcesList items={sourcesBlock.items ?? []} />
         </section>
       )}
 
-      {digest.cross_source_contradictions.length > 0 && (
+      {contradictions.length > 0 && (
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Cross-source contradictions</h3>
           <div className="grid gap-3">
-            {digest.cross_source_contradictions.map((c, i) => (
+            {contradictions.map((c, i) => (
               <Card key={i} className="p-4 space-y-2">
                 <p className="font-medium">{c.topic}</p>
                 <div className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -101,15 +124,18 @@ export function DigestView({ digest }: { digest: DigestResult }) {
         </section>
       )}
 
-      {digest.consensus_points.length > 0 && (
+      {consensus.length > 0 && (
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Consensus</h3>
           <div className="space-y-3">
-            {digest.consensus_points.map((c, i) => (
+            {consensus.map((c, i) => (
               <Card key={i} className="p-4">
                 <p className="text-sm mb-2">{c.point}</p>
                 <p className="text-xs text-muted-foreground">
-                  Sources: {c.supporting_sources.map((id) => `[${id}]`).join(" ")}
+                  Sources:{" "}
+                  {(c.supporting_sources ?? [])
+                    .map((id) => `[${id}]`)
+                    .join(" ")}
                 </p>
               </Card>
             ))}
@@ -117,22 +143,22 @@ export function DigestView({ digest }: { digest: DigestResult }) {
         </section>
       )}
 
-      {digest.cross_cutting_themes.length > 0 && (
+      {themes.length > 0 && (
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Cross-cutting themes</h3>
           <ul className="space-y-2 list-disc pl-5 text-sm">
-            {digest.cross_cutting_themes.map((t, i) => (
+            {themes.map((t, i) => (
               <li key={i}>{t}</li>
             ))}
           </ul>
         </section>
       )}
 
-      {digest.article_summaries.length > 0 && (
+      {summaries.length > 0 && (
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Article summaries</h3>
           <div className="grid gap-3">
-            {digest.article_summaries.map((a, i) => (
+            {summaries.map((a, i) => (
               <Card key={i} className="p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <a
@@ -152,14 +178,14 @@ export function DigestView({ digest }: { digest: DigestResult }) {
         </section>
       )}
 
-      {digest.warnings.length > 0 && (
+      {warnings.length > 0 && (
         <section className="space-y-3">
           <Separator />
-          <h3 className="text-sm font-medium text-amber-700 dark:text-amber-400">
+          <h3 className="text-sm font-medium text-amber-800/90 dark:text-amber-300/90">
             Warnings
           </h3>
           <ul className="text-xs text-muted-foreground space-y-1">
-            {digest.warnings.map((w, i) => (
+            {warnings.map((w, i) => (
               <li key={i}>
                 {w.type}
                 {w.raw ? ` — ${w.raw}` : ""}

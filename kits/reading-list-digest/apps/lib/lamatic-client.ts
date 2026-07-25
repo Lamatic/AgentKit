@@ -33,10 +33,12 @@ export function getLamaticClient(): Lamatic {
 
 /**
  * Lamatic outputMapping may prefix values with `$` and stringify objects/arrays.
+ * Empty string "" is common when a mapped field is missing — treat as null for arrays.
  */
 export function unwrap(value: unknown): unknown {
   if (typeof value !== "string") return value;
-  const stripped = value.replace(/^\$/, "");
+  const stripped = value.replace(/^\$/, "").trim();
+  if (stripped === "") return null;
   if (stripped === "true") return true;
   if (stripped === "false") return false;
   if (stripped.startsWith("{") || stripped.startsWith("[")) {
@@ -47,6 +49,13 @@ export function unwrap(value: unknown): unknown {
     }
   }
   return stripped;
+}
+
+/** Coerce Lamatic fields that should be arrays ("" / objects / null → []). */
+export function asArray<T = unknown>(value: unknown): T[] {
+  const v = unwrap(value);
+  if (Array.isArray(v)) return v as T[];
+  return [];
 }
 
 export function unwrapRecord(raw: Record<string, unknown>): Record<string, unknown> {

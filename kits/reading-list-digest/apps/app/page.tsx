@@ -19,6 +19,7 @@ import {
   parseAndValidateUrls,
   type UrlIssue,
 } from "@/lib/url-validation";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { BookOpen, Loader2, Search, Sparkles } from "lucide-react";
 
 const DEMO_URLS = `https://www.brookings.edu/articles/regulating-general-purpose-ai-areas-of-convergence-and-divergence-across-the-eu-and-the-us
@@ -131,7 +132,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/40 to-background">
       <header className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center gap-3">
           <BookOpen className="size-6 text-primary" />
@@ -140,6 +141,9 @@ export default function Home() {
             <p className="text-sm text-muted-foreground">
               Index articles, then synthesize a cited multi-source digest
             </p>
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
           </div>
         </div>
       </header>
