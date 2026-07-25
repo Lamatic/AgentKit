@@ -72,7 +72,7 @@ export type ThreatAnalysis = InvestigationResponse["analysis"];
 
 /**
  * Final decision output produced by the decision engine stage.
- * Includes the free-text `classification` label (e.g. "SCAM", "LEGITIMATE"),
+ * Includes the `classification` label using the schema's explicit enum values,
  * the `final_verdict` sentence, `recommended_action` for the recipient,
  * `decision_reason` explaining the ruling, `priority` level, and a
  * `human_review` flag indicating whether a human analyst should verify.

@@ -6,7 +6,7 @@
 import { z } from "zod";
 import { getLamaticClient, getFlowId } from "@/lib/lamatic";
 import { InvestigationResponseSchema } from "@/lib/schemas";
-import type { AnalyzeFormData } from "@/types/response";
+import { AnalyzeFormDataSchema, type AnalyzeFormData } from "@/types/response";
 import type { ValidatedInvestigationResponse } from "@/lib/schemas";
 
 
@@ -42,15 +42,7 @@ export async function runInvestigation(
     const lamatic = getLamaticClient();
     const flowId = getFlowId();
 
-    const RuntimeInputSchema = z.object({
-      input_type: z.enum(["Email", "SMS", "URL", "Document", "Text"]),
-      language: z.enum(["Auto", "English", "Hindi", "Bengali"]),
-      content: z.string().trim().min(1),
-      attachment_url: z.string().optional(),
-      memory_enabled: z.boolean().optional(),
-    });
-
-    const parsedInput = RuntimeInputSchema.safeParse(formData);
+    const parsedInput = AnalyzeFormDataSchema.safeParse(formData);
     if (!parsedInput.success) {
       console.error("[TrustGuard] Invalid input data. Issues:", parsedInput.error.issues.map(i => ({ path: i.path, code: i.code })));
       return { success: false, error: "Invalid input provided." };
