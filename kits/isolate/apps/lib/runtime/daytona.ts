@@ -357,16 +357,16 @@ export class DaytonaSandboxRuntime {
     if (reset.exitCode !== 0) {
       throw new Error("The sandbox workspace could not be restored cleanly.");
     }
-    await updateNetworkPolicy(
-      this.client,
-      sandbox,
-      {
-        networkBlockAll: false,
-        domainAllowList: packageRegistryAllowList,
-      },
-      deadline,
-    );
     try {
+      await updateNetworkPolicy(
+        this.client,
+        sandbox,
+        {
+          networkBlockAll: false,
+          domainAllowList: packageRegistryAllowList,
+        },
+        deadline,
+      );
       const install = await this.execute(
         sandbox,
         dependencyInstallCommand,
