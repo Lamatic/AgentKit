@@ -412,16 +412,26 @@ export function resolveDaytonaApiUrl(
   environment: Record<string, string | undefined>,
 ) {
   return (
-    environment.DAYTONA_API_URL ??
-    environment.DAYTONA_SERVER_URL ??
+    environment.DAYTONA_API_URL?.trim() ||
+    environment.DAYTONA_SERVER_URL?.trim() ||
     "https://app.daytona.io/api"
   ).replace(/\/$/, "");
+}
+
+export function resolveDaytonaCredential(
+  environment: Record<string, string | undefined>,
+) {
+  return (
+    environment.DAYTONA_API_KEY?.trim() ||
+    environment.DAYTONA_JWT_TOKEN?.trim() ||
+    undefined
+  );
 }
 
 export function createDaytonaRuntime() {
   const daytona = new Daytona();
   const apiUrl = resolveDaytonaApiUrl(process.env);
-  const credential = process.env.DAYTONA_API_KEY ?? process.env.DAYTONA_JWT_TOKEN;
+  const credential = resolveDaytonaCredential(process.env);
   const organizationId = process.env.DAYTONA_ORGANIZATION_ID;
   const client: DaytonaLike = {
     create: daytona.create.bind(daytona) as DaytonaLike["create"],
