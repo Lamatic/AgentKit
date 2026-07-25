@@ -29,22 +29,6 @@ type ExecuteResult = { exitCode: number; result: string };
 
 interface SandboxLike {
   id: string;
-  updateNetworkSettings(settings: {
-    networkBlockAll?: boolean;
-    domainAllowList?: string;
-  }): Promise<unknown>;
-  git: {
-    clone(
-      url: string,
-      path: string,
-      branch?: string,
-      commitId?: string,
-      username?: string,
-      password?: string,
-      insecureSkipTls?: boolean,
-      depth?: number,
-    ): Promise<unknown>;
-  };
   process: {
     executeCommand(
       command: string,
@@ -57,7 +41,13 @@ interface SandboxLike {
 
 interface DaytonaLike {
   create(params: unknown, options: unknown): Promise<SandboxLike>;
+  get(sandboxIdOrName: string): Promise<SandboxLike>;
   delete(sandbox: SandboxLike, timeout?: number, wait?: boolean): Promise<unknown>;
+  updateNetworkSettings(
+    sandboxId: string,
+    settings: { networkBlockAll?: boolean; domainAllowList?: string },
+    signal: AbortSignal,
+  ): Promise<unknown>;
 }
 
 const workspace = "workspace/repo" as const;
@@ -95,13 +85,16 @@ function isTierNetworkRestriction(error: unknown) {
 }
 
 async function updateNetworkPolicy(
+  client: DaytonaLike,
   sandbox: SandboxLike,
   settings: { networkBlockAll?: boolean; domainAllowList?: string },
   deadline: InvestigationDeadline,
+  cleanup = false,
 ) {
   await deadline
-    .run(() => sandbox.updateNetworkSettings(settings), {
+    .run((signal) => client.updateNetworkSettings(sandbox.id, settings, signal), {
       maximumMilliseconds: 10_000,
+      cleanupReserveMilliseconds: cleanup ? 0 : undefined,
     })
     .catch((error: unknown) => {
       if (!isTierNetworkRestriction(error)) throw error;
@@ -128,16 +121,21 @@ export class DaytonaSandboxRuntime {
     command: string,
     timeoutSeconds: number,
     deadline: InvestigationDeadline,
+    cleanup = false,
+    cwd: string = workspace,
   ) {
     return deadline.run(
       (_signal, timeoutMilliseconds) =>
         sandbox.process.executeCommand(
           command,
-          workspace,
+          cwd,
           undefined,
           Math.max(1, Math.ceil(timeoutMilliseconds / 1_000)),
         ),
-      { maximumMilliseconds: timeoutSeconds * 1_000 },
+      {
+        maximumMilliseconds: timeoutSeconds * 1_000,
+        cleanupReserveMilliseconds: cleanup ? 0 : undefined,
+      },
     );
   }
 
@@ -175,41 +173,75 @@ export class DaytonaSandboxRuntime {
     deadline = new InvestigationDeadline(),
   ) {
     const { repositoryUrl, ref } = createSandboxInputSchema.parse(input);
-    const sandbox = await deadline.run(
-      (_signal, timeoutMilliseconds) =>
-        this.client.create(
-          {
-            language: "typescript",
-            ephemeral: true,
-            public: false,
-            ttlMinutes: 30,
-            labels: { product: "isolate", purpose: "issue-reproduction" },
-          },
-          { timeout: Math.max(1, Math.ceil(timeoutMilliseconds / 1_000)) },
-        ),
-      { maximumMilliseconds: 60_000 },
+    const sandboxName = `isolate-${crypto.randomUUID()}`;
+    const createTimeoutMilliseconds = Math.min(
+      60_000,
+      deadline.remainingMilliseconds(35_000),
     );
+    const creationOperation = this.client.create(
+      {
+        name: sandboxName,
+        language: "typescript",
+        ephemeral: true,
+        public: false,
+        ttlMinutes: 30,
+        labels: { product: "isolate", purpose: "issue-reproduction" },
+      },
+      { timeout: Math.max(1, Math.ceil(createTimeoutMilliseconds / 1_000)) },
+    );
+    const creation = deadline.run(
+      () => creationOperation,
+      { maximumMilliseconds: createTimeoutMilliseconds },
+    );
+    let sandbox: SandboxLike;
+    try {
+      sandbox = await creation;
+    } catch (creationError) {
+      let recovered: SandboxLike | undefined;
+      try {
+        recovered = await deadline.run(() => creationOperation, {
+          maximumMilliseconds: 10_000,
+          cleanupReserveMilliseconds: 0,
+        });
+      } catch {
+        try {
+          recovered = await deadline.run(() => this.client.get(sandboxName), {
+            maximumMilliseconds: 5_000,
+            cleanupReserveMilliseconds: 0,
+          });
+        } catch {
+          throw creationError;
+        }
+      }
+      this.sandboxes.set(recovered.id, recovered);
+      await this.deleteSandbox(recovered, deadline);
+      throw creationError;
+    }
     this.sandboxes.set(sandbox.id, sandbox);
 
     const commitId = ref && /^[a-f0-9]{40}$/i.test(ref) ? ref : undefined;
     const branch = commitId ? undefined : ref;
 
     try {
-      await deadline.run(
-        () =>
-          sandbox.git.clone(
-            repositoryUrl,
-            workspace,
-            branch,
-            commitId,
-            undefined,
-            undefined,
-            false,
-            1,
-          ),
-        { maximumMilliseconds: 30_000 },
+      const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
+      const cloneCommand = commitId
+        ? `git clone --depth 1 -- ${quote(repositoryUrl)} ${quote(workspace)} && git -C ${quote(workspace)} fetch --depth 1 origin ${quote(commitId)} && git -C ${quote(workspace)} checkout --detach ${quote(commitId)}`
+        : `git clone --depth 1${branch ? ` --branch ${quote(branch)}` : ""} -- ${quote(repositoryUrl)} ${quote(workspace)}`;
+      const clone = await this.execute(
+        sandbox,
+        cloneCommand,
+        30,
+        deadline,
+        false,
+        ".",
       );
-      await updateNetworkPolicy(sandbox, { networkBlockAll: true }, deadline);
+      if (clone.exitCode !== 0) throw new Error("Repository cloning failed.");
+      await updateNetworkPolicy(
+        this.client,
+        sandbox,
+        { networkBlockAll: true },
+        deadline,
+      );
     } catch (error) {
       await this.deleteSandbox(sandbox, deadline);
       throw error;
@@ -294,6 +326,7 @@ export class DaytonaSandboxRuntime {
             `rm -f '${scriptPath}' '${stdoutPath}' '${stderrPath}' '${exitPath}'`,
             3,
             deadline,
+            true,
           );
           if (cleanup.exitCode === 0) {
             cleaned = true;
@@ -324,10 +357,15 @@ export class DaytonaSandboxRuntime {
     if (reset.exitCode !== 0) {
       throw new Error("The sandbox workspace could not be restored cleanly.");
     }
-    await updateNetworkPolicy(sandbox, {
-      networkBlockAll: false,
-      domainAllowList: packageRegistryAllowList,
-    }, deadline);
+    await updateNetworkPolicy(
+      this.client,
+      sandbox,
+      {
+        networkBlockAll: false,
+        domainAllowList: packageRegistryAllowList,
+      },
+      deadline,
+    );
     try {
       const install = await this.execute(
         sandbox,
@@ -339,7 +377,13 @@ export class DaytonaSandboxRuntime {
         throw new Error("Deterministic dependency installation failed.");
       }
     } finally {
-      await updateNetworkPolicy(sandbox, { networkBlockAll: true }, deadline);
+      await updateNetworkPolicy(
+        this.client,
+        sandbox,
+        { networkBlockAll: true },
+        deadline,
+        true,
+      );
     }
   }
 
@@ -357,5 +401,34 @@ export class DaytonaSandboxRuntime {
 }
 
 export function createDaytonaRuntime() {
-  return new DaytonaSandboxRuntime(new Daytona() as unknown as DaytonaLike);
+  const daytona = new Daytona();
+  const apiUrl = (process.env.DAYTONA_API_URL ?? "https://app.daytona.io/api")
+    .replace(/\/$/, "");
+  const credential = process.env.DAYTONA_API_KEY ?? process.env.DAYTONA_JWT_TOKEN;
+  const organizationId = process.env.DAYTONA_ORGANIZATION_ID;
+  const client: DaytonaLike = {
+    create: daytona.create.bind(daytona) as DaytonaLike["create"],
+    get: daytona.get.bind(daytona) as DaytonaLike["get"],
+    delete: daytona.delete.bind(daytona) as DaytonaLike["delete"],
+    async updateNetworkSettings(sandboxId, settings, signal) {
+      if (!credential) throw new Error("Missing Daytona authentication configuration.");
+      const response = await fetch(
+        `${apiUrl}/sandbox/${encodeURIComponent(sandboxId)}/network-settings`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${credential}`,
+            "Content-Type": "application/json",
+            ...(organizationId
+              ? { "X-Daytona-Organization-ID": organizationId }
+              : {}),
+          },
+          body: JSON.stringify(settings),
+          signal,
+        },
+      );
+      if (!response.ok) throw new Error(await response.text());
+    },
+  };
+  return new DaytonaSandboxRuntime(client);
 }
