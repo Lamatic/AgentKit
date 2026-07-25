@@ -2,6 +2,7 @@ import { describe, expect, spyOn, test } from "bun:test";
 
 import {
   DaytonaSandboxRuntime,
+  createNormalizedDaytonaClient,
   resolveDaytonaApiUrl,
   resolveDaytonaCredential,
   resolveDaytonaConfiguration,
@@ -77,6 +78,37 @@ describe("DaytonaSandboxRuntime", () => {
       organizationId: "organization",
       target: "us",
     });
+  });
+  test("prevents blank optional environment values from reaching the SDK fallback", () => {
+    const previous = {
+      DAYTONA_API_KEY: process.env.DAYTONA_API_KEY,
+      DAYTONA_API_URL: process.env.DAYTONA_API_URL,
+      DAYTONA_ORGANIZATION_ID: process.env.DAYTONA_ORGANIZATION_ID,
+      DAYTONA_TARGET: process.env.DAYTONA_TARGET,
+    };
+    Object.assign(process.env, {
+      DAYTONA_API_KEY: "test-key",
+      DAYTONA_API_URL: "https://daytona.example/api",
+      DAYTONA_ORGANIZATION_ID: " ",
+      DAYTONA_TARGET: " ",
+    });
+
+    try {
+      const { configuration, daytona } = createNormalizedDaytonaClient();
+      expect(configuration).toEqual({
+        apiUrl: "https://daytona.example/api",
+        apiKey: "test-key",
+      });
+      expect(daytona).not.toHaveProperty("organizationId", " ");
+      expect(daytona).not.toHaveProperty("target", " ");
+      expect(process.env.DAYTONA_ORGANIZATION_ID).toBe(" ");
+      expect(process.env.DAYTONA_TARGET).toBe(" ");
+    } finally {
+      for (const [name, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+    }
   });
   test("creates an expiring private sandbox for a public GitHub repository", async () => {
     const { client, calls } = fakeDaytona();
