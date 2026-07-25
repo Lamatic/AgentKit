@@ -445,9 +445,27 @@ export function resolveDaytonaConfiguration(
   };
 }
 
+export function createNormalizedDaytonaClient() {
+  const environment = process.env;
+  const configuration = resolveDaytonaConfiguration(environment);
+  const blankFallbacks = new Map(
+    ["DAYTONA_ORGANIZATION_ID", "DAYTONA_TARGET"]
+      .filter(
+        (name) => environment[name] !== undefined && !environment[name]?.trim(),
+      )
+      .map((name) => [name, environment[name] as string]),
+  );
+
+  for (const name of blankFallbacks.keys()) delete environment[name];
+  try {
+    return { configuration, daytona: new Daytona(configuration) };
+  } finally {
+    for (const [name, value] of blankFallbacks) environment[name] = value;
+  }
+}
+
 export function createDaytonaRuntime() {
-  const configuration = resolveDaytonaConfiguration(process.env);
-  const daytona = new Daytona(configuration);
+  const { configuration, daytona } = createNormalizedDaytonaClient();
   const { apiUrl } = configuration;
   const credential =
     "apiKey" in configuration
