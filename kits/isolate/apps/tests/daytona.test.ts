@@ -1,6 +1,9 @@
 import { describe, expect, spyOn, test } from "bun:test";
 
-import { DaytonaSandboxRuntime } from "../lib/runtime/daytona";
+import {
+  DaytonaSandboxRuntime,
+  resolveDaytonaApiUrl,
+} from "../lib/runtime/daytona";
 import { InvestigationDeadline } from "../lib/deadline";
 
 function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }> = []) {
@@ -35,6 +38,17 @@ function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }>
 }
 
 describe("DaytonaSandboxRuntime", () => {
+  test("uses the SDK-compatible legacy server URL fallback", () => {
+    expect(
+      resolveDaytonaApiUrl({ DAYTONA_SERVER_URL: "https://daytona.example/api/" }),
+    ).toBe("https://daytona.example/api");
+    expect(
+      resolveDaytonaApiUrl({
+        DAYTONA_API_URL: "https://preferred.example/api",
+        DAYTONA_SERVER_URL: "https://legacy.example/api",
+      }),
+    ).toBe("https://preferred.example/api");
+  });
   test("creates an expiring private sandbox for a public GitHub repository", async () => {
     const { client, calls } = fakeDaytona();
     const runtime = new DaytonaSandboxRuntime(client);
@@ -489,7 +503,7 @@ describe("DaytonaSandboxRuntime", () => {
   });
 
   test("redacts common credentials and caps captured command output", async () => {
-    const oversized = `API_KEY=super-secret\n${"x".repeat(70_000)}`;
+    const oversized = `API_KEY=super-secret\n{"apiKey":"json-secret"}\n${"x".repeat(70_000)}`;
     const { client } = fakeDaytona([
       { exitCode: 0, result: "" },
       { exitCode: 0, result: "" },
@@ -498,7 +512,8 @@ describe("DaytonaSandboxRuntime", () => {
         result: JSON.stringify({
           exitCode: 0,
           stdout: oversized,
-          stderr: "Authorization: Bearer secret-token",
+          stderr:
+            "Authorization: Bearer secret-token\n{\"Authorization\":\"Bearer json-token\"}",
         }),
       },
     ]);
@@ -515,7 +530,9 @@ describe("DaytonaSandboxRuntime", () => {
     });
 
     expect(result.observation.stdout).not.toContain("super-secret");
+    expect(result.observation.stdout).not.toContain("json-secret");
     expect(result.observation.stderr).not.toContain("secret-token");
+    expect(result.observation.stderr).not.toContain("json-token");
     expect(result.observation.stdout).toContain("[REDACTED]");
     expect(result.observation.stdout).toEndWith("\n[output truncated]");
     expect(result.observation.stdout.length).toBeLessThanOrEqual(65_536);

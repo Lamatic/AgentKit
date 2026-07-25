@@ -14,6 +14,7 @@ import { certificationSchema } from "./evidence";
 import { createGitHubIssueReader } from "./github";
 import { UnsafeCommandError } from "./policy";
 import { InvestigationDeadline } from "../deadline";
+import { acquireInvestigationSlot } from "../concurrency";
 
 type RuntimeFactory = () => Pick<
   DaytonaSandboxRuntime,
@@ -158,6 +159,16 @@ function createIsolateServer(
       candidateCommand,
       controlCommand,
     }) => {
+      const release = acquireInvestigationSlot();
+      if (!release) {
+        return {
+          isError: true as const,
+          content: [{
+            type: "text" as const,
+            text: "Too many investigations are already running. Try again shortly.",
+          }],
+        };
+      }
       try {
         const deadline = new InvestigationDeadline();
         const runtime = runtimeFactory();
@@ -174,7 +185,7 @@ function createIsolateServer(
         const sandbox = await runtime.create(
           {
             repositoryUrl: issue.repositoryUrl,
-            ref: ref?.trim() || "main",
+            ...(ref?.trim() ? { ref: ref.trim() } : {}),
           },
           deadline,
         );
@@ -197,6 +208,8 @@ function createIsolateServer(
         }
       } catch (error) {
         return mcpToolError(error);
+      } finally {
+        release();
       }
     },
   );

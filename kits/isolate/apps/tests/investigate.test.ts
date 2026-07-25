@@ -31,9 +31,13 @@ const passingRun = {
 
 function harness(options: { plannerFails?: boolean } = {}) {
   const calls: string[] = [];
+  const createInputs: unknown[] = [];
   let probeIndex = 0;
   const runtime = {
-    create: async () => ({ sandboxId: "sandbox_1", workspace: "workspace/repo" as const }),
+    create: async (input: unknown) => {
+      createInputs.push(input);
+      return { sandboxId: "sandbox_1", workspace: "workspace/repo" as const };
+    },
     resetWorkspace: async () => {
       calls.push("reset");
     },
@@ -63,12 +67,12 @@ function harness(options: { plannerFails?: boolean } = {}) {
       controlCommand: "bun run cli --preserve-case",
     };
   };
-  return { calls, runtime, planner };
+  return { calls, createInputs, runtime, planner };
 }
 
 describe("investigateIssue", () => {
   test("runs a Lamatic-authored plan through the deterministic evidence gate", async () => {
-    const { calls, runtime, planner } = harness();
+    const { calls, createInputs, runtime, planner } = harness();
     const result = await investigateIssue(
       { issueUrl: issue.url },
       { issueReader: { read: async () => issue }, runtime, planner },
@@ -82,6 +86,10 @@ describe("investigateIssue", () => {
       controlRejected: true,
     });
     expect(calls.at(-1)).toBe("delete");
+    expect(createInputs).toEqual([
+      { repositoryUrl: "https://github.com/acme/cli" },
+    ]);
+    expect(result.ref).toBe("default");
   });
 
   test("deletes the sandbox when Lamatic planning fails", async () => {
