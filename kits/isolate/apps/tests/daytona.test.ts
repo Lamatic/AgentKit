@@ -1,19 +1,18 @@
 import { describe, expect, spyOn, test } from "bun:test";
 
 import { DaytonaSandboxRuntime } from "../lib/runtime/daytona";
+import { InvestigationDeadline } from "../lib/deadline";
 
 function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }> = []) {
   const calls: Array<{ name: string; args: unknown[] }> = [];
   const sandbox = {
     id: "sandbox_123",
-    updateNetworkSettings: async (...args: unknown[]) =>
-      calls.push({ name: "updateNetworkSettings", args }),
-    git: {
-      clone: async (...args: unknown[]) => calls.push({ name: "clone", args }),
-    },
     process: {
       executeCommand: async (...args: unknown[]) => {
         calls.push({ name: "executeCommand", args });
+        if (String(args[0]).startsWith("git clone ")) {
+          return { exitCode: 0, result: "cloned" };
+        }
         return commandResults.shift() ?? { exitCode: 0, result: "" };
       },
     },
@@ -28,6 +27,8 @@ function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }>
       return sandbox;
     },
     delete: async (...args: unknown[]) => calls.push({ name: "delete", args }),
+    updateNetworkSettings: async (...args: unknown[]) =>
+      calls.push({ name: "updateNetworkSettings", args }),
   };
 
   return { client, calls, sandbox };
@@ -49,6 +50,7 @@ describe("DaytonaSandboxRuntime", () => {
         name: "create",
         args: [
           {
+            name: expect.stringMatching(/^isolate-/),
             language: "typescript",
             ephemeral: true,
             public: false,
@@ -59,21 +61,17 @@ describe("DaytonaSandboxRuntime", () => {
         ],
       },
       {
-        name: "clone",
+        name: "executeCommand",
         args: [
-          "https://github.com/example/buggy-cli",
-          "workspace/repo",
-          "main",
+          "git clone --depth 1 --branch 'main' -- 'https://github.com/example/buggy-cli' 'workspace/repo'",
+          ".",
           undefined,
-          undefined,
-          undefined,
-          false,
-          1,
+          30,
         ],
       },
       {
         name: "updateNetworkSettings",
-        args: [{ networkBlockAll: true }],
+        args: ["sandbox_123", { networkBlockAll: true }, expect.any(AbortSignal)],
       },
     ]);
   });
@@ -90,22 +88,46 @@ describe("DaytonaSandboxRuntime", () => {
 
   test("deletes a sandbox immediately when repository cloning fails", async () => {
     const { client, calls, sandbox } = fakeDaytona();
-    sandbox.git.clone = async () => {
-      throw new Error("clone failed");
+    sandbox.process.executeCommand = async (...args: unknown[]) => {
+      calls.push({ name: "executeCommand", args });
+      return { exitCode: 1, result: "clone failed" };
     };
     const runtime = new DaytonaSandboxRuntime(client);
 
     await expect(
       runtime.create({ repositoryUrl: "https://github.com/example/missing" }),
-    ).rejects.toThrow("clone failed");
+    ).rejects.toThrow("Repository cloning failed");
 
-    expect(calls.map(({ name }) => name)).toEqual(["create", "delete"]);
-    expect(calls[1]?.args.slice(1)).toEqual([15, true]);
+    expect(calls.map(({ name }) => name)).toEqual([
+      "create",
+      "executeCommand",
+      "delete",
+    ]);
+    expect(calls[2]?.args.slice(1)).toEqual([15, true]);
+  });
+
+  test("recovers and deletes a sandbox whose create resolves after the work deadline", async () => {
+    const { client, calls, sandbox } = fakeDaytona();
+    client.create = async (...args: unknown[]) => {
+      calls.push({ name: "create", args });
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      return sandbox;
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+    const deadline = new InvestigationDeadline(35_010);
+
+    await expect(
+      runtime.create(
+        { repositoryUrl: "https://github.com/example/buggy-cli" },
+        deadline,
+      ),
+    ).rejects.toThrow("execution budget");
+    expect(calls.some(({ name }) => name === "delete")).toBe(true);
   });
 
   test("accepts a Daytona tier that already enforces network isolation", async () => {
     const { client, sandbox } = fakeDaytona();
-    sandbox.updateNetworkSettings = async () => {
+    client.updateNetworkSettings = async () => {
       throw new Error(
         "Network access is restricted and cannot be overridden at the sandbox level.",
       );
@@ -148,21 +170,17 @@ describe("DaytonaSandboxRuntime", () => {
     });
 
     expect(calls[1]).toEqual({
-      name: "clone",
+      name: "executeCommand",
       args: [
-        "https://github.com/example/buggy-cli",
-        "workspace/repo",
+        `git clone --depth 1 -- 'https://github.com/example/buggy-cli' 'workspace/repo' && git -C 'workspace/repo' fetch --depth 1 origin '${commit}' && git -C 'workspace/repo' checkout --detach '${commit}'`,
+        ".",
         undefined,
-        commit,
-        undefined,
-        undefined,
-        false,
-        1,
+        30,
       ],
     });
     expect(calls[2]).toEqual({
       name: "updateNetworkSettings",
-      args: [{ networkBlockAll: true }],
+      args: ["sandbox_123", { networkBlockAll: true }, expect.any(AbortSignal)],
     });
   });
 
@@ -204,9 +222,13 @@ describe("DaytonaSandboxRuntime", () => {
       durationMs: 0,
     });
     expect(calls.some(({ name }) => name === "get")).toBe(false);
-    expect(calls.filter(({ name }) => name === "executeCommand")).toHaveLength(4);
+    const probeCalls = calls.filter(
+      ({ name, args }) =>
+        name === "executeCommand" && !String(args[0]).startsWith("git clone "),
+    );
+    expect(probeCalls).toHaveLength(4);
     expect(
-      calls.filter(({ name }) => name === "executeCommand")[1]?.args.at(-1),
+      probeCalls[1]?.args.at(-1),
     ).toBe(45);
   });
 
@@ -249,11 +271,15 @@ describe("DaytonaSandboxRuntime", () => {
     });
     expect(calls[4]).toEqual({
       name: "updateNetworkSettings",
-      args: [{
-        networkBlockAll: false,
-        domainAllowList:
-          "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com",
-      }],
+      args: [
+        "sandbox_123",
+        {
+          networkBlockAll: false,
+          domainAllowList:
+            "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com",
+        },
+        expect.any(AbortSignal),
+      ],
     });
     expect(calls[5]).toEqual({
       name: "executeCommand",
@@ -266,15 +292,15 @@ describe("DaytonaSandboxRuntime", () => {
     });
     expect(calls[6]).toEqual({
       name: "updateNetworkSettings",
-      args: [{ networkBlockAll: true }],
+      args: ["sandbox_123", { networkBlockAll: true }, expect.any(AbortSignal)],
     });
   });
 
   test("explicitly unblocks a block-all sandbox before allowing registries", async () => {
     const { client, sandbox } = fakeDaytona();
     let blocked = true;
-    sandbox.updateNetworkSettings = async (...args: unknown[]) => {
-      const settings = args[0] as {
+    client.updateNetworkSettings = async (...args: unknown[]) => {
+      const settings = args[1] as {
         networkBlockAll?: boolean;
         domainAllowList?: string;
       };
@@ -295,6 +321,98 @@ describe("DaytonaSandboxRuntime", () => {
       }),
     ).resolves.toBeUndefined();
     expect(blocked).toBe(true);
+  });
+
+  test("uses the cleanup reserve to re-block network access", async () => {
+    let now = 0;
+    const { client, sandbox } = fakeDaytona();
+    const policies: Array<{ networkBlockAll?: boolean; domainAllowList?: string }> = [];
+    client.updateNetworkSettings = async (...args: unknown[]) => {
+      const settings = args[1];
+      policies.push(settings as { networkBlockAll?: boolean; domainAllowList?: string });
+      return 0;
+    };
+    const runtime = new DaytonaSandboxRuntime(client, () => now);
+    const deadline = new InvestigationDeadline(35_100, () => now);
+    await runtime.create(
+      { repositoryUrl: "https://github.com/example/buggy-cli" },
+      deadline,
+    );
+    const execute = sandbox.process.executeCommand;
+    sandbox.process.executeCommand = async (...args: unknown[]) => {
+      const result = await execute(...args);
+      if (String(args[0]).includes("install --frozen-lockfile")) now = 101;
+      return result;
+    };
+
+    await expect(
+      runtime.resetWorkspace(
+        {
+          sandboxId: "sandbox_123",
+          workspace: "workspace/repo",
+          timeoutSeconds: 20,
+        },
+        deadline,
+      ),
+    ).resolves.toBeUndefined();
+    expect(policies.at(-1)).toEqual({ networkBlockAll: true });
+  });
+
+  test("uses the cleanup reserve to remove probe artifacts", async () => {
+    let now = 0;
+    const { client, calls, sandbox } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(client, () => now);
+    const deadline = new InvestigationDeadline(35_100, () => now);
+    await runtime.create(
+      { repositoryUrl: "https://github.com/example/buggy-cli" },
+      deadline,
+    );
+    const execute = sandbox.process.executeCommand;
+    sandbox.process.executeCommand = async (...args: unknown[]) => {
+      const result = await execute(...args);
+      if (String(args[0]).startsWith("printf '%s'")) now = 101;
+      return result;
+    };
+
+    await expect(
+      runtime.runProbe(
+        {
+          sandboxId: "sandbox_123",
+          workspace: "workspace/repo",
+          probe: {
+            command: "bun test",
+            assertions: [{ kind: "exit_code", equals: 0 }],
+          },
+        },
+        deadline,
+      ),
+    ).rejects.toThrow("execution budget");
+    expect(
+      calls.some(
+        ({ name, args }) =>
+          name === "executeCommand" && String(args[0]).startsWith("rm -f "),
+      ),
+    ).toBe(true);
+  });
+
+  test("aborts a delayed network update before deleting the sandbox", async () => {
+    const { client, calls } = fakeDaytona();
+    client.updateNetworkSettings = async (...args: unknown[]) => {
+      const signal = args[2] as AbortSignal;
+      return await new Promise<number>((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(signal.reason));
+      });
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+    const deadline = new InvestigationDeadline(35_020);
+
+    await expect(
+      runtime.create(
+        { repositoryUrl: "https://github.com/example/buggy-cli" },
+        deadline,
+      ),
+    ).rejects.toThrow("execution budget");
+    expect(calls.some(({ name }) => name === "delete")).toBe(true);
   });
 
   test("fails closed when the workspace cannot be restored", async () => {
@@ -399,7 +517,10 @@ describe("DaytonaSandboxRuntime", () => {
     });
 
     const commands = calls
-      .filter(({ name }) => name === "executeCommand")
+      .filter(
+        ({ name, args }) =>
+          name === "executeCommand" && !String(args[0]).startsWith("git clone "),
+      )
       .map(({ args }) => String(args[0]));
     const encodedRunner = commands[1]?.match(/Buffer\.from\('([^']+)'/)?.[1];
     const runner = Buffer.from(String(encodedRunner), "base64").toString();
