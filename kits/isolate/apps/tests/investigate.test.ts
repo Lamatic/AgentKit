@@ -109,4 +109,21 @@ describe("investigateIssue", () => {
     expect(calls).toContain("probe");
     expect(calls.at(-1)).toBe("delete");
   });
+
+  test("fails closed when sandbox deletion cannot be confirmed", async () => {
+    const { runtime, planner } = harness();
+    const cleanupFailure = {
+      ...runtime,
+      delete: async () => {
+        throw new Error("sandbox cleanup failed");
+      },
+    };
+
+    await expect(
+      investigateIssue(
+        { issueUrl: issue.url },
+        { issueReader: { read: async () => issue }, runtime: cleanupFailure, planner },
+      ),
+    ).rejects.toThrow("sandbox cleanup failed");
+  });
 });

@@ -2,11 +2,13 @@ import type { IssueEvidenceAssertion } from "./claim";
 import { certifyEvidence } from "./evidence";
 import type { ProbeEvaluation, ProbeSpec } from "./probe";
 import { assertCertificationCommand } from "./policy";
+import type { InvestigationDeadline } from "../deadline";
 
 type ProbeRuntime = {
   resetWorkspace(input: {
     sandboxId: string;
     workspace: "workspace/repo";
+    timeoutSeconds: number;
   }): Promise<void>;
   runProbe(input: {
     sandboxId: string;
@@ -16,19 +18,11 @@ type ProbeRuntime = {
   }): Promise<ProbeEvaluation>;
 };
 
-export async function runCertification({
-  runtime,
-  sandboxId,
-  workspace,
-  timeoutSeconds,
+export function validateCertificationCommands({
   candidateCommand,
   controlCommand,
   assertion,
 }: {
-  runtime: ProbeRuntime;
-  sandboxId: string;
-  workspace: "workspace/repo";
-  timeoutSeconds: number;
   candidateCommand: string;
   controlCommand: string;
   assertion: IssueEvidenceAssertion;
@@ -38,7 +32,27 @@ export async function runCertification({
   if (candidateCommand.trim() === controlCommand.trim()) {
     throw new Error("Candidate and control commands must exercise different cases.");
   }
-  const shared = { sandboxId, workspace, timeoutSeconds };
+}
+
+export async function runCertification({
+  runtime,
+  sandboxId,
+  workspace,
+  deadline,
+  candidateCommand,
+  controlCommand,
+  assertion,
+}: {
+  runtime: ProbeRuntime;
+  sandboxId: string;
+  workspace: "workspace/repo";
+  deadline: Pick<InvestigationDeadline, "probeTimeoutSeconds">;
+  candidateCommand: string;
+  controlCommand: string;
+  assertion: IssueEvidenceAssertion;
+}) {
+  validateCertificationCommands({ candidateCommand, controlCommand, assertion });
+  const shared = { sandboxId, workspace };
   const candidateProbe = {
     command: candidateCommand,
     assertions: [assertion],
@@ -48,19 +62,34 @@ export async function runCertification({
     assertions: [assertion],
   } satisfies ProbeSpec;
 
-  await runtime.resetWorkspace({ sandboxId, workspace });
+  await runtime.resetWorkspace({
+    sandboxId,
+    workspace,
+    timeoutSeconds: deadline.probeTimeoutSeconds(20, 6),
+  });
   const firstCandidate = await runtime.runProbe({
     ...shared,
+    timeoutSeconds: deadline.probeTimeoutSeconds(25, 5),
     probe: candidateProbe,
   });
-  await runtime.resetWorkspace({ sandboxId, workspace });
+  await runtime.resetWorkspace({
+    sandboxId,
+    workspace,
+    timeoutSeconds: deadline.probeTimeoutSeconds(20, 4),
+  });
   const secondCandidate = await runtime.runProbe({
     ...shared,
+    timeoutSeconds: deadline.probeTimeoutSeconds(25, 3),
     probe: candidateProbe,
   });
-  await runtime.resetWorkspace({ sandboxId, workspace });
+  await runtime.resetWorkspace({
+    sandboxId,
+    workspace,
+    timeoutSeconds: deadline.probeTimeoutSeconds(20, 2),
+  });
   const controlRun = await runtime.runProbe({
     ...shared,
+    timeoutSeconds: deadline.probeTimeoutSeconds(25, 1),
     probe: controlProbe,
   });
 

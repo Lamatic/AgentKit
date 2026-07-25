@@ -95,7 +95,7 @@ reproduction instructions.
 - Private, non-public sandboxes with a 30-minute maximum lifetime.
 - Locked dependencies are installed without lifecycle scripts before outbound
   networking is blocked for probes.
-- Probes are bounded to 40 seconds within a 220-second aggregate investigation.
+- Probes are bounded to 40 seconds within a 150-second aggregate investigation.
 - Captured stdout and stderr are redacted and capped at 64 KiB each.
 - No repository credentials are mounted in the sandbox.
 - No pushes, package publication, pull requests, or fix generation.

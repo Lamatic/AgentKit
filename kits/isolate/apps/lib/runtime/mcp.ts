@@ -1,7 +1,10 @@
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
-import { runCertification } from "./certification";
+import {
+  runCertification,
+  validateCertificationCommands,
+} from "./certification";
 import {
   extractIssueEvidenceAssertion,
   MissingIssueEvidenceContractError,
@@ -10,6 +13,7 @@ import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
 import { certificationSchema } from "./evidence";
 import { createGitHubIssueReader } from "./github";
 import { UnsafeCommandError } from "./policy";
+import { InvestigationDeadline } from "../deadline";
 
 type RuntimeFactory = () => Pick<
   DaytonaSandboxRuntime,
@@ -133,7 +137,6 @@ function createIsolateServer(
       inputSchema: z.object({
         issueUrl: z.string().url(),
         ref: z.string().trim().min(1).max(255).optional(),
-        timeoutSeconds: z.number().int().min(1).max(40).default(40),
         candidateCommand: z.string().trim().min(1).max(4_000),
         controlCommand: z.string().trim().min(1).max(4_000),
       }),
@@ -148,14 +151,19 @@ function createIsolateServer(
     async ({
       issueUrl,
       ref,
-      timeoutSeconds,
       candidateCommand,
       controlCommand,
     }) => {
       try {
+        const deadline = new InvestigationDeadline();
         const runtime = runtimeFactory();
         const issue = await issueReader.read(issueUrl);
         const assertion = extractIssueEvidenceAssertion(issue.body);
+        validateCertificationCommands({
+          candidateCommand,
+          controlCommand,
+          assertion,
+        });
         const sandbox = await runtime.create({
           repositoryUrl: issue.repositoryUrl,
           ref: ref?.trim() || "main",
@@ -164,7 +172,7 @@ function createIsolateServer(
           const output = await runCertification({
             runtime,
             ...sandbox,
-            timeoutSeconds,
+            deadline,
             candidateCommand,
             controlCommand,
             assertion,
@@ -175,7 +183,7 @@ function createIsolateServer(
             structuredContent: output,
           };
         } finally {
-          await runtime.delete(sandbox.sandboxId).catch(() => undefined);
+          await runtime.delete(sandbox.sandboxId);
         }
       } catch (error) {
         return mcpToolError(error);

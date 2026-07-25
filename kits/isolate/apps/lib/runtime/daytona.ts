@@ -28,7 +28,10 @@ type ExecuteResult = { exitCode: number; result: string };
 
 interface SandboxLike {
   id: string;
-  updateNetworkSettings(settings: { networkBlockAll: boolean }): Promise<unknown>;
+  updateNetworkSettings(settings: {
+    networkBlockAll?: boolean;
+    domainAllowList?: string;
+  }): Promise<unknown>;
   git: {
     clone(
       url: string,
@@ -66,6 +69,25 @@ const dependencyInstallCommand = [
   "elif [ -f yarn.lock ]; then yarn install --frozen-lockfile --ignore-scripts --non-interactive",
   "fi",
 ].join("; ");
+const packageRegistryAllowList =
+  "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com";
+
+async function withTimeout<T>(operation: Promise<T>, milliseconds: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("The sandbox operation timed out.")),
+          milliseconds,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 function sanitizeOutput(value: string) {
   const redacted = value
@@ -89,11 +111,34 @@ function isTierNetworkRestriction(error: unknown) {
   );
 }
 
+async function updateNetworkPolicy(
+  sandbox: SandboxLike,
+  settings: { networkBlockAll?: boolean; domainAllowList?: string },
+) {
+  await withTimeout(sandbox.updateNetworkSettings(settings), 10_000).catch((error: unknown) => {
+    if (!isTierNetworkRestriction(error)) throw error;
+  });
+}
+
 export class DaytonaSandboxRuntime {
   constructor(
     private readonly client: DaytonaLike,
     private readonly now: () => number = Date.now,
   ) {}
+
+  private async deleteSandbox(sandbox: SandboxLike) {
+    let deletionError: unknown;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await this.client.delete(sandbox, 30, true);
+        return;
+      } catch (error) {
+        deletionError = error;
+        console.error("Isolate sandbox deletion failed", error);
+      }
+    }
+    throw deletionError;
+  }
 
   async create(input: z.input<typeof createSandboxInputSchema>) {
     const { repositoryUrl, ref } = createSandboxInputSchema.parse(input);
@@ -112,7 +157,7 @@ export class DaytonaSandboxRuntime {
     const branch = commitId ? undefined : ref;
 
     try {
-      await sandbox.git.clone(
+      await withTimeout(sandbox.git.clone(
         repositoryUrl,
         workspace,
         branch,
@@ -121,23 +166,10 @@ export class DaytonaSandboxRuntime {
         undefined,
         false,
         1,
-      );
-      const install = await sandbox.process.executeCommand(
-        dependencyInstallCommand,
-        workspace,
-        undefined,
-        60,
-      );
-      if (install.exitCode !== 0) {
-        throw new Error("Deterministic dependency installation failed.");
-      }
-      await sandbox
-        .updateNetworkSettings({ networkBlockAll: true })
-        .catch((error: unknown) => {
-          if (!isTierNetworkRestriction(error)) throw error;
-        });
+      ), 30_000);
+      await updateNetworkPolicy(sandbox, { networkBlockAll: true });
     } catch (error) {
-      await this.client.delete(sandbox, 60, true).catch(() => undefined);
+      await this.deleteSandbox(sandbox);
       throw error;
     }
 
@@ -160,7 +192,7 @@ export class DaytonaSandboxRuntime {
         `printf '%s' '${encodedCommand}' | base64 -d > '${scriptPath}'`,
         workspace,
         undefined,
-        10,
+          5,
       );
 
       const startedAt = this.now();
@@ -182,7 +214,7 @@ export class DaytonaSandboxRuntime {
         `node -e "eval(Buffer.from('${encodedRunner}','base64').toString())"`,
         workspace,
         undefined,
-        timeoutSeconds + 10,
+        timeoutSeconds + 5,
       );
       const durationMs = this.now() - startedAt;
 
@@ -195,7 +227,7 @@ export class DaytonaSandboxRuntime {
         `node -e "${collector.replaceAll('"', '\\"')}"`,
         workspace,
         undefined,
-        10,
+        5,
       );
       const observation = z
         .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
@@ -208,33 +240,66 @@ export class DaytonaSandboxRuntime {
         durationMs,
       });
     } finally {
-      await sandbox.process
-        .executeCommand(
-          `rm -f '${scriptPath}' '${stdoutPath}' '${stderrPath}' '${exitPath}'`,
-          workspace,
-          undefined,
-          10,
-        )
-        .catch(() => undefined);
+      let cleanupError: unknown;
+      let cleaned = false;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const cleanup = await sandbox.process.executeCommand(
+            `rm -f '${scriptPath}' '${stdoutPath}' '${stderrPath}' '${exitPath}'`,
+            workspace,
+            undefined,
+            3,
+          );
+          if (cleanup.exitCode === 0) {
+            cleaned = true;
+            break;
+          }
+          cleanupError = new Error("Probe artifact cleanup failed.");
+        } catch (error) {
+          cleanupError = error;
+        }
+        console.error("Isolate probe artifact cleanup failed", cleanupError);
+      }
+      if (!cleaned) throw cleanupError;
     }
   }
 
-  async resetWorkspace(input: { sandboxId: string; workspace: typeof workspace }) {
+  async resetWorkspace(input: {
+    sandboxId: string;
+    workspace: typeof workspace;
+    timeoutSeconds: number;
+  }) {
     const sandbox = await this.client.get(z.string().min(1).parse(input.sandboxId));
     const reset = await sandbox.process.executeCommand(
-      "git reset --hard HEAD && git clean -fd -e node_modules -e '*/node_modules'",
+      "git reset --hard HEAD && git clean -fdx",
       workspace,
       undefined,
-      20,
+      Math.min(10, input.timeoutSeconds),
     );
     if (reset.exitCode !== 0) {
       throw new Error("The sandbox workspace could not be restored cleanly.");
+    }
+    await updateNetworkPolicy(sandbox, {
+      domainAllowList: packageRegistryAllowList,
+    });
+    try {
+      const install = await sandbox.process.executeCommand(
+        dependencyInstallCommand,
+        workspace,
+        undefined,
+        input.timeoutSeconds,
+      );
+      if (install.exitCode !== 0) {
+        throw new Error("Deterministic dependency installation failed.");
+      }
+    } finally {
+      await updateNetworkPolicy(sandbox, { networkBlockAll: true });
     }
   }
 
   async delete(sandboxId: string) {
     const sandbox = await this.client.get(z.string().min(1).parse(sandboxId));
-    await this.client.delete(sandbox, 60, true);
+    await this.deleteSandbox(sandbox);
     return { deleted: true as const, sandboxId };
   }
 }

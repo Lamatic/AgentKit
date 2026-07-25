@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 
 import { DaytonaSandboxRuntime } from "../lib/runtime/daytona";
 
@@ -72,15 +72,6 @@ describe("DaytonaSandboxRuntime", () => {
         ],
       },
       {
-        name: "executeCommand",
-        args: [
-          expect.stringContaining("bun install --frozen-lockfile --ignore-scripts"),
-          "workspace/repo",
-          undefined,
-          60,
-        ],
-      },
-      {
         name: "updateNetworkSettings",
         args: [{ networkBlockAll: true }],
       },
@@ -109,7 +100,7 @@ describe("DaytonaSandboxRuntime", () => {
     ).rejects.toThrow("clone failed");
 
     expect(calls.map(({ name }) => name)).toEqual(["create", "delete"]);
-    expect(calls[1]?.args.slice(1)).toEqual([60, true]);
+    expect(calls[1]?.args.slice(1)).toEqual([30, true]);
   });
 
   test("accepts a Daytona tier that already enforces network isolation", async () => {
@@ -129,19 +120,20 @@ describe("DaytonaSandboxRuntime", () => {
     });
   });
 
-  test("deletes the sandbox when deterministic dependency installation fails", async () => {
-    const { client, calls } = fakeDaytona([{ exitCode: 1, result: "install failed" }]);
+  test("fails workspace preparation when deterministic dependency installation fails", async () => {
+    const { client } = fakeDaytona([
+      { exitCode: 0, result: "reset" },
+      { exitCode: 1, result: "install failed" },
+    ]);
     const runtime = new DaytonaSandboxRuntime(client);
 
     await expect(
-      runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" }),
+      runtime.resetWorkspace({
+        sandboxId: "sandbox_123",
+        workspace: "workspace/repo",
+        timeoutSeconds: 20,
+      }),
     ).rejects.toThrow("dependency installation failed");
-    expect(calls.map(({ name }) => name)).toEqual([
-      "create",
-      "clone",
-      "executeCommand",
-      "delete",
-    ]);
   });
 
   test("checks out an immutable commit when the ref is a full SHA", async () => {
@@ -167,7 +159,7 @@ describe("DaytonaSandboxRuntime", () => {
         1,
       ],
     });
-    expect(calls[3]).toEqual({
+    expect(calls[2]).toEqual({
       name: "updateNetworkSettings",
       args: [{ networkBlockAll: true }],
     });
@@ -211,7 +203,7 @@ describe("DaytonaSandboxRuntime", () => {
     });
     expect(calls[0]).toEqual({ name: "get", args: ["sandbox_123"] });
     expect(calls.filter(({ name }) => name === "executeCommand")).toHaveLength(4);
-    expect(calls[2]?.args.at(-1)).toBe(50);
+    expect(calls[2]?.args.at(-1)).toBe(45);
   });
 
   test("rejects unsafe probes before accessing a sandbox", async () => {
@@ -238,16 +230,37 @@ describe("DaytonaSandboxRuntime", () => {
     await runtime.resetWorkspace({
       sandboxId: "sandbox_123",
       workspace: "workspace/repo",
+      timeoutSeconds: 20,
     });
 
     expect(calls[1]).toEqual({
       name: "executeCommand",
       args: [
-        "git reset --hard HEAD && git clean -fd -e node_modules -e '*/node_modules'",
+        "git reset --hard HEAD && git clean -fdx",
+        "workspace/repo",
+        undefined,
+        10,
+      ],
+    });
+    expect(calls[2]).toEqual({
+      name: "updateNetworkSettings",
+      args: [{
+        domainAllowList:
+          "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com",
+      }],
+    });
+    expect(calls[3]).toEqual({
+      name: "executeCommand",
+      args: [
+        expect.stringContaining("yarn install --frozen-lockfile"),
         "workspace/repo",
         undefined,
         20,
       ],
+    });
+    expect(calls[4]).toEqual({
+      name: "updateNetworkSettings",
+      args: [{ networkBlockAll: true }],
     });
   });
 
@@ -259,8 +272,27 @@ describe("DaytonaSandboxRuntime", () => {
       runtime.resetWorkspace({
         sandboxId: "sandbox_123",
         workspace: "workspace/repo",
+        timeoutSeconds: 20,
       }),
     ).rejects.toThrow("restored cleanly");
+  });
+
+  test("logs, retries, and fails closed when sandbox deletion fails", async () => {
+    const { client } = fakeDaytona();
+    let attempts = 0;
+    client.delete = async () => {
+      attempts += 1;
+      throw new Error("provider delete failed");
+    };
+    const logged = spyOn(console, "error").mockImplementation(() => undefined);
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await expect(runtime.delete("sandbox_123")).rejects.toThrow(
+      "provider delete failed",
+    );
+    expect(attempts).toBe(2);
+    expect(logged).toHaveBeenCalledTimes(2);
+    logged.mockRestore();
   });
 
   test("redacts common credentials and caps captured command output", async () => {
