@@ -3,6 +3,7 @@ import { describe, expect, spyOn, test } from "bun:test";
 import {
   DaytonaSandboxRuntime,
   resolveDaytonaApiUrl,
+  resolveDaytonaCredential,
 } from "../lib/runtime/daytona";
 import { InvestigationDeadline } from "../lib/deadline";
 
@@ -48,6 +49,18 @@ describe("DaytonaSandboxRuntime", () => {
         DAYTONA_SERVER_URL: "https://legacy.example/api",
       }),
     ).toBe("https://preferred.example/api");
+    expect(
+      resolveDaytonaApiUrl({
+        DAYTONA_API_URL: "  ",
+        DAYTONA_SERVER_URL: " https://legacy.example/api/ ",
+      }),
+    ).toBe("https://legacy.example/api");
+    expect(
+      resolveDaytonaCredential({
+        DAYTONA_API_KEY: "",
+        DAYTONA_JWT_TOKEN: " jwt-token ",
+      }),
+    ).toBe("jwt-token");
   });
   test("creates an expiring private sandbox for a public GitHub repository", async () => {
     const { client, calls } = fakeDaytona();
