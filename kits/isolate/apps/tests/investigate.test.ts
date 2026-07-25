@@ -64,7 +64,7 @@ function harness(options: { plannerFails?: boolean } = {}) {
     return {
       hypothesis: "Case is normalized unexpectedly.",
       candidateCommand: "bun run cli",
-      controlCommand: "bun run cli --preserve-case",
+      controlCommand: "bun run cli -- --preserve-case",
     };
   };
   return { calls, createInputs, runtime, planner };

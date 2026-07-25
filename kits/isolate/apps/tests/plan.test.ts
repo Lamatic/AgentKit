@@ -9,7 +9,7 @@ import {
 const validPlan = {
   hypothesis: "The CLI lowercases the local part of the username.",
   candidateCommand: "bun run src/index.ts AdaLovelace",
-  controlCommand: "bun run src/index.ts AdaLovelace --preserve-case",
+  controlCommand: "bun run src/index.ts -- AdaLovelace --preserve-case",
 };
 
 describe("reproduction plan boundary", () => {
@@ -60,6 +60,24 @@ describe("reproduction plan boundary", () => {
     expect(() =>
       assertCertificationCommand("npm test --prefix /tmp", "Hello"),
     ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("npm test --script-shell=/tmp/evil", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand(
+        "npm test --node-options=--require=/tmp/evil",
+        "Hello",
+      ),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("npm test --workspace=outside", "Hello"),
+    ).toThrow("command policy");
+    expect(
+      assertCertificationCommand(
+        "bun run cli -- input --preserve-case",
+        "Hello",
+      ),
+    ).toBe("bun run cli -- input --preserve-case");
     expect(() =>
       assertCertificationCommand(
         "bun run --preload=/tmp/repro.js test",

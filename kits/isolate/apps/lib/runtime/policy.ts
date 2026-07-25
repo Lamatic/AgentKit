@@ -67,13 +67,15 @@ function unquote(token: string) {
   return token;
 }
 
-function referencesOutsideRepository(token: string) {
+function referencesOutsideRepository(token: string): boolean {
   const value = unquote(token);
+  const assignedValue = value.includes("=") ? value.slice(value.indexOf("=") + 1) : "";
   return (
     value.startsWith("/") ||
     value.startsWith("~") ||
     /(^|\/)\.\.(?:\/|$)/.test(value) ||
-    /^file:/i.test(value)
+    /^file:/i.test(value) ||
+    (assignedValue !== "" && referencesOutsideRepository(assignedValue))
   );
 }
 
@@ -99,6 +101,22 @@ function isRepositoryRunnerSegment(segment: string) {
   }
   const arguments_ = tokens.slice(index + 2);
   if (verb === "run" && (!arguments_[0] || unquote(arguments_[0]).startsWith("-"))) {
+    return false;
+  }
+
+  const runnerArguments = verb === "run" ? arguments_.slice(1) : arguments_;
+  const separatorIndex = runnerArguments.findIndex(
+    (token) => unquote(token) === "--",
+  );
+  const optionBoundary = separatorIndex === -1 ? runnerArguments.length : separatorIndex;
+  if (
+    runnerArguments
+      .slice(0, optionBoundary)
+      .some((token) => unquote(token).startsWith("-")) ||
+    runnerArguments
+      .slice(optionBoundary + 1)
+      .some((token) => unquote(token) === "--")
+  ) {
     return false;
   }
 
