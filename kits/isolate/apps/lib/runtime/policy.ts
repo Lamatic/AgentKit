@@ -118,6 +118,7 @@ export function assertCertificationCommand(command: string, signature: string) {
   const segments = command.split(/\s*(?:&&|&)\s*/).filter(Boolean);
   if (
     /[\r\n]/.test(command) ||
+    /['"\\]/.test(command) ||
     /[|;<>]/.test(command) ||
     /&\s*$/.test(command) ||
     !segments.some((segment) => isRepositoryRunnerSegment(segment)) ||
