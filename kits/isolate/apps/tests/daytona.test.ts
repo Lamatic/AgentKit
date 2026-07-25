@@ -103,6 +103,23 @@ describe("DaytonaSandboxRuntime", () => {
     expect(calls[1]?.args.slice(1)).toEqual([60, true]);
   });
 
+  test("accepts a Daytona tier that already enforces network isolation", async () => {
+    const { client, sandbox } = fakeDaytona();
+    sandbox.updateNetworkSettings = async () => {
+      throw new Error(
+        "Network access is restricted and cannot be overridden at the sandbox level.",
+      );
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await expect(
+      runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" }),
+    ).resolves.toEqual({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+    });
+  });
+
   test("checks out an immutable commit when the ref is a full SHA", async () => {
     const { client, calls } = fakeDaytona();
     const runtime = new DaytonaSandboxRuntime(client);

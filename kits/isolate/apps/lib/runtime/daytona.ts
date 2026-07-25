@@ -73,6 +73,15 @@ function sanitizeOutput(value: string) {
   return `${redacted.slice(0, maximumOutputLength - marker.length)}${marker}`;
 }
 
+function isTierNetworkRestriction(error: unknown) {
+  return (
+    error instanceof Error &&
+    error.message.includes(
+      "Network access is restricted and cannot be overridden at the sandbox level",
+    )
+  );
+}
+
 export class DaytonaSandboxRuntime {
   constructor(
     private readonly client: DaytonaLike,
@@ -106,7 +115,11 @@ export class DaytonaSandboxRuntime {
         false,
         1,
       );
-      await sandbox.updateNetworkSettings({ networkBlockAll: true });
+      await sandbox
+        .updateNetworkSettings({ networkBlockAll: true })
+        .catch((error: unknown) => {
+          if (!isTierNetworkRestriction(error)) throw error;
+        });
     } catch (error) {
       await this.client.delete(sandbox, 60, true).catch(() => undefined);
       throw error;
