@@ -31,29 +31,45 @@ export async function investigateIssue(
   const runtime = dependencies.runtime ?? createDaytonaRuntime();
   const planner = dependencies.planner ?? requestLamaticPlan;
   const deadline = new InvestigationDeadline();
-  const issue = await issueReader.read(input.issueUrl);
+  const issue = await deadline.run(
+    (signal) => issueReader.read(input.issueUrl, { signal }),
+    { maximumMilliseconds: 10_000 },
+  );
   const assertion = tryExtractIssueEvidenceAssertion(issue.body);
   const ref = input.ref?.trim() || "main";
-  const sandbox = await runtime.create({ repositoryUrl: issue.repositoryUrl, ref });
+  const sandbox = await runtime.create(
+    { repositoryUrl: issue.repositoryUrl, ref },
+    deadline,
+  );
 
   try {
-    const snapshot = await runtime.runProbe({
-      ...sandbox,
-      timeoutSeconds: deadline.probeTimeoutSeconds(20, 5),
-      probe: {
-        command: repositorySnapshotCommand,
-        assertions: [{ kind: "exit_code", equals: 0 }],
+    const snapshot = await runtime.runProbe(
+      {
+        ...sandbox,
+        timeoutSeconds: deadline.probeTimeoutSeconds(20, 5),
+        probe: {
+          command: repositorySnapshotCommand,
+          assertions: [{ kind: "exit_code", equals: 0 }],
+        },
       },
-    });
+      deadline,
+    );
     if (!snapshot.passed) {
       throw new Error("Isolate could not inspect the repository at the requested ref.");
     }
 
-    const plan = await planner({
-      issue: JSON.stringify(issue),
-      repositoryContext: snapshot.observation.stdout,
-      ref,
-    });
+    const plan = await deadline.run(
+      (signal) =>
+        planner(
+          {
+            issue: JSON.stringify(issue),
+            repositoryContext: snapshot.observation.stdout,
+            ref,
+          },
+          { signal },
+        ),
+      { maximumMilliseconds: 25_000 },
+    );
     if (!assertion) {
       throw new MissingIssueEvidenceContractError(plan.hypothesis);
     }
@@ -74,6 +90,6 @@ export async function investigateIssue(
       ...certification,
     };
   } finally {
-    await runtime.delete(sandbox.sandboxId);
+    await runtime.delete(sandbox.sandboxId, deadline);
   }
 }

@@ -100,7 +100,7 @@ describe("DaytonaSandboxRuntime", () => {
     ).rejects.toThrow("clone failed");
 
     expect(calls.map(({ name }) => name)).toEqual(["create", "delete"]);
-    expect(calls[1]?.args.slice(1)).toEqual([30, true]);
+    expect(calls[1]?.args.slice(1)).toEqual([15, true]);
   });
 
   test("accepts a Daytona tier that already enforces network isolation", async () => {
@@ -126,6 +126,7 @@ describe("DaytonaSandboxRuntime", () => {
       { exitCode: 1, result: "install failed" },
     ]);
     const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     await expect(
       runtime.resetWorkspace({
@@ -179,6 +180,7 @@ describe("DaytonaSandboxRuntime", () => {
       },
     ]);
     const runtime = new DaytonaSandboxRuntime(client, () => 1_000);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     const result = await runtime.runProbe({
       sandboxId: "sandbox_123",
@@ -201,9 +203,11 @@ describe("DaytonaSandboxRuntime", () => {
       stderr: "Expected 200, received 500\n",
       durationMs: 0,
     });
-    expect(calls[0]).toEqual({ name: "get", args: ["sandbox_123"] });
+    expect(calls.some(({ name }) => name === "get")).toBe(false);
     expect(calls.filter(({ name }) => name === "executeCommand")).toHaveLength(4);
-    expect(calls[2]?.args.at(-1)).toBe(45);
+    expect(
+      calls.filter(({ name }) => name === "executeCommand")[1]?.args.at(-1),
+    ).toBe(45);
   });
 
   test("rejects unsafe probes before accessing a sandbox", async () => {
@@ -226,6 +230,7 @@ describe("DaytonaSandboxRuntime", () => {
   test("restores tracked files and removes probe artifacts before certification", async () => {
     const { client, calls } = fakeDaytona();
     const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     await runtime.resetWorkspace({
       sandboxId: "sandbox_123",
@@ -233,7 +238,7 @@ describe("DaytonaSandboxRuntime", () => {
       timeoutSeconds: 20,
     });
 
-    expect(calls[1]).toEqual({
+    expect(calls[3]).toEqual({
       name: "executeCommand",
       args: [
         "git reset --hard HEAD && git clean -fdx",
@@ -242,14 +247,15 @@ describe("DaytonaSandboxRuntime", () => {
         10,
       ],
     });
-    expect(calls[2]).toEqual({
+    expect(calls[4]).toEqual({
       name: "updateNetworkSettings",
       args: [{
+        networkBlockAll: false,
         domainAllowList:
           "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com",
       }],
     });
-    expect(calls[3]).toEqual({
+    expect(calls[5]).toEqual({
       name: "executeCommand",
       args: [
         expect.stringContaining("yarn install --frozen-lockfile"),
@@ -258,15 +264,43 @@ describe("DaytonaSandboxRuntime", () => {
         20,
       ],
     });
-    expect(calls[4]).toEqual({
+    expect(calls[6]).toEqual({
       name: "updateNetworkSettings",
       args: [{ networkBlockAll: true }],
     });
   });
 
+  test("explicitly unblocks a block-all sandbox before allowing registries", async () => {
+    const { client, sandbox } = fakeDaytona();
+    let blocked = true;
+    sandbox.updateNetworkSettings = async (...args: unknown[]) => {
+      const settings = args[0] as {
+        networkBlockAll?: boolean;
+        domainAllowList?: string;
+      };
+      if (settings.domainAllowList && blocked && settings.networkBlockAll !== false) {
+        throw new Error("allowlist cannot override block-all");
+      }
+      if (settings.networkBlockAll !== undefined) blocked = settings.networkBlockAll;
+      return 0;
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
+
+    await expect(
+      runtime.resetWorkspace({
+        sandboxId: "sandbox_123",
+        workspace: "workspace/repo",
+        timeoutSeconds: 20,
+      }),
+    ).resolves.toBeUndefined();
+    expect(blocked).toBe(true);
+  });
+
   test("fails closed when the workspace cannot be restored", async () => {
     const { client } = fakeDaytona([{ exitCode: 1, result: "reset failed" }]);
     const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     await expect(
       runtime.resetWorkspace({
@@ -286,6 +320,7 @@ describe("DaytonaSandboxRuntime", () => {
     };
     const logged = spyOn(console, "error").mockImplementation(() => undefined);
     const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     await expect(runtime.delete("sandbox_123")).rejects.toThrow(
       "provider delete failed",
@@ -293,6 +328,19 @@ describe("DaytonaSandboxRuntime", () => {
     expect(attempts).toBe(2);
     expect(logged).toHaveBeenCalledTimes(2);
     logged.mockRestore();
+  });
+
+  test("deletes using the retained sandbox handle without a provider lookup", async () => {
+    const { client, calls } = fakeDaytona();
+    client.get = async () => await new Promise(() => undefined);
+    const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
+
+    await expect(runtime.delete("sandbox_123")).resolves.toEqual({
+      deleted: true,
+      sandboxId: "sandbox_123",
+    });
+    expect(calls.some(({ name }) => name === "get")).toBe(false);
   });
 
   test("redacts common credentials and caps captured command output", async () => {
@@ -310,6 +358,7 @@ describe("DaytonaSandboxRuntime", () => {
       },
     ]);
     const runtime = new DaytonaSandboxRuntime(client, () => 1_000);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     const result = await runtime.runProbe({
       sandboxId: "sandbox_123",
@@ -338,6 +387,7 @@ describe("DaytonaSandboxRuntime", () => {
       { exitCode: 0, result: "" },
     ]);
     const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     await runtime.runProbe({
       sandboxId: "sandbox_123",

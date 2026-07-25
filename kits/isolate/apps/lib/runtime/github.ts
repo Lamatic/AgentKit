@@ -26,7 +26,7 @@ type FetchLike = (
 export class GitHubIssueReader {
   constructor(private readonly request: FetchLike = fetch) {}
 
-  async read(issueUrl: string) {
+  async read(issueUrl: string, options: { signal?: AbortSignal } = {}) {
     const normalizedUrl = issueUrlSchema.parse(issueUrl).replace(/\/$/, "");
     const match = normalizedUrl.match(
       /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues\/([0-9]+)$/,
@@ -42,7 +42,7 @@ export class GitHubIssueReader {
           "X-GitHub-Api-Version": "2022-11-28",
           "User-Agent": "isolate-agentkit",
         },
-        signal: AbortSignal.timeout(10_000),
+        signal: options.signal ?? AbortSignal.timeout(10_000),
       },
     );
 
