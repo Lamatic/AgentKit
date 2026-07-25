@@ -119,6 +119,7 @@ export function assertCertificationCommand(command: string, signature: string) {
   if (
     /[\r\n]/.test(command) ||
     /[$'"\\]/.test(command) ||
+    /[{}*?\[\]]/.test(command) ||
     /[|;<>]/.test(command) ||
     /&\s*$/.test(command) ||
     !segments.some((segment) => isRepositoryRunnerSegment(segment)) ||

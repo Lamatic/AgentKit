@@ -73,6 +73,21 @@ describe("reproduction plan boundary", () => {
       assertCertificationCommand("bun test ../outside.test.ts", "Hello"),
     ).toThrow("command policy");
     expect(() =>
+      assertCertificationCommand(
+        "bun test {../outside.test.ts,inside.test.ts}",
+        "Hello",
+      ),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand(
+        "bun test {/tmp/repro.test.ts,inside.test.ts}",
+        "Hello",
+      ),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("bun test tests/*.test.ts", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
       assertCertificationCommand('npm test --pre"fix"=/tmp', "Hello"),
     ).toThrow("command policy");
     expect(() =>
