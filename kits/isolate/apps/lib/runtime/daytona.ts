@@ -59,6 +59,13 @@ interface DaytonaLike {
 
 const workspace = "workspace/repo" as const;
 const maximumOutputLength = 65_536;
+const dependencyInstallCommand = [
+  "if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile --ignore-scripts",
+  "elif [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --ignore-scripts",
+  "elif [ -f package-lock.json ]; then npm ci --ignore-scripts --no-audit --no-fund",
+  "elif [ -f yarn.lock ]; then yarn install --ignore-scripts --non-interactive",
+  "fi",
+].join("; ");
 
 function sanitizeOutput(value: string) {
   const redacted = value
@@ -115,6 +122,12 @@ export class DaytonaSandboxRuntime {
         false,
         1,
       );
+      await sandbox.process.executeCommand(
+        dependencyInstallCommand,
+        workspace,
+        undefined,
+        60,
+      );
       await sandbox
         .updateNetworkSettings({ networkBlockAll: true })
         .catch((error: unknown) => {
@@ -148,8 +161,22 @@ export class DaytonaSandboxRuntime {
       );
 
       const startedAt = this.now();
+      const runner = [
+        "const fs=require('fs')",
+        "const {spawn}=require('child_process')",
+        `const child=spawn('setsid',['bash',${JSON.stringify(scriptPath)}],{stdio:['ignore','pipe','pipe']})`,
+        `const cap=${maximumOutputLength}`,
+        "const chunks={stdout:[],stderr:[]},sizes={stdout:0,stderr:0}",
+        "for(const name of ['stdout','stderr']) child[name].on('data',chunk=>{if(sizes[name]<cap){const slice=chunk.subarray(0,cap-sizes[name]);chunks[name].push(slice);sizes[name]+=slice.length}})",
+        "let timedOut=false,finished=false",
+        "const kill=signal=>{try{process.kill(-child.pid,signal)}catch{}}",
+        `const timer=setTimeout(()=>{timedOut=true;kill('SIGTERM');setTimeout(()=>kill('SIGKILL'),200)},${timeoutSeconds * 1_000})`,
+        "child.once('exit',(code)=>{if(finished)return;finished=true;clearTimeout(timer);kill('SIGTERM');setTimeout(()=>{kill('SIGKILL');fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",Buffer.concat(chunks.stdout));fs.writeFileSync(" + JSON.stringify(stderrPath) + ",Buffer.concat(chunks.stderr));fs.writeFileSync(" + JSON.stringify(exitPath) + ",String(timedOut?124:(code??1)));process.exit(0)},250)})",
+        "child.once('error',()=>{if(finished)return;finished=true;clearTimeout(timer);fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",'');fs.writeFileSync(" + JSON.stringify(stderrPath) + ",'');fs.writeFileSync(" + JSON.stringify(exitPath) + ",'1');process.exit(0)})",
+      ].join(";");
+      const encodedRunner = Buffer.from(runner).toString("base64");
       await sandbox.process.executeCommand(
-        `ulimit -f 128; setsid timeout --signal=TERM --kill-after=5s ${timeoutSeconds}s bash '${scriptPath}' > '${stdoutPath}' 2> '${stderrPath}' & probe_pid=$!; wait "$probe_pid"; probe_status=$?; kill -TERM -- "-$probe_pid" 2>/dev/null || true; sleep 0.2; kill -KILL -- "-$probe_pid" 2>/dev/null || true; printf '%s' "$probe_status" > '${exitPath}'`,
+        `node -e "eval(Buffer.from('${encodedRunner}','base64').toString())"`,
         workspace,
         undefined,
         timeoutSeconds + 10,
@@ -187,6 +214,16 @@ export class DaytonaSandboxRuntime {
         )
         .catch(() => undefined);
     }
+  }
+
+  async resetWorkspace(input: { sandboxId: string; workspace: typeof workspace }) {
+    const sandbox = await this.client.get(z.string().min(1).parse(input.sandboxId));
+    await sandbox.process.executeCommand(
+      "git reset --hard HEAD && git clean -fd -e node_modules -e '*/node_modules'",
+      workspace,
+      undefined,
+      20,
+    );
   }
 
   async delete(sandboxId: string) {

@@ -34,6 +34,9 @@ function harness(options: { plannerFails?: boolean } = {}) {
   let probeIndex = 0;
   const runtime = {
     create: async () => ({ sandboxId: "sandbox_1", workspace: "workspace/repo" as const }),
+    resetWorkspace: async () => {
+      calls.push("reset");
+    },
     runProbe: async () => {
       calls.push("probe");
       probeIndex += 1;
@@ -44,7 +47,7 @@ function harness(options: { plannerFails?: boolean } = {}) {
         };
       }
       if (probeIndex === 2) return passingRun;
-      if (probeIndex < 5) return passingRun;
+      if (probeIndex < 4) return passingRun;
       return { ...passingRun, passed: false };
     },
     delete: async () => {
@@ -56,7 +59,6 @@ function harness(options: { plannerFails?: boolean } = {}) {
     if (options.plannerFails) throw new Error("planner unavailable");
     return {
       hypothesis: "Case is normalized unexpectedly.",
-      setupCommand: "bun install --frozen-lockfile",
       candidateCommand: "bun run cli",
       controlCommand: "bun run cli --preserve-case",
     };
@@ -91,6 +93,20 @@ describe("investigateIssue", () => {
         { issueReader: { read: async () => issue }, runtime, planner },
       ),
     ).rejects.toThrow("planner unavailable");
+    expect(calls.at(-1)).toBe("delete");
+  });
+
+  test("investigates a vague issue but blocks certification without a confirmed signature", async () => {
+    const { calls, runtime, planner } = harness();
+    const vagueIssue = { ...issue, body: "The CLI changes my name unexpectedly." };
+
+    await expect(
+      investigateIssue(
+        { issueUrl: vagueIssue.url },
+        { issueReader: { read: async () => vagueIssue }, runtime, planner },
+      ),
+    ).rejects.toThrow("formed this hypothesis");
+    expect(calls).toContain("probe");
     expect(calls.at(-1)).toBe("delete");
   });
 });

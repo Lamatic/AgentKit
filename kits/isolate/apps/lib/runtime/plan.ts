@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const reproductionPlanSchema = z.object({
   hypothesis: z.string().trim().min(1).max(2_000),
-  setupCommand: z.string().trim().max(4_000).default(""),
   candidateCommand: z.string().trim().min(1).max(4_000),
   controlCommand: z.string().trim().min(1).max(4_000),
 });

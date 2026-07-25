@@ -15,7 +15,6 @@ describe("requestLamaticPlan", () => {
               result: {
                 plan: JSON.stringify({
                   hypothesis: "The CLI exits zero for an invalid flag.",
-                  setupCommand: "bun install --frozen-lockfile",
                   candidateCommand: "bun run cli -- --invalid",
                   controlCommand: "bun run cli -- --help",
                 }),

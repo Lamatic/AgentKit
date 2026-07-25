@@ -1,8 +1,13 @@
 import type { IssueEvidenceAssertion } from "./claim";
 import { certifyEvidence } from "./evidence";
 import type { ProbeEvaluation, ProbeSpec } from "./probe";
+import { assertCertificationCommand } from "./policy";
 
 type ProbeRuntime = {
+  resetWorkspace(input: {
+    sandboxId: string;
+    workspace: "workspace/repo";
+  }): Promise<void>;
   runProbe(input: {
     sandboxId: string;
     workspace: "workspace/repo";
@@ -28,23 +33,11 @@ export async function runCertification({
   controlCommand: string;
   assertion: IssueEvidenceAssertion;
 }) {
+  assertCertificationCommand(candidateCommand, assertion.value);
+  assertCertificationCommand(controlCommand, assertion.value);
   if (candidateCommand.trim() === controlCommand.trim()) {
     throw new Error("Candidate and control commands must exercise different cases.");
   }
-  const candidate = candidateCommand.toLowerCase();
-  const control = controlCommand.toLowerCase();
-  const signatureTokens = assertion.value
-    .toLowerCase()
-    .match(/[a-z0-9_-]{5,}/g) ?? [];
-  const reusedToken = signatureTokens.find(
-    (token) => candidate.includes(token) && control.includes(token),
-  );
-  if (reusedToken) {
-    throw new Error(
-      "The negative control reuses the reported signature instead of isolating it.",
-    );
-  }
-
   const shared = { sandboxId, workspace, timeoutSeconds };
   const candidateProbe = {
     command: candidateCommand,
@@ -55,14 +48,17 @@ export async function runCertification({
     assertions: [assertion],
   } satisfies ProbeSpec;
 
+  await runtime.resetWorkspace({ sandboxId, workspace });
   const firstCandidate = await runtime.runProbe({
     ...shared,
     probe: candidateProbe,
   });
+  await runtime.resetWorkspace({ sandboxId, workspace });
   const secondCandidate = await runtime.runProbe({
     ...shared,
     probe: candidateProbe,
   });
+  await runtime.resetWorkspace({ sandboxId, workspace });
   const controlRun = await runtime.runProbe({
     ...shared,
     probe: controlProbe,

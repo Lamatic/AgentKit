@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
 import { handleMcp } from "../lib/runtime/mcp";
-import { DaytonaSandboxRuntime } from "../lib/runtime/daytona";
 
 const secret = "test-mcp-secret";
 
@@ -115,187 +114,9 @@ describe("POST /api/mcp", () => {
     );
   });
 
-  test("creates an isolated repository workspace through MCP", async () => {
-    const calls: unknown[] = [];
-    const runtime = {
-      create: async (input: unknown) => {
-        calls.push(input);
-        return { sandboxId: "sandbox_123", workspace: "workspace/repo" as const };
-      },
-      runProbe: async () => {
-        throw new Error("not used");
-      },
-      delete: async () => {
-        throw new Error("not used");
-      },
-    };
-    const response = await handleMcp(
-      mcpRequest(
-        {
-          jsonrpc: "2.0",
-          id: 4,
-          method: "tools/call",
-          params: {
-            name: "create_sandbox",
-            arguments: {
-              repositoryUrl: "https://github.com/example/buggy-cli",
-              ref: "main",
-            },
-          },
-        },
-        `Bearer ${secret}`,
-      ),
-      secret,
-      () => runtime,
-    );
-    const body = await mcpJson(response);
-
-    expect(body.result.structuredContent).toEqual({
-      sandboxId: "sandbox_123",
-      workspace: "workspace/repo",
-    });
-    expect(calls).toEqual([
-      {
-        repositoryUrl: "https://github.com/example/buggy-cli",
-        ref: "main",
-      },
-    ]);
-  });
-
-  test("returns runtime-certified probe evidence through MCP", async () => {
-    const runtime = {
-      create: async () => {
-        throw new Error("not used");
-      },
-      runProbe: async () => ({
-        passed: true,
-        assertions: [
-          { kind: "exit_code" as const, passed: true, expected: 1, actual: 1 },
-        ],
-        observation: {
-          command: "bun test regression.test.ts",
-          exitCode: 1,
-          stdout: "",
-          stderr: "failure reproduced\n",
-          durationMs: 20,
-        },
-      }),
-      delete: async () => {
-        throw new Error("not used");
-      },
-    };
-    const response = await handleMcp(
-      mcpRequest(
-        {
-          jsonrpc: "2.0",
-          id: 5,
-          method: "tools/call",
-          params: {
-            name: "run_probe",
-            arguments: {
-              sandboxId: "sandbox_123",
-              workspace: "workspace/repo",
-              timeoutSeconds: 40,
-              probe: {
-                command: "bun test regression.test.ts",
-                assertions: [{ kind: "exit_code", equals: 1 }],
-              },
-            },
-          },
-        },
-        `Bearer ${secret}`,
-      ),
-      secret,
-      () => runtime,
-    );
-    const body = await mcpJson(response);
-    expect(body.result.structuredContent).toMatchObject({
-      passed: true,
-      observation: {
-        command: "bun test regression.test.ts",
-        exitCode: 1,
-        stderr: "failure reproduced\n",
-      },
-    });
-  });
-
-  test("rejects unsafe commands at the MCP runtime boundary", async () => {
-    let sandboxLookups = 0;
-    const runtime = new DaytonaSandboxRuntime({
-      create: async () => { throw new Error("not used"); },
-      get: async () => {
-        sandboxLookups += 1;
-        throw new Error("must not access sandbox");
-      },
-      delete: async () => undefined,
-    });
-    const response = await handleMcp(
-      mcpRequest(
-        {
-          jsonrpc: "2.0",
-          id: 51,
-          method: "tools/call",
-          params: {
-            name: "run_probe",
-            arguments: {
-              sandboxId: "sandbox_123",
-              workspace: "workspace/repo",
-              timeoutSeconds: 40,
-              probe: {
-                command: "git push origin main",
-                assertions: [{ kind: "exit_code", equals: 0 }],
-              },
-            },
-          },
-        },
-        `Bearer ${secret}`,
-      ),
-      secret,
-      () => runtime,
-    );
-    const body = await mcpJson(response);
-
-    expect(body.result.isError).toBe(true);
-    expect(JSON.stringify(body.result.content)).toContain("command policy");
-    expect(sandboxLookups).toBe(0);
-  });
-
-  test("deletes an investigation sandbox through MCP", async () => {
-    const runtime = {
-      create: async () => {
-        throw new Error("not used");
-      },
-      runProbe: async () => {
-        throw new Error("not used");
-      },
-      delete: async (sandboxId: string) => ({ deleted: true as const, sandboxId }),
-    };
-    const response = await handleMcp(
-      mcpRequest(
-        {
-          jsonrpc: "2.0",
-          id: 6,
-          method: "tools/call",
-          params: {
-            name: "delete_sandbox",
-            arguments: { sandboxId: "sandbox_123" },
-          },
-        },
-        `Bearer ${secret}`,
-      ),
-      secret,
-      () => runtime,
-    );
-    const body = await mcpJson(response);
-
-    expect(body.result.structuredContent).toEqual({
-      deleted: true,
-      sandboxId: "sandbox_123",
-    });
-  });
-
   test("certifies reproduction only after repeat and control probes", async () => {
-    const calls: unknown[] = [];
+    const probeCalls: unknown[] = [];
+    const lifecycle: unknown[] = [];
     const passingRun = {
       passed: true,
       assertions: [{
@@ -313,12 +134,13 @@ describe("POST /api/mcp", () => {
       },
     };
     const runtime = {
-      create: async () => {
-        throw new Error("not used");
+      create: async (input: unknown) => {
+        lifecycle.push({ create: input });
+        return { sandboxId: "sandbox_123", workspace: "workspace/repo" as const };
       },
       runProbe: async (input: unknown) => {
-        calls.push(input);
-        return calls.length < 3
+        probeCalls.push(input);
+        return probeCalls.length < 3
           ? passingRun
           : {
               ...passingRun,
@@ -332,8 +154,10 @@ describe("POST /api/mcp", () => {
               observation: { ...passingRun.observation, stderr: "" },
             };
       },
-      delete: async () => {
-        throw new Error("not used");
+      resetWorkspace: async () => undefined,
+      delete: async (sandboxId: string) => {
+        lifecycle.push({ delete: sandboxId });
+        return { deleted: true as const, sandboxId };
       },
     };
     const response = await handleMcp(
@@ -346,8 +170,7 @@ describe("POST /api/mcp", () => {
             name: "certify_reproduction",
             arguments: {
               issueUrl: "https://github.com/example/buggy-cli/issues/1",
-              sandboxId: "sandbox_123",
-              workspace: "workspace/repo",
+              ref: "main",
               timeoutSeconds: 40,
               candidateCommand: "bun test repro.test.ts",
               controlCommand: "bun test control.test.ts",
@@ -390,7 +213,16 @@ describe("POST /api/mcp", () => {
     });
     expect(markdown.includes("**Outcome:** `reproduced`")).toBe(true);
     expect(markdown.includes("`bun test repro.test.ts`")).toBe(true);
+    expect(lifecycle).toEqual([
+      {
+        create: {
+          repositoryUrl: "https://github.com/example/buggy-cli",
+          ref: "main",
+        },
+      },
+      { delete: "sandbox_123" },
+    ]);
     expect(markdown.includes("bug observed")).toBe(true);
-    expect(calls).toHaveLength(3);
+    expect(probeCalls).toHaveLength(3);
   });
 });

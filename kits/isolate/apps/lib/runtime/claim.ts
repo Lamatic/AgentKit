@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const issueEvidenceAssertionSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("stdout_contains"), value: z.string().min(1).max(2_000) }),
-  z.object({ kind: z.literal("stderr_contains"), value: z.string().min(1).max(2_000) }),
+  z.object({ kind: z.literal("stdout_contains"), value: z.string().min(5).max(2_000) }),
+  z.object({ kind: z.literal("stderr_contains"), value: z.string().min(5).max(2_000) }),
 ]);
 
 export type IssueEvidenceAssertion = z.infer<
@@ -10,11 +10,22 @@ export type IssueEvidenceAssertion = z.infer<
 >;
 
 export class MissingIssueEvidenceContractError extends Error {
-  constructor() {
+  constructor(hypothesis?: string) {
     super(
-      "The issue needs one machine-checkable `Observed stdout` or `Observed stderr` field before Isolate can certify it.",
+      hypothesis
+        ? `Isolate investigated the repository and formed this hypothesis: ${hypothesis} Certification is blocked until the issue includes one machine-checkable \`Observed stdout\` or \`Observed stderr\` field.`
+        : "The issue needs one machine-checkable `Observed stdout` or `Observed stderr` field before Isolate can certify it.",
     );
     this.name = "MissingIssueEvidenceContractError";
+  }
+}
+
+export function tryExtractIssueEvidenceAssertion(body: string) {
+  try {
+    return extractIssueEvidenceAssertion(body);
+  } catch (error) {
+    if (error instanceof MissingIssueEvidenceContractError) return null;
+    throw error;
   }
 }
 

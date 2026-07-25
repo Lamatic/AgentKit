@@ -72,6 +72,15 @@ describe("DaytonaSandboxRuntime", () => {
         ],
       },
       {
+        name: "executeCommand",
+        args: [
+          expect.stringContaining("bun install --frozen-lockfile --ignore-scripts"),
+          "workspace/repo",
+          undefined,
+          60,
+        ],
+      },
+      {
         name: "updateNetworkSettings",
         args: [{ networkBlockAll: true }],
       },
@@ -143,7 +152,7 @@ describe("DaytonaSandboxRuntime", () => {
         1,
       ],
     });
-    expect(calls[2]).toEqual({
+    expect(calls[3]).toEqual({
       name: "updateNetworkSettings",
       args: [{ networkBlockAll: true }],
     });
@@ -207,6 +216,26 @@ describe("DaytonaSandboxRuntime", () => {
     expect(calls).toHaveLength(0);
   });
 
+  test("restores tracked files and removes probe artifacts before certification", async () => {
+    const { client, calls } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(client);
+
+    await runtime.resetWorkspace({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+    });
+
+    expect(calls[1]).toEqual({
+      name: "executeCommand",
+      args: [
+        "git reset --hard HEAD && git clean -fd -e node_modules -e '*/node_modules'",
+        "workspace/repo",
+        undefined,
+        20,
+      ],
+    });
+  });
+
   test("redacts common credentials and caps captured command output", async () => {
     const oversized = `API_KEY=super-secret\n${"x".repeat(70_000)}`;
     const { client } = fakeDaytona([
@@ -263,10 +292,12 @@ describe("DaytonaSandboxRuntime", () => {
     const commands = calls
       .filter(({ name }) => name === "executeCommand")
       .map(({ args }) => String(args[0]));
-    expect(commands[1]).toContain("ulimit -f 128");
-    expect(commands[1]).toContain("setsid timeout --signal=TERM --kill-after=5s");
-    expect(commands[1]).toContain('kill -TERM -- "-$probe_pid"');
-    expect(commands[1]).toContain('kill -KILL -- "-$probe_pid"');
+    const encodedRunner = commands[1]?.match(/Buffer\.from\('([^']+)'/)?.[1];
+    const runner = Buffer.from(String(encodedRunner), "base64").toString();
+    expect(runner).toContain("const cap=65536");
+    expect(runner).toContain("spawn('setsid'");
+    expect(runner).toContain("process.kill(-child.pid");
+    expect(commands[1]).not.toContain("ulimit");
     expect(commands.at(-1)).toStartWith("rm -f ");
   });
 });
