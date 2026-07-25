@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { evaluateProbe, probeSpecSchema } from "./probe";
 import { assertSafeCommand } from "./policy";
+import { InvestigationDeadline } from "../deadline";
 
 const publicGitHubRepositorySchema = z
   .string()
@@ -56,7 +57,6 @@ interface SandboxLike {
 
 interface DaytonaLike {
   create(params: unknown, options: unknown): Promise<SandboxLike>;
-  get(sandboxId: string): Promise<SandboxLike>;
   delete(sandbox: SandboxLike, timeout?: number, wait?: boolean): Promise<unknown>;
 }
 
@@ -71,23 +71,6 @@ const dependencyInstallCommand = [
 ].join("; ");
 const packageRegistryAllowList =
   "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com";
-
-async function withTimeout<T>(operation: Promise<T>, milliseconds: number) {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      operation,
-      new Promise<never>((_, reject) => {
-        timer = setTimeout(
-          () => reject(new Error("The sandbox operation timed out.")),
-          milliseconds,
-        );
-      }),
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
 
 function sanitizeOutput(value: string) {
   const redacted = value
@@ -114,23 +97,70 @@ function isTierNetworkRestriction(error: unknown) {
 async function updateNetworkPolicy(
   sandbox: SandboxLike,
   settings: { networkBlockAll?: boolean; domainAllowList?: string },
+  deadline: InvestigationDeadline,
 ) {
-  await withTimeout(sandbox.updateNetworkSettings(settings), 10_000).catch((error: unknown) => {
-    if (!isTierNetworkRestriction(error)) throw error;
-  });
+  await deadline
+    .run(() => sandbox.updateNetworkSettings(settings), {
+      maximumMilliseconds: 10_000,
+    })
+    .catch((error: unknown) => {
+      if (!isTierNetworkRestriction(error)) throw error;
+    });
 }
 
 export class DaytonaSandboxRuntime {
+  private readonly sandboxes = new Map<string, SandboxLike>();
+
   constructor(
     private readonly client: DaytonaLike,
     private readonly now: () => number = Date.now,
   ) {}
 
-  private async deleteSandbox(sandbox: SandboxLike) {
+  private sandbox(sandboxId: string) {
+    const parsedId = z.string().min(1).parse(sandboxId);
+    const sandbox = this.sandboxes.get(parsedId);
+    if (!sandbox) throw new Error("The sandbox is not active in this investigation.");
+    return sandbox;
+  }
+
+  private async execute(
+    sandbox: SandboxLike,
+    command: string,
+    timeoutSeconds: number,
+    deadline: InvestigationDeadline,
+  ) {
+    return deadline.run(
+      (_signal, timeoutMilliseconds) =>
+        sandbox.process.executeCommand(
+          command,
+          workspace,
+          undefined,
+          Math.max(1, Math.ceil(timeoutMilliseconds / 1_000)),
+        ),
+      { maximumMilliseconds: timeoutSeconds * 1_000 },
+    );
+  }
+
+  private async deleteSandbox(
+    sandbox: SandboxLike,
+    deadline: InvestigationDeadline,
+  ) {
     let deletionError: unknown;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        await this.client.delete(sandbox, 30, true);
+        await deadline.run(
+          (_signal, timeoutMilliseconds) =>
+            this.client.delete(
+              sandbox,
+              Math.max(1, Math.ceil(timeoutMilliseconds / 1_000)),
+              true,
+            ),
+          {
+            maximumMilliseconds: 15_000,
+            cleanupReserveMilliseconds: 0,
+          },
+        );
+        this.sandboxes.delete(sandbox.id);
         return;
       } catch (error) {
         deletionError = error;
@@ -140,46 +170,61 @@ export class DaytonaSandboxRuntime {
     throw deletionError;
   }
 
-  async create(input: z.input<typeof createSandboxInputSchema>) {
+  async create(
+    input: z.input<typeof createSandboxInputSchema>,
+    deadline = new InvestigationDeadline(),
+  ) {
     const { repositoryUrl, ref } = createSandboxInputSchema.parse(input);
-    const sandbox = await this.client.create(
-      {
-        language: "typescript",
-        ephemeral: true,
-        public: false,
-        ttlMinutes: 30,
-        labels: { product: "isolate", purpose: "issue-reproduction" },
-      },
-      { timeout: 60 },
+    const sandbox = await deadline.run(
+      (_signal, timeoutMilliseconds) =>
+        this.client.create(
+          {
+            language: "typescript",
+            ephemeral: true,
+            public: false,
+            ttlMinutes: 30,
+            labels: { product: "isolate", purpose: "issue-reproduction" },
+          },
+          { timeout: Math.max(1, Math.ceil(timeoutMilliseconds / 1_000)) },
+        ),
+      { maximumMilliseconds: 60_000 },
     );
+    this.sandboxes.set(sandbox.id, sandbox);
 
     const commitId = ref && /^[a-f0-9]{40}$/i.test(ref) ? ref : undefined;
     const branch = commitId ? undefined : ref;
 
     try {
-      await withTimeout(sandbox.git.clone(
-        repositoryUrl,
-        workspace,
-        branch,
-        commitId,
-        undefined,
-        undefined,
-        false,
-        1,
-      ), 30_000);
-      await updateNetworkPolicy(sandbox, { networkBlockAll: true });
+      await deadline.run(
+        () =>
+          sandbox.git.clone(
+            repositoryUrl,
+            workspace,
+            branch,
+            commitId,
+            undefined,
+            undefined,
+            false,
+            1,
+          ),
+        { maximumMilliseconds: 30_000 },
+      );
+      await updateNetworkPolicy(sandbox, { networkBlockAll: true }, deadline);
     } catch (error) {
-      await this.deleteSandbox(sandbox);
+      await this.deleteSandbox(sandbox, deadline);
       throw error;
     }
 
     return { sandboxId: sandbox.id, workspace };
   }
 
-  async runProbe(input: z.input<typeof runProbeInputSchema>) {
+  async runProbe(
+    input: z.input<typeof runProbeInputSchema>,
+    deadline = new InvestigationDeadline(),
+  ) {
     const { sandboxId, probe, timeoutSeconds } = runProbeInputSchema.parse(input);
     assertSafeCommand(probe.command);
-    const sandbox = await this.client.get(sandboxId);
+    const sandbox = this.sandbox(sandboxId);
     const runId = crypto.randomUUID();
     const scriptPath = `/tmp/isolate-${runId}.sh`;
     const stdoutPath = `/tmp/isolate-${runId}.stdout`;
@@ -188,11 +233,11 @@ export class DaytonaSandboxRuntime {
     const encodedCommand = Buffer.from(probe.command).toString("base64");
 
     try {
-      await sandbox.process.executeCommand(
+      await this.execute(
+        sandbox,
         `printf '%s' '${encodedCommand}' | base64 -d > '${scriptPath}'`,
-        workspace,
-        undefined,
-          5,
+        5,
+        deadline,
       );
 
       const startedAt = this.now();
@@ -210,11 +255,11 @@ export class DaytonaSandboxRuntime {
         "child.once('error',()=>{if(finished)return;finished=true;clearTimeout(timer);fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",'');fs.writeFileSync(" + JSON.stringify(stderrPath) + ",'');fs.writeFileSync(" + JSON.stringify(exitPath) + ",'1');process.exit(0)})",
       ].join(";");
       const encodedRunner = Buffer.from(runner).toString("base64");
-      await sandbox.process.executeCommand(
+      await this.execute(
+        sandbox,
         `node -e "eval(Buffer.from('${encodedRunner}','base64').toString())"`,
-        workspace,
-        undefined,
         timeoutSeconds + 5,
+        deadline,
       );
       const durationMs = this.now() - startedAt;
 
@@ -223,11 +268,11 @@ export class DaytonaSandboxRuntime {
         `const output={exitCode:Number(fs.readFileSync('${exitPath}','utf8')),stdout:fs.readFileSync('${stdoutPath}','utf8'),stderr:fs.readFileSync('${stderrPath}','utf8')}`,
         "process.stdout.write(JSON.stringify(output))",
       ].join(";");
-      const collected = await sandbox.process.executeCommand(
+      const collected = await this.execute(
+        sandbox,
         `node -e "${collector.replaceAll('"', '\\"')}"`,
-        workspace,
-        undefined,
         5,
+        deadline,
       );
       const observation = z
         .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
@@ -244,11 +289,11 @@ export class DaytonaSandboxRuntime {
       let cleaned = false;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const cleanup = await sandbox.process.executeCommand(
+          const cleanup = await this.execute(
+            sandbox,
             `rm -f '${scriptPath}' '${stdoutPath}' '${stderrPath}' '${exitPath}'`,
-            workspace,
-            undefined,
             3,
+            deadline,
           );
           if (cleanup.exitCode === 0) {
             cleaned = true;
@@ -268,38 +313,45 @@ export class DaytonaSandboxRuntime {
     sandboxId: string;
     workspace: typeof workspace;
     timeoutSeconds: number;
-  }) {
-    const sandbox = await this.client.get(z.string().min(1).parse(input.sandboxId));
-    const reset = await sandbox.process.executeCommand(
+  }, deadline = new InvestigationDeadline()) {
+    const sandbox = this.sandbox(input.sandboxId);
+    const reset = await this.execute(
+      sandbox,
       "git reset --hard HEAD && git clean -fdx",
-      workspace,
-      undefined,
       Math.min(10, input.timeoutSeconds),
+      deadline,
     );
     if (reset.exitCode !== 0) {
       throw new Error("The sandbox workspace could not be restored cleanly.");
     }
     await updateNetworkPolicy(sandbox, {
+      networkBlockAll: false,
       domainAllowList: packageRegistryAllowList,
-    });
+    }, deadline);
     try {
-      const install = await sandbox.process.executeCommand(
+      const install = await this.execute(
+        sandbox,
         dependencyInstallCommand,
-        workspace,
-        undefined,
         input.timeoutSeconds,
+        deadline,
       );
       if (install.exitCode !== 0) {
         throw new Error("Deterministic dependency installation failed.");
       }
     } finally {
-      await updateNetworkPolicy(sandbox, { networkBlockAll: true });
+      await updateNetworkPolicy(sandbox, { networkBlockAll: true }, deadline);
     }
   }
 
-  async delete(sandboxId: string) {
-    const sandbox = await this.client.get(z.string().min(1).parse(sandboxId));
-    await this.deleteSandbox(sandbox);
+  async delete(
+    sandboxId: string,
+    deadline = new InvestigationDeadline(),
+  ) {
+    const sandbox = this.sandboxes.get(z.string().min(1).parse(sandboxId));
+    if (!sandbox) {
+      throw new Error("The sandbox is not active in this investigation.");
+    }
+    await this.deleteSandbox(sandbox, deadline);
     return { deleted: true as const, sandboxId };
   }
 }

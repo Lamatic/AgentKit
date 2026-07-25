@@ -2,11 +2,10 @@ import { describe, expect, test } from "bun:test";
 
 import { runCertification } from "../lib/runtime/certification";
 import { evaluateProbe, type ProbeSpec } from "../lib/runtime/probe";
+import { InvestigationDeadline } from "../lib/deadline";
 
 describe("runCertification", () => {
-  const deadline = {
-    probeTimeoutSeconds: (maximumSeconds: number) => maximumSeconds,
-  };
+  const deadline = new InvestigationDeadline();
   test("evaluates candidate and control against one shared issue assertion", async () => {
     const probes: ProbeSpec[] = [];
     const runtime = {

@@ -9,13 +9,13 @@ type ProbeRuntime = {
     sandboxId: string;
     workspace: "workspace/repo";
     timeoutSeconds: number;
-  }): Promise<void>;
+  }, deadline: InvestigationDeadline): Promise<void>;
   runProbe(input: {
     sandboxId: string;
     workspace: "workspace/repo";
     timeoutSeconds: number;
     probe: ProbeSpec;
-  }): Promise<ProbeEvaluation>;
+  }, deadline: InvestigationDeadline): Promise<ProbeEvaluation>;
 };
 
 export function validateCertificationCommands({
@@ -46,7 +46,7 @@ export async function runCertification({
   runtime: ProbeRuntime;
   sandboxId: string;
   workspace: "workspace/repo";
-  deadline: Pick<InvestigationDeadline, "probeTimeoutSeconds">;
+  deadline: InvestigationDeadline;
   candidateCommand: string;
   controlCommand: string;
   assertion: IssueEvidenceAssertion;
@@ -66,32 +66,32 @@ export async function runCertification({
     sandboxId,
     workspace,
     timeoutSeconds: deadline.probeTimeoutSeconds(20, 6),
-  });
+  }, deadline);
   const firstCandidate = await runtime.runProbe({
     ...shared,
     timeoutSeconds: deadline.probeTimeoutSeconds(25, 5),
     probe: candidateProbe,
-  });
+  }, deadline);
   await runtime.resetWorkspace({
     sandboxId,
     workspace,
     timeoutSeconds: deadline.probeTimeoutSeconds(20, 4),
-  });
+  }, deadline);
   const secondCandidate = await runtime.runProbe({
     ...shared,
     timeoutSeconds: deadline.probeTimeoutSeconds(25, 3),
     probe: candidateProbe,
-  });
+  }, deadline);
   await runtime.resetWorkspace({
     sandboxId,
     workspace,
     timeoutSeconds: deadline.probeTimeoutSeconds(20, 2),
-  });
+  }, deadline);
   const controlRun = await runtime.runProbe({
     ...shared,
     timeoutSeconds: deadline.probeTimeoutSeconds(25, 1),
     probe: controlProbe,
-  });
+  }, deadline);
 
   return certifyEvidence({
     candidateRuns: [firstCandidate, secondCandidate],

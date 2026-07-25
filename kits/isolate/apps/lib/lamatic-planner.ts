@@ -12,6 +12,7 @@ export async function requestLamaticPlan(input: {
   ref: string;
 }, dependencies: {
   fetchImpl?: typeof fetch;
+  signal?: AbortSignal;
   configuration?: {
     endpoint: string;
     projectId: string;
@@ -54,7 +55,7 @@ export async function requestLamaticPlan(input: {
       query,
       variables: { workflowId: configuration.flowId, ...input },
     }),
-    signal: AbortSignal.timeout(25_000),
+    signal: dependencies.signal ?? AbortSignal.timeout(25_000),
   });
   const body = (await response.json()) as {
     data?: { executeWorkflow?: { status?: string; result?: unknown } };

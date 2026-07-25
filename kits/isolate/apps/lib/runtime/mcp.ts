@@ -78,7 +78,11 @@ function createIsolateServer(
     },
     async ({ issueUrl }) => {
       try {
-        const output = await issueReader.read(issueUrl);
+        const deadline = new InvestigationDeadline();
+        const output = await deadline.run(
+          (signal) => issueReader.read(issueUrl, { signal }),
+          { maximumMilliseconds: 10_000 },
+        );
         return {
           content: [{ type: "text" as const, text: JSON.stringify(output) }],
           structuredContent: output,
@@ -157,17 +161,23 @@ function createIsolateServer(
       try {
         const deadline = new InvestigationDeadline();
         const runtime = runtimeFactory();
-        const issue = await issueReader.read(issueUrl);
+        const issue = await deadline.run(
+          (signal) => issueReader.read(issueUrl, { signal }),
+          { maximumMilliseconds: 10_000 },
+        );
         const assertion = extractIssueEvidenceAssertion(issue.body);
         validateCertificationCommands({
           candidateCommand,
           controlCommand,
           assertion,
         });
-        const sandbox = await runtime.create({
-          repositoryUrl: issue.repositoryUrl,
-          ref: ref?.trim() || "main",
-        });
+        const sandbox = await runtime.create(
+          {
+            repositoryUrl: issue.repositoryUrl,
+            ref: ref?.trim() || "main",
+          },
+          deadline,
+        );
         try {
           const output = await runCertification({
             runtime,
@@ -183,7 +193,7 @@ function createIsolateServer(
             structuredContent: output,
           };
         } finally {
-          await runtime.delete(sandbox.sandboxId);
+          await runtime.delete(sandbox.sandboxId, deadline);
         }
       } catch (error) {
         return mcpToolError(error);
