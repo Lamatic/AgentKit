@@ -1,6 +1,9 @@
 import { createDaytonaRuntime } from "./runtime/daytona";
 import { runCertification } from "./runtime/certification";
-import { extractIssueEvidenceAssertion } from "./runtime/claim";
+import {
+  MissingIssueEvidenceContractError,
+  tryExtractIssueEvidenceAssertion,
+} from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
 import { requestLamaticPlan } from "./lamatic-planner";
 import { InvestigationDeadline } from "./deadline";
@@ -20,7 +23,7 @@ export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
   dependencies: {
     issueReader?: Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
-    runtime?: Pick<ReturnType<typeof createDaytonaRuntime>, "create" | "runProbe" | "delete">;
+    runtime?: Pick<ReturnType<typeof createDaytonaRuntime>, "create" | "runProbe" | "resetWorkspace" | "delete">;
     planner?: typeof requestLamaticPlan;
   } = {},
 ) {
@@ -29,7 +32,7 @@ export async function investigateIssue(
   const planner = dependencies.planner ?? requestLamaticPlan;
   const deadline = new InvestigationDeadline();
   const issue = await issueReader.read(input.issueUrl);
-  const assertion = extractIssueEvidenceAssertion(issue.body);
+  const assertion = tryExtractIssueEvidenceAssertion(issue.body);
   const ref = input.ref?.trim() || "main";
   const sandbox = await runtime.create({ repositoryUrl: issue.repositoryUrl, ref });
 
@@ -51,21 +54,9 @@ export async function investigateIssue(
       repositoryContext: snapshot.observation.stdout,
       ref,
     });
-    let setup = null;
-    if (plan.setupCommand) {
-      setup = await runtime.runProbe({
-        ...sandbox,
-        timeoutSeconds: deadline.probeTimeoutSeconds(30, 4),
-        probe: {
-          command: plan.setupCommand,
-          assertions: [{ kind: "exit_code", equals: 0 }],
-        },
-      });
-      if (!setup.passed) {
-        throw new Error("Repository setup failed before the reproduction probe.");
-      }
+    if (!assertion) {
+      throw new MissingIssueEvidenceContractError(plan.hypothesis);
     }
-
     const certification = await runCertification({
       runtime,
       ...sandbox,
@@ -79,7 +70,7 @@ export async function investigateIssue(
       issue,
       ref,
       hypothesis: plan.hypothesis,
-      setup,
+      setup: null,
       ...certification,
     };
   } finally {

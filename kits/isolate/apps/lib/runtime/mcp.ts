@@ -6,11 +6,10 @@ import { extractIssueEvidenceAssertion } from "./claim";
 import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
 import { certificationSchema } from "./evidence";
 import { createGitHubIssueReader } from "./github";
-import { probeEvaluationSchema, probeSpecSchema } from "./probe";
 
 type RuntimeFactory = () => Pick<
   DaytonaSandboxRuntime,
-  "create" | "runProbe" | "delete"
+  "create" | "runProbe" | "resetWorkspace" | "delete"
 >;
 
 type IssueReader = Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
@@ -96,92 +95,6 @@ function createIsolateServer(
   );
 
   server.registerTool(
-    "create_sandbox",
-    {
-      title: "Create reproduction sandbox",
-      description:
-        "Creates an expiring private sandbox and clones a public GitHub repository into it.",
-      inputSchema: z.object({
-        repositoryUrl: z.string().url(),
-        ref: z.string().trim().min(1).max(255).optional(),
-      }),
-      outputSchema: z.object({
-        sandboxId: z.string(),
-        workspace: z.literal("workspace/repo"),
-      }),
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: true,
-      },
-    },
-    async (input) => {
-      const output = await runtimeFactory().create(input);
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
-    },
-  );
-
-  server.registerTool(
-    "run_probe",
-    {
-      title: "Run deterministic reproduction probe",
-      description:
-        "Executes one bounded command inside an Isolate sandbox and evaluates explicit assertions against captured evidence.",
-      inputSchema: z.object({
-        sandboxId: z.string().min(1),
-        workspace: z.literal("workspace/repo"),
-        timeoutSeconds: z.number().int().min(1).max(40).default(40),
-        probe: probeSpecSchema,
-      }),
-      outputSchema: probeEvaluationSchema,
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: true,
-      },
-    },
-    async (input) => {
-      const output = await runtimeFactory().runProbe(input);
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
-    },
-  );
-
-  server.registerTool(
-    "delete_sandbox",
-    {
-      title: "Delete reproduction sandbox",
-      description:
-        "Permanently deletes an Isolate sandbox after its evidence has been collected.",
-      inputSchema: z.object({ sandboxId: z.string().min(1) }),
-      outputSchema: z.object({
-        deleted: z.literal(true),
-        sandboxId: z.string(),
-      }),
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: true,
-        idempotentHint: false,
-        openWorldHint: true,
-      },
-    },
-    async ({ sandboxId }) => {
-      const output = await runtimeFactory().delete(sandboxId);
-      return {
-        content: [{ type: "text", text: JSON.stringify(output) }],
-        structuredContent: output,
-      };
-    },
-  );
-
-  server.registerTool(
     "certify_reproduction",
     {
       title: "Certify reproduction evidence",
@@ -189,8 +102,7 @@ function createIsolateServer(
         "Runs candidate and control commands against one exact issue-derived signature, then deterministically decides whether the issue was reproduced.",
       inputSchema: z.object({
         issueUrl: z.string().url(),
-        sandboxId: z.string().min(1),
-        workspace: z.literal("workspace/repo"),
+        ref: z.string().trim().min(1).max(255).optional(),
         timeoutSeconds: z.number().int().min(1).max(40).default(40),
         candidateCommand: z.string().trim().min(1).max(4_000),
         controlCommand: z.string().trim().min(1).max(4_000),
@@ -205,8 +117,7 @@ function createIsolateServer(
     },
     async ({
       issueUrl,
-      sandboxId,
-      workspace,
+      ref,
       timeoutSeconds,
       candidateCommand,
       controlCommand,
@@ -214,15 +125,23 @@ function createIsolateServer(
       const runtime = runtimeFactory();
       const issue = await issueReader.read(issueUrl);
       const assertion = extractIssueEvidenceAssertion(issue.body);
-      const output = await runCertification({
-        runtime,
-        sandboxId,
-        workspace,
-        timeoutSeconds,
-        candidateCommand,
-        controlCommand,
-        assertion,
+      const sandbox = await runtime.create({
+        repositoryUrl: issue.repositoryUrl,
+        ref: ref?.trim() || "main",
       });
+      let output;
+      try {
+        output = await runCertification({
+          runtime,
+          ...sandbox,
+          timeoutSeconds,
+          candidateCommand,
+          controlCommand,
+          assertion,
+        });
+      } finally {
+        await runtime.delete(sandbox.sandboxId).catch(() => undefined);
+      }
 
       return {
         content: [{ type: "text", text: JSON.stringify(output) }],

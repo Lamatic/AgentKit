@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
 import { parseReproductionPlan } from "../lib/runtime/plan";
-import { assertSafeCommand } from "../lib/runtime/policy";
+import {
+  assertCertificationCommand,
+  assertSafeCommand,
+} from "../lib/runtime/policy";
 
 const validPlan = {
   hypothesis: "The CLI lowercases the local part of the username.",
-  setupCommand: "bun install --frozen-lockfile",
   candidateCommand: "bun run src/index.ts AdaLovelace",
   controlCommand: "bun run src/index.ts AdaLovelace --preserve-case",
 };
@@ -28,5 +30,20 @@ describe("reproduction plan boundary", () => {
     expect(
       assertSafeCommand("printf '%s' '--- relevant source and tests ---'"),
     ).toBe("printf '%s' '--- relevant source and tests ---'");
+  });
+
+  test("allows only repository runners to produce certification evidence", () => {
+    expect(
+      assertCertificationCommand("bun run cli IsolateCLI", "Hello, isolatecli!"),
+    ).toBe("bun run cli IsolateCLI");
+    expect(() =>
+      assertCertificationCommand("printf 'Hello, isolatecli!'", "Hello, isolatecli!"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("node -e \"console.log('Hello')\"", "Hello"),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand("base64 -d payload; bun test", "Hello"),
+    ).toThrow("command policy");
   });
 });

@@ -24,7 +24,8 @@ ambiguity into an auditable report:
 2. Isolate creates a private, expiring Daytona sandbox and clones the public
    repository at the requested ref.
 3. The runtime captures a bounded repository snapshot and asks the deployed
-   Lamatic flow for a hypothesis, probe commands, and explicit assertions.
+   Lamatic flow for a hypothesis and repository-owned probe commands. The
+   runtime derives the assertion from an exact observed signature in the issue.
 4. Isolate enforces its command policy and captures exit code, stdout, stderr,
    and duration for every run.
 5. A reproduction is certified only after two passing candidate runs and a
@@ -38,10 +39,7 @@ The language model explores. The deterministic runtime verifies.
 | --- | --- |
 | `echo` | Verify authenticated Lamatic-to-runtime connectivity. |
 | `get_github_issue` | Fetch and normalize one public GitHub issue without repository credentials. |
-| `create_sandbox` | Clone a public GitHub repository into an expiring private sandbox. |
-| `run_probe` | Execute one bounded command and evaluate explicit assertions. |
 | `certify_reproduction` | Run the candidate twice and a negative control once, then return structured JSON evidence and a portable Markdown report. |
-| `delete_sandbox` | Delete the sandbox after evidence collection. |
 
 `reproduced` is unavailable to the agent unless the deterministic evidence gate
 passes. Failed or non-specific probes become
@@ -78,7 +76,9 @@ not place either credential inside an agent prompt or inline code node.
 
 The reviewer-facing application is deployed at
 https://isolate-agentkit.vercel.app. Its public investigation endpoint is
-rate-limited; the MCP endpoint separately requires the saved bearer secret.
+protected by a Vercel Firewall rate limit plus a per-instance concurrency bound;
+the MCP endpoint separately requires the saved bearer secret. Equivalent edge
+rate limiting is required when deploying outside this Vercel project.
 
 ## Evaluation fixture
 
@@ -93,8 +93,13 @@ reproduction instructions.
 - Public GitHub repositories only.
 - Node.js, TypeScript, Bun, and terminal/CLI issues are the initial target.
 - Private, non-public sandboxes with a 30-minute maximum lifetime.
-- Commands are bounded to 120 seconds.
+- Locked dependencies are installed without lifecycle scripts before outbound
+  networking is blocked for probes.
+- Probes are bounded to 40 seconds within a 220-second aggregate investigation.
 - Captured stdout and stderr are redacted and capped at 64 KiB each.
 - No repository credentials are mounted in the sandbox.
 - No pushes, package publication, pull requests, or fix generation.
 - Repository and issue contents are treated as untrusted input.
+- Issues without one exact `Observed stdout:` or `Observed stderr:` signature
+  are still inspected and receive a hypothesis, but certification stays blocked
+  until the reporter confirms a machine-checkable observed signature.

@@ -7,6 +7,7 @@ describe("runCertification", () => {
   test("evaluates candidate and control against one shared issue assertion", async () => {
     const probes: ProbeSpec[] = [];
     const runtime = {
+      resetWorkspace: async () => undefined,
       runProbe: async ({ probe }: { probe: ProbeSpec }) => {
         probes.push(probe);
         return evaluateProbe(probe, {
@@ -39,7 +40,10 @@ describe("runCertification", () => {
   test("rejects an identical candidate and control", async () => {
     await expect(
       runCertification({
-        runtime: { runProbe: async () => { throw new Error("not reached"); } },
+        runtime: {
+          resetWorkspace: async () => undefined,
+          runProbe: async () => { throw new Error("not reached"); },
+        },
         sandboxId: "sandbox_1",
         workspace: "workspace/repo",
         timeoutSeconds: 40,
@@ -50,17 +54,20 @@ describe("runCertification", () => {
     ).rejects.toThrow("different cases");
   });
 
-  test("rejects a control that reuses the reported output token", async () => {
+  test("rejects a command that prints the reported signature", async () => {
     await expect(
       runCertification({
-        runtime: { runProbe: async () => { throw new Error("not reached"); } },
+        runtime: {
+          resetWorkspace: async () => undefined,
+          runProbe: async () => { throw new Error("not reached"); },
+        },
         sandboxId: "sandbox_1",
         workspace: "workspace/repo",
         timeoutSeconds: 40,
-        candidateCommand: "bun run cli IsolateCLI",
-        controlCommand: "bun run cli isolatecli",
+        candidateCommand: "printf 'Hello, isolatecli!'",
+        controlCommand: "bun run cli control",
         assertion: { kind: "stdout_contains", value: "Hello, isolatecli!" },
       }),
-    ).rejects.toThrow("reuses the reported signature");
+    ).rejects.toThrow("command policy");
   });
 });

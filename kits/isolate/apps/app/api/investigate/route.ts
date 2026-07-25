@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { investigateIssue } from "../../../lib/investigate";
 import { publicInvestigationError } from "../../../lib/http-errors";
+import { acquireInvestigationSlot } from "../../../lib/concurrency";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -13,6 +14,13 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const release = acquireInvestigationSlot();
+  if (!release) {
+    return NextResponse.json(
+      { error: "Too many investigations are already running. Try again shortly." },
+      { status: 429, headers: { "Retry-After": "30" } },
+    );
+  }
   try {
     const input = requestSchema.parse(await request.json());
     return NextResponse.json(await investigateIssue(input));
@@ -23,5 +31,7 @@ export async function POST(request: Request) {
       { error: publicError.message },
       { status: publicError.status },
     );
+  } finally {
+    release();
   }
 }

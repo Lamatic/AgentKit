@@ -30,3 +30,24 @@ export function assertSafeCommand(command: string) {
   }
   return command;
 }
+
+const repositoryRunnerSegment =
+  /^(?:[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_./:@%+,-]+\s+)*(?:bun|npm|pnpm|yarn)\s+(?:run|test)\b[^;&|<>]*$/i;
+const boundedDelaySegment = /^sleep\s+\d+(?:\.\d+)?$/;
+
+export function assertCertificationCommand(command: string, signature: string) {
+  assertSafeCommand(command);
+  const segments = command.split(/\s*(?:&&|&)\s*/).filter(Boolean);
+  if (
+    /[&|;]\s*$/.test(command) ||
+    !segments.some((segment) => repositoryRunnerSegment.test(segment)) ||
+    segments.some(
+      (segment) =>
+        !repositoryRunnerSegment.test(segment) && !boundedDelaySegment.test(segment),
+    ) ||
+    command.toLowerCase().includes(signature.toLowerCase())
+  ) {
+    throw new UnsafeCommandError();
+  }
+  return command;
+}
