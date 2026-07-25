@@ -60,7 +60,7 @@ export async function investigateIssue(
     const certification = await runCertification({
       runtime,
       ...sandbox,
-      timeoutSeconds: deadline.probeTimeoutSeconds(30, 3),
+      deadline,
       candidateCommand: plan.candidateCommand,
       controlCommand: plan.controlCommand,
       assertion,
@@ -74,6 +74,6 @@ export async function investigateIssue(
       ...certification,
     };
   } finally {
-    await runtime.delete(sandbox.sandboxId).catch(() => undefined);
+    await runtime.delete(sandbox.sandboxId);
   }
 }
