@@ -54,6 +54,7 @@ export async function requestLamaticPlan(input: {
       query,
       variables: { workflowId: configuration.flowId, ...input },
     }),
+    signal: AbortSignal.timeout(25_000),
   });
   const body = (await response.json()) as {
     data?: { executeWorkflow?: { status?: string; result?: unknown } };

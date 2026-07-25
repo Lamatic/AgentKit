@@ -1,4 +1,23 @@
-import type { ProbeEvaluation } from "./probe";
+import { z } from "zod";
+
+import { probeEvaluationSchema, type ProbeEvaluation } from "./probe";
+
+export const certificationSchema = z.object({
+  outcome: z.enum(["reproduced", "not_reproduced_under_tested_conditions"]),
+  gate: z.object({
+    repeatCount: z.literal(2),
+    allCandidateRunsPassed: z.boolean(),
+    controlRejected: z.boolean(),
+  }),
+  evidence: z.object({
+    candidateRuns: z.tuple([probeEvaluationSchema, probeEvaluationSchema]),
+    controlRun: probeEvaluationSchema,
+  }),
+  report: z.object({
+    format: z.literal("markdown"),
+    content: z.string(),
+  }),
+});
 
 function indentBlock(value: string) {
   if (!value) return "    (empty)";
@@ -71,6 +90,21 @@ export function certifyEvidence({
   candidateRuns: [ProbeEvaluation, ProbeEvaluation];
   controlRun: ProbeEvaluation;
 }) {
+  const assertionContract = (run: ProbeEvaluation) =>
+    JSON.stringify(
+      run.assertions.map(({ kind, expected }) => ({ kind, expected })),
+    );
+  const expectedContract = assertionContract(candidateRuns[0]);
+  if (
+    candidateRuns[0].assertions.length !== 1 ||
+    candidateRuns.some((run) => assertionContract(run) !== expectedContract) ||
+    assertionContract(controlRun) !== expectedContract
+  ) {
+    throw new Error(
+      "Certification requires every run to use the same issue-derived assertion.",
+    );
+  }
+
   const allCandidateRunsPassed = candidateRuns.every(({ passed }) => passed);
   const controlRejected = !controlRun.passed;
 
