@@ -428,11 +428,37 @@ export function resolveDaytonaCredential(
   );
 }
 
+export function resolveDaytonaConfiguration(
+  environment: Record<string, string | undefined>,
+) {
+  const apiKey = environment.DAYTONA_API_KEY?.trim() || undefined;
+  const jwtToken = environment.DAYTONA_JWT_TOKEN?.trim() || undefined;
+  return {
+    apiUrl: resolveDaytonaApiUrl(environment),
+    ...(apiKey ? { apiKey } : jwtToken ? { jwtToken } : {}),
+    ...(jwtToken && !apiKey
+      ? { organizationId: environment.DAYTONA_ORGANIZATION_ID?.trim() || undefined }
+      : {}),
+    ...(environment.DAYTONA_TARGET?.trim()
+      ? { target: environment.DAYTONA_TARGET.trim() }
+      : {}),
+  };
+}
+
 export function createDaytonaRuntime() {
-  const daytona = new Daytona();
-  const apiUrl = resolveDaytonaApiUrl(process.env);
-  const credential = resolveDaytonaCredential(process.env);
-  const organizationId = process.env.DAYTONA_ORGANIZATION_ID;
+  const configuration = resolveDaytonaConfiguration(process.env);
+  const daytona = new Daytona(configuration);
+  const { apiUrl } = configuration;
+  const credential =
+    "apiKey" in configuration
+      ? configuration.apiKey
+      : "jwtToken" in configuration
+        ? configuration.jwtToken
+        : undefined;
+  const organizationId =
+    "organizationId" in configuration
+      ? configuration.organizationId
+      : undefined;
   const client: DaytonaLike = {
     create: daytona.create.bind(daytona) as DaytonaLike["create"],
     get: daytona.get.bind(daytona) as DaytonaLike["get"],

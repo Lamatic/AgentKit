@@ -4,6 +4,7 @@ import {
   DaytonaSandboxRuntime,
   resolveDaytonaApiUrl,
   resolveDaytonaCredential,
+  resolveDaytonaConfiguration,
 } from "../lib/runtime/daytona";
 import { InvestigationDeadline } from "../lib/deadline";
 
@@ -61,6 +62,21 @@ describe("DaytonaSandboxRuntime", () => {
         DAYTONA_JWT_TOKEN: " jwt-token ",
       }),
     ).toBe("jwt-token");
+    expect(
+      resolveDaytonaConfiguration({
+        DAYTONA_API_URL: " ",
+        DAYTONA_SERVER_URL: " https://legacy.example/api/ ",
+        DAYTONA_API_KEY: " ",
+        DAYTONA_JWT_TOKEN: " jwt-token ",
+        DAYTONA_ORGANIZATION_ID: " organization ",
+        DAYTONA_TARGET: " us ",
+      }),
+    ).toEqual({
+      apiUrl: "https://legacy.example/api",
+      jwtToken: "jwt-token",
+      organizationId: "organization",
+      target: "us",
+    });
   });
   test("creates an expiring private sandbox for a public GitHub repository", async () => {
     const { client, calls } = fakeDaytona();
