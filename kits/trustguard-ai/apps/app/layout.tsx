@@ -55,18 +55,18 @@ export default function RootLayout({
           toastOptions={{
             duration: 4000,
             style: {
-              background: "#0f172a",
-              color: "#e2e8f0",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "var(--elevated-surface)",
+              color: "var(--toast-text)",
+              border: "1px solid var(--border)",
               borderRadius: "12px",
               fontSize: "13px",
               backdropFilter: "blur(12px)",
             },
             success: {
-              iconTheme: { primary: "#06b6d4", secondary: "#0f172a" },
+              iconTheme: { primary: "var(--status-color)", secondary: "var(--elevated-surface)" },
             },
             error: {
-              iconTheme: { primary: "#f87171", secondary: "#0f172a" },
+              iconTheme: { primary: "var(--accent-error)", secondary: "var(--elevated-surface)" },
             },
           }}
         />

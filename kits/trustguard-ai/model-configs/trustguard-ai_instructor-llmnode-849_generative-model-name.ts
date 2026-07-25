@@ -10,7 +10,7 @@ export default {
         "temperature": 0.1
       },
       "configName": "configA",
-      "model_name": "gemini-3-flash-preview",
+      "model_name": "gemini-3.5-flash",
       "credentialId": "0a5e9ea8-48b8-4c31-8aa8-6a41ba220596",
       "provider_name": "gemini",
       "credential_name": "trustGuard-ai-lamatic"

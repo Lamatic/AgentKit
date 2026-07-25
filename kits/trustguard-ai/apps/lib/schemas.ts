@@ -59,11 +59,11 @@ const ThreatAnalysisSchema = z.object({
 
 /** Zod schema for the decision engine output block. */
 const DecisionDataSchema = z.object({
-  classification: z.string(),
+  classification: z.enum(["SCAM", "PHISHING", "MALWARE", "SPAM", "CREDENTIAL_THEFT", "BUSINESS_EMAIL_COMPROMISE", "LEGITIMATE", "SUSPICIOUS", "UNKNOWN"]),
   final_verdict: z.string(),
   recommended_action: z.string(),
   decision_reason: z.string(),
-  priority: z.string(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   human_review: z.boolean(),
 });
 

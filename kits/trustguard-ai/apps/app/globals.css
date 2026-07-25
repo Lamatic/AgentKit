@@ -12,6 +12,13 @@
   --accent-error: #ef4444;
   --glow-cyan: rgba(6, 182, 212, 0.15);
   --glow-error: rgba(239, 68, 68, 0.15);
+  --elevated-surface: #0f172a;
+  --toast-text: #e2e8f0;
+  --status-color: var(--accent-cyan);
+  --grid-glow: rgba(6, 182, 212, 0.08);
+  --grid-line: rgba(255, 255, 255, 0.025);
+  --scroll-thumb: rgba(255, 255, 255, 0.1);
+  --scroll-thumb-hover: rgba(255, 255, 255, 0.2);
 }
 
 @theme inline {
@@ -48,9 +55,9 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(ellipse 80% 40% at 50% -20%, rgba(6, 182, 212, 0.08) 0%, transparent 70%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    radial-gradient(ellipse 80% 40% at 50% -20%, var(--grid-glow) 0%, transparent 70%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 100% 100%, 60px 60px, 60px 60px;
   pointer-events: none;
   z-index: 0;
@@ -74,15 +81,15 @@ section {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scroll-thumb);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scroll-thumb-hover);
 }
 
 /* ─── Select arrow override ─── */
 select option {
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: var(--elevated-surface);
+  color: var(--toast-text);
 }

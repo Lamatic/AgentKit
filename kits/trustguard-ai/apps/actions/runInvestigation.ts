@@ -45,14 +45,14 @@ export async function runInvestigation(
     const RuntimeInputSchema = z.object({
       input_type: z.enum(["Email", "SMS", "URL", "Document", "Text"]),
       language: z.enum(["Auto", "English", "Hindi", "Bengali"]),
-      content: z.string().min(1),
+      content: z.string().trim().min(1),
       attachment_url: z.string().optional(),
       memory_enabled: z.boolean().optional(),
     });
 
     const parsedInput = RuntimeInputSchema.safeParse(formData);
     if (!parsedInput.success) {
-      console.error("[TrustGuard] Invalid input data:", parsedInput.error);
+      console.error("[TrustGuard] Invalid input data. Issues:", parsedInput.error.issues.map(i => ({ path: i.path, code: i.code })));
       return { success: false, error: "Invalid input provided." };
     }
 
@@ -74,11 +74,11 @@ export async function runInvestigation(
 
     const payload = {
       investigation_id: generateInvId(),
-      input_type: formData.input_type.toLowerCase(),
-      content: formData.content,
-      attachment_url: formData.attachment_url || "",
-      // language: formData.language === "Auto" ? "auto" : formData.language,
-      language: languageMap[formData.language],
+      input_type: parsedInput.data.input_type.toLowerCase(),
+      content: parsedInput.data.content,
+      attachment_url: parsedInput.data.attachment_url || "",
+      // language: parsedInput.data.language === "Auto" ? "auto" : parsedInput.data.language,
+      language: languageMap[parsedInput.data.language],
       memory_enabled: false,
       tenant_id: "default",
       user_id: "anonymous",
@@ -91,8 +91,8 @@ export async function runInvestigation(
 
       if (!parsed.success) {
         console.error(
-          "[TrustGuard] Lamatic response validation failed:",
-          parsed.error
+          "[TrustGuard] Lamatic response validation failed. Issues:",
+          parsed.error.issues.map(i => ({ path: i.path, code: i.code }))
         );
         return {
           success: false,
@@ -108,7 +108,8 @@ export async function runInvestigation(
       error: "Unable to process investigation.",
     };
   } catch (err) {
-    console.error("[TrustGuard] Investigation error:", err);
+    const errorType = err instanceof Error ? err.name : "UnknownError";
+    console.error("[TrustGuard] Investigation error type:", errorType);
     return { success: false, error: "Unable to process investigation." };
   }
 }

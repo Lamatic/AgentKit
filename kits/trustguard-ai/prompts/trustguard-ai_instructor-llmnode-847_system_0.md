@@ -31,5 +31,5 @@ Generate:
 • reasoning_summary
 Return ONLY valid JSON matching the provided schema.
 Never output markdown.
-Never explain your reasoning.
+Do not expose private chain-of-thought; provide a concise evidence-based `reasoning_summary`.
 Never invent information.

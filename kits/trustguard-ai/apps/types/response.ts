@@ -72,7 +72,7 @@ export type ThreatAnalysis = InvestigationResponse["analysis"];
 
 /**
  * Final decision output produced by the decision engine stage.
- * Includes the free-text `classification` label (e.g. "SCAM", "SAFE"),
+ * Includes the free-text `classification` label (e.g. "SCAM", "LEGITIMATE"),
  * the `final_verdict` sentence, `recommended_action` for the recipient,
  * `decision_reason` explaining the ruling, `priority` level, and a
  * `human_review` flag indicating whether a human analyst should verify.
@@ -96,14 +96,19 @@ export type InputType = "Email" | "SMS" | "URL" | "Document" | "Text";
 export type LanguageOption = "Auto" | "English" | "Hindi" | "Bengali";
 
 /**
+ * Zod schema for the investigation input form data.
+ */
+export const AnalyzeFormDataSchema = z.object({
+  input_type: z.enum(["Email", "SMS", "URL", "Document", "Text"]),
+  content: z.string().trim().min(1, "Content is required"),
+  attachment_url: z.string().optional().default(""),
+  language: z.enum(["Auto", "English", "Hindi", "Bengali"]),
+  memory_enabled: z.boolean().default(false),
+});
+
+/**
  * Shape of the investigation input form data collected from the user.
  * Passed directly to the `runInvestigation` server action which normalises
  * it into the Lamatic flow payload before dispatching the API call.
  */
-export interface AnalyzeFormData {
-  input_type: InputType;
-  content: string;
-  attachment_url: string;
-  language: LanguageOption;
-  memory_enabled: boolean;
-}
+export type AnalyzeFormData = z.infer<typeof AnalyzeFormDataSchema>;
