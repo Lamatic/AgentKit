@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { InvalidCertificationPlanError } from "./runtime/certification";
 import { MissingIssueEvidenceContractError } from "./runtime/claim";
 import { UnsafeCommandError } from "./runtime/policy";
 
@@ -11,6 +12,9 @@ export function publicInvestigationError(error: unknown) {
     };
   }
   if (error instanceof MissingIssueEvidenceContractError) {
+    return { status: 422, message: error.message };
+  }
+  if (error instanceof InvalidCertificationPlanError) {
     return { status: 422, message: error.message };
   }
   if (error instanceof UnsafeCommandError) {

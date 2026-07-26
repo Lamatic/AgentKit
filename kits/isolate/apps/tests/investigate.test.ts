@@ -29,7 +29,11 @@ const passingRun = {
   },
 };
 
-function harness(options: { plannerFails?: boolean; unsafeFirst?: boolean } = {}) {
+function harness(options: {
+  invalidRepair?: boolean;
+  plannerFails?: boolean;
+  unsafeFirst?: boolean;
+} = {}) {
   const calls: string[] = [];
   const createInputs: unknown[] = [];
   const probeCommands: string[] = [];
@@ -70,6 +74,13 @@ function harness(options: { plannerFails?: boolean; unsafeFirst?: boolean } = {}
         hypothesis: "Case is normalized unexpectedly.",
         candidateCommand: "bun --eval 'console.log(1)'",
         controlCommand: "bun run cli -- --preserve-case",
+      };
+    }
+    if (options.invalidRepair) {
+      return {
+        hypothesis: "Case is normalized unexpectedly.",
+        candidateCommand: "bun run cli",
+        controlCommand: "bun run cli",
       };
     }
     return {
@@ -135,6 +146,24 @@ describe("investigateIssue", () => {
     expect(result.outcome).toBe("reproduced");
     expect(plannerCallCount()).toBe(2);
     expect(probeCommands).not.toContain("bun --eval 'console.log(1)'");
+  });
+
+  test("fails safely after one invalid repair without executing either plan", async () => {
+    const { calls, runtime, planner, plannerCallCount, probeCommands } = harness({
+      unsafeFirst: true,
+      invalidRepair: true,
+    });
+
+    await expect(
+      investigateIssue(
+        { issueUrl: issue.url },
+        { issueReader: { read: async () => issue }, runtime, planner },
+      ),
+    ).rejects.toThrow("different cases");
+
+    expect(plannerCallCount()).toBe(2);
+    expect(probeCommands).toHaveLength(1);
+    expect(calls.at(-1)).toBe("delete");
   });
 
   test("investigates a vague issue but blocks certification without a confirmed signature", async () => {

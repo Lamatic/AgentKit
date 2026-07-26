@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { publicInvestigationError } from "../lib/http-errors";
 import { MissingIssueEvidenceContractError } from "../lib/runtime/claim";
+import { InvalidCertificationPlanError } from "../lib/runtime/certification";
 
 describe("public investigation errors", () => {
   test("returns a useful 4xx error for invalid user input", () => {
@@ -17,6 +18,15 @@ describe("public investigation errors", () => {
     expect(
       publicInvestigationError(new MissingIssueEvidenceContractError()),
     ).toMatchObject({ status: 422, message: expect.stringContaining("Observed stdout") });
+  });
+
+  test("returns a safe 422 when planner repair remains non-specific", () => {
+    expect(
+      publicInvestigationError(new InvalidCertificationPlanError()),
+    ).toEqual({
+      status: 422,
+      message: "Candidate and control commands must exercise different cases.",
+    });
   });
 
   test("does not expose provider errors", () => {
