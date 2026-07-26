@@ -1,106 +1,32 @@
-# Agent Kit Generation by Lamatic.ai
+# Know Thy Person — app
 
-<p align="center">
-  <a href="https://agent-kit-generation.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/Live%20Demo-black?style=for-the-badge" alt="Live Demo" />
-  </a>
-</p>
+The runnable Next.js app for the **Know Thy Person** kit. Enter an email + name (and,
+optionally, a LinkedIn / X / company or personal site link) and get a fully-sourced
+meeting-prep dossier.
 
+See the kit README — [`../README.md`](../README.md) — for what it does, the flow, the output
+schema, and honest limitations.
 
-**Agent Kit Generation** is an AI-powered content generation system built with [Lamatic.ai](https://lamatic.ai). It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/agentic/generation&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation)
-
----
-
-## Lamatic Setup (Pre and Post)
-
-Before running this project, you must build and deploy the flow in Lamatic, then wire its config into this codebase.
-
-Pre: Build in Lamatic
-1. Sign in or sign up at https://lamatic.ai  
-2. Create a project (if you don’t have one yet)  
-3. Click “+ New Flow” and select "Templates" 
-4. Select the 'Generation' agent kit
-5. Configure providers/tools/inputs as prompted  
-6. Deploy the kit in Lamatic and obtain your .env keys
-7. Copy the keys from your studio
-
-Post: Wire into this repo
-1. Create a .env file and set the keys
-2. Install and run locally:
-   - npm install
-   - npm run dev
-3. Deploy (Vercel recommended):
-   - Import your repo, set the project's Root Directory (if applicable)
-   - Add env vars in Vercel (same as your .env)
-   - Deploy and test your live URL
-
-Notes
-- Coming soon: single-click export and "Connect Git" in Lamatic to push config directly to your repo.
-
----
-
-## 🔑 Setup
-## Required Keys and Config
-
-You’ll need these things to run this project locally:  
-
-1. **.env Keys** → get it from your [Lamatic account](https://lamatic.ai) post kit deployment.
-
-
-| Item              | Purpose                                      | Where to Get It                                 |
-| ----------------- | -------------------------------------------- | ----------------------------------------------- |
-| .env Key  | Authentication for Lamatic AI APIs and Orchestration           | [lamatic.ai](https://lamatic.ai)                |
-
-### 1. Environment Variables
-
-Create `.env.local` with:
+## Run locally
 
 ```bash
-# Lamatic
-AGENTIC_GENERATE_CONTENT = "AGENTIC_GENERATE_CONTENT Flow ID"
-LAMATIC_API_URL = "LAMATIC_API_URL"
-LAMATIC_PROJECT_ID = "LAMATIC_PROJECT_ID"
-LAMATIC_API_KEY = "LAMATIC_API_KEY"
+cp .env.example .env.local   # fill in real values from Lamatic Studio
+npm install --legacy-peer-deps
+npm run dev                  # http://localhost:3000
 ```
 
-### 2. Install & Run
+- `npm run test` — run the dossier-normalizer unit tests (Vitest).
+- `npm run build` — production build.
 
-```bash
-npm install
-npm run dev
-# Open http://localhost:3000
-```
----
+### Environment
 
-## 📂 Repo Structure
+| Var | Where |
+| --- | --- |
+| `KNOW_THY_PERSON` | deployed flow ID (Studio → Flow → Details) |
+| `LAMATIC_API_URL` / `LAMATIC_PROJECT_ID` / `LAMATIC_API_KEY` | Studio → Settings → API Keys |
 
-```
-/actions
- └── orchestrate.ts        # Lamatic workflow orchestration
-/app
- └── page.tsx              # Main generation form UI
-/components
- ├── header.tsx            # Header component with navigation
- └── ui                    # shadcn/ui components
-/lib
- └── lamatic-client.ts     # Lamatic SDK client
-/public
- └── lamatic-logo.png      # Lamatic branding
-/flows
-  └── ...                  # Lamatic Flows
-/package.json              # Dependencies & scripts
-```
+The OpenRouter, Serper, and Firecrawl keys are configured in **Lamatic Studio**, not here.
 
----
+## License
 
-## 🤝 Contributing
-
-We welcome contributions! Open an issue or PR in this repo.
-
----
-
-## 📜 License
-
-MIT License – see [LICENSE](../../../LICENSE).
+MIT License — see [LICENSE](../../../LICENSE).
