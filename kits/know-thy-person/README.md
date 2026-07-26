@@ -23,10 +23,12 @@ sourced claims are ever rendered.
 email + name + person_context?
         │  (API Request)
         ▼
- [1 Resolve]     code (no LLM)     → parses company/domain from the email, deterministically
+ [1 Resolve]     code (no LLM)     → parses company/domain from the email; picks a research_url
+                                    (the company site, or the person_context link)
  [2 Serper]                        → live public-presence web search (name + company + person_context)
- [3 Firecrawl]                     → crawls the company/personal site for real source content
- [4 Synthesize]  gemini-2.5-flash  → structured dossier JSON, each item carrying a source_url
+ [3 Firecrawl]                     → crawls the research_url for supplementary source content
+ [4 Synthesize]  gemini-2.5-flash  → dossier JSON from search results (primary) + crawl (supplementary),
+                                    each item carrying a source_url
         │  (API Response)
         ▼
  answer = dossier JSON
@@ -75,9 +77,10 @@ configured in **Lamatic Studio**, not in this app.
 ## Honest limitations
 - **LinkedIn and X are not scraped directly** (anti-bot walls). We rely on live web search
   + crawling of open pages, which often surfaces those facts indirectly.
-- **Works best with a company email** (so the domain resolves to an org) or a **crawlable
-  personal/company site**. Generic providers (gmail, outlook, …) resolve to no company —
-  by design, not a guess.
+- **Needs a crawlable anchor: a company email _or_ a website link.** A company email resolves
+  the domain to crawl; for a generic provider (gmail, outlook, …) supply the person's
+  **company or personal site** as `person_context` and that gets crawled instead. A generic
+  email with **no link** has nothing to crawl and is not supported.
 - **Data-broker / people-search sites are blacklisted** as sources.
 - Results are only as good as a person's public footprint. For **low-footprint people** the
   agent correctly returns little and says so — that's the point, not a bug.

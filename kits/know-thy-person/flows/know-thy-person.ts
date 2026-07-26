@@ -115,7 +115,7 @@ export const nodes = [
         "results": 10,
         "language": "",
         "location": "",
-        "nodeName": "Web Search",
+        "nodeName": "Serper",
         "dateRange": "",
         "credentials": "Serper Basic Auth"
       }
@@ -135,7 +135,7 @@ export const nodes = [
       },
       "values": {
         "id": "firecrawlNode_553",
-        "url": "https://{{codeNode_653.output.domain}}",
+        "url": "{{codeNode_653.output.research_url}}",
         "mode": "sync",
         "urls": "",
         "delay": 0,
@@ -270,7 +270,7 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "webSearchNode_986-firecrawlNode_553",
+    "id": "webSearchNode_986-firecrawlNode_553-117",
     "source": "webSearchNode_986",
     "target": "firecrawlNode_553",
     "sourceHandle": "bottom",
