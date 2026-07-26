@@ -1,43 +1,22 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Results() {
-  const trip = {
-    summary: {
-      weather: "Warm with light rain",
-      estimatedBudget: 7400,
-      totalDays: 4,
-      tripTheme: "Historical Places & Street Food",
-    },
-    days: [
-      {
-        day: 1,
-        weather: "30.4°C, Rainy",
-        budgetUsed: 2500,
-        activities: [
-          {
-            time: "Morning",
-            icon: "monument",
-            name: "Paanch Batti",
-            reason: "Historical monument matching your interest.",
-          },
-          {
-            time: "Afternoon",
-            icon: "restaurant",
-            name: "Virasat Heritage Restaurant",
-            reason: "Local heritage cuisine, indoors.",
-          },
-          {
-            time: "Evening",
-            icon: "restaurant",
-            name: "Cheap food places",
-            reason: "Street food within budget.",
-          },
-        ],
-      },
-    ],
-    reasons: [
-      "Matches your interest in historical places and street food.",
-      "Takes weather into account to schedule outdoor activities wisely.",
-    ],
-  };
+  const [trip, setTrip] = useState<any>(null);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem("tripResult");
+    if (stored) {
+    const parsed = JSON.parse(stored);
+    console.log('FULL RESULT:\n' + JSON.stringify(parsed, null, 2));
+    setTrip(parsed);
+  }
+  }, []);
+
+  if (!trip) {
+    return <p>No trip data found. Please go back and generate a trip.</p>;
+  }
 
   return (
     <main>
@@ -48,13 +27,13 @@ export default function Results() {
       </p>
       <p>{trip.summary.tripTheme}</p>
 
-      {trip.days.map((day) => (
+      {trip.days.map((day: any) => (
         <div key={day.day}>
           <h2>Day {day.day}</h2>
           <p>
             {day.weather} · ₹{day.budgetUsed} used
           </p>
-          {day.activities.map((activity, i) => (
+          {day.activities.map((activity: any, i: number) => (
             <div key={i}>
               <strong>
                 {activity.time}: {activity.name}
@@ -67,7 +46,7 @@ export default function Results() {
 
       <h2>Why this plan?</h2>
       <ul>
-        {trip.reasons.map((reason, i) => (
+        {trip.reasons.map((reason: string, i: number) => (
           <li key={i}>{reason}</li>
         ))}
       </ul>
