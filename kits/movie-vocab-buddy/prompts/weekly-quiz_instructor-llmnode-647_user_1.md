@@ -1,0 +1,1 @@
+Woords saved over the past few weeks: {{postgresNode_140.output.queryResult}}
