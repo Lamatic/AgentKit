@@ -1,11 +1,11 @@
 export default {
-  name: "Reading List Digest",
+  name: "CaseCraft",
   description:
-    "Index a list of articles and synthesize a digest with per-article summaries, cross-source contradictions, an executive brief, highlighted key terms, and traceable in-text citations.",
+    "Index debate sources and build a citation-backed brief with key claims, clash points, agreed points, themes, and per-source summaries.",
   version: "1.0.0",
   type: "kit" as const,
   author: { name: "ravijaanthony", email: "ravijaanthony@gmail.com" },
-  tags: ["research", "analysis", "synthesis"],
+  tags: ["debate", "research", "analysis", "synthesis"],
   steps: [
     {
       id: "index-articles",

@@ -7,9 +7,9 @@ import "./globals.css";
 export const maxDuration = 300;
 
 export const metadata: Metadata = {
-  title: "Reading List Digest",
+  title: "CaseCraft",
   description:
-    "Index articles and synthesize a citation-backed research digest with contradictions and highlights.",
+    "Index your sources and build a citation-backed brief for debate prep—key claims, clash points, and agreed points.",
 };
 
 export default function RootLayout({
