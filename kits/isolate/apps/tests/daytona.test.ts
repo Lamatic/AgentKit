@@ -227,6 +227,44 @@ describe("DaytonaSandboxRuntime", () => {
     expect(calls.map(({ name }) => name)).toEqual(["create", "delete"]);
   });
 
+  test("deletes a sandbox returned by a lookup after the lookup deadline", async () => {
+    const { client, calls, sandbox } = fakeDaytona();
+    client.create = async (...args: unknown[]) => {
+      calls.push({ name: "create", args });
+      throw new Error("provider create timed out");
+    };
+    let resolveLookup: ((value: typeof sandbox) => void) | undefined;
+    client.get = async (...args: unknown[]) => {
+      calls.push({ name: "get", args });
+      return new Promise<typeof sandbox>((resolve) => {
+        resolveLookup = resolve;
+      });
+    };
+    const runtime = new DaytonaSandboxRuntime(client);
+    const deadline = new InvestigationDeadline();
+    const run = deadline.run.bind(deadline);
+    deadline.run = async (operation, options) => {
+      if (options.maximumMilliseconds === 5_000) {
+        void operation(new AbortController().signal, options.maximumMilliseconds);
+        throw new Error("The investigation exceeded its execution budget.");
+      }
+      return run(operation, options);
+    };
+
+    await expect(
+      runtime.create(
+        { repositoryUrl: "https://github.com/example/buggy-cli" },
+        deadline,
+      ),
+    ).rejects.toThrow("provider create timed out");
+    expect(calls.some(({ name }) => name === "delete")).toBe(false);
+
+    resolveLookup?.(sandbox);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(calls.filter(({ name }) => name === "delete")).toHaveLength(1);
+  });
+
   test("accepts a Daytona tier that already enforces network isolation", async () => {
     const { client, sandbox } = fakeDaytona();
     client.updateNetworkSettings = async () => {
