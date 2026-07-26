@@ -20,8 +20,9 @@ export default {
     }
   ],
   links: {
-    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/reading-list-digest",
+    demo: "https://pointproven.vercel.app",
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/point-proven",
     deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Freading-list-digest%2Fapps&env=INDEX_ARTICLES_FLOW_ID,SYNTHESIZE_DIGEST_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY"
+      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fpoint-proven%2Fapps&env=INDEX_ARTICLES_FLOW_ID,SYNTHESIZE_DIGEST_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY"
   }
 };

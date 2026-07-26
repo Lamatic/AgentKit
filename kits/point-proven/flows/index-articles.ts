@@ -1,16 +1,16 @@
 /*
  * # Index Articles
- * A flow that scrapes a reading-list of public article URLs, chunks and embeds their content, and indexes the resulting records into a vector database for downstream digest synthesis.
+ * A flow that scrapes a list of public article URLs, chunks and embeds their content, and indexes the resulting records into a vector database for downstream digest synthesis.
  *
  * ## Purpose
  * This flow is responsible for turning a list of articles into retrievable knowledge. It accepts one or more public URLs, uses Firecrawl to scrape the pages, extracts the main markdown content and page metadata, splits that content into retrieval-sized chunks, generates embeddings for those chunks, and writes both vectors and metadata into a configured vector database. In practice, it solves the web-ingestion part of preparing a reading list so the `Synthesize Digest` flow can retrieve grounded passages.
  *
  * The outcome is an indexed set of page chunks, each associated with metadata such as page title, description, source URL, `citation_id` (hostname), and `chunk_id`. That matters because downstream retrieval and citation numbering depend on semantically searchable, chunked records with stable primary keys rather than raw HTML or full-page text.
  *
- * In the broader agent architecture, this flow sits on the ingestion side of the reading-list pipeline. It is an entry-point flow used during corpus setup or refresh, before the `Synthesize Digest` flow is invoked. Its role is in the prepare-and-index stage: collect source material, normalize it, vectorize it, and store it so later synthesis can retrieve relevant context and produce cited digests.
+ * In the broader agent architecture, this flow sits on the ingestion side of the Point Proven pipeline. It is an entry-point flow used during corpus setup or refresh, before the `Synthesize Digest` flow is invoked. Its role is in the prepare-and-index stage: collect source material, normalize it, vectorize it, and store it so later synthesis can retrieve relevant context and produce cited digests.
  *
  * ## When To Use
- * - Use when you need to ingest content from one or more public article URLs into the shared vector collection used by this bundle.
+ * - Use when you need to ingest content from one or more public article URLs into the shared vector collection used by this kit.
  * - Use when the source material is best accessed by URL rather than pasted text or a chat widget.
  * - Use when you want a fixed reading list to become available for semantic retrieval and citation-backed synthesis.
  * - Use when operators are setting up or refreshing the article corpus before running digest queries.
@@ -90,7 +90,7 @@
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
   "name": "Index Articles",
-  "description": "Scrape a list of article URLs, chunk and embed the content, and index records with citation-aware metadata for reading-list digest synthesis.",
+  "description": "Scrape a list of article URLs, chunk and embed the content, and index records with citation-aware metadata for Point Proven brief synthesis.",
   "tags": ["research", "ingestion"],
   "testInput": {
     "urls": [

@@ -3,11 +3,11 @@
  * A flow that retrieves indexed article chunks for a research query, groups them by source, and synthesizes a structured digest with per-article summaries, cross-source contradictions, consensus points, highlighted key terms, and traceable in-text citations.
  *
  * ## Purpose
- * This flow is responsible for turning a reading-list corpus into a citation-backed research digest. It accepts a natural-language `query` (and optional `max_articles`), searches the shared vector database, groups and dedupes hits by source URL, asks an LLM for a strict JSON synthesis, then post-processes the result to validate citations, convert `**bold**` highlights to `<mark>` HTML, and rebuild the ordered `sources` block.
+ * This flow is responsible for turning an indexed source corpus into a citation-backed research digest. It accepts a natural-language `query` (and optional `max_articles`), searches the shared vector database, groups and dedupes hits by source URL, asks an LLM for a strict JSON synthesis, then post-processes the result to validate citations, convert `**bold**` highlights to `<mark>` HTML, and rebuild the ordered `sources` block.
  *
  * The outcome is a structured JSON object suitable for UIs, notebooks, or further automation: an executive brief with in-text `[n]` citations, article summaries, themes, contradictions, and consensus. That matters because multi-article research is easy to flatten incorrectly; this flow surfaces disagreements explicitly and keeps every claim tied to a numbered source.
  *
- * In the broader agent architecture, this flow sits on the consumption side of the reading-list pipeline. It depends on `Index Articles` having already populated the same Vector DB selection. Its role is retrieve-then-synthesize: search, group, generate, validate, respond.
+ * In the broader agent architecture, this flow sits on the consumption side of the Point Proven pipeline. It depends on `Index Articles` having already populated the same Vector DB selection. Its role is retrieve-then-synthesize: search, group, generate, validate, respond.
  *
  * ## When To Use
  * - Use after at least one successful `Index Articles` run against the same Vector DB.

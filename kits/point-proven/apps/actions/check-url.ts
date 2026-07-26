@@ -35,7 +35,7 @@ export async function checkUrlReachability(
       method: "HEAD",
       redirect: "follow",
       signal: controller.signal,
-      headers: { "User-Agent": "PointProven-UrlCheck/1.0" },
+      headers: { "User-Agent": "Point-Proven-UrlCheck/1.0" },
     });
 
     // Some hosts reject or mishandle HEAD — fall back to GET.
@@ -44,7 +44,7 @@ export async function checkUrlReachability(
         method: "GET",
         redirect: "follow",
         signal: controller.signal,
-        headers: { "User-Agent": "PointProven-UrlCheck/1.0" },
+        headers: { "User-Agent": "Point-Proven-UrlCheck/1.0" },
       });
     }
 

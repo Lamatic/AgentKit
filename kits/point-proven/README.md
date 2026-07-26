@@ -1,10 +1,10 @@
-# Reading List Digest
+# Point Proven
 
-Index a reading list of public articles, then synthesize a citation-backed digest with per-article summaries, cross-source contradictions, consensus points, and highlighted key terms.
+Index debate sources and build a citation-backed brief with key claims, clash points, agreed points, themes, and per-source summaries.
 
-## What this bundle does
+## What this kit does
 
-Two API flows prepare and consume a shared vector corpus:
+Two API flows prepare and consume a shared vector corpus, plus a Next.js app (`apps/`) for debate prep:
 
 1. **Index Articles** — scrape URLs with Firecrawl, chunk, embed, and index with composite keys (`citation_id`, `chunk_id`).
 2. **Synthesize Digest** — vector-search the corpus, group hits by source, LLM-synthesize strict JSON, validate citations, and convert `**bold**` highlights to `<mark>`.
@@ -19,12 +19,11 @@ query   →  Synthesize Digest  →  structured digest JSON
 **Use when:**
 - You have a fixed list of article URLs and want comparable, cited takeaways across them.
 - You care about contradictions and consensus, not just a single summary.
-- Callers consume structured JSON (API, notebook, downstream automation).
+- You want a UI to add sources, index them, and build a cited brief (or call the flows via API).
 
 **Do not use when:**
 - You only need a one-URL summary (prefer a single-article summariser template).
 - Content is private / behind login that Firecrawl cannot reach.
-- You need a chat widget UX (this bundle has no `apps/` and no chat trigger).
 
 ## Inputs
 
@@ -112,13 +111,15 @@ This contribution is a **kit**: two Lamatic flows plus a **Next.js app** under `
 ### Run the app locally
 
 ```bash
-cd kits/reading-list-digest/apps
+cd kits/point-proven/apps
 cp .env.example .env.local   # fill flow IDs + Lamatic API credentials
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000 — use tab **1. Index articles**, then **2. Synthesize digest**.
+Open http://localhost:3000 — use tab **1. Add sources**, then **2. Build brief**.
+
+Demo: [https://pointproven.vercel.app](https://pointproven.vercel.app)
 
 ### Lamatic Studio (after you built the flows)
 
@@ -139,7 +140,7 @@ Optional: rename flows in Studio to `index-articles` and `synthesize-digest` to 
 All env vars live in **`apps/`** only (standard for AgentKit kits with a Next.js app):
 
 ```bash
-cd kits/reading-list-digest/apps
+cd kits/point-proven/apps
 cp .env.example .env.local   # then edit with your real values
 ```
 
@@ -158,7 +159,7 @@ Firecrawl, Vector DB, embedding model, and LLM are configured in **Lamatic Studi
 Load vars from `apps/.env.local`, then call the API:
 
 ```bash
-cd kits/reading-list-digest/apps
+cd kits/point-proven/apps
 set -a && source .env.local && set +a
 ```
 
