@@ -1,4 +1,5 @@
 import { Daytona } from "@daytona/sdk";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { evaluateProbe, probeSpecSchema } from "./probe";
@@ -26,6 +27,7 @@ const runProbeInputSchema = z.object({
 });
 
 type ExecuteResult = { exitCode: number; result: string };
+type RetainBackgroundTask = (task: Promise<unknown>) => void;
 
 interface SandboxLike {
   id: string;
@@ -115,6 +117,9 @@ export class DaytonaSandboxRuntime {
   constructor(
     private readonly client: DaytonaLike,
     private readonly now: () => number = Date.now,
+    private readonly retainBackgroundTask: RetainBackgroundTask = (task) => {
+      void task;
+    },
   ) {}
 
   private sandbox(sandboxId: string) {
@@ -178,8 +183,8 @@ export class DaytonaSandboxRuntime {
 
   private retainLateSandboxCleanup(operations: Array<Promise<SandboxLike>>) {
     const claimedIds = new Set<string>();
-    for (const operation of operations) {
-      void operation.then(
+    const cleanupTasks = operations.map((operation) =>
+      operation.then(
         async (sandbox) => {
           if (claimedIds.has(sandbox.id)) return;
           claimedIds.add(sandbox.id);
@@ -194,8 +199,9 @@ export class DaytonaSandboxRuntime {
           }
         },
         () => undefined,
-      );
-    }
+      ),
+    );
+    this.retainBackgroundTask(Promise.all(cleanupTasks));
   }
 
   async create(
@@ -537,5 +543,5 @@ export function createDaytonaRuntime() {
       if (!response.ok) throw new Error(await response.text());
     },
   };
-  return new DaytonaSandboxRuntime(client);
+  return new DaytonaSandboxRuntime(client, Date.now, (task) => after(task));
 }

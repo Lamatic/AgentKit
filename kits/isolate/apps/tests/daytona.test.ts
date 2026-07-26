@@ -240,7 +240,14 @@ describe("DaytonaSandboxRuntime", () => {
         resolveLookup = resolve;
       });
     };
-    const runtime = new DaytonaSandboxRuntime(client);
+    let backgroundTask: Promise<unknown> | undefined;
+    const runtime = new DaytonaSandboxRuntime(
+      client,
+      Date.now,
+      (task) => {
+        backgroundTask = task;
+      },
+    );
     const deadline = new InvestigationDeadline();
     const run = deadline.run.bind(deadline);
     deadline.run = async (operation, options) => {
@@ -258,9 +265,10 @@ describe("DaytonaSandboxRuntime", () => {
       ),
     ).rejects.toThrow("provider create timed out");
     expect(calls.some(({ name }) => name === "delete")).toBe(false);
+    expect(backgroundTask).toBeDefined();
 
     resolveLookup?.(sandbox);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await backgroundTask;
 
     expect(calls.filter(({ name }) => name === "delete")).toHaveLength(1);
   });
