@@ -176,6 +176,28 @@ export class DaytonaSandboxRuntime {
     throw deletionError;
   }
 
+  private retainLateSandboxCleanup(operations: Array<Promise<SandboxLike>>) {
+    const claimedIds = new Set<string>();
+    for (const operation of operations) {
+      void operation.then(
+        async (sandbox) => {
+          if (claimedIds.has(sandbox.id)) return;
+          claimedIds.add(sandbox.id);
+          this.sandboxes.set(sandbox.id, sandbox);
+          try {
+            await this.deleteSandbox(
+              sandbox,
+              new InvestigationDeadline(35_000),
+            );
+          } catch (error) {
+            console.error("Isolate late sandbox cleanup failed", error);
+          }
+        },
+        () => undefined,
+      );
+    }
+  }
+
   async create(
     input: z.input<typeof createSandboxInputSchema>,
     deadline = new InvestigationDeadline(),
@@ -220,12 +242,18 @@ export class DaytonaSandboxRuntime {
           cleanupReserveMilliseconds: recoveryDeletionReserveMilliseconds,
         });
       } catch {
+        let lookupOperation: Promise<SandboxLike> | undefined;
         try {
-          recovered = await deadline.run(() => this.client.get(sandboxName), {
+          lookupOperation = this.client.get(sandboxName);
+          recovered = await deadline.run(() => lookupOperation!, {
             maximumMilliseconds: 5_000,
             cleanupReserveMilliseconds: 30_000,
           });
         } catch {
+          this.retainLateSandboxCleanup([
+            creationOperation,
+            ...(lookupOperation ? [lookupOperation] : []),
+          ]);
           throw creationError;
         }
       }
