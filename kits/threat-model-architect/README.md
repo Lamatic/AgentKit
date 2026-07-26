@@ -41,7 +41,7 @@ The flow exports reference prompt and constitution assets under `prompts/` and `
 
 ## Included files
 
-- `flows/` — five deployed Studio flow exports plus optional future-flow assets
+- `flows/` — five deployed Studio flow exports
 - `prompts/` — versioned prompts for every model stage
 - `constitutions/default.md` — shared scope and safety rules
 - `apps/` — Next.js report UI and server-side Lamatic orchestration

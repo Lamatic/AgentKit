@@ -25,6 +25,44 @@ function stringify(value: Record<string, unknown>) {
   return JSON.stringify(value);
 }
 
+function normalizePrioritization(
+  prioritization: Record<string, unknown>,
+): Record<string, unknown> {
+  const threats = Array.isArray(prioritization.ranked_threats)
+    ? prioritization.ranked_threats
+    : [];
+  const rankedThreats = threats
+    .filter(
+      (threat): threat is Record<string, unknown> =>
+        Boolean(threat) && typeof threat === "object" && !Array.isArray(threat),
+    )
+    .map((threat) => {
+      const damage = Number(threat.damage) || 0;
+      const reproducibility = Number(threat.reproducibility) || 0;
+      const exploitability = Number(threat.exploitability) || 0;
+      const affectedUsers = Number(threat.affected_users) || 0;
+      const discoverability = Number(threat.discoverability) || 0;
+      const total =
+        damage + reproducibility + exploitability + affectedUsers + discoverability;
+      const priority =
+        total >= 40 ? "critical" : total >= 30 ? "high" : total >= 20 ? "medium" : "low";
+
+      return {
+        ...threat,
+        damage,
+        reproducibility,
+        exploitability,
+        affected_users: affectedUsers,
+        discoverability,
+        total,
+        priority,
+      };
+    })
+    .sort((left, right) => Number(right.total) - Number(left.total));
+
+  return { ...prioritization, ranked_threats: rankedThreats };
+}
+
 function buildRoadmap(prioritization: Record<string, unknown>): Record<string, unknown> {
   const rankedThreats = Array.isArray(prioritization.ranked_threats)
     ? prioritization.ranked_threats.filter(
@@ -83,10 +121,11 @@ export async function generateThreatModel(input: IntakeInput): Promise<GenerateR
       architecture: stringify(architecture),
       stride_analysis: stringify(stride),
     });
-    const prioritization = await executeFlow<Record<string, unknown>>("DREAD_FLOW_ID", {
+    const rawPrioritization = await executeFlow<Record<string, unknown>>("DREAD_FLOW_ID", {
       stride_analysis: stringify(stride),
       research_findings: stringify(research),
     });
+    const prioritization = normalizePrioritization(rawPrioritization);
     const roadmap = buildRoadmap(prioritization);
     const report: ThreatModelReport = {
       architecture,

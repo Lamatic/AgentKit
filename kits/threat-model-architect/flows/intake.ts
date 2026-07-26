@@ -64,7 +64,6 @@ const outputSchema = {
       properties: {
         system_name: { type: "string" },
         purpose: { type: "string" },
-        deployment_context: { type: "string" },
         components: {
           type: "array",
           items: {
@@ -113,7 +112,6 @@ const outputSchema = {
       required: [
         "system_name",
         "purpose",
-        "deployment_context",
         "components",
         "data_assets",
         "trust_boundaries",
