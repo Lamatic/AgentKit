@@ -55,11 +55,3 @@ export const SOURCE_TEMPLATES: SourceTemplate[] = [
 export function newChipId() {
   return `chip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
-
-/** @deprecated Use SOURCE_TEMPLATES — kept for any leftover imports. */
-export const DEMO_SCENARIOS = SOURCE_TEMPLATES.map((t) => ({
-  ...t,
-  maxArticles: t.urls.length,
-}));
-
-export const DEFAULT_SCENARIO = DEMO_SCENARIOS[0];

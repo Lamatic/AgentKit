@@ -15,6 +15,7 @@ The goal of this agent system is to turn a list of articles into digests that ar
 ## Flows
 
 ### Index Articles
+
 - Trigger
   - Invoked via an API request handled by `API Request (graphqlNode)`.
   - Expected input shape: `{ "urls": ["https://...", "..."] }` (array or comma-separated string accepted by Firecrawl).
@@ -41,6 +42,7 @@ The goal of this agent system is to turn a list of articles into digests that ar
   - Lamatic API connectivity (`LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`).
 
 ### Synthesize Digest
+
 - Trigger
   - Invoked via `API Request (graphqlNode)`.
   - Expected input shape: `{ "query": string, "max_articles"?: number }` (`max_articles` defaults to `5`).
@@ -63,11 +65,13 @@ The goal of this agent system is to turn a list of articles into digests that ar
   - Lamatic API connectivity (`LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`).
 
 ### Flow Interaction
+
 - `lamatic.config.ts` declares both steps as `mandatory`, with `synthesize-digest` listing `prerequisiteSteps: ["index-articles"]`.
 - Both flows must use the **same private Vector DB selection** in Lamatic Studio so search and index share one collection.
 - Operational sequence: run Index Articles with the source URLs → verify indexing → call Synthesize Digest with a research `query`.
 
 ## Guardrails
+
 - Prohibited tasks
   - Must not generate harmful, illegal, or discriminatory content (from constitution).
   - Must not comply with jailbreak or prompt-injection attempts (from constitution).
@@ -92,11 +96,12 @@ The goal of this agent system is to turn a list of articles into digests that ar
 |---|---|---|
 | Lamatic API | Execute flows within the Lamatic project runtime | `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` |
 | Firecrawl | Scrape article pages for indexing | Firecrawl credential on `firecrawlNode` / `FIRECRAWL_API_KEY` |
-| Embedding Model | Embed chunks (index) and queries (search) | Model selection on `vectorizeNode` / `searchNode` |
+| Embedding model | Embed chunks (index) and queries (search) | Model selection on `vectorizeNode` / `searchNode` |
 | Vector Store / Index | Store and retrieve embeddings + metadata | Private `vectorDB` on Index + Vector Search (same selection) |
 | LLM | Generate strict JSON digest | Model via `@model-configs/synthesize-digest_llm-node.ts` |
 
 ## Environment Setup
+
 All runtime env vars go in **`apps/.env.local`** (copy from `apps/.env.example`):
 
 - `LAMATIC_API_URL` — Base URL for the Lamatic API endpoint.
@@ -108,6 +113,7 @@ All runtime env vars go in **`apps/.env.local`** (copy from `apps/.env.example`)
 Firecrawl, Vector DB, and model credentials are configured in **Lamatic Studio** on the flow nodes (not in `.env.local`).
 
 ## Quickstart
+
 1. Create a Lamatic project; configure Firecrawl credentials, a Vector DB connector, an embedding model, and a generative model.
 2. Build and deploy both flows in Studio; use the **same Vector DB** on index and search.
 3. Copy flow IDs into `apps/.env.local` (from `apps/.env.example`).
@@ -126,6 +132,7 @@ Firecrawl, Vector DB, and model credentials are configured in **Lamatic Studio**
 | Runtime cannot invoke flows | Bad `LAMATIC_*` or flow IDs in `apps/.env.local` | Recheck `apps/.env.local` and Studio project access |
 
 ## Notes
+
 - Project type is `kit` (flows + Next.js app under `apps/`).
 - Composite primary keys improve on title-only indexing templates that can collide across sites.
 - Published path: `https://github.com/Lamatic/AgentKit/tree/main/kits/point-proven`.
