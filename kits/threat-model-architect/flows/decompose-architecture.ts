@@ -3,7 +3,7 @@ export const meta = {
   description:
     "Normalizes captured system context into components, actors, trust boundaries, entry points, and data flows.",
   tags: ["security", "architecture", "threat-modeling"],
-  testInput: '{"session_state":"{}"}',
+  testInput: '{"session_state":"{\\"system_name\\":\\"Acme Ledger\\",\\"purpose\\":\\"Process customer invoices\\",\\"components\\":[{\\"id\\":\\"web\\",\\"name\\":\\"Web app\\",\\"type\\":\\"frontend\\",\\"description\\":\\"Customer UI\\",\\"technologies\\":[\\"Next.js\\"]}],\\"data_assets\\":[{\\"id\\":\\"invoice\\",\\"name\\":\\"Invoice\\",\\"sensitivity\\":\\"confidential\\",\\"description\\":\\"Customer invoice data\\"}],\\"trust_boundaries\\":[{\\"id\\":\\"internet\\",\\"from_component_id\\":\\"user\\",\\"to_component_id\\":\\"web\\",\\"data_flows\\":[\\"HTTPS requests\\"],\\"protocol\\":\\"HTTPS\\"}],\\"user_roles\\":[\\"customer\\"],\\"compliance_notes\\":[],\\"tech_stack\\":[\\"Next.js\\"]}"}',
   githubUrl:
     "https://github.com/Lamatic/AgentKit/tree/main/kits/threat-model-architect",
   documentationUrl: "",
@@ -36,6 +36,110 @@ export const references = {
   constitutions: { default: "@constitutions/default.md" },
 };
 
+const outputSchema = {
+  type: "object",
+  properties: {
+    system_name: { type: "string" },
+    purpose: { type: "string" },
+    components: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          type: { type: "string" },
+          technologies: { type: "array", items: { type: "string" } },
+          description: { type: "string" },
+          trust_zone: { type: "string" },
+          confidence: { type: "string" },
+        },
+        required: ["id", "name", "type", "technologies", "description", "trust_zone", "confidence"],
+      },
+    },
+    external_actors: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          type: { type: "string" },
+          description: { type: "string" },
+          trust_zone: { type: "string" },
+        },
+        required: ["id", "name", "type", "description", "trust_zone"],
+      },
+    },
+    data_assets: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          sensitivity: { type: "string" },
+          description: { type: "string" },
+        },
+        required: ["id", "name", "sensitivity", "description"],
+      },
+    },
+    trust_boundaries: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          from_zone: { type: "string" },
+          to_zone: { type: "string" },
+          components_crossed: { type: "array", items: { type: "string" } },
+          description: { type: "string" },
+        },
+        required: ["id", "name", "from_zone", "to_zone", "components_crossed", "description"],
+      },
+    },
+    data_flows: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          from_component_id: { type: "string" },
+          to_component_id: { type: "string" },
+          protocol: { type: "string" },
+          data_assets: { type: "array", items: { type: "string" } },
+          authentication: { type: "string" },
+          confidence: { type: "string" },
+        },
+        required: ["id", "from_component_id", "to_component_id", "protocol", "data_assets", "authentication", "confidence"],
+      },
+    },
+    entry_points: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          component_id: { type: "string" },
+          exposed_to: { type: "string" },
+          description: { type: "string" },
+        },
+        required: ["id", "name", "component_id", "exposed_to", "description"],
+      },
+    },
+    security_assumptions: { type: "array", items: { type: "string" } },
+    missing_info: { type: "array", items: { type: "string" } },
+  },
+  required: ["system_name", "purpose", "components", "external_actors", "data_assets", "trust_boundaries", "data_flows", "entry_points", "security_assumptions", "missing_info"],
+};
+
 export const nodes = [
   {
     id: "triggerNode_1",
@@ -64,22 +168,7 @@ export const nodes = [
       values: {
         id: "InstructorLLMNode_158",
         tools: [],
-        schema: JSON.stringify({
-          type: "object",
-          properties: {
-            system_name: { type: "string" },
-            purpose: { type: "string" },
-            components: { type: "array", minItems: 1, items: { type: "object", additionalProperties: true } },
-            external_actors: { type: "array", minItems: 1, items: { type: "object", additionalProperties: true } },
-            data_assets: { type: "array", minItems: 1, items: { type: "object", additionalProperties: true } },
-            trust_boundaries: { type: "array", minItems: 3, items: { type: "object", additionalProperties: true } },
-            data_flows: { type: "array", minItems: 3, items: { type: "object", additionalProperties: true } },
-            entry_points: { type: "array", minItems: 1, items: { type: "object", additionalProperties: true } },
-            security_assumptions: { type: "array", minItems: 1, items: { type: "string" } },
-            missing_info: { type: "array", items: { type: "string" } },
-          },
-          required: ["system_name", "purpose", "components", "external_actors", "data_assets", "trust_boundaries", "data_flows", "entry_points", "security_assumptions", "missing_info"],
-        }),
+        schema: JSON.stringify(outputSchema, null, 2),
         prompts: [
           { id: "decompose-system", role: "system", content: "@prompts/decompose-architecture_system.md" },
           { id: "decompose-user", role: "user", content: "@prompts/decompose-architecture_user.md" },

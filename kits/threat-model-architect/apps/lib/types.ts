@@ -1,15 +1,31 @@
+import type {
+  Architecture,
+  IntakeResult,
+  Prioritization,
+  ResearchFindings,
+  StrideAnalysis,
+} from "./contracts";
+
 export type IntakeInput = {
   systemDescription: string;
+  sessionState?: IntakeResult["session_state"];
+  accessToken?: string;
 };
 
 export type ThreatModelReport = {
-  architecture: Record<string, unknown>;
-  stride: Record<string, unknown>;
-  research: Record<string, unknown>;
-  prioritization: Record<string, unknown>;
+  architecture: Architecture;
+  stride: StrideAnalysis;
+  research: ResearchFindings;
+  prioritization: Prioritization;
   roadmap: Record<string, unknown>;
 };
 
 export type GenerateReportResponse =
-  | { success: true; report: ThreatModelReport }
-  | { success: false; error: string };
+  | { status: "complete"; report: ThreatModelReport }
+  | {
+      status: "needs_input";
+      assistantMessage: string;
+      missingInfo: string[];
+      sessionState: IntakeResult["session_state"];
+    }
+  | { status: "error"; error: string };

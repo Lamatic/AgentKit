@@ -15,32 +15,61 @@ function endpoint() {
  * arrays/objects as JSON strings. Normalize that Studio behavior before the
  * orchestrator hands one flow's output to the next flow.
  */
-function unwrap(value: unknown): unknown {
-  if (typeof value === "string") {
-    const stripped = value.replace(/^\$/, "");
+function parseMappedString(value: string, stripPlainString: boolean): unknown {
+  const serialized =
+    value.startsWith("${") ||
+    value.startsWith("$[") ||
+    value === "$true" ||
+    value === "$false";
+  if (!serialized && !(stripPlainString && value.startsWith("$"))) return value;
+  const stripped = value.slice(1);
+  if (serialized) {
     if (stripped === "true") return true;
     if (stripped === "false") return false;
     if (stripped.startsWith("{") || stripped.startsWith("[")) {
       try {
-        return unwrap(JSON.parse(stripped));
+        return JSON.parse(stripped);
       } catch {
-        return stripped;
+        return value;
       }
     }
-    return stripped;
   }
-  if (Array.isArray(value)) return value.map(unwrap);
+  return stripped;
+}
+
+export function unwrapWorkflowValue(value: unknown): unknown {
+  if (typeof value === "string") return parseMappedString(value, false);
+  if (Array.isArray(value)) return value;
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, unwrap(entry)]),
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        typeof entry === "string" ? parseMappedString(entry, true) : entry,
+      ]),
     );
   }
   return value;
 }
 
-export async function executeFlow<T>(flowEnvKey: string, input: Record<string, unknown>): Promise<T> {
+type ExecuteFlowOptions = {
+  fetchImpl?: typeof fetch;
+  timeoutMs?: number;
+};
+
+export async function executeFlow<T>(
+  flowEnvKey: string,
+  input: Record<string, unknown>,
+  options: ExecuteFlowOptions = {},
+): Promise<T> {
   const flowId = process.env[flowEnvKey];
   if (!flowId) throw new Error(`Missing required environment variable: ${flowEnvKey}`);
+  const configuredTimeout = Number(process.env.LAMATIC_TIMEOUT_MS);
+  const timeoutMs =
+    options.timeoutMs ??
+    (Number.isFinite(configuredTimeout) && configuredTimeout > 0
+      ? configuredTimeout
+      : 120_000);
+  const fetchImpl = options.fetchImpl ?? fetch;
   const names = Object.keys(input);
   const graphQlName = /^[_A-Za-z][_0-9A-Za-z]*$/;
   if (names.some((name) => !graphQlName.test(name))) {
@@ -60,17 +89,30 @@ export async function executeFlow<T>(flowEnvKey: string, input: Record<string, u
       }
     }
   `;
-  const response = await fetch(endpoint(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${required("LAMATIC_API_KEY")}`,
-      "x-project-id": required("LAMATIC_PROJECT_ID"),
-    },
-    body: JSON.stringify({ query, variables: { workflowId: flowId, ...variables } }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let response: Response;
+  try {
+    response = await fetchImpl(endpoint(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${required("LAMATIC_API_KEY")}`,
+        "x-project-id": required("LAMATIC_PROJECT_ID"),
+      },
+      body: JSON.stringify({ query, variables: { workflowId: flowId, ...variables } }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(`Lamatic workflow timed out after ${timeoutMs}ms.`);
+    }
+    throw new Error("Lamatic workflow request failed.", { cause: error });
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) {
-    throw new Error(`Lamatic HTTP ${response.status}: ${await response.text()}`);
+    throw new Error(`Lamatic workflow request failed with HTTP ${response.status}.`);
   }
   const body = (await response.json()) as {
     errors?: Array<{ message: string }>;
@@ -86,5 +128,5 @@ export async function executeFlow<T>(flowEnvKey: string, input: Record<string, u
   if (!execution.result || typeof execution.result !== "object") {
     throw new Error("Lamatic returned an empty workflow result.");
   }
-  return unwrap(execution.result) as T;
+  return unwrapWorkflowValue(execution.result) as T;
 }
