@@ -37,7 +37,8 @@
           "confidence": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "name", "type", "technologies", "description", "trust_zone", "confidence"]
       }
     },
     "external_actors": {
@@ -61,7 +62,8 @@
           "trust_zone": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "name", "type", "description", "trust_zone"]
       }
     },
     "data_assets": {
@@ -81,12 +83,13 @@
           "description": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "name", "sensitivity", "description"]
       }
     },
     "trust_boundaries": {
       "type": "array",
-      "minItems": 3,
+      "minItems": 1,
       "items": {
         "type": "object",
         "properties": {
@@ -111,12 +114,13 @@
           "description": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "name", "from_zone", "to_zone", "components_crossed", "description"]
       }
     },
     "data_flows": {
       "type": "array",
-      "minItems": 5,
+      "minItems": 1,
       "items": {
         "type": "object",
         "properties": {
@@ -144,12 +148,13 @@
           "confidence": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "from_component_id", "to_component_id", "protocol", "data_assets", "authentication", "confidence"]
       }
     },
     "entry_points": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 1,
       "items": {
         "type": "object",
         "properties": {
@@ -168,12 +173,12 @@
           "description": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "name", "component_id", "exposed_to", "description"]
       }
     },
     "security_assumptions": {
       "type": "array",
-      "minItems": 1,
       "items": {
         "type": "string"
       }

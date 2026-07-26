@@ -13,4 +13,5 @@ h2, h3 { margin:0; } header p, .muted { color:var(--muted); line-height:1.6; }
 .pipeline { margin:24px 0 0; padding-left:20px; color:var(--muted); line-height:1.8; font-size:14px; columns:2; }
 .results { display:grid; gap:16px; } .card h3 { color:var(--accent); font-size:14px; text-transform:uppercase; letter-spacing:.08em; } pre { margin:16px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; color:#cbd5e1; font-size:12px; line-height:1.55; }
 .error { margin:0; padding:14px; border:1px solid #7f1d1d; border-radius:8px; color:var(--danger); background:#2b1218; }.empty { min-height:260px; display:grid; place-items:center; text-align:center; color:var(--muted); line-height:1.6; }.chat input { margin:0; }.answer { margin:16px 0 0; line-height:1.6; white-space:pre-wrap; }
+.follow-up { margin:18px 0; padding:14px; border:1px solid #286f5c; border-radius:8px; background:#0b2923; line-height:1.5; }.follow-up p { margin:8px 0; }.follow-up ul { margin:8px 0 0; padding-left:20px; color:var(--muted); } form label { display:block; margin-top:14px; }
 @media (max-width:850px) { .layout { grid-template-columns:1fr; }.intake { position:static; }.pipeline { columns:1; } }

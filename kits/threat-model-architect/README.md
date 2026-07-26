@@ -16,11 +16,21 @@ Threat Model Architect is a full Lamatic AgentKit that converts a plain-English 
 ```bash
 cd apps
 cp .env.example .env.local
-npm install
+npm ci
 npm run dev
 ```
 
-Set the Lamatic project credentials and all five deployed flow IDs in `apps/.env.local`. The app runs flows server-side in pipeline order, so no Lamatic credentials are exposed to the browser.
+Set the Lamatic project credentials and all five deployed flow IDs in `apps/.env.local`. The app runs flows server-side in pipeline order, so no Lamatic credentials are exposed to the browser. Intake is conversational: answer requested follow-ups and explicitly confirm the summary before the remaining flows run.
+
+For a non-public deployment, set `THREAT_MODEL_ACCESS_TOKEN` and enter that value in the app. The built-in per-process rate limit and request-size limit are safety backstops; public deployments should also enforce distributed rate limiting at the hosting edge. `LAMATIC_TIMEOUT_MS`, `THREAT_MODEL_RATE_LIMIT`, and `THREAT_MODEL_RATE_WINDOW_MS` can tune the defaults.
+
+Run local quality checks with:
+
+```bash
+npm run type-check
+npm run build
+npm audit
+```
 
 ## Import and deploy flows
 
