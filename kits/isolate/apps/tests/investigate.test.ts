@@ -31,6 +31,7 @@ const passingRun = {
 
 function harness(options: {
   invalidRepair?: boolean;
+  misplacedSeparatorFirst?: boolean;
   plannerFails?: boolean;
   unsafeFirst?: boolean;
 } = {}) {
@@ -69,6 +70,13 @@ function harness(options: {
   const planner = async () => {
     plannerCalls += 1;
     if (options.plannerFails) throw new Error("planner unavailable");
+    if (options.misplacedSeparatorFirst && plannerCalls === 1) {
+      return {
+        hypothesis: "Case is normalized unexpectedly.",
+        candidateCommand: "bun run cli greet -- IsolateCLI",
+        controlCommand: "bun run cli greet -- world",
+      };
+    }
     if (options.unsafeFirst && plannerCalls === 1) {
       return {
         hypothesis: "Case is normalized unexpectedly.",
@@ -146,6 +154,21 @@ describe("investigateIssue", () => {
     expect(result.outcome).toBe("reproduced");
     expect(plannerCallCount()).toBe(2);
     expect(probeCommands).not.toContain("bun --eval 'console.log(1)'");
+  });
+
+  test("repairs a misplaced runner separator before executing certification", async () => {
+    const { runtime, planner, plannerCallCount, probeCommands } = harness({
+      misplacedSeparatorFirst: true,
+    });
+
+    const result = await investigateIssue(
+      { issueUrl: issue.url },
+      { issueReader: { read: async () => issue }, runtime, planner },
+    );
+
+    expect(result.outcome).toBe("reproduced");
+    expect(plannerCallCount()).toBe(2);
+    expect(probeCommands).not.toContain("bun run cli greet -- IsolateCLI");
   });
 
   test("fails safely after one invalid repair without executing either plan", async () => {

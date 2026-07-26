@@ -108,6 +108,7 @@ function isRepositoryRunnerSegment(segment: string) {
   const separatorIndex = runnerArguments.findIndex(
     (token) => unquote(token) === "--",
   );
+  if (verb === "run" && separatorIndex > 0) return false;
   const optionBoundary = separatorIndex === -1 ? runnerArguments.length : separatorIndex;
   if (
     runnerArguments

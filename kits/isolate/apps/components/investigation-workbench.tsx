@@ -42,8 +42,9 @@ function download(name: string, content: string, type: string) {
 
 function OutcomeMark({ passed }: { passed: boolean }) {
   return (
-    <span className={passed ? "mark mark-pass" : "mark mark-fail"} aria-hidden>
-      {passed ? "✓" : "×"}
+    <span className={passed ? "mark mark-pass" : "mark mark-fail"}>
+      <span aria-hidden>{passed ? "✓" : "×"}</span>
+      <span className="visually-hidden">{passed ? "Passed: " : "Failed: "}</span>
     </span>
   );
 }
@@ -132,6 +133,8 @@ export function InvestigationWorkbench() {
               id="issue"
               type="url"
               required
+              pattern="https://github\\.com/[^/]+/[^/]+/issues/[1-9][0-9]*/?"
+              title="Use a public GitHub issue URL such as https://github.com/owner/repo/issues/123."
               value={issueUrl}
               onChange={(event) => setIssueUrl(event.target.value)}
               placeholder="https://github.com/owner/repo/issues/123"
@@ -169,10 +172,14 @@ export function InvestigationWorkbench() {
           {loading ? (
             <div className="loading-record">
               <div className="scan-line" />
-              <p className="docket-label">Investigation active</p>
-              <h2>Building a reproducible case</h2>
-              <ol>
-                <li className="active">Reading the public issue</li>
+              <p className="docket-label">Sandbox workflow</p>
+              <h2>Investigation in progress</h2>
+              <p className="loading-note">
+                The evidence docket updates after every run is complete and the
+                disposable sandbox has been deleted.
+              </p>
+              <ol aria-label="Investigation workflow">
+                <li>Reading the public issue</li>
                 <li>Inspecting repository context in Daytona</li>
                 <li>Requesting a Lamatic probe plan</li>
                 <li>Running candidate twice and negative control once</li>

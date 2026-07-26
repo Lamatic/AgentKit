@@ -25,7 +25,7 @@ const repositorySnapshotCommand = [
 ].join("; ");
 
 const planRepairFeedback =
-  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, runner-level options, or paths outside the repository. Put an explicit -- before script arguments beginning with -.";
+  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, runner-level options, or paths outside the repository. For a run script, put -- immediately after the script name when separating script arguments: bun run <script> -- <arguments>. Never put -- after a script argument.";
 
 export async function investigateIssue(
   input: { issueUrl: string; ref?: string },

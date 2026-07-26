@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { GitHubIssueReader } from "../lib/runtime/github";
+import {
+  GitHubIssueReader,
+  InvalidGitHubIssueUrlError,
+} from "../lib/runtime/github";
 
 describe("GitHubIssueReader", () => {
   test("normalizes a public GitHub issue into deterministic investigation input", async () => {
@@ -43,7 +46,12 @@ describe("GitHubIssueReader", () => {
 
     await expect(
       reader.read("https://example.com/acme/buggy-cli/issues/42"),
-    ).rejects.toThrow("Only public GitHub issue URLs are supported.");
+    ).rejects.toBeInstanceOf(InvalidGitHubIssueUrlError);
+    await expect(
+      reader.read("https://github.com/acme/buggy-cli/pull/42"),
+    ).rejects.toThrow(
+      "Enter a public GitHub issue URL in the form https://github.com/owner/repo/issues/123.",
+    );
     await expect(
       reader.read("https://github.com/acme/buggy-cli/issues/42"),
     ).rejects.toThrow("Pull requests are not supported.");
