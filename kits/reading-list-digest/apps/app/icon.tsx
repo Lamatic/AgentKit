@@ -3,11 +3,11 @@ import { ImageResponse } from "next/og";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-/** Matches CaseCraft `--primary` (oklch 0.42 0.06 165) as a favicon-safe hex. */
+/** Matches Point Proven `--primary` (oklch 0.42 0.06 165) as a favicon-safe hex. */
 const PRIMARY = "#2f5c4f";
 
 /**
- * Browser tab / app icon — same Lucide BookOpen silhouette as the CaseCraft header.
+ * Browser tab / app icon — same Lucide BookOpen silhouette as the Point Proven header.
  */
 export default function Icon() {
   return new ImageResponse(

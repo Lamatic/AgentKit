@@ -437,7 +437,9 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center gap-3">
           <BookOpen className="size-6 text-primary" />
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">CaseCraft</h1>
+            <h1 className="text-xl font-semibold tracking-tight">
+              Point Proven
+            </h1>
             <p className="text-sm text-muted-foreground">
               Index your sources, get a cited brief for debate prep
             </p>

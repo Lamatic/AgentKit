@@ -7,7 +7,7 @@ import "./globals.css";
 export const maxDuration = 300;
 
 export const metadata: Metadata = {
-  title: "CaseCraft",
+  title: "Point Proven",
   description:
     "Index your sources and build a citation-backed brief for debate prep—key claims, clash points, and agreed points.",
 };
