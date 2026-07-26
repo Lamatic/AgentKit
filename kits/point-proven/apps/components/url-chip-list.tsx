@@ -51,6 +51,7 @@ export function UrlChipList({
               <input
                 className="min-w-[12rem] flex-1 bg-transparent text-xs font-mono outline-none"
                 value={editValue}
+                aria-label={`Edit URL ${chip.url}`}
                 onChange={(e) => onEditChange(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {

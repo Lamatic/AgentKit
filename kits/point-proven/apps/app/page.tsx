@@ -189,9 +189,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const capacity = Math.max(0, 4 - checkingRef.current.size);
+    if (capacity === 0) return;
+
+    let started = 0;
     for (const chip of chips) {
+      if (started >= capacity) break;
       if (chip.status === "pending" && !checkingRef.current.has(chip.id)) {
         checkingRef.current.add(chip.id);
+        started += 1;
         void runReachability(chip.id, chip.url);
       }
     }
@@ -304,50 +310,82 @@ export default function Home() {
       return;
     }
 
-    const first = candidates[0];
-    if (first.ok === false) {
-      setChips((prev) =>
-        prev.map((c) =>
-          c.id === id
-            ? {
-                ...c,
-                url: first.raw,
-                origin: "custom",
-                status: "error",
-                message: first.error,
-                httpStatus: undefined,
-              }
-            : c
-        )
+    setChips((prev) => {
+      const existing = new Set(
+        prev
+          .filter((c) => c.id !== id)
+          .map((c) => normalizeArticleUrl(c.url).toLowerCase())
       );
-      return;
-    }
+      const additions: UrlChip[] = [];
+      let edited: UrlChip | null = null;
+      const original = prev.find((c) => c.id === id);
 
-    const normalized = normalizeArticleUrl(first.url);
-    const dup = chips.some(
-      (c) =>
-        c.id !== id &&
-        normalizeArticleUrl(c.url).toLowerCase() === normalized.toLowerCase()
-    );
-    if (dup) {
-      setChips((prev) => prev.filter((c) => c.id !== id));
-      return;
-    }
+      for (let i = 0; i < candidates.length; i++) {
+        const cand = candidates[i];
+        if (cand.ok === false) {
+          if (i === 0) {
+            edited = {
+              id,
+              url: cand.raw,
+              origin: "custom",
+              status: "error",
+              message: cand.error,
+            };
+          } else {
+            additions.push({
+              id: newChipId(),
+              url: cand.raw,
+              origin: "custom",
+              status: "error",
+              message: cand.error,
+            });
+          }
+          continue;
+        }
 
-    setChips((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
+        const normalized = normalizeArticleUrl(cand.url);
+        const key = normalized.toLowerCase();
+        if (existing.has(key)) {
+          if (i === 0) {
+            edited = {
+              id,
               url: normalized,
               origin: "custom",
-              status: "pending",
-              message: undefined,
+              status: "error",
+              message: "Duplicate URL — already in the list",
               httpStatus: undefined,
-            }
-          : c
-      )
-    );
+            };
+          }
+          // Extra pasted duplicates are skipped rather than adding more error chips.
+          continue;
+        }
+        existing.add(key);
+
+        if (i === 0) {
+          edited = {
+            id,
+            url: normalized,
+            origin: "custom",
+            status: "pending",
+            message: undefined,
+            httpStatus: undefined,
+          };
+        } else {
+          additions.push({
+            id: newChipId(),
+            url: normalized,
+            origin: "custom",
+            status: "pending",
+          });
+        }
+      }
+
+      return prev.flatMap((c) => {
+        if (c.id !== id) return [c];
+        const replacement = edited ?? original ?? c;
+        return additions.length ? [replacement, ...additions] : [replacement];
+      });
+    });
   }
 
   async function handleIndex() {
@@ -367,9 +405,24 @@ export default function Home() {
     const errors: unknown[] = [];
     const failedUrls: string[] = [];
     let successCount = 0;
+    // Leave headroom under serverless maxDuration (300s) for the final return.
+    const deadline = Date.now() + 270_000;
 
     try {
       for (let i = 0; i < urls.length; i++) {
+        if (Date.now() >= deadline) {
+          for (const remaining of urls.slice(i)) {
+            failedUrls.push(remaining);
+            errors.push({
+              url: remaining,
+              message:
+                "Indexing stopped: approached the serverless time limit.",
+            });
+          }
+          setIndexDone(urls.length);
+          break;
+        }
+
         try {
           const one = await indexSingleArticle(urls[i]);
           totalIndexed += one.indexed_count;
@@ -397,8 +450,7 @@ export default function Home() {
         throw new Error(msg);
       }
 
-      const lockedMax = successCount > 0 ? successCount : urls.length;
-      setMaxSources(lockedMax);
+      setMaxSources(successCount);
       setSourcesLocked(true);
       setIndexResult({
         indexed_count: totalIndexed,
@@ -412,6 +464,24 @@ export default function Home() {
     } finally {
       setIndexing(false);
     }
+  }
+
+  function handleStartOver() {
+    clearChecking();
+    setSourcesLocked(false);
+    setChips([]);
+    setDraft("");
+    setActiveTemplateId(null);
+    setEditingId(null);
+    setEditValue("");
+    setQuery("");
+    setDigest(null);
+    setIndexResult(null);
+    setMaxSources(0);
+    setError(null);
+    setIndexDone(0);
+    setIndexTotal(0);
+    setTab("index");
   }
 
   async function handleSynthesize() {
@@ -567,6 +637,10 @@ export default function Home() {
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
+                      role="progressbar"
+                      aria-valuenow={progressPct}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
                       className="h-full rounded-full bg-primary transition-[width] duration-300"
                       style={{ width: `${progressPct}%` }}
                     />
@@ -574,28 +648,40 @@ export default function Home() {
                 </div>
               )}
 
-              <Button
-                onClick={handleIndex}
-                disabled={indexing || sourcesLocked || !allChipsOk}
-                className="gap-2"
-              >
-                {indexing ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Indexing…
-                  </>
-                ) : sourcesLocked ? (
-                  <>
-                    <Search className="size-4" />
-                    Sources indexed
-                  </>
-                ) : (
-                  <>
-                    <Search className="size-4" />
-                    Index sources
-                  </>
-                )}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleIndex}
+                  disabled={indexing || sourcesLocked || !allChipsOk}
+                  className="gap-2"
+                >
+                  {indexing ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Indexing…
+                    </>
+                  ) : sourcesLocked ? (
+                    <>
+                      <Search className="size-4" />
+                      Sources indexed
+                    </>
+                  ) : (
+                    <>
+                      <Search className="size-4" />
+                      Index sources
+                    </>
+                  )}
+                </Button>
+                {sourcesLocked ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleStartOver}
+                    disabled={indexing || synthesizing}
+                  >
+                    Start over
+                  </Button>
+                ) : null}
+              </div>
 
               {indexResult && !indexing && (
                 <div className="rounded-md border bg-muted/40 p-4 text-sm">
@@ -631,6 +717,18 @@ export default function Home() {
                     <span className="rounded-full border px-2 py-0.5 text-[10px]">
                       Locked after index
                     </span>
+                  ) : null}
+                  {sourcesLocked ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={handleStartOver}
+                      disabled={indexing || synthesizing}
+                    >
+                      Start over
+                    </Button>
                   ) : null}
                 </div>
               ) : null}
@@ -750,7 +848,10 @@ export default function Home() {
         </Tabs>
 
         {error && (
-          <Card className="p-4 mt-6 border-destructive/50 bg-destructive/5">
+          <Card
+            role="alert"
+            className="p-4 mt-6 border-destructive/50 bg-destructive/5"
+          >
             <p className="text-sm text-destructive">{error}</p>
           </Card>
         )}
