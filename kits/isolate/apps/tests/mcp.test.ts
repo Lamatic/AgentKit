@@ -338,6 +338,58 @@ describe("POST /api/mcp", () => {
     expect(creates).toBe(0);
   });
 
+  test("returns a safe planner-policy error for identical certification commands", async () => {
+    let creates = 0;
+    const runtime = {
+      create: async () => {
+        creates += 1;
+        throw new Error("must not allocate");
+      },
+      runProbe: async () => { throw new Error("not used"); },
+      resetWorkspace: async () => undefined,
+      delete: async () => { throw new Error("not used"); },
+    };
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 11,
+          method: "tools/call",
+          params: {
+            name: "certify_reproduction",
+            arguments: {
+              issueUrl: "https://github.com/example/buggy-cli/issues/1",
+              candidateCommand: "bun test repro.test.ts",
+              controlCommand: "bun test repro.test.ts",
+            },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      () => runtime,
+      {
+        read: async () => ({
+          url: "https://github.com/example/buggy-cli/issues/1",
+          repositoryUrl: "https://github.com/example/buggy-cli",
+          owner: "example",
+          repository: "buggy-cli",
+          number: 1,
+          title: "Regression fails",
+          body: "Observed stderr: `bug observed`",
+          state: "open" as const,
+          author: "maintainer",
+          labels: ["bug"],
+        }),
+      },
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.isError).toBe(true);
+    expect(JSON.stringify(body.result.content)).toContain("different cases");
+    expect(creates).toBe(0);
+  });
+
   test("rejects certification while both investigation slots are in flight", async () => {
     const releaseFirst = acquireInvestigationSlot();
     const releaseSecond = acquireInvestigationSlot();

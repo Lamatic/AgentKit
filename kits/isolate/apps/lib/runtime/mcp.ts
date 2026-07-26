@@ -2,6 +2,7 @@ import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 import {
+  InvalidCertificationPlanError,
   runCertification,
   validateCertificationCommands,
 } from "./certification";
@@ -26,6 +27,7 @@ type IssueReader = Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
 function mcpToolError(error: unknown) {
   if (
     error instanceof MissingIssueEvidenceContractError ||
+    error instanceof InvalidCertificationPlanError ||
     error instanceof UnsafeCommandError
   ) {
     return {
