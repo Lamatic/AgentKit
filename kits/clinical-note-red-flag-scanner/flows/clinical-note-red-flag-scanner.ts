@@ -111,7 +111,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"clinicalNote\": {\n    \"type\": \"string\",\n    \"minLength\": 10,\n    \"pattern\": \"^.*\\\\S.*$\"\n  }\n}"
+        "advance_schema": "{\n  \"clinicalNote\": {\n    \"type\": \"string\",\n    \"minLength\": 10,\n    \"maxLength\": 45000,\n    \"pattern\": \"^.*\\\\S.*$\"\n  }\n}"
       }
     }
   },

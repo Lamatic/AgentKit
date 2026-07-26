@@ -66,7 +66,7 @@ This workflow includes **4 nodes** working together:
 
 ```json
 {
-  "clinicalNote": "Patient: John D., 67M. Chief Complaint: Chest pain x 2 hours. History: HTN, DM2. Current Meds: Metformin 500mg BID, Lisinopril 10mg daily. Exam: BP 158/94, HR 88, RR 18. Lungs clear. Heart: regular rhythm, no murmurs. Assessment: Probable angina. Plan: Start aspirin 81mg daily, order stress test. Prescribed nitroglycerin PRN."
+  "clinicalNote": "Patient: TEST-001, 67M. Chief Complaint: Chest pain x 2 hours. History: HTN, DM2. Current Meds: Metformin 500mg BID, Lisinopril 10mg daily. Exam: BP 158/94, HR 88, RR 18. Lungs clear. Heart: regular rhythm, no murmurs. Assessment: Probable angina. Plan: Start aspirin 81mg daily, order stress test. Prescribed nitroglycerin PRN."
 }
 ```
 
@@ -76,55 +76,7 @@ The flow returns a `result` field containing a JSON object:
 
 ```json
 {
-  "summary": "The clinical note lacks critical documentation regarding patient identification, informed consent, comprehensive allergy assessment, and explicit medication instructions, posing significant regulatory and safety risks.",
-  "flagCount": 5,
-  "flags": [
-    {
-      "id": "FLAG-001",
-      "category": "IDENTITY",
-      "severity": "CRITICAL",
-      "title": "Missing Patient Identifiers and Provider Attestation",
-      "detail": "The note lacks an MRN, DOB, and provider signature/attestation, making the record legally incomplete and difficult to attribute to a specific patient.",
-      "location": "Header/Footer",
-      "recommendation": "Ensure all clinical notes include full patient identifiers and a clear, timestamped provider signature."
-    },
-    {
-      "id": "FLAG-002",
-      "category": "ALLERGY",
-      "severity": "CRITICAL",
-      "title": "Missing Allergy Information",
-      "detail": "There is no documentation regarding the patient's allergy status, which is a requirement prior to prescribing new medications like nitroglycerin.",
-      "location": "ABSENT",
-      "recommendation": "Document patient allergy status or explicitly state 'NKDA' (No Known Drug Allergies)."
-    },
-    {
-      "id": "FLAG-003",
-      "category": "DOSING",
-      "severity": "HIGH",
-      "title": "Incomplete Medication Dosing Instructions",
-      "detail": "The nitroglycerin prescription is missing frequency, route, and duration/maximum dose instructions.",
-      "location": "Plan",
-      "recommendation": "Provide full dosing instructions including route, frequency, and maximum daily dose for all PRN medications."
-    },
-    {
-      "id": "FLAG-004",
-      "category": "FOLLOW_UP",
-      "severity": "HIGH",
-      "title": "Incomplete Follow-up and Emergency Plan",
-      "detail": "The note lacks clear instructions on when to return for care, signs of progression requiring an ER visit, or a timeline for the ordered stress test.",
-      "location": "Plan",
-      "recommendation": "Document specific follow-up instructions, including return-to-ED precautions for escalating chest pain."
-    },
-    {
-      "id": "FLAG-005",
-      "category": "HISTORY",
-      "severity": "MEDIUM",
-      "title": "Incomplete Social and Family History",
-      "detail": "The history is missing smoking status, alcohol use, and relevant family history of premature coronary artery disease, which are standard for a 67-year-old presenting with chest pain.",
-      "location": "History",
-      "recommendation": "Complete a focused social and family history relevant to the differential diagnosis of angina."
-    }
-  ]
+  "result": "{\"summary\":\"The clinical note lacks critical documentation regarding patient identification, informed consent, comprehensive allergy assessment, and explicit medication instructions, posing significant regulatory and safety risks.\",\"flagCount\":5,\"flags\":[{\"id\":\"FLAG-001\",\"category\":\"IDENTITY\",\"severity\":\"CRITICAL\",\"title\":\"Missing Patient Identifiers and Provider Attestation\",\"detail\":\"The note lacks an MRN, DOB, and provider signature/attestation, making the record legally incomplete and difficult to attribute to a specific patient.\",\"location\":\"Header/Footer\",\"recommendation\":\"Ensure all clinical notes include full patient identifiers and a clear, timestamped provider signature.\"},{\"id\":\"FLAG-002\",\"category\":\"ALLERGY\",\"severity\":\"CRITICAL\",\"title\":\"Missing Allergy Information\",\"detail\":\"There is no documentation regarding the patient's allergy status, which is a requirement prior to prescribing new medications like nitroglycerin.\",\"location\":\"ABSENT\",\"recommendation\":\"Document patient allergy status or explicitly state 'NKDA' (No Known Drug Allergies).\"},{\"id\":\"FLAG-003\",\"category\":\"DOSING\",\"severity\":\"HIGH\",\"title\":\"Incomplete Medication Dosing Instructions\",\"detail\":\"The nitroglycerin prescription is missing frequency, route, and duration/maximum dose instructions.\",\"location\":\"Plan\",\"recommendation\":\"Ensure all medication orders contain complete dosing instructions including route and frequency.\"},{\"id\":\"FLAG-004\",\"category\":\"FOLLOW_UP\",\"severity\":\"HIGH\",\"title\":\"Incomplete Follow-up and Emergency Plan\",\"detail\":\"The note lacks clear instructions on follow-up timeline and return precautions.\",\"location\":\"Plan\",\"recommendation\":\"Document specific follow-up instructions and return precautions.\"},{\"id\":\"FLAG-005\",\"category\":\"HISTORY\",\"severity\":\"MEDIUM\",\"title\":\"Incomplete Social and Family History\",\"detail\":\"The history is missing smoking status, alcohol use, and relevant family history of premature coronary artery disease, which are standard for a 67-year-old presenting with chest pain.\",\"location\":\"History\",\"recommendation\":\"Complete a focused social and family history relevant to the differential diagnosis of angina.\"}]}"
 }
 ```
 
