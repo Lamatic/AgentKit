@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { planTrip } from "@/actions/orchestrate";
 
 export default function TripForm() {
   const [city, setCity] = useState("");
@@ -8,10 +10,30 @@ export default function TripForm() {
   const [days, setDays] = useState(3);
   const [budget, setBudget] = useState(10000);
   const [preferences, setPreferences] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log({ city, travelDate, days, budget, preferences });
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await planTrip({
+        city,
+        travelDate,
+        days,
+        budget,
+        preferences,
+      });
+      sessionStorage.setItem("tripResult", JSON.stringify(result));
+      router.push("/results");
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong generating your trip. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -61,7 +83,11 @@ export default function TripForm() {
         />
       </div>
 
-      <button type="submit">Generate My Trip</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <button type="submit" disabled={loading}>
+        {loading ? "Planning your trip..." : "Generate My Trip"}
+      </button>
     </form>
   );
 }
