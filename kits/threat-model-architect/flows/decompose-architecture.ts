@@ -78,6 +78,7 @@ export const nodes = [
             security_assumptions: { type: "array", minItems: 1, items: { type: "string" } },
             missing_info: { type: "array", items: { type: "string" } },
           },
+          required: ["system_name", "purpose", "components", "external_actors", "data_assets", "trust_boundaries", "data_flows", "entry_points", "security_assumptions", "missing_info"],
         }),
         prompts: [
           { id: "decompose-system", role: "system", content: "@prompts/decompose-architecture_system.md" },
