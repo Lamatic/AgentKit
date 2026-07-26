@@ -637,7 +637,7 @@ describe("DaytonaSandboxRuntime", () => {
   });
 
   test("redacts common credentials and caps captured command output", async () => {
-    const oversized = `API_KEY=super-secret\n{"apiKey":"json-secret"}\n${"x".repeat(70_000)}`;
+    const oversized = `API_KEY=super-secret\n{"apiKey":"json-secret"}\n${String.raw`{"apiKey":"prefix\"LEAK"}`}\n${"x".repeat(70_000)}`;
     const { client } = fakeDaytona([
       { exitCode: 0, result: "" },
       { exitCode: 0, result: "" },
@@ -647,7 +647,7 @@ describe("DaytonaSandboxRuntime", () => {
           exitCode: 0,
           stdout: oversized,
           stderr:
-            "Authorization: Bearer secret-token\n{\"Authorization\":\"Bearer json-token\"}",
+            `Authorization: Bearer secret-token\n{"Authorization":"Bearer json-token"}\n${String.raw`{"Authorization":"Bearer prefix\"LEAK2"}`}`,
         }),
       },
     ]);
@@ -667,6 +667,8 @@ describe("DaytonaSandboxRuntime", () => {
     expect(result.observation.stdout).not.toContain("json-secret");
     expect(result.observation.stderr).not.toContain("secret-token");
     expect(result.observation.stderr).not.toContain("json-token");
+    expect(result.observation.stdout).not.toContain("LEAK");
+    expect(result.observation.stderr).not.toContain("LEAK2");
     expect(result.observation.stdout).toContain("[REDACTED]");
     expect(result.observation.stdout).toEndWith("\n[output truncated]");
     expect(result.observation.stdout.length).toBeLessThanOrEqual(65_536);
@@ -705,6 +707,8 @@ describe("DaytonaSandboxRuntime", () => {
     expect(runner).toContain("const cap=65536");
     expect(runner).toContain("spawn('setsid'");
     expect(runner).toContain("process.kill(-child.pid");
+    expect(runner).toContain("child.once('close'");
+    expect(runner).not.toContain("},250)");
     expect(commands[1]).not.toContain("ulimit");
     expect(commands.at(-1)).toStartWith("rm -f ");
   });

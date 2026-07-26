@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from "react";
 
+import { investigationRequest } from "../lib/investigation-request";
+
 type Observation = {
   command: string;
   exitCode: number;
@@ -75,7 +77,7 @@ function EvidenceRun({ label, run }: { label: string; run: ProbeRun }) {
 
 export function InvestigationWorkbench() {
   const [issueUrl, setIssueUrl] = useState(exampleIssue);
-  const [ref, setRef] = useState("main");
+  const [ref, setRef] = useState("");
   const [result, setResult] = useState<Investigation | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -89,7 +91,7 @@ export function InvestigationWorkbench() {
       const response = await fetch("/api/investigate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ issueUrl, ref }),
+        body: JSON.stringify(investigationRequest(issueUrl, ref)),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Investigation failed.");
@@ -140,7 +142,7 @@ export function InvestigationWorkbench() {
               id="ref"
               value={ref}
               onChange={(event) => setRef(event.target.value)}
-              placeholder="main or full commit SHA"
+              placeholder="Default branch or full commit SHA"
               disabled={loading}
             />
             <button className="primary" disabled={loading} type="submit">
