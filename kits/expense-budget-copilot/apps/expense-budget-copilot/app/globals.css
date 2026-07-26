@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #FAF6EE;
+  --color-ink: #2B2620;
+  --color-ledger: #1B4332;
+  --color-stamp: #C9A227;
+  --color-flag: #B3503D;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-paper);
+  background-image: radial-gradient(rgba(43, 38, 32, 0.035) 1px, transparent 1px);
+  background-size: 4px 4px;
+  color: var(--color-ink);
+}
+
+.receipt-edge-top,
+.receipt-edge-bottom {
+  height: 12px;
+  width: 100%;
+  background-image: linear-gradient(135deg, var(--color-paper) 50%, transparent 50%),
+    linear-gradient(45deg, var(--color-paper) 50%, transparent 50%);
+  background-size: 16px 16px;
+  background-position: bottom;
+}
+
+.receipt-edge-bottom {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
