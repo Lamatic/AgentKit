@@ -64,6 +64,7 @@ const outputSchema = {
       properties: {
         system_name: { type: "string" },
         purpose: { type: "string" },
+        deployment_context: { type: "string" },
         components: {
           type: "array",
           items: {
@@ -109,10 +110,28 @@ const outputSchema = {
         compliance_notes: { type: "array", items: { type: "string" } },
         tech_stack: { type: "array", items: { type: "string" } },
       },
+      required: [
+        "system_name",
+        "purpose",
+        "deployment_context",
+        "components",
+        "data_assets",
+        "trust_boundaries",
+        "user_roles",
+        "compliance_notes",
+        "tech_stack",
+      ],
       additionalProperties: true,
     },
     missing_info: { type: "array", items: { type: "string" } },
   },
+  required: [
+    "language",
+    "assistant_message",
+    "is_complete",
+    "session_state",
+    "missing_info",
+  ],
 };
 
 export const nodes = [
