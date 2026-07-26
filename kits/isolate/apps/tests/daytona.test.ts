@@ -181,15 +181,15 @@ describe("DaytonaSandboxRuntime", () => {
     expect(calls[2]?.args.slice(1)).toEqual([15, true]);
   });
 
-  test("recovers and deletes a sandbox whose create resolves after the work deadline", async () => {
+  test("recovers by name and deletes a sandbox after create exceeds the work deadline", async () => {
     const { client, calls, sandbox } = fakeDaytona();
     client.create = async (...args: unknown[]) => {
       calls.push({ name: "create", args });
-      await new Promise((resolve) => setTimeout(resolve, 30));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       return sandbox;
     };
     const runtime = new DaytonaSandboxRuntime(client);
-    const deadline = new InvestigationDeadline(35_010);
+    const deadline = new InvestigationDeadline(35_100);
 
     await expect(
       runtime.create(
@@ -198,6 +198,33 @@ describe("DaytonaSandboxRuntime", () => {
       ),
     ).rejects.toThrow("execution budget");
     expect(calls.some(({ name }) => name === "delete")).toBe(true);
+  });
+
+  test("uses the full recovery window before abandoning a created sandbox", async () => {
+    const { client, calls } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(client);
+    let runCount = 0;
+    const deadline = new InvestigationDeadline();
+    deadline.remainingMilliseconds = (cleanupReserveMilliseconds = 0) =>
+      70_000 - cleanupReserveMilliseconds;
+    deadline.run = async (operation, options) => {
+      runCount += 1;
+      if (runCount === 1) {
+        throw new Error("The investigation exceeded its execution budget.");
+      }
+      if (runCount === 2 && options.maximumMilliseconds <= 10_000) {
+        throw new Error("Recovery abandoned before provider creation settled.");
+      }
+      return operation(new AbortController().signal, options.maximumMilliseconds);
+    };
+
+    await expect(
+      runtime.create(
+        { repositoryUrl: "https://github.com/example/buggy-cli" },
+        deadline,
+      ),
+    ).rejects.toThrow("execution budget");
+    expect(calls.map(({ name }) => name)).toEqual(["create", "delete"]);
   });
 
   test("accepts a Daytona tier that already enforces network isolation", async () => {

@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { investigateIssue } from "../../../lib/investigate";
-import { publicInvestigationError } from "../../../lib/http-errors";
+import {
+  InvalidInvestigationRequestError,
+  publicInvestigationError,
+} from "../../../lib/http-errors";
 import { acquireInvestigationSlot } from "../../../lib/concurrency";
 
 export const runtime = "nodejs";
@@ -22,7 +25,12 @@ export async function POST(request: Request) {
     );
   }
   try {
-    const input = requestSchema.parse(await request.json());
+    let input: z.infer<typeof requestSchema>;
+    try {
+      input = requestSchema.parse(await request.json());
+    } catch {
+      throw new InvalidInvestigationRequestError();
+    }
     return NextResponse.json(await investigateIssue(input));
   } catch (error) {
     const publicError = publicInvestigationError(error);
