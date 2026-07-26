@@ -124,3 +124,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Soft press feedback for non-Button controls (chips, icon actions). */
+@layer utilities {
+  .pressable {
+    @apply transition-[transform,background-color,color,box-shadow,opacity] duration-500 ease-out will-change-transform;
+  }
+  .pressable:not(:disabled):hover {
+    @apply motion-safe:scale-[1.02];
+  }
+  .pressable:not(:disabled):active {
+    @apply motion-safe:scale-[0.97];
+  }
+}
