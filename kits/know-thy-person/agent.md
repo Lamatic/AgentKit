@@ -14,10 +14,11 @@ can't verify is surfaced as "couldn't confirm" instead of invented.
 
 ## Flow: `know-thy-person`
 - **Trigger (API Request):** `email` (required), `name` (required), `person_context`
-  (optional — a LinkedIn / X / company or personal site URL).
+  (optional — their company or personal website URL; a LinkedIn/X link isn't crawlable but
+   still helps pin the right person).
 - **Processing:**
-  1. **Resolve** (`gemini-2.5-flash`) — infers company/domain and search seeds from the
-     email + name. Generic providers (gmail, outlook, …) resolve to no company, by design.
+  1. **Resolve** (code, no LLM) — deterministically parses company/domain from the email
+     (no model call). Generic providers (gmail, outlook, …) resolve to no company, by design.
   2. **Serper** — live web search over the person's public presence.
   3. **Firecrawl** — crawls the most relevant public pages (personal/company sites, press,
      talks, profiles) for source-attributable content.
@@ -39,8 +40,8 @@ can't verify is surfaced as "couldn't confirm" instead of invented.
 ## Integration Reference
 - **Serper** — web search (configured in Lamatic Studio).
 - **Firecrawl** — page crawling (configured in Lamatic Studio).
-- **OpenRouter** — serves `gemini-2.5-flash` for the Resolve and Synthesize nodes
-  (configured in Lamatic Studio, not in the app).
+- **OpenRouter** — serves `gemini-2.5-flash` for the Synthesize node (the only LLM in the
+  flow; Resolve is deterministic code). Configured in Lamatic Studio, not in the app.
 
 ## Environment Setup
 | Var | Source / purpose |

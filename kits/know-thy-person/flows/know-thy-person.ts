@@ -17,14 +17,7 @@ export const meta = {
 
 // -- Inputs --
 export const inputs = {
-  "InstructorLLMNode_134": [
-    {
-      "name": "generativeModelName",
-      "label": "Generative Model Name",
-      "type": "model"
-    }
-  ],
-  "webSearchNode_194": [
+  "webSearchNode_986": [
     {
       "name": "credentials",
       "label": "Credentials",
@@ -58,14 +51,14 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
-    "know_thy_person_instructor_llmnode_134_system_0": "@prompts/know-thy-person_instructor-llmnode-134_system_0.md",
-    "know_thy_person_instructor_llmnode_134_user_1": "@prompts/know-thy-person_instructor-llmnode-134_user_1.md",
     "know_thy_person_instructor_llmnode_946_system_0": "@prompts/know-thy-person_instructor-llmnode-946_system_0.md",
     "know_thy_person_instructor_llmnode_946_user_1": "@prompts/know-thy-person_instructor-llmnode-946_user_1.md"
   },
   "modelConfigs": {
-    "know_thy_person_instructor_llmnode_134_generative_model_name": "@model-configs/know-thy-person_instructor-llmnode-134_generative-model-name.ts",
     "know_thy_person_instructor_llmnode_946_generative_model_name": "@model-configs/know-thy-person_instructor-llmnode-946_generative-model-name.ts"
+  },
+  "scripts": {
+    "know_thy_person_code_node_653_code": "@scripts/know-thy-person_code-node-653_code.ts"
   }
 };
 
@@ -90,39 +83,22 @@ export const nodes = [
     }
   },
   {
-    "id": "InstructorLLMNode_134",
+    "id": "codeNode_653",
     "type": "dynamicNode",
     "position": {
       "x": 0,
       "y": 0
     },
     "data": {
-      "nodeId": "InstructorLLMNode",
+      "nodeId": "codeNode",
       "values": {
-        "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"company\": {\n      \"type\": \"string\"\n    },\n    \"domain\": {\n      \"type\": \"string\"\n    },\n    \"search_seeds\": {\n      \"type\": \"string\"\n    }\n  }\n}",
-        "prompts": [
-          {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
-            "role": "system",
-            "content": "@prompts/know-thy-person_instructor-llmnode-134_system_0.md"
-          },
-          {
-            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
-            "role": "user",
-            "content": "@prompts/know-thy-person_instructor-llmnode-134_user_1.md"
-          }
-        ],
-        "memories": "[]",
-        "messages": "[]",
-        "nodeName": "Resolve",
-        "attachments": "",
-        "generativeModelName": "@model-configs/know-thy-person_instructor-llmnode-134_generative-model-name.ts"
+        "code": "@scripts/know-thy-person_code-node-653_code.ts",
+        "nodeName": "Resolve"
       }
     }
   },
   {
-    "id": "webSearchNode_194",
+    "id": "webSearchNode_986",
     "type": "dynamicNode",
     "position": {
       "x": 0,
@@ -131,15 +107,15 @@ export const nodes = [
     "data": {
       "nodeId": "webSearchNode",
       "values": {
-        "id": "webSearchNode_194",
+        "id": "webSearchNode_986",
         "page": 1,
         "type": "https://google.serper.dev/search",
-        "query": "{{InstructorLLMNode_134.output.name}}{{InstructorLLMNode_134.output.company}}",
+        "query": "{{codeNode_653.output.name}} {{codeNode_653.output.company}} {{triggerNode_1.output.person_context}}",
         "country": "",
         "results": 10,
         "language": "",
         "location": "",
-        "nodeName": "Serper",
+        "nodeName": "Web Search",
         "dateRange": "",
         "credentials": "Serper Basic Auth"
       }
@@ -159,7 +135,7 @@ export const nodes = [
       },
       "values": {
         "id": "firecrawlNode_553",
-        "url": "https://{{InstructorLLMNode_134.output.domain}}",
+        "url": "https://{{codeNode_653.output.domain}}",
         "mode": "sync",
         "urls": "",
         "delay": 0,
@@ -262,22 +238,6 @@ export const nodes = [
 
 export const edges = [
   {
-    "id": "triggerNode_1-InstructorLLMNode_134",
-    "source": "triggerNode_1",
-    "target": "InstructorLLMNode_134",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_134-webSearchNode_194",
-    "source": "InstructorLLMNode_134",
-    "target": "webSearchNode_194",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
     "id": "InstructorLLMNode_946-responseNode_triggerNode_1",
     "source": "InstructorLLMNode_946",
     "target": "responseNode_triggerNode_1",
@@ -286,17 +246,33 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "webSearchNode_194-firecrawlNode_553",
-    "source": "webSearchNode_194",
-    "target": "firecrawlNode_553",
+    "id": "firecrawlNode_553-InstructorLLMNode_946",
+    "source": "firecrawlNode_553",
+    "target": "InstructorLLMNode_946",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "firecrawlNode_553-InstructorLLMNode_946",
-    "source": "firecrawlNode_553",
-    "target": "InstructorLLMNode_946",
+    "id": "triggerNode_1-codeNode_653",
+    "source": "triggerNode_1",
+    "target": "codeNode_653",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_653-webSearchNode_986",
+    "source": "codeNode_653",
+    "target": "webSearchNode_986",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "webSearchNode_986-firecrawlNode_553",
+    "source": "webSearchNode_986",
+    "target": "firecrawlNode_553",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"

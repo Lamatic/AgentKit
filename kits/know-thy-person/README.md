@@ -23,9 +23,9 @@ sourced claims are ever rendered.
 email + name + person_context?
         │  (API Request)
         ▼
- [1 Resolve]     gemini-2.5-flash  → company/domain/search seeds from the email + name
- [2 Serper]                        → live public-presence web search
- [3 Firecrawl]                     → crawls the most relevant public pages for source content
+ [1 Resolve]     code (no LLM)     → parses company/domain from the email, deterministically
+ [2 Serper]                        → live public-presence web search (name + company + person_context)
+ [3 Firecrawl]                     → crawls the company/personal site for real source content
  [4 Synthesize]  gemini-2.5-flash  → structured dossier JSON, each item carrying a source_url
         │  (API Response)
         ▼
