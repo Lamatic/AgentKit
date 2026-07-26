@@ -40,20 +40,40 @@ function download(name: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function OutcomeMark({ passed }: { passed: boolean }) {
+function OutcomeMark({
+  passed,
+  label = passed ? "Passed: " : "Failed: ",
+}: {
+  passed: boolean;
+  label?: string;
+}) {
   return (
     <span className={passed ? "mark mark-pass" : "mark mark-fail"}>
       <span aria-hidden>{passed ? "✓" : "×"}</span>
-      <span className="visually-hidden">{passed ? "Passed: " : "Failed: "}</span>
+      <span className="visually-hidden">{label}</span>
     </span>
   );
 }
 
-function EvidenceRun({ label, run }: { label: string; run: ProbeRun }) {
+function EvidenceRun({
+  label,
+  run,
+  expected = "pass",
+}: {
+  label: string;
+  run: ProbeRun;
+  expected?: "pass" | "reject";
+}) {
+  const supportsGate = expected === "reject" ? !run.passed : run.passed;
+  const statusLabel = expected === "reject"
+    ? supportsGate
+      ? "Rejected as expected: "
+      : "Unexpectedly matched: "
+    : undefined;
   return (
     <details className="evidence-run">
       <summary>
-        <OutcomeMark passed={run.passed} />
+        <OutcomeMark passed={supportsGate} label={statusLabel} />
         <span>{label}</span>
         <code>exit {run.observation.exitCode}</code>
         <span className="duration">{run.observation.durationMs} ms</span>
@@ -260,7 +280,11 @@ function ResultRecord({ result }: { result: Investigation }) {
         {result.evidence.candidateRuns.map((run, index) => (
           <EvidenceRun key={index} label={`Candidate run ${index + 1}`} run={run} />
         ))}
-        <EvidenceRun label="Negative control" run={result.evidence.controlRun} />
+        <EvidenceRun
+          label="Negative control"
+          run={result.evidence.controlRun}
+          expected="reject"
+        />
       </section>
 
       <footer className="report-actions">
