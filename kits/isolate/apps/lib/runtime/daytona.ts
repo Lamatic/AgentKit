@@ -182,9 +182,14 @@ export class DaytonaSandboxRuntime {
   ) {
     const { repositoryUrl, ref } = createSandboxInputSchema.parse(input);
     const sandboxName = `isolate-${crypto.randomUUID()}`;
+    const availableMilliseconds = deadline.remainingMilliseconds();
+    const createRecoveryReserveMilliseconds = Math.min(
+      60_000,
+      Math.max(35_000, Math.floor(availableMilliseconds * 0.4)),
+    );
     const createTimeoutMilliseconds = Math.min(
       60_000,
-      deadline.remainingMilliseconds(35_000),
+      Math.max(1, availableMilliseconds - createRecoveryReserveMilliseconds),
     );
     const creationOperation = this.client.create(
       {
@@ -207,15 +212,18 @@ export class DaytonaSandboxRuntime {
     } catch (creationError) {
       let recovered: SandboxLike | undefined;
       try {
+        const recoveryDeletionReserveMilliseconds = 35_000;
         recovered = await deadline.run(() => creationOperation, {
-          maximumMilliseconds: 10_000,
-          cleanupReserveMilliseconds: 0,
+          maximumMilliseconds: deadline.remainingMilliseconds(
+            recoveryDeletionReserveMilliseconds,
+          ),
+          cleanupReserveMilliseconds: recoveryDeletionReserveMilliseconds,
         });
       } catch {
         try {
           recovered = await deadline.run(() => this.client.get(sandboxName), {
             maximumMilliseconds: 5_000,
-            cleanupReserveMilliseconds: 0,
+            cleanupReserveMilliseconds: 30_000,
           });
         } catch {
           throw creationError;

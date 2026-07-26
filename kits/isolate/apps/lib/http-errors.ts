@@ -1,14 +1,19 @@
-import { z } from "zod";
-
 import { InvalidCertificationPlanError } from "./runtime/certification";
 import { MissingIssueEvidenceContractError } from "./runtime/claim";
 import { UnsafeCommandError } from "./runtime/policy";
 
+export class InvalidInvestigationRequestError extends Error {
+  constructor() {
+    super("Enter a valid public GitHub issue URL and repository ref.");
+    this.name = "InvalidInvestigationRequestError";
+  }
+}
+
 export function publicInvestigationError(error: unknown) {
-  if (error instanceof z.ZodError || error instanceof SyntaxError) {
+  if (error instanceof InvalidInvestigationRequestError) {
     return {
       status: 400,
-      message: "Enter a valid public GitHub issue URL and repository ref.",
+      message: error.message,
     };
   }
   if (error instanceof MissingIssueEvidenceContractError) {
