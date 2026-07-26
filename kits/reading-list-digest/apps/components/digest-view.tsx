@@ -6,12 +6,47 @@ import { Separator } from "@/components/ui/separator";
 import type { DigestResult, SourceItem } from "@/actions/orchestrate";
 import { ExternalLink } from "lucide-react";
 
-function renderInlineHtml(text: string) {
+/** Turn [n] / [n, m] citation markers into in-page source anchors. */
+function linkCitations(html: string) {
+  return String(html).replace(/\[([0-9,\s]+)\]/g, (_m, inner: string) => {
+    const ids = String(inner)
+      .split(",")
+      .map((p) => parseInt(p.trim(), 10))
+      .filter((n) => !isNaN(n));
+    if (!ids.length) return "";
+    return (
+      "[" +
+      ids
+        .map(
+          (id) =>
+            `<a href="#source-${id}" class="citation-link font-mono text-primary underline-offset-2 hover:underline">${id}</a>`
+        )
+        .join(", ") +
+      "]"
+    );
+  });
+}
+
+/**
+ * Rows for LLM-generated HTML. A div (not ul/li) keeps any block-level tags in
+ * the injected markup from re-parenting the sections that follow.
+ */
+function HtmlRows({ items, gap }: { items: string[]; gap: "sm" | "md" }) {
   return (
-    <span
-      className="[&_mark]:rounded [&_mark]:bg-primary/15 [&_mark]:px-0.5 [&_mark]:text-foreground dark:[&_mark]:bg-primary/25"
-      dangerouslySetInnerHTML={{ __html: text }}
-    />
+    <div className={gap === "md" ? "space-y-3" : "space-y-2"}>
+      {items.map((item, i) => (
+        <div key={i} className="flex gap-2.5 text-sm leading-relaxed">
+          <span
+            aria-hidden
+            className="mt-[0.55em] size-1.5 shrink-0 rounded-full bg-muted-foreground/60"
+          />
+          <div
+            className="min-w-0 flex-1 [&_mark]:rounded [&_mark]:bg-primary/15 [&_mark]:px-0.5 [&_mark]:text-foreground dark:[&_mark]:bg-primary/25"
+            dangerouslySetInnerHTML={{ __html: linkCitations(item) }}
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -19,8 +54,14 @@ function SourcesList({ items }: { items: SourceItem[] }) {
   return (
     <ol className="space-y-2 text-sm">
       {items.map((s) => (
-        <li key={s.id} className="flex gap-2">
-          <span className="font-mono text-muted-foreground">[{s.id}]</span>
+        <li
+          key={s.id}
+          id={`source-${s.id}`}
+          className="flex gap-2 scroll-mt-4"
+        >
+          <span className="font-mono text-muted-foreground shrink-0">
+            [{s.id}]
+          </span>
           <div>
             <a
               href={s.url}
@@ -63,40 +104,37 @@ export function DigestView({ digest }: { digest: DigestResult }) {
     ? digest.article_summaries
     : [];
   const warnings = Array.isArray(digest.warnings) ? digest.warnings : [];
+  const sourceItems = sourcesBlock?.items ?? [];
 
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-sm text-muted-foreground mb-1">Query</p>
+        <p className="text-sm text-muted-foreground mb-1">Motion / question</p>
         <h2 className="text-xl font-medium">{digest.query}</h2>
       </div>
 
       <section className="space-y-3">
-        <h3 className="text-lg font-semibold">Executive brief</h3>
+        <h3 className="text-lg font-semibold">Key claims</h3>
         {briefStrings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No brief content returned. Check Studio API Response mapping and that
-            CodeNode128 / LLM produced arrays (not empty strings).
+            the post-process Code node / LLM produced arrays (not empty strings).
           </p>
         ) : (
-          <ul className="space-y-3 list-disc pl-5 text-sm leading-relaxed">
-            {briefStrings.map((bullet, i) => (
-              <li key={i}>{renderInlineHtml(bullet)}</li>
-            ))}
-          </ul>
+          <HtmlRows items={briefStrings} gap="md" />
         )}
       </section>
 
-      {sourcesBlock && (
+      {sourceItems.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Sources</h3>
-          <SourcesList items={sourcesBlock.items ?? []} />
+          <h3 className="text-lg font-semibold">Cited sources</h3>
+          <SourcesList items={sourceItems} />
         </section>
       )}
 
       {contradictions.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Cross-source contradictions</h3>
+          <h3 className="text-lg font-semibold">Clash points</h3>
           <div className="grid gap-3">
             {contradictions.map((c, i) => (
               <Card key={i} className="p-4 space-y-2">
@@ -126,17 +164,29 @@ export function DigestView({ digest }: { digest: DigestResult }) {
 
       {consensus.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Consensus</h3>
+          <h3 className="text-lg font-semibold">Agreed points</h3>
           <div className="space-y-3">
             {consensus.map((c, i) => (
-              <Card key={i} className="p-4">
-                <p className="text-sm mb-2">{c.point}</p>
+              <Card key={i} className="p-4 space-y-2">
+                <p className="text-sm">{c.point}</p>
                 <p className="text-xs text-muted-foreground">
                   Sources:{" "}
                   {(c.supporting_sources ?? [])
                     .map((id) => `[${id}]`)
                     .join(" ")}
                 </p>
+                {(c.excerpts ?? []).length > 0 && (
+                  <ul className="mt-2 space-y-2 border-l-2 border-muted pl-3">
+                    {(c.excerpts ?? []).map((ex, j) => (
+                      <li
+                        key={j}
+                        className="text-xs text-muted-foreground italic leading-relaxed"
+                      >
+                        {ex}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </Card>
             ))}
           </div>
@@ -145,31 +195,29 @@ export function DigestView({ digest }: { digest: DigestResult }) {
 
       {themes.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Cross-cutting themes</h3>
-          <ul className="space-y-2 list-disc pl-5 text-sm">
-            {themes.map((t, i) => (
-              <li key={i}>{t}</li>
-            ))}
-          </ul>
+          <h3 className="text-lg font-semibold">Themes</h3>
+          <HtmlRows items={themes} gap="sm" />
         </section>
       )}
 
       {summaries.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Article summaries</h3>
-          <div className="grid gap-3">
+          <h3 className="text-lg font-semibold">Source briefs</h3>
+          <div className="space-y-3">
             {summaries.map((a, i) => (
-              <Card key={i} className="p-4 space-y-2">
-                <div className="flex items-center justify-between gap-2">
+              <Card key={i} className="w-full p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
                   <a
                     href={a.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-medium hover:underline"
+                    className="min-w-0 flex-1 font-medium hover:underline"
                   >
                     [{a.source_id}] {a.title}
                   </a>
-                  <Badge variant="outline">{a.relevance}</Badge>
+                  <Badge variant="outline" className="shrink-0">
+                    {a.relevance}
+                  </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{a.summary}</p>
               </Card>

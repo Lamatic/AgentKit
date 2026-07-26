@@ -28,23 +28,37 @@ export type UrlIssue = {
 
 export type ValidateResult =
   | { ok: true; url: string }
-  | { ok: true; url: null }
-  | { ok: false; error: string };
+  | { ok: false; error: string }
+  | { ok: true; skipped: true };
+
+export type UrlCandidate =
+  | { raw: string; ok: true; url: string }
+  | { raw: string; ok: false; error: string };
 
 /** Trim and strip trailing slashes (path segments in the middle are kept). */
 export function normalizeArticleUrl(raw: string): string {
   return raw.trim().replace(/\/+$/, "");
 }
 
+/**
+ * Split pasted/typed text into URL-sized tokens.
+ * Accepts newlines, commas, and whitespace between URLs.
+ */
+export function splitUrlTokens(text: string): string[] {
+  return text
+    .replace(/,/g, "\n")
+    .split(/\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function hostnameHasAllowedTld(hostname: string): boolean {
   const labels = hostname.toLowerCase().split(".").filter(Boolean);
   if (labels.length < 2) return false;
-  // Check last label, and last two for compound TLDs like .co.uk
   const last = labels[labels.length - 1];
   const secondLast = labels[labels.length - 2];
   if (ALLOWED_TLDS.has(last)) return true;
   if (ALLOWED_TLDS.has(`${secondLast}.${last}`)) return true;
-  // e.g. example.co.uk → secondLast=co, last=uk both in set
   if (ALLOWED_TLDS.has(secondLast) && ALLOWED_TLDS.has(last) && labels.length >= 3) {
     return true;
   }
@@ -53,13 +67,13 @@ function hostnameHasAllowedTld(hostname: string): boolean {
 
 /**
  * Validate a single article URL.
- * Blank → skipped (ok with url null).
+ * Blank → skipped.
  * Must be https://www.… with an allowed TLD; trailing / are stripped.
  */
 export function validateArticleUrl(raw: string): ValidateResult {
   const trimmed = raw.trim();
   if (!trimmed) {
-    return { ok: true, url: null };
+    return { ok: true, skipped: true };
   }
 
   if (/\s/.test(trimmed)) {
@@ -108,32 +122,44 @@ export function validateArticleUrl(raw: string): ValidateResult {
   return { ok: true, url: normalized };
 }
 
+/** Parse raw paste into per-token candidates (format only, no HTTP check). */
+export function parseUrlCandidates(text: string): UrlCandidate[] {
+  const tokens = splitUrlTokens(text);
+  const out: UrlCandidate[] = [];
+
+  for (const raw of tokens) {
+    const result = validateArticleUrl(raw);
+    if ("error" in result) {
+      out.push({ raw, ok: false, error: result.error });
+      continue;
+    }
+    if ("url" in result) {
+      out.push({ raw, ok: true, url: result.url });
+    }
+  }
+
+  return out;
+}
+
 /**
- * Split textarea on newlines/commas, validate each non-empty entry.
+ * Split textarea on newlines/commas/whitespace, validate each non-empty entry.
  * Indexing should only proceed when `issues` is empty and `valid` is non-empty.
  */
 export function parseAndValidateUrls(text: string): {
   valid: string[];
   issues: UrlIssue[];
 } {
-  const parts = text.split(/\n|,/);
+  const candidates = parseUrlCandidates(text);
   const valid: string[] = [];
   const issues: UrlIssue[] = [];
 
-  for (let i = 0; i < parts.length; i++) {
-    const raw = parts[i];
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i];
     const line = i + 1;
-    const result = validateArticleUrl(raw);
-
-    if (result.ok && result.url === null) {
-      continue;
-    }
-    if (!result.ok) {
-      issues.push({ line, raw: raw.trim(), message: result.error });
-      continue;
-    }
-    if (result.url) {
-      valid.push(result.url);
+    if (c.ok === true) {
+      valid.push(c.url);
+    } else {
+      issues.push({ line, raw: c.raw, message: c.error });
     }
   }
 
