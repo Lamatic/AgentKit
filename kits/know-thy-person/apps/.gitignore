@@ -25,3 +25,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# lockfiles (kept local; not committed)
+pnpm-lock.yaml
+yarn.lock
