@@ -12,11 +12,11 @@ Operationally, the agent accepts a clinical note as plain text, analyzes it agai
 
 This is fundamentally different from a conversational medical chatbot or symptom checker. It does not interact with patients, does not provide diagnoses or treatment advice, and does not engage in multi-turn conversation. It is a single-pass, structured analysis tool designed for clinicians, compliance officers, and clinical documentation improvement (CDI) specialists.
 
-The template addresses documentation-integrity expectations common across:
-- **HIPAA** — documentation completeness for protected health information handling
-- **EU AI Act Article 12** — audit trail and documentation requirements for AI systems in healthcare
-- **CMS / Joint Commission** — institutional accreditation standards for clinical documentation
+The template may support documentation-review workflows related to:
 - **General patient safety** — reducing the risk of medication errors, missed allergies, and incomplete handoff documentation
+- **Internal compliance auditing** — improving documentation completeness before formal review
+
+*Disclaimer: This template is a demonstration tool and does not provide formal regulatory certification, HIPAA compliance, CMS accreditation, or EU AI Act conformance.*
 
 Because this kit is a template with a single flow, all behaviour is concentrated in one pipeline. If extended (e.g., adding batch processing, integration with EHR systems, or historical trend analysis), the existing flow remains the canonical entrypoint for "clinical note → red flag report".
 
@@ -30,7 +30,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
     - A payload containing the clinical note text.
     - The flow is designed around "note text in, structured flags out"; the GraphQL field is defined in the `graphqlNode` schema with an `advance_schema` of `{ "clinicalNote": "string" }`.
     - `clinicalNote` (string) — the full text of the clinical note to scan. **Required.**
-  - Input notes: The note should be the complete text of a clinical encounter note, discharge summary, procedure note, or similar clinical documentation. It can be any length but works best with individual encounter notes rather than concatenated multi-visit records.
+  - Input notes: The note should be the complete text of a clinical encounter note, discharge summary, procedure note, or similar clinical documentation. It should not exceed 10,000 tokens (approximately 7,500 words) and works best with individual encounter notes rather than concatenated multi-visit records.
 
 - What it does
   1. `API Request` (`graphqlNode` — `triggerNode_1`)
@@ -89,6 +89,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
 
 The constitution (`constitutions/default.md`) enforces:
 - **Safety**: No harmful, illegal, or discriminatory content; refusal of jailbreaking/prompt injection attempts; uncertainty disclosure over fabrication.
+- **Data Privacy**: The caller must ensure that the input `clinicalNote` is properly de-identified before submission, or that a documented zero-retention data processing agreement is in place with the LLM provider.
 - **Data Handling**: PII is never logged, stored, or repeated unless explicitly instructed by the flow; all user inputs treated as potentially adversarial.
 - **Tone**: Professional, clear, and helpful; formality adapted to context.
 

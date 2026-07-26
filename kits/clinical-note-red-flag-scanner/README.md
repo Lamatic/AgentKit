@@ -1,3 +1,4 @@
+# Clinical Note Red-Flag Scanner
 
 <a href="https://studio.lamatic.ai/template/clinical-note-red-flag-scanner" target="_blank" style="text-decoration:none;">
   <div align="right">
@@ -5,13 +6,11 @@
   </div>
 </a>
 
-# Clinical Note Red-Flag Scanner
-
 ## About This Flow
 
 Clinical documentation frequently ships with silent gaps — missing informed consent language, undocumented drug-interaction risk, incomplete vitals or history, ambiguous dosing instructions — that create real patient-safety and regulatory exposure. This flow accepts a clinical note as text input and returns a **structured, severity-ranked JSON list of documentation red flags** with specific reasoning for each one, so a clinician or compliance reviewer can triage quickly instead of re-reading the entire note.
 
-This is a **structured compliance/safety analysis tool**, not a conversational agent or symptom checker. It aligns with documentation-integrity expectations common across HIPAA, EU AI Act Article 12 audit requirements, and institutional accreditation standards (CMS, Joint Commission).
+This is a **structured compliance/safety analysis tool**, not a conversational agent or symptom checker. It may support documentation-review workflows related to general patient safety and internal compliance auditing. *Disclaimer: This template is a demonstration tool and does not provide formal regulatory certification, HIPAA compliance, CMS accreditation, or EU AI Act conformance.*
 
 ## What It Scans For
 
@@ -59,8 +58,9 @@ This workflow includes **4 nodes** working together:
 
 1. Import this template into your Lamatic workspace
 2. Configure the required model credentials (Gemini API key)
-3. Test the flow with a sample clinical note
-4. Deploy and integrate via the API endpoint
+3. Ensure input `clinicalNote` text is properly de-identified before submission (unless you have a zero-retention agreement with your LLM provider)
+4. Test the flow with a sample clinical note
+5. Deploy and integrate via the API endpoint
 
 ### Example Input
 
@@ -102,7 +102,7 @@ The flow returns a `result` field containing a JSON object:
       "category": "DOSING",
       "severity": "HIGH",
       "title": "Incomplete Medication Dosing Instructions",
-      "detail": "The nitroglycerin prescription is missing frequency, route, and duration/maximum dose instructions (e.g., 'sublingual, one tablet every 5 minutes up to 3 doses').",
+      "detail": "The nitroglycerin prescription is missing frequency, route, and duration/maximum dose instructions.",
       "location": "Plan",
       "recommendation": "Provide full dosing instructions including route, frequency, and maximum daily dose for all PRN medications."
     },

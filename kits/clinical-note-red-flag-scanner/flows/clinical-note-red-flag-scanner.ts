@@ -111,7 +111,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"clinicalNote\": \"string\"\n}"
+        "advance_schema": "{\n  \"clinicalNote\": {\n    \"type\": \"string\",\n    \"minLength\": 10,\n    \"pattern\": \"^.*\\\\S.*$\"\n  }\n}"
       }
     }
   },
@@ -158,7 +158,7 @@ export const nodes = [
       "nodeId": "variablesNode",
       "values": {
         "nodeName": "Variables",
-        "mapping": "{\n  \"finalText\": {\n    \"type\": \"string\",\n    \"value\": \"{{LLMNode_453.output.generatedResponse}}{\"\n  }\n}",
+        "mapping": "{\n  \"finalText\": {\n    \"type\": \"string\",\n    \"value\": \"{{LLMNode_453.output.generatedResponse}}\"\n  }\n}",
         "id": "variablesNode_197"
       }
     }
