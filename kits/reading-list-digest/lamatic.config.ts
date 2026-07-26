@@ -1,5 +1,5 @@
 export default {
-  name: "CaseCraft",
+  name: "Point Proven",
   description:
     "Index debate sources and build a citation-backed brief with key claims, clash points, agreed points, themes, and per-source summaries.",
   version: "1.0.0",
