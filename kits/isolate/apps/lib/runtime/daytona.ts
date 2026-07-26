@@ -67,11 +67,11 @@ const packageRegistryAllowList =
 function sanitizeOutput(value: string) {
   const redacted = value
     .replace(
-      /("(?:api[_-]?key|token|secret|password)"\s*:\s*")([^"]+)(")/gi,
+      /("(?:api[_-]?key|token|secret|password)"\s*:\s*")((?:\\.|[^"\\])*)(")/gi,
       "$1[REDACTED]$3",
     )
     .replace(
-      /("authorization"\s*:\s*"bearer\s+)([^"]+)(")/gi,
+      /("authorization"\s*:\s*"bearer\s+)((?:\\.|[^"\\])*)(")/gi,
       "$1[REDACTED]$3",
     )
     .replace(
@@ -330,11 +330,13 @@ export class DaytonaSandboxRuntime {
         `const cap=${maximumOutputLength}`,
         "const chunks={stdout:[],stderr:[]},sizes={stdout:0,stderr:0}",
         "for(const name of ['stdout','stderr']) child[name].on('data',chunk=>{if(sizes[name]<cap){const slice=chunk.subarray(0,cap-sizes[name]);chunks[name].push(slice);sizes[name]+=slice.length}})",
-        "let timedOut=false,finished=false",
+        "let timedOut=false,finished=false,forceKillTimer",
         "const kill=signal=>{try{process.kill(-child.pid,signal)}catch{}}",
-        `const timer=setTimeout(()=>{timedOut=true;kill('SIGTERM');setTimeout(()=>kill('SIGKILL'),200)},${timeoutSeconds * 1_000})`,
-        "child.once('exit',(code)=>{if(finished)return;finished=true;clearTimeout(timer);kill('SIGTERM');setTimeout(()=>{kill('SIGKILL');fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",Buffer.concat(chunks.stdout));fs.writeFileSync(" + JSON.stringify(stderrPath) + ",Buffer.concat(chunks.stderr));fs.writeFileSync(" + JSON.stringify(exitPath) + ",String(timedOut?124:(code??1)));process.exit(0)},250)})",
-        "child.once('error',()=>{if(finished)return;finished=true;clearTimeout(timer);fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",'');fs.writeFileSync(" + JSON.stringify(stderrPath) + ",'');fs.writeFileSync(" + JSON.stringify(exitPath) + ",'1');process.exit(0)})",
+        "const forceKill=()=>{if(!forceKillTimer)forceKillTimer=setTimeout(()=>kill('SIGKILL'),200)}",
+        `const timer=setTimeout(()=>{timedOut=true;kill('SIGTERM');forceKill()},${timeoutSeconds * 1_000})`,
+        "child.once('exit',()=>{kill('SIGTERM');forceKill()})",
+        "child.once('close',(code)=>{if(finished)return;finished=true;clearTimeout(timer);if(forceKillTimer)clearTimeout(forceKillTimer);fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",Buffer.concat(chunks.stdout));fs.writeFileSync(" + JSON.stringify(stderrPath) + ",Buffer.concat(chunks.stderr));fs.writeFileSync(" + JSON.stringify(exitPath) + ",String(timedOut?124:(code??1)));process.exit(0)})",
+        "child.once('error',()=>{if(finished)return;finished=true;clearTimeout(timer);if(forceKillTimer)clearTimeout(forceKillTimer);fs.writeFileSync(" + JSON.stringify(stdoutPath) + ",'');fs.writeFileSync(" + JSON.stringify(stderrPath) + ",'');fs.writeFileSync(" + JSON.stringify(exitPath) + ",'1');process.exit(0)})",
       ].join(";");
       const encodedRunner = Buffer.from(runner).toString("base64");
       await this.execute(
