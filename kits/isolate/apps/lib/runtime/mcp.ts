@@ -12,7 +12,10 @@ import {
 } from "./claim";
 import { createDaytonaRuntime, DaytonaSandboxRuntime } from "./daytona";
 import { certificationSchema } from "./evidence";
-import { createGitHubIssueReader } from "./github";
+import {
+  createGitHubIssueReader,
+  InvalidGitHubIssueUrlError,
+} from "./github";
 import { UnsafeCommandError } from "./policy";
 import { InvestigationDeadline } from "../deadline";
 import { acquireInvestigationSlot } from "../concurrency";
@@ -28,6 +31,7 @@ function mcpToolError(error: unknown) {
   if (
     error instanceof MissingIssueEvidenceContractError ||
     error instanceof InvalidCertificationPlanError ||
+    error instanceof InvalidGitHubIssueUrlError ||
     error instanceof UnsafeCommandError
   ) {
     return {

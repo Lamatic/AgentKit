@@ -1,3 +1,6 @@
+export const githubIssueUrlPattern =
+  "https://github[.]com/[^/]+/[^/]+/issues/[1-9][0-9]*/?";
+
 export function investigationRequest(issueUrl: string, ref: string) {
   const normalizedRef = ref.trim();
   return {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 
 import { handleMcp } from "../lib/runtime/mcp";
+import { InvalidGitHubIssueUrlError } from "../lib/runtime/github";
 import {
   acquireInvestigationSlot,
   resetInvestigationSlotsForTest,
@@ -117,6 +118,38 @@ describe("POST /api/mcp", () => {
     });
     expect(callBody.result.structuredContent.traceId).toMatch(
       /^spike_[a-f0-9-]{36}$/,
+    );
+  });
+
+  test("returns actionable guidance for an invalid GitHub issue URL", async () => {
+    const response = await handleMcp(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 4,
+          method: "tools/call",
+          params: {
+            name: "get_github_issue",
+            arguments: {
+              issueUrl: "https://github.com/example/repo/pull/1",
+            },
+          },
+        },
+        `Bearer ${secret}`,
+      ),
+      secret,
+      undefined,
+      {
+        read: async () => {
+          throw new InvalidGitHubIssueUrlError();
+        },
+      },
+    );
+    const body = await mcpJson(response);
+
+    expect(body.result.isError).toBe(true);
+    expect(JSON.stringify(body.result.content)).toContain(
+      "https://github.com/owner/repo/issues/123",
     );
   });
 
