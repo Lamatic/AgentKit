@@ -18,6 +18,13 @@ type ProbeRuntime = {
   }, deadline: InvestigationDeadline): Promise<ProbeEvaluation>;
 };
 
+export class InvalidCertificationPlanError extends Error {
+  constructor() {
+    super("Candidate and control commands must exercise different cases.");
+    this.name = "InvalidCertificationPlanError";
+  }
+}
+
 export function validateCertificationCommands({
   candidateCommand,
   controlCommand,
@@ -30,7 +37,7 @@ export function validateCertificationCommands({
   assertCertificationCommand(candidateCommand, assertion.value);
   assertCertificationCommand(controlCommand, assertion.value);
   if (candidateCommand.trim() === controlCommand.trim()) {
-    throw new Error("Candidate and control commands must exercise different cases.");
+    throw new InvalidCertificationPlanError();
   }
 }
 
