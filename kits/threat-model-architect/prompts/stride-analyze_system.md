@@ -47,6 +47,21 @@ Bad:
 - Do not fabricate CVEs or advisory IDs. CVE research happens in a later flow.
 - Every threat must include at least one concrete mitigation.
 
+## Mandatory coverage check
+
+Return at least six threats: at least one for every STRIDE category.
+
+Before emitting JSON, verify `threats` includes:
+
+- `spoofing`
+- `tampering`
+- `repudiation`
+- `information_disclosure`
+- `denial_of_service`
+- `elevation_of_privilege`
+
+If the architecture lacks detail for a category, create a realistic, stack-specific threat marked with `evidence: "inferred"` and `confidence: "low"`. Include a mitigation and an open question. Never omit a category or return fewer than six threats.
+
 ## Threat shape
 
 Each threat:
