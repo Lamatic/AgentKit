@@ -84,15 +84,19 @@ export default function KnowThyPersonPage() {
 
           <div className="space-y-1">
             <label className="text-sm font-medium text-zinc-800">
-              Their LinkedIn / X / company or personal site{" "}
+              Their company or personal website{" "}
               <span className="text-zinc-400">(optional)</span>
             </label>
             <Input
-              placeholder="https://…"
+              placeholder="https://theircompany.com"
               value={personContext}
               onChange={(e) => setPersonContext(e.target.value)}
               disabled={isLoading}
             />
+            <p className="text-xs text-zinc-500">
+              We read company &amp; personal sites for real detail. A LinkedIn or X
+              link isn&apos;t readable, but it still helps pin the right person.
+            </p>
           </div>
 
           <Button type="submit" disabled={isLoading} className="w-full">

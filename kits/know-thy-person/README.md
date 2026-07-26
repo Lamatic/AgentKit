@@ -1,10 +1,13 @@
 # Know Thy Person
 
-Paste the **email** and **name** of whoever you're about to meet — optionally a link to
-their **LinkedIn / X / company or personal site** — and get a one-page, **fully-sourced**
-dossier: who they are, what they're into *outside work*, and warm talking points. Every
-claim links to a real source; anything it can't verify is shown as "couldn't confirm"
-instead of invented.
+Paste the **email** and **name** of whoever you're about to meet — optionally their
+**company or personal website** — and get a one-page, **fully-sourced** dossier: who they
+are, what they're into *outside work*, and warm talking points. Every claim links to a real
+source; anything it can't verify is shown as "couldn't confirm" instead of invented.
+
+> `person_context` accepts any link. A **company or personal site gets crawled** for real
+> detail; a **LinkedIn/X profile isn't readable** (anti-bot walls) but still helps the agent
+> find and confirm the right person among same-name results.
 
 Built as a [Lamatic AgentKit](https://github.com/Lamatic/AgentKit) **kit** (one Lamatic
 flow + a Next.js app).
