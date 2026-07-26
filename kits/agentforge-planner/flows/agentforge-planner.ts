@@ -55,26 +55,26 @@ export const nodes = [
       "values": {
         "chat": "",
         "domains": [
-          "*"
+          "localhost"
         ],
         "nodeName": "Chat Widget",
         "chatConfig": {
-          "botName": "Lamatic Bot",
+          "botName": "AgentForge Planner",
           "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
           "position": "right",
           "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
           "displayMode": "popup",
-          "placeholder": "Compose your message",
+          "placeholder": "Describe your software project idea...",
           "suggestions": [
-            "What is lamatic?",
-            "How do I add data to my chatbot?",
-            "Explain this product to me"
+           "Build an AI-powered Resume Analyzer for college students",
+  "Create a Smart Attendance System using Face Recognition",
+  "Design an AI-powered Hospital Management System"
           ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
           "primaryColor": "#ef4444",
           "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
+          "greetingMessage": "Hi! I'm AgentForge Planner. Tell me your software project idea, and I'll generate a complete implementation roadmap.",
           "headerTextColor": "#FFFFFF",
           "showEmojiButton": true,
           "suggestionBgColor": "#f1f5f9",

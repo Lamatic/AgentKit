@@ -60,3 +60,40 @@ Build an AI-powered Resume Analyzer for college students.
 - Google Gemini
 - TypeScript
 - Lamatic Studio
+
+## Setup
+
+1. Import the `agentforge-planner` template into Lamatic Studio.
+2. Configure a supported Large Language Model (LLM) such as Google Gemini.
+3. Deploy the flow from Lamatic Studio.
+4. Open the Chat Widget.
+5. Enter a software project idea.
+6. Review the generated implementation roadmap.
+
+## Project Structure
+
+```
+agentforge-planner/
+├── constitutions/
+├── flows/
+├── model-configs/
+├── prompts/
+├── agent.md
+├── lamatic.config.ts
+└── README.md
+```
+
+## Output
+
+The planner generates a structured report containing:
+
+- Executive Summary
+- Project Validation
+- System Architecture
+- Recommended Technology Stack
+- AI/ML Recommendations
+- Development Roadmap
+- Resume Impact
+- Hackathon Potential
+- Deployment Strategy
+- Final Evaluation
