@@ -1,0 +1,77 @@
+[
+    {
+        "name": "OAuth Login Feature",
+        "input": {
+            "title": "Add Google OAuth Login",
+            "description": "Users should be able to sign in using Google. Existing JWT authentication should remain compatible."
+        },
+        "expected": {
+            "businessGoal": "Enable secure Google authentication.",
+            "engineeringInsights": {
+                "priority": "High",
+                "architectureImpact": [
+                    "Backend",
+                    "Frontend",
+                    "Security"
+                ]
+            },
+            "shouldContain": [
+                "Backend tasks",
+                "Frontend tasks",
+                "Testing",
+                "Risks",
+                "Acceptance criteria",
+                "Story Points",
+                "Security Review"
+            ]
+        }
+    },
+    {
+        "name": "Dark Mode Feature",
+        "input": {
+            "title": "Add Dark Mode",
+            "description": "Allow users to switch between light and dark themes while remembering their preference."
+        },
+        "expected": {
+            "businessGoal": "Improve user experience with theme customization.",
+            "engineeringInsights": {
+                "priority": "Medium",
+                "architectureImpact": [
+                    "Frontend"
+                ]
+            },
+            "shouldContain": [
+                "Frontend tasks",
+                "Testing",
+                "Definition of Done",
+                "Complexity"
+            ]
+        }
+    },
+    {
+        "name": "Payment Bug",
+        "input": {
+            "title": "Fix duplicate payment processing",
+            "description": "Occasionally the payment gateway charges users twice due to repeated callback events."
+        },
+        "expected": {
+            "businessGoal": "Prevent duplicate payments.",
+            "engineeringInsights": {
+                "priority": "Critical",
+                "architectureImpact": [
+                    "Backend",
+                    "Database",
+                    "Security"
+                ]
+            },
+            "shouldContain": [
+                "Backend tasks",
+                "Database tasks",
+                "Risks",
+                "Sprint blockers",
+                "Security Review",
+                "Story Points"
+            ]
+        }
+    }
+]

@@ -1,0 +1,5 @@
+# Lamatic Kit — Git Commit Agent
+node_modules/
+.env
+.env.local
+.DS_Store

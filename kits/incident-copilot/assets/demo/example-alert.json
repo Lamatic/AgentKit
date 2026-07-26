@@ -1,0 +1,7 @@
+{
+  "incidentId": "INC-2043",
+  "alertText": "[PagerDuty] checkout-service p99 latency 1.4s (threshold 800ms) and 5xx error rate 3.1% for the last 8 minutes. orders-service also showing elevated latency. Started ~09:12 UTC. No paging from payments-service.",
+  "repoUrl": "https://github.com/acme/checkout-service",
+  "followUpExample": "Update: DB dashboard shows active connections pegged at max (200/200) on the orders DB. payments-service provider status page is green.",
+  "note": "This alert is intentionally ambiguous: latency + 5xx on checkout could be a bad deploy (RB-02), DB pool exhaustion (RB-03), cache stampede after deploy (RB-04), or payment degradation (RB-05). The follow-up should push DB pool exhaustion up the ranking and push payment degradation down. Replace repoUrl with any public repo to see real recent commits pulled into the evidence."
+}

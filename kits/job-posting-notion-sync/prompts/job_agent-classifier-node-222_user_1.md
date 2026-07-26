@@ -1,0 +1,1 @@
+Tech stack: {{InstructorLLMNode_200.output.tech_stack}}
