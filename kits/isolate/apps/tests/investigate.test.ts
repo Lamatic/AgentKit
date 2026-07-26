@@ -29,9 +29,11 @@ const passingRun = {
   },
 };
 
-function harness(options: { plannerFails?: boolean } = {}) {
+function harness(options: { plannerFails?: boolean; unsafeFirst?: boolean } = {}) {
   const calls: string[] = [];
   const createInputs: unknown[] = [];
+  const probeCommands: string[] = [];
+  let plannerCalls = 0;
   let probeIndex = 0;
   const runtime = {
     create: async (input: unknown) => {
@@ -41,8 +43,9 @@ function harness(options: { plannerFails?: boolean } = {}) {
     resetWorkspace: async () => {
       calls.push("reset");
     },
-    runProbe: async () => {
+    runProbe: async (input: { probe: { command: string } }) => {
       calls.push("probe");
+      probeCommands.push(input.probe.command);
       probeIndex += 1;
       if (probeIndex === 1) {
         return {
@@ -60,14 +63,29 @@ function harness(options: { plannerFails?: boolean } = {}) {
     },
   };
   const planner = async () => {
+    plannerCalls += 1;
     if (options.plannerFails) throw new Error("planner unavailable");
+    if (options.unsafeFirst && plannerCalls === 1) {
+      return {
+        hypothesis: "Case is normalized unexpectedly.",
+        candidateCommand: "bun --eval 'console.log(1)'",
+        controlCommand: "bun run cli -- --preserve-case",
+      };
+    }
     return {
       hypothesis: "Case is normalized unexpectedly.",
       candidateCommand: "bun run cli",
       controlCommand: "bun run cli -- --preserve-case",
     };
   };
-  return { calls, createInputs, runtime, planner };
+  return {
+    calls,
+    createInputs,
+    probeCommands,
+    runtime,
+    planner,
+    plannerCallCount: () => plannerCalls,
+  };
 }
 
 describe("investigateIssue", () => {
@@ -102,6 +120,21 @@ describe("investigateIssue", () => {
       ),
     ).rejects.toThrow("planner unavailable");
     expect(calls.at(-1)).toBe("delete");
+  });
+
+  test("repairs one unsafe Lamatic plan before certification", async () => {
+    const { runtime, planner, plannerCallCount, probeCommands } = harness({
+      unsafeFirst: true,
+    });
+
+    const result = await investigateIssue(
+      { issueUrl: issue.url },
+      { issueReader: { read: async () => issue }, runtime, planner },
+    );
+
+    expect(result.outcome).toBe("reproduced");
+    expect(plannerCallCount()).toBe(2);
+    expect(probeCommands).not.toContain("bun --eval 'console.log(1)'");
   });
 
   test("investigates a vague issue but blocks certification without a confirmed signature", async () => {

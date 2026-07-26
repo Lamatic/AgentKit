@@ -1,10 +1,15 @@
 import { createDaytonaRuntime } from "./runtime/daytona";
-import { runCertification } from "./runtime/certification";
+import {
+  InvalidCertificationPlanError,
+  runCertification,
+  validateCertificationCommands,
+} from "./runtime/certification";
 import {
   MissingIssueEvidenceContractError,
   tryExtractIssueEvidenceAssertion,
 } from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
+import { UnsafeCommandError } from "./runtime/policy";
 import { requestLamaticPlan } from "./lamatic-planner";
 import { InvestigationDeadline } from "./deadline";
 
@@ -18,6 +23,9 @@ const repositorySnapshotCommand = [
   "printf '%s\\n' '--- relevant source and tests ---'",
   "find . -maxdepth 5 -type f \\( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \\) -not -path '*/node_modules/*' -not -path './.git/*' | sort | head -80 | while IFS= read -r file; do printf '\\n--- %s ---\\n' \"$file\"; sed -n '1,240p' \"$file\"; done",
 ].join("; ");
+
+const planRepairFeedback =
+  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, runner-level options, or paths outside the repository. Put an explicit -- before script arguments beginning with -.";
 
 export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
@@ -61,20 +69,43 @@ export async function investigateIssue(
       throw new Error("Isolate could not inspect the repository at the requested ref.");
     }
 
-    const plan = await deadline.run(
-      (signal) =>
-        planner(
-          {
-            issue: JSON.stringify(issue),
-            repositoryContext: snapshot.observation.stdout,
-            ref: ref ?? "default branch",
-          },
-          { signal },
-        ),
-      { maximumMilliseconds: 25_000 },
-    );
+    const requestPlan = (policyFeedback = "") =>
+      deadline.run(
+        (signal) =>
+          planner(
+            {
+              issue: JSON.stringify(issue),
+              repositoryContext: snapshot.observation.stdout,
+              ref: ref ?? "default branch",
+              policyFeedback,
+            },
+            { signal },
+          ),
+        { maximumMilliseconds: 25_000 },
+      );
+    let plan = await requestPlan();
     if (!assertion) {
       throw new MissingIssueEvidenceContractError(plan.hypothesis);
+    }
+    try {
+      validateCertificationCommands({
+        candidateCommand: plan.candidateCommand,
+        controlCommand: plan.controlCommand,
+        assertion,
+      });
+    } catch (error) {
+      if (
+        !(error instanceof UnsafeCommandError) &&
+        !(error instanceof InvalidCertificationPlanError)
+      ) {
+        throw error;
+      }
+      plan = await requestPlan(planRepairFeedback);
+      validateCertificationCommands({
+        candidateCommand: plan.candidateCommand,
+        controlCommand: plan.controlCommand,
+        assertion,
+      });
     }
     const certification = await runCertification({
       runtime,

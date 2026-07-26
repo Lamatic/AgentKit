@@ -47,6 +47,7 @@ describe("requestLamaticPlan", () => {
       issue: "issue",
       repositoryContext: "snapshot",
       ref: "main",
+      policyFeedback: "",
     });
   });
 });

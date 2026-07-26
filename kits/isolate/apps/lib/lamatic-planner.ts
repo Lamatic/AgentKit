@@ -10,6 +10,7 @@ export async function requestLamaticPlan(input: {
   issue: string;
   repositoryContext: string;
   ref: string;
+  policyFeedback?: string;
 }, dependencies: {
   fetchImpl?: typeof fetch;
   signal?: AbortSignal;
@@ -31,6 +32,7 @@ export async function requestLamaticPlan(input: {
     $issue: String!
     $repositoryContext: String!
     $ref: String!
+    $policyFeedback: String!
   ) {
     executeWorkflow(
       workflowId: $workflowId
@@ -38,6 +40,7 @@ export async function requestLamaticPlan(input: {
         issue: $issue
         repositoryContext: $repositoryContext
         ref: $ref
+        policyFeedback: $policyFeedback
       }
     ) {
       status
@@ -53,7 +56,11 @@ export async function requestLamaticPlan(input: {
     },
     body: JSON.stringify({
       query,
-      variables: { workflowId: configuration.flowId, ...input },
+      variables: {
+        workflowId: configuration.flowId,
+        ...input,
+        policyFeedback: input.policyFeedback ?? "",
+      },
     }),
     signal: dependencies.signal ?? AbortSignal.timeout(25_000),
   });

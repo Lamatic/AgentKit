@@ -53,7 +53,7 @@ export const nodes = [
         nodeName: "API Request",
         responeType: "realtime",
         advance_schema:
-          '{\n  "issue": "string",\n  "repositoryContext": "string",\n  "ref": "string"\n}',
+          '{\n  "issue": "string",\n  "repositoryContext": "string",\n  "ref": "string",\n  "policyFeedback": "string"\n}',
       },
     },
   },
