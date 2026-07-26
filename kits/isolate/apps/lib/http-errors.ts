@@ -1,5 +1,6 @@
 import { InvalidCertificationPlanError } from "./runtime/certification";
 import { MissingIssueEvidenceContractError } from "./runtime/claim";
+import { InvalidGitHubIssueUrlError } from "./runtime/github";
 import { UnsafeCommandError } from "./runtime/policy";
 
 export class InvalidInvestigationRequestError extends Error {
@@ -15,6 +16,9 @@ export function publicInvestigationError(error: unknown) {
       status: 400,
       message: error.message,
     };
+  }
+  if (error instanceof InvalidGitHubIssueUrlError) {
+    return { status: 400, message: error.message };
   }
   if (error instanceof MissingIssueEvidenceContractError) {
     return { status: 422, message: error.message };

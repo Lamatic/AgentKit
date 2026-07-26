@@ -23,15 +23,27 @@ type FetchLike = (
   init?: RequestInit,
 ) => Promise<Response>;
 
+export class InvalidGitHubIssueUrlError extends Error {
+  constructor(
+    message =
+      "Enter a public GitHub issue URL in the form https://github.com/owner/repo/issues/123.",
+  ) {
+    super(message);
+    this.name = "InvalidGitHubIssueUrlError";
+  }
+}
+
 export class GitHubIssueReader {
   constructor(private readonly request: FetchLike = fetch) {}
 
   async read(issueUrl: string, options: { signal?: AbortSignal } = {}) {
-    const normalizedUrl = issueUrlSchema.parse(issueUrl).replace(/\/$/, "");
+    const parsedUrl = issueUrlSchema.safeParse(issueUrl);
+    if (!parsedUrl.success) throw new InvalidGitHubIssueUrlError();
+    const normalizedUrl = parsedUrl.data.replace(/\/$/, "");
     const match = normalizedUrl.match(
       /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues\/([0-9]+)$/,
     );
-    if (!match) throw new Error("Only public GitHub issue URLs are supported.");
+    if (!match) throw new InvalidGitHubIssueUrlError();
 
     const [, owner, repository, issueNumber] = match;
     const response = await this.request(
@@ -59,7 +71,9 @@ export class GitHubIssueReader {
       z.object({ pull_request: z.unknown().optional() }).parse(payload)
         .pull_request
     ) {
-      throw new Error("Pull requests are not supported.");
+      throw new InvalidGitHubIssueUrlError(
+        "Pull requests are not supported. Enter the URL of a GitHub issue.",
+      );
     }
     const issue = issueResponseSchema.parse(payload);
 

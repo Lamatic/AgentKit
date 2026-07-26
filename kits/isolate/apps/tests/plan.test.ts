@@ -80,6 +80,12 @@ describe("reproduction plan boundary", () => {
     ).toBe("bun run cli -- input --preserve-case");
     expect(() =>
       assertCertificationCommand(
+        "bun run cli greet -- IsolateCLI",
+        "Hello, isolatecli!",
+      ),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand(
         "bun run --preload=/tmp/repro.js test",
         "Hello",
       ),

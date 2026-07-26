@@ -7,6 +7,7 @@ import {
 } from "../lib/http-errors";
 import { MissingIssueEvidenceContractError } from "../lib/runtime/claim";
 import { InvalidCertificationPlanError } from "../lib/runtime/certification";
+import { InvalidGitHubIssueUrlError } from "../lib/runtime/github";
 
 describe("public investigation errors", () => {
   test("returns a useful 4xx error for invalid user input", () => {
@@ -15,6 +16,14 @@ describe("public investigation errors", () => {
     ).toEqual({
       status: 400,
       message: "Enter a valid public GitHub issue URL and repository ref.",
+    });
+  });
+
+  test("explains the required GitHub issue URL shape", () => {
+    expect(publicInvestigationError(new InvalidGitHubIssueUrlError())).toEqual({
+      status: 400,
+      message:
+        "Enter a public GitHub issue URL in the form https://github.com/owner/repo/issues/123.",
     });
   });
 

@@ -21,6 +21,7 @@ body { margin: 0; min-width: 320px; background: var(--paper); }
 button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 a { color: var(--navy); text-underline-offset: 3px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .masthead {
   min-height: 64px;
@@ -72,6 +73,7 @@ input:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visibl
 .boundary-ledger p { margin: 0; color: var(--muted); font-size: 0.82rem; line-height: 1.45; }
 
 .loading-record { position: relative; min-height: 620px; padding-top: 6vh; overflow: hidden; }
+.loading-note { max-width: 58ch; margin: 20px 0 0; color: var(--muted); line-height: 1.6; }
 .loading-record ol { margin: 64px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
 .loading-record li { padding: 18px 0; border-bottom: 1px solid var(--rule); color: var(--muted); }
 .loading-record li::before { content: "○"; display: inline-block; width: 32px; color: var(--muted); }
