@@ -8,18 +8,15 @@ const SYNTHESIZE_FLOW_ID = process.env.SYNTHESIZE_DIGEST_FLOW_ID!;
 function formatLamaticNetworkError(label: string, err: unknown): Error {
   const msg = err instanceof Error ? err.message : String(err);
   if (/EXECUTE_SOFT_TIMEOUT/i.test(msg)) {
+    console.error(`[point-proven] ${label} soft timeout:`, msg);
     return new Error(
-      `${label}: Lamatic did not return within 55s (realtime wait). ` +
-        `Set index-article → API Request → Response Type = async, then Deploy. ` +
-        `Also fix CodeNode204 so Vectorize gets string[] (not a string), or VectorDB stays empty.`
+      `${label}: the flow did not respond in time. Check that it is deployed and Vector DB is configured.`
     );
   }
   if (/fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|UND_ERR/i.test(msg)) {
+    console.error(`[point-proven] ${label} connection error:`, msg);
     return new Error(
-      `${label}: connection dropped while waiting ("${msg}"). ` +
-        `Often the server action hits the 300s Hobby/local maxDuration while Lamatic is still on realtime. ` +
-        `Set API Request → async + Deploy. ` +
-        `If Studio Logs show Vectorize "array of strings…found string", fix CodeNode204 (output = string[]) before retrying.`
+      `${label}: connection dropped while waiting. Check that the flow is deployed and Vector DB is configured, then retry.`
     );
   }
   return err instanceof Error ? err : new Error(msg);
@@ -183,7 +180,7 @@ function extractPayloadFromResponse(
     if (fromData && looksLikeFinalPayload(fromData)) return fromData;
   }
 
-  return fromResult ?? (Object.keys(rootObj).length ? fromRoot : null);
+  return fromResult ?? (fromRoot && looksLikeFinalPayload(fromRoot) ? fromRoot : null);
 }
 
 /**
@@ -220,52 +217,56 @@ async function runFlow(
     });
     const client = getLamaticClient();
     // Fail fast if Lamatic is still on realtime (holds HTTP open until scrape finishes).
-    let res = (await Promise.race([
-      client.executeFlow(flowId, payload),
-      new Promise<never>((_, reject) => {
-        setTimeout(
-          () => reject(new Error("EXECUTE_SOFT_TIMEOUT")),
-          55_000
-        );
-      }),
-    ])) as LamaticRes;
+    let softTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    let res: LamaticRes;
+    try {
+      res = (await Promise.race([
+        client.executeFlow(flowId, payload),
+        new Promise<never>((_, reject) => {
+          softTimeoutHandle = setTimeout(
+            () => reject(new Error("EXECUTE_SOFT_TIMEOUT")),
+            55_000
+          );
+        }),
+      ])) as LamaticRes;
+    } finally {
+      if (softTimeoutHandle !== undefined) clearTimeout(softTimeoutHandle);
+    }
 
     const isTimeout =
       res?.statusCode === 504 ||
       /timed?\s*out|timeout/i.test(res?.message ?? "");
 
     if (res?.status === "error" || (!res?.result && res?.message)) {
+      console.error(`[point-proven] ${label} execute error:`, {
+        status: res?.status,
+        statusCode: res?.statusCode,
+        message: res?.message,
+        kind: classifyLamaticMessage(res?.message),
+      });
       if (isTimeout) {
         throw new Error(
-          `${label} timed out on Lamatic realtime/sync limit (${flowHint}). ` +
-            `Set index-article API Request → Response Type = async, Deploy, retry. ` +
-            `Check Studio Logs for a new API run (not requestId "studio").`
+          `${label} timed out. Check that the flow is deployed with async response mode, then retry.`
         );
       }
       const kind = classifyLamaticMessage(res?.message);
       if (kind === "vectorize_got_string") {
         throw new Error(
-          `${label} failed: Vectorize got a string, needs string[]. ` +
-            `In Studio CodeNode204: use {{chunkNode_….output.chunks}}, then output = array of pageContent strings (not return, not a single string). Deploy, retry.`
+          `${label} failed: Vectorize expected string[] but received a string. Check flow deployment and Vector DB configuration.`
         );
       }
       if (kind === "vectordb_empty") {
         throw new Error(
-          `${label} failed: VectorDB got empty vectors/metadata (Vectorize failed upstream). Fix CodeNode204 → Vectorize first, then Deploy.`
+          `${label} failed: Vector DB received empty vectors/metadata. Check flow deployment and Vector DB configuration.`
         );
       }
       if (/reading ['"]?output['"]?/i.test(res?.message ?? "")) {
         throw new Error(
-          `${label} failed (${flowHint}): ${res.message}. ` +
-            `Code node template has undefined.output — usually a HAND-TYPED {{ searchNode_….output… }}. ` +
-            `In CodeNode174: delete that {{ }}, insert with (x) → Vector Search → searchResults (not .hits). ` +
-            `Typed ids often fail even when Logs show searchNode_651. Test → Deploy → retry.`
+          `${label} failed: a code node referenced an undefined output. Check that Group By Source (codeNode_551) is wired to Vector Search, then Deploy and retry.`
         );
       }
       throw new Error(
-        `${label} failed (${flowHint}): ${res.message || "Unknown Lamatic error"}. ` +
-          `Studio Test (requestId "studio") uses the canvas draft; localhost/hosted use the last Deploy. ` +
-          `After fixing Code nodes, click Deploy, then retry. Match flow IDs in apps/.env.local.`
+        `${label} failed. Check that the flow is deployed and environment flow IDs match Studio.`
       );
     }
 
@@ -283,37 +284,34 @@ async function runFlow(
     }
 
     if (res?.status === "error") {
+      console.error(`[point-proven] ${label} poll error:`, {
+        status: res?.status,
+        statusCode: res?.statusCode,
+        message: res?.message,
+        kind: classifyLamaticMessage(res?.message),
+      });
       if (
         res?.statusCode === 504 ||
         res?.statusCode === 408 ||
         /timed?\s*out|timeout/i.test(res?.message ?? "")
       ) {
         throw new Error(
-          `${label} timed out while polling (${flowHint}). ` +
-            `Open Studio Logs for this requestId — the write may still complete. Refresh Data.`
+          `${label} timed out while waiting for results. Check Studio logs and retry.`
         );
       }
       const kind = classifyLamaticMessage(res?.message);
       if (kind === "vectorize_got_string") {
         throw new Error(
-          `${label} failed: Vectorize got a string, needs string[]. ` +
-            `Fix Studio CodeNode204 → output = string[]; bind Vectorize to that array; Deploy.`
+          `${label} failed: Vectorize expected string[] but received a string. Check flow deployment and Vector DB configuration.`
         );
       }
       if (kind === "vectordb_empty") {
         throw new Error(
-          `${label} failed: VectorDB empty because Vectorize produced no vectors. Fix CodeNode204 first.`
+          `${label} failed: Vector DB is empty because Vectorize produced no vectors. Check flow deployment and Vector DB configuration.`
         );
       }
-      const rid = extractRequestId(
-        coerceFlowResult(res?.result) ??
-          (res?.result as Record<string, unknown> | null) ??
-          undefined
-      );
       throw new Error(
-        `${label} failed (${flowHint}): ${res.message || "Workflow execution error in Studio"}` +
-          (rid ? ` requestId=${rid}.` : ".") +
-          ` Open Studio Logs for that API requestId (not "studio"). If Test works but API fails, Deploy the flow.`
+        `${label} failed. Check that the flow is deployed and environment flow IDs match Studio.`
       );
     }
 
@@ -334,12 +332,8 @@ async function runFlow(
       });
       throw new Error(
         onlyAck
-          ? `${label}: API returned only requestId (async ACK), and checkStatus had no digest (${flowHint}). ` +
-              `In Studio → Synthesize Digest → API Request → set Response Type to realtime (not async), Deploy. ` +
-              `Async is for Index Articles; Synthesize is short (~10s) and should return query/executive_brief in the same response.`
-          : `${label} returned no result (${flowHint}, status=${res?.status ?? "unknown"}). ` +
-              `Studio can still show green while API Response is empty. ` +
-              `In Synthesize Code nodes: use output = {…} not return; map API Response to codeNode output fields; Deploy.`
+          ? `${label}: received an async acknowledgement but no final result. Check that the synthesize flow is deployed with realtime response mode.`
+          : `${label} returned no result. Check that the flow is deployed and its API Response mapping is configured.`
       );
     }
 
@@ -350,7 +344,7 @@ async function runFlow(
 }
 
 function indexPayloadForUrl(url: string): Record<string, string> {
-  // Studio binds Firecrawl to sampleInput; urls kept for kit-aligned flows.
+  // Kit flow reads {{triggerNode_1.output.urls}}. sampleInput kept for Studio graphs that still bind it.
   return { sampleInput: url, urls: url };
 }
 
@@ -381,44 +375,81 @@ export async function indexSingleArticle(url: string): Promise<IndexResult> {
   ) as IndexResult;
 }
 
-/** Index many URLs sequentially (one flow run per URL). */
-export async function indexArticles(urls: string[]): Promise<IndexResult> {
-  requireFlowIds();
-  if (!urls.length) throw new Error("Add at least one article URL.");
+function isSourceItem(value: unknown): value is SourceItem {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === "number" &&
+    typeof v.domain === "string" &&
+    typeof v.title === "string" &&
+    typeof v.url === "string"
+  );
+}
 
-  let totalIndexed = 0;
-  const allErrors: unknown[] = [];
-  const failedUrls: string[] = [];
+function isSourcesBlock(
+  value: unknown
+): value is { type: "sources"; items: SourceItem[] } {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    v.type === "sources" &&
+    Array.isArray(v.items) &&
+    v.items.every(isSourceItem)
+  );
+}
 
-  for (const url of urls) {
-    try {
-      const one = await indexSingleArticle(url);
-      totalIndexed += one.indexed_count;
-      if (one.errors?.length) allErrors.push(...one.errors);
-    } catch (e) {
-      failedUrls.push(url);
-      allErrors.push({
-        url,
-        message: e instanceof Error ? e.message : String(e),
-      });
-    }
-  }
+function isBriefEntry(
+  value: unknown
+): value is string | { type: "sources"; items: SourceItem[] } {
+  return typeof value === "string" || isSourcesBlock(value);
+}
 
-  if (failedUrls.length === urls.length) {
-    const first = allErrors[0];
-    const msg =
-      first && typeof first === "object" && first !== null && "message" in first
-        ? String((first as { message: unknown }).message)
-        : "All URLs failed to index.";
-    throw new Error(msg);
-  }
+function isArticleSummary(value: unknown): value is ArticleSummary {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.source_id === "number" &&
+    typeof v.title === "string" &&
+    typeof v.url === "string" &&
+    typeof v.summary === "string" &&
+    (v.relevance === "high" ||
+      v.relevance === "medium" ||
+      v.relevance === "low")
+  );
+}
 
-  return {
-    indexed_count: totalIndexed,
-    collection: "configured",
-    errors: allErrors,
-    failed_urls: failedUrls.length ? failedUrls : undefined,
-  };
+function isContradiction(value: unknown): value is Contradiction {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.topic === "string" &&
+    typeof v.claim_a === "string" &&
+    typeof v.source_a_host === "string" &&
+    typeof v.claim_b === "string" &&
+    typeof v.source_b_host === "string"
+  );
+}
+
+function isConsensusPoint(value: unknown): value is ConsensusPoint {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.point === "string" &&
+    Array.isArray(v.supporting_sources) &&
+    v.supporting_sources.every((n) => typeof n === "number") &&
+    Array.isArray(v.excerpts) &&
+    v.excerpts.every((e) => typeof e === "string")
+  );
+}
+
+function isDigestWarning(value: unknown): value is DigestWarning {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.type === "string";
+}
+
+function filterArray<T>(value: unknown, guard: (v: unknown) => v is T): T[] {
+  return asArray(value).filter(guard);
 }
 
 export async function synthesizeDigest(
@@ -441,20 +472,21 @@ export async function synthesizeDigest(
   const parsed = unwrapRecord(raw);
 
   // Plain JSON only — Lamatic sometimes returns shapes that break RSC serialization in production.
-  // API Response often maps missing fields as "" instead of [] — coerce with asArray.
+  // API Response often maps missing fields as "" instead of [] — coerce and validate elements.
   return JSON.parse(
     JSON.stringify({
       query: String(parsed.query ?? query),
-      executive_brief: asArray<
-        string | { type: "sources"; items: SourceItem[] }
-      >(parsed.executive_brief),
-      article_summaries: asArray<ArticleSummary>(parsed.article_summaries),
-      cross_cutting_themes: asArray<string>(parsed.cross_cutting_themes),
-      cross_source_contradictions: asArray<Contradiction>(
-        parsed.cross_source_contradictions
+      executive_brief: filterArray(parsed.executive_brief, isBriefEntry),
+      article_summaries: filterArray(parsed.article_summaries, isArticleSummary),
+      cross_cutting_themes: asArray(parsed.cross_cutting_themes).filter(
+        (v): v is string => typeof v === "string"
       ),
-      consensus_points: asArray<ConsensusPoint>(parsed.consensus_points),
-      warnings: asArray<DigestWarning>(parsed.warnings),
+      cross_source_contradictions: filterArray(
+        parsed.cross_source_contradictions,
+        isContradiction
+      ),
+      consensus_points: filterArray(parsed.consensus_points, isConsensusPoint),
+      warnings: filterArray(parsed.warnings, isDigestWarning),
     })
   ) as DigestResult;
 }

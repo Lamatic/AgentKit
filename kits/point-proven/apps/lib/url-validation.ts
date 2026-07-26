@@ -1,31 +1,3 @@
-/** Common TLDs for article / news sites. */
-const ALLOWED_TLDS = new Set([
-  "com",
-  "ai",
-  "org",
-  "edu",
-  "io",
-  "net",
-  "co",
-  "gov",
-  "uk",
-  "eu",
-  "info",
-  "news",
-  "us",
-  "ca",
-  "de",
-  "fr",
-  "au",
-  "in",
-]);
-
-export type UrlIssue = {
-  line: number;
-  raw: string;
-  message: string;
-};
-
 export type ValidateResult =
   | { ok: true; url: string }
   | { ok: false; error: string }
@@ -52,23 +24,11 @@ export function splitUrlTokens(text: string): string[] {
     .filter(Boolean);
 }
 
-function hostnameHasAllowedTld(hostname: string): boolean {
-  const labels = hostname.toLowerCase().split(".").filter(Boolean);
-  if (labels.length < 2) return false;
-  const last = labels[labels.length - 1];
-  const secondLast = labels[labels.length - 2];
-  if (ALLOWED_TLDS.has(last)) return true;
-  if (ALLOWED_TLDS.has(`${secondLast}.${last}`)) return true;
-  if (ALLOWED_TLDS.has(secondLast) && ALLOWED_TLDS.has(last) && labels.length >= 3) {
-    return true;
-  }
-  return false;
-}
-
 /**
  * Validate a single article URL.
  * Blank → skipped.
- * Must be https://www.… with an allowed TLD; trailing / are stripped.
+ * Must be https://www.… with a dotted hostname; trailing / are stripped.
+ * Live reachability (+ SSRF checks) is enforced separately by checkUrlReachability.
  */
 export function validateArticleUrl(raw: string): ValidateResult {
   const trimmed = raw.trim();
@@ -111,12 +71,8 @@ export function validateArticleUrl(raw: string): ValidateResult {
     return { ok: false, error: "hostname must start with www." };
   }
 
-  if (!hostnameHasAllowedTld(host)) {
-    return {
-      ok: false,
-      error:
-        "hostname must end with a known TLD (.com, .ai, .org, .edu, .io, .net, …)",
-    };
+  if (!host.includes(".")) {
+    return { ok: false, error: "hostname must include a domain (e.g. www.example.com)" };
   }
 
   return { ok: true, url: normalized };
@@ -139,29 +95,4 @@ export function parseUrlCandidates(text: string): UrlCandidate[] {
   }
 
   return out;
-}
-
-/**
- * Split textarea on newlines/commas/whitespace, validate each non-empty entry.
- * Indexing should only proceed when `issues` is empty and `valid` is non-empty.
- */
-export function parseAndValidateUrls(text: string): {
-  valid: string[];
-  issues: UrlIssue[];
-} {
-  const candidates = parseUrlCandidates(text);
-  const valid: string[] = [];
-  const issues: UrlIssue[] = [];
-
-  for (let i = 0; i < candidates.length; i++) {
-    const c = candidates[i];
-    const line = i + 1;
-    if (c.ok === true) {
-      valid.push(c.url);
-    } else {
-      issues.push({ line, raw: c.raw, message: c.error });
-    }
-  }
-
-  return { valid, issues };
 }

@@ -60,7 +60,7 @@
  * - Vector database — stores vectors and metadata for later retrieval — required configuration: selected `vectorDB` on `Index`.
  *
  * ## Node Walkthrough
- * 1. `API Request` (`graphqlNode`) receives the incoming API payload in realtime mode. For this flow, the important trigger field is `urls`.
+ * 1. `API Request` (`graphqlNode`) receives the incoming API payload in async mode. For this flow, the important trigger field is `urls`.
  * 2. `Firecrawl` (`firecrawlNode`) runs in `syncBatchScrape` mode against `{{triggerNode_1.output.urls}}` with `onlyMainContent` enabled and a scrape `limit` of `10`.
  * 3. `Loop` (`forLoopNode`) iterates over `{{firecrawlNode_785.output.data}}`, processing one scraped page at a time.
  * 4. `Variables` (`variablesNode`) maps `title`, `description`, and `source` (URL) from the current loop item.

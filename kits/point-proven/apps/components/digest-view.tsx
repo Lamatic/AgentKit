@@ -5,10 +5,18 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { DigestResult, SourceItem } from "@/actions/orchestrate";
 import { ExternalLink } from "lucide-react";
+import DOMPurify from "isomorphic-dompurify";
 
-/** Turn [n] / [n, m] citation markers into in-page source anchors. */
+const PURIFY_CONFIG = {
+  ALLOWED_TAGS: ["mark", "strong", "em", "a", "code", "b", "i"],
+  ALLOWED_ATTR: ["href", "class"],
+  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|#source-\d+)/i,
+};
+
+/** Sanitize LLM HTML, then turn [n] / [n, m] citation markers into anchors. */
 function linkCitations(html: string) {
-  return String(html).replace(/\[([0-9,\s]+)\]/g, (_m, inner: string) => {
+  const sanitized = DOMPurify.sanitize(String(html), PURIFY_CONFIG);
+  return sanitized.replace(/\[([0-9,\s]+)\]/g, (_m, inner: string) => {
     const ids = String(inner)
       .split(",")
       .map((p) => parseInt(p.trim(), 10))
@@ -106,6 +114,12 @@ export function DigestView({ digest }: { digest: DigestResult }) {
   const warnings = Array.isArray(digest.warnings) ? digest.warnings : [];
   const sourceItems = sourcesBlock?.items ?? [];
 
+  if (briefStrings.length === 0) {
+    console.warn(
+      "[point-proven] Empty executive_brief. Check Studio API Response mapping and that the post-process Code node / LLM produced arrays (not empty strings)."
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -117,8 +131,7 @@ export function DigestView({ digest }: { digest: DigestResult }) {
         <h3 className="text-lg font-semibold">Key claims</h3>
         {briefStrings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No brief content returned. Check Studio API Response mapping and that
-            the post-process Code node / LLM produced arrays (not empty strings).
+            No brief content was returned. Try running the digest again.
           </p>
         ) : (
           <HtmlRows items={briefStrings} gap="md" />
