@@ -46,8 +46,10 @@ export default function KnowThyPersonPage() {
     <div className="min-h-screen bg-[#fafafa]">
       <Header />
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="text-2xl font-semibold text-zinc-900">Know Thy Person</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-2xl font-semibold text-zinc-900">
+          Research who you&apos;re about to meet
+        </h1>
+        <p className="mt-2 text-sm text-zinc-600">
           Sourced meeting prep — who they are, what they&apos;re into outside
           work, and warm talking points. Every claim links to a real source;
           anything it can&apos;t verify is shown as &quot;couldn&apos;t
