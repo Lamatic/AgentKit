@@ -156,15 +156,18 @@ async function fetchPinned(
   const dispatcher = pinnedDispatcher(safe);
   try {
     // undici Response is API-compatible here; cast across the DOM Response mismatch.
-    return (await undiciFetch(safe.url.toString(), {
+    const res = (await undiciFetch(safe.url.toString(), {
       method,
       redirect: "manual",
       signal,
       headers: { "User-Agent": "Point-Proven-UrlCheck/1.0" },
       dispatcher,
     })) as unknown as Response;
+    return res;
   } finally {
-    await dispatcher.close().catch(() => undefined);
+    // Graceful close waits for the response body to drain; callers cancel the
+    // body after this returns, so don't block the return path on cleanup.
+    void dispatcher.close().catch(() => undefined);
   }
 }
 
