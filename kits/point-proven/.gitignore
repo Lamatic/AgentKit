@@ -1,5 +1,6 @@
 .lamatic/
 node_modules/
 .DS_Store
+*.zip
 
 # Env files belong in apps/ only (see apps/.gitignore)

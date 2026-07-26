@@ -1,14 +1,14 @@
-# Reading List Digest
+# Point Proven
 
 ## Overview
 
-This AgentKit bundle indexes a curated reading list of public web articles into a shared vector database, then synthesizes a citation-backed research digest for a natural-language query. It uses a two-flow pipeline: `Index Articles` scrapes, chunks, embeds, and indexes URLs with citation-aware metadata; `Synthesize Digest` retrieves those chunks, groups them by source, and produces structured JSON with an executive brief, per-article summaries, cross-cutting themes, cross-source contradictions, and consensus points. It is intended for operators preparing a multi-perspective corpus and for API callers who need grounded, comparable takeaways rather than a single chat reply. Key integrations include Firecrawl for scraping, an embedding + vector store stack for retrieval, and an LLM for strict JSON synthesis.
+This AgentKit kit indexes a curated list of public web articles into a shared vector database, then synthesizes a citation-backed research brief for a natural-language query. It uses a two-flow pipeline: `Index Articles` scrapes, chunks, embeds, and indexes URLs with citation-aware metadata; `Synthesize Digest` retrieves those chunks, groups them by source, and produces structured JSON with an executive brief, per-article summaries, cross-cutting themes, cross-source contradictions, and consensus points. A Next.js app under `apps/` (Point Proven) walks operators through adding sources, indexing, and building the brief. Key integrations include Firecrawl for scraping, an embedding + vector store stack for retrieval, and an LLM for strict JSON synthesis.
 
 ---
 
 ## Purpose
 
-The goal of this agent system is to turn a list of articles into a digests that are both skimmable and auditable. After it runs, the “state of the world” is improved in two ways: (1) your reading-list URLs have been transformed into an indexed vector corpus with stable `citation_id` / `chunk_id` keys, and (2) callers can ask a research question and receive a structured response that cites sources with in-text `[n]` markers, highlights key terms with `<mark>`, and surfaces disagreements instead of flattening them.
+The goal of this agent system is to turn a list of articles into digests that are both skimmable and auditable. After it runs, the “state of the world” is improved in two ways: (1) your source URLs have been transformed into an indexed vector corpus with stable `citation_id` / `chunk_id` keys, and (2) callers can ask a research question and receive a structured response that cites sources with in-text `[n]` markers, highlights key terms with `<mark>`, and surfaces disagreements instead of flattening them.
 
 `Index Articles` solves the knowledge-preparation problem for web articles. `Synthesize Digest` solves the knowledge-consumption problem for multi-source research: retrieve, group, synthesize, validate citations, and return.
 
@@ -30,7 +30,7 @@ The goal of this agent system is to turn a list of articles into a digests that 
   - `Index (vectorNode)` upserts with composite `primaryKeys: ["citation_id", "chunk_id"]` and `overwrite`.
   - `API Response (graphqlResponseNode)` returns `{ indexed_count, collection, errors }`.
 - When to use this flow
-  - Use when setting up or refreshing the reading-list corpus before synthesis.
+  - Use when setting up or refreshing the source corpus before synthesis.
   - Prefer over single-page summarisers when you need multi-article retrieval later.
 - Output
   - API response with `indexed_count`, `collection`, and `errors`.
@@ -65,7 +65,7 @@ The goal of this agent system is to turn a list of articles into a digests that 
 ### Flow Interaction
 - `lamatic.config.ts` declares both steps as `mandatory`, with `synthesize-digest` listing `prerequisiteSteps: ["index-articles"]`.
 - Both flows must use the **same private Vector DB selection** in Lamatic Studio so search and index share one collection.
-- Operational sequence: run Index Articles with the reading-list URLs → verify indexing → call Synthesize Digest with a research `query`.
+- Operational sequence: run Index Articles with the source URLs → verify indexing → call Synthesize Digest with a research `query`.
 
 ## Guardrails
 - Prohibited tasks
@@ -128,4 +128,5 @@ Firecrawl, Vector DB, and model credentials are configured in **Lamatic Studio**
 ## Notes
 - Project type is `kit` (flows + Next.js app under `apps/`).
 - Composite primary keys improve on title-only indexing templates that can collide across sites.
-- Published path: `https://github.com/Lamatic/AgentKit/tree/main/kits/reading-list-digest`.
+- Published path: `https://github.com/Lamatic/AgentKit/tree/main/kits/point-proven`.
+- Live demo: `https://pointproven.vercel.app`.

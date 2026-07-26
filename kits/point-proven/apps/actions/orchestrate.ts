@@ -215,7 +215,7 @@ async function runFlow(
   const pollTimeout = options?.pollTimeoutSec ?? 600;
   const flowHint = flowId ? `flow …${flowId.slice(-8)}` : "missing flow id";
   try {
-    console.info(`[reading-list-digest] ${label} start (${flowHint})`, {
+    console.info(`[point-proven] ${label} start (${flowHint})`, {
       keys: Object.keys(payload),
     });
     const client = getLamaticClient();
@@ -277,7 +277,7 @@ async function runFlow(
         undefined
     );
     if (requestId && !payloadOut) {
-      console.info(`[reading-list-digest] ${label} polling requestId=${requestId}`);
+      console.info(`[point-proven] ${label} polling requestId=${requestId}`);
       res = (await client.checkStatus(requestId, 2, pollTimeout)) as LamaticRes;
       payloadOut = extractPayloadFromResponse(res);
     }
@@ -324,7 +324,7 @@ async function runFlow(
         typeof res.result === "object" &&
         Object.keys(res.result).length <= 2 &&
         ("requestId" in res.result || "request_id" in res.result);
-      console.warn(`[reading-list-digest] ${label} empty payload`, {
+      console.warn(`[point-proven] ${label} empty payload`, {
         status: res?.status,
         onlyAck: !!onlyAck,
         resultKeys:
