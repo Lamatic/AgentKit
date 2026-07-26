@@ -349,7 +349,10 @@ function indexPayloadForUrl(url: string): Record<string, string> {
 }
 
 /** Index one article URL (one Lamatic API call — avoids sync 504 on multi-URL batch). */
-export async function indexSingleArticle(url: string): Promise<IndexResult> {
+export async function indexSingleArticle(
+  url: string,
+  options?: { deadlineMs?: number }
+): Promise<IndexResult> {
   requireFlowIds();
   // UI validates shape; strip trailing / as a safety net for Firecrawl.
   const trimmed = url.trim().replace(/\/+$/, "");
@@ -357,12 +360,45 @@ export async function indexSingleArticle(url: string): Promise<IndexResult> {
     throw new Error("URL must start with http:// or https://");
   }
 
-  const raw = await runFlow(
-    INDEX_FLOW_ID,
-    indexPayloadForUrl(trimmed),
-    "Index Articles",
-    { pollTimeoutSec: 280 }
+  const remainingMs =
+    options?.deadlineMs != null
+      ? options.deadlineMs - Date.now()
+      : 270_000;
+  if (remainingMs < 5_000) {
+    throw new Error(
+      "Indexing stopped: approached the serverless time limit."
+    );
+  }
+
+  const pollTimeoutSec = Math.min(
+    280,
+    Math.max(5, Math.floor((remainingMs - 2_000) / 1000))
   );
+  const raceMs = Math.max(1_000, remainingMs - 1_000);
+
+  let raceTimer: ReturnType<typeof setTimeout> | undefined;
+  let raw: Record<string, unknown>;
+  try {
+    raw = await Promise.race([
+      runFlow(INDEX_FLOW_ID, indexPayloadForUrl(trimmed), "Index Articles", {
+        pollTimeoutSec,
+      }),
+      new Promise<never>((_, reject) => {
+        raceTimer = setTimeout(
+          () =>
+            reject(
+              new Error(
+                "Indexing stopped: approached the serverless time limit."
+              )
+            ),
+          raceMs
+        );
+      }),
+    ]);
+  } finally {
+    if (raceTimer !== undefined) clearTimeout(raceTimer);
+  }
+
   const parsed = unwrapRecord(raw);
 
   // Ensure Server Action returns plain JSON (avoids opaque RSC production errors).

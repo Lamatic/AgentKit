@@ -27,7 +27,7 @@ export function splitUrlTokens(text: string): string[] {
 /**
  * Validate a single article URL.
  * Blank → skipped.
- * Must be https://www.… with a dotted hostname; trailing / are stripped.
+ * Must be https:// with a dotted hostname (apex or www); trailing / are stripped.
  * Live reachability (+ SSRF checks) is enforced separately by checkUrlReachability.
  */
 export function validateArticleUrl(raw: string): ValidateResult {
@@ -40,17 +40,11 @@ export function validateArticleUrl(raw: string): ValidateResult {
     return { ok: false, error: "must not contain spaces" };
   }
 
-  if (!trimmed.toLowerCase().startsWith("https://www.")) {
-    if (trimmed.toLowerCase().startsWith("http://")) {
-      return { ok: false, error: "must use https:// (not http://)" };
-    }
-    if (
-      trimmed.toLowerCase().startsWith("https://") &&
-      !trimmed.toLowerCase().startsWith("https://www.")
-    ) {
-      return { ok: false, error: "hostname must start with www." };
-    }
-    return { ok: false, error: "must start with https://www." };
+  if (trimmed.toLowerCase().startsWith("http://")) {
+    return { ok: false, error: "must use https:// (not http://)" };
+  }
+  if (!trimmed.toLowerCase().startsWith("https://")) {
+    return { ok: false, error: "must start with https://" };
   }
 
   const normalized = normalizeArticleUrl(trimmed);
@@ -67,12 +61,11 @@ export function validateArticleUrl(raw: string): ValidateResult {
   }
 
   const host = parsed.hostname.toLowerCase();
-  if (!host.startsWith("www.")) {
-    return { ok: false, error: "hostname must start with www." };
-  }
-
   if (!host.includes(".")) {
-    return { ok: false, error: "hostname must include a domain (e.g. www.example.com)" };
+    return {
+      ok: false,
+      error: "hostname must include a domain (e.g. example.com)",
+    };
   }
 
   return { ok: true, url: normalized };
