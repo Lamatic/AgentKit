@@ -2,56 +2,150 @@
 
 > Turn vague GitHub issues into verified reproduction evidence.
 
-Isolate investigates public GitHub issues inside disposable sandboxes. A Lamatic
-planner interprets the issue and repository snapshot, forms a hypothesis, and chooses probes. A
-deterministic runtime executes those probes, evaluates issue-derived assertions, and
-records evidence. The agent can investigate; it cannot declare its own work
-successful.
+[Try the live demo](https://isolate-agentkit.vercel.app) ·
+[Open the evaluation issue](https://github.com/Dhruv2mars/isolate-cli-testbed/issues/1) ·
+[View the challenge PR](https://github.com/Lamatic/AgentKit/pull/291)
 
-## Status
+![Isolate showing a reproduced outcome with two passing candidate runs and a rejected negative control](assets/isolate-evidence.jpg)
 
-The reviewer UI, Lamatic planner flow, authenticated MCP runtime, Daytona
-sandbox adapter, bounded probe execution, and repeat-plus-control evidence gate
-are deployed and covered by automated tests.
+Issue reports often describe a symptom without preserving the repository state,
+setup, command, or environment needed to observe it. Isolate investigates a
+public GitHub issue in a disposable Daytona sandbox, uses a deployed Lamatic
+flow to plan safe probes, and returns a portable evidence report.
 
-## Why Isolate
+The core boundary is simple: **the model investigates; the runtime verifies.**
+The planner can form a hypothesis and select commands, but it cannot declare a
+bug reproduced. Only the deterministic evidence gate owns that outcome.
 
-Issue reports often describe symptoms without recording the repository state,
-setup, command, or environment needed to observe them. Isolate converts that
-ambiguity into an auditable report:
+## Try it in two minutes
 
-1. Isolate deterministically fetches and normalizes the public GitHub issue.
-2. Isolate creates a private, expiring Daytona sandbox and clones the public
-   repository at the requested ref.
-3. The runtime captures a bounded repository snapshot and asks the deployed
-   Lamatic flow for a hypothesis and repository-owned probe commands. The
-   runtime derives the assertion from an exact observed signature in the issue.
-4. Isolate enforces its command policy and captures exit code, stdout, stderr,
-   and duration for every run.
-5. A reproduction is certified only after two passing candidate runs and a
-   negative control that rejects the same hypothesis.
+1. Open the [live application](https://isolate-agentkit.vercel.app).
+2. Leave the prefilled evaluation issue in place and select **Begin
+   investigation**.
+3. Wait while Isolate reads the issue, inspects the repository, asks Lamatic for
+   a probe plan, and runs the plan in Daytona.
+4. Review the hypothesis, two candidate runs, negative control, exit codes,
+   durations, stdout, and stderr.
+5. Download the complete report as Markdown or JSON.
 
-The language model explores. The deterministic runtime verifies.
+The evaluation fixture deliberately provides a symptom and observed output,
+but not a reproduction command. A successful run must discover the
+repository-owned CLI invocation, reproduce the output twice, and reject it
+under a nearby control condition.
 
-## Runtime tools
+## How it works
+
+```mermaid
+flowchart LR
+    A["Public GitHub issue"] --> B["Deterministic intake"]
+    B --> C["Disposable Daytona sandbox"]
+    C --> D["Repository snapshot"]
+    D --> E["Lamatic probe planner"]
+    E --> F["Runtime command policy"]
+    F --> G["Candidate run 1"]
+    F --> H["Candidate run 2"]
+    F --> I["Negative control"]
+    G --> J["Deterministic evidence gate"]
+    H --> J
+    I --> J
+    J --> K["Markdown and JSON report"]
+```
+
+1. The runtime fetches and normalizes the public issue.
+2. Daytona creates a private, expiring sandbox and checks out the requested
+   repository ref.
+3. Locked dependencies are installed without lifecycle scripts. Outbound
+   networking is then blocked for probe execution.
+4. The runtime captures a bounded repository snapshot. The deployed Lamatic
+   flow returns a hypothesis, candidate command, and negative control.
+5. A strict command policy permits only repository-owned package scripts and
+   rejects shell escapes, output fabrication, file edits, and external network
+   access.
+6. Isolate resets mutable workspace state and runs the candidate twice, then
+   runs the negative control against the same issue-derived assertion.
+7. The runtime records bounded, redacted evidence and deletes the sandbox.
+
+## Evidence contract
+
+A `reproduced` outcome requires all three observations:
+
+| Observation | Required result |
+| --- | --- |
+| Candidate run 1 | Issue-derived assertion passes |
+| Candidate run 2 | The same assertion passes again |
+| Negative control | The same assertion is rejected |
+
+Other outcomes remain explicit:
+
+| Outcome | Meaning |
+| --- | --- |
+| `reproduced` | The repeated candidate and negative control satisfy the deterministic gate. |
+| `not_reproduced_under_tested_conditions` | The allowed probes did not satisfy the complete gate. |
+| `blocked` | Isolate could not safely form or execute a machine-checkable investigation. |
+
+Each completed report preserves the tested repository and ref, hypothesis,
+commands, assertion results, exit codes, durations, stdout, and stderr.
+
+## Lamatic integration
+
+The exported `isolate-reproduction` flow is the investigation planner. It
+receives normalized issue data plus a bounded repository snapshot and returns a
+strict JSON probe plan. Its Gemini model credential stays centrally managed in
+Lamatic Studio.
+
+The runtime also exposes three authenticated MCP tools:
 
 | Tool | Purpose |
 | --- | --- |
 | `echo` | Verify authenticated Lamatic-to-runtime connectivity. |
-| `get_github_issue` | Fetch and normalize one public GitHub issue without repository credentials. |
-| `certify_reproduction` | Run the candidate twice and a negative control once, then return structured JSON evidence and a portable Markdown report. |
+| `get_github_issue` | Fetch and normalize one public GitHub issue. |
+| `certify_reproduction` | Own sandbox execution, evidence collection, and the final outcome. |
 
-`reproduced` is unavailable to the agent unless the deterministic evidence gate
-passes. Failed or non-specific probes become
-`not_reproduced_under_tested_conditions`.
+To use these tools from a Lamatic agent, save
+`https://<your-deployment>/api/mcp` under **Connections → MCP/Tools** and set
+the connection header to
+`Authorization: Bearer <ISOLATE_RUNTIME_SECRET>`. Do not put the bearer secret
+inside a prompt or inline code node.
 
-The certification response preserves the complete machine-readable evidence and
-includes a Markdown artifact with the outcome, commands, assertions, exit codes,
-durations, stdout, and stderr for both candidate runs and the negative control.
-
-## Local verification
+## Run locally
 
 Requirements: Bun and Node.js 20 or newer.
+
+```bash
+cd kits/isolate/apps
+cp .env.example .env.local
+bun install
+bun run dev
+```
+
+Set these server-side values in `.env.local`:
+
+| Variable | Purpose |
+| --- | --- |
+| `ISOLATE_REPRODUCTION_FLOW_ID` | Deployed Lamatic planner flow ID |
+| `LAMATIC_API_URL` | Lamatic project API endpoint |
+| `LAMATIC_PROJECT_ID` | Lamatic project ID |
+| `LAMATIC_API_KEY` | Server-side Lamatic API credential |
+| `DAYTONA_API_KEY` | Server-side Daytona sandbox credential |
+| `ISOLATE_RUNTIME_SECRET` | Bearer secret for the MCP endpoint |
+
+No repository or GitHub credential is required because the current scope is
+public repositories only.
+
+## Deploy your own
+
+1. Import `flows/isolate-reproduction.ts` and its referenced constitution,
+   prompts, and model configuration into Lamatic Studio.
+2. Connect a Gemini credential in Studio, deploy the flow, and copy its flow
+   ID and project API settings.
+3. Select the one-click deploy link from `lamatic.config.ts` and provide the six
+   environment values listed above.
+4. Configure the deployed `/api/mcp` endpoint as a saved authenticated Lamatic
+   MCP connection if you want an agent to call the runtime tools directly.
+5. Add a deployment-wide edge rate limit for `/api/investigate`. The reference
+   deployment uses Vercel Firewall plus an application-level concurrency bound.
+
+## Verify the kit
 
 ```bash
 cd kits/isolate/apps
@@ -61,45 +155,27 @@ bun run typecheck
 bun run build
 ```
 
-The deployed application requires:
-
-- `ISOLATE_RUNTIME_SECRET`: bearer secret configured in Lamatic's saved MCP
-  connection headers.
-- `DAYTONA_API_KEY`: server-side credential used only to create and manage
-  sandboxes.
-- `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_URL`, and
-  `ISOLATE_REPRODUCTION_FLOW_ID`: server-side access to the deployed planner.
-
-Add the runtime URL under **Connections → MCP/Tools** in Lamatic and configure
-`Authorization: Bearer <ISOLATE_RUNTIME_SECRET>` in the saved connection. Do
-not place either credential inside an agent prompt or inline code node.
-
-The reviewer-facing application is deployed at
-https://isolate-agentkit.vercel.app. Its public investigation endpoint is
-protected by a Vercel Firewall rate limit plus a per-instance concurrency bound;
-the MCP endpoint separately requires the saved bearer secret. Equivalent edge
-rate limiting is required when deploying outside this Vercel project.
-
-## Evaluation fixture
-
-The public [Isolate CLI testbed](https://github.com/Dhruv2mars/isolate-cli-testbed)
-contains a service-dependent CLI and a deliberately incomplete bug report. It
-tests whether the agent can discover the setup, environment, and invocation
-needed to produce specific repeatable evidence rather than follow hardcoded
-reproduction instructions.
+The test suite covers issue intake, plan validation and repair, command policy,
+deadline and cleanup behavior, Daytona lifecycle handling, deterministic
+certification, evidence rendering, HTTP error mapping, and authenticated MCP
+contracts.
 
 ## Scope and safety
 
 - Public GitHub repositories only.
-- Node.js, TypeScript, Bun, and terminal/CLI issues are the initial target.
-- Private, non-public sandboxes with a 30-minute maximum lifetime.
-- Locked dependencies are installed without lifecycle scripts before outbound
-  networking is blocked for probes.
-- Probes are bounded to 40 seconds within a 150-second aggregate investigation.
+- Initial support targets Node.js, TypeScript, Bun, and terminal/CLI issues.
+- Issues must contain one exact `Observed stdout:` or `Observed stderr:`
+  signature. Isolate may still form a hypothesis without one, but certification
+  remains blocked until the reporter confirms a machine-checkable signature.
+- Sandboxes are private, disposable, and limited to a 30-minute lifetime.
+- Each probe is bounded to 40 seconds within a 150-second aggregate
+  investigation budget.
 - Captured stdout and stderr are redacted and capped at 64 KiB each.
-- No repository credentials are mounted in the sandbox.
-- No pushes, package publication, pull requests, or fix generation.
 - Repository and issue contents are treated as untrusted input.
-- Issues without one exact `Observed stdout:` or `Observed stderr:` signature
-  are still inspected and receive a hypothesis, but certification stays blocked
-  until the reporter confirms a machine-checkable observed signature.
+- No repository credentials are mounted in the sandbox.
+- No file editing, fix generation, pushes, pull requests, or package
+  publication.
+
+These constraints are intentional: Isolate proves whether the reported behavior
+can be reproduced under stated conditions. It does not claim to diagnose every
+repository or repair the bug.

@@ -12,7 +12,7 @@ export const meta = {
   deployUrl: "https://studio.lamatic.ai",
   author: {
     name: "Dhruv Sharma",
-    email: "dhruv.sharma10102005@gmail.com",
+    email: "dhruv2mars@gmail.com",
   },
 };
 
