@@ -8,7 +8,8 @@ export default {
   steps: [
     {
       id: "clinical-note-red-flag-scanner",
-      type: "mandatory"
+      type: "mandatory",
+      envKey: "CLINICAL_NOTE_RED_FLAG_SCANNER_FLOW_ID"
     }
   ],
   links: {
