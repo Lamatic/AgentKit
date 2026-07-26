@@ -2,7 +2,10 @@
 
 import { FormEvent, useState } from "react";
 
-import { investigationRequest } from "../lib/investigation-request";
+import {
+  githubIssueUrlPattern,
+  investigationRequest,
+} from "../lib/investigation-request";
 
 type Observation = {
   command: string;
@@ -153,7 +156,7 @@ export function InvestigationWorkbench() {
               id="issue"
               type="url"
               required
-              pattern="https://github\\.com/[^/]+/[^/]+/issues/[1-9][0-9]*/?"
+              pattern={githubIssueUrlPattern}
               title="Use a public GitHub issue URL such as https://github.com/owner/repo/issues/123."
               value={issueUrl}
               onChange={(event) => setIssueUrl(event.target.value)}
