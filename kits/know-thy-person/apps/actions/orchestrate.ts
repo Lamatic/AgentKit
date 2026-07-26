@@ -24,10 +24,15 @@ export async function researchPerson(
 
     const lamaticClient = getLamaticClient();
     const resData = await lamaticClient.executeFlow(workflowId, inputs);
-    const answer = resData?.result?.answer;
-    if (!answer) throw new Error("No answer returned from the flow.");
+    // The flow maps the dossier fields flat onto `result` (identity, summary,
+    // talkingPoints, ...). Some flows instead wrap it as `result.answer`; support both.
+    const result = resData?.result as Record<string, unknown> | undefined;
+    const dossier = result && "answer" in result && result.answer ? result.answer : result;
+    if (!dossier || typeof dossier !== "object") {
+      throw new Error("No dossier returned from the flow.");
+    }
 
-    return { success: true, data: normalizeDossier(answer) };
+    return { success: true, data: normalizeDossier(dossier) };
   } catch (error) {
     let message = "Unknown error occurred";
     if (error instanceof Error) {
