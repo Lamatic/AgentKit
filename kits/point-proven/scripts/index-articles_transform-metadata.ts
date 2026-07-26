@@ -10,9 +10,9 @@
 // strings on the VectorDB handoff: ~50 rows fails with
 // "cannot unmarshal string into ... float32", 7-8 rows succeeds.
 
-let vectorOut = {{vectorizeNode_840.output}};
-let texts = {{codeNode_204.output}};
-let varsOut = {{variablesNode_170.output}};
+let vectorOut = {{vectorizeNode_314.output}};
+let texts = {{codeNode_794.output}};
+let varsOut = {{variablesNode_658.output}};
 
 let MAX_INDEX_BATCH = 8;
 
