@@ -113,6 +113,16 @@
           }
         }
       },
+      "required": [
+        "system_name",
+        "purpose",
+        "components",
+        "data_assets",
+        "trust_boundaries",
+        "user_roles",
+        "compliance_notes",
+        "tech_stack"
+      ],
       "additionalProperties": true
     },
     "missing_info": {
@@ -121,5 +131,12 @@
         "type": "string"
       }
     }
-  }
+  },
+  "required": [
+    "language",
+    "assistant_message",
+    "is_complete",
+    "session_state",
+    "missing_info"
+  ]
 }
