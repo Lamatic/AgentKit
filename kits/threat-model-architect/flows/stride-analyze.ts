@@ -40,7 +40,7 @@ export const nodes = [
           threats: { type: "array", items: { type: "object", additionalProperties: true } },
           coverage: { type: "object", additionalProperties: true },
           missing_info: { type: "array", items: { type: "string" } },
-        } }),
+        }, required: ["system_name", "summary", "threats", "coverage", "missing_info"] }),
         prompts: [{ id: "stride-system", role: "system", content: "@prompts/stride-analyze_system.md" }, { id: "stride-user", role: "user", content: "@prompts/stride-analyze_user.md" }],
         memories: "[]", messages: "[]", nodeName: "Generate JSON", attachments: "", generativeModelName: "",
       },
