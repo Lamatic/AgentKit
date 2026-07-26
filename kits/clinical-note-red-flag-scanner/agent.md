@@ -30,7 +30,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
     - A payload containing the clinical note text.
     - The flow is designed around "note text in, structured flags out"; the GraphQL field is defined in the `graphqlNode` schema with an `advance_schema` of `{ "clinicalNote": "string" }`.
     - `clinicalNote` (string) — the full text of the clinical note to scan. **Required.**
-  - Input notes: The note should be the complete text of a clinical encounter note, discharge summary, procedure note, or similar clinical documentation. It should not exceed 10,000 tokens (approximately 7,500 words) and works best with individual encounter notes rather than concatenated multi-visit records.
+  - Input notes: The note should be the complete text of a clinical encounter note, discharge summary, procedure note, or similar clinical documentation. It is strictly enforced by the schema not to exceed 45,000 characters (approximately 10,000 tokens). Submitting oversized input will cause the API Request node to automatically reject the payload before processing. It works best with individual encounter notes rather than concatenated multi-visit records.
 
 - What it does
   1. `API Request` (`graphqlNode` — `triggerNode_1`)

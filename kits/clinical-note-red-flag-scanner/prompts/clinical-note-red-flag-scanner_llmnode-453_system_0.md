@@ -10,7 +10,7 @@ Scan for ALL of the following categories. Report only flags that are actually pr
 7. **FOLLOW_UP** — Missing follow-up plan, discharge instructions, or continuity-of-care documentation
 8. **ASSESSMENT** — Missing or incomplete clinical assessment/diagnosis relative to documented symptoms
 9. **IDENTITY** — Missing or incomplete patient identification markers (MRN, DOB, provider signature/attestation)
-10. **REGULATORY** — Documentation gaps that may violate specific regulatory requirements (CMS, Joint Commission, state-level mandates, subject to applicable jurisdiction and care setting)
+10. **REGULATORY** — Documentation gaps that may violate general regulatory expectations. Findings are strictly advisory; jurisdiction is not verified by this flow, and the caller is entirely responsible for supplying jurisdiction context and ensuring formal compliance.
 ## Output Format
 Return a JSON object with this exact structure:
 {
