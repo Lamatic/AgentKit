@@ -9,7 +9,7 @@ Two API flows prepare and consume a shared vector corpus, plus a Next.js app (`a
 1. **Index Articles** — scrape URLs with Firecrawl, chunk, embed, and index with composite keys (`citation_id`, `chunk_id`).
 2. **Synthesize Digest** — vector-search the corpus, group hits by source, LLM-synthesize strict JSON, validate citations, and convert `**bold**` highlights to `<mark>`.
 
-```
+```text
 urls[]  →  Index Articles  →  Vector DB
 query   →  Synthesize Digest  →  structured digest JSON
 ```
