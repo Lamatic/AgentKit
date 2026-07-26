@@ -29,7 +29,7 @@ export default {
   ],
 
   links: {
-    deploy: "",
-    github: ""
+  github: "https://github.com/Lamatic/AgentKit/tree/main/kits/agentforge-planner",
+  deploy: ""
   }
 };
