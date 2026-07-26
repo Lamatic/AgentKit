@@ -2,13 +2,16 @@
 
 ## Overview
 
-Threat Model Architect is a security intake agent for software threat modeling. It converts a user's plain-English system description into structured architecture context that can be used for STRIDE, DREAD, and remediation planning in later stages.
+Threat Model Architect is a multi-stage security-analysis agent. It converts a plain-English architecture description into a reviewable architecture model, STRIDE threat register, DREAD-ranked risk backlog, and 7/30/60/90-day remediation roadmap.
 
-## Purpose
+## Pipeline
 
-Teams often begin threat modeling with incomplete information. The intake flow makes that first step repeatable: it extracts system purpose, components, technology stack, data assets, trust boundaries, user roles, and missing security context from a short conversation.
-
-## Flow
+1. `intake` captures the initial system context.
+2. `decompose-architecture` derives the security-relevant architecture model.
+3. `stride-analyze` identifies threats per system boundary and component.
+4. `threat-research` adds safe OWASP/CWE context and validation guidance.
+5. `dread-prioritize` produces transparent relative-risk scoring.
+6. The app derives a deterministic remediation roadmap from the DREAD-ranked threats.
 
 ### `intake`
 
@@ -73,19 +76,81 @@ The constitution in `constitutions/default.md` is enforced through the system pr
 
 The flow is designed to be called via Lamatic's GraphQL API. The app or client passes the returned `session_state` back into the next request until `is_complete` is `true`.
 
-Environment variable used by clients:
+Environment variables used by the app:
 
 | Variable | Purpose |
 |---|---|
 | `INTAKE_FLOW_ID` | Deployed Lamatic workflow ID for the `intake` flow |
+| `DECOMPOSE_FLOW_ID` | Deployed Lamatic workflow ID for architecture decomposition |
+| `STRIDE_FLOW_ID` | Deployed Lamatic workflow ID for STRIDE analysis |
+| `RESEARCH_FLOW_ID` | Deployed Lamatic workflow ID for threat research |
+| `DREAD_FLOW_ID` | Deployed Lamatic workflow ID for DREAD scoring |
 
-## Future Extensions
+## Studio deployment notes
 
-This template can be expanded into a larger kit with downstream flows:
+The five active flow exports are tracked under `flows/` and their prompts under `prompts/`. Import each active flow into Lamatic Studio, select a connected capable model, test it, then deploy it and set the matching flow ID in the app environment.
 
-- Architecture decomposition
-- STRIDE analysis
-- CVE/advisory research
-- DREAD prioritization
-- Remediation roadmap generation
-- RAG chat over the threat model
+Use `gpt-4o-mini` or Gemini Flash for architecture decomposition and STRIDE generation. The lighter `gpt-4.1-nano` model is prone to returning incomplete architecture arrays for these inference-heavy stages.
+
+### Flow 2: `decompose-architecture`
+
+**Purpose:** Convert `intake.session_state` into a normalized architecture model.
+
+**Trigger:** API Request
+
+**Inputs:**
+
+- `session_state` - JSON string returned by the `intake` flow
+
+**Generate JSON prompts:**
+
+- System: `@prompts/decompose-architecture_system.md`
+- User: `@prompts/decompose-architecture_user.md`
+
+**Recommended output schema:**
+
+```json
+{
+  "system_name": "string",
+  "purpose": "string",
+  "components": "array",
+  "external_actors": "array",
+  "data_assets": "array",
+  "trust_boundaries": "array",
+  "data_flows": "array",
+  "entry_points": "array",
+  "security_assumptions": "array",
+  "missing_info": "array"
+}
+```
+
+**Expected behavior:** Given a B2B SaaS stack with Next.js, Node API, Postgres, Clerk, Stripe, and S3, the flow should identify browser/user actors, frontend, API, database, auth provider, payment provider, file storage, public-to-app and app-to-data trust boundaries, and inferred data flows.
+
+### Flow 3: `stride-analyze`
+
+**Purpose:** Run STRIDE analysis over the normalized architecture.
+
+**Trigger:** API Request
+
+**Inputs:**
+
+- `architecture` - JSON string returned by `decompose-architecture`
+
+**Generate JSON prompts:**
+
+- System: `@prompts/stride-analyze_system.md`
+- User: `@prompts/stride-analyze_user.md`
+
+**Recommended output schema:**
+
+```json
+{
+  "system_name": "string",
+  "summary": "string",
+  "threats": "array",
+  "coverage": "object",
+  "missing_info": "array"
+}
+```
+
+**Expected behavior:** The flow should generate stack-specific STRIDE threats such as JWT spoofing at the API boundary, tenant ID tampering in file access, Stripe webhook forgery, S3 information disclosure, and API denial-of-service risks, each with concrete mitigations and open questions.

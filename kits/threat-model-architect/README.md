@@ -1,101 +1,47 @@
 # Threat Model Architect
 
-> Conversational security intake agent that turns a plain-English software-system description into structured architecture context for threat modeling.
+Threat Model Architect is a full Lamatic AgentKit that converts a plain-English system description into a defensible security report: an architecture model, STRIDE threat register, research context, DREAD ranking, and a 7/30/60/90-day remediation roadmap.
 
-## Problem
+## Pipeline
 
-Threat modeling usually starts with a messy conversation: engineers describe products in prose, security reviewers ask for missing architecture details, and useful context gets lost before analysis begins. Small teams often skip this step entirely because it feels too manual.
+1. `intake` captures the system and technology context.
+2. `decompose-architecture` identifies components, data assets, actors, entry points, trust boundaries, and data flows.
+3. `stride-analyze` produces stack-specific STRIDE threats.
+4. `threat-research` adds defensible OWASP/CWE context without inventing CVEs.
+5. `dread-prioritize` ranks threats using transparent DREAD scoring.
+6. The app derives a deterministic 7/30/60/90-day roadmap from the DREAD-ranked threats.
 
-## Approach
+## Run the app
 
-Threat Model Architect captures the first and most important step of a threat-modeling workflow: security-focused architecture intake. The user describes their application in natural language, and the flow extracts:
-
-- Product purpose and system name
-- Components such as frontend, API, database, auth, storage, and third-party services
-- Technology stack
-- Data assets and sensitivity, when known
-- Missing information needed before STRIDE/DREAD analysis
-
-The agent asks one clarifying question at a time and does not proceed until required context is captured.
-
-## Flow
-
-### `intake`
-
-**Trigger:** API Request
-
-**Inputs:**
-
-| Field | Type | Description |
-|---|---|---|
-| `message` | string | Latest user message describing the system |
-| `today` | string | Current date for deterministic context |
-| `session_state` | string | JSON string containing the accumulated intake state |
-
-**Output:**
-
-```json
-{
-  "language": "English",
-  "assistant_message": "I captured your stack: Next.js frontend, Node API, Postgres, Stripe billing, Clerk auth, and S3 file storage. What sensitive data does your app handle?",
-  "is_complete": false,
-  "session_state": {
-    "system_name": "B2B SaaS",
-    "purpose": "B2B SaaS application",
-    "components": [],
-    "data_assets": [],
-    "trust_boundaries": [],
-    "user_roles": [],
-    "compliance_notes": [],
-    "tech_stack": []
-  },
-  "missing_info": ["data sensitivity"]
-}
+```bash
+cd apps
+cp .env.example .env.local
+npm install
+npm run dev
 ```
 
-## Example Test Payload
+Set the Lamatic project credentials and all five deployed flow IDs in `apps/.env.local`. The app runs flows server-side in pipeline order, so no Lamatic credentials are exposed to the browser.
 
-```json
-{
-  "message": "We're building a B2B SaaS: Next.js frontend, Node API, Postgres, Stripe, Clerk, files on S3.",
-  "today": "2026-07-10",
-  "session_state": "{}"
-}
-```
+## Import and deploy flows
 
-Expected behavior: the agent extracts the stack into `session_state.components` and `session_state.tech_stack`, keeps `is_complete` as `false`, and asks one question about sensitive data.
+Each `flows/*.ts` file is an importable Lamatic Studio flow export. For every flow:
 
-## Files
+1. Import its corresponding file in Studio.
+2. Select a connected inference-capable model. Use `gpt-4o-mini` or Gemini Flash for `decompose-architecture` and `stride-analyze`; `gpt-4.1-nano` is not reliable enough for the required architecture inference.
+3. Test its sample payload, deploy it, and copy the deployed workflow ID into the matching environment variable.
 
-| File | Purpose |
-|---|---|
-| `lamatic.config.ts` | AgentKit metadata for this template |
-| `flows/intake.ts` | Lamatic Studio export for the intake flow |
-| `prompts/intake_system.md` | System instructions for architecture intake |
-| `prompts/intake_user.md` | User prompt that passes API Request inputs into the model |
-| `constitutions/default.md` | Security guardrails and scope boundaries |
+The flow exports reference prompt and constitution assets under `prompts/` and `constitutions/`. The threat-research stage intentionally does not claim live CVE verification unless a verified research tool is explicitly added in Studio.
 
 ## Guardrails
 
-The agent:
+- This kit assists security review; it does not certify security or compliance.
+- It does not fabricate CVEs, advisory URLs, breach evidence, or verified exploit claims.
+- DREAD values are prioritization estimates, not confirmed exploitability findings.
+- Review and validate all findings with the system owners before remediation.
 
-- Treats `session_state` as the user's application, not the agent itself
-- Never claims the system is secure or compliant
-- Does not fabricate CVEs, advisory IDs, or system components
-- Asks for missing information rather than guessing
-- Keeps security guidance informational and scoped to threat-model preparation
+## Included files
 
-## Future Extensions
-
-This template is designed as the intake stage for a larger security workflow. Natural follow-up flows are:
-
-- `decompose-architecture`
-- `stride-analyze`
-- `threat-research`
-- `dread-prioritize`
-- `mitigation-planner`
-- `threat-model-chat`
-
-## Author
-
-Kushagra Tiwari
+- `flows/` — five deployed Studio flow exports plus optional future-flow assets
+- `prompts/` — versioned prompts for every model stage
+- `constitutions/default.md` — shared scope and safety rules
+- `apps/` — Next.js report UI and server-side Lamatic orchestration
