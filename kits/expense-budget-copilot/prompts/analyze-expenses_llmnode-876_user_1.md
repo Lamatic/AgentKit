@@ -1,0 +1,1 @@
+Here is the expense data:{{LLMNode_233.output.generatedResponse}}
