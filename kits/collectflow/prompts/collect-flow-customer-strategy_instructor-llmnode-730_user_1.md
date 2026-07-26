@@ -1,0 +1,3 @@
+Generate a customer-specific Accounts Receivable collection strategy for:
+{{triggerNode_1.output.customer_data}}
+Return valid structured data matching the configured schema. Important: - reasoning must be an array of 3 to 5 short strings. - operational_controls must be an array of 2 to 4 short strings. - approval_required must be a boolean. - next_follow_up_days must be a number. - Do not return arrays as quoted text.

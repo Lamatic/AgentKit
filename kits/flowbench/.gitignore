@@ -1,0 +1,5 @@
+# OS files
+.DS_Store
+
+# FlowBench local storage (do not track test baselines/results by default)
+.flowbench/
