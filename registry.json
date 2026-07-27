@@ -4282,7 +4282,7 @@
         "hasSearchWidget": false
       }
     },
-    {
+   {
       "slug": "llm-guardrail-evaluator",
       "name": "LLM Guardrail Evaluator",
       "description": "An enterprise-grade guardrail that evaluates LLM responses against strict system criteria and returns a structured JSON verdict.",
@@ -4314,10 +4314,10 @@
         ]
       },
       "resources": {
-        "prompts": 1,
+        "prompts": 2,
         "scripts": 0,
         "modelConfigs": 1,
-        "constitutions": 0,
+        "constitutions": 1,
         "triggers": 1,
         "memory": 0,
         "tools": 0
@@ -4331,9 +4331,5 @@
         "hasSearchWidget": false
       }
     }
-
-  
-  
-  
-  ]
+ ]
 }
