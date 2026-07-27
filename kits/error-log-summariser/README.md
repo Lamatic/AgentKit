@@ -1,59 +1,65 @@
 # Error Log Summariser
 
-Paste a raw error log or stack trace, get back a plain-English triage report: what failed, the likely root cause, the failing component, concrete fix steps, and a confidence level.
+Paste a raw error log or stack trace and get back a privacy-safe support handoff: what happened, what sensitive values were redacted, the likely affected component, escalation questions, and the safest next action.
 
-A single-flow Lamatic **template** — no UI, no scraper, no env vars beyond your LLM provider key.
+A single-flow Lamatic **template** with no UI, no scraper, and no app-level environment variables.
 
 ## What it does
 
-```
-API Request (log, context)  →  LLM (triage prompt)  →  API Response (summary)
+```text
+API Request (log, context) -> LLM (redaction + handoff prompt) -> API Response (summary)
 ```
 
-1. **API Request** — accepts `log` (required) and `context` (optional).
-2. **Generate Text (LLM)** — a reliability-engineer system prompt analyses the log and produces a fixed-section report.
-3. **API Response** — returns the report as `summary`.
+1. **API Request** accepts `log` (required) and `context` (optional).
+2. **Generate Text (LLM)** redacts sensitive values, summarizes impact, and creates a handoff note.
+3. **API Response** returns the report as `summary`.
+
+## Why this is different
+
+AgentKit already includes broad debugging assistants. This template focuses on a narrower operational problem: turning messy logs into a safe artifact that can be shared with support, security, or another engineering team without leaking tokens, passwords, connection strings, or customer identifiers.
 
 ## Inputs
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `log` | string | Yes | Raw error log or stack trace to analyse. |
-| `context` | string | No | Language, framework, or what you were doing. |
+| `context` | string | No | Language, framework, environment, incident ticket, or caller context. |
 
 ## Output
 
-`summary` (markdown string) with these sections:
+`summary` is a markdown string with these sections:
 
-- **Summary** — one or two sentences on what failed.
-- **Likely Root Cause** — ranked most-probable first, referencing the exception/file/line when present.
-- **Failing Component** — the module, service, or dependency at fault.
-- **Suggested Fix** — ordered, concrete next steps.
-- **Confidence** — `high` / `medium` / `low` with a reason.
+- **Safe Summary** - one or two sentences on what happened.
+- **Redactions Applied** - categories of sensitive data removed or masked.
+- **Likely Affected Component** - the module, service, or dependency most involved.
+- **Escalation Questions** - missing details support or engineering needs next.
+- **Recommended Next Action** - concrete first step.
+- **Confidence** - `high`, `medium`, or `low` with a reason.
 
 ## Example
 
 Input `log`:
 
-```
+```text
 Traceback (most recent call last):
   File "app/handlers.py", line 42, in get_user
     return db.query(User).filter(User.id == uid).one()
 sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not connect to server: Connection refused
 ```
 
-Output `summary` (abridged):
+Output `summary` abridged:
 
-> **Summary** — The request failed because the app could not reach the PostgreSQL database.
-> **Likely Root Cause** — `OperationalError: connection refused` at `handlers.py:42` — the DB server is down or the host/port is wrong.
-> **Failing Component** — SQLAlchemy/psycopg2 database connection layer.
-> **Suggested Fix** — 1. Confirm Postgres is running and reachable. 2. Check the connection string host/port. 3. Verify network/firewall rules. 4. Add a startup health check.
-> **Confidence** — high: the exception names a refused connection directly.
+> **Safe Summary** - The request failed because the app could not reach the PostgreSQL database.
+> **Redactions Applied** - No obvious secrets found.
+> **Likely Affected Component** - SQLAlchemy/psycopg2 database connection layer.
+> **Escalation Questions** - Was Postgres running at the time? Did the connection host or port change recently?
+> **Recommended Next Action** - Confirm Postgres is reachable from the app runtime and verify the connection string.
+> **Confidence** - high: the exception names a refused connection directly.
 
 ## Setup
 
 1. Open the flow in [Lamatic Studio](https://studio.lamatic.ai) and click **Deploy**.
-2. Set the LLM provider credential used by the `Generate Text` node (for example `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`), matching the model in `model-configs/error-log-summariser_generate-text.ts`.
+2. Set the LLM provider credential used by the `Generate Text` node, matching the model in `model-configs/error-log-summariser_llmnode-262_generative-model-name.ts`.
 3. Invoke via GraphQL:
 
    ```graphql
@@ -66,8 +72,8 @@ Output `summary` (abridged):
 
 ## Guardrails
 
-- Bases claims on evidence in the log; flags uncertainty instead of inventing stack frames.
-- Redacts secrets, tokens, and connection strings found in the pasted log.
+- Bases claims on evidence in the log and flags uncertainty instead of inventing stack frames.
+- Redacts secrets, tokens, passwords, customer identifiers, and connection strings found in the pasted log.
 - Governed by `constitutions/default.md`.
 
 ## Files
@@ -75,8 +81,8 @@ Output `summary` (abridged):
 | Path | Purpose |
 |---|---|
 | `lamatic.config.ts` | Template metadata |
-| `flows/error-log-summariser.ts` | The flow (nodes + edges + references) |
-| `prompts/*_system.md`, `*_user.md` | Triage prompt |
+| `flows/error-log-summariser.ts` | Flow nodes, edges, and references |
+| `prompts/error-log-summariser_llmnode-262_system_0.md`, `prompts/error-log-summariser_llmnode-262_user_1.md` | Handoff and redaction prompts |
 | `model-configs/*.ts` | LLM model config |
 | `constitutions/default.md` | Safety baseline |
 | `agent.md` | Agent capability doc |
