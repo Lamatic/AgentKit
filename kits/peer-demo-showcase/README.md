@@ -157,7 +157,7 @@ SMTP_PASS=your_app_password
 SMTP_FROM="your_email@domain.com"
 ```
 
-> ℹ️ **Note on Email Delivery**: The default `onboarding@resend.dev` sender address in Resend sandbox mode can only deliver emails to your registered Resend account address (`RESEND_ACCOUNT_EMAIL`). To send confirmation emails to external recipient addresses, configure custom domain verification in Resend or set SMTP parameters (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`).
+> ℹ️ **Note on Email Delivery**: The default `onboarding@resend.dev` sender address in Resend sandbox mode can only deliver emails to your registered Resend account address (`RESEND_ACCOUNT_EMAIL`). To send confirmation emails to external recipient addresses, configure custom domain verification in Resend or set SMTP parameters (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`).
 
 ---
 
