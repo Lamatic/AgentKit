@@ -3,7 +3,7 @@
 // Single-page TrustGuard AI application.
 // No routing, no login, no dashboard. One page only.
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import Header from "@/components/Header";
@@ -36,6 +36,7 @@ export default function HomePage() {
   const [formData, setFormData] = useState<AnalyzeFormData>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ValidatedInvestigationResponse | null>(null);
+  const inFlight = useRef(false);
 
   /**
    * Validates the form, calls the `runInvestigation` server action, and
@@ -46,12 +47,13 @@ export default function HomePage() {
    * duplicate submissions while a request is already loading.
    */
   const handleAnalyze = async () => {
-    if (loading) return;
+    if (inFlight.current) return;
     if (!formData.content.trim()) {
       toast.error("Please enter content to analyze.");
       return;
     }
 
+    inFlight.current = true;
     setLoading(true);
     setResult(null);
 
@@ -72,6 +74,7 @@ export default function HomePage() {
     } catch {
       toast.error("Unable to analyze. Please try again.", { id: toastId });
     } finally {
+      inFlight.current = false;
       setLoading(false);
     }
   };
