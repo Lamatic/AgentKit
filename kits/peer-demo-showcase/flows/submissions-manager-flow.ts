@@ -45,7 +45,7 @@ export const nodes = [
         "limit": "100",
         "query": "",
         "where": "",
-        "action": "{{triggerNode_1.output.action == 'delete' ? 'delete' : (triggerNode_1.output.action == 'add' ? 'insert' : (triggerNode_1.output.action == 'select' || !triggerNode_1.output.action ? 'select' : 'update'))}}",
+        "action": "{{triggerNode_1.output.action == 'delete' ? 'delete' : triggerNode_1.output.action == 'add' ? 'insert' : triggerNode_1.output.action == 'select' ? 'select' : triggerNode_1.output.action ? 'update' : 'select'}}",
         "offset": "0",
         "columns": "*",
         "orderBy": "created_at DESC",
