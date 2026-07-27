@@ -37,6 +37,7 @@ against its own oracles without knowing the target's exact wording.
 ## Flows
 
 ### `flowguard-suite-generator` (mandatory)
+
 - **Trigger:** GraphQL API. Input: `flowDescription`, `inputSchema`, `sampleInput`,
   `sampleOutput`, `numCases`, `categories`.
 - **What it does:** an LLM node designs cases across five categories (happy_path,
@@ -45,6 +46,7 @@ against its own oracles without knowing the target's exact wording.
 - **Output:** `{ cases, count }`.
 
 ### `flowguard-judge` (mandatory)
+
 - **Trigger:** GraphQL API. Input: `caseInput`, `expectedBehavior`, `actualOutput`,
   `targetConstitutionExcerpt`, `rubricVersion`.
 - **What it does:** a code node runs deterministic pre-checks (schema validity, injection
@@ -55,12 +57,14 @@ against its own oracles without knowing the target's exact wording.
 - **Output:** `{ rationales, scores, schemaValid, verdict, confidence, rubricVersion, deterministic }`.
 
 ### `flowguard-report-summarizer` (mandatory)
+
 - **Trigger:** GraphQL API. Input: `verdict`, `totals`, `worstFailures`, `baselineDeltas`.
 - **What it does:** writes a short, honest executive summary in Markdown — verdict first,
   then notable failures, suspected causes, and prioritized next actions.
 - **Output:** `{ summaryMarkdown }`.
 
 ### `flowguard-red-team-generator` (optional)
+
 - **Trigger:** GraphQL API. Input: `flowDescription`, `constitutionText`, `numProbes`.
 - **What it does:** designs adversarial probes across five attack families (direct
   injection, jailbreak, instruction smuggling, system-prompt exfiltration, off-domain
@@ -69,10 +73,12 @@ against its own oracles without knowing the target's exact wording.
 - **Output:** `{ cases, count }`.
 
 ### `flowguard-demo-victim` (demo target, not core)
+
 - A deliberately weak "Nimbus" support bot shipped so reviewers have a controllable
   target. Harden its system prompt to demonstrate a REGRESSED → IMPROVED verdict flip.
 
 ### Flow Interaction
+
 The app's server actions orchestrate a per-run state machine:
 `GENERATE → REVIEW(SUITE) → EXECUTE → JUDGE → AGGREGATE → REPORT`. The target flow is
 invoked directly by id through the Lamatic SDK (no wrapper flow), which keeps FlowGuard

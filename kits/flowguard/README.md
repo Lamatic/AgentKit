@@ -37,6 +37,7 @@ Today the workflow is "try three inputs in Studio and ship." FlowGuard makes flo
 6. **Report & export** — an executive summary in Markdown, plus JSON export for a PR description.
 
 ### The key design decision
+
 Every case carries an `expectedBehavior` **oracle** ("must refuse and redirect", "must
 include a citation") — not an exact-match string. That is what lets one judge grade *any*
 flow against its own intent, instead of brittle golden outputs.
@@ -75,13 +76,16 @@ Full flow-by-flow detail is in [`agent.md`](./agent.md).
 ## Quickstart (~15 minutes)
 
 ### 1. Install
+
 ```bash
-git clone https://github.com/<you>/AgentKit.git
+# Replace <your-username> with your GitHub fork's owner
+git clone https://github.com/<your-username>/AgentKit.git
 cd AgentKit/kits/flowguard/apps
 npm install
 ```
 
 ### 2. Build the flows in Studio
+
 The `flows/`, `prompts/`, `model-configs/`, and `scripts/` folders are the exported
 definitions of five flows. Recreate each in Lamatic Studio (trigger → nodes → response as
 documented in each flow file's header), attach the referenced prompts and model configs,
@@ -99,12 +103,14 @@ then **deploy** and copy the flow id:
 > typical target, to reduce self-preference bias.
 
 ### 3. Configure env
+
 ```bash
 cp .env.example .env.local
 # fill in LAMATIC_API_KEY, LAMATIC_PROJECT_ID, LAMATIC_API_URL, and the FLOW_ID_* values
 ```
 
 ### 4. Run
+
 ```bash
 npm run dev          # http://localhost:3000
 npm run type-check   # strict TS, no emit
@@ -115,6 +121,7 @@ Paste a target flow id + description → **Generate suite** → **Pin & run eval
 baseline** → change a prompt in Studio → re-run → **Compare** to see the verdict flip.
 
 ### 5. Deploy (Vercel)
+
 Import the repo, set **root directory** to `kits/flowguard/apps`, add the env vars, deploy.
 
 ---
@@ -138,6 +145,7 @@ Honest limitations, because a judge that hides its own is not trustworthy:
   Supabase adapter can sit behind the store interface without touching callers.
 
 ## Future scope (documented, not built)
+
 CI-webhook mode (eval on flow deploy), scheduled cron regression runs with Slack alerts,
 multi-judge ensembles, human-in-the-loop label collection, a shipped judge-calibration set,
 and a registry-wide robustness leaderboard.

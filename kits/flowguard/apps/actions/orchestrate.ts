@@ -109,6 +109,10 @@ export async function checkConnectivity(
 
 /* ─────────────────────────────  GENERATE  ─────────────────────────────── */
 
+/**
+ * Generate a test suite for the target flow via the suite-generator flow, then
+ * parse, validate, ID-assign, and persist the cases. Returns the new suite.
+ */
 export async function generateSuite(
   input: SetupInput & { numCases?: number; categories?: CaseCategory[] }
 ): Promise<ApiResponse<Suite>> {
@@ -153,6 +157,7 @@ export async function generateSuite(
   }
 }
 
+/** Whether the optional red-team flow is configured (its env id is set). */
 export async function isRedTeamEnabled(): Promise<boolean> {
   return redTeamEnabled();
 }
@@ -340,9 +345,12 @@ export async function runEvaluation(
     if (opts.fresh) cache.clear();
 
     // EXECUTE
+    // executeCase owns the per-attempt timeout + retry (60s, 1 retry ≈ 120s worst
+    // case). The outer pool only bounds concurrency, so its timeout must exceed the
+    // inner budget — otherwise it would abandon a case mid-retry, defeating the retry.
     const executions = await runPool(
       suite.cases.map((tc) => () => executeCase(suite.targetFlowId, tc)),
-      { concurrency: opts.concurrency ?? 4, timeoutMs: 61_000, maxRetries: 0 }
+      { concurrency: opts.concurrency ?? 4, timeoutMs: 150_000, maxRetries: 0 }
     );
     const execByCase = new Map<string, CaseExecution>();
     executions.forEach((r, i) => {
@@ -401,6 +409,7 @@ export async function runEvaluation(
 
 /* ────────────────────────  Baseline + report  ─────────────────────────── */
 
+/** Mark a run as the baseline for its suite version (used for regression diffs). */
 export async function setBaseline(runId: string): Promise<ApiResponse<null>> {
   const run = store.getRun(runId);
   if (!run) return { success: false, error: 'Run not found' };
@@ -408,6 +417,7 @@ export async function setBaseline(runId: string): Promise<ApiResponse<null>> {
   return { success: true, data: null };
 }
 
+/** Compare a run against its suite-version baseline; returns the regression diff. */
 export async function diffAgainstBaseline(runId: string): Promise<ApiResponse> {
   const candidate = store.getRun(runId);
   if (!candidate) return { success: false, error: 'Run not found' };
@@ -426,6 +436,7 @@ export async function diffAgainstBaseline(runId: string): Promise<ApiResponse> {
   }
 }
 
+/** Produce an executive Markdown summary of a run via the report-summarizer flow. */
 export async function generateReport(runId: string): Promise<ApiResponse<{ markdown: string }>> {
   const run = store.getRun(runId);
   if (!run) return { success: false, error: 'Run not found' };
@@ -459,6 +470,7 @@ export async function generateReport(runId: string): Promise<ApiResponse<{ markd
 
 /* ────────────────────────────  Export/import  ─────────────────────────── */
 
+/** Export all suites, runs, and baselines as JSON (for backup or a PR attachment). */
 export async function exportState(): Promise<ApiResponse> {
   return { success: true, data: store.exportAll() };
 }

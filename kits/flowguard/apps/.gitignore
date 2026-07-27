@@ -9,9 +9,8 @@
 /build
 
 # env — NEVER commit real keys
-.env
-.env.local
-.env*.local
+.env*
+!.env.example
 
 # misc
 .DS_Store
