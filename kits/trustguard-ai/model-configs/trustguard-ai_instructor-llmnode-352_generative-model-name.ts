@@ -5,9 +5,7 @@ export default {
     {
       "type": "generator/text",
       "params": {
-        "top_p": 1,
-        "max_tokens": 1200,
-        "temperature": 0.1
+        "max_tokens": 1200
       },
       "configName": "configA",
       "model_name": "gemini-3.5-flash",
