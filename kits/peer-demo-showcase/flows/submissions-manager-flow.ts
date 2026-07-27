@@ -44,7 +44,7 @@ export const nodes = [
         "data": "{\n  \"id\": \"{{triggerNode_1.output.id}}\",\n  \"status\": \"{{triggerNode_1.output.status}}\",\n  \"matched_sponsor\": \"{{triggerNode_1.output.matched_sponsor}}\",\n  \"upvotes\": \"{{triggerNode_1.output.upvotes}}\"\n}",
         "limit": "100",
         "query": "",
-        "where": "",
+        "where": "{{triggerNode_1.output.action == 'delete' || triggerNode_1.output.action == 'update' ? 'id = \'' + triggerNode_1.output.id + '\'' : ''}}",
         "action": "{{triggerNode_1.output.action == 'delete' ? 'delete' : triggerNode_1.output.action == 'add' ? 'insert' : triggerNode_1.output.action == 'select' ? 'select' : triggerNode_1.output.action ? 'update' : 'select'}}",
         "offset": "0",
         "columns": "*",
