@@ -34,6 +34,46 @@ function getFlowId(envKey: string): string {
   return id;
 }
 
+function isProjectIdeaArray(value: unknown): value is ProjectIdea[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        typeof (item as any).title === "string" &&
+        typeof (item as any).difficulty === "string" &&
+        typeof (item as any).industryRelevance === "string" &&
+        typeof (item as any).innovationScore === "number"
+    )
+  );
+}
+
+function isBlueprint(value: unknown): value is Blueprint {
+  if (!value || typeof value !== "object") return false;
+  const b = value as any;
+  return (
+    typeof b.frontend === "string" &&
+    typeof b.backend === "string" &&
+    typeof b.database === "string" &&
+    typeof b.aiFrameworks === "string" &&
+    typeof b.deployment === "string" &&
+    typeof b.architectureExplanation === "string" &&
+    Array.isArray(b.datasets)
+  );
+}
+
+function isExecutionPlan(value: unknown): value is ExecutionPlan {
+  if (!value || typeof value !== "object") return false;
+  const p = value as any;
+  return (
+    Array.isArray(p.roadmap) &&
+    typeof p.abstract === "string" &&
+    Array.isArray(p.vivaQuestions) &&
+    Array.isArray(p.resumeBullets)
+  );
+}
+
 export async function getProjectIdeas(input: {
   branch: string;
   interest: string;
@@ -45,7 +85,9 @@ export async function getProjectIdeas(input: {
     const flowId = getFlowId("DISCOVERY_FLOW_ID");
     const resData = await lamaticClient.executeFlow(flowId, input);
     const ideas = resData?.result?.ideas;
-    if (!ideas) throw new Error("No ideas found in response");
+    if (!isProjectIdeaArray(ideas)) {
+      throw new Error("Invalid response: ideas is not a valid array of project ideas");
+    }
     return { success: true, data: ideas };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
@@ -60,7 +102,9 @@ export async function getBlueprint(input: {
     const flowId = getFlowId("BLUEPRINT_FLOW_ID");
     const resData = await lamaticClient.executeFlow(flowId, input);
     const blueprint = resData?.result;
-    if (!blueprint) throw new Error("No blueprint found in response");
+    if (!isBlueprint(blueprint)) {
+      throw new Error("Invalid response: blueprint is missing required fields");
+    }
     return { success: true, data: blueprint };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
@@ -76,10 +120,11 @@ export async function getExecutionPlan(input: {
     const flowId = getFlowId("EXECUTION_FLOW_ID");
     const resData = await lamaticClient.executeFlow(flowId, input);
     const plan = resData?.result;
-    if (!plan) throw new Error("No execution plan found in response");
+    if (!isExecutionPlan(plan)) {
+      throw new Error("Invalid response: execution plan is missing required fields");
+    }
     return { success: true, data: plan };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
-
