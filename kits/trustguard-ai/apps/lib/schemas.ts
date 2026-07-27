@@ -18,7 +18,7 @@ const InvestigationInfoSchema = z.object({
   language: z.string(),
 });
 
-/** Zod schema for the normalised content block produced by the evidence extractor stage. */
+/** Zod schema for the normalised content block produced by the investigation planner stage. */
 const NormalizedContentSchema = z.object({
   clean_text: z.string(),
   summary: z.string(),

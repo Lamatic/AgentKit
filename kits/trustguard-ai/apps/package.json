@@ -12,7 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.0.0",
+    "@hookform/resolvers": "^5.1.0",
     "framer-motion": "^12.42.2",
     "lamatic": "^0.3.2",
     "lucide-react": "^0.525.0",

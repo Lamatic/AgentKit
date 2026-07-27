@@ -39,6 +39,7 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 **Strict limits:** This agent must NOT determine whether the content is a scam, extract entities, classify threats, or generate recommendations. It only initializes and normalizes.
 
 **Output shape:**
+
 ```json
 {
   "investigation": {
@@ -71,6 +72,7 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 **Strict limits:** This agent must NOT re-normalize the input, perform classification, score risk, or recommend actions. It only extracts.
 
 **Output shape:**
+
 ```json
 {
   "evidence": {
@@ -105,6 +107,7 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 **Strict limits:** This agent must NOT rewrite the investigation, re-extract entities, or produce a final verdict. It only analyzes evidence.
 
 **Output shape:**
+
 ```json
 {
   "analysis": {
@@ -149,6 +152,7 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 **Strict limits:** This agent must NOT re-extract entities, re-score indicators, or re-normalize the input. It only decides.
 
 **Output shape:**
+
 ```json
 {
   "decision": {
@@ -202,4 +206,4 @@ const response = await lamatic.executeFlow(flowId, payload);
 
 The full response type is defined in `apps/types/response.ts` as `InvestigationResponse`.
 
-For setup instructions, environment variables, and deployment steps, refer to the [README](./README.md).
+For setup instructions, environment variables, and deployment steps, refer to the [README](./README.md).

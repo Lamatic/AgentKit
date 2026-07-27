@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { ClipboardList, ChevronDown, ShieldCheck } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { AnalyzeFormDataSchema } from "@/types/response";
+import { AnalyzeFormDataSchema, MAX_CONTENT_LENGTH } from "@/types/response";
 import type { AnalyzeFormData, InputType, LanguageOption } from "@/types/response";
 
 const INPUT_TYPES: readonly InputType[] = ["Email", "SMS", "URL", "Document", "Text"];
@@ -137,6 +137,7 @@ export default function InputForm({ formData, onChange, onSubmit, loading }: Inp
           <textarea
             id="content"
             rows={5}
+            maxLength={MAX_CONTENT_LENGTH}
             placeholder="Paste the suspicious email, SMS, URL, or text content here…"
             disabled={loading}
             className={`${inputClass} resize-none`}
