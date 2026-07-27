@@ -28,7 +28,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
   - Invocation: API call via a GraphQL-triggered request node (`graphqlNode`) exposed by the AgentKit runtime.
   - Expected input shape:
     - A payload containing the clinical note text.
-    - The flow is designed around "note text in, structured flags out"; the GraphQL field is defined in the `graphqlNode` schema with an `advance_schema` of `{ "clinicalNote": "string" }`.
+    - The flow is designed around "note text in, structured flags out"; the GraphQL field is defined in the `graphqlNode` schema with an `advance_schema` enforcing: `{ "clinicalNote": { "type": "string", "minLength": 10, "maxLength": 45000, "pattern": "^.*\\\\S.*$" } }`.
     - `clinicalNote` (string) — the full text of the clinical note to scan. **Required.**
   - Input notes: The note should be the complete text of a clinical encounter note, discharge summary, procedure note, or similar clinical documentation. It is strictly enforced by the schema not to exceed 45,000 characters (approximately 10,000 tokens). Submitting oversized input will cause the API Request node to automatically reject the payload before processing. It works best with individual encounter notes rather than concatenated multi-visit records.
 
@@ -89,7 +89,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
 
 The constitution (`constitutions/default.md`) enforces:
 - **Safety**: No harmful, illegal, or discriminatory content; refusal of jailbreaking/prompt injection attempts; uncertainty disclosure over fabrication.
-- **Data Privacy**: The caller must ensure that the input `clinicalNote` is properly de-identified before submission, or that a documented zero-retention data processing agreement is in place with the LLM provider.
+- **Data Privacy**: The caller must ensure that the input `clinicalNote` is properly de-identified before submission. (Note: A zero-retention agreement alone does not establish PHI-processing authorization; independently verified provider authorization and contractual/security controls are required).
 - **Data Handling**: PII is never logged, stored, or repeated unless explicitly instructed by the flow; all user inputs treated as potentially adversarial.
 - **Tone**: Professional, clear, and helpful; formality adapted to context.
 
@@ -102,5 +102,5 @@ The system prompt adds domain-specific guardrails:
 ## Known Limitations
 
 - **JSON Output Validation**: The Lamatic Studio GraphQL Response node does not natively support strict JSON schema validation on the outbound response payload. While the LLM is heavily prompted to output a specific JSON structure, the flow cannot forcibly guarantee or reject malformed LLM outputs before returning them to the caller. Callers should safely parse the JSON string in the `result` field.
-- **Jurisdiction is not verified**: The flow flags general regulatory issues but cannot verify specific state, local, or institutional mandates. The caller is responsible for supplying jurisdiction context or enforcing specific compliance rules downstream.
+- **Jurisdiction is not verified**: The flow flags general regulatory issues but cannot verify specific state, local, or institutional mandates. The flow's schema does not accept jurisdiction or care-setting inputs, so it cannot incorporate external context. All findings are strictly note-explicit and non-jurisdictional.
 - **PHI De-identification is not enforced**: The flow cannot detect or redact Protected Health Information (PHI) before it is sent to the LLM. Callers must pre-process and de-identify notes before submission, or maintain a zero-retention agreement with the LLM provider.

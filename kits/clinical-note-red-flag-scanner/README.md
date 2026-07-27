@@ -58,7 +58,7 @@ This workflow includes **4 nodes** working together:
 
 1. Import this template into your Lamatic workspace
 2. Configure the required model credentials (Gemini API key)
-3. Ensure input `clinicalNote` text is properly de-identified before submission (unless you have a zero-retention agreement with your LLM provider)
+3. Ensure input `clinicalNote` text is properly de-identified before submission. (Note: A zero-retention agreement alone does not establish PHI-processing authorization; independently verified provider authorization and contractual/security controls are required).
 4. Test the flow with a sample clinical note
 5. Deploy and integrate via the API endpoint
 
@@ -83,7 +83,7 @@ The flow returns a `result` field containing a JSON string with the serialized r
 ## Known Limitations
 
 - **JSON Output Validation**: The Lamatic Studio GraphQL Response node does not natively support strict JSON schema validation on the outbound response payload. While the LLM is heavily prompted to output a specific JSON structure, the flow cannot forcibly guarantee or reject malformed LLM outputs before returning them to the caller. Callers should safely parse the JSON string in the `result` field.
-- **Jurisdiction is not verified**: The flow flags general regulatory issues but cannot verify specific state, local, or institutional mandates. The caller is responsible for supplying jurisdiction context or enforcing specific compliance rules downstream.
+- **Jurisdiction is not verified**: The flow flags general regulatory issues but cannot verify specific state, local, or institutional mandates. The flow's schema does not accept jurisdiction or care-setting inputs, so it cannot incorporate external context. All findings are strictly note-explicit and non-jurisdictional.
 - **PHI De-identification is not enforced**: The flow cannot detect or redact Protected Health Information (PHI) before it is sent to the LLM. Callers must pre-process and de-identify notes before submission, or maintain a zero-retention agreement with the LLM provider.
 
 ## Next Steps
