@@ -11,7 +11,6 @@ export const meta = {
   "deployUrl": "",
   "author": {
     "name": "Kishan C",
-    "email": "kishanc5980@gmail.com"
   }
 };
 

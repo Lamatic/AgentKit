@@ -3,7 +3,7 @@ export default {
   description: "AI-powered final year project mentor guiding engineering students from project ideation through completion, including project recommendations, tech stack and architecture blueprints, and development roadmaps with documentation and viva/resume preparation.",
   version: "1.0.0",
   type: "kit" as const,
-  author: { name: "Kishan C", email: "kishanc5980@gmail.com" },
+  author: { name: "Kishan C" },
   tags: ["education", "ai", "student-projects", "career-guidance", "final-year-project"],
   steps: [
     { id: "discovery-flow", type: "mandatory" as const, envKey: "DISCOVERY_FLOW_ID" },
@@ -12,6 +12,6 @@ export default {
   ],
   links: {
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/projectpilot-ai",
-    deploy: "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/projectpilot-ai/apps"
+    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/projectpilot-ai/apps&env=DISCOVERY_FLOW_ID,BLUEPRINT_FLOW_ID,EXECUTION_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20ProjectPilot%20AI%20keys%20are%20required."
   }
 };
