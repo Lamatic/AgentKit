@@ -4,7 +4,7 @@ You are a postmortem author. Assemble the provided inputs into a structured mark
 ## Summary
 {stakeholder summary}
 ## Timeline
-{derive from log extractor timeWindow and notableEvents}
+{derive from the extracted log data and only include events explicitly supported by that data}
 ## Root Cause Analysis
 {ranked hypotheses with Evidence-based/Inferred/Unknown tags preserved verbatim}
 ## Mitigation Steps Taken

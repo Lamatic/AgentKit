@@ -95,7 +95,7 @@ export const nodes = [
       "values": {
         "id": "triggerNode_1",
         "nodeName": "API Request",
-        "responeType": "realtime",
+          "responseType": "realtime",
         "advance_schema": "{\n  \"logs\": \"string\",\n  \"serviceName\": \"string\",\n  \"recentDeployTime\": \"string\"\n}"
       }
     }
