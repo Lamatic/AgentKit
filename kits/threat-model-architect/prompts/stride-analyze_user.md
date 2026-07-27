@@ -10,4 +10,4 @@ Perform STRIDE analysis on this architecture.
 
 Generate specific threats tied to components, trust boundaries, entry points, and data flows. Include concrete mitigations and open questions. Do not fabricate CVEs or claim vulnerabilities are confirmed unless the architecture explicitly states them.
 
-Return at least six threats and cover every STRIDE category exactly as listed in the system instructions.
+Return architecture-grounded threats for every category that can be assessed. Use inferred threats only when they are tied to the provided architecture and explicitly state their assumptions and open questions. Record categories that cannot be assessed from the architecture in `missing_info`; do not invent stack details to fill coverage.

@@ -1,3 +1,6 @@
+import { Lamatic } from "lamatic";
+import kitConfig from "../../lamatic.config";
+
 const requiredEnv = ["LAMATIC_API_KEY", "LAMATIC_API_URL", "LAMATIC_PROJECT_ID"] as const;
 
 function required(key: (typeof requiredEnv)[number]) {
@@ -6,8 +9,24 @@ function required(key: (typeof requiredEnv)[number]) {
   return value;
 }
 
-function endpoint() {
-  return required("LAMATIC_API_URL").replace(/\/+$/, "");
+function getFlowId(stepId: string) {
+  const step = kitConfig.steps.find((candidate) => candidate.id === stepId);
+  if (!step?.envKey) {
+    throw new Error(`No environment binding is configured for flow step: ${stepId}`);
+  }
+  const flowId = process.env[step.envKey];
+  if (!flowId) {
+    throw new Error(`Missing required environment variable: ${step.envKey}`);
+  }
+  return flowId;
+}
+
+function createClient() {
+  return new Lamatic({
+    endpoint: required("LAMATIC_API_URL").replace(/\/+$/, ""),
+    projectId: required("LAMATIC_PROJECT_ID"),
+    apiKey: required("LAMATIC_API_KEY"),
+  });
 }
 
 /**
@@ -57,76 +76,46 @@ type ExecuteFlowOptions = {
 };
 
 export async function executeFlow<T>(
-  flowEnvKey: string,
+  stepId: string,
   input: Record<string, unknown>,
   options: ExecuteFlowOptions = {},
 ): Promise<T> {
-  const flowId = process.env[flowEnvKey];
-  if (!flowId) throw new Error(`Missing required environment variable: ${flowEnvKey}`);
   const configuredTimeout = Number(process.env.LAMATIC_TIMEOUT_MS);
   const timeoutMs =
     options.timeoutMs ??
     (Number.isFinite(configuredTimeout) && configuredTimeout > 0
       ? configuredTimeout
       : 120_000);
-  const fetchImpl = options.fetchImpl ?? fetch;
-  const names = Object.keys(input);
-  const graphQlName = /^[_A-Za-z][_0-9A-Za-z]*$/;
-  if (names.some((name) => !graphQlName.test(name))) {
-    throw new Error("Flow input contains an invalid GraphQL field name.");
+  if (options.fetchImpl) {
+    throw new Error("Custom fetch implementations are not supported by the Lamatic SDK.");
   }
-  const variables = Object.fromEntries(
-    Object.entries(input).map(([key, value]) => [
-      key,
-      typeof value === "string" ? value : JSON.stringify(value),
-    ]),
-  );
-  const query = `
-    query ExecuteWorkflow($workflowId: String!, ${names.map((name) => `$${name}: String`).join(", ")}) {
-      executeWorkflow(workflowId: $workflowId, payload: { ${names.map((name) => `${name}: $${name}`).join(", ")} }) {
-        status
-        result
-      }
-    }
-  `;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  let response: Response;
+
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
-    response = await fetchImpl(endpoint(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${required("LAMATIC_API_KEY")}`,
-        "x-project-id": required("LAMATIC_PROJECT_ID"),
-      },
-      body: JSON.stringify({ query, variables: { workflowId: flowId, ...variables } }),
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (controller.signal.aborted) {
-      throw new Error(`Lamatic workflow timed out after ${timeoutMs}ms.`);
+    const execution = await Promise.race([
+      createClient().executeFlow(getFlowId(stepId), input),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error(`Lamatic workflow timed out after ${timeoutMs}ms.`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+    if (execution.status !== "success") {
+      throw new Error(
+        `Lamatic workflow failed${execution.message ? `: ${execution.message}` : "."}`,
+      );
     }
+    if (!execution.result || typeof execution.result !== "object") {
+      throw new Error("Lamatic returned an empty workflow result.");
+    }
+    return unwrapWorkflowValue(execution.result) as T;
+  } catch (error) {
+    if (error instanceof Error) throw error;
     throw new Error("Lamatic workflow request failed.", { cause: error });
   } finally {
-    clearTimeout(timeout);
+    if (timeout) {
+      clearTimeout(timeout);
+    }
   }
-  if (!response.ok) {
-    throw new Error(`Lamatic workflow request failed with HTTP ${response.status}.`);
-  }
-  const body = (await response.json()) as {
-    errors?: Array<{ message: string }>;
-    data?: { executeWorkflow?: { status?: string; result?: unknown } };
-  };
-  if (body.errors?.[0]) {
-    throw new Error(`Lamatic GraphQL error: ${body.errors[0].message}`);
-  }
-  const execution = body.data?.executeWorkflow;
-  if (!execution?.status || !["success", "completed"].includes(execution.status.toLowerCase())) {
-    throw new Error(`Lamatic workflow failed with status: ${execution?.status ?? "unknown"}`);
-  }
-  if (!execution.result || typeof execution.result !== "object") {
-    throw new Error("Lamatic returned an empty workflow result.");
-  }
-  return unwrapWorkflowValue(execution.result) as T;
 }

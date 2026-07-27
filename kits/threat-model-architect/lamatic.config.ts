@@ -37,6 +37,6 @@ export default {
     github:
       "https://github.com/Lamatic/AgentKit/tree/main/kits/threat-model-architect",
     deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fthreat-model-architect%2Fapps&env=LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,INTAKE_FLOW_ID,DECOMPOSE_FLOW_ID,STRIDE_FLOW_ID,RESEARCH_FLOW_ID,DREAD_FLOW_ID",
+      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fthreat-model-architect%2Fapps&env=LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,INTAKE_FLOW_ID,DECOMPOSE_FLOW_ID,STRIDE_FLOW_ID,RESEARCH_FLOW_ID,DREAD_FLOW_ID,LAMATIC_TIMEOUT_MS,THREAT_MODEL_ACCESS_TOKEN,THREAT_MODEL_RATE_LIMIT,THREAT_MODEL_RATE_WINDOW_MS",
   },
 };

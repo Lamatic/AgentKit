@@ -10,7 +10,7 @@ import {
 import type { GenerateReportResponse, IntakeInput } from "./types";
 
 type ExecuteFlow = (
-  flowEnvKey: string,
+  stepId: string,
   input: Record<string, unknown>,
 ) => Promise<unknown>;
 
@@ -55,7 +55,7 @@ export async function runThreatModel(
 ): Promise<Exclude<GenerateReportResponse, { status: "error" }>> {
   const input = validateIntakeInput(rawInput);
   const intake = parseIntakeResult(
-    await execute("INTAKE_FLOW_ID", {
+    await execute("intake", {
       message: input.systemDescription,
       today,
       session_state: JSON.stringify(input.sessionState ?? {}),
@@ -75,18 +75,18 @@ export async function runThreatModel(
   }
 
   const architecture = parseArchitecture(
-    await execute("DECOMPOSE_FLOW_ID", {
+    await execute("decompose-architecture", {
       session_state: JSON.stringify(intake.session_state),
     }),
   );
   const stride = parseStride(
-    await execute("STRIDE_FLOW_ID", {
+    await execute("stride-analyze", {
       architecture: JSON.stringify(architecture),
     }),
     architecture,
   );
   const research = parseResearch(
-    await execute("RESEARCH_FLOW_ID", {
+    await execute("threat-research", {
       architecture: JSON.stringify(architecture),
       stride_analysis: JSON.stringify(stride),
     }),
@@ -94,7 +94,7 @@ export async function runThreatModel(
   );
   const prioritization = normalizePrioritization(
     parsePrioritization(
-      await execute("DREAD_FLOW_ID", {
+      await execute("dread-prioritize", {
         stride_analysis: JSON.stringify(stride),
         research_findings: JSON.stringify(research),
       }),

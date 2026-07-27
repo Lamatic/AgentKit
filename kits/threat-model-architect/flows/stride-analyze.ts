@@ -30,7 +30,7 @@ const outputSchema = {
     summary: { type: "string" },
     threats: {
       type: "array",
-      minItems: 6,
+      minItems: 1,
       items: {
         type: "object",
         properties: {
@@ -57,7 +57,21 @@ const outputSchema = {
       type: "object",
       properties: {
         analyzed_components: { type: "array", items: { type: "string" } },
-        stride_categories_covered: { type: "array", items: { type: "string" } },
+        stride_categories_covered: {
+          type: "array",
+          uniqueItems: true,
+          items: {
+            type: "string",
+            enum: [
+              "spoofing",
+              "tampering",
+              "repudiation",
+              "information_disclosure",
+              "denial_of_service",
+              "elevation_of_privilege",
+            ],
+          },
+        },
       },
       required: ["analyzed_components", "stride_categories_covered"],
     },

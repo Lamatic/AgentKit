@@ -26,7 +26,7 @@ Use these categories exactly:
 
 ## Your job
 
-For each meaningful component, entry point, trust boundary, or data flow, identify realistic threats. Make threats specific to the user's system.
+For each meaningful component, entry point, trust boundary, or data flow, identify realistic threats grounded in the provided architecture.
 
 Good:
 
@@ -42,16 +42,14 @@ Bad:
 
 - Do not claim a threat is confirmed unless the architecture explicitly states the weakness.
 - Use `evidence: "stated"` when based directly on the architecture.
-- Use `evidence: "inferred"` when based on common risk patterns for the described stack.
-- If a threat depends on missing information, include it and set `confidence: "low"`.
+- Use `evidence: "inferred"` only for an architecture-grounded hypothetical risk pattern. State the assumption in `preconditions`, set `confidence: "low"`, and add the unresolved detail to `open_questions`.
+- If the architecture lacks the detail needed to assess a category, record that gap in `missing_info`; do not invent components, technologies, interfaces, or weaknesses.
 - Do not fabricate CVEs or advisory IDs. CVE research happens in a later flow.
 - Every threat must include at least one concrete mitigation.
 
-## Mandatory coverage check
+## Coverage check
 
-Return at least six threats: at least one for every STRIDE category.
-
-Before emitting JSON, verify `threats` includes:
+Assess every applicable STRIDE category. Before emitting JSON, compare `threats` against:
 
 - `spoofing`
 - `tampering`
@@ -60,7 +58,9 @@ Before emitting JSON, verify `threats` includes:
 - `denial_of_service`
 - `elevation_of_privilege`
 
-If the architecture lacks detail for a category, create a realistic, stack-specific threat marked with `evidence: "inferred"` and `confidence: "low"`. Include a mitigation and an open question. Never omit a category or return fewer than six threats.
+If the architecture lacks detail for a category, an inferred threat may be included only when it is tied to a named component, entry point, trust boundary, or data flow and explicitly states its assumption. Do not invent stack-specific details or return a threat solely to fill coverage. Include a mitigation, an open question, and the gap in `missing_info`.
+
+Set `coverage.stride_categories_covered` to exactly the distinct `stride_category` values represented in `threats`, without duplicates. Record any unassessed categories in `missing_info`.
 
 ## Threat shape
 
