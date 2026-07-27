@@ -4281,6 +4281,59 @@
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
+    },
+    {
+      "slug": "llm-guardrail-evaluator",
+      "name": "LLM Guardrail Evaluator",
+      "description": "An enterprise-grade guardrail that evaluates LLM responses against strict system criteria and returns a structured JSON verdict.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "guardrail",
+        "evaluation",
+        "json",
+        "quality-assurance"
+      ],
+      "author": {
+        "name": "Sk Rahul"
+      },
+      "steps": [
+        {
+          "id": "llm-guardrail-evaluator",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/llm-guardrail-evaluator"
+      },
+      "path": "kits/llm-guardrail-evaluator",
+      "flows": {
+        "count": 1,
+        "names": [
+          "llm-guardrail-evaluator"
+        ]
+      },
+      "resources": {
+        "prompts": 1,
+        "scripts": 0,
+        "modelConfigs": 1,
+        "constitutions": 0,
+        "triggers": 1,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": false,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
     }
+
+  
+  
+  
   ]
 }
