@@ -1,0 +1,32 @@
+{
+  "generated": "2026-07-14T16:35:29.096Z",
+  "traces": 100,
+  "accuracy": "95.0%",
+  "false_positives": "0.0%",
+  "false_negatives": "0.0%",
+  "misclassified": "5.0%",
+  "avg_ms": 0.25,
+  "p95_ms": 0.76,
+  "per_category": {
+    "RAG_FAILURE": {
+      "total": 18,
+      "hit": 16
+    },
+    "TOOL_FAILURE": {
+      "total": 18,
+      "hit": 18
+    },
+    "PROMPT_AMBIGUITY": {
+      "total": 13,
+      "hit": 13
+    },
+    "HALLUCINATION": {
+      "total": 18,
+      "hit": 18
+    },
+    "WRONG_TOOL": {
+      "total": 13,
+      "hit": 10
+    }
+  }
+}
