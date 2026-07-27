@@ -41,7 +41,7 @@ export const nodes = [
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_1",
-        "data": "{{triggerNode_1.output.action == 'add' ? '{\\n  \\\"id\\\": \\\"{{triggerNode_1.output.id}}\\\",\\n  \\\"status\\\": \\\"{{triggerNode_1.output.status}}\\\",\\n  \\\"matched_sponsor\\\": \\\"{{triggerNode_1.output.matched_sponsor}}\\\",\\n  \\\"upvotes\\\": \\\"{{triggerNode_1.output.upvotes}}\\\"\\n}' : '{\\n  \\\"id\\\": \\\"{{triggerNode_1.output.id}}\\\",\\n  \\\"status\\\": \\\"{{triggerNode_1.output.status}}\\\"\\n}'  }}",
+        "data": "{{triggerNode_1.output.action == 'add' ? '{\\n  \\\"id\\\": \\\"{{triggerNode_1.output.id}}\\\",\\n  \\\"status\\\": \\\"{{triggerNode_1.output.status}}\\\",\\n  \\\"matched_sponsor\\\": \\\"{{triggerNode_1.output.matched_sponsor}}\\\",\\n  \\\"upvotes\\\": {{triggerNode_1.output.upvotes || 0}}\\n}' : '{\\n  \\\"id\\\": \\\"{{triggerNode_1.output.id}}\\\",\\n  \\\"status\\\": \\\"{{triggerNode_1.output.status}}\\\"\\n}'  }}",
         "limit": "100",
         "query": "",
         "where": "{{triggerNode_1.output.action == 'delete' || triggerNode_1.output.action == 'update_status' ? 'id = \'' + triggerNode_1.output.id + '\'' : ''}}",
