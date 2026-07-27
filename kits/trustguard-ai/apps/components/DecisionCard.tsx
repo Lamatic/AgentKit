@@ -33,7 +33,7 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
     >
       {/* Card header */}
       <div className="flex items-center gap-2 mb-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--tg-purple-bg)] text-[var(--tg-purple)]">
           <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
         </div>
         <h3 className="text-sm font-semibold text-white">Decision</h3>
@@ -69,10 +69,10 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
           value={decision.priority}
           valueClass={
             decision.priority?.toUpperCase() === "HIGH"
-              ? "text-red-400 font-semibold"
+              ? "text-[var(--tg-red)] font-semibold"
               : decision.priority?.toUpperCase() === "MEDIUM"
-                ? "text-orange-400 font-semibold"
-                : "text-green-400 font-semibold"
+                ? "text-[var(--tg-orange)] font-semibold"
+                : "text-[var(--tg-green)] font-semibold"
           }
         />
 
@@ -84,8 +84,8 @@ export default function DecisionCard({ decision, delay = 0 }: DecisionCardProps)
           </span>
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${decision.human_review
-              ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-              : "bg-green-500/20 text-green-300 border-green-500/40"
+              ? "bg-[var(--tg-amber-bg)] text-[var(--tg-amber)] border-[var(--tg-amber-border)]"
+              : "bg-[var(--tg-green-bg)] text-[var(--tg-green)] border-[var(--tg-green-border)]"
               }`}
           >
             {decision.human_review ? "Yes" : "No"}

@@ -34,14 +34,14 @@ export default function RiskMeter({ value, label = "Risk Score" }: RiskMeterProp
   // Color gradient based on value
   const color =
     clamped >= 80
-      ? "#f87171" // red-400
+      ? "var(--tg-red)" // red-400
       : clamped >= 60
-      ? "#fb923c" // orange-400
+      ? "var(--tg-orange)" // orange-400
       : clamped >= 40
-      ? "#facc15" // yellow-400
-      : "#4ade80"; // green-400
+      ? "var(--tg-yellow)" // yellow-400
+      : "var(--tg-green)"; // green-400
 
-  const trackColor = "rgba(255,255,255,0.06)";
+  const trackColor = "var(--tg-track-bg)";
 
   // dashoffset for the arc (0 = full, circumference = empty)
   const offset = circumference - (clamped / 100) * circumference;

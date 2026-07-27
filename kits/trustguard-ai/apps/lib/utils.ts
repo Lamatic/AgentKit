@@ -12,11 +12,11 @@
  * @returns A Tailwind `text-*` color class string.
  */
 export function getRiskColor(score: number): string {
-  if (!Number.isFinite(score)) return "text-slate-400";
-  if (score >= 80) return "text-red-400";
-  if (score >= 60) return "text-orange-400";
-  if (score >= 40) return "text-yellow-400";
-  return "text-green-400";
+  if (!Number.isFinite(score)) return "text-[var(--tg-neutral)]";
+  if (score >= 80) return "text-[var(--tg-red)]";
+  if (score >= 60) return "text-[var(--tg-orange)]";
+  if (score >= 40) return "text-[var(--tg-yellow)]";
+  return "text-[var(--tg-green)]";
 }
 
 /**
@@ -36,15 +36,15 @@ export function getSeverityColor(severity: string): {
 } {
   switch (severity?.toUpperCase()) {
     case "CRITICAL":
-      return { text: "text-red-300", bg: "bg-red-500/20", border: "border-red-500/40" };
+      return { text: "text-[var(--tg-red)]", bg: "bg-[var(--tg-red-bg)]", border: "border-[var(--tg-red-border)]" };
     case "HIGH":
-      return { text: "text-red-400", bg: "bg-red-500/15", border: "border-red-500/30" };
+      return { text: "text-[var(--tg-red)]", bg: "bg-[var(--tg-red-bg)]", border: "border-[var(--tg-red-border)]" };
     case "MEDIUM":
-      return { text: "text-orange-400", bg: "bg-orange-500/15", border: "border-orange-500/30" };
+      return { text: "text-[var(--tg-orange)]", bg: "bg-[var(--tg-orange-bg)]", border: "border-[var(--tg-orange-border)]" };
     case "LOW":
-      return { text: "text-green-400", bg: "bg-green-500/15", border: "border-green-500/30" };
+      return { text: "text-[var(--tg-green)]", bg: "bg-[var(--tg-green-bg)]", border: "border-[var(--tg-green-border)]" };
     default:
-      return { text: "text-slate-400", bg: "bg-slate-500/15", border: "border-slate-500/30" };
+      return { text: "text-[var(--tg-neutral)]", bg: "bg-[var(--tg-neutral-bg)]", border: "border-[var(--tg-neutral-border)]" };
   }
 }
 
@@ -77,33 +77,33 @@ export function getDecisionColor(classification: string): {
     upper.includes("BUSINESS_EMAIL_COMPROMISE")
   ) {
     return {
-      text: "text-red-300",
-      bg: "bg-red-500/20",
-      border: "border-red-400/50",
-      glow: "shadow-red-500/20",
+      text: "text-[var(--tg-red)]",
+      bg: "bg-[var(--tg-red-bg)]",
+      border: "border-[var(--tg-red-border)]",
+      glow: "shadow-[var(--tg-red-glow)]",
     };
   }
   if (upper.includes("SUSPICIOUS") || upper.includes("UNCERTAIN")) {
     return {
-      text: "text-orange-300",
-      bg: "bg-orange-500/20",
-      border: "border-orange-400/50",
-      glow: "shadow-orange-500/20",
+      text: "text-[var(--tg-orange)]",
+      bg: "bg-[var(--tg-orange-bg)]",
+      border: "border-[var(--tg-orange-border)]",
+      glow: "shadow-[var(--tg-orange-glow)]",
     };
   }
   if (upper.includes("SAFE") || upper.includes("LEGITIMATE") || upper.includes("CLEAN")) {
     return {
-      text: "text-green-300",
-      bg: "bg-green-500/20",
-      border: "border-green-400/50",
-      glow: "shadow-green-500/20",
+      text: "text-[var(--tg-green)]",
+      bg: "bg-[var(--tg-green-bg)]",
+      border: "border-[var(--tg-green-border)]",
+      glow: "shadow-[var(--tg-green-glow)]",
     };
   }
   return {
-    text: "text-cyan-300",
-    bg: "bg-cyan-500/20",
-    border: "border-cyan-400/50",
-    glow: "shadow-cyan-500/20",
+    text: "text-[var(--tg-cyan)]",
+    bg: "bg-[var(--tg-cyan-bg)]",
+    border: "border-[var(--tg-cyan-border)]",
+    glow: "shadow-[var(--tg-cyan-glow)]",
   };
 }
 
@@ -118,13 +118,13 @@ export function getDecisionColor(classification: string): {
 export function getIndicatorLevelColor(level: "high" | "medium" | "low"): string {
   switch (level) {
     case "high":
-      return "bg-red-500/20 text-red-300 border border-red-500/40";
+      return "bg-[var(--tg-red-bg)] text-[var(--tg-red)] border border-[var(--tg-red-border)]";
     case "medium":
-      return "bg-orange-500/20 text-orange-300 border border-orange-500/40";
+      return "bg-[var(--tg-orange-bg)] text-[var(--tg-orange)] border border-[var(--tg-orange-border)]";
     case "low":
-      return "bg-green-500/20 text-green-300 border border-green-500/40";
+      return "bg-[var(--tg-green-bg)] text-[var(--tg-green)] border border-[var(--tg-green-border)]";
     default:
-      return "bg-slate-500/20 text-slate-300 border border-slate-500/40";
+      return "bg-[var(--tg-neutral-bg)] text-[var(--tg-neutral)] border border-[var(--tg-neutral-border)]";
   }
 }
 
