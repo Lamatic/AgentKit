@@ -126,7 +126,7 @@ If components include `frontend`, `api`, `database`, `auth`, `payments`, and `st
       "to_component_id": "frontend",
       "protocol": "HTTPS",
       "data_assets": ["session-data"],
-      "authentication": "Clerk session cookie or token",
+      "authentication": "declared auth provider session cookie or token",
       "confidence": "inferred"
     },
     {
@@ -153,7 +153,7 @@ If components include `frontend`, `api`, `database`, `auth`, `payments`, and `st
       "to_component_id": "auth",
       "protocol": "HTTPS",
       "data_assets": ["identity-data", "session-data"],
-      "authentication": "Clerk API keys or JWT validation",
+      "authentication": "declared auth provider API credentials or token validation",
       "confidence": "inferred"
     },
     {
@@ -162,16 +162,16 @@ If components include `frontend`, `api`, `database`, `auth`, `payments`, and `st
       "to_component_id": "payments",
       "protocol": "HTTPS",
       "data_assets": ["billing-data"],
-      "authentication": "Stripe API key and webhook signature",
+      "authentication": "declared payment provider API key and webhook signature",
       "confidence": "inferred"
     },
     {
       "id": "api-to-storage",
       "from_component_id": "api",
       "to_component_id": "storage",
-      "protocol": "HTTPS/S3 API",
+      "protocol": "HTTPS/object storage API",
       "data_assets": ["uploaded-files"],
-      "authentication": "AWS IAM credentials or presigned URLs",
+      "authentication": "declared storage provider credentials or presigned URLs",
       "confidence": "inferred"
     }
   ],
@@ -191,18 +191,18 @@ If components include `frontend`, `api`, `database`, `auth`, `payments`, and `st
       "description": "API endpoints used by the frontend"
     },
     {
-      "id": "stripe-webhook",
-      "name": "Stripe webhook endpoint",
+      "id": "payment-webhook",
+      "name": "Payment provider webhook endpoint",
       "component_id": "api",
-      "exposed_to": "Stripe",
-      "description": "Webhook endpoint for billing events, if implemented"
+      "exposed_to": "declared payment provider",
+      "description": "Webhook endpoint for billing events from the declared payment provider, if implemented"
     }
   ],
   "security_assumptions": [
     "Frontend communicates with the API over HTTPS.",
-    "The API validates Clerk sessions or JWTs before accessing protected data.",
-    "The API uses service credentials to access Postgres and S3.",
-    "Stripe webhooks, if used, are signature verified."
+    "The API validates declared auth provider sessions or tokens before accessing protected data.",
+    "The API uses service credentials to access the declared database and storage provider.",
+    "Payment provider webhooks, if used, are signature verified."
   ]
 }
 ```

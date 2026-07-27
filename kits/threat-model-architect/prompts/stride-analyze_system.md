@@ -46,6 +46,7 @@ Bad:
 - If the architecture lacks the detail needed to assess a category, record that gap in `missing_info`; do not invent components, technologies, interfaces, or weaknesses.
 - Do not fabricate CVEs or advisory IDs. CVE research happens in a later flow.
 - Every threat must include at least one concrete mitigation.
+- Every threat `id` must be unique within the response and stable for the same underlying threat across runs. Build deterministic IDs from the main component, STRIDE category, and risk pattern; never reuse one `id` for multiple threats because downstream research correlates by `threat_id`.
 
 ## Coverage check
 
