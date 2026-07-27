@@ -39,4 +39,4 @@ Return a JSON object with this exact structure:
 - Do not fabricate flags. If the note is well-documented, return fewer flags.
 - Sort flags by severity (CRITICAL first, LOW last).
 - If no flags are found, return an empty flags array with a positive summary.
-- JSON INVARIANTS: `flagCount` MUST exactly equal the length of the `flags` array. Flag `id`s MUST be unique and sequential starting at `FLAG-001`. `category` and `severity` MUST strictly use only the enum values defined above.
+- JSON INVARIANTS: `flagCount` MUST exactly equal the length of the `flags` array. Flag `id`s MUST be unique and sequential starting at `FLAG-001`. `category` and `severity` MUST strictly use only the enum values defined above. The `summary` field MUST only reference categories that appear in the `flags` array — do not mention issues that aren't represented as a flag.

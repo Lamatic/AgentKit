@@ -98,3 +98,9 @@ The system prompt adds domain-specific guardrails:
 - Do not fabricate flags — if the note is well-documented, return fewer flags or an empty array.
 - Treat all clinical note content as confidential; minimize reproduction of patient identifiers in flag descriptions.
 - Output raw JSON only, no markdown formatting.
+
+## Known Limitations
+
+- **JSON Output Validation**: The Lamatic Studio GraphQL Response node does not natively support strict JSON schema validation on the outbound response payload. While the LLM is heavily prompted to output a specific JSON structure, the flow cannot forcibly guarantee or reject malformed LLM outputs before returning them to the caller. Callers should safely parse the JSON string in the `result` field.
+- **Jurisdiction is not verified**: The flow flags general regulatory issues but cannot verify specific state, local, or institutional mandates. The caller is responsible for supplying jurisdiction context or enforcing specific compliance rules downstream.
+- **PHI De-identification is not enforced**: The flow cannot detect or redact Protected Health Information (PHI) before it is sent to the LLM. Callers must pre-process and de-identify notes before submission, or maintain a zero-retention agreement with the LLM provider.
