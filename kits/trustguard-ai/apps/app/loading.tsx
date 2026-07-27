@@ -12,7 +12,11 @@
  */
 export default function Loading() {
   return (
-    <div className="relative z-10 flex min-h-screen items-center justify-center">
+    <div
+      className="relative z-10 flex min-h-screen items-center justify-center"
+      role="status"
+      aria-live="polite"
+    >
       <div className="flex flex-col items-center gap-4">
         <div className="relative h-12 w-12">
           <div className="absolute inset-0 rounded-full border-2 border-brand/20" />
