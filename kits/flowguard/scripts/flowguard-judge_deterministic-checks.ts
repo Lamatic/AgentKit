@@ -8,9 +8,13 @@
 const actualOutput = {{triggerNode_1.output.actualOutput}};
 const expectedBehavior = {{triggerNode_1.output.expectedBehavior}};
 
-const text = typeof actualOutput === "string"
-  ? actualOutput
-  : JSON.stringify(actualOutput ?? "");
+// Nullish output must normalize to "" (not "null") so isEmpty and the JSON
+// validity check treat an absent output as genuinely empty.
+const text = actualOutput == null
+  ? ""
+  : typeof actualOutput === "string"
+    ? actualOutput
+    : JSON.stringify(actualOutput);
 
 // 1. Schema validity: is the output parseable JSON when it claims to be?
 //    We only fail this when the expectedBehavior implies structured/JSON output.

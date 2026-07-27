@@ -1,7 +1,7 @@
 /*
  * # FlowGuard — Judge Flow
  * Scores ONE (caseInput, expectedBehavior, actualOutput) triple on FlowGuard's
- * 5-axis rubric. Combines a deterministic code-node pre-check (schema validity,
+ * four-axis rubric. Combines a deterministic code-node pre-check (schema validity,
  * injection/leak markers, length) with a rationale-first LLM rubric.
  *
  * ## Why this design

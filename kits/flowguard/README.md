@@ -30,7 +30,7 @@ Today the workflow is "try three inputs in Studio and ship." FlowGuard makes flo
 2. **Generate a suite** — categorized test cases (happy path, edge, ambiguous, out-of-scope,
    adversarial), each with a natural-language *behavioral oracle*. Review, edit, and pin it.
 3. **Run the eval** — FlowGuard executes the flow per case (bounded concurrency, timeout,
-   retry) then scores every output on a 5-axis rubric via an LLM judge + deterministic checks.
+   retry) then scores every output on a four-axis rubric via an LLM judge, plus a deterministic schema-validity check.
 4. **Set a baseline** — mark a run as the baseline. Any later run auto-diffs against it and
    returns a top-line verdict: **IMPROVED / NO CHANGE / REGRESSED**, naming the cases that flipped.
 5. **Red-team** — generate adversarial probes and see the breach rate as low safety scores.
