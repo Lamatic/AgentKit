@@ -33,13 +33,29 @@ function escapeHtml(str: string): string {
 }
 
 /**
+ * Strictly validates server-issued identifier format before interpolation into flow WHERE predicates.
+ * Rejects any ID containing quotes, spaces, SQL delimiters, or non-alphanumeric characters.
+ */
+function validateId(id: string): string {
+  if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new Error('Invalid identifier format');
+  }
+  return id;
+}
+
+/**
  * Sanitizes input strings before passing them to Lamatic flow executions.
- * Escapes quotes, backslashes, and newlines so that Lamatic template interpolation
- * into flow JSON node definitions (e.g. `{{triggerNode_1.output.param}}`) remains valid JSON.
+ * Escapes double quotes, single quotes, backslashes, and newlines so that Lamatic template interpolation
+ * into flow JSON node definitions (e.g. `{{triggerNode_1.output.param}}`) remains valid JSON and safe for WHERE predicates.
  */
 function sanitizeFlowInput(val: string): string {
   if (typeof val !== 'string') return val;
-  return val.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+  return val
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
 }
 
 async function sendConfirmationEmail(options: EmailOptions) {
@@ -388,7 +404,7 @@ export async function updateProjectStatus(id: string, status: string) {
   const flowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPDATE_STATUS_FLOW_ID;
   if (flowId) {
     try {
-      await lamaticClient.executeFlow(flowId, { action: 'update_status', id: sanitizeFlowInput(id), status: sanitizeFlowInput(status) });
+      await lamaticClient.executeFlow(flowId, { action: 'update_status', id: validateId(id), status: sanitizeFlowInput(status) });
     } catch (err: any) {
       console.warn('Lamatic updateProjectStatus executeFlow failed:', err.message);
     }
@@ -409,7 +425,7 @@ export async function updateProjectSponsor(id: string, matched_sponsor: string) 
   const flowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPDATE_STATUS_FLOW_ID;
   if (flowId) {
     try {
-      await lamaticClient.executeFlow(flowId, { action: 'update_sponsor', id: sanitizeFlowInput(id), matched_sponsor: sanitizeFlowInput(matched_sponsor) });
+      await lamaticClient.executeFlow(flowId, { action: 'update_sponsor', id: validateId(id), matched_sponsor: sanitizeFlowInput(matched_sponsor) });
     } catch (err: any) {
       console.warn('Lamatic updateProjectSponsor executeFlow failed:', err.message);
     }
@@ -442,7 +458,7 @@ export async function resubmitProject(
   if (updateFlowId) {
     try {
       await lamaticClient.executeFlow(updateFlowId, {
-        id: sanitizeFlowInput(id),
+        id: validateId(id),
         github_url: sanitizeFlowInput(hostedLink ? `${githubUrl}|${hostedLink}` : githubUrl),
         project_title: sanitizeFlowInput(newMatch.project_title),
         category: sanitizeFlowInput(newMatch.category),
@@ -475,7 +491,7 @@ export async function upvoteProject(id: string, currentCount: number = 0) {
   const upvoteFlowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPVOTE_PROJECT_FLOW_ID;
   if (upvoteFlowId) {
     try {
-      await lamaticClient.executeFlow(upvoteFlowId, { action: 'upvote', id: sanitizeFlowInput(id), upvotes: newUpvotes });
+      await lamaticClient.executeFlow(upvoteFlowId, { action: 'upvote', id: validateId(id), upvotes: newUpvotes });
     } catch (err: any) {
       console.warn('Lamatic upvoteProject executeFlow failed:', err.message);
     }
@@ -553,7 +569,7 @@ export async function deleteSubmission(id: string) {
   const deleteFlowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_DELETE_SUBMISSION_FLOW_ID;
   if (deleteFlowId) {
     try {
-      await lamaticClient.executeFlow(deleteFlowId, { action: 'delete', id: sanitizeFlowInput(id) });
+      await lamaticClient.executeFlow(deleteFlowId, { action: 'delete', id: validateId(id) });
     } catch (err: any) {
       console.warn('Lamatic deleteSubmission executeFlow failed:', err.message);
     }
