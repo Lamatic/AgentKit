@@ -37,7 +37,7 @@ type LockFormData = z.infer<typeof lockFormSchema>;
  */
 export default function Home() {
   // ** PRODUCTION LEVEL STATE BINDING: Connect to Zustand global store ** //
-  const { commits, loadCommits, isLoaded, deleteCommit, addCommit } = useCommitStore();
+  const { commits, loadCommits, isLoaded, deleteCommit } = useCommitStore();
 
   const [modalConfig, setModalConfig] = useState<{ isOpen: boolean; initialPane: "time" | "block"; commitId: string | null }>({
     isOpen: false,

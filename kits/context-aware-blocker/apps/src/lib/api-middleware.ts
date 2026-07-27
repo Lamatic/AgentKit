@@ -35,16 +35,29 @@ export function authenticateRequest(req: Request): NextResponse | null {
   }
 
   const provided = req.headers.get("x-cab-secret");
-  const origin = req.headers.get("origin") || "";
-  const isExtension = origin.startsWith("chrome-extension://");
 
-  if (provided !== CAB_SECRET && !isExtension) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+  // Primary auth: shared secret header
+  if (provided === CAB_SECRET) {
+    return null;
   }
-  return null;
+
+  // Secondary auth: Chrome extension origin (localhost-only tool)
+  // The extension cannot send the secret from env, so we accept
+  // requests from any chrome-extension:// origin when the server
+  // is running on localhost. In production deployments, operators
+  // can pin CAB_EXTENSION_ID in .env to restrict to a single extension.
+  const origin = req.headers.get("origin") || "";
+  if (origin.startsWith("chrome-extension://")) {
+    const expectedId = process.env.CAB_EXTENSION_ID;
+    if (!expectedId || origin === `chrome-extension://${expectedId}`) {
+      return null;
+    }
+  }
+
+  return NextResponse.json(
+    { error: "Unauthorized" },
+    { status: 401 }
+  );
 }
 
 // ── In-Memory Sliding Window Rate Limiter ──────────────────────
