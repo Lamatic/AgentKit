@@ -32,6 +32,16 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * Sanitizes input strings before passing them to Lamatic flow executions.
+ * Escapes quotes, backslashes, and newlines so that Lamatic template interpolation
+ * into flow JSON node definitions (e.g. `{{triggerNode_1.output.param}}`) remains valid JSON.
+ */
+function sanitizeFlowInput(val: string): string {
+  if (typeof val !== 'string') return val;
+  return val.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+
 async function sendConfirmationEmail(options: EmailOptions) {
   const { to, builderName, projectTitle, category, matchedSponsor, breakoutTable } = options;
 
@@ -378,7 +388,7 @@ export async function updateProjectStatus(id: string, status: string) {
   const flowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPDATE_STATUS_FLOW_ID;
   if (flowId) {
     try {
-      await lamaticClient.executeFlow(flowId, { action: 'update_status', id, status });
+      await lamaticClient.executeFlow(flowId, { action: 'update_status', id: sanitizeFlowInput(id), status: sanitizeFlowInput(status) });
     } catch (err: any) {
       console.warn('Lamatic updateProjectStatus executeFlow failed:', err.message);
     }
@@ -399,7 +409,7 @@ export async function updateProjectSponsor(id: string, matched_sponsor: string) 
   const flowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPDATE_STATUS_FLOW_ID;
   if (flowId) {
     try {
-      await lamaticClient.executeFlow(flowId, { action: 'update_sponsor', id, matched_sponsor });
+      await lamaticClient.executeFlow(flowId, { action: 'update_sponsor', id: sanitizeFlowInput(id), matched_sponsor: sanitizeFlowInput(matched_sponsor) });
     } catch (err: any) {
       console.warn('Lamatic updateProjectSponsor executeFlow failed:', err.message);
     }
@@ -432,14 +442,14 @@ export async function resubmitProject(
   if (updateFlowId) {
     try {
       await lamaticClient.executeFlow(updateFlowId, {
-        id,
-        github_url: hostedLink ? `${githubUrl}|${hostedLink}` : githubUrl,
-        project_title: newMatch.project_title,
-        category: newMatch.category,
-        matched_sponsor: newMatch.matched_sponsor,
-        tech_stack: newMatch.tech_stack || '',
-        description: newMatch.match_justification,
-        breakout_table: newMatch.breakout_table
+        id: sanitizeFlowInput(id),
+        github_url: sanitizeFlowInput(hostedLink ? `${githubUrl}|${hostedLink}` : githubUrl),
+        project_title: sanitizeFlowInput(newMatch.project_title),
+        category: sanitizeFlowInput(newMatch.category),
+        matched_sponsor: sanitizeFlowInput(newMatch.matched_sponsor),
+        tech_stack: sanitizeFlowInput(newMatch.tech_stack || ''),
+        description: sanitizeFlowInput(newMatch.match_justification),
+        breakout_table: sanitizeFlowInput(newMatch.breakout_table)
       });
     } catch (err: any) {
       console.warn('Lamatic resubmitProject executeFlow failed:', err.message);
@@ -465,7 +475,7 @@ export async function upvoteProject(id: string, currentCount: number = 0) {
   const upvoteFlowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_UPVOTE_PROJECT_FLOW_ID;
   if (upvoteFlowId) {
     try {
-      await lamaticClient.executeFlow(upvoteFlowId, { action: 'upvote', id, upvotes: newUpvotes });
+      await lamaticClient.executeFlow(upvoteFlowId, { action: 'upvote', id: sanitizeFlowInput(id), upvotes: newUpvotes });
     } catch (err: any) {
       console.warn('Lamatic upvoteProject executeFlow failed:', err.message);
     }
@@ -523,7 +533,7 @@ export async function addSponsor(name: string, description: string = '') {
   const addSponsorFlowId = process.env.LAMATIC_SPONSORS_MANAGER_FLOW_ID || process.env.LAMATIC_ADD_SPONSOR_FLOW_ID;
   if (addSponsorFlowId) {
     try {
-      await lamaticClient.executeFlow(addSponsorFlowId, { action: 'add', name, description });
+      await lamaticClient.executeFlow(addSponsorFlowId, { action: 'add', name: sanitizeFlowInput(name), description: sanitizeFlowInput(description) });
     } catch (err: any) {
       console.warn('Lamatic addSponsor executeFlow failed:', err.message);
     }
@@ -543,7 +553,7 @@ export async function deleteSubmission(id: string) {
   const deleteFlowId = process.env.LAMATIC_SUBMISSIONS_MANAGER_FLOW_ID || process.env.LAMATIC_DELETE_SUBMISSION_FLOW_ID;
   if (deleteFlowId) {
     try {
-      await lamaticClient.executeFlow(deleteFlowId, { action: 'delete', id });
+      await lamaticClient.executeFlow(deleteFlowId, { action: 'delete', id: sanitizeFlowInput(id) });
     } catch (err: any) {
       console.warn('Lamatic deleteSubmission executeFlow failed:', err.message);
     }
