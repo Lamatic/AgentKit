@@ -9,10 +9,14 @@
     "type-check": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.5.7",
+    "@tailwindcss/postcss": "^4.3.3",
     "lamatic": "^0.3.2",
     "next": "^16.2.12",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.83.0",
+    "tailwindcss": "^4.3.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {

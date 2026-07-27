@@ -1,10 +1,24 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { generateThreatModel } from "@/actions/orchestrate";
 import type { IntakeInput, ThreatModelReport } from "@/lib/types";
 
 const sample = `We operate AcmeLedger, a multi-tenant B2B invoicing SaaS. Customers use a Next.js browser app that calls a Node.js API. Clerk provides authentication, PostgreSQL stores tenant data and invoices, Stripe sends payment webhooks, and customers upload receipts to S3 through pre-signed URLs. Internal support staff use an admin dashboard.`;
+
+const intakeFormSchema = z.object({
+  systemDescription: z
+    .string()
+    .trim()
+    .min(1, "Describe the system to begin analysis.")
+    .max(6_000, "System descriptions cannot exceed 6,000 characters."),
+  accessToken: z.string().max(512, "Access tokens cannot exceed 512 characters.").optional(),
+});
+
+type IntakeFormValues = z.infer<typeof intakeFormSchema>;
 
 function Section({ title, value }: { title: string; value: unknown }) {
   return (
@@ -16,25 +30,34 @@ function Section({ title, value }: { title: string; value: unknown }) {
 }
 
 export default function Home() {
-  const [description, setDescription] = useState("");
   const [report, setReport] = useState<ThreatModelReport | null>(null);
   const [error, setError] = useState("");
   const [assistantMessage, setAssistantMessage] = useState("");
   const [missingInfo, setMissingInfo] = useState<string[]>([]);
   const [sessionState, setSessionState] = useState<IntakeInput["sessionState"]>();
-  const [accessToken, setAccessToken] = useState("");
   const [running, setRunning] = useState(false);
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+    reset,
+    setValue,
+    watch,
+  } = useForm<IntakeFormValues>({
+    resolver: zodResolver(intakeFormSchema),
+    defaultValues: { systemDescription: "", accessToken: "" },
+  });
+  const description = watch("systemDescription");
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  async function submit(values: IntakeFormValues) {
     setRunning(true);
     setError("");
     setReport(null);
     try {
       const result = await generateThreatModel({
-        systemDescription: description,
+        systemDescription: values.systemDescription,
         sessionState,
-        accessToken: accessToken || undefined,
+        accessToken: values.accessToken || undefined,
       });
       if (result.status === "complete") {
         setReport(result.report);
@@ -45,7 +68,7 @@ export default function Home() {
         setAssistantMessage(result.assistantMessage);
         setMissingInfo(result.missingInfo);
         setSessionState(result.sessionState);
-        setDescription("");
+        setValue("systemDescription", "");
       } else {
         setError(result.error);
       }
@@ -57,7 +80,7 @@ export default function Home() {
   }
 
   function resetIntake() {
-    setDescription("");
+    reset({ systemDescription: "", accessToken: watch("accessToken") ?? "" });
     setAssistantMessage("");
     setMissingInfo([]);
     setSessionState(undefined);
@@ -67,11 +90,11 @@ export default function Home() {
 
   function loadSample() {
     resetIntake();
-    setDescription(sample);
+    setValue("systemDescription", sample, { shouldValidate: true });
   }
 
   return (
-    <main>
+    <main className="mx-auto max-w-[1400px] px-6 pb-[72px] pt-10">
       <header>
         <span className="eyebrow">LAMATIC AGENTKIT · SECURITY</span>
         <h1>Threat Model Architect</h1>
@@ -90,16 +113,18 @@ export default function Home() {
               )}
             </div>
           )}
-          <form onSubmit={submit}>
+          <form onSubmit={handleSubmit(submit)}>
             <label htmlFor="system-description" className="muted">
               {sessionState ? "Your response" : "System description"}
             </label>
-            <textarea id="system-description" value={description} maxLength={6000} onChange={(event) => setDescription(event.target.value)} placeholder={sessionState ? "Answer the follow-up or confirm the summary…" : "Describe your architecture…"} rows={15} disabled={running} />
+            <textarea id="system-description" maxLength={6000} placeholder={sessionState ? "Answer the follow-up or confirm the summary…" : "Describe your architecture…"} rows={15} disabled={running} {...register("systemDescription")} />
+            {errors.systemDescription && <p className="field-error" role="alert">{errors.systemDescription.message}</p>}
             <label htmlFor="access-token" className="muted">Deployment access token (if required)</label>
-            <input id="access-token" type="password" autoComplete="current-password" value={accessToken} maxLength={512} onChange={(event) => setAccessToken(event.target.value)} disabled={running} />
+            <input id="access-token" type="password" autoComplete="current-password" maxLength={512} disabled={running} {...register("accessToken")} />
+            {errors.accessToken && <p className="field-error" role="alert">{errors.accessToken.message}</p>}
             <div className="actions">
               <button type="submit" disabled={running || !description.trim()}>{running ? "Processing…" : sessionState ? "Continue intake" : "Start threat model"}</button>
-              <button type="button" className="secondary" disabled={running} onClick={loadSample}>Load sample</button>
+              <button type="button" className="secondary" disabled={running || !!sessionState} onClick={loadSample}>Load sample</button>
               {sessionState && <button type="button" className="secondary" disabled={running} onClick={resetIntake}>Start over</button>}
             </div>
           </form>
