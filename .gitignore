@@ -4,3 +4,5 @@
 .claude
 REFACTOR_PLAN.md
 scripts
+!kits/error-log-summariser/scripts/
+!kits/error-log-summariser/scripts/error-log-summariser_response-sanitizer_code.ts

@@ -37,6 +37,9 @@ export const references = {
   },
   "modelConfigs": {
     "error_log_summariser_llmnode_262_generative_model_name": "@model-configs/error-log-summariser_llmnode-262_generative-model-name.ts"
+  },
+  "scripts": {
+    "error_log_summariser_response_sanitizer_code": "@scripts/error-log-summariser_response-sanitizer_code.ts"
   }
 };
 
@@ -93,6 +96,21 @@ export const nodes = [
     }
   },
   {
+    "id": "codeNode_1",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/error-log-summariser_response-sanitizer_code.ts",
+        "nodeName": "Response Sanitizer"
+      }
+    }
+  },
+  {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
     "position": {
@@ -108,7 +126,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"summary\": \"{{LLMNode_262.output.generatedResponse}}\"\n}"
+        "outputMapping": "{\n  \"summary\": \"{{codeNode_1.output.summary}}\"\n}"
       }
     }
   }
@@ -124,8 +142,16 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "LLMNode_262-responseNode_triggerNode_1",
+    "id": "LLMNode_262-codeNode_1",
     "source": "LLMNode_262",
+    "target": "codeNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_1-responseNode_triggerNode_1",
+    "source": "codeNode_1",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
