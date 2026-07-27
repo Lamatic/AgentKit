@@ -29,7 +29,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"action\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\"\n}"
+        "advance_schema": "{\n  \"action\": \"string\",\n  \"id\": \"string\",\n  \"name\": \"string\",\n  \"description\": \"string\"\n}"
       }
     }
   },
@@ -44,7 +44,7 @@ export const nodes = [
         "data": "{\n  \"name\": \"{{triggerNode_1.output.name}}\",\n  \"description\": \"{{triggerNode_1.output.description}}\"\n}",
         "limit": "50",
         "query": "",
-        "where": "",
+        "where": "{{triggerNode_1.output.action == 'update_sponsor' || triggerNode_1.output.action == 'upvote' ? 'id = \'' + triggerNode_1.output.id + '\'' : ''}}",
         "action": "{{triggerNode_1.output.action == 'add_sponsor' ? 'insert' : triggerNode_1.output.action == 'insert' ? 'insert' : triggerNode_1.output.action == 'update_sponsor' ? 'update' : triggerNode_1.output.action == 'upvote' ? 'update' : 'select'}}",
         "offset": "0",
         "columns": "*",
