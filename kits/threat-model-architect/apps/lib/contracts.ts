@@ -125,10 +125,14 @@ const threatSchema = z.object({
 const strideSchema = z.object({
   system_name: text,
   summary: text,
-  threats: z.array(threatSchema).min(6),
+  threats: z.array(threatSchema).min(1),
   coverage: z.object({
     analyzed_components: idList,
-    stride_categories_covered: z.array(strideCategorySchema),
+    stride_categories_covered: z
+      .array(strideCategorySchema)
+      .refine((categories) => new Set(categories).size === categories.length, {
+        message: "STRIDE coverage categories must be unique.",
+      }),
   }),
   missing_info: stringList,
 });
@@ -231,6 +235,16 @@ export function parseArchitecture(value: unknown): Architecture {
       throw new Error(`Architecture data flow ${flow.id} references an unknown data asset.`);
     }
   }
+  for (const boundary of architecture.trust_boundaries) {
+    if (boundary.components_crossed.some((id) => !endpointIds.has(id))) {
+      throw new Error(`Architecture trust boundary ${boundary.id} references an unknown endpoint.`);
+    }
+  }
+  for (const entryPoint of architecture.entry_points) {
+    if (!endpointIds.has(entryPoint.component_id)) {
+      throw new Error(`Architecture entry point ${entryPoint.id} references an unknown endpoint.`);
+    }
+  }
   return architecture;
 }
 
@@ -240,6 +254,16 @@ export function parseStride(
 ): StrideAnalysis {
   const stride = parse(strideSchema, value, "STRIDE response");
   assertUnique(stride.threats.map(({ id }) => id), "STRIDE response");
+  const representedCategories = new Set(stride.threats.map(({ stride_category }) => stride_category));
+  const coveredCategories = new Set(stride.coverage.stride_categories_covered);
+  if (
+    representedCategories.size !== coveredCategories.size ||
+    [...representedCategories].some((category) => !coveredCategories.has(category))
+  ) {
+    throw new Error(
+      "STRIDE response coverage must match the distinct categories represented by threats.",
+    );
+  }
 
   if (architecture) {
     const componentIds = new Set([

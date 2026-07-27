@@ -65,6 +65,11 @@ export default function Home() {
     setError("");
   }
 
+  function loadSample() {
+    resetIntake();
+    setDescription(sample);
+  }
+
   return (
     <main>
       <header>
@@ -94,7 +99,7 @@ export default function Home() {
             <input id="access-token" type="password" autoComplete="current-password" value={accessToken} maxLength={512} onChange={(event) => setAccessToken(event.target.value)} disabled={running} />
             <div className="actions">
               <button type="submit" disabled={running || !description.trim()}>{running ? "Processing…" : sessionState ? "Continue intake" : "Start threat model"}</button>
-              <button type="button" className="secondary" disabled={running} onClick={() => setDescription(sample)}>Load sample</button>
+              <button type="button" className="secondary" disabled={running} onClick={loadSample}>Load sample</button>
               {sessionState && <button type="button" className="secondary" disabled={running} onClick={resetIntake}>Start over</button>}
             </div>
           </form>
