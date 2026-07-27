@@ -30,7 +30,7 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 **Purpose:** Initialize the investigation and normalize the raw input.
 
 **Responsibilities:**
-- Create a new investigation object with a unique ID, title, category, status, and detected language
+- Create a new investigation object with a title, category, status, and detected language. The trigger owns and supplies the investigation ID, which is mapped from `triggerNode_1.output.investigation_id` by `flows/trustguard-ai.ts`
 - Clean and normalize the user's raw input text
 - Write a concise summary of what the content appears to be
 - Detect the input type (email, SMS, URL, document, text) from context
@@ -42,7 +42,6 @@ The flow is registered in `lamatic.config.ts` under the step ID `trustguard-ai`.
 ```json
 {
   "investigation": {
-    "id": "string",
     "title": "string",
     "category": "string",
     "status": "initialized",
