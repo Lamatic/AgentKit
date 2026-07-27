@@ -41,7 +41,7 @@ export default function ThreatCard({ analysis }: ThreatCardProps) {
     >
       {/* Card header */}
       <div className="flex items-center gap-2 mb-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/20 text-red-400">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--tg-red-bg)] text-[var(--tg-red)]">
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
         </div>
         <h3 className="text-sm font-semibold text-white">Threat Analysis</h3>
@@ -77,7 +77,7 @@ export default function ThreatCard({ analysis }: ThreatCardProps) {
           if (items.length === 0) return null;
           return (
             <div key={level}>
-              <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${level === "high" ? "text-red-400" : level === "medium" ? "text-orange-400" : "text-green-400"}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${level === "high" ? "text-[var(--tg-red)]" : level === "medium" ? "text-[var(--tg-orange)]" : "text-[var(--tg-green)]"}`}>
                 {level} risk indicators
               </p>
               <div className="flex flex-wrap gap-1.5">

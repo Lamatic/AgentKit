@@ -19,7 +19,7 @@ interface BadgeProps {
  */
 export default function Badge({
   label,
-  colorClass = "bg-slate-700/60 text-slate-300 border border-slate-600/40",
+  colorClass = "bg-[var(--tg-neutral-bg)] text-[var(--tg-neutral)] border border-[var(--tg-neutral-border)]",
   size = "sm",
 }: BadgeProps) {
   const sizeClass =
