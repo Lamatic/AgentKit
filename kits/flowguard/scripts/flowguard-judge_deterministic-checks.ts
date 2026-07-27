@@ -16,17 +16,24 @@ const text = actualOutput == null
     ? actualOutput
     : JSON.stringify(actualOutput);
 
-// 1. Schema validity: is the output parseable JSON when it claims to be?
-//    We only fail this when the expectedBehavior implies structured/JSON output.
+// 1. `schemaValid` — a deliberately NARROW, deterministic gate: "is the output
+//    well-formed JSON when the case expects structured output?" It is a syntactic
+//    check (JSON.parse), NOT full structural/field-type validation.
+//
+//    FlowGuard is target-agnostic — it evaluates arbitrary flows and does not know
+//    any given target's expected object shape, so it cannot validate structure
+//    deterministically here. Structural and semantic correctness against the case's
+//    `expectedBehavior` oracle is assessed by the LLM judge (the `taskSuccess` /
+//    `faithfulness` axes). This code node only guarantees parseable JSON, which is
+//    the part a regex/parser can decide with certainty and can't be argued out of.
 const expectsJson = /json|structured|object|field|schema/i.test(expectedBehavior || "");
 let schemaValid = true;
 if (expectsJson) {
   try {
-    const trimmed = (text || "").trim();
-    JSON.parse(trimmed);
-    schemaValid = true;
+    JSON.parse((text || "").trim());
+    schemaValid = true; // well-formed JSON
   } catch (e) {
-    schemaValid = false;
+    schemaValid = false; // not parseable as JSON
   }
 }
 
