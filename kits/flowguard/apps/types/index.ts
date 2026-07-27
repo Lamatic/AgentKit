@@ -69,7 +69,10 @@ export type CaseExecution = z.infer<typeof CaseExecutionSchema>;
 
 /* ──────────────────────────────  Judging  ─────────────────────────────── */
 
-/** The five rubric axes. `schemaValid` is set by a deterministic code node, not the LLM. */
+/**
+ * The four LLM-scored rubric axes. `schemaValid` is NOT a rubric axis — it is a
+ * separate deterministic signal set by a code node (JSON well-formedness), not the LLM.
+ */
 export const RUBRIC_AXES = [
   'taskSuccess',
   'faithfulness',
