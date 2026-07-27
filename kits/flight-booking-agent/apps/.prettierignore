@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+.nuxt/
+.nitro/
+
+# Lock files (auto-generated, huge, no need to format)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-shrinkwrap.json
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Minified / Bundled files
+*.min.js
+*.min.css
+*.bundle.js
+*.chunk.js
+
+# Logs
+*.log
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# TypeScript declaration files (auto-generated)
+*.d.ts
+
+# Public assets (should not be formatted)
+public/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.webp
+
+# Generated files
+*.generated.ts
+*.generated.js
+
+# VSCode workspace settings
+.vscode/
