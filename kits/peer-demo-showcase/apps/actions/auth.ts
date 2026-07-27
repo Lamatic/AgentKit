@@ -7,6 +7,15 @@ import { verifyJudgeCredentials } from './orchestrate';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
+/** Passwords that must never be accepted in any environment. */
+const KNOWN_DEFAULT_PASSWORDS = new Set([
+  'coder',
+  'your_secure_admin_password_here',
+  'password',
+  'admin',
+  'changeme',
+]);
+
 /**
  * Authenticates an admin user against the environment ADMIN_PASSWORD.
  * Creates a server-side signed session token and sets an HTTP-only cookie.
@@ -16,6 +25,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 export async function login(password: string) {
   if (!ADMIN_PASSWORD) {
     throw new Error('ADMIN_PASSWORD environment variable is not set.');
+  }
+
+  if (KNOWN_DEFAULT_PASSWORDS.has(ADMIN_PASSWORD)) {
+    throw new Error('ADMIN_PASSWORD is set to a known default or placeholder. Please configure a strong password.');
   }
 
   if (password === ADMIN_PASSWORD) {

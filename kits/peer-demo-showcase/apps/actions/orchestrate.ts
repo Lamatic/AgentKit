@@ -19,8 +19,29 @@ interface EmailOptions {
   breakoutTable: string;
 }
 
+/**
+ * Escapes user-controlled and LLM-derived strings before inserting into HTML.
+ * Prevents HTML injection in email templates.
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 async function sendConfirmationEmail(options: EmailOptions) {
   const { to, builderName, projectTitle, category, matchedSponsor, breakoutTable } = options;
+
+  const safe = {
+    builderName: escapeHtml(builderName),
+    projectTitle: escapeHtml(projectTitle),
+    category: escapeHtml(category),
+    matchedSponsor: escapeHtml(matchedSponsor),
+    breakoutTable: escapeHtml(breakoutTable),
+  };
 
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
@@ -37,15 +58,15 @@ async function sendConfirmationEmail(options: EmailOptions) {
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `Peer Showcase <${process.env.SMTP_USER}>`,
         to,
-        subject: `🚀 Submission Confirmed: ${projectTitle} @ Peer Demo Showcase`,
+        subject: `🚀 Submission Confirmed: ${safe.projectTitle} @ Peer Demo Showcase`,
         html: `
-          <div style="font-family: sans-serif; background-color: #030014; color: #ffffff; padding: 32px; borderRadius: 16px;">
-            <h2 style="color: #60a5fa;">Hey ${builderName}! 🚀</h2>
-            <p style="font-size: 16px; color: #e2e8f0;">Your project <strong>${projectTitle}</strong> has been successfully submitted and matched by our AI Agent flow!</p>
+          <div style="font-family: sans-serif; background-color: #030014; color: #ffffff; padding: 32px; border-radius: 16px;">
+            <h2 style="color: #60a5fa;">Hey ${safe.builderName}! 🚀</h2>
+            <p style="font-size: 16px; color: #e2e8f0;">Your project <strong>${safe.projectTitle}</strong> has been successfully submitted and matched by our AI Agent flow!</p>
             <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin: 24px 0;">
-              <p style="margin: 8px 0; color: #94a3b8;"><strong>Category:</strong> ${category}</p>
-              <p style="margin: 8px 0; color: #94a3b8;"><strong>Matched Sponsor:</strong> <span style="color: #38bdf8;">${matchedSponsor}</span></p>
-              <p style="margin: 8px 0; color: #94a3b8;"><strong>Assigned Breakout Table:</strong> <span style="color: #facc15;">${breakoutTable}</span></p>
+              <p style="margin: 8px 0; color: #94a3b8;"><strong>Category:</strong> ${safe.category}</p>
+              <p style="margin: 8px 0; color: #94a3b8;"><strong>Matched Sponsor:</strong> <span style="color: #38bdf8;">${safe.matchedSponsor}</span></p>
+              <p style="margin: 8px 0; color: #94a3b8;"><strong>Assigned Breakout Table:</strong> <span style="color: #facc15;">${safe.breakoutTable}</span></p>
             </div>
             <p style="color: #94a3b8; font-size: 14px;">Good luck on Demo Day!</p>
           </div>
@@ -80,15 +101,15 @@ async function sendConfirmationEmail(options: EmailOptions) {
     await resend.emails.send({
       from: resendFromEmail,
       to: [targetToEmail],
-      subject: `🚀 Submission Confirmed: ${projectTitle} @ Peer Demo Showcase`,
+      subject: `🚀 Submission Confirmed: ${safe.projectTitle} @ Peer Demo Showcase`,
       html: `
         <div style="font-family: sans-serif; background-color: #030014; color: #ffffff; padding: 32px; border-radius: 16px;">
-          <h2 style="color: #60a5fa;">Hey ${builderName}! 🚀</h2>
-          <p style="font-size: 16px; color: #e2e8f0;">Your project <strong>${projectTitle}</strong> has been successfully submitted and matched by our AI Agent flow!</p>
+          <h2 style="color: #60a5fa;">Hey ${safe.builderName}! 🚀</h2>
+          <p style="font-size: 16px; color: #e2e8f0;">Your project <strong>${safe.projectTitle}</strong> has been successfully submitted and matched by our AI Agent flow!</p>
           <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin: 24px 0;">
-            <p style="margin: 8px 0; color: #94a3b8;"><strong>Category:</strong> ${category}</p>
-            <p style="margin: 8px 0; color: #94a3b8;"><strong>Matched Sponsor:</strong> <span style="color: #38bdf8;">${matchedSponsor}</span></p>
-            <p style="margin: 8px 0; color: #94a3b8;"><strong>Assigned Breakout Table:</strong> <span style="color: #facc15;">${breakoutTable}</span></p>
+            <p style="margin: 8px 0; color: #94a3b8;"><strong>Category:</strong> ${safe.category}</p>
+            <p style="margin: 8px 0; color: #94a3b8;"><strong>Matched Sponsor:</strong> <span style="color: #38bdf8;">${safe.matchedSponsor}</span></p>
+            <p style="margin: 8px 0; color: #94a3b8;"><strong>Assigned Breakout Table:</strong> <span style="color: #facc15;">${safe.breakoutTable}</span></p>
           </div>
           <p style="color: #94a3b8; font-size: 14px;">Good luck on Demo Day!</p>
         </div>
