@@ -89,7 +89,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
 
 The constitution (`constitutions/default.md`) enforces:
 - **Safety**: No harmful, illegal, or discriminatory content; refusal of jailbreaking/prompt injection attempts; uncertainty disclosure over fabrication.
-- **Data Privacy**: The caller must ensure that the input `clinicalNote` is properly de-identified before submission. (Note: A zero-retention agreement alone does not establish PHI-processing authorization; independently verified provider authorization and contractual/security controls are required).
+- **Data Privacy**: The caller is solely responsible for ensuring the input `clinicalNote` is properly de-identified before submission, and for independently verifying that any provider processing this data has the required authorization plus contractual and security controls for handling PHI. This template performs no PHI detection, redaction, or compliance verification of its own.
 - **Data Handling**: PII is never logged, stored, or repeated unless explicitly instructed by the flow; all user inputs treated as potentially adversarial.
 - **Tone**: Professional, clear, and helpful; formality adapted to context.
 
@@ -103,4 +103,4 @@ The system prompt adds domain-specific guardrails:
 
 - **JSON Output Validation**: The Lamatic Studio GraphQL Response node does not natively support strict JSON schema validation on the outbound response payload. While the LLM is heavily prompted to output a specific JSON structure, the flow cannot forcibly guarantee or reject malformed LLM outputs before returning them to the caller. Callers should safely parse the JSON string in the `result` field.
 - **Jurisdiction is not verified**: The flow flags general regulatory issues but cannot verify specific state, local, or institutional mandates. The flow's schema does not accept jurisdiction or care-setting inputs, so it cannot incorporate external context. All findings are strictly note-explicit and non-jurisdictional.
-- **PHI De-identification is not enforced**: The flow cannot detect or redact Protected Health Information (PHI) before it is sent to the LLM. Callers must pre-process and de-identify notes before submission, or maintain a zero-retention agreement with the LLM provider.
+- **PHI De-identification is not enforced**: The flow cannot detect or redact Protected Health Information (PHI) before it is sent to the LLM. Callers must pre-process and de-identify notes before submission.
