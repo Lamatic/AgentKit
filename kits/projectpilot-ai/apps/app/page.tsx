@@ -10,6 +10,12 @@ import {
   type ExecutionPlan,
 } from "@/actions/orchestrate";
 
+function decodeHtmlEntities(text: string): string {
+  const el = document.createElement("textarea");
+  el.innerHTML = text;
+  return el.value;
+}
+
 type Stage = "form" | "ideas" | "blueprint" | "execution";
 
 export default function Home() {
@@ -224,7 +230,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-lg shadow space-y-4">
               <div>
                 <h3 className="font-semibold mb-2">Abstract</h3>
-                <p className="text-sm text-gray-700">{executionPlan.abstract}</p>
+                <p className="text-sm text-gray-700">{decodeHtmlEntities(executionPlan.abstract)}</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Roadmap</h3>
@@ -240,7 +246,7 @@ export default function Home() {
                 <h3 className="font-semibold mb-2">Viva Questions</h3>
                 <ul className="list-disc list-inside text-sm space-y-1">
                   {executionPlan.vivaQuestions.map((q, i) => (
-                    <li key={i}>{q}</li>
+                    <li key={i}>{decodeHtmlEntities(q)}</li>
                   ))}
                 </ul>
               </div>
@@ -248,7 +254,7 @@ export default function Home() {
                 <h3 className="font-semibold mb-2">Resume Bullets</h3>
                 <ul className="list-disc list-inside text-sm space-y-1">
                   {executionPlan.resumeBullets.map((b, i) => (
-                    <li key={i}>{b}</li>
+                    <li key={i}>{decodeHtmlEntities(b)}</li>
                   ))}
                 </ul>
               </div>
