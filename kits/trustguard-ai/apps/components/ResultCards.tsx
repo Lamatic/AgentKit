@@ -179,7 +179,7 @@ export default function ResultCards({ data }: ResultCardsProps) {
         <CardWrapper delay={0.1}>
           <InfoCard
             title="Normalized Content"
-            iconBg="bg-blue-500/20 text-blue-400"
+            iconBg="bg-[var(--accent-blue)]/20 text-[var(--accent-blue)]"
             icon={<AlignLeft className="h-4 w-4" aria-hidden="true" />}
           >
             <Field label="Detected Type" value={normalized.detected_input_type} />

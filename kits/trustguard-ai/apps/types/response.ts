@@ -39,7 +39,7 @@ export type InvestigationInfo = InvestigationResponse["investigation"];
 
 /**
  * Sanitised and summarised form of the user-submitted content, produced by
- * the evidence extractor stage.  `clean_text` is the de-noised plain-text
+ * the investigation planner stage.  `clean_text` is the de-noised plain-text
  * version, `summary` is a short AI-generated description, and
  * `detected_input_type` reflects the automatically identified content type.
  */
@@ -95,12 +95,14 @@ export type InputType = "Email" | "SMS" | "URL" | "Document" | "Text";
 /** Union of supported language options for the investigation form language selector. */
 export type LanguageOption = "Auto" | "English" | "Hindi" | "Bengali";
 
+export const MAX_CONTENT_LENGTH = 10000;
+
 /**
  * Zod schema for the investigation input form data.
  */
 export const AnalyzeFormDataSchema = z.object({
   input_type: z.enum(["Email", "SMS", "URL", "Document", "Text"]),
-  content: z.string().trim().min(1, "Content is required"),
+  content: z.string().trim().min(1, "Content is required").max(MAX_CONTENT_LENGTH, "Content is too long"),
   attachment_url: z.string().optional().default(""),
   language: z.enum(["Auto", "English", "Hindi", "Bengali"]),
   memory_enabled: z.boolean().default(false),

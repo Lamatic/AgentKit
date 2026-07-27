@@ -37,7 +37,7 @@ This kit is part of the [Lamatic AgentKit](https://github.com/Lamatic/AgentKit) 
 
 TrustGuard AI uses a linear four-stage agentic pipeline. Each stage builds on the output of the previous one, and every agent has a strictly limited scope so nothing bleeds into the wrong step.
 
-```
+```text
 User Input
     |
     v
@@ -75,7 +75,7 @@ All four stages run inside a single Lamatic flow, connected as a directed graph 
 
 ## Flow Diagram
 
-```
+```text
 triggerNode_1 (API Request)
        |
        v
@@ -116,7 +116,7 @@ Each node is an `InstructorLLMNode` that receives a system prompt, a user prompt
 
 ## Folder Structure
 
-```
+```text
 trustguard-ai/
 ├── apps/                          # Next.js web application
 │   ├── app/
