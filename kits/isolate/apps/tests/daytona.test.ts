@@ -166,6 +166,36 @@ describe("DaytonaSandboxRuntime", () => {
     ]);
   });
 
+  test("uses an explicitly configured polyglot snapshot", async () => {
+    const { client, calls } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(
+      client,
+      undefined,
+      undefined,
+      undefined,
+      "isolate-node-rust-v1",
+    );
+
+    await runtime.create({
+      repositoryUrl: "https://github.com/example/rust-backed-cli",
+    });
+
+    expect(calls[0]).toEqual({
+      name: "create",
+      args: [
+        {
+          name: expect.stringMatching(/^isolate-/),
+          snapshot: "isolate-node-rust-v1",
+          ephemeral: true,
+          public: false,
+          ttlMinutes: 30,
+          labels: { product: "isolate", purpose: "issue-reproduction" },
+        },
+        { timeout: 60 },
+      ],
+    });
+  });
+
   test("rejects repositories outside the public GitHub boundary", async () => {
     const { client, calls } = fakeDaytona();
     const runtime = new DaytonaSandboxRuntime(client);

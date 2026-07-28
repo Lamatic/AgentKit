@@ -130,6 +130,7 @@ Set these server-side values in `.env.local`:
 | `LAMATIC_PROJECT_ID` | Lamatic project ID |
 | `LAMATIC_API_KEY` | Server-side Lamatic API credential |
 | `DAYTONA_API_KEY` | Server-side Daytona sandbox credential |
+| `DAYTONA_SNAPSHOT` | Optional Daytona snapshot with additional repository toolchains |
 | `ISOLATE_RUNTIME_SECRET` | Bearer secret for the MCP endpoint |
 
 No repository or GitHub credential is required because the current scope is
@@ -167,6 +168,9 @@ contracts.
 
 - Public GitHub repositories only.
 - Initial support targets Node.js, TypeScript, Bun, and terminal/CLI issues.
+  Deployments can opt into additional repository toolchains through
+  `DAYTONA_SNAPSHOT`; the reference deployment uses a Node+Bun+Rust snapshot
+  for Rust-backed JavaScript CLIs.
 - Terminal-output reports can provide one exact `Observed stdout:` or `Observed
   stderr:` signature. Isolate also recognizes the narrow TUI case where Ctrl+Q
   exits with unsaved editor content: the runtime creates a fixture, drives a
