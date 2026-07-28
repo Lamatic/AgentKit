@@ -10,7 +10,10 @@ import {
   tryDeriveIssueEvidenceAssertion,
 } from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
-import { UnsafeCommandError } from "./runtime/policy";
+import {
+  normalizeCertificationCommand,
+  UnsafeCommandError,
+} from "./runtime/policy";
 import { requestLamaticPlan } from "./lamatic-planner";
 import { InvestigationDeadline } from "./deadline";
 
@@ -129,7 +132,15 @@ export async function investigateIssue(
       };
     }
     if ("mode" in plan) throw new InvalidCertificationPlanError();
-    const terminalPlan = plan;
+    const normalizeTerminalPlan = <T extends {
+      candidateCommand: string;
+      controlCommand: string;
+    }>(terminalPlan: T) => ({
+      ...terminalPlan,
+      candidateCommand: normalizeCertificationCommand(terminalPlan.candidateCommand),
+      controlCommand: normalizeCertificationCommand(terminalPlan.controlCommand),
+    });
+    let terminalPlan = normalizeTerminalPlan(plan);
     try {
       validateCertificationCommands({
         candidateCommand: terminalPlan.candidateCommand,
@@ -145,9 +156,10 @@ export async function investigateIssue(
       }
       plan = await requestPlan(planRepairFeedback);
       if ("mode" in plan) throw new InvalidCertificationPlanError();
+      terminalPlan = normalizeTerminalPlan(plan);
       validateCertificationCommands({
-        candidateCommand: plan.candidateCommand,
-        controlCommand: plan.controlCommand,
+        candidateCommand: terminalPlan.candidateCommand,
+        controlCommand: terminalPlan.controlCommand,
         assertion,
       });
     }
@@ -155,8 +167,8 @@ export async function investigateIssue(
       runtime,
       ...sandbox,
       deadline,
-      candidateCommand: plan.candidateCommand,
-      controlCommand: plan.controlCommand,
+      candidateCommand: terminalPlan.candidateCommand,
+      controlCommand: terminalPlan.controlCommand,
       assertion,
     });
 
