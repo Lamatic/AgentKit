@@ -94,6 +94,24 @@ describe("reproduction plan boundary", () => {
         "Hello",
       ),
     ).toBe("bun run cli -- input --preserve-case");
+    expect(
+      assertCertificationCommand(
+        "bun run --cwd packages/cli mdv -- input.md",
+        "Hello",
+      ),
+    ).toBe("bun run --cwd packages/cli mdv -- input.md");
+    expect(() =>
+      assertCertificationCommand(
+        "bun run --cwd ../outside mdv -- input.md",
+        "Hello",
+      ),
+    ).toThrow("command policy");
+    expect(() =>
+      assertCertificationCommand(
+        "bun run --cwd /tmp mdv -- input.md",
+        "Hello",
+      ),
+    ).toThrow("command policy");
     expect(() =>
       assertCertificationCommand(
         "bun run cli greet -- IsolateCLI",

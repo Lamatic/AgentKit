@@ -464,7 +464,7 @@ describe("DaytonaSandboxRuntime", () => {
       sandboxId: "sandbox_123",
       workspace: "workspace/repo",
       timeoutSeconds: 20,
-      command: "bun run cli",
+      command: "bun run --cwd packages/cli mdv",
       quitKey: "ctrl_q",
       saveBeforeQuit: false,
     });
@@ -475,7 +475,7 @@ describe("DaytonaSandboxRuntime", () => {
       sandboxId: "sandbox_123",
       workspace: "workspace/repo",
       timeoutSeconds: 20,
-      command: "bun run cli",
+      command: "bun run --cwd packages/cli mdv",
       quitKey: "ctrl_q",
       saveBeforeQuit: true,
     });
@@ -486,11 +486,15 @@ describe("DaytonaSandboxRuntime", () => {
     expect(
       calls.filter(({ name }) => name === "sendPtyInput").map(({ args }) => args[0]),
     ).toEqual([
-      expect.stringContaining("bun run cli -- .isolate-reproduction.md"),
+      expect.stringContaining(
+        "bun run --cwd packages/cli mdv -- .isolate-reproduction.md",
+      ),
       new Uint8Array([27]),
       "isolate-runtime-edit",
       new Uint8Array([17]),
-      expect.stringContaining("bun run cli -- .isolate-reproduction.md"),
+      expect.stringContaining(
+        "bun run --cwd packages/cli mdv -- .isolate-reproduction.md",
+      ),
       new Uint8Array([27]),
       "isolate-runtime-edit",
       new Uint8Array([19]),
