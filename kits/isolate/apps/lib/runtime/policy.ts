@@ -99,12 +99,24 @@ function isRepositoryRunnerSegment(segment: string) {
   if (!runner || !runnerNames.has(runner) || !verb || !["run", "test"].includes(verb)) {
     return false;
   }
-  const arguments_ = tokens.slice(index + 2);
-  if (verb === "run" && (!arguments_[0] || unquote(arguments_[0]).startsWith("-"))) {
+  let scriptIndex = index + 2;
+  if (runner === "bun" && verb === "run" && unquote(tokens[scriptIndex] ?? "") === "--cwd") {
+    const cwd = tokens[scriptIndex + 1];
+    if (!cwd || unquote(cwd).startsWith("-") || referencesOutsideRepository(cwd)) {
+      return false;
+    }
+    scriptIndex += 2;
+  }
+
+  const script = tokens[scriptIndex];
+  if (
+    verb === "run" &&
+    (!script || unquote(script).startsWith("-") || referencesOutsideRepository(script))
+  ) {
     return false;
   }
 
-  const runnerArguments = verb === "run" ? arguments_.slice(1) : arguments_;
+  const runnerArguments = tokens.slice(verb === "run" ? scriptIndex + 1 : index + 2);
   const separatorIndex = runnerArguments.findIndex(
     (token) => unquote(token) === "--",
   );
@@ -121,7 +133,7 @@ function isRepositoryRunnerSegment(segment: string) {
     return false;
   }
 
-  return arguments_.every((token) => {
+  return runnerArguments.every((token) => {
     const value = unquote(token);
     const option = value.split("=", 1)[0]?.toLowerCase() ?? "";
     return (
