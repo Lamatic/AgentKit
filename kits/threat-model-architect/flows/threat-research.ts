@@ -53,4 +53,6 @@ export const edges = [
   { id: "InstructorLLMNode_160-responseNode_triggerNode_1", type: "defaultEdge", source: "InstructorLLMNode_160", target: "responseNode_triggerNode_1", sourceHandle: "bottom", targetHandle: "top" },
   { id: "response-trigger_triggerNode_1", type: "responseEdge", source: "triggerNode_1", target: "responseNode_triggerNode_1", selected: false, sourceHandle: "to-response", targetHandle: "from-trigger" },
 ];
-export default { meta, inputs, references, nodes, edges };
+export const config_json = { nodes, edges };
+
+export default { meta, inputs, references, nodes, edges, config_json };

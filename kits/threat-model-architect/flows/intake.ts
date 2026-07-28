@@ -256,4 +256,6 @@ export const edges = [
   },
 ];
 
-export default { meta, inputs, references, nodes, edges };
+export const config_json = { nodes, edges };
+
+export default { meta, inputs, references, nodes, edges, config_json };
