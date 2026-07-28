@@ -33,6 +33,7 @@ function harness(options: {
   invalidRepair?: boolean;
   misplacedSeparatorFirst?: boolean;
   plannerFails?: boolean;
+  sequentialSeparator?: boolean;
   unsafeFirst?: boolean;
   tuiPlan?: boolean;
 } = {}) {
@@ -112,6 +113,13 @@ function harness(options: {
         hypothesis: "Case is normalized unexpectedly.",
         candidateCommand: "bun run cli greet -- IsolateCLI",
         controlCommand: "bun run cli greet -- world",
+      };
+    }
+    if (options.sequentialSeparator) {
+      return {
+        hypothesis: "Case is normalized unexpectedly.",
+        candidateCommand: "bun run service & sleep 0.5; bun run cli -- IsolateCLI",
+        controlCommand: "bun run service & sleep 0.5; bun run cli -- world",
       };
     }
     if (options.unsafeFirst && plannerCalls === 1) {
@@ -208,6 +216,23 @@ describe("investigateIssue", () => {
     expect(result.outcome).toBe("reproduced");
     expect(plannerCallCount()).toBe(2);
     expect(probeCommands).not.toContain("bun run cli greet -- IsolateCLI");
+  });
+
+  test("normalizes safe sequential runner commands without another model call", async () => {
+    const { runtime, planner, plannerCallCount, probeCommands } = harness({
+      sequentialSeparator: true,
+    });
+
+    const result = await investigateIssue(
+      { issueUrl: issue.url },
+      { issueReader: { read: async () => issue }, runtime, planner },
+    );
+
+    expect(result.outcome).toBe("reproduced");
+    expect(plannerCallCount()).toBe(1);
+    expect(probeCommands).toContain(
+      "bun run service & sleep 0.5 && bun run cli -- IsolateCLI",
+    );
   });
 
   test("fails safely after one invalid repair without executing either plan", async () => {

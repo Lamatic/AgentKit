@@ -4,6 +4,7 @@ import { parseReproductionPlan } from "../lib/runtime/plan";
 import {
   assertCertificationCommand,
   assertSafeCommand,
+  normalizeCertificationCommand,
 } from "../lib/runtime/policy";
 
 const validPlan = {
@@ -162,6 +163,21 @@ describe("reproduction plan boundary", () => {
     ).toThrow("command policy");
     expect(() =>
       assertCertificationCommand("bun test ${TMPDIR}/repro.test.ts", "Hello"),
+    ).toThrow("command policy");
+  });
+
+  test("normalizes sequential separators without bypassing command validation", () => {
+    const normalized = normalizeCertificationCommand(
+      "bun run service & sleep 0.5; bun run cli -- greet IsolateCLI",
+    );
+    expect(normalized).toBe(
+      "bun run service & sleep 0.5 && bun run cli -- greet IsolateCLI",
+    );
+    expect(assertCertificationCommand(normalized)).toBe(normalized);
+    expect(() =>
+      assertCertificationCommand(
+        normalizeCertificationCommand("bun run cli; printf forged"),
+      ),
     ).toThrow("command policy");
   });
 });

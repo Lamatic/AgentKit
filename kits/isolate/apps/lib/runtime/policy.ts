@@ -164,3 +164,7 @@ export function assertCertificationCommand(command: string, signature = "") {
   }
   return command;
 }
+
+export function normalizeCertificationCommand(command: string) {
+  return command.replace(/\s*;\s*/g, " && ");
+}
