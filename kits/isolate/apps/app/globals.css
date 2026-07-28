@@ -154,7 +154,7 @@ em {
   color: var(--ink);
 }
 .field input::placeholder {
-  color: #8a929c;
+  color: #626b76;
 }
 .field input:disabled {
   background: #f3f5f7;
