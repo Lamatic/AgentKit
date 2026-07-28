@@ -17,8 +17,9 @@ inside disposable sandboxes.
 ## Scope
 
 Initial support targets public Node.js and TypeScript terminal or CLI
-repositories. Isolate does not modify upstream repositories, push branches,
-open pull requests, or generate fixes.
+repositories. A deployment may provide a trusted Daytona snapshot for an
+additional repository toolchain such as Rust. Isolate does not modify upstream
+repositories, push branches, open pull requests, or generate fixes.
 
 ## Operating Procedure
 

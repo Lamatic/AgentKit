@@ -140,6 +140,7 @@ export class DaytonaSandboxRuntime {
     },
     private readonly pause: (milliseconds: number) => Promise<void> = (milliseconds) =>
       new Promise((resolve) => setTimeout(resolve, milliseconds)),
+    private readonly snapshot = process.env.DAYTONA_SNAPSHOT?.trim() || undefined,
   ) {}
 
   private sandbox(sandboxId: string) {
@@ -242,7 +243,9 @@ export class DaytonaSandboxRuntime {
     const creationOperation = this.client.create(
       {
         name: sandboxName,
-        language: "typescript",
+        ...(this.snapshot
+          ? { snapshot: this.snapshot }
+          : { language: "typescript" }),
         ephemeral: true,
         public: false,
         ttlMinutes: 30,

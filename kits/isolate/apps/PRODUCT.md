@@ -25,7 +25,8 @@ The primary workflow begins with a public GitHub issue URL, uses a Lamatic agent
 ## Capabilities and Constraints
 
 - Public GitHub repositories only.
-- Initial scope is Node.js, TypeScript, Bun, and terminal/CLI failures.
+- Initial scope is Node.js, TypeScript, Bun, and terminal/CLI failures, with an
+  explicitly configured Daytona snapshot for Rust-backed JavaScript CLIs.
 - Sandboxes are private, disposable, and time bounded.
 - No fix generation, publishing, repository credentials, pushes, or pull requests.
 - A reproduced outcome requires two passing candidate runs and a rejecting control.
