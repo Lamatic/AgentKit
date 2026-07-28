@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import type { Diagnosis } from "@/lib/types";
+import type { Diagnosis, WorkspaceMetadata } from "@/lib/types";
 import { cn, formatConfidence, riskToBadgeBg } from "@/lib/utils";
 import { GitHubConnectCard } from "@/components/github/github-connect-card";
+import { WorkspaceSidebar } from "@/components/workspace/workspace-sidebar";
+import { WorkspaceCenterPanel } from "@/components/workspace/workspace-center-panel";
+import { WorkspaceRightPanel } from "@/components/workspace/workspace-right-panel";
+import { WorkspaceLogViewer } from "@/components/workspace/workspace-log-viewer";
+import { WorkspaceExportModal } from "@/components/workspace/workspace-export-modal";
+import { TeamDashboard } from "@/components/dashboard/team-dashboard";
+import { saveDiagnosisToHistory } from "@/lib/history/history-store";
+import { SystemHealthModal } from "@/components/system-health-modal";
 
 // ─── Agent step labels (used for progress stepper) ───────────────────────────
 const AGENT_STEPS = [
@@ -267,6 +275,10 @@ export function DiagnosisWorkspace() {
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<Diagnosis | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [activeMetadata, setActiveMetadata] = useState<WorkspaceMetadata | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showHealthModal, setShowHealthModal] = useState(false);
+  const [mainTab, setMainTab] = useState<"workspace" | "dashboard">("workspace");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Simulate step progression while waiting for the Lamatic response
@@ -301,8 +313,10 @@ export function DiagnosisWorkspace() {
       if (!res.ok) {
         throw new Error(data.error ?? "Unexpected error from the diagnostic service.");
       }
+      const diagObj = data as Diagnosis;
       setCurrentStep(AGENT_STEPS.length);
-      setResult(data as Diagnosis);
+      setResult(diagObj);
+      saveDiagnosisToHistory(diagObj, null);
       setStatus("done");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unknown error.";
@@ -310,6 +324,69 @@ export function DiagnosisWorkspace() {
       setStatus("error");
     }
   }, [ciProvider, simulateSteps]);
+
+  const diagnoseGitHubRun = useCallback(async (run: any) => {
+    // Get stored repository selection
+    let owner = "";
+    let repo = "";
+
+    try {
+      const savedRepo = localStorage.getItem("agentkit_selected_github_repo");
+      if (savedRepo) {
+        const parsed = JSON.parse(savedRepo);
+        owner = parsed.owner?.login || "";
+        repo = parsed.name || "";
+      }
+    } catch {
+      // Ignore
+    }
+
+    if (!owner || !repo) {
+      setErrorMsg("Please select an active repository before diagnosing a workflow run.");
+      setStatus("error");
+      return;
+    }
+
+    const metaObj: WorkspaceMetadata = {
+      repoOwner: owner,
+      repoName: repo,
+      branch: run.headBranch || "main",
+      commitSha: run.headSha || "beb0902",
+      actorLogin: run.actor?.login || "user",
+      actorAvatar: run.actor?.avatarUrl || "",
+      runNumber: run.runNumber || 142,
+      durationSeconds: run.durationSeconds || 32,
+      timestamp: run.createdAt || new Date().toISOString(),
+    };
+    setActiveMetadata(metaObj);
+
+    setStatus("loading");
+    setCurrentStep(0);
+    setResult(null);
+    setErrorMsg("");
+    simulateSteps();
+
+    try {
+      const res = await fetch("/api/github/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ owner, repo, runId: run.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to retrieve logs or execute diagnosis.");
+      }
+      const diagObj = data as Diagnosis;
+      setCurrentStep(AGENT_STEPS.length);
+      setResult(diagObj);
+      saveDiagnosisToHistory(diagObj, metaObj);
+      setStatus("done");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error executing GitHub diagnosis.";
+      setErrorMsg(msg);
+      setStatus("error");
+    }
+  }, [simulateSteps]);
 
   const handleFile = useCallback((file: File) => {
     if (file.size > 5 * 1024 * 1024) {
@@ -345,26 +422,84 @@ export function DiagnosisWorkspace() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       {/* Header */}
-      <header className="mb-12 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-xs text-[var(--text)] shadow-sm backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--cyan)] pulse-glow" />
-          Powered by Lamatic AgentKit
+      <header className="mb-8 text-center">
+        <div className="mb-4 inline-flex items-center gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-xs text-[var(--text)] shadow-sm backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--cyan)] pulse-glow" />
+            Powered by Lamatic AgentKit
+          </div>
+          <button
+            onClick={() => setShowHealthModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 px-3 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-950/50 transition-all cursor-pointer"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-glow" />
+            System Health: 100% Operational
+          </button>
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-[var(--text)]">
           CI/CD Diagnosis Agent
         </h1>
         <p className="mt-2 text-[var(--text-dim)]">
-          Drop a GitHub Actions or GitLab CI log. Get a verified root cause and fix.
+          Autonomous AI Debugging, Failure Recovery & Team Command Center
         </p>
+
+        {/* Top Tab Navigation Switcher */}
+        <div className="mt-6 inline-flex rounded-[18px] border border-white/10 bg-white/5 p-1 backdrop-blur-md">
+          <button
+            onClick={() => setMainTab("workspace")}
+            className={`rounded-[14px] px-5 py-2 text-xs font-semibold transition-all ${
+              mainTab === "workspace"
+                ? "bg-cyan-500 text-black shadow-md"
+                : "text-[var(--muted)] hover:text-white"
+            }`}
+          >
+            ⚡ AI Debugging Workspace
+          </button>
+          <button
+            onClick={() => setMainTab("dashboard")}
+            className={`rounded-[14px] px-5 py-2 text-xs font-semibold transition-all ${
+              mainTab === "dashboard"
+                ? "bg-cyan-500 text-black shadow-md"
+                : "text-[var(--muted)] hover:text-white"
+            }`}
+          >
+            📊 Team Command Center & History
+          </button>
+        </div>
       </header>
+
+      {/* Render Team Dashboard when mainTab === "dashboard" */}
+      {mainTab === "dashboard" && (
+        <TeamDashboard
+          onSelectForView={(item) => {
+            setResult(item.diagnosis);
+            setActiveMetadata({
+              repoOwner: item.repoOwner,
+              repoName: item.repoName,
+              branch: item.branch,
+              commitSha: item.commitSha,
+              actorLogin: item.actorLogin,
+              actorAvatar: item.actorAvatar,
+              runNumber: item.runNumber,
+              timestamp: item.timestamp,
+            });
+            setStatus("done");
+            setMainTab("workspace");
+          }}
+        />
+      )}
+
+      {/* Render Workspace when mainTab === "workspace" */}
+      {mainTab === "workspace" && (
+        <>
 
       {/* Upload area — shown only when idle or error */}
       {(status === "idle" || status === "error") && (
         <div className="animate-fade-in space-y-4">
           {/* GitHub Connection Card */}
-          <GitHubConnectCard />
+          <GitHubConnectCard onDiagnoseRun={diagnoseGitHubRun} />
 
           {/* Provider selector */}
           <div className="flex gap-2">
@@ -457,20 +592,78 @@ export function DiagnosisWorkspace() {
         </div>
       )}
 
-      {/* Results */}
+      {/* GX-5 Multi-Panel AI Debugging Workspace */}
       {status === "done" && result && (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Diagnosis Complete</h2>
-            <button
-              onClick={reset}
-              className="text-xs text-[var(--muted)] underline hover:text-[var(--text)]"
-            >
-              ← New Diagnosis
-            </button>
+        <div className="space-y-6 animate-fade-in">
+          {/* Top Bar Navigation & Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-glow" />
+                AI Diagnosis Complete
+              </span>
+              <span className="text-xs text-[var(--muted)]">
+                Copilot Workspace v1.0
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowExportModal(true)}
+                className="rounded-[14px] border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/20 transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <span>📥</span> Export / Share Report
+              </button>
+
+              <button
+                onClick={reset}
+                className="rounded-[14px] border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-[var(--text-dim)] hover:text-white transition-all"
+              >
+                ← New Diagnosis
+              </button>
+            </div>
           </div>
-          <ResultDashboard result={result} />
+
+          {/* Multi-Panel Layout */}
+          <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+            {/* Left Sidebar (Execution Context & Metadata) */}
+            <div className="lg:w-72 flex-shrink-0">
+              <WorkspaceSidebar metadata={activeMetadata} ciProvider={ciProvider} />
+            </div>
+
+            {/* Center Panel (Root Cause & Chronology) */}
+            <div className="flex-1">
+              <WorkspaceCenterPanel diagnosis={result} />
+            </div>
+
+            {/* Right Panel (Verified Fixes & RAG Guides) */}
+            <div className="lg:w-80 flex-shrink-0">
+              <WorkspaceRightPanel diagnosis={result} />
+            </div>
+          </div>
+
+          {/* Bottom Panel (Interactive Log Explorer) */}
+          <WorkspaceLogViewer
+            rawLog={logText}
+            evidenceLines={result.analysis.evidence_cited}
+          />
+
+          {/* Export & Share Modal */}
+          {showExportModal && (
+            <WorkspaceExportModal
+              diagnosis={result}
+              metadata={activeMetadata}
+              onClose={() => setShowExportModal(false)}
+            />
+          )}
         </div>
+      )}
+      </>
+      )}
+
+      {/* System Health Modal */}
+      {showHealthModal && (
+        <SystemHealthModal onClose={() => setShowHealthModal(false)} />
       )}
     </div>
   );
