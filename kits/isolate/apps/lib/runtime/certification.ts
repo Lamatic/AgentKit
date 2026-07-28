@@ -153,7 +153,7 @@ export async function runTuiUnsavedExitCertification({
     {
       sandboxId,
       workspace,
-      timeoutSeconds: deadline.probeTimeoutSeconds(40, 4),
+      timeoutSeconds: deadline.probeTimeoutSeconds(70, 2),
       setupCommand,
     },
     deadline,
