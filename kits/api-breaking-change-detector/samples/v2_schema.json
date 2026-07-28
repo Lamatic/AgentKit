@@ -1,0 +1,8 @@
+{
+  "endpoint": "/v1/users",
+  "method": "POST",
+  "request_body": {
+    "user_id": "integer",
+    "email_address": "string"
+  }
+}
