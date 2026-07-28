@@ -517,7 +517,7 @@ export class DaytonaSandboxRuntime {
     let outputLength = 0;
     const ptyOperation = sandbox.process.createPty({
       id: `isolate-${crypto.randomUUID()}`,
-      cwd: workspace,
+      cwd: `/home/daytona/${workspace}`,
       envs: { TERM: "xterm-256color" },
       cols: 120,
       rows: 30,

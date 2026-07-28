@@ -480,6 +480,9 @@ describe("DaytonaSandboxRuntime", () => {
       saveBeforeQuit: true,
     });
     expect(control.passed).toBe(false);
+    expect(calls.find(({ name }) => name === "createPty")?.args[0]).toMatchObject({
+      cwd: "/home/daytona/workspace/repo",
+    });
     expect(
       calls.filter(({ name }) => name === "sendPtyInput").map(({ args }) => args[0]),
     ).toEqual([
