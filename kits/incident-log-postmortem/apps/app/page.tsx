@@ -1,6 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { analyzeIncident } from "@/actions/orchestrate"
@@ -11,33 +14,51 @@ const SAMPLE_LOGS = `2026-07-17T14:02:11Z ERROR [payments-service] Connection po
 2026-07-17T14:03:45Z ERROR [checkout-service] Upstream payments-service returned 504
 2026-07-17T14:01:58Z INFO [deploy-bot] Deployed payments-service v2.14.1`
 
+const formSchema = z.object({
+  serviceName: z.string().optional(),
+  recentDeployTime: z.string().optional(),
+  logs: z.string().min(1, "Please paste some logs"),
+})
+
+type FormValues = z.infer<typeof formSchema>
+
 export default function IncidentPostmortemPage() {
-  const [logs, setLogs] = useState("")
-  const [serviceName, setServiceName] = useState("")
-  const [recentDeployTime, setRecentDeployTime] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState("")
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      serviceName: "",
+      recentDeployTime: "",
+      logs: "",
+    },
+  })
+
   const handleLoadExample = () => {
-    setLogs(SAMPLE_LOGS)
-    setServiceName("payments-service")
-    setRecentDeployTime("2026-07-17T14:01:58Z")
+    setValue("logs", SAMPLE_LOGS)
+    setValue("serviceName", "payments-service")
+    setValue("recentDeployTime", "2026-07-17T14:01:58Z")
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!logs.trim()) {
-      setError("Please paste some logs")
-      return
-    }
-
+  const onSubmit = async (values: FormValues) => {
     setIsLoading(true)
     setError("")
     setResult(null)
 
     try {
-      const response = await analyzeIncident(logs, serviceName, recentDeployTime)
+      const response = await analyzeIncident(
+        values.logs,
+        values.serviceName ?? "",
+        values.recentDeployTime ?? ""
+      )
       if (response.success && response.data) {
         setResult(response.data)
       } else {
@@ -52,10 +73,8 @@ export default function IncidentPostmortemPage() {
 
   const handleReset = () => {
     setResult(null)
-    setLogs("")
-    setServiceName("")
-    setRecentDeployTime("")
     setError("")
+    reset()
   }
 
   return (
@@ -73,7 +92,7 @@ export default function IncidentPostmortemPage() {
 
         {!result && (
           <div className="bg-card text-card-foreground rounded-xl shadow-xl border border-border p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -91,11 +110,10 @@ export default function IncidentPostmortemPage() {
                 <input
                   id="service-name"
                   type="text"
-                  value={serviceName}
-                  onChange={(e) => setServiceName(e.target.value)}
                   placeholder="e.g. payments-service"
                   className="w-full h-11 px-3 rounded-md border border-border bg-card text-card-foreground placeholder:text-muted-foreground"
                   disabled={isLoading}
+                  {...register("serviceName")}
                 />
               </div>
 
@@ -106,11 +124,10 @@ export default function IncidentPostmortemPage() {
                 <input
                   id="recent-deploy-time"
                   type="text"
-                  value={recentDeployTime}
-                  onChange={(e) => setRecentDeployTime(e.target.value)}
                   placeholder="e.g. 2026-07-17T14:01:58Z"
                   className="w-full h-11 px-3 rounded-md border border-border bg-card text-card-foreground placeholder:text-muted-foreground"
                   disabled={isLoading}
+                  {...register("recentDeployTime")}
                 />
               </div>
 
@@ -120,12 +137,14 @@ export default function IncidentPostmortemPage() {
                 </label>
                 <textarea
                   id="raw-logs"
-                  value={logs}
-                  onChange={(e) => setLogs(e.target.value)}
                   placeholder="Paste raw incident logs here..."
                   className="w-full min-h-[220px] p-3 rounded-md border border-border bg-card text-card-foreground placeholder:text-muted-foreground font-mono text-sm resize-none"
                   disabled={isLoading}
+                  {...register("logs")}
                 />
+                {errors.logs && (
+                  <p className="text-sm text-destructive-foreground">{errors.logs.message}</p>
+                )}
               </div>
 
               {error && (
@@ -136,7 +155,7 @@ export default function IncidentPostmortemPage() {
 
               <button
                 type="submit"
-                disabled={!logs.trim() || isLoading}
+                disabled={isLoading}
                 className="w-full h-12 rounded-md bg-primary hover:bg-primary-hover disabled:opacity-50 text-primary-foreground font-medium"
               >
                 {isLoading ? "Analyzing..." : "Investigate"}
