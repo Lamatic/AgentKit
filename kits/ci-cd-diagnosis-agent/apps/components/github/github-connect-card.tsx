@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GitHubRepoSelector } from "./github-repo-selector";
 
 interface GitHubUser {
   login: string;
@@ -9,7 +10,11 @@ interface GitHubUser {
   email?: string;
 }
 
-export function GitHubConnectCard() {
+interface GitHubConnectCardProps {
+  onDiagnoseRun?: (run: any) => void;
+}
+
+export function GitHubConnectCard({ onDiagnoseRun }: GitHubConnectCardProps = {}) {
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(false);
   const [user, setUser] = useState<GitHubUser | null>(null);
@@ -102,34 +107,39 @@ export function GitHubConnectCard() {
           <div className="h-8 w-24 animate-pulse rounded-xl bg-white/10" />
         </div>
       ) : connected && user ? (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img
-              src={user.avatarUrl}
-              alt={user.login}
-              className="h-12 w-12 rounded-full border border-white/20 shadow-md object-cover"
-            />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-white text-base tracking-tight">
-                  {user.name || user.login}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-glow" />
-                  GitHub Connected
-                </span>
+        <>
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+            <div className="flex items-center gap-4">
+              <img
+                src={user.avatarUrl}
+                alt={user.login}
+                className="h-12 w-12 rounded-full border border-white/20 shadow-md object-cover"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white text-base tracking-tight">
+                    {user.name || user.login}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-glow" />
+                    GitHub Connected
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--muted)] mt-0.5">@{user.login}</p>
               </div>
-              <p className="text-xs text-[var(--muted)] mt-0.5">@{user.login}</p>
             </div>
+
+            <button
+              onClick={handleDisconnect}
+              className="rounded-[14px] border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-[var(--text-dim)] hover:border-rose-500/40 hover:bg-rose-950/20 hover:text-rose-300 transition-all duration-200"
+            >
+              Disconnect
+            </button>
           </div>
 
-          <button
-            onClick={handleDisconnect}
-            className="rounded-[14px] border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-[var(--text-dim)] hover:border-rose-500/40 hover:bg-rose-950/20 hover:text-rose-300 transition-all duration-200"
-          >
-            Disconnect
-          </button>
-        </div>
+          {/* GX-2 Repository Discovery & Selector Component */}
+          <GitHubRepoSelector onDiagnoseRun={onDiagnoseRun} />
+        </>
       ) : (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

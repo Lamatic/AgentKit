@@ -16,6 +16,7 @@
     "@tailwindcss/postcss": "4.3.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "fflate": "^0.8.3",
     "lamatic": "0.3.2",
     "lucide-react": "1.14.0",
     "next": "16.2.10",
