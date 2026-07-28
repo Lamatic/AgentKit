@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import type { Diagnosis } from "@/lib/types";
 import { cn, formatConfidence, riskToBadgeBg } from "@/lib/utils";
+import { GitHubConnectCard } from "@/components/github/github-connect-card";
 
 // ─── Agent step labels (used for progress stepper) ───────────────────────────
 const AGENT_STEPS = [
@@ -362,6 +363,9 @@ export function DiagnosisWorkspace() {
       {/* Upload area — shown only when idle or error */}
       {(status === "idle" || status === "error") && (
         <div className="animate-fade-in space-y-4">
+          {/* GitHub Connection Card */}
+          <GitHubConnectCard />
+
           {/* Provider selector */}
           <div className="flex gap-2">
             {(["github", "gitlab"] as const).map((p) => (
