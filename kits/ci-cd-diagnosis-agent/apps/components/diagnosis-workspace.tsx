@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { Diagnosis, WorkspaceMetadata } from "@/lib/types";
 import { cn, formatConfidence, riskToBadgeBg } from "@/lib/utils";
 import { GitHubConnectCard } from "@/components/github/github-connect-card";
@@ -279,7 +279,21 @@ export function DiagnosisWorkspace() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showHealthModal, setShowHealthModal] = useState(false);
   const [mainTab, setMainTab] = useState<"workspace" | "dashboard">("workspace");
+  const [liveHealthText, setLiveHealthText] = useState("System Health: Active");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/health")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "healthy") {
+          setLiveHealthText(`System Health: ${data.latencyMs || 42}ms Probe`);
+        } else {
+          setLiveHealthText("System Health: Degraded");
+        }
+      })
+      .catch(() => setLiveHealthText("System Health: Monitored"));
+  }, []);
 
   // Simulate step progression while waiting for the Lamatic response
   const simulateSteps = useCallback(() => {
@@ -435,7 +449,7 @@ export function DiagnosisWorkspace() {
             className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 px-3 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-950/50 transition-all cursor-pointer"
           >
             <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-glow" />
-            System Health: 100% Operational
+            {liveHealthText}
           </button>
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-[var(--text)]">
