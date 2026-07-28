@@ -72,9 +72,16 @@ A form to describe your trip, and a results page showing your day-by-day plan, t
 - A [Lamatic](https://lamatic.ai) account with this flow deployed
 - A Geoapify API key — used by the Places node inside the Lamatic flow
 
+### Installation
+
+```bash
+cd apps
+npm install
+```
+
 ### Environment variables
 
-Create a `.env.local` file :
+Create a `.env.local` file inside `apps/`:
 
 ```
 LAMATIC_API_KEY=your_lamatic_api_key
