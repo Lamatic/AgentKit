@@ -34,6 +34,7 @@ function harness(options: {
   misplacedSeparatorFirst?: boolean;
   plannerFails?: boolean;
   unsafeFirst?: boolean;
+  tuiPlan?: boolean;
 } = {}) {
   const calls: string[] = [];
   const createInputs: unknown[] = [];
@@ -62,6 +63,34 @@ function harness(options: {
       if (probeIndex < 4) return passingRun;
       return { ...passingRun, passed: false };
     },
+    prepareTuiWorkspace: async () => {
+      calls.push("prepare-tui");
+    },
+    resetTuiWorkspace: async () => {
+      calls.push("reset-tui");
+    },
+    runTuiUnsavedExitProbe: async (input: { saveBeforeQuit: boolean }) => {
+      calls.push(input.saveBeforeQuit ? "tui-control" : "tui-candidate");
+      const passed = !input.saveBeforeQuit;
+      return {
+        passed,
+        assertions: [{
+          kind: "file_unchanged_after_tui_exit" as const,
+          passed,
+          expected: "process exited and unsaved fixture stayed unchanged",
+          actual: passed
+            ? "process exited and fixture stayed unchanged"
+            : "process exited and fixture changed",
+        }],
+        observation: {
+          command: "bun run cli -- .isolate-reproduction.md",
+          exitCode: 0,
+          stdout: "",
+          stderr: "",
+          durationMs: 5,
+        },
+      };
+    },
     delete: async () => {
       calls.push("delete");
       return { deleted: true as const, sandboxId: "sandbox_1" };
@@ -70,6 +99,14 @@ function harness(options: {
   const planner = async () => {
     plannerCalls += 1;
     if (options.plannerFails) throw new Error("planner unavailable");
+    if (options.tuiPlan) {
+      return {
+        mode: "tui_unsaved_exit" as const,
+        hypothesis: "Ctrl+Q exits while the editor is dirty.",
+        setupCommand: "bun run build",
+        command: "bun run cli",
+      };
+    }
     if (options.misplacedSeparatorFirst && plannerCalls === 1) {
       return {
         hypothesis: "Case is normalized unexpectedly.",
@@ -200,6 +237,26 @@ describe("investigateIssue", () => {
       ),
     ).rejects.toThrow("formed this hypothesis");
     expect(calls).toContain("probe");
+    expect(calls.at(-1)).toBe("delete");
+  });
+
+  test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {
+    const { calls, runtime, planner } = harness({ tuiPlan: true });
+    const tuiIssue = {
+      ...issue,
+      title: "ctrl + Q exits without any save warning",
+      body: "When exiting the TUI, it exits instantly without the content saved or giving any warning.",
+    };
+
+    const result = await investigateIssue(
+      { issueUrl: tuiIssue.url },
+      { issueReader: { read: async () => tuiIssue }, runtime, planner },
+    );
+
+    expect(result.outcome).toBe("reproduced");
+    expect(calls).toContain("prepare-tui");
+    expect(calls.filter((call) => call === "tui-candidate")).toHaveLength(2);
+    expect(calls).toContain("tui-control");
     expect(calls.at(-1)).toBe("delete");
   });
 

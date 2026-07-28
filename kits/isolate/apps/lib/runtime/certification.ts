@@ -1,8 +1,10 @@
-import type { IssueEvidenceAssertion } from "./claim";
+import type { OutputIssueEvidenceAssertion } from "./claim";
 import { certifyEvidence } from "./evidence";
 import type { ProbeEvaluation, ProbeSpec } from "./probe";
 import { assertCertificationCommand } from "./policy";
 import type { InvestigationDeadline } from "../deadline";
+
+type OutputEvidenceAssertion = OutputIssueEvidenceAssertion;
 
 type ProbeRuntime = {
   resetWorkspace(input: {
@@ -15,6 +17,28 @@ type ProbeRuntime = {
     workspace: "workspace/repo";
     timeoutSeconds: number;
     probe: ProbeSpec;
+  }, deadline: InvestigationDeadline): Promise<ProbeEvaluation>;
+};
+
+type TuiProbeRuntime = {
+  prepareTuiWorkspace(input: {
+    sandboxId: string;
+    workspace: "workspace/repo";
+    timeoutSeconds: number;
+    setupCommand: string;
+  }, deadline: InvestigationDeadline): Promise<void>;
+  resetTuiWorkspace(input: {
+    sandboxId: string;
+    workspace: "workspace/repo";
+    timeoutSeconds: number;
+  }, deadline: InvestigationDeadline): Promise<void>;
+  runTuiUnsavedExitProbe(input: {
+    sandboxId: string;
+    workspace: "workspace/repo";
+    timeoutSeconds: number;
+    command: string;
+    quitKey: "ctrl_q";
+    saveBeforeQuit: boolean;
   }, deadline: InvestigationDeadline): Promise<ProbeEvaluation>;
 };
 
@@ -32,7 +56,7 @@ export function validateCertificationCommands({
 }: {
   candidateCommand: string;
   controlCommand: string;
-  assertion: IssueEvidenceAssertion;
+  assertion: OutputEvidenceAssertion;
 }) {
   assertCertificationCommand(candidateCommand, assertion.value);
   assertCertificationCommand(controlCommand, assertion.value);
@@ -56,7 +80,7 @@ export async function runCertification({
   deadline: InvestigationDeadline;
   candidateCommand: string;
   controlCommand: string;
-  assertion: IssueEvidenceAssertion;
+  assertion: OutputEvidenceAssertion;
 }) {
   validateCertificationCommands({ candidateCommand, controlCommand, assertion });
   const shared = { sandboxId, workspace };
@@ -100,6 +124,66 @@ export async function runCertification({
     probe: controlProbe,
   }, deadline);
 
+  return certifyEvidence({
+    candidateRuns: [firstCandidate, secondCandidate],
+    controlRun,
+  });
+}
+
+export async function runTuiUnsavedExitCertification({
+  runtime,
+  sandboxId,
+  workspace,
+  deadline,
+  setupCommand,
+  command,
+  quitKey,
+}: {
+  runtime: TuiProbeRuntime;
+  sandboxId: string;
+  workspace: "workspace/repo";
+  deadline: InvestigationDeadline;
+  setupCommand: string;
+  command: string;
+  quitKey: "ctrl_q";
+}) {
+  assertCertificationCommand(setupCommand);
+  assertCertificationCommand(command);
+  await runtime.prepareTuiWorkspace(
+    {
+      sandboxId,
+      workspace,
+      timeoutSeconds: deadline.probeTimeoutSeconds(40, 4),
+      setupCommand,
+    },
+    deadline,
+  );
+
+  const run = async (saveBeforeQuit: boolean, remainingProbes: number) => {
+    await runtime.resetTuiWorkspace(
+      {
+        sandboxId,
+        workspace,
+        timeoutSeconds: deadline.probeTimeoutSeconds(20, remainingProbes + 1),
+      },
+      deadline,
+    );
+    return runtime.runTuiUnsavedExitProbe(
+      {
+        sandboxId,
+        workspace,
+        timeoutSeconds: deadline.probeTimeoutSeconds(25, remainingProbes),
+        command,
+        quitKey,
+        saveBeforeQuit,
+      },
+      deadline,
+    );
+  };
+
+  const firstCandidate = await run(false, 3);
+  const secondCandidate = await run(false, 2);
+  const controlRun = await run(true, 1);
   return certifyEvidence({
     candidateRuns: [firstCandidate, secondCandidate],
     controlRun,

@@ -1,12 +1,23 @@
 import { z } from "zod";
 
-export const issueEvidenceAssertionSchema = z.discriminatedUnion("kind", [
+export const outputIssueEvidenceAssertionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("stdout_contains"), value: z.string().min(5).max(2_000) }),
   z.object({ kind: z.literal("stderr_contains"), value: z.string().min(5).max(2_000) }),
 ]);
 
+export const issueEvidenceAssertionSchema = z.discriminatedUnion("kind", [
+  ...outputIssueEvidenceAssertionSchema.options,
+  z.object({
+    kind: z.literal("tui_unsaved_exit"),
+    quitKey: z.literal("ctrl_q"),
+  }),
+]);
+
 export type IssueEvidenceAssertion = z.infer<
   typeof issueEvidenceAssertionSchema
+>;
+export type OutputIssueEvidenceAssertion = z.infer<
+  typeof outputIssueEvidenceAssertionSchema
 >;
 
 export class MissingIssueEvidenceContractError extends Error {
@@ -29,10 +40,47 @@ export function tryExtractIssueEvidenceAssertion(body: string) {
   }
 }
 
+export function tryDeriveIssueEvidenceAssertion(input: {
+  title: string;
+  body: string;
+}): IssueEvidenceAssertion | null {
+  const explicit = tryExtractIssueEvidenceAssertion(input.body);
+  if (explicit) return explicit;
+
+  const text = `${input.title}\n${input.body}`;
+  const namesTerminalSurface = /\b(?:cli|content|document|editor|file|terminal|tui)\b/i.test(
+    text,
+  );
+  const namesQuitShortcut = /\b(?:ctrl|control)\s*\+\s*q\b/i.test(text);
+  const namesExit = /\b(?:close[sd]?|exit(?:s|ed|ing)?|quit(?:s|ted|ting)?)\b/i.test(
+    text,
+  );
+  const namesUnsavedState =
+    /\b(?:discard(?:s|ed|ing)?|los(?:e|es|t|ing)|unsaved)\b/i.test(text) ||
+    /\b(?:not|never|without)\b.{0,48}\b(?:save|saved|saving|warning|prompt|confirm)/i.test(
+      text,
+    );
+
+  if (
+    namesTerminalSurface &&
+    namesQuitShortcut &&
+    namesExit &&
+    namesUnsavedState
+  ) {
+    return issueEvidenceAssertionSchema.parse({
+      kind: "tui_unsaved_exit",
+      quitKey: "ctrl_q",
+    });
+  }
+  return null;
+}
+
 const fieldPattern =
   /^Observed (stdout|stderr):\s*(?:`([^`\r\n]+)`|([^\r\n]+))\s*$/gim;
 
-export function extractIssueEvidenceAssertion(body: string): IssueEvidenceAssertion {
+export function extractIssueEvidenceAssertion(
+  body: string,
+): OutputIssueEvidenceAssertion {
   const matches = [...body.matchAll(fieldPattern)];
   if (matches.length !== 1) throw new MissingIssueEvidenceContractError();
 
@@ -40,7 +88,7 @@ export function extractIssueEvidenceAssertion(body: string): IssueEvidenceAssert
   const value = (inlineValue ?? plainValue ?? "").trim();
 
   if (!value) throw new MissingIssueEvidenceContractError();
-  const parsed = issueEvidenceAssertionSchema.safeParse({
+  const parsed = outputIssueEvidenceAssertionSchema.safeParse({
     kind: field.toLowerCase() === "stdout" ? "stdout_contains" : "stderr_contains",
     value,
   });

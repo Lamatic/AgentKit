@@ -21,6 +21,21 @@ function fakeDaytona(commandResults: Array<{ exitCode: number; result: string }>
         }
         return commandResults.shift() ?? { exitCode: 0, result: "" };
       },
+      createPty: async (...args: unknown[]) => {
+        calls.push({ name: "createPty", args });
+        return {
+          sendInput: async (value: string | Uint8Array) => {
+            calls.push({ name: "sendPtyInput", args: [value] });
+          },
+          wait: async () => ({ exitCode: 0 }),
+          kill: async () => {
+            calls.push({ name: "killPty", args: [] });
+          },
+          disconnect: async () => {
+            calls.push({ name: "disconnectPty", args: [] });
+          },
+        };
+      },
     },
   };
   const client = {
@@ -378,6 +393,138 @@ describe("DaytonaSandboxRuntime", () => {
     expect(
       probeCalls[1]?.args.at(-1),
     ).toBe(45);
+  });
+
+  test("drives a runtime-owned TUI fixture and distinguishes the save control", async () => {
+    const initial = "# Isolate reproduction\noriginal\n";
+    let saved = false;
+    const { client, calls, sandbox } = fakeDaytona();
+    sandbox.process.createPty = async (...args: unknown[]) => {
+      calls.push({ name: "createPty", args });
+      return {
+        sendInput: async (value: string | Uint8Array) => {
+          calls.push({ name: "sendPtyInput", args: [value] });
+          if (value instanceof Uint8Array && value[0] === 19) saved = true;
+        },
+        wait: async () => ({ exitCode: 0 }),
+        kill: async () => {
+          calls.push({ name: "killPty", args: [] });
+        },
+        disconnect: async () => {
+          calls.push({ name: "disconnectPty", args: [] });
+        },
+      };
+    };
+    sandbox.process.executeCommand = async (...args: unknown[]) => {
+      calls.push({ name: "executeCommand", args });
+      const command = String(args[0]);
+      if (command.startsWith("git clone ")) return { exitCode: 0, result: "" };
+      if (command.includes("readFileSync") && command.includes("base64")) {
+        return {
+          exitCode: 0,
+          result: Buffer.from(saved ? `${initial}edited\n` : initial).toString("base64"),
+        };
+      }
+      return { exitCode: 0, result: "" };
+    };
+    const runtime = new DaytonaSandboxRuntime(client, Date.now, undefined, async () => undefined);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
+
+    const candidate = await runtime.runTuiUnsavedExitProbe({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      timeoutSeconds: 20,
+      command: "bun run cli",
+      quitKey: "ctrl_q",
+      saveBeforeQuit: false,
+    });
+    expect(candidate.passed).toBe(true);
+
+    saved = false;
+    const control = await runtime.runTuiUnsavedExitProbe({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      timeoutSeconds: 20,
+      command: "bun run cli",
+      quitKey: "ctrl_q",
+      saveBeforeQuit: true,
+    });
+    expect(control.passed).toBe(false);
+    expect(
+      calls.filter(({ name }) => name === "sendPtyInput").map(({ args }) => args[0]),
+    ).toEqual([
+      expect.stringContaining("bun run cli -- .isolate-reproduction.md"),
+      new Uint8Array([27]),
+      "isolate-runtime-edit",
+      new Uint8Array([17]),
+      expect.stringContaining("bun run cli -- .isolate-reproduction.md"),
+      new Uint8Array([27]),
+      "isolate-runtime-edit",
+      new Uint8Array([19]),
+      new Uint8Array([17]),
+    ]);
+  });
+
+  test("snapshots one trusted TUI build and restores it before every scenario", async () => {
+    const { client, calls } = fakeDaytona();
+    const runtime = new DaytonaSandboxRuntime(client);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
+
+    await runtime.prepareTuiWorkspace({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      timeoutSeconds: 30,
+      setupCommand: "bun run build",
+    });
+    await runtime.resetTuiWorkspace({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      timeoutSeconds: 20,
+    });
+
+    const commands = calls
+      .filter(({ name }) => name === "executeCommand")
+      .map(({ args }) => String(args[0]));
+    expect(commands).toContain("bun run build");
+    expect(commands).toContainEqual(expect.stringContaining("tar --exclude='./.git'"));
+    expect(commands.at(-1)).toMatch(
+      /^git reset --hard HEAD && git clean -fdx && tar -xf '\/tmp\/isolate-tui-baseline-/,
+    );
+  });
+
+  test("records a warning-blocked quit as not reproduced instead of a provider error", async () => {
+    const initial = "# Isolate reproduction\noriginal\n";
+    const { client, sandbox } = fakeDaytona();
+    sandbox.process.createPty = async () => ({
+      sendInput: async () => undefined,
+      wait: async () => {
+        throw new Error("TUI stayed open");
+      },
+      kill: async () => undefined,
+      disconnect: async () => undefined,
+    });
+    sandbox.process.executeCommand = async (command: unknown) => {
+      if (String(command).startsWith("git clone ")) return { exitCode: 0, result: "" };
+      if (String(command).includes("readFileSync") && String(command).includes("base64")) {
+        return { exitCode: 0, result: Buffer.from(initial).toString("base64") };
+      }
+      return { exitCode: 0, result: "" };
+    };
+    const runtime = new DaytonaSandboxRuntime(client, Date.now, undefined, async () => undefined);
+    await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
+
+    const result = await runtime.runTuiUnsavedExitProbe({
+      sandboxId: "sandbox_123",
+      workspace: "workspace/repo",
+      timeoutSeconds: 20,
+      command: "bun run cli",
+      quitKey: "ctrl_q",
+      saveBeforeQuit: false,
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.observation.exitCode).toBe(124);
+    expect(result.assertions[0]?.actual).toBe("process did not exit cleanly");
   });
 
   test("rejects unsafe probes before accessing a sandbox", async () => {

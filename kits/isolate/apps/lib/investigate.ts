@@ -2,11 +2,12 @@ import { createDaytonaRuntime } from "./runtime/daytona";
 import {
   InvalidCertificationPlanError,
   runCertification,
+  runTuiUnsavedExitCertification,
   validateCertificationCommands,
 } from "./runtime/certification";
 import {
   MissingIssueEvidenceContractError,
-  tryExtractIssueEvidenceAssertion,
+  tryDeriveIssueEvidenceAssertion,
 } from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
 import { UnsafeCommandError } from "./runtime/policy";
@@ -31,7 +32,16 @@ export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
   dependencies: {
     issueReader?: Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
-    runtime?: Pick<ReturnType<typeof createDaytonaRuntime>, "create" | "runProbe" | "resetWorkspace" | "delete">;
+    runtime?: Pick<
+      ReturnType<typeof createDaytonaRuntime>,
+      | "create"
+      | "runProbe"
+      | "resetWorkspace"
+      | "prepareTuiWorkspace"
+      | "resetTuiWorkspace"
+      | "runTuiUnsavedExitProbe"
+      | "delete"
+    >;
     planner?: typeof requestLamaticPlan;
   } = {},
 ) {
@@ -43,7 +53,7 @@ export async function investigateIssue(
     (signal) => issueReader.read(input.issueUrl, { signal }),
     { maximumMilliseconds: 10_000 },
   );
-  const assertion = tryExtractIssueEvidenceAssertion(issue.body);
+  const assertion = tryDeriveIssueEvidenceAssertion(issue);
   const ref = input.ref?.trim();
   const sandbox = await runtime.create(
     {
@@ -69,7 +79,11 @@ export async function investigateIssue(
       throw new Error("Isolate could not inspect the repository at the requested ref.");
     }
 
-    const requestPlan = (policyFeedback = "") =>
+    const evidenceGuidance =
+      assertion?.kind === "tui_unsaved_exit"
+        ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned setupCommand that builds the application, and one repository-owned command that launches the TUI without a fixture argument. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
+        : "";
+    const requestPlan = (policyFeedback = evidenceGuidance) =>
       deadline.run(
         (signal) =>
           planner(
@@ -87,10 +101,37 @@ export async function investigateIssue(
     if (!assertion) {
       throw new MissingIssueEvidenceContractError(plan.hypothesis);
     }
+    if (assertion.kind === "tui_unsaved_exit") {
+      if (!("mode" in plan) || plan.mode !== "tui_unsaved_exit") {
+        plan = await requestPlan(
+          `${evidenceGuidance} The previous response used the wrong plan shape.`,
+        );
+      }
+      if (!("mode" in plan) || plan.mode !== "tui_unsaved_exit") {
+        throw new InvalidCertificationPlanError();
+      }
+      const certification = await runTuiUnsavedExitCertification({
+        runtime,
+        ...sandbox,
+        deadline,
+        setupCommand: plan.setupCommand,
+        command: plan.command,
+        quitKey: assertion.quitKey,
+      });
+      return {
+        issue,
+        ref: ref ?? "default",
+        hypothesis: plan.hypothesis,
+        setup: plan.setupCommand,
+        ...certification,
+      };
+    }
+    if ("mode" in plan) throw new InvalidCertificationPlanError();
+    const terminalPlan = plan;
     try {
       validateCertificationCommands({
-        candidateCommand: plan.candidateCommand,
-        controlCommand: plan.controlCommand,
+        candidateCommand: terminalPlan.candidateCommand,
+        controlCommand: terminalPlan.controlCommand,
         assertion,
       });
     } catch (error) {
@@ -101,6 +142,7 @@ export async function investigateIssue(
         throw error;
       }
       plan = await requestPlan(planRepairFeedback);
+      if ("mode" in plan) throw new InvalidCertificationPlanError();
       validateCertificationCommands({
         candidateCommand: plan.candidateCommand,
         controlCommand: plan.controlCommand,

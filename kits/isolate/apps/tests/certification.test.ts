@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { runCertification } from "../lib/runtime/certification";
+import {
+  runCertification,
+  runTuiUnsavedExitCertification,
+} from "../lib/runtime/certification";
 import { evaluateProbe, type ProbeSpec } from "../lib/runtime/probe";
 import { InvestigationDeadline } from "../lib/deadline";
 
@@ -71,5 +74,54 @@ describe("runCertification", () => {
         assertion: { kind: "stdout_contains", value: "Hello, isolatecli!" },
       }),
     ).rejects.toThrow("command policy");
+  });
+
+  test("certifies a TUI unsaved exit through runtime-owned repeat and save control", async () => {
+    const scenarios: Array<{ saveBeforeQuit: boolean }> = [];
+    const runtime = {
+      prepareTuiWorkspace: async () => undefined,
+      resetTuiWorkspace: async () => undefined,
+      runTuiUnsavedExitProbe: async ({ saveBeforeQuit }: { saveBeforeQuit: boolean }) => {
+        scenarios.push({ saveBeforeQuit });
+        const passed = !saveBeforeQuit;
+        return {
+          passed,
+          assertions: [
+            {
+              kind: "file_unchanged_after_tui_exit" as const,
+              passed,
+              expected: "process exited and unsaved fixture stayed unchanged",
+              actual: passed
+                ? "process exited and fixture stayed unchanged"
+                : "process exited and fixture changed",
+            },
+          ],
+          observation: {
+            command: "bun run cli -- .isolate-reproduction.md",
+            exitCode: 0,
+            stdout: "",
+            stderr: "",
+            durationMs: 5,
+          },
+        };
+      },
+    };
+
+    const result = await runTuiUnsavedExitCertification({
+      runtime,
+      sandboxId: "sandbox_1",
+      workspace: "workspace/repo",
+      deadline,
+      setupCommand: "bun run build",
+      command: "bun run cli",
+      quitKey: "ctrl_q",
+    });
+
+    expect(result.outcome).toBe("reproduced");
+    expect(scenarios).toEqual([
+      { saveBeforeQuit: false },
+      { saveBeforeQuit: false },
+      { saveBeforeQuit: true },
+    ]);
   });
 });

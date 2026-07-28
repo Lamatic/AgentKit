@@ -132,7 +132,7 @@ function isRepositoryRunnerSegment(segment: string) {
   });
 }
 
-export function assertCertificationCommand(command: string, signature: string) {
+export function assertCertificationCommand(command: string, signature = "") {
   assertSafeCommand(command);
   const segments = command.split(/\s*(?:&&|&)\s*/).filter(Boolean);
   if (
@@ -146,7 +146,7 @@ export function assertCertificationCommand(command: string, signature: string) {
       (segment) =>
         !isRepositoryRunnerSegment(segment) && !boundedDelaySegment.test(segment),
     ) ||
-    command.toLowerCase().includes(signature.toLowerCase())
+    (signature !== "" && command.toLowerCase().includes(signature.toLowerCase()))
   ) {
     throw new UnsafeCommandError();
   }

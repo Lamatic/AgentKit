@@ -57,12 +57,14 @@ flowchart LR
 3. Locked dependencies are installed without lifecycle scripts. Outbound
    networking is then blocked for probe execution.
 4. The runtime captures a bounded repository snapshot. The deployed Lamatic
-   flow returns a hypothesis, candidate command, and negative control.
+   flow returns either a terminal-output plan or a structured TUI plan.
 5. A strict command policy permits only repository-owned package scripts and
    rejects shell escapes, output fabrication, file edits, and external network
    access.
 6. Isolate resets mutable workspace state and runs the candidate twice, then
-   runs the negative control against the same issue-derived assertion.
+   runs the negative control against the same runtime-owned assertion. For an
+   unsaved-exit TUI report, Daytona drives the PTY and the control saves before
+   quitting; Lamatic never supplies the fixture, keystrokes, or assertion.
 7. The runtime records bounded, redacted evidence and deletes the sandbox.
 
 ## Evidence contract
@@ -84,7 +86,8 @@ Other outcomes remain explicit:
 | `blocked` | Isolate could not safely form or execute a machine-checkable investigation. |
 
 Each completed report preserves the tested repository and ref, hypothesis,
-commands, assertion results, exit codes, durations, stdout, and stderr.
+commands, assertion results, exit codes, durations, and bounded terminal
+evidence.
 
 ## Lamatic integration
 
@@ -164,9 +167,12 @@ contracts.
 
 - Public GitHub repositories only.
 - Initial support targets Node.js, TypeScript, Bun, and terminal/CLI issues.
-- Issues must contain one exact `Observed stdout:` or `Observed stderr:`
-  signature. Isolate may still form a hypothesis without one, but certification
-  remains blocked until the reporter confirms a machine-checkable signature.
+- Terminal-output reports can provide one exact `Observed stdout:` or `Observed
+  stderr:` signature. Isolate also recognizes the narrow TUI case where Ctrl+Q
+  exits with unsaved editor content: the runtime creates a fixture, drives a
+  real PTY, verifies the unchanged file twice, and rejects the same assertion
+  after a Ctrl+S save control. Other issue classes remain blocked until Isolate
+  has a runtime-owned evidence adapter for them.
 - Sandboxes are private, disposable, and limited to a 30-minute lifetime.
 - Each probe is bounded to 40 seconds within a 150-second aggregate
   investigation budget.
