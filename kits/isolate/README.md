@@ -20,8 +20,8 @@ bug reproduced. Only the deterministic evidence gate owns that outcome.
 ## Try it in two minutes
 
 1. Open the [live application](https://isolate-agentkit.vercel.app).
-2. Leave the prefilled evaluation issue in place and select **Begin
-   investigation**.
+2. Select **Use evaluation fixture**, or paste another supported public GitHub
+   issue URL, then select **Run isolation**.
 3. Wait while Isolate reads the issue, inspects the repository, asks Lamatic for
    a probe plan, and runs the plan in Daytona.
 4. Review the hypothesis, two candidate runs, negative control, exit codes,
