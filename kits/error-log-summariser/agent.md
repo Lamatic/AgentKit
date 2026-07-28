@@ -26,11 +26,12 @@ Because this kit is a template with one flow, all behaviour lives in a single pi
 - What it does
 
   1. `API Request` (`graphqlNode`) accepts the request and surfaces `log` and `context` to downstream nodes.
-  2. `Generate Text` (`LLMNode`) runs the redaction-and-handoff prompt chain:
+  2. `Validate Request` (`codeNode`) requires `log` to be a non-empty string and allows `context` to be omitted or supplied as a string.
+  3. `Generate Text` (`LLMNode`) runs the redaction-and-handoff prompt chain:
      - System prompt (`error-log-summariser_llmnode-262_system_0.md`) casts the model as a reliability engineer focused on safe sharing and fixes the output sections.
-     - User prompt (`error-log-summariser_llmnode-262_user_1.md`) injects `{{triggerNode_1.output.log}}` and optional `{{triggerNode_1.output.context}}`.
-  3. `Response Sanitizer` (`codeNode`) validates the generated handoff and fails closed if required sections are missing or secret/PII-like content remains.
-  4. `API Response` (`graphqlResponseNode`) maps `summary` from `{{codeNode_1.output.summary}}` and returns it.
+     - User prompt (`error-log-summariser_llmnode-262_user_1.md`) passes the validated request payload from `{{codeNode_validate_request.output.promptPayload}}`.
+  4. `Response Sanitizer` (`codeNode`) validates the generated handoff and fails closed if required sections are missing, empty, or secret/PII-like content remains.
+  5. `API Response` (`graphqlResponseNode`) maps `summary` from `{{codeNode_1.output.summary}}` and returns it.
 
 - When to use this flow
 
@@ -63,6 +64,7 @@ Single-flow template; no inter-flow chaining.
 | IntegrationType | Purpose | Required Credential / Config Key |
 |---|---|---|
 | GraphQL / API Trigger (`graphqlNode`) | Receives `log` + `context` and starts the flow | AgentKit runtime endpoint + GraphQL schema |
+| Request Validator (`codeNode`) | Enforces request shape before the LLM | No external credential |
 | LLM Provider (`LLMNode`) | Generates the handoff report | Provider API key (depends on `model-configs`) |
 
 ## Environment Setup
