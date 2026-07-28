@@ -39,6 +39,7 @@ export const references = {
     "error_log_summariser_llmnode_262_generative_model_name": "@model-configs/error-log-summariser_llmnode-262_generative-model-name.ts"
   },
   "scripts": {
+    "error_log_summariser_request_validator_code": "@scripts/error-log-summariser_request-validator_code.ts",
     "error_log_summariser_response_sanitizer_code": "@scripts/error-log-summariser_response-sanitizer_code.ts"
   }
 };
@@ -60,6 +61,21 @@ export const nodes = [
         "nodeName": "API Request",
         "responeType": "realtime",
         "advance_schema": "{\n  \"log\": \"string\",\n  \"context\": \"string\"\n}"
+      }
+    }
+  },
+  {
+    "id": "codeNode_validate_request",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/error-log-summariser_request-validator_code.ts",
+        "nodeName": "Validate Request"
       }
     }
   },
@@ -134,8 +150,16 @@ export const nodes = [
 
 export const edges = [
   {
-    "id": "triggerNode_1-LLMNode_262",
+    "id": "triggerNode_1-codeNode_validate_request",
     "source": "triggerNode_1",
+    "target": "codeNode_validate_request",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_validate_request-LLMNode_262",
+    "source": "codeNode_validate_request",
     "target": "LLMNode_262",
     "sourceHandle": "bottom",
     "targetHandle": "top",
