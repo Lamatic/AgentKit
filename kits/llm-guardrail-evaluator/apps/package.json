@@ -1,0 +1,9 @@
+{
+  "name": "llm-guardrail-evaluator-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'No frontend app provided for this agentic workflow' && exit 0"
+  },
+  "dependencies": {}
+}

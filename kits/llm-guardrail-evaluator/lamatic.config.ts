@@ -1,13 +1,13 @@
 export default {
   "name": "llm-guardrail-evaluator",
-  "description": "",
+  "description": "An enterprise-grade guardrail that evaluates LLM responses against strict system criteria.",
   "version": "1.0.0",
   "type": "kit",
   "author": {
     "name": "Sheikh Rahul",
     "email": "sheikhrahul8581@gmail.com"
   },
-  "tags": [],
+  "tags": ["guardrail", "evaluation", "json"],
   "steps": [
     {
       "id": "llm-guardrail-evaluator",
@@ -16,6 +16,6 @@ export default {
   ],
   "links": {
     "deploy": "",
-    "github": ""
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/llm-guardrail-evaluator"
   }
 };
