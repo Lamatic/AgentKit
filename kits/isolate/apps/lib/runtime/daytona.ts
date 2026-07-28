@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { z } from "zod";
 
 import { evaluateProbe, probeSpecSchema } from "./probe";
-import { assertSafeCommand } from "./policy";
+import { assertCertificationCommand, assertSafeCommand } from "./policy";
 import { InvestigationDeadline } from "../deadline";
 
 const publicGitHubRepositorySchema = z
@@ -28,6 +28,12 @@ const runProbeInputSchema = z.object({
 
 type ExecuteResult = { exitCode: number; result: string };
 type RetainBackgroundTask = (task: Promise<unknown>) => void;
+type PtyLike = {
+  sendInput(data: string | Uint8Array): Promise<void>;
+  wait(): Promise<{ exitCode?: number; error?: string }>;
+  kill(): Promise<void>;
+  disconnect(): Promise<void>;
+};
 
 interface SandboxLike {
   id: string;
@@ -38,6 +44,14 @@ interface SandboxLike {
       env?: Record<string, string>,
       timeout?: number,
     ): Promise<ExecuteResult>;
+    createPty(options: {
+      id: string;
+      cwd?: string;
+      envs?: Record<string, string>;
+      cols?: number;
+      rows?: number;
+      onData(data: Uint8Array): void | Promise<void>;
+    }): Promise<PtyLike>;
   };
 }
 
@@ -53,6 +67,9 @@ interface DaytonaLike {
 }
 
 const workspace = "workspace/repo" as const;
+const tuiFixturePath = ".isolate-reproduction.md";
+const tuiFixtureInitialContent = "# Isolate reproduction\noriginal\n";
+const tuiEditText = "isolate-runtime-edit";
 const maximumOutputLength = 65_536;
 const dependencyInstallCommand = [
   "if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile --ignore-scripts",
@@ -113,6 +130,7 @@ async function updateNetworkPolicy(
 
 export class DaytonaSandboxRuntime {
   private readonly sandboxes = new Map<string, SandboxLike>();
+  private readonly tuiBaselines = new Map<string, string>();
 
   constructor(
     private readonly client: DaytonaLike,
@@ -120,6 +138,8 @@ export class DaytonaSandboxRuntime {
     private readonly retainBackgroundTask: RetainBackgroundTask = (task) => {
       void task;
     },
+    private readonly pause: (milliseconds: number) => Promise<void> = (milliseconds) =>
+      new Promise((resolve) => setTimeout(resolve, milliseconds)),
   ) {}
 
   private sandbox(sandboxId: string) {
@@ -394,6 +414,214 @@ export class DaytonaSandboxRuntime {
     }
   }
 
+  async prepareTuiWorkspace(
+    input: {
+      sandboxId: string;
+      workspace: typeof workspace;
+      timeoutSeconds: number;
+      setupCommand: string;
+    },
+    deadline = new InvestigationDeadline(),
+  ) {
+    assertCertificationCommand(input.setupCommand);
+    await this.resetWorkspace(
+      {
+        sandboxId: input.sandboxId,
+        workspace: input.workspace,
+        timeoutSeconds: input.timeoutSeconds,
+      },
+      deadline,
+    );
+    const sandbox = this.sandbox(input.sandboxId);
+    const setup = await this.execute(
+      sandbox,
+      input.setupCommand,
+      input.timeoutSeconds,
+      deadline,
+    );
+    if (setup.exitCode !== 0) {
+      throw new Error("The repository-owned TUI setup command failed.");
+    }
+
+    const archivePath = `/tmp/isolate-tui-baseline-${crypto.randomUUID()}.tar`;
+    const archived = await this.execute(
+      sandbox,
+      `tar --exclude='./.git' -cf '${archivePath}' .`,
+      input.timeoutSeconds,
+      deadline,
+    );
+    if (archived.exitCode !== 0) {
+      throw new Error("The prepared TUI workspace could not be snapshotted.");
+    }
+    this.tuiBaselines.set(input.sandboxId, archivePath);
+  }
+
+  async resetTuiWorkspace(
+    input: {
+      sandboxId: string;
+      workspace: typeof workspace;
+      timeoutSeconds: number;
+    },
+    deadline = new InvestigationDeadline(),
+  ) {
+    const sandbox = this.sandbox(input.sandboxId);
+    const archivePath = this.tuiBaselines.get(input.sandboxId);
+    if (!archivePath) throw new Error("The TUI workspace baseline is unavailable.");
+    const reset = await this.execute(
+      sandbox,
+      `git reset --hard HEAD && git clean -fdx && tar -xf '${archivePath}'`,
+      input.timeoutSeconds,
+      deadline,
+    );
+    if (reset.exitCode !== 0) {
+      throw new Error("The prepared TUI workspace could not be restored.");
+    }
+  }
+
+  async runTuiUnsavedExitProbe(
+    input: {
+      sandboxId: string;
+      workspace: typeof workspace;
+      timeoutSeconds: number;
+      command: string;
+      quitKey: "ctrl_q";
+      saveBeforeQuit: boolean;
+    },
+    deadline = new InvestigationDeadline(),
+  ) {
+    const parsed = z
+      .object({
+        sandboxId: z.string().min(1),
+        workspace: z.literal(workspace),
+        timeoutSeconds: z.number().int().min(1).max(40),
+        command: z.string().trim().min(1).max(4_000),
+        quitKey: z.literal("ctrl_q"),
+        saveBeforeQuit: z.boolean(),
+      })
+      .parse(input);
+    assertCertificationCommand(parsed.command);
+    const sandbox = this.sandbox(parsed.sandboxId);
+    const encodedFixture = Buffer.from(tuiFixtureInitialContent).toString("base64");
+    const fixture = await this.execute(
+      sandbox,
+      `printf '%s' '${encodedFixture}' | base64 -d > '${tuiFixturePath}'`,
+      5,
+      deadline,
+    );
+    if (fixture.exitCode !== 0) throw new Error("The TUI fixture could not be created.");
+
+    const outputChunks: Uint8Array[] = [];
+    let outputLength = 0;
+    const ptyOperation = sandbox.process.createPty({
+      id: `isolate-${crypto.randomUUID()}`,
+      cwd: workspace,
+      envs: { TERM: "xterm-256color" },
+      cols: 120,
+      rows: 30,
+      onData: (data) => {
+        if (outputLength >= maximumOutputLength) return;
+        const kept = data.slice(0, maximumOutputLength - outputLength);
+        outputChunks.push(kept);
+        outputLength += kept.length;
+      },
+    });
+    let pty: PtyLike | undefined;
+    const startedAt = this.now();
+    try {
+      try {
+        pty = await deadline.run(() => ptyOperation, {
+          maximumMilliseconds: 10_000,
+        });
+      } catch (error) {
+        this.retainBackgroundTask(
+          ptyOperation.then(async (latePty) => {
+            await latePty.kill().catch(() => undefined);
+            await latePty.disconnect().catch(() => undefined);
+          }),
+        );
+        throw error;
+      }
+      const send = (data: string | Uint8Array) =>
+        deadline.run(() => pty!.sendInput(data), { maximumMilliseconds: 3_000 });
+      await send(`${parsed.command} -- ${tuiFixturePath}; exit\n`);
+      await this.pause(1_200);
+      await send(new Uint8Array([27]));
+      await this.pause(100);
+      await send(tuiEditText);
+      await this.pause(100);
+      if (parsed.saveBeforeQuit) {
+        await send(new Uint8Array([19]));
+        await this.pause(200);
+      }
+      await send(new Uint8Array([17]));
+
+      let result: { exitCode?: number; error?: string };
+      try {
+        result = await deadline.run(() => pty!.wait(), {
+          maximumMilliseconds: Math.min(5_000, parsed.timeoutSeconds * 1_000),
+        });
+      } catch {
+        await pty.kill().catch(() => undefined);
+        result = {
+          exitCode: 124,
+          error: "The TUI did not exit after the quit input.",
+        };
+      }
+
+      const collector = [
+        "const fs=require('fs')",
+        `process.stdout.write(fs.readFileSync('${tuiFixturePath}').toString('base64'))`,
+      ].join(";");
+      const collected = await this.execute(
+        sandbox,
+        `node -e \"${collector}\"`,
+        5,
+        deadline,
+      );
+      if (collected.exitCode !== 0) {
+        throw new Error("The TUI fixture result could not be collected.");
+      }
+      const fileContent = Buffer.from(collected.result.trim(), "base64").toString();
+      const fileUnchanged = fileContent === tuiFixtureInitialContent;
+      const processExited = result.exitCode === 0;
+      const passed = processExited && fileUnchanged;
+      const terminalOutput = Buffer.concat(outputChunks.map((chunk) => Buffer.from(chunk))).toString();
+      return {
+        passed,
+        assertions: [
+          {
+            kind: "file_unchanged_after_tui_exit" as const,
+            passed,
+            expected: "process exited and unsaved fixture stayed unchanged",
+            actual: processExited
+              ? fileUnchanged
+                ? "process exited and fixture stayed unchanged"
+                : "process exited and fixture changed"
+              : "process did not exit cleanly",
+          },
+        ],
+        observation: {
+          command: `${parsed.command} -- ${tuiFixturePath}`,
+          exitCode: result.exitCode ?? 1,
+          stdout: sanitizeOutput(terminalOutput),
+          stderr: sanitizeOutput(result.error ?? ""),
+          durationMs: this.now() - startedAt,
+        },
+      };
+    } finally {
+      if (pty) await pty.disconnect().catch((error) => {
+        console.error("Isolate TUI PTY disconnect failed", error);
+      });
+      await this.execute(
+        sandbox,
+        `rm -f '${tuiFixturePath}'`,
+        3,
+        deadline,
+        true,
+      );
+    }
+  }
+
   async resetWorkspace(input: {
     sandboxId: string;
     workspace: typeof workspace;
@@ -448,6 +676,7 @@ export class DaytonaSandboxRuntime {
       throw new Error("The sandbox is not active in this investigation.");
     }
     await this.deleteSandbox(sandbox, deadline);
+    this.tuiBaselines.delete(sandboxId);
     return { deleted: true as const, sandboxId };
   }
 }

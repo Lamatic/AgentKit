@@ -20,6 +20,22 @@ describe("reproduction plan boundary", () => {
     );
   });
 
+  test("parses a structured TUI unsaved-exit plan without model-authored assertions", () => {
+    expect(
+      parseReproductionPlan({
+        mode: "tui_unsaved_exit",
+        hypothesis: "Ctrl+Q exits while the editor is dirty.",
+        setupCommand: "bun run build",
+        command: "bun run cli",
+      }),
+    ).toEqual({
+      mode: "tui_unsaved_exit",
+      hypothesis: "Ctrl+Q exits while the editor is dirty.",
+      setupCommand: "bun run build",
+      command: "bun run cli",
+    });
+  });
+
   test("rejects commands that expose credentials or mutate remote state", () => {
     expect(() => assertSafeCommand("env")).toThrow("command policy");
     expect(() => assertSafeCommand("git push origin main")).toThrow("command policy");

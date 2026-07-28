@@ -1,10 +1,24 @@
 import { z } from "zod";
 
-export const reproductionPlanSchema = z.object({
+const terminalReproductionPlanSchema = z.object({
   hypothesis: z.string().trim().min(1).max(2_000),
   candidateCommand: z.string().trim().min(1).max(4_000),
   controlCommand: z.string().trim().min(1).max(4_000),
 });
+
+const tuiUnsavedExitPlanSchema = z.object({
+  mode: z.literal("tui_unsaved_exit"),
+  hypothesis: z.string().trim().min(1).max(2_000),
+  setupCommand: z.string().trim().min(1).max(4_000),
+  command: z.string().trim().min(1).max(4_000),
+});
+
+export const reproductionPlanSchema = z.union([
+  tuiUnsavedExitPlanSchema,
+  terminalReproductionPlanSchema,
+]);
+
+export type ReproductionPlan = z.infer<typeof reproductionPlanSchema>;
 
 export function parseReproductionPlan(value: unknown) {
   if (typeof value === "object" && value !== null) {

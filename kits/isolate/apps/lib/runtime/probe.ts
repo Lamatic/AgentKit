@@ -26,7 +26,12 @@ export const commandObservationSchema = z.object({
 });
 
 export const assertionEvaluationSchema = z.object({
-  kind: z.enum(["exit_code", "stdout_contains", "stderr_contains"]),
+  kind: z.enum([
+    "exit_code",
+    "stdout_contains",
+    "stderr_contains",
+    "file_unchanged_after_tui_exit",
+  ]),
   passed: z.boolean(),
   expected: z.union([z.string(), z.number()]),
   actual: z.union([z.string(), z.number()]),
