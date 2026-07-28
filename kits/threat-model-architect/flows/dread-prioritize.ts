@@ -10,7 +10,17 @@ export const inputs = { InstructorLLMNode_161: [{
   name: "generativeModelName", label: "Generative Model Name", type: "model", mode: "instructor", description: "Select a text model for DREAD scoring.",
   modelType: "generator/text", required: true, isPrivate: true, defaultValue: [{ configName: "configA", type: "generator/text", provider_name: "", credential_name: "", params: {} }], typeOptions: { loadOptionsMethod: "listModels" },
 }] };
-export const references = { prompts: { system: "@prompts/dread-prioritize_system.md", user: "@prompts/dread-prioritize_user.md" }, constitutions: { default: "@constitutions/default.md" } };
+export const references = {
+  prompts: {
+    system: "@prompts/dread-prioritize_system.md",
+    user: "@prompts/dread-prioritize_user.md",
+  },
+  modelConfigs: {
+    generativeModelName:
+      "@model-configs/dread-prioritize_instructor-llmnode-161_generative-model-name.ts",
+  },
+  constitutions: { default: "@constitutions/default.md" },
+};
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -62,7 +72,7 @@ export const nodes = [
         "messages": "[]",
         "nodeName": "Generate JSON",
         "attachments": "",
-        "generativeModelName": ""
+        "generativeModelName": "@model-configs/dread-prioritize_instructor-llmnode-161_generative-model-name.ts"
       }
     },
     "type": "dynamicNode",

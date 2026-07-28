@@ -33,6 +33,10 @@ export const references = {
     system: "@prompts/decompose-architecture_system.md",
     user: "@prompts/decompose-architecture_user.md",
   },
+  modelConfigs: {
+    generativeModelName:
+      "@model-configs/decompose-architecture_instructor-llmnode-158_generative-model-name.ts",
+  },
   constitutions: { default: "@constitutions/default.md" },
 };
 
@@ -87,7 +91,7 @@ export const nodes = [
         "messages": "[]",
         "nodeName": "Generate JSON",
         "attachments": "",
-        "generativeModelName": ""
+        "generativeModelName": "@model-configs/decompose-architecture_instructor-llmnode-158_generative-model-name.ts"
       }
     },
     "type": "dynamicNode",
