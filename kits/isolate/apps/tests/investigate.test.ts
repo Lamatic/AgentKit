@@ -146,7 +146,7 @@ function harness(options: {
 
 describe("investigateIssue", () => {
   test("runs a Lamatic-authored plan through the deterministic evidence gate", async () => {
-    const { calls, createInputs, runtime, planner } = harness();
+    const { calls, createInputs, probeCommands, runtime, planner } = harness();
     const result = await investigateIssue(
       { issueUrl: issue.url },
       { issueReader: { read: async () => issue }, runtime, planner },
@@ -164,6 +164,8 @@ describe("investigateIssue", () => {
       { repositoryUrl: "https://github.com/acme/cli" },
     ]);
     expect(result.ref).toBe("default");
+    expect(probeCommands[0]).toContain("-name 'package.json'");
+    expect(probeCommands[0]).toContain("-not -path '*/node_modules/*'");
   });
 
   test("deletes the sandbox when Lamatic planning fails", async () => {

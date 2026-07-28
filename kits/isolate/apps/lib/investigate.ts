@@ -19,6 +19,8 @@ const repositorySnapshotCommand = [
   "find . -maxdepth 3 -type f -not -path './.git/*' | sort | head -200",
   "printf '%s\\n' '--- package.json ---'",
   "test ! -f package.json || sed -n '1,240p' package.json",
+  "printf '%s\\n' '--- workspace package manifests ---'",
+  "find . -mindepth 2 -maxdepth 4 -name 'package.json' -not -path '*/node_modules/*' -not -path './.git/*' | sort | head -20 | while IFS= read -r file; do printf '\\n--- %s ---\\n' \"$file\"; sed -n '1,240p' \"$file\"; done",
   "printf '%s\\n' '--- README ---'",
   "test ! -f README.md || sed -n '1,320p' README.md",
   "printf '%s\\n' '--- relevant source and tests ---'",
@@ -26,7 +28,7 @@ const repositorySnapshotCommand = [
 ].join("; ");
 
 const planRepairFeedback =
-  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, runner-level options, or paths outside the repository. For a run script, put -- immediately after the script name when separating script arguments: bun run <script> -- <arguments>. Never put -- after a script argument.";
+  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, or paths outside the repository. Runner-level options are forbidden except the structured relative Bun workspace form: bun run --cwd <relative-package-directory> <script>. For script arguments, put -- immediately after the script name. Never put -- after a script argument.";
 
 export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
@@ -81,7 +83,7 @@ export async function investigateIssue(
 
     const evidenceGuidance =
       assertion?.kind === "tui_unsaved_exit"
-        ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned setupCommand that builds the application, and one repository-owned command that launches the TUI without a fixture argument. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
+        ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned build script as setupCommand, and one repository-owned command that launches the TUI without a fixture argument. Dependencies are already installed; setupCommand must build, never install. Inspect workspace package manifests and use the structured relative Bun workspace form when a root wrapper cannot forward the runtime-injected file argument. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
         : "";
     const requestPlan = (policyFeedback = evidenceGuidance) =>
       deadline.run(
