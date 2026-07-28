@@ -13,7 +13,17 @@ export const inputs = {
     modelType: "generator/text", required: true, isPrivate: true, defaultValue: [{ configName: "configA", type: "generator/text", provider_name: "", credential_name: "", params: {} }], typeOptions: { loadOptionsMethod: "listModels" },
   }],
 };
-export const references = { prompts: { system: "@prompts/threat-research_system.md", user: "@prompts/threat-research_user.md" }, constitutions: { default: "@constitutions/default.md" } };
+export const references = {
+  prompts: {
+    system: "@prompts/threat-research_system.md",
+    user: "@prompts/threat-research_user.md",
+  },
+  modelConfigs: {
+    generativeModelName:
+      "@model-configs/threat-research_instructor-llmnode-160_generative-model-name.ts",
+  },
+  constitutions: { default: "@constitutions/default.md" },
+};
 export const nodes = [
   {
     "id": "triggerNode_1",
@@ -65,7 +75,7 @@ export const nodes = [
         "messages": "[]",
         "nodeName": "Generate JSON",
         "attachments": "",
-        "generativeModelName": ""
+        "generativeModelName": "@model-configs/threat-research_instructor-llmnode-160_generative-model-name.ts"
       }
     },
     "type": "dynamicNode",

@@ -48,6 +48,10 @@ export const references = {
     system: "@prompts/intake_system.md",
     user: "@prompts/intake_user.md",
   },
+  modelConfigs: {
+    generativeModelName:
+      "@model-configs/intake_instructor-llmnode-414_generative-model-name.ts",
+  },
   constitutions: {
     default: "@constitutions/default.md",
   },
@@ -104,7 +108,7 @@ export const nodes = [
         "messages": "[]",
         "nodeName": "Generate JSON",
         "attachments": "",
-        "generativeModelName": ""
+        "generativeModelName": "@model-configs/intake_instructor-llmnode-414_generative-model-name.ts"
       }
     },
     "type": "dynamicNode",

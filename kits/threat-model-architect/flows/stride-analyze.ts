@@ -20,6 +20,10 @@ export const inputs = {
 
 export const references = {
   prompts: { system: "@prompts/stride-analyze_system.md", user: "@prompts/stride-analyze_user.md" },
+  modelConfigs: {
+    generativeModelName:
+      "@model-configs/stride-analyze_instructor-llmnode-159_generative-model-name.ts",
+  },
   constitutions: { default: "@constitutions/default.md" },
 };
 
@@ -74,7 +78,7 @@ export const nodes = [
         "messages": "[]",
         "nodeName": "Generate JSON",
         "attachments": "",
-        "generativeModelName": ""
+        "generativeModelName": "@model-configs/stride-analyze_instructor-llmnode-159_generative-model-name.ts"
       }
     },
     "type": "dynamicNode",
