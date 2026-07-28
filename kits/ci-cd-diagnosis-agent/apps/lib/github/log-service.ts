@@ -29,10 +29,16 @@ export async function fetchRunLogsZipBuffer(
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return { error: "Workflow logs not found or log retention expired (logs are kept 90 days default).", status: 404 };
+      if (response.status === 404 || response.status === 410) {
+        return {
+          error: "Workflow logs for this run have expired or been deleted by GitHub (GitHub retains logs for 90 days maximum). Please select a recent failed run or paste the log manually.",
+          status: response.status,
+        };
       }
-      return { error: `GitHub log download failed: ${response.statusText}`, status: response.status };
+      return {
+        error: `GitHub log download failed (${response.status}): Workflow logs may have expired or been purged.`,
+        status: response.status,
+      };
     }
 
     const zipBuffer = await response.arrayBuffer();
