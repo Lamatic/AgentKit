@@ -2,32 +2,40 @@
 
 ## Direction
 
-The interface behaves like a forensic evidence docket: inputs, investigative hypothesis, observed runs, and certification remain visibly separate. It refuses the generic dashboard of interchangeable cards.
+The interface is a narrow clinical evidence report. Accession (issue intake)
+comes first; the runtime diagnosis owns the strongest field; the agent
+hypothesis stays preliminary wash. It refuses chat shells, dashboards, cream
+dockets, and customs-inspection theater.
 
 ## Surface
 
-- Daylight paper ground (`#f3f1ea`) with white evidence sheets and deep ink (`#17211b`).
-- Navy (`#173b57`) marks interactive controls and agent-authored material.
-- Evidence green (`#176b45`) is reserved for deterministic passes and certification.
-- Amber (`#9a5a12`) marks blocked or incomplete evidence; red (`#a13a32`) marks failures.
-- One-pixel rules, square document tabs, and restrained 12px radii establish hierarchy without decorative glass or glow.
+- Cool lab page (`#eef1f4`) with a white paper column (~44rem) and near-black ink.
+- Agent material uses steel blue wash (`#edf3f8` / `#2a4a66`) and never the
+  confirmation teal.
+- Confirmed reproduction uses teal (`#0b5c45`); inconclusive uses amber
+  (`#8a4e12`); failures use red marks (`#9b2f2a`).
+- Soft 10–12px radii on controls; one paper border; no glass, glow, or hatch
+  fill decorations.
 
 ## Typography
 
-- UI and long-form evidence use a native sans-serif stack for sustained readability.
-- Commands, output, hashes, and measured values use the native monospace stack.
-- Headings are compact, heavy, and sentence case; tracked uppercase appears only on docket metadata.
+- UI and report prose use Figtree.
+- Commands, exit codes, durations, and terminal panes use JetBrains Mono.
+- Headings are sentence case. No uppercase tracked eyebrows.
 
 ## Composition
 
-- The first viewport pairs a narrow issue intake ledger with a larger evidence workspace.
-- Investigation stages form one vertical record rather than separate statistic cards.
-- Certification owns the strongest visual field and never shares styling with AI hypotheses.
-- On narrow screens the intake precedes the evidence record; no evidence is hidden behind horizontal scrolling except terminal output.
+- First viewport: empty issue field (fixture is opt-in), optional ref, primary
+  run control, then a short primer on the evidence gate.
+- Loading states the wait honestly — no fake stage advancement.
+- Results lead with the diagnosis block, then hypothesis, criteria, findings,
+  and export.
+- Narrow screens keep the single column; stdout/stderr stack.
 
 ## Interaction and state
 
-- One primary action begins isolation; disabled and loading states name the current operation.
-- Focus rings are high contrast and always visible.
-- Status uses icon, text, and color together.
-- Evidence sections disclose progressively but commands and final outcomes remain visible.
+- Primary action disabled until a URL is present.
+- Evaluation fixture fills the field only when the user asks.
+- Focus rings are high contrast.
+- Status uses glyph, text, and color together.
+- Diagnosis uses one short ink-in motion; reduced-motion disables it.

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useId, useState } from "react";
 
 import {
   githubIssueUrlPattern,
@@ -31,8 +31,17 @@ type Investigation = {
   report: { format: "markdown"; content: string };
 };
 
-const exampleIssue =
+/** Public evaluation fixture — offered, never prefilled. */
+const EVALUATION_ISSUE =
   "https://github.com/Dhruv2mars/isolate-cli-testbed/issues/1";
+
+const EXPECTED_STEPS = [
+  "Read the public issue",
+  "Open a disposable Daytona sandbox",
+  "Ask Lamatic for a probe plan",
+  "Run the candidate twice and a negative control once",
+  "Delete the sandbox",
+] as const;
 
 function download(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -43,56 +52,63 @@ function download(name: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function OutcomeMark({
-  passed,
-  label = passed ? "Passed: " : "Failed: ",
+function StatusGlyph({
+  ok,
+  label,
 }: {
-  passed: boolean;
-  label?: string;
+  ok: boolean;
+  label: string;
 }) {
   return (
-    <span className={passed ? "mark mark-pass" : "mark mark-fail"}>
-      <span aria-hidden>{passed ? "✓" : "×"}</span>
+    <span className={`glyph ${ok ? "glyph-ok" : "glyph-bad"}`} title={label}>
+      <span aria-hidden>{ok ? "✓" : "×"}</span>
       <span className="visually-hidden">{label}</span>
     </span>
   );
 }
 
-function EvidenceRun({
-  label,
+function Finding({
+  title,
   run,
-  expected = "pass",
+  expect,
 }: {
-  label: string;
+  title: string;
   run: ProbeRun;
-  expected?: "pass" | "reject";
+  expect: "pass" | "reject";
 }) {
-  const supportsGate = expected === "reject" ? !run.passed : run.passed;
-  const statusLabel = expected === "reject"
-    ? supportsGate
-      ? "Rejected as expected: "
-      : "Unexpectedly matched: "
-    : undefined;
+  const supports = expect === "reject" ? !run.passed : run.passed;
+  const label =
+    expect === "reject"
+      ? supports
+        ? "Rejected as expected: "
+        : "Unexpectedly matched: "
+      : supports
+        ? "Passed: "
+        : "Failed: ";
+
   return (
-    <details className="evidence-run">
+    <details className="finding" open>
       <summary>
-        <OutcomeMark passed={supportsGate} label={statusLabel} />
-        <span>{label}</span>
-        <code>exit {run.observation.exitCode}</code>
-        <span className="duration">{run.observation.durationMs} ms</span>
+        <StatusGlyph ok={supports} label={label} />
+        <span className="finding-title">{title}</span>
+        <span className="finding-meta">
+          exit {run.observation.exitCode}
+          <span aria-hidden> · </span>
+          {run.observation.durationMs} ms
+        </span>
       </summary>
-      <div className="run-body">
-        <p className="command-label">Command</p>
+      <div className="finding-body">
+        <p className="micro">Command</p>
         <pre>{run.observation.command}</pre>
-        <div className="output-grid">
-          <section>
-            <h4>stdout</h4>
+        <div className="io">
+          <div>
+            <p className="micro">stdout</p>
             <pre>{run.observation.stdout || "(empty)"}</pre>
-          </section>
-          <section>
-            <h4>stderr</h4>
+          </div>
+          <div>
+            <p className="micro">stderr</p>
             <pre>{run.observation.stderr || "(empty)"}</pre>
-          </section>
+          </div>
         </div>
       </div>
     </details>
@@ -100,7 +116,8 @@ function EvidenceRun({
 }
 
 export function InvestigationWorkbench() {
-  const [issueUrl, setIssueUrl] = useState(exampleIssue);
+  const formId = useId();
+  const [issueUrl, setIssueUrl] = useState("");
   const [ref, setRef] = useState("");
   const [result, setResult] = useState<Investigation | null>(null);
   const [error, setError] = useState("");
@@ -118,182 +135,302 @@ export function InvestigationWorkbench() {
         body: JSON.stringify(investigationRequest(issueUrl, ref)),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Investigation failed.");
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Investigation failed.");
+      }
       setResult(payload);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Investigation failed.");
+      setError(
+        caught instanceof Error ? caught.message : "Investigation failed.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
+  function useEvaluationIssue() {
+    setIssueUrl(EVALUATION_ISSUE);
+    setError("");
+    window.requestAnimationFrame(() => {
+      document.getElementById(`${formId}-issue`)?.focus();
+    });
+  }
+
   return (
-    <main>
-      <header className="masthead">
-        <a className="wordmark" href="#top" aria-label="Isolate home">
-          <span className="wordmark-seal">I</span>
-          <span>Isolate</span>
+    <div className="page">
+      <header className="top">
+        <a className="brand" href="#report" aria-label="Isolate home">
+          Isolate
         </a>
-        <p>AI investigates. Evidence decides.</p>
-        <a className="source-link" href="https://github.com/Lamatic/AgentKit/pull/291">
-          Source ↗
+        <p className="brand-line">The model investigates. The runtime certifies.</p>
+        <a
+          className="top-link"
+          href="https://github.com/Lamatic/AgentKit/pull/291"
+        >
+          Kit source
         </a>
       </header>
 
-      <div className="workspace" id="top">
-        <aside className="intake">
-          <p className="docket-label">New evidence docket</p>
-          <h1>Reproduce the issue, not the guess.</h1>
-          <p className="lede">
-            Give Isolate a vague public GitHub issue. Lamatic plans the probe;
-            a disposable sandbox executes it; deterministic assertions certify
-            the result.
+      <main className="report" id="report">
+        <section className="accession" aria-labelledby="accession-title">
+          <h1 id="accession-title">Reproduce a public GitHub issue</h1>
+          <p className="lead">
+            Paste an issue URL. Isolate plans a probe, runs it in a disposable
+            sandbox, and returns a certified outcome — never a model self-grade.
           </p>
 
-          <form onSubmit={submit}>
-            <label htmlFor="issue">GitHub issue URL</label>
-            <input
-              id="issue"
-              type="url"
-              required
-              pattern={githubIssueUrlPattern}
-              title="Use a public GitHub issue URL such as https://github.com/owner/repo/issues/123."
-              value={issueUrl}
-              onChange={(event) => setIssueUrl(event.target.value)}
-              placeholder="https://github.com/owner/repo/issues/123"
-              disabled={loading}
-            />
-            <label htmlFor="ref">Repository ref</label>
-            <input
-              id="ref"
-              value={ref}
-              onChange={(event) => setRef(event.target.value)}
-              placeholder="Default branch or full commit SHA"
-              disabled={loading}
-            />
-            <button className="primary" disabled={loading} type="submit">
-              {loading ? "Isolating repository…" : "Begin investigation"}
+          <form className="accession-form" onSubmit={submit}>
+            <div className="field">
+              <label htmlFor={`${formId}-issue`}>GitHub issue URL</label>
+              <input
+                id={`${formId}-issue`}
+                type="url"
+                required
+                pattern={githubIssueUrlPattern}
+                title="Use a public GitHub issue URL such as https://github.com/owner/repo/issues/123."
+                value={issueUrl}
+                onChange={(event) => setIssueUrl(event.target.value)}
+                placeholder="https://github.com/owner/repo/issues/123"
+                disabled={loading}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <p className="field-help">
+                {issueUrl.trim() === EVALUATION_ISSUE ? (
+                  <>
+                    Evaluation fixture loaded.{" "}
+                    <button
+                      type="button"
+                      className="text-action"
+                      onClick={() => setIssueUrl("")}
+                      disabled={loading}
+                    >
+                      Clear
+                    </button>
+                  </>
+                ) : issueUrl.trim() ? (
+                  <>Paste any public issue URL. The field stays under your control.</>
+                ) : (
+                  <>
+                    Left empty on purpose — paste your issue, or{" "}
+                    <button
+                      type="button"
+                      className="text-action"
+                      onClick={useEvaluationIssue}
+                      disabled={loading}
+                    >
+                      use the public evaluation issue
+                    </button>
+                    .
+                  </>
+                )}
+              </p>
+            </div>
+
+            <div className="field">
+              <label htmlFor={`${formId}-ref`}>
+                Repository ref <span className="optional">optional</span>
+              </label>
+              <input
+                id={`${formId}-ref`}
+                value={ref}
+                onChange={(event) => setRef(event.target.value)}
+                placeholder="Default branch if left blank"
+                disabled={loading}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+
+            <button className="run" type="submit" disabled={loading || !issueUrl.trim()}>
+              {loading ? "Working…" : "Run isolation"}
             </button>
-            <p className="form-note">
-              Public repositories only. No credentials, pushes, publishing, or
-              fixes.
-            </p>
           </form>
 
+          <p className="constraints">
+            Public repositories only. No credentials, pushes, publishing, or
+            fixes.
+          </p>
+
           {error ? (
-            <div className="error-notice" role="alert">
-              <strong>Investigation stopped</strong>
-              <span>{error}</span>
-              <button type="button" onClick={() => setError("")}>
+            <div className="alert" role="alert">
+              <p>
+                <strong>Stopped.</strong> {error}
+              </p>
+              <button type="button" className="text-action" onClick={() => setError("")}>
                 Dismiss
               </button>
             </div>
           ) : null}
-        </aside>
-
-        <section className="record" aria-live="polite">
-          {loading ? (
-            <div className="loading-record">
-              <div className="scan-line" />
-              <p className="docket-label">Sandbox workflow</p>
-              <h2>Investigation in progress</h2>
-              <p className="loading-note">
-                The evidence docket updates after every run is complete and the
-                disposable sandbox has been deleted.
-              </p>
-              <ol aria-label="Investigation workflow">
-                <li>Reading the public issue</li>
-                <li>Inspecting repository context in Daytona</li>
-                <li>Requesting a Lamatic probe plan</li>
-                <li>Running candidate twice and negative control once</li>
-                <li>Deleting the sandbox</li>
-              </ol>
-            </div>
-          ) : result ? (
-            <ResultRecord result={result} />
-          ) : (
-            <EmptyRecord />
-          )}
         </section>
-      </div>
-    </main>
-  );
-}
 
-function EmptyRecord() {
-  return (
-    <div className="empty-record">
-      <div className="empty-heading">
-        <p className="docket-label">Certification standard</p>
-        <h2>Three observations. One defensible outcome.</h2>
-      </div>
-      <div className="gate-diagram" aria-label="Reproduction evidence gate">
-        <div><span>Candidate A</span><strong>same probe</strong></div>
-        <div><span>Candidate B</span><strong>repeatability</strong></div>
-        <div><span>Control</span><strong>specificity</strong></div>
-        <b aria-hidden>→</b>
-        <div className="cert-seal"><span>Runtime-owned</span><strong>verdict</strong></div>
-      </div>
-      <p className="empty-copy">
-        The language model may form a hypothesis and choose commands. It cannot
-        mark its own work reproduced. That outcome exists only when both
-        candidate runs pass and the negative control rejects the hypothesis.
-      </p>
-      <div className="boundary-ledger">
-        <div><span>Lamatic</span><strong>Plans</strong><p>Issue interpretation, hypothesis, probe selection.</p></div>
-        <div><span>Daytona</span><strong>Isolates</strong><p>Private, expiring workspace with bounded commands.</p></div>
-        <div><span>Isolate</span><strong>Certifies</strong><p>Assertions, repeat evidence, control rejection.</p></div>
-      </div>
+        <div className="body" aria-live="polite">
+          {loading ? (
+            <WaitingPanel />
+          ) : result ? (
+            <ResultPanel result={result} />
+          ) : (
+            <EmptyPanel />
+          )}
+        </div>
+      </main>
     </div>
   );
 }
 
-function ResultRecord({ result }: { result: Investigation }) {
-  const reproduced = result.outcome === "reproduced";
+function EmptyPanel() {
   return (
-    <article className="result-record">
-      <div className="result-header">
-        <div>
-          <p className="docket-label">Issue #{result.issue.number} · {result.ref}</p>
-          <h2>{result.issue.title}</h2>
-          <a href={result.issue.url}>{result.issue.repositoryUrl.replace("https://github.com/", "")} ↗</a>
-        </div>
-        <div className={`verdict ${reproduced ? "verdict-pass" : "verdict-neutral"}`}>
-          <span>Deterministic outcome</span>
-          <strong>{reproduced ? "Reproduced" : "Not reproduced"}</strong>
-        </div>
-      </div>
+    <section className="primer" aria-labelledby="primer-title">
+      <h2 id="primer-title">What a certified result requires</h2>
+      <p>
+        Two candidate runs must show the same issue-derived failure. A nearby
+        negative control must not. Only the runtime may issue{" "}
+        <em>reproduced</em> or <em>not reproduced</em>.
+      </p>
+      <ul className="roles">
+        <li>
+          <strong>Lamatic</strong>
+          <span>Forms the hypothesis and picks probe commands.</span>
+        </li>
+        <li>
+          <strong>Daytona</strong>
+          <span>Hosts a private, time-bounded sandbox.</span>
+        </li>
+        <li>
+          <strong>Isolate runtime</strong>
+          <span>Asserts, records evidence, and owns the outcome.</span>
+        </li>
+      </ul>
+    </section>
+  );
+}
 
-      <section className="hypothesis">
-        <p className="docket-label">Agent hypothesis</p>
-        <p>{result.hypothesis}</p>
-      </section>
-
-      <section className="gate-result">
-        <h3>Evidence gate</h3>
-        <div className="gate-checks">
-          <p><OutcomeMark passed={result.gate.allCandidateRunsPassed} />Two candidate runs passed</p>
-          <p><OutcomeMark passed={result.gate.controlRejected} />Negative control rejected</p>
-          <p><OutcomeMark passed={reproduced} />Runtime issued outcome</p>
-        </div>
-      </section>
-
-      <section className="runs">
-        <h3>Recorded runs</h3>
-        {result.evidence.candidateRuns.map((run, index) => (
-          <EvidenceRun key={index} label={`Candidate run ${index + 1}`} run={run} />
+function WaitingPanel() {
+  return (
+    <section className="waiting" aria-labelledby="waiting-title">
+      <div className="waiting-pulse" aria-hidden />
+      <h2 id="waiting-title">Isolation in progress</h2>
+      <p>
+        Usually one to three minutes. Progress is not streamed — this page
+        updates when the full evidence set returns and the sandbox is gone.
+      </p>
+      <ol className="expected">
+        {EXPECTED_STEPS.map((step) => (
+          <li key={step}>{step}</li>
         ))}
-        <EvidenceRun
-          label="Negative control"
-          run={result.evidence.controlRun}
-          expected="reject"
-        />
+      </ol>
+    </section>
+  );
+}
+
+function ResultPanel({ result }: { result: Investigation }) {
+  const reproduced = result.outcome === "reproduced";
+  const repo = result.issue.repositoryUrl.replace("https://github.com/", "");
+
+  return (
+    <article className="result">
+      <header className={`diagnosis ${reproduced ? "diagnosis-yes" : "diagnosis-no"}`}>
+        <p className="diagnosis-word" role="status">
+          {reproduced ? "Reproduced" : "Not reproduced"}
+        </p>
+        <h2 className="diagnosis-title">{result.issue.title}</h2>
+        <p className="diagnosis-meta">
+          Runtime-owned · issue #{result.issue.number} · {result.ref} ·{" "}
+          <a href={result.issue.url}>{repo}</a>
+        </p>
+      </header>
+
+      <section className="block" aria-labelledby="hypothesis-title">
+        <h3 id="hypothesis-title">Agent hypothesis</h3>
+        <p className="block-note">
+          Preliminary. Written by Lamatic. Not certification.
+        </p>
+        <p className="hypothesis">{result.hypothesis}</p>
       </section>
 
-      <footer className="report-actions">
-        <div><strong>Portable evidence</strong><span>Sandbox deleted after collection.</span></div>
-        <button onClick={() => download("isolate-report.md", result.report.content, "text/markdown")}>Download Markdown</button>
-        <button onClick={() => download("isolate-report.json", JSON.stringify(result, null, 2), "application/json")}>Download JSON</button>
+      <section className="block" aria-labelledby="gate-title">
+        <h3 id="gate-title">Evidence criteria</h3>
+        <ul className="criteria">
+          <li>
+            <StatusGlyph
+              ok={result.gate.allCandidateRunsPassed}
+              label={
+                result.gate.allCandidateRunsPassed
+                  ? "Passed: "
+                  : "Failed: "
+              }
+            />
+            <span>Both candidate runs passed</span>
+          </li>
+          <li>
+            <StatusGlyph
+              ok={result.gate.controlRejected}
+              label={
+                result.gate.controlRejected ? "Passed: " : "Failed: "
+              }
+            />
+            <span>Negative control rejected the assertion</span>
+          </li>
+          <li>
+            <StatusGlyph
+              ok={reproduced}
+              label={reproduced ? "Passed: " : "Failed: "}
+            />
+            <span>Runtime issued a reproduced outcome</span>
+          </li>
+        </ul>
+      </section>
+
+      <section className="block" aria-labelledby="findings-title">
+        <h3 id="findings-title">Recorded findings</h3>
+        <div className="findings">
+          {result.evidence.candidateRuns.map((run, index) => (
+            <Finding
+              key={index}
+              title={`Candidate run ${index + 1}`}
+              run={run}
+              expect="pass"
+            />
+          ))}
+          <Finding
+            title="Negative control"
+            run={result.evidence.controlRun}
+            expect="reject"
+          />
+        </div>
+      </section>
+
+      <footer className="export">
+        <div>
+          <p className="export-title">Take the evidence with you</p>
+          <p className="export-note">Sandbox already deleted.</p>
+        </div>
+        <div className="export-actions">
+          <button
+            type="button"
+            onClick={() =>
+              download(
+                "isolate-report.md",
+                result.report.content,
+                "text/markdown",
+              )
+            }
+          >
+            Markdown
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              download(
+                "isolate-report.json",
+                JSON.stringify(result, null, 2),
+                "application/json",
+              )
+            }
+          >
+            JSON
+          </button>
+        </div>
       </footer>
     </article>
   );
