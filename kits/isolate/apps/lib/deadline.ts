@@ -2,7 +2,7 @@ export class InvestigationDeadline {
   private readonly expiresAt: number;
 
   constructor(
-    totalMilliseconds = 150_000,
+    totalMilliseconds = 220_000,
     private readonly now: () => number = Date.now,
   ) {
     this.expiresAt = this.now() + totalMilliseconds;

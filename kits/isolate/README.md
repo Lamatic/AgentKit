@@ -178,7 +178,7 @@ contracts.
   after a Ctrl+S save control. Other issue classes remain blocked until Isolate
   has a runtime-owned evidence adapter for them.
 - Sandboxes are private, disposable, and limited to a 30-minute lifetime.
-- Each probe is bounded to 40 seconds within a 150-second aggregate
+- Each probe is bounded to 40 seconds within a 220-second aggregate
   investigation budget.
 - Captured stdout and stderr are redacted and capped at 64 KiB each.
 - Repository and issue contents are treated as untrusted input.
