@@ -9,7 +9,7 @@ interface WorkspaceSidebarProps {
 
 export function WorkspaceSidebar({ metadata, ciProvider }: WorkspaceSidebarProps) {
   const formatDuration = (seconds?: number) => {
-    if (!seconds) return "32s";
+    if (!seconds) return "N/A";
     if (seconds < 60) return `${seconds}s`;
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -50,7 +50,7 @@ export function WorkspaceSidebar({ metadata, ciProvider }: WorkspaceSidebarProps
           <div>
             <span className="text-[11px] text-[var(--muted)]">Commit SHA</span>
             <p className="text-xs font-mono text-white/90 truncate">
-              {metadata?.commitSha || "beb0902"}
+              {metadata?.commitSha ? metadata.commitSha.substring(0, 7) : "N/A"}
             </p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export function WorkspaceSidebar({ metadata, ciProvider }: WorkspaceSidebarProps
           <div className="flex justify-between items-center text-xs">
             <span className="text-[var(--muted)]">Run Number</span>
             <span className="font-mono text-white font-medium">
-              #{metadata?.runNumber || 142}
+              {metadata?.runNumber ? `#${metadata.runNumber}` : "Manual Log"}
             </span>
           </div>
 
@@ -95,7 +95,7 @@ export function WorkspaceSidebar({ metadata, ciProvider }: WorkspaceSidebarProps
           <div className="flex justify-between items-center text-xs">
             <span className="text-[var(--muted)]">Runner Environment</span>
             <span className="font-mono text-white/80 text-[11px]">
-              ubuntu-latest
+              {metadata?.repoOwner ? "github-hosted-runner" : "local-upload"}
             </span>
           </div>
 
@@ -117,7 +117,7 @@ export function WorkspaceSidebar({ metadata, ciProvider }: WorkspaceSidebarProps
           Zero-Trust Sanitized
         </div>
         <p className="text-[10px] text-[var(--muted)] mt-1">
-          AWS & GitHub secrets redacted before AI processing
+          AWS & GitHub secrets redacted in RAM before AI processing
         </p>
       </div>
     </aside>
