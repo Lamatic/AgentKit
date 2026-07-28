@@ -13,12 +13,15 @@
     "start": "next start"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
     "lamatic": "0.3.2",
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-hook-form": "^7.60.0",
     "react-markdown": "10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.9",
