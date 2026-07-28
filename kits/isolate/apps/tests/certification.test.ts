@@ -78,8 +78,11 @@ describe("runCertification", () => {
 
   test("certifies a TUI unsaved exit through runtime-owned repeat and save control", async () => {
     const scenarios: Array<{ saveBeforeQuit: boolean }> = [];
+    const setupTimeouts: number[] = [];
     const runtime = {
-      prepareTuiWorkspace: async () => undefined,
+      prepareTuiWorkspace: async ({ timeoutSeconds }: { timeoutSeconds: number }) => {
+        setupTimeouts.push(timeoutSeconds);
+      },
       resetTuiWorkspace: async () => undefined,
       runTuiUnsavedExitProbe: async ({ saveBeforeQuit }: { saveBeforeQuit: boolean }) => {
         scenarios.push({ saveBeforeQuit });
@@ -111,13 +114,14 @@ describe("runCertification", () => {
       runtime,
       sandboxId: "sandbox_1",
       workspace: "workspace/repo",
-      deadline,
+      deadline: new InvestigationDeadline(150_000, () => 0),
       setupCommand: "bun run build",
       command: "bun run cli",
       quitKey: "ctrl_q",
     });
 
     expect(result.outcome).toBe("reproduced");
+    expect(setupTimeouts).toEqual([57]);
     expect(scenarios).toEqual([
       { saveBeforeQuit: false },
       { saveBeforeQuit: false },
