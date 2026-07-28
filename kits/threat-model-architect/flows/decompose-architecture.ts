@@ -36,112 +36,7 @@ export const references = {
   constitutions: { default: "@constitutions/default.md" },
 };
 
-const outputSchema = {
-  type: "object",
-  properties: {
-    system_name: { type: "string" },
-    purpose: { type: "string" },
-    components: {
-      type: "array",
-      minItems: 1,
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          type: { type: "string" },
-          technologies: { type: "array", items: { type: "string" } },
-          description: { type: "string" },
-          trust_zone: { type: "string" },
-          confidence: { type: "string" },
-        },
-        required: ["id", "name", "type", "technologies", "description", "trust_zone", "confidence"],
-      },
-    },
-    external_actors: {
-      type: "array",
-      minItems: 1,
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          type: { type: "string" },
-          description: { type: "string" },
-          trust_zone: { type: "string" },
-        },
-        required: ["id", "name", "type", "description", "trust_zone"],
-      },
-    },
-    data_assets: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          sensitivity: { type: "string" },
-          description: { type: "string" },
-        },
-        required: ["id", "name", "sensitivity", "description"],
-      },
-    },
-    trust_boundaries: {
-      type: "array",
-      minItems: 1,
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          from_zone: { type: "string" },
-          to_zone: { type: "string" },
-          components_crossed: { type: "array", items: { type: "string" } },
-          description: { type: "string" },
-        },
-        required: ["id", "name", "from_zone", "to_zone", "components_crossed", "description"],
-      },
-    },
-    data_flows: {
-      type: "array",
-      minItems: 1,
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          from_component_id: { type: "string" },
-          to_component_id: { type: "string" },
-          protocol: { type: "string" },
-          data_assets: { type: "array", items: { type: "string" } },
-          authentication: { type: "string" },
-          confidence: { type: "string" },
-        },
-        required: ["id", "from_component_id", "to_component_id", "protocol", "data_assets", "authentication", "confidence"],
-      },
-    },
-    entry_points: {
-      type: "array",
-      minItems: 1,
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          component_id: { type: "string" },
-          exposed_to: { type: "string" },
-          description: { type: "string" },
-        },
-        required: ["id", "name", "component_id", "exposed_to", "description"],
-      },
-    },
-    security_assumptions: { type: "array", items: { type: "string" } },
-    missing_info: { type: "array", items: { type: "string" } },
-  },
-  required: ["system_name", "purpose", "components", "external_actors", "data_assets", "trust_boundaries", "data_flows", "entry_points", "security_assumptions", "missing_info"],
-};
-
-export const config_json = {
-  nodes: [
+export const nodes = [
   {
     id: "triggerNode_1",
     data: {
@@ -169,7 +64,7 @@ export const config_json = {
       values: {
         id: "InstructorLLMNode_158",
         tools: [],
-        schema: JSON.stringify(outputSchema, null, 2),
+        schema: "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"system_name\": {\n      \"type\": \"string\"\n    },\n    \"purpose\": {\n      \"type\": \"string\"\n    },\n    \"components\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"type\": \"string\"\n          },\n          \"technologies\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"trust_zone\": {\n            \"type\": \"string\"\n          },\n          \"confidence\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"name\",\n          \"type\",\n          \"technologies\",\n          \"description\",\n          \"trust_zone\",\n          \"confidence\"\n        ]\n      }\n    },\n    \"external_actors\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"type\": \"string\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"trust_zone\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"name\",\n          \"type\",\n          \"description\",\n          \"trust_zone\"\n        ]\n      }\n    },\n    \"data_assets\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"sensitivity\": {\n            \"type\": \"string\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"name\",\n          \"sensitivity\",\n          \"description\"\n        ]\n      }\n    },\n    \"trust_boundaries\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"from_zone\": {\n            \"type\": \"string\"\n          },\n          \"to_zone\": {\n            \"type\": \"string\"\n          },\n          \"components_crossed\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"description\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"name\",\n          \"from_zone\",\n          \"to_zone\",\n          \"components_crossed\",\n          \"description\"\n        ]\n      }\n    },\n    \"data_flows\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"from_component_id\": {\n            \"type\": \"string\"\n          },\n          \"to_component_id\": {\n            \"type\": \"string\"\n          },\n          \"protocol\": {\n            \"type\": \"string\"\n          },\n          \"data_assets\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"authentication\": {\n            \"type\": \"string\"\n          },\n          \"confidence\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"from_component_id\",\n          \"to_component_id\",\n          \"protocol\",\n          \"data_assets\",\n          \"authentication\",\n          \"confidence\"\n        ]\n      }\n    },\n    \"entry_points\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"component_id\": {\n            \"type\": \"string\"\n          },\n          \"exposed_to\": {\n            \"type\": \"string\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"id\",\n          \"name\",\n          \"component_id\",\n          \"exposed_to\",\n          \"description\"\n        ]\n      }\n    },\n    \"security_assumptions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"missing_info\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"system_name\",\n    \"purpose\",\n    \"components\",\n    \"external_actors\",\n    \"data_assets\",\n    \"trust_boundaries\",\n    \"data_flows\",\n    \"entry_points\",\n    \"security_assumptions\",\n    \"missing_info\"\n  ]\n}",
         prompts: [
           { id: "decompose-system", role: "system", content: "@prompts/decompose-architecture_system.md" },
           { id: "decompose-user", role: "user", content: "@prompts/decompose-architecture_user.md" },
@@ -207,16 +102,12 @@ export const config_json = {
     position: { x: 0, y: 260 },
     selected: false,
   },
-  ],
+];
 
-  edges: [
+export const edges = [
   { id: "triggerNode_1-InstructorLLMNode_158", type: "defaultEdge", source: "triggerNode_1", target: "InstructorLLMNode_158", sourceHandle: "bottom", targetHandle: "top" },
   { id: "InstructorLLMNode_158-responseNode_triggerNode_1", type: "defaultEdge", source: "InstructorLLMNode_158", target: "responseNode_triggerNode_1", sourceHandle: "bottom", targetHandle: "top" },
   { id: "response-trigger_triggerNode_1", type: "responseEdge", source: "triggerNode_1", target: "responseNode_triggerNode_1", selected: false, sourceHandle: "to-response", targetHandle: "from-trigger" },
-  ],
-};
+];
 
-export const nodes = config_json.nodes;
-export const edges = config_json.edges;
-
-export default { meta, inputs, references, nodes, edges, config_json };
+export default { meta, inputs, references, nodes, edges };
