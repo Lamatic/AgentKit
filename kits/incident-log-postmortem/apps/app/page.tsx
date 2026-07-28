@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { analyzeIncident } from "@/actions/orchestrate"
 
 const SAMPLE_LOGS = `2026-07-17T14:02:11Z ERROR [payments-service] Connection pool exhausted: timeout waiting for connection (waited 30000ms)
@@ -58,82 +59,85 @@ export default function IncidentPostmortemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 text-gray-900 dark:text-gray-100 px-6 py-12">
+    <div className="min-h-screen bg-background text-foreground px-6 py-12">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-semibold mb-3 text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-semibold mb-3 text-foreground">
             Incident Postmortem Pipeline
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-muted-foreground">
             Paste raw incident logs and get ranked root causes, a mitigation checklist,
             a stakeholder update, and a postmortem draft.
           </p>
         </div>
 
         {!result && (
-          <div className="bg-white/90 dark:bg-gray-900/90 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 p-8">
+          <div className="bg-card text-card-foreground rounded-xl shadow-xl border border-border p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={handleLoadExample}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-sm text-link hover:underline"
                 >
                   Load example
                 </button>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                <label htmlFor="service-name" className="text-sm font-medium text-foreground">
                   Service name (optional)
                 </label>
                 <input
+                  id="service-name"
                   type="text"
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
                   placeholder="e.g. payments-service"
-                  className="w-full h-11 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full h-11 px-3 rounded-md border border-border bg-card text-card-foreground placeholder:text-muted-foreground"
                   disabled={isLoading}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                <label htmlFor="recent-deploy-time" className="text-sm font-medium text-foreground">
                   Recent deploy time (optional)
                 </label>
                 <input
+                  id="recent-deploy-time"
                   type="text"
                   value={recentDeployTime}
                   onChange={(e) => setRecentDeployTime(e.target.value)}
                   placeholder="e.g. 2026-07-17T14:01:58Z"
-                  className="w-full h-11 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full h-11 px-3 rounded-md border border-border bg-card text-card-foreground placeholder:text-muted-foreground"
                   disabled={isLoading}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                <label htmlFor="raw-logs" className="text-sm font-medium text-foreground">
                   Raw logs
                 </label>
                 <textarea
+                  id="raw-logs"
                   value={logs}
                   onChange={(e) => setLogs(e.target.value)}
                   placeholder="Paste raw incident logs here..."
-                  className="w-full min-h-[220px] p-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 font-mono text-sm resize-none"
+                  className="w-full min-h-[220px] p-3 rounded-md border border-border bg-card text-card-foreground placeholder:text-muted-foreground font-mono text-sm resize-none"
                   disabled={isLoading}
                 />
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <div className="p-3 bg-destructive-bg border border-destructive-border rounded-md">
+                  <p className="text-sm text-destructive-foreground">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={!logs.trim() || isLoading}
-                className="w-full h-12 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium"
+                className="w-full h-12 rounded-md bg-primary hover:bg-primary-hover disabled:opacity-50 text-primary-foreground font-medium"
               >
                 {isLoading ? "Analyzing..." : "Investigate"}
               </button>
@@ -142,13 +146,13 @@ export default function IncidentPostmortemPage() {
         )}
 
         {result && (
-          <div className="bg-white/90 dark:bg-gray-900/90 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 p-8">
-            <div className="prose prose-sm dark:prose-invert max-w-none mb-6 text-gray-900 dark:text-gray-100">
-              <ReactMarkdown>{result}</ReactMarkdown>
+          <div className="bg-card text-card-foreground rounded-xl shadow-xl border border-border p-8">
+            <div className="prose prose-sm dark:prose-invert max-w-none mb-6 text-card-foreground">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
             </div>
             <button
               onClick={handleReset}
-              className="w-full h-12 rounded-md border border-gray-300 dark:border-gray-700 font-medium text-gray-900 dark:text-gray-100"
+              className="w-full h-12 rounded-md border border-border font-medium text-card-foreground"
             >
               Analyze another incident
             </button>
