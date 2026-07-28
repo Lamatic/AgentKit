@@ -132,7 +132,8 @@ const outputSchema = {
   ],
 };
 
-export const nodes = [
+export const config_json = {
+  nodes: [
   {
     id: "triggerNode_1",
     data: {
@@ -226,9 +227,9 @@ export const nodes = [
     },
     selected: false,
   },
-];
+  ],
 
-export const edges = [
+  edges: [
   {
     id: "triggerNode_1-InstructorLLMNode_414",
     type: "defaultEdge",
@@ -254,8 +255,10 @@ export const edges = [
     sourceHandle: "to-response",
     targetHandle: "from-trigger",
   },
-];
+  ],
+};
 
-export const config_json = { nodes, edges };
+export const nodes = config_json.nodes;
+export const edges = config_json.edges;
 
 export default { meta, inputs, references, nodes, edges, config_json };

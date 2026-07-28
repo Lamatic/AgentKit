@@ -140,7 +140,8 @@ const outputSchema = {
   required: ["system_name", "purpose", "components", "external_actors", "data_assets", "trust_boundaries", "data_flows", "entry_points", "security_assumptions", "missing_info"],
 };
 
-export const nodes = [
+export const config_json = {
+  nodes: [
   {
     id: "triggerNode_1",
     data: {
@@ -206,14 +207,16 @@ export const nodes = [
     position: { x: 0, y: 260 },
     selected: false,
   },
-];
+  ],
 
-export const edges = [
+  edges: [
   { id: "triggerNode_1-InstructorLLMNode_158", type: "defaultEdge", source: "triggerNode_1", target: "InstructorLLMNode_158", sourceHandle: "bottom", targetHandle: "top" },
   { id: "InstructorLLMNode_158-responseNode_triggerNode_1", type: "defaultEdge", source: "InstructorLLMNode_158", target: "responseNode_triggerNode_1", sourceHandle: "bottom", targetHandle: "top" },
   { id: "response-trigger_triggerNode_1", type: "responseEdge", source: "triggerNode_1", target: "responseNode_triggerNode_1", selected: false, sourceHandle: "to-response", targetHandle: "from-trigger" },
-];
+  ],
+};
 
-export const config_json = { nodes, edges };
+export const nodes = config_json.nodes;
+export const edges = config_json.edges;
 
 export default { meta, inputs, references, nodes, edges, config_json };
