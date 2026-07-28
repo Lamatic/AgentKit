@@ -6,7 +6,7 @@
 [Open the evaluation issue](https://github.com/Dhruv2mars/isolate-cli-testbed/issues/1) ·
 [View the challenge PR](https://github.com/Lamatic/AgentKit/pull/291)
 
-![Isolate showing a reproduced outcome with two passing candidate runs and a rejected negative control](https://raw.githubusercontent.com/Dhruv2mars/AgentKit/072bf64e465ba90cde0cf2352f574dbf415515a1/kits/isolate/assets/isolate-evidence.jpg)
+![Isolate showing a reproduced outcome with two passing candidate runs and a rejected negative control](https://raw.githubusercontent.com/Dhruv2mars/AgentKit/c05901ad5799efa14b6c6dea78e822f2012b0b40/kits/isolate/assets/isolate-evidence.jpg)
 
 Issue reports often describe a symptom without preserving the repository state,
 setup, command, or environment needed to observe it. Isolate investigates a
