@@ -132,8 +132,7 @@ const outputSchema = {
   ],
 };
 
-export const config_json = {
-  nodes: [
+export const nodes = [
   {
     id: "triggerNode_1",
     data: {
@@ -168,7 +167,7 @@ export const config_json = {
       values: {
         id: "InstructorLLMNode_414",
         tools: [],
-        schema: JSON.stringify(outputSchema, null, 2),
+        schema: "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"language\": {\n      \"type\": \"string\"\n    },\n    \"assistant_message\": {\n      \"type\": \"string\"\n    },\n    \"is_complete\": {\n      \"type\": \"boolean\"\n    },\n    \"session_state\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"system_name\": {\n          \"type\": \"string\"\n        },\n        \"purpose\": {\n          \"type\": \"string\"\n        },\n        \"components\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"type\": \"string\"\n              },\n              \"description\": {\n                \"type\": \"string\"\n              },\n              \"technologies\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              }\n            },\n            \"additionalProperties\": true\n          }\n        },\n        \"data_assets\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"name\": {\n                \"type\": \"string\"\n              },\n              \"sensitivity\": {\n                \"type\": \"string\"\n              },\n              \"description\": {\n                \"type\": \"string\"\n              }\n            },\n            \"additionalProperties\": true\n          }\n        },\n        \"trust_boundaries\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"from_component_id\": {\n                \"type\": \"string\"\n              },\n              \"to_component_id\": {\n                \"type\": \"string\"\n              },\n              \"data_flows\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"protocol\": {\n                \"type\": \"string\"\n              }\n            },\n            \"additionalProperties\": true\n          }\n        },\n        \"user_roles\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"compliance_notes\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"tech_stack\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        }\n      },\n      \"required\": [\n        \"system_name\",\n        \"purpose\",\n        \"components\",\n        \"data_assets\",\n        \"trust_boundaries\",\n        \"user_roles\",\n        \"compliance_notes\",\n        \"tech_stack\"\n      ],\n      \"additionalProperties\": true\n    },\n    \"missing_info\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"language\",\n    \"assistant_message\",\n    \"is_complete\",\n    \"session_state\",\n    \"missing_info\"\n  ]\n}",
         prompts: [
           {
             id: "187c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -227,9 +226,9 @@ export const config_json = {
     },
     selected: false,
   },
-  ],
+];
 
-  edges: [
+export const edges = [
   {
     id: "triggerNode_1-InstructorLLMNode_414",
     type: "defaultEdge",
@@ -255,10 +254,6 @@ export const config_json = {
     sourceHandle: "to-response",
     targetHandle: "from-trigger",
   },
-  ],
-};
+];
 
-export const nodes = config_json.nodes;
-export const edges = config_json.edges;
-
-export default { meta, inputs, references, nodes, edges, config_json };
+export default { meta, inputs, references, nodes, edges };
