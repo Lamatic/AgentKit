@@ -9,14 +9,16 @@ Most incident tools assume the noisy part is already done — you already have a
 Every root-cause hypothesis is graded — **Evidence-based**, **Inferred**, or **Unknown** — with reasoning tied to specific log lines, so the output is calibrated rather than a single overconfident guess.
 
 ## Architecture
-API Request (logs, serviceName, recentDeployTime)
-→ Log Extractor (structures raw logs, no root-cause speculation)
-→ Root Cause Ranker (ranked hypotheses, tagged Evidence-based / Inferred / Unknown)
-├→ Mitigation Checklist
-└→ Stakeholder Summary
-→ Postmortem Assembler (combines all of the above, preserves evidence tags)
-→ API Response (postmortem markdown)
 
+```text
+API Request (logs, serviceName, recentDeployTime)
+    → Log Extractor (structures raw logs, no root-cause speculation)
+    → Root Cause Ranker (ranked hypotheses, tagged Evidence-based / Inferred / Unknown)
+        ├→ Mitigation Checklist
+        └→ Stakeholder Summary
+    → Postmortem Assembler (combines all of the above, preserves evidence tags)
+    → API Response (postmortem markdown)
+```
 ## Setup
 
 ### 1. Build the flow in Lamatic Studio
