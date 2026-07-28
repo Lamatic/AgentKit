@@ -3,4 +3,34 @@ node_modules/
 .DS_Store
 *.zip
 
-# Env files belong in apps/ only (see apps/.gitignore)
+# Next.js app (formerly apps/.gitignore)
+apps/node_modules/
+apps/.next/
+apps/out/
+apps/build
+apps/.vercel
+apps/npm-debug.log*
+apps/yarn-debug.log*
+apps/yarn-error.log*
+apps/.pnpm-debug.log*
+apps/*.tsbuildinfo
+apps/next-env.d.ts
+
+# misc / tooling (defensive; from create-next-app kits)
+*.pem
+apps/coverage/
+apps/.turbo/
+apps/.swc/
+apps/.pnp
+apps/.pnp.*
+apps/.yarn/*
+!apps/.yarn/patches
+!apps/.yarn/plugins
+!apps/.yarn/releases
+!apps/.yarn/versions
+
+# Env secrets anywhere under this kit; keep example templates
+.env
+.env.*
+!.env.example
+!apps/.env.example
