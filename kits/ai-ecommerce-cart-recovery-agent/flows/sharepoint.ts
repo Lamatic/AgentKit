@@ -83,7 +83,7 @@
  *
  * 6. `Transform Metadata` (`codeNode`) runs the script referenced as `@scripts/sharepoint_transform-metadata.ts`. This step reshapes document-level and chunk-level context into the final metadata payload expected by the indexing node. It likely combines the normalized variables and the chunk/vector alignment into metadata records suitable for retrieval.
  *
- * 7. `Index` (`IndexNode`) writes the embeddings and metadata into the selected `vectorDB`. It uses `{{vectorizeNode_639.output.vectors}}` as `vectorsField` and `{{codeNode_507.output.metadata}}` as `metadataField`. Duplicate handling is set to `overwrite`, and `primaryKeys` is configured as `file_name`, so records with the same key are replaced rather than duplicated.
+ * 7. `Index` (`IndexNode`) writes the embeddings and metadata into the selected `vectorDB`. It uses `{{vectorizeNode_639.output.vectors}}` as `vectorsField` and `{{codeNode_507.output.metadata}}` as `metadataField`. Duplicate handling is set to `overwrite`, and `primaryKeys` is configured as `chunk_id`, so records with the same key are replaced rather than duplicated.
  *
  * 8. The trailing add node is only a canvas placeholder and does not contribute runtime logic. Execution effectively ends after `Index` completes.
  *
@@ -96,7 +96,7 @@
  * | Chunking produces empty or poor-quality chunks | Source documents have little extractable text, unsupported formatting, or parsing issues upstream in the connector | Test with known-good text documents, inspect raw trigger output content, and consider adjusting source file selection or preprocessing |
  * | Embedding step fails | `embeddingModelName` was not configured correctly or the selected model integration is unavailable | Select a valid `embedder/text` model, verify model credentials/provider setup in the workspace, and retry |
  * | Indexing fails | `vectorDB` is missing, unreachable, or incompatible with the payload being written | Verify the vector database integration, ensure the destination index exists if required, and confirm the workspace has permission to write |
- * | Records overwrite unexpectedly | `duplicateOperation` is `overwrite` and `primaryKeys` is set to `file_name`, which may not uniquely identify chunks across documents or versions | Review the primary key design and update the flow if chunk-level uniqueness is required rather than file-level replacement |
+ * | Records overwrite unexpectedly | `duplicateOperation` is `overwrite` and `primaryKeys` is set to `chunk_id`, which may not uniquely identify chunks across documents or versions | Review the primary key design and update the flow if chunk-level uniqueness is required rather than file-level replacement |
  * | Metadata is malformed or missing | The `Transform Metadata` script or prior variable mapping does not match the actual trigger payload shape | Inspect the script expectations, validate fields like `document_key` and `_ab_source_file_url`, and update the mapping logic as needed |
  * | Downstream chatbot returns no relevant answers after a successful run | The flow completed but the chatbot is pointed at a different vector database, collection, or namespace | Confirm that this flow and the `Knowledge Chatbot` flow are configured against the same vector store and retrieval scope |
  * | Flow appears not to run automatically | The schedule is not appropriate for the environment or deployment is incomplete | Check the configured cron expression, deployment state, and whether the runtime supports scheduled execution for this trigger |
@@ -330,11 +330,11 @@ export const nodes = [
       "values": {
         "nodeName": "Index",
         "primaryKeys": [
-          "file_name"
-        ],
-        "vectorsField": "{{vectorizeNode_639.output.vectors}}",
-        "metadataField": "{{codeNode_507.output.metadata}}",
-        "duplicateOperation": "overwrite"
+  "chunk_id"
+],
+"vectorsField": "{{vectorizeNode_639.output.vectors}}",
+"metadataField": "{{codeNode_507.output.metadata}}",
+"duplicateOperation": "overwrite"
       }
     }
   },

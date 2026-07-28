@@ -101,7 +101,7 @@
  *    - This is where the final index write shape is assembled.
  *
  * 9. `Index` (`dynamicNode`)
- *    - The `Index` node writes the prepared vectors and metadata into the selected vector database. It is configured with action `index`, duplicate handling `overwrite`, and `primaryKeys` set to `title`. The vectors come from `codeNode_305.output.vectors`, and metadata comes from `codeNode_305.output.metadata`. Because overwrite behavior is enabled and the primary key is only `title`, records with the same title may replace earlier entries.
+ *    The `Index` node writes the prepared vectors and metadata into the selected vector database. It is configured with action `index`, duplicate handling `overwrite`, and `primaryKeys` set to `chunk_id`. The vectors come from `codeNode_305.output.vectors`, and metadata comes from `codeNode_305.output.metadata`. Each chunk receives a stable `chunk_id` derived from its source and chunk index, allowing chunks from the same page to remain distinct while true duplicate chunk IDs are overwritten.
  *
  * 10. `Loop End` (`forLoopEndNode`)
  *     - After each page is indexed, execution passes to `Loop End`, which returns control to the `Loop` node until all crawled pages have been processed. Once iteration is complete, the flow exits the loop and proceeds to the final response.
@@ -117,7 +117,7 @@
  * | The response says success but the knowledge base appears empty | The crawl may have returned no usable markdown, the chunk extraction/metadata scripts may have produced empty payloads, or writes may have targeted the wrong vector database | Inspect `Firecrawl` output, validate the script outputs, and confirm the selected `vectorDB` is the same store queried by the chatbot |
  * | Embedding generation fails | `embeddingModelName` is not configured, unavailable, or incompatible with the account/provider setup | Select a valid embedding model, verify provider access, and rerun the flow |
  * | Indexing fails at the `Index` node | `vectorDB` is not configured, the target index is unavailable, or the vector and metadata payloads are malformed | Reconfigure the vector database connection, confirm the target index exists and is writable, and inspect the transformed payload shape |
- * | Records unexpectedly overwrite each other | `primaryKeys` is set to `title`, so pages sharing the same title collide under `duplicateOperation: overwrite` | Change the indexing key strategy if possible, or ensure metadata transformation includes a more unique identifier such as source URL |
+ *| Records unexpectedly overwrite each other | Multiple records may share the same `chunk_id` if their source identity is not unique | Ensure each indexed source has a stable, unique source value so the generated `chunk_id` remains unique per chunk |
  * | Some expected subpages are missing | Crawl settings restrict traversal: subdomains are excluded, external links are disallowed, sitemap-only mode is off, and crawl limits are capped | Adjust the flow configuration to broaden crawl scope, increase limits, or provide more seed URLs |
  * | The request times out on large sites | The flow runs synchronously with `timeout` `30000` and finite crawl limits, which can be insufficient for broad sites | Reduce scope, provide narrower seed URLs, lower crawl breadth, or redesign for asynchronous ingestion if needed |
  * | The downstream chatbot cannot answer from newly crawled content | This flow has not been run successfully against the same vector store used by the chatbot, or ingestion completed with empty/partial data | Run this flow first, verify vectors exist in the shared index, and ensure the chatbot is configured to query the same backend |
@@ -258,7 +258,6 @@ export const nodes = [
         "includePath": [],
         "includeTags": [],
         "sitemapOnly": false,
-        "crawlSubPages": false,
         "ignoreSitemap": false,
         "webhookEvents": [
           "completed",
@@ -422,7 +421,7 @@ export const nodes = [
         "action": "index",
         "filters": "",
         "primaryKeys": [
-          "title"
+          "chunk_id"
         ],
         "vectorsField": "{{codeNode_305.output.vectors}}",
         "metadataField": "{{codeNode_305.output.metadata}}",

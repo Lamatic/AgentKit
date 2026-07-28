@@ -38,15 +38,15 @@ export default {
         "minSelection": 1,
         "maxSelection": 1
     },
-    {
-        "id": "knowledge-chatbot",
-        "type": "mandatory",
-        "prerequisiteSteps": [
-            "data_source"
-        ]
-    }
+   {
+    "id": "cart-recovery",
+    "type": "mandatory",
+    "prerequisiteSteps": [
+        "data_source"
+    ]
+}
 ],
   links: {
-    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/sample-chatbot"
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-ecommerce-cart-recovery-agent"
 },
 };

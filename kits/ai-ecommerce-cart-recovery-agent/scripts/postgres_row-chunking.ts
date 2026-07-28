@@ -4,4 +4,22 @@ function objectToString(obj) {
     .join(", ");
 }
 
-output = [objectToString({{ triggerNode_1.output }})]
+function splitText(text, maxLength = 2000) {
+  const chunks = [];
+
+  for (let i = 0; i < text.length; i += maxLength) {
+    chunks.push(text.slice(i, i + maxLength));
+  }
+
+  return chunks;
+}
+
+const triggerOutput = {{ triggerNode_1.output }};
+
+const rows = Array.isArray(triggerOutput)
+  ? triggerOutput
+  : [triggerOutput];
+
+output = rows
+  .filter((row) => row && typeof row === "object")
+  .flatMap((row) => splitText(objectToString(row)));

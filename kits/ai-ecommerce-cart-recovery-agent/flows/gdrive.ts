@@ -112,7 +112,7 @@
 
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
-  "name": "GDrive ",
+  "name": "GDrive",
   "description": "Google Drive Indexation",
   "tags": [],
   "testInput": null,
@@ -316,27 +316,26 @@ export const nodes = [
       }
     }
   },
-  {
-    "id": "IndexNode_343",
-    "type": "dynamicNode",
-    "position": {
-      "x": 0,
-      "y": 0
-    },
-    "data": {
-      "nodeId": "IndexNode",
-      "values": {
-        "nodeName": "Index to DB",
-        "webhookURL": "https://webhook.site/685a66e7-b4d3-40a4-9801-99e3460414f9",
-        "primaryKeys": [
-          "title"
-        ],
-        "vectorsField": "{{codeNode_560.output.vectors}}",
-        "metadataField": "{{codeNode_560.output.metadata}}",
-        "duplicateOperation": "overwrite"
-      }
-    }
+{
+  "id": "IndexNode_343",
+  "type": "dynamicNode",
+  "position": {
+    "x": 0,
+    "y": 0
   },
+  "data": {
+    "nodeId": "IndexNode",
+    "values": {
+      "nodeName": "Index to DB",
+      "primaryKeys": [
+        "title"
+      ],
+      "vectorsField": "{{codeNode_560.output.vectors}}",
+      "metadataField": "{{codeNode_560.output.metadata}}",
+      "duplicateOperation": "overwrite"
+    }
+  }
+},
   {
     "id": "plus-node-addNode_870476",
     "type": "addNode",
@@ -363,7 +362,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Variables",
-        "mapping": "{\n  \"title\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.document_key}}\"\n  },\n  \"source\": {\n    \"type\": \"string\",\n    \"value\": \"https://drive.google.com/drive/folders/1oeBVP-aokrik2iSlb9QYNQZXZ13ViXvs?usp=sharing\"\n  }\n}"
+        "mapping": "{\n  \"title\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.document_key}}\"\n  },\n  \"source\": {\n    \"type\": \"string\",\n    \"value\": \"\"\n  }\n}"
       }
     }
   }

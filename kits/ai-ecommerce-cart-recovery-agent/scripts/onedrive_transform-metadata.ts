@@ -1,15 +1,21 @@
-let vectors = {{vectorizeNode_639.output.vectors}}
-let metadataProps = [];
-let texts = {{codeNode_254.output}};
+let vectors = {{ vectorizeNode_639.output.vectors }};
+let texts = {{ codeNode_254.output }};
+let title = {{ variablesNode_289.output.title }};
+let source = {{ variablesNode_289.output.source }};
+let lastModified = {{ variablesNode_289.output.last_modified }};
 
-for (const idx in vectors) {
-    let metadata = {}
-    metadata["content"] = texts[idx];
-    metadata["title"] = {{variablesNode_289.output.title}};
-    metadata["source"] = {{variablesNode_289.output.source}};
-    metadata["last_modified"] = {{variablesNode_289.output.last_modified}};
-    
-    metadataProps.push(metadata);
+let metadataProps = [];
+
+if (Array.isArray(vectors) && Array.isArray(texts) && vectors.length === texts.length) {
+  metadataProps = vectors.map((vector, idx) => ({
+    content: texts[idx],
+    title: title,
+    source: source,
+    last_modified: lastModified
+  }));
 }
 
-output = {"metadata": metadataProps, "vectors": vectors}
+output = {
+  metadata: metadataProps,
+  vectors: vectors
+};

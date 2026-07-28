@@ -290,7 +290,6 @@ export const nodes = [
       "nodeId": "IndexNode",
       "values": {
         "nodeName": "Index to DB",
-        "webhookURL": "https://webhook.site/685a66e7-b4d3-40a4-9801-99e3460414f9",
         "primaryKeys": [
           "title",
           "content"

@@ -1,14 +1,27 @@
 let vectors = {{ vectorizeNode_314.output.vectors }};
+let texts = {{ codeNode_794.output }};
+let title = {{ variablesNode_658.output.title }};
+let description = {{ variablesNode_658.output.description }};
+let source = {{ variablesNode_658.output.source }};
+
 let metadataProps = [];
-let texts = {{codeNode_794.output}};
 
-for (const idx in vectors) {
-  let metadata = {}
-  metadata["content"] = texts[idx];
-  metadata["title"] = {{variablesNode_658.output.title}};
-  metadata["description"] = {{variablesNode_658.output.description}};
-  metadata["source"] = {{variablesNode_658.output.source}};
-  metadataProps.push(metadata)
+if (
+  Array.isArray(vectors) &&
+  Array.isArray(texts) &&
+  vectors.length > 0 &&
+  vectors.length === texts.length
+) {
+  metadataProps = vectors.map((vector, idx) => ({
+    content: texts[idx],
+    title: title,
+    description: description,
+    source: source,
+    chunk_id: `${source || title || "scraping"}-${idx}`
+  }));
+}
+
+output = {
+  metadata: metadataProps,
+  vectors: vectors
 };
-
-output = { "metadata": metadataProps, "vectors": vectors }

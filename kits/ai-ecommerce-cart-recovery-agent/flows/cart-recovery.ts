@@ -55,7 +55,7 @@ export const inputs = {
       "label": "Database",
       "required": true,
       "isPrivate": true,
-      "description":"Select the vector database that stores customer, cart, and product information used for AI-powered cart recovery.",
+      "description": "Select the vector database containing product, policy, offer, and cart-recovery knowledge.",
       "defaultValue": ""
     },
     {
@@ -66,7 +66,7 @@ export const inputs = {
       "required": true,
       "isPrivate": true,
       "modelType": "embedder/text",
-      "description": "This field allows the user to select the embedding model used to embed the query into vector space. It loads available embedding models through the listModels method.",
+      "description": "Select the embedding model used for retrieval.",
       "typeOptions": {
         "loadOptionsMethod": "listModels"
       },
@@ -80,15 +80,68 @@ export const inputs = {
       "required": true,
       "isPrivate": true,
       "modelType": "generator/text",
-      "description": "Select the model to generate responses from the query results.",
+      "description": "Select the model used to generate cart-recovery responses.",
       "typeOptions": {
         "loadOptionsMethod": "listModels"
       },
       "defaultValue": ""
+    },
+    {
+      "name": "customer_name",
+      "type": "string",
+      "label": "Customer Name",
+      "required": false,
+      "isPrivate": false,
+      "description": "Customer name used to personalize the recovery response.",
+      "defaultValue": ""
+    },
+    {
+      "name": "cart_items",
+      "type": "string",
+      "label": "Cart Items",
+      "required": true,
+      "isPrivate": false,
+      "description": "Items currently present in the abandoned cart.",
+      "defaultValue": ""
+    },
+    {
+      "name": "cart_value",
+      "type": "string",
+      "label": "Cart Value",
+      "required": true,
+      "isPrivate": false,
+      "description": "Total value of the abandoned cart.",
+      "defaultValue": ""
+    },
+    {
+      "name": "last_activity",
+      "type": "string",
+      "label": "Last Activity",
+      "required": false,
+      "isPrivate": false,
+      "description": "Most recent relevant customer or cart activity.",
+      "defaultValue": ""
+    },
+    {
+      "name": "approved_offer",
+      "type": "string",
+      "label": "Approved Offer",
+      "required": false,
+      "isPrivate": false,
+      "description": "Approved coupon, promotion, or recovery offer that the agent may recommend. Leave blank when no offer is authorized.",
+      "defaultValue": ""
+    },
+    {
+      "name": "discount_limit",
+      "type": "string",
+      "label": "Discount Limit",
+      "required": false,
+      "isPrivate": false,
+      "description": "Maximum approved discount or eligibility restriction for recovery offers.",
+      "defaultValue": ""
     }
   ]
 };
-
 // ── References ────────────────────────────────────────
 export const references = {
   "constitutions": {
@@ -158,7 +211,13 @@ export const nodes = [
         "messages": "@model-configs/cart-recovery.ts",
         "certainty": "@model-configs/cart-recovery.ts",
         "queryField": "{{triggerNode_1.output.chatMessage}}",
-        "embeddingModelName": "@model-configs/cart-recovery.ts",
+        "customer_name": "{{RAGNode_711.input.customer_name}}",
+        "cart_items": "{{RAGNode_711.input.cart_items}}",
+        "cart_value": "{{RAGNode_711.input.cart_value}}",
+        "last_activity": "{{RAGNode_711.input.last_activity}}",
+        "approved_offer": "{{RAGNode_711.input.approved_offer}}",
+        "discount_limit": "{{RAGNode_711.input.discount_limit}}",
+                "embeddingModelName": "@model-configs/cart-recovery.ts",
         "generativeModelName": "@model-configs/cart-recovery.ts"
       }
     }

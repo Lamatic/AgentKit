@@ -1,12 +1,21 @@
-let vectors = {{vectorizeNode_177.output.vectors}};
+let vectors = {{ vectorizeNode_919.output }};
+let texts = {{ codeNode_331.output }};
+let title = {{ variablesNode_849.output.title }};
+let source = {{ variablesNode_849.output.source }};
+
 let metadataProps = [];
 
-let metadata = {}
-metadata["title"] = {{ variablesNode_305.output.title }};
-metadata["content"] = {{ codeNode_331.output }}[0]
-metadata["source"] = {{ variablesNode_305.output.source }};
+if (Array.isArray(vectors) && Array.isArray(texts) && vectors.length === texts.length) {
+  for (let i = 0; i < vectors.length; i++) {
+    metadataProps.push({
+      title: title,
+      source: source,
+      content: texts[i]
+    });
+  }
+}
 
-metadataProps.push(metadata)
-
-console.log("finaldata:", {"metadata": metadataProps, "vectors": vectors});
-output = {"metadata": metadataProps, "vectors": vectors}
+output = {
+  vectors: vectors,
+  metadata: metadataProps
+};

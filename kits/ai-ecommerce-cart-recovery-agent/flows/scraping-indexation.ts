@@ -87,7 +87,7 @@
  *
  * 8. `Transform Metadata` (`dynamicNode` with `codeNode`) runs `@scripts/scraping-indexation_transform-metadata.ts`. It prepares two coordinated payloads for indexing: `vectors` and `metadata`. This step is where the flow combines chunk text embeddings with the normalized page metadata from earlier steps so the vector database receives retrieval-ready records.
  *
- * 9. `Index` (`dynamicNode` with `vectorNode`) writes the prepared vectors and metadata into the selected vector database. It performs the `index` action, uses `{{codeNode_305.output.vectors}}` and `{{codeNode_305.output.metadata}}`, sets `primaryKeys` to `title`, and applies `duplicateOperation` as `overwrite`. This means records sharing the same primary key value may replace previous entries rather than creating duplicates.
+ * 9. `Index` (`dynamicNode` with `vectorNode`) writes the prepared vectors and metadata into the selected vector database. It performs the `index` action, uses `{{codeNode_305.output.vectors}}` and `{{codeNode_305.output.metadata}}`, sets `primaryKeys` to `chunk_id`, and applies `duplicateOperation` as `overwrite`. This means records sharing the same primary key value may replace previous entries rather than creating duplicates.
  *
  * 10. `Loop End` (`forLoopEndNode`) closes the per-page iteration and routes control either back to the next item in the Firecrawl result set or onward once all items are processed.
  *
@@ -101,7 +101,7 @@
  * | Response indicates success but expected pages are absent from retrieval results | Firecrawl returned empty `data`, page extraction failed, or pages had insufficient main content | Test the target URLs directly in Firecrawl, confirm the pages are publicly accessible, and inspect whether the content is available in the main body of the page. |
  * | Flow fails during vectorization | `embeddingModelName` was not configured, is unavailable, or provider credentials are missing in the workspace | Select a supported embedding model on `vectorizeNode_314` and ensure the underlying model provider is correctly configured. |
  * | Flow fails at indexing | `vectorDB` was not selected, the vector store connection is invalid, or the metadata/vector payloads are malformed | Configure a valid vector database on `vectorNode_157`, verify connectivity, and inspect the outputs of `Transform Metadata` for expected `vectors` and `metadata` fields. |
- * | Indexed records appear to overwrite one another unexpectedly | `primaryKeys` is set to `title`, and multiple pages or chunks share the same title | Change the indexing key strategy to a more unique field such as URL plus chunk identifier if record uniqueness is required. |
+ *| Indexed records appear to overwrite one another unexpectedly | Multiple records may share the same `chunk_id` if their source identity is not unique | Ensure each scraped page has a stable, unique source value so the generated `chunk_id` remains unique per chunk. |
  * | Some URLs in a batch are not processed as expected | The scrape limit is capped, the batch contains invalid URLs, or pages exceed timeout constraints | Reduce the batch size, validate each URL, and adjust flow limits or timeout settings in the flow definition if larger jobs are required. |
  * | Downstream chatbot cannot answer from newly scraped content | The chatbot flow is querying a different vector index, the current index job failed silently on content quality, or retrieval metadata is not aligned | Ensure both flows point to the same vector database and collection context, then verify that index records were created with the expected metadata. |
  * | Loop completes but nothing meaningful is embedded | Scraped pages returned empty or near-empty `markdown` fields, causing chunk extraction to produce little or no text | Inspect the raw Firecrawl output for `markdown` content and adjust scraping strategy or source URLs to pages with indexable text. |
@@ -124,10 +124,10 @@ export const meta = {
   "description": "Scraping Indexation",
   "tags": [],
   "testInput": {
-    "urls": [
-      "https://thelabmiami.com"
-    ]
-  },
+  "urls": [
+    "https://example.com"
+  ]
+},
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": "",
@@ -421,7 +421,7 @@ export const nodes = [
         "action": "index",
         "filters": "",
         "primaryKeys": [
-          "title"
+          "chunk_id"
         ],
         "vectorsField": "{{codeNode_305.output.vectors}}",
         "metadataField": "{{codeNode_305.output.metadata}}",

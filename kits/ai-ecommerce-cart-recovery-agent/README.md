@@ -1,70 +1,150 @@
-<a href="https://studio.lamatic.ai/_?wizardId=bundles-knowledge-chatbot" target="_blank" style="text-decoration:none;">
-  <div align="right">
-    <span style="display:inline-block;background:#e63946;color:#fff;border-radius:6px;padding:10px 22px;font-size:16px;font-weight:bold;letter-spacing:0.5px;text-align:center;transition:background 0.2s;box-shadow:0 2px 8px 0 #0001;">Deploy on Lamatic</span>
-  </div>
-</a>
-
-# Knowledge Chatbot
+﻿# AI E-Commerce Cart Recovery Agent
 
 ## About This Kit
 
-This bundle allows you to vectorise from any data source into your vector database, and then allows to build a RAG chatbot to answer your question.
+AI E-Commerce Cart Recovery Agent is a Lamatic AgentKit kit designed to help e-commerce businesses recover abandoned shopping carts using AI and retrieval-augmented generation (RAG).
 
-This flow includes an option of integrating from  **7 indexation flows** working together with then to build a RAG system powered by a RAG chatbot.
+The agent combines customer and cart context with indexed business knowledge to generate relevant and personalized cart-recovery responses. Business information such as product details, store policies, FAQs, and approved promotional offers can be indexed into a vector database and retrieved when generating a response.
 
-## Files Included in each flow
+The cart-recovery flow can analyze the available customer and cart context, estimate purchase intent, generate an appropriate recovery message, and recommend an approved offer when the supplied eligibility information allows it.
 
-- **config.json** - Complete flow structure with nodes and connections
-- **inputs.json** - Private inputs requiring configuration
-- **meta.json** - Flow metadata and information
+## Workflow
+
+Customer Cart / Chat Input
+â†“
+Cart Recovery RAG Flow
+â†“
+Retrieve Relevant Business Knowledge
+â†“
+Generate Personalized Recovery Response
+
+## Supported Data Sources
+
+The kit includes eight source-specific indexation flows:
+
+1. Google Drive
+2. Google Sheets
+3. Microsoft OneDrive
+4. PostgreSQL
+5. Amazon S3
+6. SharePoint
+7. Web Crawling
+8. Web Scraping
+
+These flows prepare content for retrieval by extracting source data, transforming or chunking it where required, generating vector embeddings, and indexing the resulting content and metadata into the configured vector database.
+
+## Cart Recovery Flow
+
+The main runtime flow is:
+
+`flows/cart-recovery.ts`
+
+It receives the cart-recovery request, retrieves relevant indexed knowledge using the configured RAG node, and generates the response using the cart-recovery prompts.
+
+The flow uses:
+
+- `prompts/cart-recovery-system.md` â€” defines the agent's cart-recovery behavior and response rules.
+- `prompts/cart-recovery-user.md` â€” supplies the user and cart context required for the recovery request.
+- `model-configs/cart-recovery.ts` â€” contains the RAG model and retrieval configuration.
+- `triggers/widgets/cart-recovery-chat-widget.ts` â€” configures the chat widget trigger.
+- `constitutions/default.md` â€” contains shared behavioral instructions for the kit.
+
+## Project Structure
+
+The kit contains:
+
+- `flows/` â€” cart recovery and source-specific indexation flows.
+- `scripts/` â€” extraction, chunking, and metadata transformation scripts used by the indexation flows.
+- `prompts/` â€” system and user prompts for cart recovery.
+- `model-configs/` â€” model and retrieval configuration.
+- `triggers/widgets/` â€” chat widget configuration.
+- `constitutions/` â€” shared agent instructions.
+- `lamatic.config.ts` â€” kit configuration and flow selection metadata.
+- `agent.md` â€” detailed architecture and usage documentation.
+- `.env.example` â€” placeholder environment configuration.
+
+## Setup
+
+1. Import or configure the kit in your Lamatic workspace.
+2. Select one of the supported data-source indexation flows.
+3. Configure the required source credentials and private inputs.
+4. Configure the destination vector database.
+5. Run the selected indexation flow to populate the vector store.
+6. Configure the embedding and generative models required by the cart-recovery flow.
+7. Configure the Cart Recovery chat widget.
+8. Test the complete retrieval and response workflow before deployment.
 
 ## Usage
 
-1. Import this bundle into your Lamatic workspace
-2. Configure the required private inputs as listed in `inputs.json`
-3. Test the flow with sample data
-4. Deploy and integrate into your system
+First run the appropriate indexation flow for the business knowledge source.
 
-## Next Steps
+For example, product documentation or store information may be indexed from Google Drive, Google Sheets, S3, PostgreSQL, SharePoint, OneDrive, or web content.
 
-### Share with the Community
+After the content has been indexed, use the `cart-recovery` flow as the runtime conversational layer.
 
-Help grow the Lamatic ecosystem by contributing improvements to AgentKit!
+The flow retrieves relevant business knowledge from the configured vector database and uses it together with the supplied cart context to generate a personalized recovery response.
 
-1. **Fork the Repository**
-   - Visit [github.com/Lamatic/AgentKit](https://github.com/Lamatic/AgentKit)
-   - Fork the repository to your GitHub account
+## Example Use Case
 
-2. **Prepare Your Submission**
-   - Create a new folder with a descriptive name for your flow
-   - Add all files from this package for each flow (`config.json`, `inputs.json`, `meta.json`)
-   - Write a comprehensive README.md that includes:
-     - Clear description of what the flow does
-     - Use cases and benefits
-     - Step-by-step setup instructions
-     - Required credentials and how to obtain them
-     - Example inputs and expected outputs
-     - Screenshots or diagrams (optional but recommended)
+A customer adds products to a shopping cart but does not complete checkout.
 
-3. **Open a Pull Request**
-   - Commit your changes with a descriptive message
-   - Push to your forked repository
-   - Open a PR to [github.com/Lamatic/AgentKit](https://github.com/Lamatic/AgentKit)
-   - Add a clear description of your flow in the PR
+The Cart Recovery Agent can use the supplied cart context and indexed business knowledge to:
 
-Your contribution will help others build amazing automations! 🚀
+- Understand the available cart and customer context.
+- Retrieve relevant product or store information.
+- Estimate the customer's purchase intent.
+- Generate a personalized recovery message.
+- Use promotional offers only when approved offer and eligibility information is supplied.
+- Recommend an appropriate next action.
+
+The agent should not invent coupon codes, discounts, or promotional eligibility that were not provided by the configured business data.
+
+## Security and Privacy
+
+- Do not commit API keys, passwords, access tokens, or other credentials.
+- Store credentials using the appropriate Lamatic integrations or environment configuration.
+- `.env.example` must contain placeholder values only.
+- Avoid sending customer information to unnecessary external services.
+- Do not include unnecessary personally identifiable information in model prompts.
+- Promotional recommendations should use only supplied and approved offer information.
+
+## Development
+
+Before submitting changes, verify that the kit structure and configuration follow the AgentKit contribution requirements.
+
+Check that:
+
+- The cart-recovery flow matches the `cart-recovery` step configured in `lamatic.config.ts`.
+- All referenced prompt, model-config, trigger, script, and flow files exist.
+- No test webhooks, private URLs, credentials, or debug logging remain.
+- Indexation flows preserve vector and metadata alignment.
+- Documentation describes the files and behavior actually included in this kit.
+
+## Contributing
+
+This kit is part of the Lamatic AgentKit ecosystem.
+
+When contributing improvements:
+
+1. Make changes on a dedicated branch.
+2. Keep the contribution limited to this kit.
+3. Validate the project locally.
+4. Commit and push the changes to your fork.
+5. Update the existing pull request.
+6. Address GitHub Actions and CodeRabbit review comments before requesting another review.
 
 ## Support
 
-For questions or issues with this flow:
-- Review the node documentation for specific integrations
-- Check the Lamatic documentation at docs.lamatic.ai
-- Contact support for assistance
+For questions or issues:
+
+- Review the relevant flow and integration configuration.
+- Check the Lamatic documentation.
+- Review `agent.md` for detailed architecture and flow information.
 
 ## Tags
 
-Startup,Document
+AI, E-Commerce, Cart Recovery, RAG, AgentKit, Automation
 
 ---
-*Exported from Lamatic Template Library*
-*Generated on 11/11/2025*
+
+*AI E-Commerce Cart Recovery Agent for Lamatic AgentKit*
