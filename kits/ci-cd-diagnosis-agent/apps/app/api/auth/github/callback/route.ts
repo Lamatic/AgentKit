@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCodeForAccessToken, fetchGitHubUserProfile } from "@/lib/auth/github";
+import { exchangeCodeForAccessToken, fetchGitHubUserProfile, getCanonicalRedirectUri } from "@/lib/auth/github";
 import { popOAuthState, setSession } from "@/lib/auth/session";
 
 export async function GET(request: NextRequest) {
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(homeUrl);
   }
 
-  // 3. Exchange Code for Access Token
-  const redirectUri = `${url.origin}/api/auth/github/callback`;
+  // 3. Exchange Code for Access Token using canonical redirect URI
+  const redirectUri = getCanonicalRedirectUri(request.headers, url.origin);
   const tokenResult = await exchangeCodeForAccessToken(code, redirectUri);
 
   if ("error" in tokenResult) {

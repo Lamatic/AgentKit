@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Diagnosis } from "@/lib/types";
 
 interface WorkspaceRightPanelProps {
@@ -8,7 +8,7 @@ interface WorkspaceRightPanelProps {
 }
 
 export function WorkspaceRightPanel({ diagnosis }: WorkspaceRightPanelProps) {
-  const { resolution, risk } = diagnosis;
+  const { resolution, risk, classification, analysis } = diagnosis;
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const handleCopyCode = (code: string, idx: number) => {
@@ -16,6 +16,71 @@ export function WorkspaceRightPanel({ diagnosis }: WorkspaceRightPanelProps) {
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
   };
+
+  // Dynamically generate RAG Knowledge Base articles based on category and root cause
+  const dynamicKnowledgeArticles = useMemo(() => {
+    const categoryStr = (classification.category || "").toLowerCase();
+    const rootCauseStr = (analysis.root_cause_summary || "").toLowerCase();
+
+    if (categoryStr.includes("memory") || rootCauseStr.includes("heap") || rootCauseStr.includes("oom") || rootCauseStr.includes("137")) {
+      return [
+        {
+          title: "V8 Heap Limit & Node.js Memory Allocation",
+          category: "Infrastructure",
+          summary: "Configuring max-old-space-size for Next.js & Docker build steps.",
+        },
+        {
+          title: "Docker Container SIGKILL OOM Prevention",
+          category: "Container Rules",
+          summary: "Best practices for cgroup memory limits in GitHub Actions runners.",
+        },
+      ];
+    }
+
+    if (categoryStr.includes("depend") || rootCauseStr.includes("peer") || rootCauseStr.includes("npm") || rootCauseStr.includes("eresolve")) {
+      return [
+        {
+          title: "npm Peer Dependency Resolution (--legacy-peer-deps)",
+          category: "Package Manager",
+          summary: "Resolving ERESOLVE lockfile mismatches across React 18 & React 19.",
+        },
+        {
+          title: "Reproducible CI/CD Dependency Lock Best Practices",
+          category: "Build Rules",
+          summary: "Using npm ci vs npm install in automated pipeline runners.",
+        },
+      ];
+    }
+
+    if (categoryStr.includes("syntax") || categoryStr.includes("code") || rootCauseStr.includes("type") || rootCauseStr.includes("tsc")) {
+      return [
+        {
+          title: "TypeScript Compiler Error Isolation Strategy",
+          category: "Compilation",
+          summary: "Isolating type inference crashes and missing property dereferences.",
+        },
+        {
+          title: "Strict Null Checks & Optional Chaining Best Practices",
+          category: "Code Quality",
+          summary: "Preventing runtime TypeError and NullPointerExceptions in CI builds.",
+        },
+      ];
+    }
+
+    // Default dynamic fallback based on classification sub_category
+    return [
+      {
+        title: `${classification.category || "CI/CD"} Failure Recovery Pattern`,
+        category: classification.sub_category || "General",
+        summary: `Standard operating procedures for resolving ${classification.category || "pipeline"} incidents.`,
+      },
+      {
+        title: "GitHub Actions Runner Optimization Guidelines",
+        category: "Pipeline Health",
+        summary: "Improving workflow execution speed and failure resilience.",
+      },
+    ];
+  }, [classification, analysis]);
 
   return (
     <aside className="glass-panel rounded-[24px] p-6 space-y-6 flex-1 max-w-md">
@@ -73,24 +138,13 @@ export function WorkspaceRightPanel({ diagnosis }: WorkspaceRightPanelProps) {
         </div>
       )}
 
-      {/* RAG Knowledge Base References */}
+      {/* Dynamic RAG Knowledge Base References */}
       <div className="space-y-3 pt-4 border-t border-white/10">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-          Retrieved Knowledge Base Guides
+          Retrieved RAG Knowledge Guides
         </h2>
         <div className="space-y-2">
-          {[
-            {
-              title: "Docker Exit Code 137 OOM Mitigation",
-              category: "Infrastructure",
-              summary: "How to configure V8 old-space-size and Docker Compose memory limits.",
-            },
-            {
-              title: "GitHub Actions Memory Allocation Guidelines",
-              category: "CI/CD Rules",
-              summary: "Best practices for runner heap tuning and container resource allocation.",
-            },
-          ].map((art, i) => (
+          {dynamicKnowledgeArticles.map((art, i) => (
             <div key={i} className="rounded-[14px] border border-white/10 bg-white/5 p-3 space-y-1 hover:border-cyan-500/40 transition-all">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-white">{art.title}</span>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateOAuthState, getGitHubAuthorizationUrl, getGitHubClientId } from "@/lib/auth/github";
+import { generateOAuthState, getCanonicalRedirectUri, getGitHubAuthorizationUrl, getGitHubClientId } from "@/lib/auth/github";
 import { setOAuthState } from "@/lib/auth/session";
 
 export async function GET(request: NextRequest) {
@@ -17,9 +17,8 @@ export async function GET(request: NextRequest) {
   // 2. Store State Token in short-lived HTTP-only cookie
   await setOAuthState(state);
 
-  // 3. Determine Redirect URI dynamically based on request origin
-  const origin = request.headers.get("origin") || request.nextUrl.origin;
-  const redirectUri = `${origin}/api/auth/github/callback`;
+  // 3. Compute Canonical Redirect URI matching registered domain
+  const redirectUri = getCanonicalRedirectUri(request.headers, request.nextUrl.origin);
 
   // 4. Build GitHub Authorization URL
   const authUrl = getGitHubAuthorizationUrl(state, redirectUri);

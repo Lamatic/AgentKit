@@ -23,6 +23,28 @@ export function generateOAuthState(): string {
 }
 
 /**
+ * Computes canonical redirect URI for GitHub OAuth matching registered domain
+ */
+export function getCanonicalRedirectUri(reqHeaders: { get: (name: string) => string | null }, fallbackOrigin: string): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL.trim();
+    if (appUrl.endsWith("/")) appUrl = appUrl.slice(0, -1);
+    return `${appUrl}/api/auth/github/callback`;
+  }
+
+  const forwardedHost = reqHeaders.get("x-forwarded-host");
+  const forwardedProto = reqHeaders.get("x-forwarded-proto") || "https";
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}/api/auth/github/callback`;
+  }
+
+  let origin = fallbackOrigin;
+  if (origin.endsWith("/")) origin = origin.slice(0, -1);
+  return `${origin}/api/auth/github/callback`;
+}
+
+/**
  * Generate GitHub OAuth Authorization URL
  */
 export function getGitHubAuthorizationUrl(state: string, redirectUri: string): string {

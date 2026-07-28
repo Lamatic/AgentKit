@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { Diagnosis } from "@/lib/types";
 import { formatConfidence, riskToBadgeBg } from "@/lib/utils";
 import { WorkspaceRecoveryPlan } from "@/components/workspace/workspace-recovery-plan";
@@ -11,6 +12,32 @@ interface WorkspaceCenterPanelProps {
 
 export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceCenterPanelProps) {
   const { classification, analysis } = diagnosis;
+
+  // Dynamically construct failure chronology events from cited evidence lines
+  const dynamicChronology = useMemo(() => {
+    const evidence = analysis.evidence_cited || [];
+    if (evidence.length === 0) {
+      return [
+        { title: "Pipeline Execution Started", detail: "Runner initialized step sequence", color: "cyan" },
+        { title: "Execution Failure Detected", detail: analysis.root_cause_summary, color: "rose" },
+      ];
+    }
+
+    const events = [
+      { title: "Pipeline Execution Started", detail: "Runner initialized job step sequence", color: "cyan" },
+    ];
+
+    evidence.forEach((line, index) => {
+      const isTerminal = index === evidence.length - 1;
+      events.push({
+        title: `Failure Event Locus [Step ${index + 1}]`,
+        detail: line,
+        color: isTerminal ? "rose" : "amber",
+      });
+    });
+
+    return events;
+  }, [analysis]);
 
   return (
     <div className="glass-panel rounded-[24px] p-6 space-y-6 flex-1">
@@ -109,27 +136,29 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
         </div>
       </div>
 
-      {/* Failure Timeline */}
+      {/* Dynamic Failure Chronology */}
       <div className="space-y-2 pt-2 border-t border-white/10">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-          Failure Chronology
+          Failure Chronology ({dynamicChronology.length} Milestones)
         </h2>
         <div className="space-y-3 pl-2 border-l-2 border-white/10 ml-2">
-          <div className="relative pl-4">
-            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-cyan-400" />
-            <p className="text-xs font-semibold text-white">Pipeline Execution Started</p>
-            <p className="text-[11px] text-[var(--muted)]">Runner initialized step sequence</p>
-          </div>
-          <div className="relative pl-4">
-            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-amber-400" />
-            <p className="text-xs font-semibold text-white">Build Execution Peak Memory</p>
-            <p className="text-[11px] text-[var(--muted)]">Node.js V8 old space heap threshold reached</p>
-          </div>
-          <div className="relative pl-4">
-            <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-rose-500 pulse-glow" />
-            <p className="text-xs font-semibold text-rose-400">Process Terminated (Exit Code 137)</p>
-            <p className="text-[11px] text-[var(--muted)]">OS kernel OOM killer sent SIGKILL signal</p>
-          </div>
+          {dynamicChronology.map((ev, idx) => (
+            <div key={idx} className="relative pl-4">
+              <span
+                className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${
+                  ev.color === "cyan"
+                    ? "bg-cyan-400"
+                    : ev.color === "amber"
+                    ? "bg-amber-400"
+                    : "bg-rose-500 pulse-glow"
+                }`}
+              />
+              <p className={`text-xs font-semibold ${ev.color === "rose" ? "text-rose-400" : "text-white"}`}>
+                {ev.title}
+              </p>
+              <p className="text-[11px] text-[var(--muted)] truncate">{ev.detail}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
