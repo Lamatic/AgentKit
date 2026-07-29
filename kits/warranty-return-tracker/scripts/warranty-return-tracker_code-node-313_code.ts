@@ -273,9 +273,13 @@ const today = parseDate(todayDate);
 
 if (!today) {
   output = {
-    success: false,
-    error_code: "INVALID_TODAY_DATE",
-    message: "today_date must be YYYY-MM-DD"
+    purchase: null,
+    items: [],
+    needs_confirmation: false,
+    missing_required_fields: [],
+    digest: "",
+    parse_error: true,
+    error_code: "INVALID_TODAY_DATE"
   };
 } else {
   const purchaseDate = parseDate(
