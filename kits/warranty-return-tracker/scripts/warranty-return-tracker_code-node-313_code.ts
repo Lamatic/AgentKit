@@ -1,5 +1,5 @@
 
-todayDate = {{triggerNode_1.output.today_date}};
+const todayDate = {{triggerNode_1.output.today_date}};
 const extracted = {{InstructorLLMNode_194.output}};
 
 function parseDate(value) {
