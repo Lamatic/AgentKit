@@ -32,7 +32,12 @@ export default function TripForm() {
     if (!Number.isFinite(budget) || budget < 0) {
       setError("Budget can't be negative.");
       return;
-    }    setLoading(true);
+    }
+    if (!travelDate) {
+      setError("Please select a travel date.");
+      return;
+    }
+    setLoading(true);
 
     try {
       const result = await planTrip({

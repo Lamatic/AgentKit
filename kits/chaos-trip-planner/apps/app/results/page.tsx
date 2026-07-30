@@ -38,12 +38,15 @@ export default function Results() {
   const [city, setCity] = useState("");
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("tripResult");
-    const storedCity = sessionStorage.getItem("tripCity");
-    if (stored) setTrip(JSON.parse(stored));
-    if (storedCity) setCity(storedCity);
+    try {
+      const stored = sessionStorage.getItem("tripResult");
+      const storedCity = sessionStorage.getItem("tripCity");
+      if (stored) setTrip(JSON.parse(stored));
+      if (storedCity) setCity(storedCity);
+    } catch (err) {
+      console.error("Failed to load trip data:", err);
+    }
   }, []);
-
   if (!trip) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">

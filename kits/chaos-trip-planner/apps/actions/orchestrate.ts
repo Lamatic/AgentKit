@@ -18,6 +18,9 @@ async function callLamatic(query: string, variables: Record<string, any>) {
     },
     body: JSON.stringify({ query, variables }),
   });
+  if (!response.ok) {
+    throw new Error(`Lamatic request failed: ${response.status}`);
+  }
   return response.json();
 }
 
