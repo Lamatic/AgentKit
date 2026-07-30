@@ -312,7 +312,7 @@ describe("investigateIssue", () => {
     expect(calls.at(-1)).toBe("delete");
   });
 
-  test("retries one malformed Lamatic report for a vague issue", async () => {
+test("retries one malformed Lamatic report for a vague issue", async () => {
     const { runtime, planner } = harness();
     const vagueIssue = { ...issue, body: "The CLI changes my name unexpectedly." };
     let reportCalls = 0;
@@ -455,4 +455,28 @@ describe("investigateIssue", () => {
       ),
     ).rejects.toThrow("sandbox cleanup failed");
   });
+});
+
+test("does not call a limited exploratory probe not reproduced", async () => {
+  const { runtime, planner } = harness();
+  const vagueIssue = { ...issue, title: "math in the middle looks wrong", body: "" };
+  const result = await investigateIssue(
+    { issueUrl: vagueIssue.url },
+    {
+      issueReader: { read: async () => vagueIssue }, runtime, planner,
+      reporter: async () => ({
+        outcome: "not_reproduced" as const,
+        summary: "No failure appeared.",
+        expectedBehavior: "Math renders correctly.",
+        actualBehavior: "README rendered.",
+        reproductionSteps: ["Render README."],
+        evidence: ["README output."],
+        limitations: ["Only README was tested; it does not contain the reported math."],
+        markdown: "# Report",
+      }),
+    },
+  );
+
+  expect(result.outcome).toBe("inconclusive");
+  expect(result.hypothesis).toContain("Inconclusive under the tested conditions.");
 });

@@ -223,6 +223,16 @@ export async function investigateIssue(
       } catch {
         report = await requestReport();
       }
+      const reportedEvidenceGap = report.limitations.some((limitation) =>
+        /\b(?:only|not|without|insufficient|does not|did not)\b/i.test(limitation),
+      );
+      if (report.outcome === "not_reproduced" && reportedEvidenceGap) {
+        report = {
+          ...report,
+          outcome: "inconclusive" as const,
+          summary: `Inconclusive under the tested conditions. ${report.summary}`,
+        };
+      }
       return {
         issue,
         ref: ref ?? "default",
