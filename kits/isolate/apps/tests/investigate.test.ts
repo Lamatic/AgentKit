@@ -39,6 +39,7 @@ function harness(options: {
 } = {}) {
   const calls: string[] = [];
   const createInputs: unknown[] = [];
+  const plannerInputs: Array<{ policyFeedback?: string }> = [];
   const probeCommands: string[] = [];
   let plannerCalls = 0;
   let probeIndex = 0;
@@ -97,7 +98,8 @@ function harness(options: {
       return { deleted: true as const, sandboxId: "sandbox_1" };
     },
   };
-  const planner = async () => {
+  const planner = async (input: { policyFeedback?: string }) => {
+    plannerInputs.push(input);
     plannerCalls += 1;
     if (options.plannerFails) throw new Error("planner unavailable");
     if (options.tuiPlan) {
@@ -145,6 +147,7 @@ function harness(options: {
   return {
     calls,
     createInputs,
+    plannerInputs,
     probeCommands,
     runtime,
     planner,
@@ -268,7 +271,7 @@ describe("investigateIssue", () => {
   });
 
   test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {
-    const { calls, runtime, planner } = harness({ tuiPlan: true });
+    const { calls, plannerInputs, runtime, planner } = harness({ tuiPlan: true });
     const tuiIssue = {
       ...issue,
       title: "ctrl + Q exits without any save warning",
@@ -285,6 +288,9 @@ describe("investigateIssue", () => {
     expect(calls.filter((call) => call === "tui-candidate")).toHaveLength(2);
     expect(calls).toContain("tui-control");
     expect(calls.at(-1)).toBe("delete");
+    expect(plannerInputs[0]?.policyFeedback).toMatch(
+      /repository-defined environment variable[\s\S]*never downloads/,
+    );
   });
 
   test("fails closed when sandbox deletion cannot be confirmed", async () => {

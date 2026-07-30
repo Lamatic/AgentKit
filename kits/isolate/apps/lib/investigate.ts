@@ -86,7 +86,7 @@ export async function investigateIssue(
 
     const evidenceGuidance =
       assertion?.kind === "tui_unsaved_exit"
-        ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned build script as setupCommand, and one repository-owned command that launches the TUI without a fixture argument. Dependencies are already installed; setupCommand must build, never install. Inspect workspace package manifests and use the structured relative Bun workspace form when a root wrapper cannot forward the runtime-injected file argument. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
+        ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned build script as setupCommand, and one repository-owned command that launches the TUI without a fixture argument. Dependencies are already installed; setupCommand must build, never install. Inspect workspace package manifests and use the structured relative Bun workspace form when a root wrapper cannot forward the runtime-injected file argument. Inspect the repository launcher and tests for a repository-defined environment variable that points it at the native binary produced by setupCommand; when present, prefix command with that variable and its repository-relative build output so launch never downloads after network isolation. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
         : "";
     const requestPlan = (policyFeedback = evidenceGuidance) =>
       deadline.run(
