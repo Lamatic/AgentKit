@@ -115,20 +115,29 @@ export async function investigateIssue(
       assertion?.kind === "tui_unsaved_exit"
         ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned build script as setupCommand, and one repository-owned command that launches the TUI without a fixture argument. Dependencies are already installed; setupCommand must build, never install. Inspect workspace package manifests and use the structured relative Bun workspace form when a root wrapper cannot forward the runtime-injected file argument. Inspect the repository launcher and tests for a repository-defined environment variable that points it at the native binary produced by setupCommand; when present, prefix command with that variable and its build output so launch never downloads after network isolation. Resolve every build-artifact path from the effective working directory of command; when command uses bun --cwd, adjust the path for that directory. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
         : "";
-    const requestPlan = (policyFeedback = evidenceGuidance) =>
-      deadline.run(
-        (signal) =>
-          planner(
-            {
-              issue: JSON.stringify(issue),
-              repositoryContext: snapshot.observation.stdout,
-              ref: ref ?? "default branch",
-              policyFeedback,
-            },
-            { signal },
-          ),
-        { maximumMilliseconds: 25_000 },
-      );
+    const requestPlan = async (policyFeedback = evidenceGuidance) => {
+      let failure: unknown;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          return await deadline.run(
+            (signal) =>
+              planner(
+                {
+                  issue: JSON.stringify(issue),
+                  repositoryContext: snapshot.observation.stdout,
+                  ref: ref ?? "default branch",
+                  policyFeedback,
+                },
+                { signal },
+              ),
+            { maximumMilliseconds: 25_000 },
+          );
+        } catch (error) {
+          failure = error;
+        }
+      }
+      throw failure;
+    };
     let plan = await requestPlan();
     if (!assertion) {
       const validateExploratoryCommands = (candidateCommand: string, controlCommand: string) => {

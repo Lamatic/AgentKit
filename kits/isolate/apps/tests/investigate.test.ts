@@ -33,6 +33,7 @@ function harness(options: {
   invalidRepair?: boolean;
   misplacedSeparatorFirst?: boolean;
   plannerFails?: boolean;
+  plannerFailsFirst?: boolean;
   sequentialSeparator?: boolean;
   unsafeFirst?: boolean;
   unsafeAlways?: boolean;
@@ -106,7 +107,9 @@ function harness(options: {
   const planner = async (input: { policyFeedback?: string }) => {
     plannerInputs.push(input);
     plannerCalls += 1;
-    if (options.plannerFails) throw new Error("planner unavailable");
+    if (options.plannerFails || (options.plannerFailsFirst && plannerCalls === 1)) {
+      throw new Error("planner unavailable");
+    }
     if (options.tuiPlan) {
       return {
         mode: "tui_unsaved_exit" as const,
@@ -201,6 +204,16 @@ describe("investigateIssue", () => {
       ),
     ).rejects.toThrow("planner unavailable");
     expect(calls.at(-1)).toBe("delete");
+  });
+
+  test("retries one malformed or unavailable Lamatic plan", async () => {
+    const { runtime, planner, plannerCallCount } = harness({ plannerFailsFirst: true });
+    const result = await investigateIssue(
+      { issueUrl: issue.url },
+      { issueReader: { read: async () => issue }, runtime, planner },
+    );
+    expect(result.outcome).toBe("reproduced");
+    expect(plannerCallCount()).toBe(2);
   });
 
   test("repairs one unsafe Lamatic plan before certification", async () => {
