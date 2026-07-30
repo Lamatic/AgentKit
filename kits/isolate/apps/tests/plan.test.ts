@@ -64,42 +64,6 @@ describe("reproduction plan boundary", () => {
     expect(
       assertCertificationCommand("bun run cli IsolateCLI", "Hello, isolatecli!"),
     ).toBe("bun run cli IsolateCLI");
-    expect(() =>
-      assertCertificationCommand("printf 'Hello, isolatecli!'", "Hello, isolatecli!"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("node -e \"console.log('Hello')\"", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("base64 -d payload; bun test", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test\nprintf 'Hello'", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "bun run nonexistent\nprintf \"Hello, \\x69solatecli!\"",
-        "Hello, isolatecli!",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun run /tmp/repro.js", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("npm test --prefix /tmp", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("npm test --script-shell=/tmp/evil", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "npm test --node-options=--require=/tmp/evil",
-        "Hello",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("npm test --workspace=outside", "Hello"),
-    ).toThrow("command policy");
     expect(
       assertCertificationCommand(
         "bun run cli -- input --preserve-case",
@@ -112,69 +76,38 @@ describe("reproduction plan boundary", () => {
         "Hello",
       ),
     ).toBe("bun run --cwd packages/cli mdv -- input.md");
-    expect(() =>
-      assertCertificationCommand(
-        "bun run --cwd ../outside mdv -- input.md",
-        "Hello",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "bun run --cwd /tmp mdv -- input.md",
-        "Hello",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "bun run cli greet -- IsolateCLI",
-        "Hello, isolatecli!",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "bun run --preload=/tmp/repro.js test",
-        "Hello",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("NODE_OPTIONS=--require=./repro.js bun test", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test ../outside.test.ts", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "bun test {../outside.test.ts,inside.test.ts}",
-        "Hello",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand(
-        "bun test {/tmp/repro.test.ts,inside.test.ts}",
-        "Hello",
-      ),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test tests/*.test.ts", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand('npm test --pre"fix"=/tmp', "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("npm test --pre\\fix=/tmp", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test ..\\/outside.test.ts", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test $HOME/repro.test.ts", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test $TMPDIR/repro.test.ts", "Hello"),
-    ).toThrow("command policy");
-    expect(() =>
-      assertCertificationCommand("bun test ${TMPDIR}/repro.test.ts", "Hello"),
-    ).toThrow("command policy");
+  });
+
+  test.each([
+    ["printf 'Hello, isolatecli!'", "Hello, isolatecli!"],
+    ["node -e \"console.log('Hello')\"", "Hello"],
+    ["base64 -d payload; bun test", "Hello"],
+    ["bun test\nprintf 'Hello'", "Hello"],
+    ["bun run nonexistent\nprintf \"Hello, \\x69solatecli!\"", "Hello, isolatecli!"],
+    ["bun run /tmp/repro.js", "Hello"],
+    ["npm test --prefix /tmp", "Hello"],
+    ["npm test --script-shell=/tmp/evil", "Hello"],
+    ["npm test --node-options=--require=/tmp/evil", "Hello"],
+    ["npm test --workspace=outside", "Hello"],
+    ["bun run --cwd ../outside mdv -- input.md", "Hello"],
+    ["bun run --cwd /tmp mdv -- input.md", "Hello"],
+    ["bun run cli greet -- IsolateCLI", "Hello, isolatecli!"],
+    ["bun run --preload=/tmp/repro.js test", "Hello"],
+    ["NODE_OPTIONS=--require=./repro.js bun test", "Hello"],
+    ["bun test ../outside.test.ts", "Hello"],
+    ["bun test {../outside.test.ts,inside.test.ts}", "Hello"],
+    ["bun test {/tmp/repro.test.ts,inside.test.ts}", "Hello"],
+    ["bun test tests/*.test.ts", "Hello"],
+    ['npm test --pre"fix"=/tmp', "Hello"],
+    ["npm test --pre\\fix=/tmp", "Hello"],
+    ["bun test ..\\/outside.test.ts", "Hello"],
+    ["bun test $HOME/repro.test.ts", "Hello"],
+    ["bun test $TMPDIR/repro.test.ts", "Hello"],
+    ["bun test ${TMPDIR}/repro.test.ts", "Hello"],
+  ])("rejects unsafe certification command: %s", (command, evidence) => {
+    expect(() => assertCertificationCommand(command, evidence)).toThrow(
+      "command policy",
+    );
   });
 
   test("normalizes sequential separators without bypassing command validation", () => {
