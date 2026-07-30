@@ -43,20 +43,22 @@ export function tryExtractIssueEvidenceAssertion(body: string) {
 export function tryDeriveIssueEvidenceAssertion(input: {
   title: string;
   body: string;
-}): IssueEvidenceAssertion | null {
+}, repositoryContext = ""): IssueEvidenceAssertion | null {
   const explicit = tryExtractIssueEvidenceAssertion(input.body);
   if (explicit) return explicit;
 
   const text = `${input.title}\n${input.body}`;
+  const contextualText = `${text}\n${repositoryContext}`;
   const namesTerminalSurface = /\b(?:cli|content|document|editor|file|terminal|tui)\b/i.test(
-    text,
+    contextualText,
   );
-  const namesQuitShortcut = /\b(?:ctrl|control)\s*\+\s*q\b/i.test(text);
+  const namesQuitShortcut = /\b(?:ctrl|control)\s*\+\s*q\b/i.test(contextualText);
   const namesExit = /\b(?:close[sd]?|exit(?:s|ed|ing)?|quit(?:s|ted|ting)?)\b/i.test(
     text,
   );
   const namesUnsavedState =
     /\b(?:discard(?:s|ed|ing)?|los(?:e|es|t|ing)|unsaved)\b/i.test(text) ||
+    /\b(?:change|changes|edit|edits)\b.{0,32}\b(?:go|goes|went|gone|vanish(?:es|ed)?|disappear(?:s|ed)?)\b/i.test(text) ||
     /\b(?:not|never|without)\b.{0,48}\b(?:save|saved|saving|warning|prompt|confirm)/i.test(
       text,
     );
