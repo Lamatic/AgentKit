@@ -15,6 +15,17 @@ describe("issue evidence contract", () => {
     ).toEqual({ kind: "stdout_contains", value: "Hello, isolatecli!" });
   });
 
+  test("parses stderr backticks and unquoted stdout values", () => {
+    expect(extractIssueEvidenceAssertion("Observed stderr: `fatal failure`")).toEqual({
+      kind: "stderr_contains",
+      value: "fatal failure",
+    });
+    expect(extractIssueEvidenceAssertion("Observed stdout: plain output")).toEqual({
+      kind: "stdout_contains",
+      value: "plain output",
+    });
+  });
+
 test("does not certify a generic exit code as issue-specific behavior", () => {
     expect(() => extractIssueEvidenceAssertion("Observed exit code: `1`")).toThrow(
       MissingIssueEvidenceContractError,
@@ -60,11 +71,11 @@ test("does not certify a generic exit code as issue-specific behavior", () => {
   });
 });
 
-test("derives dirty TUI exit evidence from a vague issue plus repository context", () => {
+test("does not derive a quit shortcut solely from repository context", () => {
   expect(
     tryDeriveIssueEvidenceAssertion(
       { title: "my changes go away when I quit", body: "" },
       "Terminal-first Markdown visualizer/editor. Press Ctrl+Q to quit and Ctrl+S to save.",
     ),
-  ).toEqual({ kind: "tui_unsaved_exit", quitKey: "ctrl_q" });
+  ).toBeNull();
 });

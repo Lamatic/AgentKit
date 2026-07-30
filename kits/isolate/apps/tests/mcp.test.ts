@@ -56,6 +56,12 @@ describe("POST /api/mcp", () => {
     expect(response.status).toBe(401);
   });
 
+  test("rejects mismatched tokens and missing server configuration", async () => {
+    const body = { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} };
+    expect((await handleMcp(mcpRequest(body, "Bearer wrong"), secret)).status).toBe(401);
+    expect((await handleMcp(mcpRequest(body, `Bearer ${secret}`), undefined)).status).toBe(401);
+  });
+
   test("advertises Isolate echo through authenticated MCP discovery", async () => {
     const response = await handleMcp(
       mcpRequest(

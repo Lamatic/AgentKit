@@ -57,6 +57,15 @@ describe("certifyEvidence", () => {
     expect(report.gate.allCandidateRunsPassed).toBe(false);
   });
 
+  test.each([[[passingRun]], [[passingRun, passingRun, passingRun]]])(
+    "requires exactly two candidate runs",
+    (candidateRuns) => {
+      const report = certifyEvidence({ candidateRuns, controlRun: failingControl });
+      expect(report.outcome).toBe("not_reproduced_under_tested_conditions");
+      expect(report.gate.repeatCount).toBe(candidateRuns.length);
+    },
+  );
+
   test("does not certify a non-specific probe that also passes its control", () => {
     const report = certifyEvidence({
       candidateRuns: [passingRun, passingRun],

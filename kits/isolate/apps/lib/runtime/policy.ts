@@ -5,7 +5,7 @@ const forbiddenCommandPatterns = [
   /\b(?:npm|bun|pnpm|yarn)\s+(?:publish|login|logout|adduser|whoami)\b/i,
   /\bcurl\b[^\n|]*\|\s*(?:ba)?sh\b/i,
   /\bwget\b[^\n|]*\|\s*(?:ba)?sh\b/i,
-  /\b(?:env|printenv|set)\b/i,
+  /(^|[;&|]\s*)(?:env|printenv|set)(?:\s|$)/i,
   /(?:^|\s)(?:\.env|\.npmrc|\.git-credentials)(?:\s|$)/i,
   /(?:^|\s)(?:\/etc|\/proc|\/sys|\/root|\/home)(?:\/|\s|$)/i,
   /\b(?:ssh|scp|sftp|nc|netcat|socat)\b/i,

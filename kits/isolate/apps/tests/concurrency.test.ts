@@ -17,6 +17,11 @@ describe("investigation concurrency fallback", () => {
     expect(acquireInvestigationSlot()).toBeNull();
 
     releaseFirst?.();
+    const releaseThird = acquireInvestigationSlot();
+    expect(releaseThird).toBeFunction();
+    releaseFirst?.();
+    expect(acquireInvestigationSlot()).toBeNull();
+    releaseSecond?.();
     expect(acquireInvestigationSlot()).toBeFunction();
   });
 });

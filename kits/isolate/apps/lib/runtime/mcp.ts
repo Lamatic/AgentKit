@@ -1,4 +1,5 @@
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 import {
@@ -210,7 +211,11 @@ function createIsolateServer(
             structuredContent: output,
           };
         } finally {
-          await runtime.delete(sandbox.sandboxId, deadline);
+          try {
+            await runtime.delete(sandbox.sandboxId, deadline);
+          } catch (cleanupError) {
+            console.error("Isolate MCP sandbox cleanup failed", cleanupError);
+          }
         }
       } catch (error) {
         return mcpToolError(error);
@@ -229,10 +234,18 @@ export async function handleMcp(
   runtimeFactory: RuntimeFactory = createDaytonaRuntime,
   issueReader: IssueReader = createGitHubIssueReader(),
 ) {
-  if (
-    !secret ||
-    request.headers.get("authorization") !== `Bearer ${secret}`
-  ) {
+  const authorization = request.headers.get("authorization") ?? "";
+  const [scheme, token, ...extra] = authorization.trim().split(/\s+/);
+  const expected = Buffer.from(secret ?? "");
+  const received = Buffer.from(token ?? "");
+  const authorized = Boolean(
+    secret &&
+      /^bearer$/i.test(scheme ?? "") &&
+      extra.length === 0 &&
+      received.length === expected.length &&
+      timingSafeEqual(received, expected),
+  );
+  if (!authorized) {
     return Response.json(
       {
         error: {

@@ -148,6 +148,9 @@ public repositories only.
    MCP connection if you want an agent to call the runtime tools directly.
 5. Add a deployment-wide edge rate limit for `/api/investigate`. The reference
    deployment uses Vercel Firewall plus an application-level concurrency bound.
+   That in-process bound is instance-scoped; it does not cap aggregate work
+   across autoscaled Vercel instances. Enforce deployment-wide/provider quotas
+   at the edge or Daytona account level.
 
 ## Verify the kit
 

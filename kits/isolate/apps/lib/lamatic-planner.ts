@@ -69,10 +69,20 @@ async function executeLamaticFlow(input: LamaticInput, dependencies: LamaticDepe
     }),
     signal: dependencies.signal ?? AbortSignal.timeout(25_000),
   });
-  const body = (await response.json()) as {
+  const rawBody = await response.text();
+  let body: {
     data?: { executeWorkflow?: { status?: string; result?: unknown } };
     errors?: Array<{ message?: string }>;
-  };
+  } = {};
+  try {
+    body = rawBody ? JSON.parse(rawBody) : {};
+  } catch {
+    throw new Error(
+      response.ok
+        ? "Lamatic could not produce a probe plan."
+        : `Lamatic returned HTTP ${response.status} without a valid error response.`,
+    );
+  }
   const execution = body.data?.executeWorkflow;
   if (!response.ok || execution?.status !== "success" || !execution.result) {
     throw new Error(

@@ -54,7 +54,9 @@ export class GitHubIssueReader {
           "X-GitHub-Api-Version": "2022-11-28",
           "User-Agent": "isolate-agentkit",
         },
-        signal: options.signal ?? AbortSignal.timeout(10_000),
+        signal: options.signal
+          ? AbortSignal.any([options.signal, AbortSignal.timeout(10_000)])
+          : AbortSignal.timeout(10_000),
       },
     );
 
