@@ -5,7 +5,7 @@ import { parseInvestigationReport } from "../lib/runtime/investigation-report";
 describe("parseInvestigationReport", () => {
   test("accepts a bounded evidence-based report", () => {
     const report = parseInvestigationReport(JSON.stringify({
-      outcome: "likely_reproduced",
+      assessment: "likely_reproduced",
       summary: "Narrow output splits a word.",
       expectedBehavior: "Keep words intact when wrapping.",
       actualBehavior: "Markdown is split in the middle of a word.",
@@ -15,15 +15,15 @@ describe("parseInvestigationReport", () => {
       markdown: "# Isolate investigation report\n\n## Outcome\nLikely reproduced",
     }));
 
-    expect(report.outcome).toBe("likely_reproduced");
+    expect(report.assessment).toBe("likely_reproduced");
     expect(report.markdown).toContain("Outcome");
   });
 
   test.each([
     ["malformed JSON", "{"],
-    ["unsupported outcome", JSON.stringify({ outcome: "reproduced" })],
+    ["unsupported assessment", JSON.stringify({ assessment: "reproduced" })],
     ["missing markdown", JSON.stringify({
-      outcome: "inconclusive",
+      assessment: "inconclusive",
       summary: "Summary",
       expectedBehavior: "Expected",
       actualBehavior: "Actual",

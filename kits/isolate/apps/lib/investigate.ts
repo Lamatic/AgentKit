@@ -260,7 +260,7 @@ export async function investigateIssue(
           repositoryContext: boundedEvidence,
           ref: ref ?? "default branch",
           policyFeedback:
-            "REPORT_MODE. Analyze only supplied runtime observations. Return strict JSON under report with outcome likely_reproduced, not_reproduced, or inconclusive; summary; expectedBehavior; actualBehavior; reproductionSteps; evidence; limitations; markdown. Never claim runtime certification. Distinguish recorded facts from model interpretation.",
+            "REPORT_MODE. Analyze only supplied runtime observations. Return strict JSON under report with assessment likely_reproduced, not_reproduced, or inconclusive; summary; expectedBehavior; actualBehavior; reproductionSteps; evidence; limitations; markdown. Assessment is interpretation, never the runtime outcome. Never claim runtime certification. Distinguish recorded facts from model interpretation.",
       };
       const requestReport = () => deadline.run(
         (signal) => reporter(reportInput, { signal }),
@@ -275,10 +275,10 @@ export async function investigateIssue(
         report.limitations.some((limitation) =>
           /(?:\bonly\b.{0,120}\b(?:test|tested|observe|observed|supply|supplied|analyze|analyzed|capture|captured)\b|\bnot\s+(?:captured|tested|targeted|exercised|simulated)\b|\bwithout\b.{0,80}\b(?:testing|capturing|exercising|simulation|simulating)\b|\binsufficient evidence\b|\bdoes not\s+(?:contain|target|exercise|test|simulate)\b|\bdid not\s+(?:contain|target|exercise|test|simulate)\b)/i.test(limitation),
         );
-      if (report.outcome !== "inconclusive" && reportedEvidenceGap) {
+      if (report.assessment !== "inconclusive" && reportedEvidenceGap) {
         report = {
           ...report,
-          outcome: "inconclusive" as const,
+          assessment: "inconclusive" as const,
           summary: `Inconclusive under the tested conditions. ${report.summary}`,
         };
       }
@@ -287,8 +287,8 @@ export async function investigateIssue(
         ref: ref ?? "default",
         hypothesis: report.summary,
         setup: null,
-        outcome: report.outcome,
-        verdictOwner: "lamatic" as const,
+        outcome: "inconclusive" as const,
+        verdictOwner: "runtime" as const,
         gate: null,
         evidence: { candidateRuns, controlRun },
         report: { format: "markdown" as const, content: report.markdown },

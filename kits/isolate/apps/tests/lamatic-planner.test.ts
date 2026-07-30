@@ -74,7 +74,7 @@ test("parses report-mode output through the existing flow response field", async
   const fetchImpl = (async () => new Response(JSON.stringify({
     data: { executeWorkflow: { status: "success", result: { plan: JSON.stringify({
       report: {
-        outcome: "likely_reproduced",
+        assessment: "likely_reproduced",
         summary: "Words split at narrow width.",
         expectedBehavior: "Wrap between words.",
         actualBehavior: "A word was split.",
@@ -90,5 +90,5 @@ test("parses report-mode output through the existing flow response field", async
     { issue: "issue", repositoryContext: "evidence", ref: "main" },
     { fetchImpl, configuration: { endpoint: "https://isolate.example.com", projectId: "project-id", apiKey: "test-key", flowId: "flow-id" } },
   );
-  expect(report.outcome).toBe("likely_reproduced");
+  expect(report.assessment).toBe("likely_reproduced");
 });

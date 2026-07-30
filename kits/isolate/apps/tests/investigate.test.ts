@@ -337,7 +337,7 @@ describe("investigateIssue", () => {
         runtime,
         planner,
         reporter: async () => ({
-          outcome: "likely_reproduced" as const,
+          assessment: "likely_reproduced" as const,
           summary: "The narrow preview splits a word between lines.",
           expectedBehavior: "Wrap at a word boundary.",
           actualBehavior: "The word is split after its twentieth character.",
@@ -349,8 +349,8 @@ describe("investigateIssue", () => {
       },
     );
 
-    expect(result.outcome).toBe("likely_reproduced");
-    expect(result.verdictOwner).toBe("lamatic");
+    expect(result.outcome).toBe("inconclusive");
+    expect(result.verdictOwner).toBe("runtime");
     expect(result.report.content).toContain("Likely reproduced");
     expect(result.evidence.candidateRuns).toHaveLength(2);
     expect(calls).toContain("probe");
@@ -368,7 +368,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
           reportCalls += 1;
           if (reportCalls === 1) throw new SyntaxError("malformed model report");
           return {
-            outcome: "likely_reproduced" as const,
+            assessment: "likely_reproduced" as const,
             summary: "Repeated output supports the issue.",
             expectedBehavior: "Keep words intact.", actualBehavior: "Word split.",
             reproductionSteps: ["Run narrow preview."], evidence: ["Repeated twice."],
@@ -387,10 +387,10 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
       { issueUrl: vagueIssue.url },
       {
         issueReader: { read: async () => vagueIssue }, runtime, planner,
-        reporter: async () => ({ outcome: "likely_reproduced" as const, summary: "Split repeated.", expectedBehavior: "Whole words.", actualBehavior: "Split words.", reproductionSteps: ["Run narrow preview."], evidence: ["Direct output."], limitations: [], markdown: "# Report" }),
+        reporter: async () => ({ assessment: "likely_reproduced" as const, summary: "Split repeated.", expectedBehavior: "Whole words.", actualBehavior: "Split words.", reproductionSteps: ["Run narrow preview."], evidence: ["Direct output."], limitations: [], markdown: "# Report" }),
       },
     );
-    expect(result.outcome).toBe("likely_reproduced");
+    expect(result.outcome).toBe("inconclusive");
     expect(plannerCallCount()).toBe(2);
     expect(probeCommands).not.toContain("bun test tests/markdown.test.ts");
   });
@@ -402,7 +402,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
       { issueUrl: vagueIssue.url },
       {
         issueReader: { read: async () => vagueIssue }, runtime, planner,
-        reporter: async () => ({ outcome: "inconclusive" as const, summary: "No direct split observed.", expectedBehavior: "Whole words.", actualBehavior: "No split in output.", reproductionSteps: ["Run preview."], evidence: ["Direct output."], limitations: [], markdown: "# Report" }),
+        reporter: async () => ({ assessment: "inconclusive" as const, summary: "No direct split observed.", expectedBehavior: "Whole words.", actualBehavior: "No split in output.", reproductionSteps: ["Run preview."], evidence: ["Direct output."], limitations: [], markdown: "# Report" }),
       },
     );
     expect(plannerCallCount()).toBe(2);
@@ -416,7 +416,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
       { issueUrl: vagueIssue.url },
       {
         issueReader: { read: async () => vagueIssue }, runtime, planner,
-        reporter: async () => ({ outcome: "inconclusive" as const, summary: "No split observed.", expectedBehavior: "Whole words.", actualBehavior: "No split observed.", reproductionSteps: ["Run preview."], evidence: ["Fallback output."], limitations: [], markdown: "# Report" }),
+        reporter: async () => ({ assessment: "inconclusive" as const, summary: "No split observed.", expectedBehavior: "Whole words.", actualBehavior: "No split observed.", reproductionSteps: ["Run preview."], evidence: ["Fallback output."], limitations: [], markdown: "# Report" }),
       },
     );
     expect(result.outcome).toBe("inconclusive");
@@ -434,7 +434,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
       { issueUrl: vagueIssue.url },
       {
         issueReader: { read: async () => vagueIssue }, runtime, planner,
-        reporter: async () => ({ outcome: "likely_reproduced" as const, summary: "Split UTF-8 produced replacement characters.", expectedBehavior: "Keep the character intact.", actualBehavior: "Replacement characters appeared.", reproductionSteps: ["Split UTF-8 across chunks."], evidence: ["Repeated twice; intact control differed."], limitations: [], markdown: "# Report" }),
+        reporter: async () => ({ assessment: "likely_reproduced" as const, summary: "Split UTF-8 produced replacement characters.", expectedBehavior: "Keep the character intact.", actualBehavior: "Replacement characters appeared.", reproductionSteps: ["Split UTF-8 across chunks."], evidence: ["Repeated twice; intact control differed."], limitations: [], markdown: "# Report" }),
       },
     );
     expect(probeCommands.slice(1)).toEqual([
@@ -451,7 +451,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
       { issueUrl: vagueIssue.url },
       {
         issueReader: { read: async () => vagueIssue }, runtime, planner,
-        reporter: async () => ({ outcome: "likely_reproduced" as const, summary: "The update token invokes self-update instead of opening the file.", expectedBehavior: "Open the file.", actualBehavior: "Runs updater.", reproductionSteps: ["Run update."], evidence: ["Repeated twice."], limitations: [], markdown: "# Report" }),
+        reporter: async () => ({ assessment: "likely_reproduced" as const, summary: "The update token invokes self-update instead of opening the file.", expectedBehavior: "Open the file.", actualBehavior: "Runs updater.", reproductionSteps: ["Run update."], evidence: ["Repeated twice."], limitations: [], markdown: "# Report" }),
       },
     );
     expect(result.hypothesis).toBe(
@@ -508,7 +508,7 @@ test("downgrades a limited exploratory probe not reproduced to inconclusive", as
     {
       issueReader: { read: async () => vagueIssue }, runtime, planner,
       reporter: async () => ({
-        outcome: "not_reproduced" as const,
+        assessment: "not_reproduced" as const,
         summary: "No failure appeared.",
         expectedBehavior: "Math renders correctly.",
         actualBehavior: "README rendered.",
@@ -532,7 +532,7 @@ test("downgrades a static launch likely missing interaction to inconclusive", as
     {
       issueReader: { read: async () => vagueIssue }, runtime, planner,
       reporter: async () => ({
-        outcome: "likely_reproduced" as const,
+        assessment: "likely_reproduced" as const,
         summary: "The nested path may fail to save.",
         expectedBehavior: "The nested file saves.",
         actualBehavior: "The command launched.",
