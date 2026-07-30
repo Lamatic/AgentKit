@@ -52,7 +52,7 @@ export function tryDeriveIssueEvidenceAssertion(input: {
   const namesTerminalSurface = /\b(?:cli|content|document|editor|file|terminal|tui)\b/i.test(
     contextualText,
   );
-  const namesQuitShortcut = /\b(?:ctrl|control)\s*\+\s*q\b/i.test(contextualText);
+  const namesQuitShortcut = /\b(?:ctrl|control)\s*\+\s*q\b/i.test(text);
   const namesExit = /\b(?:close[sd]?|exit(?:s|ed|ing)?|quit(?:s|ted|ting)?)\b/i.test(
     text,
   );
@@ -86,12 +86,14 @@ export function extractIssueEvidenceAssertion(
   const matches = [...body.matchAll(fieldPattern)];
   if (matches.length !== 1) throw new MissingIssueEvidenceContractError();
 
-  const [, field, inlineValue, plainValue] = matches[0];
+  const match = matches[0];
+  if (!match) throw new MissingIssueEvidenceContractError();
+  const [, field, inlineValue, plainValue] = match;
   const value = (inlineValue ?? plainValue ?? "").trim();
 
   if (!value) throw new MissingIssueEvidenceContractError();
   const parsed = outputIssueEvidenceAssertionSchema.safeParse({
-    kind: field.toLowerCase() === "stdout" ? "stdout_contains" : "stderr_contains",
+    kind: field?.toLowerCase() === "stdout" ? "stdout_contains" : "stderr_contains",
     value,
   });
   if (!parsed.success) throw new MissingIssueEvidenceContractError();

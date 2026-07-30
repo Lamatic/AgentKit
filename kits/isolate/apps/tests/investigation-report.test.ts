@@ -18,4 +18,20 @@ describe("parseInvestigationReport", () => {
     expect(report.outcome).toBe("likely_reproduced");
     expect(report.markdown).toContain("Outcome");
   });
+
+  test.each([
+    ["malformed JSON", "{"],
+    ["unsupported outcome", JSON.stringify({ outcome: "reproduced" })],
+    ["missing markdown", JSON.stringify({
+      outcome: "inconclusive",
+      summary: "Summary",
+      expectedBehavior: "Expected",
+      actualBehavior: "Actual",
+      reproductionSteps: ["Run it"],
+      evidence: ["Observed"],
+      limitations: [],
+    })],
+  ])("rejects %s", (_name, value) => {
+    expect(() => parseInvestigationReport(value)).toThrow();
+  });
 });

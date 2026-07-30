@@ -34,4 +34,12 @@ describe("investigation request", () => {
       ref: "feature/repro",
     });
   });
+
+  test.each([
+    "https://github.com/example/repo/pull/1",
+    "https://example.com/example/repo/issues/1",
+    "not a URL",
+  ])("rejects unsupported issue input %s", (issueUrl) => {
+    expect(investigationRequest(issueUrl, "")).toBeNull();
+  });
 });

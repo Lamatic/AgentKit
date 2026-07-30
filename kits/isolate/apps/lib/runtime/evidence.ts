@@ -5,12 +5,12 @@ import { probeEvaluationSchema, type ProbeEvaluation } from "./probe";
 export const certificationSchema = z.object({
   outcome: z.enum(["reproduced", "not_reproduced_under_tested_conditions"]),
   gate: z.object({
-    repeatCount: z.literal(2),
+    repeatCount: z.number().int().nonnegative(),
     allCandidateRunsPassed: z.boolean(),
     controlRejected: z.boolean(),
   }),
   evidence: z.object({
-    candidateRuns: z.tuple([probeEvaluationSchema, probeEvaluationSchema]),
+    candidateRuns: z.array(probeEvaluationSchema),
     controlRun: probeEvaluationSchema,
   }),
   report: z.object({
@@ -65,7 +65,7 @@ function renderMarkdownReport({
   controlRun,
 }: {
   outcome: "reproduced" | "not_reproduced_under_tested_conditions";
-  candidateRuns: [ProbeEvaluation, ProbeEvaluation];
+  candidateRuns: ProbeEvaluation[];
   controlRun: ProbeEvaluation;
 }) {
   return [
@@ -75,9 +75,10 @@ function renderMarkdownReport({
     "",
     "A `reproduced` outcome requires two passing candidate runs and a rejecting negative control.",
     "",
-    renderRun("Candidate run 1", candidateRuns[0]),
-    "",
-    renderRun("Candidate run 2", candidateRuns[1]),
+    ...candidateRuns.flatMap((run, index) => [
+      renderRun(`Candidate run ${index + 1}`, run),
+      "",
+    ]),
     "",
     renderRun("Negative control", controlRun),
   ].join("\n");
@@ -87,16 +88,20 @@ export function certifyEvidence({
   candidateRuns,
   controlRun,
 }: {
-  candidateRuns: [ProbeEvaluation, ProbeEvaluation];
+  candidateRuns: ProbeEvaluation[];
   controlRun: ProbeEvaluation;
 }) {
   const assertionContract = (run: ProbeEvaluation) =>
     JSON.stringify(
       run.assertions.map(({ kind, expected }) => ({ kind, expected })),
     );
-  const expectedContract = assertionContract(candidateRuns[0]);
+  const firstCandidate = candidateRuns[0];
+  const expectedContract = firstCandidate
+    ? assertionContract(firstCandidate)
+    : "";
   if (
-    candidateRuns[0].assertions.length !== 1 ||
+    !firstCandidate ||
+    firstCandidate.assertions.length !== 1 ||
     candidateRuns.some((run) => assertionContract(run) !== expectedContract) ||
     assertionContract(controlRun) !== expectedContract
   ) {
@@ -105,7 +110,8 @@ export function certifyEvidence({
     );
   }
 
-  const allCandidateRunsPassed = candidateRuns.every(({ passed }) => passed);
+  const allCandidateRunsPassed =
+    candidateRuns.length === 2 && candidateRuns.every(({ passed }) => passed);
   const controlRejected = !controlRun.passed;
 
   const outcome =

@@ -21,6 +21,6 @@ export default {
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/isolate",
     deploy:
       "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fisolate%2Fapps&env=ISOLATE_REPRODUCTION_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY,ISOLATE_RUNTIME_SECRET,DAYTONA_API_KEY",
-    docs: "https://lamatic.ai/docs/agents/supervisor-agent",
+    docs: "https://github.com/Lamatic/AgentKit/tree/main/kits/isolate",
   },
 };

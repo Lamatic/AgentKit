@@ -547,7 +547,7 @@ describe("DaytonaSandboxRuntime", () => {
     );
   });
 
-  test("records a warning-blocked quit as not reproduced instead of a provider error", async () => {
+  test("fails before keystrokes when the TUI never becomes ready", async () => {
     const initial = "# Isolate reproduction\noriginal\n";
     const { client, sandbox } = fakeDaytona();
     sandbox.process.createPty = async () => ({
@@ -568,18 +568,14 @@ describe("DaytonaSandboxRuntime", () => {
     const runtime = new DaytonaSandboxRuntime(client, Date.now, undefined, async () => undefined);
     await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
-    const result = await runtime.runTuiUnsavedExitProbe({
+    await expect(runtime.runTuiUnsavedExitProbe({
       sandboxId: "sandbox_123",
       workspace: "workspace/repo",
       timeoutSeconds: 20,
       command: "bun run cli",
       quitKey: "ctrl_q",
       saveBeforeQuit: false,
-    });
-
-    expect(result.passed).toBe(false);
-    expect(result.observation.exitCode).toBe(124);
-    expect(result.assertions[0]?.actual).toBe("process did not exit cleanly");
+    })).rejects.toThrow("did not enter its interactive alternate screen");
   });
 
   test("rejects unsafe probes before accessing a sandbox", async () => {

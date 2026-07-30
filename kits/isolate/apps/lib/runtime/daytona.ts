@@ -316,7 +316,11 @@ export class DaytonaSandboxRuntime {
         deadline,
       );
     } catch (error) {
-      await this.deleteSandbox(sandbox, deadline);
+      try {
+        await this.deleteSandbox(sandbox, deadline);
+      } catch (cleanupError) {
+        console.error("Isolate sandbox cleanup after setup failure failed", cleanupError);
+      }
       throw error;
     }
 
@@ -337,6 +341,7 @@ export class DaytonaSandboxRuntime {
     const exitPath = `/tmp/isolate-${runId}.exit`;
     const encodedCommand = Buffer.from(probe.command).toString("base64");
 
+    let probeError: unknown;
     try {
       await this.execute(
         sandbox,
@@ -381,6 +386,11 @@ export class DaytonaSandboxRuntime {
         5,
         deadline,
       );
+      if (collected.exitCode !== 0) {
+        throw new Error(
+          `Probe observation collection failed: ${sanitizeOutput(collected.result)}`,
+        );
+      }
       const observation = z
         .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
         .parse(JSON.parse(collected.result));
@@ -391,6 +401,9 @@ export class DaytonaSandboxRuntime {
         stderr: sanitizeOutput(observation.stderr),
         durationMs,
       });
+    } catch (error) {
+      probeError = error;
+      throw error;
     } finally {
       let cleanupError: unknown;
       let cleaned = false;
@@ -413,7 +426,13 @@ export class DaytonaSandboxRuntime {
         }
         console.error("Isolate probe artifact cleanup failed", cleanupError);
       }
-      if (!cleaned) throw cleanupError;
+      if (!cleaned) {
+        if (probeError) {
+          console.error("Isolate probe cleanup failed after probe failure", cleanupError);
+        } else {
+          throw cleanupError;
+        }
+      }
     }
   }
 
@@ -547,12 +566,19 @@ export class DaytonaSandboxRuntime {
       const send = (data: string | Uint8Array) =>
         deadline.run(() => pty!.sendInput(data), { maximumMilliseconds: 3_000 });
       await send(`${parsed.command} -- ${tuiFixturePath}; exit\n`);
+      let tuiReady = false;
       for (let attempt = 0; attempt < 40; attempt += 1) {
         const output = Buffer.concat(
           outputChunks.map((chunk) => Buffer.from(chunk)),
         ).toString();
-        if (output.includes("\u001b[?1049h")) break;
+        if (output.includes("\u001b[?1049h")) {
+          tuiReady = true;
+          break;
+        }
         await this.pause(100);
+      }
+      if (!tuiReady) {
+        throw new Error("The TUI did not enter its interactive alternate screen.");
       }
       await send(new Uint8Array([27]));
       await this.pause(100);
@@ -646,6 +672,7 @@ export class DaytonaSandboxRuntime {
     if (reset.exitCode !== 0) {
       throw new Error("The sandbox workspace could not be restored cleanly.");
     }
+    let installationError: unknown;
     try {
       await updateNetworkPolicy(
         this.client,
@@ -665,14 +692,25 @@ export class DaytonaSandboxRuntime {
       if (install.exitCode !== 0) {
         throw new Error("Deterministic dependency installation failed.");
       }
+    } catch (error) {
+      installationError = error;
+      throw error;
     } finally {
-      await updateNetworkPolicy(
-        this.client,
-        sandbox,
-        { networkBlockAll: true },
-        deadline,
-        true,
-      );
+      try {
+        await updateNetworkPolicy(
+          this.client,
+          sandbox,
+          { networkBlockAll: true },
+          deadline,
+          true,
+        );
+      } catch (cleanupError) {
+        if (installationError) {
+          console.error("Isolate network re-block failed after installation failure", cleanupError);
+        } else {
+          throw cleanupError;
+        }
+      }
     }
   }
 

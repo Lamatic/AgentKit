@@ -5,8 +5,10 @@ import { requestLamaticPlan, requestLamaticReport } from "../lib/lamatic-planner
 describe("requestLamaticPlan", () => {
   test("uses Lamatic's generated flow-specific GraphQL contract", async () => {
     let requestBody: Record<string, unknown> | undefined;
+    let requestHeaders: Headers | undefined;
     const fetchImpl = (async (_url: string, init?: RequestInit) => {
       requestBody = JSON.parse(String(init?.body));
+      requestHeaders = new Headers(init?.headers);
       return new Response(
         JSON.stringify({
           data: {
@@ -49,7 +51,23 @@ describe("requestLamaticPlan", () => {
       ref: "main",
       policyFeedback: "",
     });
+    expect(requestHeaders?.get("authorization")).toBe("Bearer test-key");
+    expect(requestHeaders?.get("x-project-id")).toBe("project-id");
   });
+});
+
+test.each([
+  ["HTTP failure", new Response("gateway", { status: 502 }), /HTTP 502/],
+  ["workflow failure", new Response(JSON.stringify({ data: { executeWorkflow: { status: "failed" } } })), /could not produce/],
+  ["upstream message", new Response(JSON.stringify({ errors: [{ message: "flow not found" }] }), { status: 404 }), /flow not found/],
+])("rejects %s", async (_name, response, expected) => {
+  await expect(requestLamaticPlan(
+    { issue: "issue", repositoryContext: "snapshot", ref: "main" },
+    {
+      fetchImpl: (async () => response) as unknown as typeof fetch,
+      configuration: { endpoint: "https://isolate.example.com", projectId: "project-id", apiKey: "test-key", flowId: "flow-id" },
+    },
+  )).rejects.toThrow(expected);
 });
 
 test("parses report-mode output through the existing flow response field", async () => {

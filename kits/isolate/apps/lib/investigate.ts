@@ -29,10 +29,57 @@ const repositorySnapshotCommand = [
 ].join("; ");
 
 const planRepairFeedback =
-  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, or paths outside the repository. Runner-level options are forbidden except the structured relative Bun workspace form: bun run --cwd <relative-package-directory> <script>. For script arguments, put -- immediately after the script name. Never put -- after a script argument.";
+  "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, or paths outside the repository. Runner-level options are forbidden except the structured relative Bun workspace form: bun run --cwd <relative-package-directory> <script>. For script arguments, put -- immediately after the script name. Never put -- after a script argument. If the product calls a localhost service, each candidate/control command must start the repository-owned service script in the background, wait briefly for readiness, then run the product in that same shell.";
 const directEvidenceRepairFeedback =
-  "The previous plan only ran tests, so it did not reproduce the user's symptom. Return a terminal plan whose candidate executes the user-facing repository product and emits the reported behavior directly. For CLI layout/wrapping issues, run the CLI with the same checked-in fixture in both commands; use COLUMNS=20 for candidate and COLUMNS=120 for control when supported. Test commands are forbidden for this exploratory probe.";
+  "The previous plan did not reproduce the user's symptom directly. Return a terminal plan whose candidate executes the user-facing repository product and emits the reported behavior. If the product calls a localhost service, each candidate/control command must start the repository-owned service script in the background, wait briefly for readiness, then run the product in that same shell. For CLI layout/wrapping issues, run the CLI with the same checked-in fixture in both commands; use COLUMNS=20 for candidate and COLUMNS=120 for control when supported. Test commands are forbidden for this exploratory probe.";
 const testOnlyCommandPattern = /\b(?:bun|npm|pnpm|yarn)\s+(?:run\s+)?test\b/i;
+const maximumModelContextCharacters = 45_000;
+
+function isTransientModelError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /(?:429|rate.?limit|timeout|timed out|temporar|unavailable|network|fetch|502|503|504)/i.test(
+    message,
+  );
+}
+
+async function requestWithRetry<T>(
+  operation: () => Promise<T>,
+  deadline: InvestigationDeadline,
+) {
+  let failure: unknown;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      failure = error;
+      if (attempt === 1 || !isTransientModelError(error)) throw error;
+      const delayMilliseconds = Math.min(500, deadline.remainingMilliseconds(35_000));
+      await new Promise((resolve) => setTimeout(resolve, delayMilliseconds));
+    }
+  }
+  throw failure;
+}
+
+function assertRequiredLocalServiceStarted(
+  command: string,
+  repositoryContext: string,
+) {
+  const usesLocalService = /https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i.test(
+    command,
+  );
+  const serviceScript = repositoryContext.match(
+    /"(service|server|api)"\s*:\s*"[^"]+"/i,
+  )?.[1];
+  if (
+    usesLocalService &&
+    serviceScript &&
+    !new RegExp(`\\b(?:bun|npm|pnpm|yarn)\\s+run\\s+${serviceScript}\\b`, "i").test(
+      command,
+    )
+  ) {
+    throw new InvalidCertificationPlanError();
+  }
+}
 
 function repositoryFallbackPlan(repositoryContext: string, issueText: string) {
   const script = ["dev", "cli", "start"].find((name) =>
@@ -91,6 +138,7 @@ export async function investigateIssue(
     deadline,
   );
 
+  let investigationError: unknown;
   try {
     const snapshot = await runtime.runProbe(
       {
@@ -106,9 +154,13 @@ export async function investigateIssue(
     if (!snapshot.passed) {
       throw new Error("Isolate could not inspect the repository at the requested ref.");
     }
+    const repositoryContext = snapshot.observation.stdout.slice(
+      0,
+      maximumModelContextCharacters,
+    );
     assertion ??= tryDeriveIssueEvidenceAssertion(
       issue,
-      snapshot.observation.stdout,
+      repositoryContext,
     );
 
     const evidenceGuidance =
@@ -116,31 +168,28 @@ export async function investigateIssue(
         ? "Runtime evidence mode: tui_unsaved_exit. Return mode=tui_unsaved_exit, one repository-owned build script as setupCommand, and one repository-owned command that launches the TUI without a fixture argument. Dependencies are already installed; setupCommand must build, never install. Inspect workspace package manifests and use the structured relative Bun workspace form when a root wrapper cannot forward the runtime-injected file argument. Inspect the repository launcher and tests for a repository-defined environment variable that points it at the native binary produced by setupCommand; when present, prefix command with that variable and its build output so launch never downloads after network isolation. Resolve every build-artifact path from the effective working directory of command; when command uses bun --cwd, adjust the path for that directory. The runtime owns the fixture, PTY keystrokes, file assertion, repeat, and save control."
         : "";
     const requestPlan = async (policyFeedback = evidenceGuidance) => {
-      let failure: unknown;
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          return await deadline.run(
+      return requestWithRetry(
+        () => deadline.run(
             (signal) =>
               planner(
                 {
                   issue: JSON.stringify(issue),
-                  repositoryContext: snapshot.observation.stdout,
+                  repositoryContext,
                   ref: ref ?? "default branch",
                   policyFeedback,
                 },
                 { signal },
               ),
             { maximumMilliseconds: 25_000 },
-          );
-        } catch (error) {
-          failure = error;
-        }
-      }
-      throw failure;
+          ),
+        deadline,
+      );
     };
     let plan = await requestPlan();
     if (!assertion) {
       const validateExploratoryCommands = (candidateCommand: string, controlCommand: string) => {
+        assertRequiredLocalServiceStarted(candidateCommand, repositoryContext);
+        assertRequiredLocalServiceStarted(controlCommand, repositoryContext);
         assertExploratoryCommand(candidateCommand);
         assertExploratoryCommand(controlCommand);
         if (candidateCommand.trim() === controlCommand.trim()) {
@@ -171,7 +220,7 @@ export async function investigateIssue(
           ) throw error;
           if (attempt === 2) {
             terminalPlan = repositoryFallbackPlan(
-              snapshot.observation.stdout,
+              repositoryContext,
               `${issue.title}\n${issue.body}`,
             ) ?? undefined;
             if (!terminalPlan) throw error;
@@ -217,14 +266,9 @@ export async function investigateIssue(
         (signal) => reporter(reportInput, { signal }),
         { maximumMilliseconds: 20_000 },
       );
-      let report;
-      try {
-        report = await requestReport();
-      } catch {
-        report = await requestReport();
-      }
+      let report = await requestWithRetry(requestReport, deadline);
       const issueRequiresInteractiveEvidence =
-        /\b(?:save|saving|editor|tui|keypress|keyboard|click|type|typing)\b/i.test(
+        /\b(?:keypress|keyboard|tui|unsaved)\b|\bpress(?:ing)?\s+(?:ctrl|control|esc|enter|a control)\b/i.test(
           `${issue.title}\n${issue.body}`,
         );
       const reportedEvidenceGap = issueRequiresInteractiveEvidence ||
@@ -287,6 +331,8 @@ export async function investigateIssue(
     });
     let terminalPlan = normalizeTerminalPlan(plan);
     try {
+      assertRequiredLocalServiceStarted(terminalPlan.candidateCommand, repositoryContext);
+      assertRequiredLocalServiceStarted(terminalPlan.controlCommand, repositoryContext);
       validateCertificationCommands({
         candidateCommand: terminalPlan.candidateCommand,
         controlCommand: terminalPlan.controlCommand,
@@ -302,6 +348,8 @@ export async function investigateIssue(
       plan = await requestPlan(planRepairFeedback);
       if ("mode" in plan) throw new InvalidCertificationPlanError();
       terminalPlan = normalizeTerminalPlan(plan);
+      assertRequiredLocalServiceStarted(terminalPlan.candidateCommand, repositoryContext);
+      assertRequiredLocalServiceStarted(terminalPlan.controlCommand, repositoryContext);
       validateCertificationCommands({
         candidateCommand: terminalPlan.candidateCommand,
         controlCommand: terminalPlan.controlCommand,
@@ -324,7 +372,20 @@ export async function investigateIssue(
       setup: null,
       ...certification,
     };
+  } catch (error) {
+    investigationError = error;
+    throw error;
   } finally {
-    await runtime.delete(sandbox.sandboxId, deadline);
+    try {
+      await runtime.delete(sandbox.sandboxId, deadline);
+    } catch (cleanupError) {
+      if (investigationError) {
+        throw new AggregateError(
+          [investigationError, cleanupError],
+          "The investigation failed and sandbox cleanup could not be confirmed.",
+        );
+      }
+      throw cleanupError;
+    }
   }
 }

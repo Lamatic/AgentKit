@@ -39,10 +39,11 @@ function harness(options: {
   unsafeAlways?: boolean;
   tuiPlan?: boolean;
   testOnlyFirst?: boolean;
+  missingLocalServiceFirst?: boolean;
 } = {}) {
   const calls: string[] = [];
   const createInputs: unknown[] = [];
-  const plannerInputs: Array<{ policyFeedback?: string }> = [];
+  const plannerInputs: Array<{ policyFeedback?: string; ref?: string }> = [];
   const probeCommands: string[] = [];
   let plannerCalls = 0;
   let probeIndex = 0;
@@ -63,7 +64,9 @@ function harness(options: {
           ...passingRun,
           observation: {
             ...passingRun.observation,
-            stdout: 'README.md and package context {"scripts":{"dev":"bun cli.ts"}}',
+            stdout: options.missingLocalServiceFirst
+              ? 'package.json {"scripts":{"service":"bun service.ts","cli":"bun cli.ts"}} process.env.GREETING_API_URL fetch("http://localhost:4317")'
+              : 'README.md and package context {"scripts":{"dev":"bun cli.ts"}}',
           },
         };
       }
@@ -104,7 +107,7 @@ function harness(options: {
       return { deleted: true as const, sandboxId: "sandbox_1" };
     },
   };
-  const planner = async (input: { policyFeedback?: string }) => {
+  const planner = async (input: { policyFeedback?: string; ref?: string }) => {
     plannerInputs.push(input);
     plannerCalls += 1;
     if (options.plannerFails || (options.plannerFailsFirst && plannerCalls === 1)) {
@@ -123,6 +126,20 @@ function harness(options: {
         hypothesis: "Narrow preview splits words.",
         candidateCommand: "bun test tests/markdown.test.ts",
         controlCommand: "bun test tests/theme.test.ts",
+      };
+    }
+    if (options.missingLocalServiceFirst) {
+      if (plannerCalls === 1) {
+        return {
+          hypothesis: "CLI lowercases the name.",
+          candidateCommand: "GREETING_API_URL=http://localhost:4317 bun run cli -- greet IsolateCLI",
+          controlCommand: "GREETING_API_URL=http://localhost:4317 bun run cli -- greet World",
+        };
+      }
+      return {
+        hypothesis: "CLI lowercases the name.",
+        candidateCommand: "PORT=4317 bun run service & sleep 0.5; GREETING_API_URL=http://localhost:4317 bun run cli -- greet IsolateCLI",
+        controlCommand: "PORT=4317 bun run service & sleep 0.5; GREETING_API_URL=http://localhost:4317 bun run cli -- greet World",
       };
     }
     if (options.misplacedSeparatorFirst && plannerCalls === 1) {
@@ -194,6 +211,19 @@ describe("investigateIssue", () => {
     expect(probeCommands[0]).toContain("-not -path '*/node_modules/*'");
   });
 
+  test("passes an explicit ref to sandbox creation and planning", async () => {
+    const { createInputs, plannerInputs, runtime, planner } = harness();
+    const result = await investigateIssue(
+      { issueUrl: issue.url, ref: "feature/repro" },
+      { issueReader: { read: async () => issue }, runtime, planner },
+    );
+    expect(createInputs).toEqual([
+      { repositoryUrl: "https://github.com/acme/cli", ref: "feature/repro" },
+    ]);
+    expect(plannerInputs[0]?.ref).toBe("feature/repro");
+    expect(result.ref).toBe("feature/repro");
+  });
+
   test("deletes the sandbox when Lamatic planning fails", async () => {
     const { calls, runtime, planner } = harness({ plannerFails: true });
 
@@ -229,6 +259,21 @@ describe("investigateIssue", () => {
     expect(result.outcome).toBe("reproduced");
     expect(plannerCallCount()).toBe(2);
     expect(probeCommands).not.toContain("bun --eval 'console.log(1)'");
+  });
+
+  test("repairs a localhost plan that omits its repository-owned service", async () => {
+    const { runtime, planner, plannerCallCount, probeCommands } = harness({
+      missingLocalServiceFirst: true,
+    });
+    const result = await investigateIssue(
+      { issueUrl: issue.url },
+      { issueReader: { read: async () => issue }, runtime, planner },
+    );
+    expect(result.outcome).toBe("reproduced");
+    expect(plannerCallCount()).toBe(2);
+    expect(probeCommands.slice(1)).toEqual(
+      expect.arrayContaining([expect.stringContaining("bun run service")]),
+    );
   });
 
   test("repairs a misplaced runner separator before executing certification", async () => {
@@ -312,13 +357,12 @@ describe("investigateIssue", () => {
     expect(calls.at(-1)).toBe("delete");
   });
 
-test("retries one malformed Lamatic report for a vague issue", async () => {
+test("does not retry a deterministic malformed Lamatic report", async () => {
     const { runtime, planner } = harness();
     const vagueIssue = { ...issue, body: "The CLI changes my name unexpectedly." };
     let reportCalls = 0;
-    const result = await investigateIssue(
-      { issueUrl: vagueIssue.url },
-      {
+    await expect(investigateIssue(
+      { issueUrl: vagueIssue.url }, {
         issueReader: { read: async () => vagueIssue }, runtime, planner,
         reporter: async () => {
           reportCalls += 1;
@@ -332,9 +376,8 @@ test("retries one malformed Lamatic report for a vague issue", async () => {
           };
         },
       },
-    );
-    expect(result.outcome).toBe("likely_reproduced");
-    expect(reportCalls).toBe(2);
+    )).rejects.toThrow("malformed model report");
+    expect(reportCalls).toBe(1);
   });
 
   test("repairs a test-only vague plan into direct product evidence", async () => {
@@ -457,7 +500,7 @@ test("retries one malformed Lamatic report for a vague issue", async () => {
   });
 });
 
-test("does not call a limited exploratory probe not reproduced", async () => {
+test("downgrades a limited exploratory probe not reproduced to inconclusive", async () => {
   const { runtime, planner } = harness();
   const vagueIssue = { ...issue, title: "math in the middle looks wrong", body: "" };
   const result = await investigateIssue(
@@ -481,7 +524,7 @@ test("does not call a limited exploratory probe not reproduced", async () => {
   expect(result.hypothesis).toContain("Inconclusive under the tested conditions.");
 });
 
-test("does not call a static launch a likely interactive reproduction", async () => {
+test("downgrades a static launch likely missing interaction to inconclusive", async () => {
   const { runtime, planner } = harness();
   const vagueIssue = { ...issue, title: "new files in folders will not save", body: "" };
   const result = await investigateIssue(
