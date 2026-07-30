@@ -60,22 +60,17 @@ async function requestWithRetry<T>(
   throw failure;
 }
 
-function assertRequiredLocalServiceStarted(
-  command: string,
-  repositoryContext: string,
-) {
+function assertRequiredLocalServiceStarted(command: string) {
   const usesLocalService = /https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i.test(
     command,
   );
-  const serviceScript = repositoryContext.match(
-    /"(service|server|api)"\s*:\s*"[^"]+"/i,
-  )?.[1];
+  const startsRepositoryScriptInBackground =
+    /\b(?:bun|npm|pnpm|yarn)\s+run(?:\s+--cwd\s+[^\s;&|]+)?\s+[^\s;&|]+[^;&|]*\s&/i.test(
+      command,
+    );
   if (
     usesLocalService &&
-    serviceScript &&
-    !new RegExp(`\\b(?:bun|npm|pnpm|yarn)\\s+run\\s+${serviceScript}\\b`, "i").test(
-      command,
-    )
+    !startsRepositoryScriptInBackground
   ) {
     throw new InvalidCertificationPlanError();
   }
@@ -188,8 +183,8 @@ export async function investigateIssue(
     let plan = await requestPlan();
     if (!assertion) {
       const validateExploratoryCommands = (candidateCommand: string, controlCommand: string) => {
-        assertRequiredLocalServiceStarted(candidateCommand, repositoryContext);
-        assertRequiredLocalServiceStarted(controlCommand, repositoryContext);
+        assertRequiredLocalServiceStarted(candidateCommand);
+        assertRequiredLocalServiceStarted(controlCommand);
         assertExploratoryCommand(candidateCommand);
         assertExploratoryCommand(controlCommand);
         if (candidateCommand.trim() === controlCommand.trim()) {
@@ -331,8 +326,8 @@ export async function investigateIssue(
     });
     let terminalPlan = normalizeTerminalPlan(plan);
     try {
-      assertRequiredLocalServiceStarted(terminalPlan.candidateCommand, repositoryContext);
-      assertRequiredLocalServiceStarted(terminalPlan.controlCommand, repositoryContext);
+      assertRequiredLocalServiceStarted(terminalPlan.candidateCommand);
+      assertRequiredLocalServiceStarted(terminalPlan.controlCommand);
       validateCertificationCommands({
         candidateCommand: terminalPlan.candidateCommand,
         controlCommand: terminalPlan.controlCommand,
@@ -348,8 +343,8 @@ export async function investigateIssue(
       plan = await requestPlan(planRepairFeedback);
       if ("mode" in plan) throw new InvalidCertificationPlanError();
       terminalPlan = normalizeTerminalPlan(plan);
-      assertRequiredLocalServiceStarted(terminalPlan.candidateCommand, repositoryContext);
-      assertRequiredLocalServiceStarted(terminalPlan.controlCommand, repositoryContext);
+      assertRequiredLocalServiceStarted(terminalPlan.candidateCommand);
+      assertRequiredLocalServiceStarted(terminalPlan.controlCommand);
       validateCertificationCommands({
         candidateCommand: terminalPlan.candidateCommand,
         controlCommand: terminalPlan.controlCommand,
