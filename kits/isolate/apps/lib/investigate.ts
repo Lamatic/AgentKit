@@ -135,16 +135,23 @@ export async function investigateIssue(
         candidateRuns,
         controlRun,
       }).slice(0, 45_000);
-      const report = await deadline.run(
-        (signal) => reporter({
+      const reportInput = {
           issue: JSON.stringify(issue),
           repositoryContext: boundedEvidence,
           ref: ref ?? "default branch",
           policyFeedback:
             "REPORT_MODE. Analyze only supplied runtime observations. Return strict JSON under report with outcome likely_reproduced, not_reproduced, or inconclusive; summary; expectedBehavior; actualBehavior; reproductionSteps; evidence; limitations; markdown. Never claim runtime certification. Distinguish recorded facts from model interpretation.",
-        }, { signal }),
-        { maximumMilliseconds: 25_000 },
+      };
+      const requestReport = () => deadline.run(
+        (signal) => reporter(reportInput, { signal }),
+        { maximumMilliseconds: 20_000 },
       );
+      let report;
+      try {
+        report = await requestReport();
+      } catch {
+        report = await requestReport();
+      }
       return {
         issue,
         ref: ref ?? "default",

@@ -287,6 +287,31 @@ describe("investigateIssue", () => {
     expect(calls.at(-1)).toBe("delete");
   });
 
+  test("retries one malformed Lamatic report for a vague issue", async () => {
+    const { runtime, planner } = harness();
+    const vagueIssue = { ...issue, body: "The CLI changes my name unexpectedly." };
+    let reportCalls = 0;
+    const result = await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue }, runtime, planner,
+        reporter: async () => {
+          reportCalls += 1;
+          if (reportCalls === 1) throw new SyntaxError("malformed model report");
+          return {
+            outcome: "likely_reproduced" as const,
+            summary: "Repeated output supports the issue.",
+            expectedBehavior: "Keep words intact.", actualBehavior: "Word split.",
+            reproductionSteps: ["Run narrow preview."], evidence: ["Repeated twice."],
+            limitations: [], markdown: "# Isolate investigation report",
+          };
+        },
+      },
+    );
+    expect(result.outcome).toBe("likely_reproduced");
+    expect(reportCalls).toBe(2);
+  });
+
   test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {
     const { calls, plannerInputs, runtime, planner } = harness({ tuiPlan: true });
     const tuiIssue = {
