@@ -194,8 +194,8 @@ input:focus {
   border: 0;
   border-radius: 10px;
   padding: 13px 16px;
-  background: var(--color-fg);
-  color: white;
+   background: #18201c;
+   color: white;
   cursor: pointer;
   font-weight: 700;
 }
