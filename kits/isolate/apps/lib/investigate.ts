@@ -223,9 +223,14 @@ export async function investigateIssue(
       } catch {
         report = await requestReport();
       }
-      const reportedEvidenceGap = report.limitations.some((limitation) =>
-        /(?:\bonly\b.{0,120}\b(?:test|tested|observe|observed|supply|supplied|analyze|analyzed|capture|captured)\b|\bnot\s+(?:captured|tested|targeted|exercised|simulated)\b|\bwithout\b.{0,80}\b(?:testing|capturing|exercising|simulation|simulating)\b|\binsufficient evidence\b|\bdoes not\s+(?:contain|target|exercise|test|simulate)\b|\bdid not\s+(?:contain|target|exercise|test|simulate)\b)/i.test(limitation),
-      );
+      const issueRequiresInteractiveEvidence =
+        /\b(?:save|saving|editor|tui|keypress|keyboard|click|type|typing)\b/i.test(
+          `${issue.title}\n${issue.body}`,
+        );
+      const reportedEvidenceGap = issueRequiresInteractiveEvidence ||
+        report.limitations.some((limitation) =>
+          /(?:\bonly\b.{0,120}\b(?:test|tested|observe|observed|supply|supplied|analyze|analyzed|capture|captured)\b|\bnot\s+(?:captured|tested|targeted|exercised|simulated)\b|\bwithout\b.{0,80}\b(?:testing|capturing|exercising|simulation|simulating)\b|\binsufficient evidence\b|\bdoes not\s+(?:contain|target|exercise|test|simulate)\b|\bdid not\s+(?:contain|target|exercise|test|simulate)\b)/i.test(limitation),
+        );
       if (report.outcome !== "inconclusive" && reportedEvidenceGap) {
         report = {
           ...report,
