@@ -58,14 +58,29 @@ export async function analyzePurchase(
   }
 
   try {
-    const response = await lamatic.executeFlow(FLOW_ID, {
-  receipt_text: receiptText,
-  today_date: todayDate
-});
+  const response = await lamatic.executeFlow(FLOW_ID, {
+    receipt_text: receiptText,
+    today_date: todayDate
+  });
 
+  if (response.status !== "success") {
+    return {
+      success: false,
+      error:
+        typeof response.message === "string" && response.message
+          ? response.message
+          : "The workflow could not process this request."
+    };
+  }
 
+  if (!response.result) {
+    return {
+      success: false,
+      error: "The workflow returned no result."
+    };
+  }
 
-const raw = (response?.result ?? response) as Partial<TrackerResult>;
+  const raw = response.result as Partial<TrackerResult>;
     if (raw.parse_error) {
       return {
         success: false,
@@ -92,10 +107,10 @@ const raw = (response?.result ?? response) as Partial<TrackerResult>;
         error_code: typeof raw.error_code === "string" ? raw.error_code : ""
       }
     };
-  } catch (error) {
-    console.error("analyzePurchase error:", error);
+  } catch {
+  console.error("analyzePurchase failed while executing the Lamatic workflow.");
 
-    return {
+  return {
       success: false,
       error: "The tracker could not reach the Lamatic workflow. Please try again."
     };
