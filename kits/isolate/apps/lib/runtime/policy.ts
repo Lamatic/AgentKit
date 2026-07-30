@@ -165,6 +165,24 @@ export function assertCertificationCommand(command: string, signature = "") {
   return command;
 }
 
+const splitUtf8StreamProbePattern = /^\(printf '\\342'; sleep 0\.1; printf '\\202\\254\\n'\) \| (.+)$/;
+const intactUtf8StreamProbePattern = /^printf '\\342\\202\\254\\n' \| (.+)$/;
+
+export function assertExploratoryCommand(command: string) {
+  try {
+    return assertCertificationCommand(command);
+  } catch (error) {
+    if (!(error instanceof UnsafeCommandError)) throw error;
+  }
+  assertSafeCommand(command);
+  const runner =
+    command.match(splitUtf8StreamProbePattern)?.[1] ??
+    command.match(intactUtf8StreamProbePattern)?.[1];
+  if (!runner) throw new UnsafeCommandError();
+  assertCertificationCommand(runner);
+  return command;
+}
+
 export function normalizeCertificationCommand(command: string) {
   return command.replace(/\s*;\s*/g, " && ");
 }

@@ -8,6 +8,7 @@ import {
 import { tryDeriveIssueEvidenceAssertion } from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
 import {
+  assertExploratoryCommand,
   normalizeCertificationCommand,
   UnsafeCommandError,
 } from "./runtime/policy";
@@ -32,6 +33,26 @@ const planRepairFeedback =
 const directEvidenceRepairFeedback =
   "The previous plan only ran tests, so it did not reproduce the user's symptom. Return a terminal plan whose candidate executes the user-facing repository product and emits the reported behavior directly. For CLI layout/wrapping issues, run the CLI with the same checked-in fixture in both commands; use COLUMNS=20 for candidate and COLUMNS=120 for control when supported. Test commands are forbidden for this exploratory probe.";
 const testOnlyCommandPattern = /\b(?:bun|npm|pnpm|yarn)\s+(?:run\s+)?test\b/i;
+
+function repositoryFallbackPlan(repositoryContext: string, issueText: string) {
+  const script = ["dev", "cli", "start"].find((name) =>
+    new RegExp(`"${name}"\\s*:`).test(repositoryContext),
+  );
+  if (!script || !repositoryContext.includes("README.md")) return null;
+  if (/\bstream(?:s|ed|ing)?\b/i.test(issueText)) {
+    const runner = `bun run ${script} -- --stream`;
+    return {
+      hypothesis: "Compare a UTF-8 character split across stdin chunks with an intact control.",
+      candidateCommand: `(printf '\\342'; sleep 0.1; printf '\\202\\254\\n') | ${runner}`,
+      controlCommand: `printf '\\342\\202\\254\\n' | ${runner}`,
+    };
+  }
+  return {
+    hypothesis: "Compare direct product output under narrow and wide terminal widths.",
+    candidateCommand: `COLUMNS=20 bun run ${script} -- README.md`,
+    controlCommand: `COLUMNS=120 bun run ${script} -- README.md`,
+  };
+}
 
 export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
@@ -60,7 +81,7 @@ export async function investigateIssue(
     (signal) => issueReader.read(input.issueUrl, { signal }),
     { maximumMilliseconds: 10_000 },
   );
-  const assertion = tryDeriveIssueEvidenceAssertion(issue);
+  let assertion = tryDeriveIssueEvidenceAssertion(issue);
   const ref = input.ref?.trim();
   const sandbox = await runtime.create(
     {
@@ -85,6 +106,10 @@ export async function investigateIssue(
     if (!snapshot.passed) {
       throw new Error("Isolate could not inspect the repository at the requested ref.");
     }
+    assertion ??= tryDeriveIssueEvidenceAssertion(
+      issue,
+      snapshot.observation.stdout,
+    );
 
     const evidenceGuidance =
       assertion?.kind === "tui_unsaved_exit"
@@ -106,6 +131,13 @@ export async function investigateIssue(
       );
     let plan = await requestPlan();
     if (!assertion) {
+      const validateExploratoryCommands = (candidateCommand: string, controlCommand: string) => {
+        assertExploratoryCommand(candidateCommand);
+        assertExploratoryCommand(controlCommand);
+        if (candidateCommand.trim() === controlCommand.trim()) {
+          throw new InvalidCertificationPlanError();
+        }
+      };
       let terminalPlan;
       for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
@@ -117,19 +149,29 @@ export async function investigateIssue(
             candidateCommand: normalizeCertificationCommand(plan.candidateCommand),
             controlCommand: normalizeCertificationCommand(plan.controlCommand),
           };
-          validateCertificationCommands({
-            candidateCommand: normalized.candidateCommand,
-            controlCommand: normalized.controlCommand,
-            assertion: { kind: "stdout_contains", value: "__isolate_untrusted_placeholder__" },
-          });
+          validateExploratoryCommands(
+            normalized.candidateCommand,
+            normalized.controlCommand,
+          );
           terminalPlan = normalized;
           break;
         } catch (error) {
           if (
-            attempt === 2 ||
-            (!(error instanceof UnsafeCommandError) &&
-              !(error instanceof InvalidCertificationPlanError))
+            !(error instanceof UnsafeCommandError) &&
+            !(error instanceof InvalidCertificationPlanError)
           ) throw error;
+          if (attempt === 2) {
+            terminalPlan = repositoryFallbackPlan(
+              snapshot.observation.stdout,
+              `${issue.title}\n${issue.body}`,
+            ) ?? undefined;
+            if (!terminalPlan) throw error;
+            validateExploratoryCommands(
+              terminalPlan.candidateCommand,
+              terminalPlan.controlCommand,
+            );
+            break;
+          }
           plan = await requestPlan(directEvidenceRepairFeedback);
         }
       }
@@ -175,7 +217,7 @@ export async function investigateIssue(
       return {
         issue,
         ref: ref ?? "default",
-        hypothesis: terminalPlan.hypothesis,
+        hypothesis: report.summary,
         setup: null,
         outcome: report.outcome,
         verdictOwner: "lamatic" as const,

@@ -35,6 +35,7 @@ function harness(options: {
   plannerFails?: boolean;
   sequentialSeparator?: boolean;
   unsafeFirst?: boolean;
+  unsafeAlways?: boolean;
   tuiPlan?: boolean;
   testOnlyFirst?: boolean;
 } = {}) {
@@ -59,7 +60,10 @@ function harness(options: {
       if (probeIndex === 1) {
         return {
           ...passingRun,
-          observation: { ...passingRun.observation, stdout: "README and package context" },
+          observation: {
+            ...passingRun.observation,
+            stdout: 'README.md and package context {"scripts":{"dev":"bun cli.ts"}}',
+          },
         };
       }
       if (probeIndex === 2) return passingRun;
@@ -132,7 +136,7 @@ function harness(options: {
         controlCommand: "bun run service & sleep 0.5; bun run cli -- world",
       };
     }
-    if (options.unsafeFirst && plannerCalls === 1) {
+    if (options.unsafeAlways || (options.unsafeFirst && plannerCalls === 1)) {
       return {
         hypothesis: "Case is normalized unexpectedly.",
         candidateCommand: "bun --eval 'console.log(1)'",
@@ -347,6 +351,56 @@ describe("investigateIssue", () => {
     );
     expect(plannerCallCount()).toBe(2);
     expect(probeCommands).not.toContain("bun --eval 'console.log(1)'");
+  });
+
+  test("falls back to a safe direct-product probe when every vague plan is unsafe", async () => {
+    const { runtime, planner, probeCommands } = harness({ unsafeAlways: true });
+    const vagueIssue = { ...issue, body: "Sometimes words split midway in the view." };
+    const result = await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue }, runtime, planner,
+        reporter: async () => ({ outcome: "inconclusive" as const, summary: "No split observed.", expectedBehavior: "Whole words.", actualBehavior: "No split observed.", reproductionSteps: ["Run preview."], evidence: ["Fallback output."], limitations: [], markdown: "# Report" }),
+      },
+    );
+    expect(result.outcome).toBe("inconclusive");
+    expect(probeCommands.slice(1)).toEqual([
+      "COLUMNS=20 bun run dev -- README.md",
+      "COLUMNS=20 bun run dev -- README.md",
+      "COLUMNS=120 bun run dev -- README.md",
+    ]);
+  });
+
+  test("falls back to a runtime-defined split UTF-8 stream probe", async () => {
+    const { runtime, planner, probeCommands } = harness({ unsafeAlways: true });
+    const vagueIssue = { ...issue, title: "some weird letters break when I stream them", body: "" };
+    await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue }, runtime, planner,
+        reporter: async () => ({ outcome: "likely_reproduced" as const, summary: "Split UTF-8 produced replacement characters.", expectedBehavior: "Keep the character intact.", actualBehavior: "Replacement characters appeared.", reproductionSteps: ["Split UTF-8 across chunks."], evidence: ["Repeated twice; intact control differed."], limitations: [], markdown: "# Report" }),
+      },
+    );
+    expect(probeCommands.slice(1)).toEqual([
+      "(printf '\\342'; sleep 0.1; printf '\\202\\254\\n') | bun run dev -- --stream",
+      "(printf '\\342'; sleep 0.1; printf '\\202\\254\\n') | bun run dev -- --stream",
+      "printf '\\342\\202\\254\\n' | bun run dev -- --stream",
+    ]);
+  });
+
+  test("uses evidence-review summary instead of a contradicted planner hypothesis", async () => {
+    const { runtime, planner } = harness();
+    const vagueIssue = { ...issue, title: "I cannot open a file called update", body: "" };
+    const result = await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue }, runtime, planner,
+        reporter: async () => ({ outcome: "likely_reproduced" as const, summary: "The update token invokes self-update instead of opening the file.", expectedBehavior: "Open the file.", actualBehavior: "Runs updater.", reproductionSteps: ["Run update."], evidence: ["Repeated twice."], limitations: [], markdown: "# Report" }),
+      },
+    );
+    expect(result.hypothesis).toBe(
+      "The update token invokes self-update instead of opening the file.",
+    );
   });
 
   test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {

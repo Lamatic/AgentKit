@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { parseReproductionPlan } from "../lib/runtime/plan";
 import {
   assertCertificationCommand,
+  assertExploratoryCommand,
   assertSafeCommand,
   normalizeCertificationCommand,
 } from "../lib/runtime/policy";
@@ -14,6 +15,16 @@ const validPlan = {
 };
 
 describe("reproduction plan boundary", () => {
+  test("allows only the runtime-defined split UTF-8 stream probe pipeline", () => {
+    expect(
+      assertExploratoryCommand(
+        "(printf '\\342'; sleep 0.1; printf '\\202\\254\\n') | bun run dev -- --stream",
+      ),
+    ).toContain("bun run dev -- --stream");
+    expect(() =>
+      assertExploratoryCommand("printf hacked | bun run dev -- --stream"),
+    ).toThrow("command policy");
+  });
   test("parses Lamatic JSON with or without a markdown fence", () => {
     expect(parseReproductionPlan(validPlan)).toEqual(validPlan);
     expect(parseReproductionPlan(`\`\`\`json\n${JSON.stringify(validPlan)}\n\`\`\``)).toEqual(
