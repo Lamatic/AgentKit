@@ -36,6 +36,7 @@ function harness(options: {
   sequentialSeparator?: boolean;
   unsafeFirst?: boolean;
   tuiPlan?: boolean;
+  testOnlyFirst?: boolean;
 } = {}) {
   const calls: string[] = [];
   const createInputs: unknown[] = [];
@@ -108,6 +109,13 @@ function harness(options: {
         hypothesis: "Ctrl+Q exits while the editor is dirty.",
         setupCommand: "bun run build",
         command: "bun run cli",
+      };
+    }
+    if (options.testOnlyFirst && plannerCalls === 1) {
+      return {
+        hypothesis: "Narrow preview splits words.",
+        candidateCommand: "bun test tests/markdown.test.ts",
+        controlCommand: "bun test tests/theme.test.ts",
       };
     }
     if (options.misplacedSeparatorFirst && plannerCalls === 1) {
@@ -310,6 +318,21 @@ describe("investigateIssue", () => {
     );
     expect(result.outcome).toBe("likely_reproduced");
     expect(reportCalls).toBe(2);
+  });
+
+  test("repairs a test-only vague plan into direct product evidence", async () => {
+    const { runtime, planner, plannerCallCount, probeCommands } = harness({ testOnlyFirst: true });
+    const vagueIssue = { ...issue, body: "Sometimes words split midway in the view." };
+    const result = await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue }, runtime, planner,
+        reporter: async () => ({ outcome: "likely_reproduced" as const, summary: "Split repeated.", expectedBehavior: "Whole words.", actualBehavior: "Split words.", reproductionSteps: ["Run narrow preview."], evidence: ["Direct output."], limitations: [], markdown: "# Report" }),
+      },
+    );
+    expect(result.outcome).toBe("likely_reproduced");
+    expect(plannerCallCount()).toBe(2);
+    expect(probeCommands).not.toContain("bun test tests/markdown.test.ts");
   });
 
   test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {
