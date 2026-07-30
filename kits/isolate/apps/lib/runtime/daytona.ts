@@ -547,7 +547,13 @@ export class DaytonaSandboxRuntime {
       const send = (data: string | Uint8Array) =>
         deadline.run(() => pty!.sendInput(data), { maximumMilliseconds: 3_000 });
       await send(`${parsed.command} -- ${tuiFixturePath}; exit\n`);
-      await this.pause(1_200);
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const output = Buffer.concat(
+          outputChunks.map((chunk) => Buffer.from(chunk)),
+        ).toString();
+        if (output.includes("\u001b[?1049h")) break;
+        await this.pause(100);
+      }
       await send(new Uint8Array([27]));
       await this.pause(100);
       await send(tuiEditText);
