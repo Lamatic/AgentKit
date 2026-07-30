@@ -335,6 +335,20 @@ describe("investigateIssue", () => {
     expect(probeCommands).not.toContain("bun test tests/markdown.test.ts");
   });
 
+  test("repairs an unsafe vague plan before running any evidence probe", async () => {
+    const { runtime, planner, plannerCallCount, probeCommands } = harness({ unsafeFirst: true });
+    const vagueIssue = { ...issue, body: "Sometimes words split midway in the view." };
+    await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue }, runtime, planner,
+        reporter: async () => ({ outcome: "inconclusive" as const, summary: "No direct split observed.", expectedBehavior: "Whole words.", actualBehavior: "No split in output.", reproductionSteps: ["Run preview."], evidence: ["Direct output."], limitations: [], markdown: "# Report" }),
+      },
+    );
+    expect(plannerCallCount()).toBe(2);
+    expect(probeCommands).not.toContain("bun --eval 'console.log(1)'");
+  });
+
   test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {
     const { calls, plannerInputs, runtime, planner } = harness({ tuiPlan: true });
     const tuiIssue = {
