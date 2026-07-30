@@ -21,14 +21,23 @@ type Investigation = {
   issue: { title: string; url: string; repositoryUrl: string; number: number };
   ref: string;
   hypothesis: string;
-  outcome: "reproduced" | "not_reproduced_under_tested_conditions";
+  outcome: "reproduced" | "not_reproduced_under_tested_conditions" | "likely_reproduced" | "not_reproduced" | "inconclusive";
+  verdictOwner?: "lamatic";
   gate: {
     repeatCount: number;
     allCandidateRunsPassed: boolean;
     controlRejected: boolean;
-  };
+  } | null;
   evidence: { candidateRuns: ProbeRun[]; controlRun: ProbeRun };
   report: { format: "markdown"; content: string };
+  analysis?: {
+    summary: string;
+    expectedBehavior: string;
+    actualBehavior: string;
+    reproductionSteps: string[];
+    evidence: string[];
+    limitations: string[];
+  };
 };
 
 /** Public evaluation fixture — offered, never prefilled. */
@@ -74,11 +83,13 @@ function Finding({
 }: {
   title: string;
   run: ProbeRun;
-  expect: "pass" | "reject";
+  expect: "pass" | "reject" | "observe";
 }) {
-  const supports = expect === "reject" ? !run.passed : run.passed;
+  const supports = expect === "observe" ? true : expect === "reject" ? !run.passed : run.passed;
   const label =
-    expect === "reject"
+    expect === "observe"
+      ? "Recorded: "
+      : expect === "reject"
       ? supports
         ? "Rejected as expected: "
         : "Unexpectedly matched: "
@@ -324,18 +335,26 @@ function WaitingPanel() {
 }
 
 function ResultPanel({ result }: { result: Investigation }) {
-  const reproduced = result.outcome === "reproduced";
+  const reproduced = ["reproduced", "likely_reproduced"].includes(result.outcome);
+  const exploratory = result.verdictOwner === "lamatic";
+  const outcomeLabel = result.outcome === "likely_reproduced"
+    ? "Likely reproduced"
+    : result.outcome === "inconclusive"
+      ? "Inconclusive"
+      : reproduced
+        ? "Reproduced"
+        : "Not reproduced";
   const repo = result.issue.repositoryUrl.replace("https://github.com/", "");
 
   return (
     <article className="result">
       <header className={`diagnosis ${reproduced ? "diagnosis-yes" : "diagnosis-no"}`}>
         <p className="diagnosis-word" role="status">
-          {reproduced ? "Reproduced" : "Not reproduced"}
+          {outcomeLabel}
         </p>
         <h2 className="diagnosis-title">{result.issue.title}</h2>
         <p className="diagnosis-meta">
-          Runtime-owned · issue #{result.issue.number} · {result.ref} ·{" "}
+          {exploratory ? "Lamatic evidence review" : "Runtime-certified"} · issue #{result.issue.number} · {result.ref} ·{" "}
           <a href={result.issue.url}>{repo}</a>
         </p>
       </header>
@@ -348,7 +367,24 @@ function ResultPanel({ result }: { result: Investigation }) {
         <p className="hypothesis">{result.hypothesis}</p>
       </section>
 
-      <section className="block" aria-labelledby="gate-title">
+      {result.analysis ? (
+        <section className="block" aria-labelledby="report-title">
+          <h3 id="report-title">Bug report</h3>
+          <p className="block-note">AI interpretation of sandbox-recorded evidence. Not deterministic certification.</p>
+          <p>{result.analysis.summary}</p>
+          <h4>Expected</h4>
+          <p>{result.analysis.expectedBehavior}</p>
+          <h4>Actual</h4>
+          <p>{result.analysis.actualBehavior}</p>
+          <h4>Reproduction steps</h4>
+          <ol>{result.analysis.reproductionSteps.map((step) => <li key={step}>{step}</li>)}</ol>
+          <h4>Evidence</h4>
+          <ul>{result.analysis.evidence.map((item) => <li key={item}>{item}</li>)}</ul>
+          {result.analysis.limitations.length ? <><h4>Limitations</h4><ul>{result.analysis.limitations.map((item) => <li key={item}>{item}</li>)}</ul></> : null}
+        </section>
+      ) : null}
+
+      {result.gate ? <section className="block" aria-labelledby="gate-title">
         <h3 id="gate-title">Evidence criteria</h3>
         <ul className="criteria">
           <li>
@@ -379,7 +415,7 @@ function ResultPanel({ result }: { result: Investigation }) {
             <span>Runtime issued a reproduced outcome</span>
           </li>
         </ul>
-      </section>
+      </section> : null}
 
       <section className="block" aria-labelledby="findings-title">
         <h3 id="findings-title">Recorded findings</h3>
@@ -389,13 +425,13 @@ function ResultPanel({ result }: { result: Investigation }) {
               key={index}
               title={`Candidate run ${index + 1}`}
               run={run}
-              expect="pass"
+              expect={exploratory ? "observe" : "pass"}
             />
           ))}
           <Finding
             title="Negative control"
             run={result.evidence.controlRun}
-            expect="reject"
+            expect={exploratory ? "observe" : "reject"}
           />
         </div>
       </section>

@@ -256,16 +256,33 @@ describe("investigateIssue", () => {
     expect(calls.at(-1)).toBe("delete");
   });
 
-  test("investigates a vague issue but blocks certification without a confirmed signature", async () => {
+  test("returns an evidence-based report for a vague issue without a confirmed signature", async () => {
     const { calls, runtime, planner } = harness();
     const vagueIssue = { ...issue, body: "The CLI changes my name unexpectedly." };
 
-    await expect(
-      investigateIssue(
-        { issueUrl: vagueIssue.url },
-        { issueReader: { read: async () => vagueIssue }, runtime, planner },
-      ),
-    ).rejects.toThrow("formed this hypothesis");
+    const result = await investigateIssue(
+      { issueUrl: vagueIssue.url },
+      {
+        issueReader: { read: async () => vagueIssue },
+        runtime,
+        planner,
+        reporter: async () => ({
+          outcome: "likely_reproduced" as const,
+          summary: "The narrow preview splits a word between lines.",
+          expectedBehavior: "Wrap at a word boundary.",
+          actualBehavior: "The word is split after its twentieth character.",
+          reproductionSteps: ["Run the repository CLI at a narrow width."],
+          evidence: ["Both candidate runs produced the same split output."],
+          limitations: ["Conclusion is model-interpreted, not runtime-certified."],
+          markdown: "# Isolate investigation report\n\nLikely reproduced.",
+        }),
+      },
+    );
+
+    expect(result.outcome).toBe("likely_reproduced");
+    expect(result.verdictOwner).toBe("lamatic");
+    expect(result.report.content).toContain("Likely reproduced");
+    expect(result.evidence.candidateRuns).toHaveLength(2);
     expect(calls).toContain("probe");
     expect(calls.at(-1)).toBe("delete");
   });
