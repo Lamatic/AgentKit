@@ -29,6 +29,9 @@ const repositorySnapshotCommand = [
 
 const planRepairFeedback =
   "The previous plan was rejected by the runtime policy. Return repository-owned run/test commands only. Do not use eval, inline interpreters, shell output construction, or paths outside the repository. Runner-level options are forbidden except the structured relative Bun workspace form: bun run --cwd <relative-package-directory> <script>. For script arguments, put -- immediately after the script name. Never put -- after a script argument.";
+const directEvidenceRepairFeedback =
+  "The previous plan only ran tests, so it did not reproduce the user's symptom. Return a terminal plan whose candidate executes the user-facing repository product and emits the reported behavior directly. For CLI layout/wrapping issues, run the CLI with the same checked-in fixture in both commands; use COLUMNS=20 for candidate and COLUMNS=120 for control when supported. Test commands are forbidden for this exploratory probe.";
+const testOnlyCommandPattern = /\b(?:bun|npm|pnpm|yarn)\s+(?:run\s+)?test\b/i;
 
 export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
@@ -104,6 +107,12 @@ export async function investigateIssue(
     let plan = await requestPlan();
     if (!assertion) {
       if ("mode" in plan) throw new InvalidCertificationPlanError();
+      if (testOnlyCommandPattern.test(plan.candidateCommand)) {
+        plan = await requestPlan(directEvidenceRepairFeedback);
+        if ("mode" in plan || testOnlyCommandPattern.test(plan.candidateCommand)) {
+          throw new InvalidCertificationPlanError();
+        }
+      }
       const terminalPlan = {
         ...plan,
         candidateCommand: normalizeCertificationCommand(plan.candidateCommand),
