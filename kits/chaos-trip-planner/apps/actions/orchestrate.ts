@@ -25,6 +25,20 @@ async function callLamatic(query: string, variables: Record<string, any>) {
 }
 
 export async function planTrip(input: TripInput) {
+
+  if (!input.city?.trim()) {
+    throw new Error('City is required');
+  }
+  if (!input.travelDate) {
+    throw new Error('Travel date is required');
+  }
+  if (!Number.isFinite(input.days) || input.days < 1 || input.days > 30) {
+    throw new Error('Days must be between 1 and 30');
+  }
+  if (!Number.isFinite(input.budget) || input.budget < 0) {
+    throw new Error('Budget must be a positive number');
+  }
+  
   const executeQuery = `
     query ExecuteWorkflow(
       $workflowId: String!

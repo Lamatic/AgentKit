@@ -18,7 +18,7 @@ Planning a trip usually means opening 5-6 tabs — weather, blogs, maps, budget 
 
 Lamatic's visual flow builder to connect everything into one pipeline:
 
-```
+```text
 Your input (city, days, budget, vibe)
         │
         ▼
@@ -68,7 +68,7 @@ A form to describe your trip, and a results page showing your day-by-day plan, t
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.9.0+
 - A [Lamatic](https://lamatic.ai) account with this flow deployed
 - A Geoapify API key — used by the Places node inside the Lamatic flow
 
@@ -76,7 +76,7 @@ A form to describe your trip, and a results page showing your day-by-day plan, t
 
 Create a `.env.local` file :
 
-```
+```dotenv
 LAMATIC_API_KEY=your_lamatic_api_key
 LAMATIC_PROJECT_ID=your_project_id
 LAMATIC_ENDPOINT=your_project_endpoint_url
@@ -98,5 +98,5 @@ Then open `http://localhost:3000`.
 1. Enter a city, travel date, number of days, and budget.
 2. Add a few words about what you like (e.g. "historical places and street food").
 3. Click **Generate My Trip**.
-4. Wait ~20-30 seconds while the AI builds your itinerary.
+4. Wait up to about 60 seconds while the AI builds your itinerary.
 5. View your day-by-day plan, complete with weather, recommendations, and the reasoning behind each choice.

@@ -41,10 +41,18 @@ export default function Results() {
     try {
       const stored = sessionStorage.getItem("tripResult");
       const storedCity = sessionStorage.getItem("tripCity");
-      if (stored) setTrip(JSON.parse(stored));
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.summary && Array.isArray(parsed.days)) {
+          setTrip(parsed);
+        } else {
+          sessionStorage.removeItem("tripResult");
+        }
+      }
       if (storedCity) setCity(storedCity);
     } catch (err) {
       console.error("Failed to load trip data:", err);
+      sessionStorage.removeItem("tripResult");
     }
   }, []);
   if (!trip) {

@@ -67,7 +67,9 @@ export default function TripForm() {
       className="p-6 space-y-5 shadow-xl bg-surface rounded-2xl sm:p-8"
     >
       <div>
-        <label className={labelClass}>Where to?</label>
+        <label htmlFor="city" className={labelClass}>
+          Where to?
+        </label>
         <input
           className={inputClass}
           value={city}
@@ -78,7 +80,9 @@ export default function TripForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Travel Date</label>
+          <label htmlFor="travelDate" className={labelClass}>
+            Travel Date
+          </label>
           <input
             type="date"
             className={inputClass}
@@ -87,7 +91,9 @@ export default function TripForm() {
           />
         </div>
         <div>
-          <label className={labelClass}>Days</label>
+          <label htmlFor="days" className={labelClass}>
+            Days
+          </label>
           <input
             type="number"
             min={1}
@@ -99,7 +105,9 @@ export default function TripForm() {
       </div>
 
       <div>
-        <label className={labelClass}>Budget (INR)</label>
+        <label htmlFor="budget" className={labelClass}>
+          Budget (INR)
+        </label>
         <input
           type="number"
           min={0}
@@ -110,7 +118,9 @@ export default function TripForm() {
       </div>
 
       <div>
-        <label className={labelClass}>Tell us your vibe</label>
+        <label htmlFor="preferences" className={labelClass}>
+          Tell us your vibe
+        </label>
         <textarea
           className={`${inputClass} min-h-24 resize-none`}
           value={preferences}
