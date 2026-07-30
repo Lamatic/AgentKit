@@ -428,12 +428,23 @@ describe("DaytonaSandboxRuntime", () => {
   test("drives a runtime-owned TUI fixture and distinguishes the save control", async () => {
     const initial = "# Isolate reproduction\noriginal\n";
     let saved = false;
+    let ready = false;
+    let inputBeforeReady = false;
+    let emitPtyData: ((data: Uint8Array) => void) | undefined;
+    let readinessPolls = 0;
     const { client, calls, sandbox } = fakeDaytona();
     sandbox.process.createPty = async (...args: unknown[]) => {
       calls.push({ name: "createPty", args });
+      emitPtyData = (args[0] as { onData(data: Uint8Array): void }).onData;
       return {
         sendInput: async (value: string | Uint8Array) => {
           calls.push({ name: "sendPtyInput", args: [value] });
+          if (typeof value === "string" && value.includes(".isolate-reproduction.md")) {
+            ready = false;
+          }
+          if (value instanceof Uint8Array && value[0] === 27 && !ready) {
+            inputBeforeReady = true;
+          }
           if (value instanceof Uint8Array && value[0] === 19) saved = true;
         },
         wait: async () => ({ exitCode: 0 }),
@@ -457,7 +468,13 @@ describe("DaytonaSandboxRuntime", () => {
       }
       return { exitCode: 0, result: "" };
     };
-    const runtime = new DaytonaSandboxRuntime(client, Date.now, undefined, async () => undefined);
+    const runtime = new DaytonaSandboxRuntime(client, Date.now, undefined, async () => {
+      readinessPolls += 1;
+      if (readinessPolls % 2 === 0) {
+        ready = true;
+        emitPtyData?.(Buffer.from("\u001b[?1049h"));
+      }
+    });
     await runtime.create({ repositoryUrl: "https://github.com/example/buggy-cli" });
 
     const candidate = await runtime.runTuiUnsavedExitProbe({
@@ -480,6 +497,7 @@ describe("DaytonaSandboxRuntime", () => {
       saveBeforeQuit: true,
     });
     expect(control.passed).toBe(false);
+    expect(inputBeforeReady).toBe(false);
     expect(calls.find(({ name }) => name === "createPty")?.args[0]).toMatchObject({
       cwd: "/home/daytona/workspace/repo",
     });
