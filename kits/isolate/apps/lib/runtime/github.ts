@@ -46,19 +46,28 @@ export class GitHubIssueReader {
     if (!match) throw new InvalidGitHubIssueUrlError();
 
     const [, owner, repository, issueNumber] = match;
-    const response = await this.request(
-      `https://api.github.com/repos/${owner}/${repository}/issues/${issueNumber}`,
-      {
-        headers: {
-          Accept: "application/vnd.github+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-          "User-Agent": "isolate-agentkit",
+    const abortController = new AbortController();
+    const abort = () => abortController.abort();
+    const timeout = setTimeout(abort, 10_000);
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) abort();
+    let response: Response;
+    try {
+      response = await this.request(
+        `https://api.github.com/repos/${owner}/${repository}/issues/${issueNumber}`,
+        {
+          headers: {
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "isolate-agentkit",
+          },
+          signal: abortController.signal,
         },
-        signal: options.signal
-          ? AbortSignal.any([options.signal, AbortSignal.timeout(10_000)])
-          : AbortSignal.timeout(10_000),
-      },
-    );
+      );
+    } finally {
+      clearTimeout(timeout);
+      options.signal?.removeEventListener("abort", abort);
+    }
 
     if (!response.ok) {
       throw new Error(

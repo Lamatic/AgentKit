@@ -342,6 +342,9 @@ export class DaytonaSandboxRuntime {
     const encodedCommand = Buffer.from(probe.command).toString("base64");
 
     let probeError: unknown;
+    let probeResult: ReturnType<typeof evaluateProbe> | undefined;
+    let cleanupError: unknown;
+    let cleaned = false;
     try {
       await this.execute(
         sandbox,
@@ -395,7 +398,7 @@ export class DaytonaSandboxRuntime {
         .object({ exitCode: z.number().int(), stdout: z.string(), stderr: z.string() })
         .parse(JSON.parse(collected.result));
 
-      return evaluateProbe(probe, {
+      probeResult = evaluateProbe(probe, {
         ...observation,
         stdout: sanitizeOutput(observation.stdout),
         stderr: sanitizeOutput(observation.stderr),
@@ -403,10 +406,7 @@ export class DaytonaSandboxRuntime {
       });
     } catch (error) {
       probeError = error;
-      throw error;
     } finally {
-      let cleanupError: unknown;
-      let cleaned = false;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
           const cleanup = await this.execute(
@@ -427,13 +427,21 @@ export class DaytonaSandboxRuntime {
         console.error("Isolate probe artifact cleanup failed", cleanupError);
       }
       if (!cleaned) {
-        if (probeError) {
+        if (probeError !== undefined) {
           console.error("Isolate probe cleanup failed after probe failure", cleanupError);
-        } else {
-          throw cleanupError;
         }
       }
     }
+    if (probeError !== undefined) {
+      throw probeError;
+    }
+    if (!cleaned) {
+      throw cleanupError;
+    }
+    if (probeResult === undefined) {
+      throw new Error("The probe did not produce a result.");
+    }
+    return probeResult;
   }
 
   async prepareTuiWorkspace(
@@ -673,6 +681,7 @@ export class DaytonaSandboxRuntime {
       throw new Error("The sandbox workspace could not be restored cleanly.");
     }
     let installationError: unknown;
+    let cleanupError: unknown;
     try {
       await updateNetworkPolicy(
         this.client,
@@ -694,7 +703,6 @@ export class DaytonaSandboxRuntime {
       }
     } catch (error) {
       installationError = error;
-      throw error;
     } finally {
       try {
         await updateNetworkPolicy(
@@ -704,13 +712,18 @@ export class DaytonaSandboxRuntime {
           deadline,
           true,
         );
-      } catch (cleanupError) {
-        if (installationError) {
-          console.error("Isolate network re-block failed after installation failure", cleanupError);
-        } else {
-          throw cleanupError;
+      } catch (error) {
+        cleanupError = error;
+        if (installationError !== undefined) {
+          console.error("Isolate network re-block failed after installation failure", error);
         }
       }
+    }
+    if (installationError !== undefined) {
+      throw installationError;
+    }
+    if (cleanupError !== undefined) {
+      throw cleanupError;
     }
   }
 
