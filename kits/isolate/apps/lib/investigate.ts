@@ -224,9 +224,9 @@ export async function investigateIssue(
         report = await requestReport();
       }
       const reportedEvidenceGap = report.limitations.some((limitation) =>
-        /\b(?:only|not|without|insufficient|does not|did not)\b/i.test(limitation),
+        /(?:\bonly\b.{0,120}\b(?:tested|observed|supplied|analyzed|captured)\b|\bnot\s+(?:captured|tested|targeted|exercised|simulated)\b|\bwithout\b.{0,80}\b(?:testing|capturing|exercising|simulation|simulating)\b|\binsufficient evidence\b|\bdoes not\s+(?:contain|target|exercise|test|simulate)\b|\bdid not\s+(?:contain|target|exercise|test|simulate)\b)/i.test(limitation),
       );
-      if (report.outcome === "not_reproduced" && reportedEvidenceGap) {
+      if (report.outcome !== "inconclusive" && reportedEvidenceGap) {
         report = {
           ...report,
           outcome: "inconclusive" as const,

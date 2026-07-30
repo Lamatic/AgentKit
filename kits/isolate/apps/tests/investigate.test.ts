@@ -480,3 +480,26 @@ test("does not call a limited exploratory probe not reproduced", async () => {
   expect(result.outcome).toBe("inconclusive");
   expect(result.hypothesis).toContain("Inconclusive under the tested conditions.");
 });
+
+test("does not call a static launch a likely interactive reproduction", async () => {
+  const { runtime, planner } = harness();
+  const vagueIssue = { ...issue, title: "new files in folders will not save", body: "" };
+  const result = await investigateIssue(
+    { issueUrl: vagueIssue.url },
+    {
+      issueReader: { read: async () => vagueIssue }, runtime, planner,
+      reporter: async () => ({
+        outcome: "likely_reproduced" as const,
+        summary: "The nested path may fail to save.",
+        expectedBehavior: "The nested file saves.",
+        actualBehavior: "The command launched.",
+        reproductionSteps: ["Launch a nested path."],
+        evidence: ["The command exited zero."],
+        limitations: ["Observed without full interactive TUI simulation."],
+        markdown: "# Report",
+      }),
+    },
+  );
+
+  expect(result.outcome).toBe("inconclusive");
+});
