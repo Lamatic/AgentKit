@@ -1,4 +1,5 @@
 import { parseReproductionPlan } from "./runtime/plan";
+import { parseInvestigationReport } from "./runtime/investigation-report";
 
 function requiredEnvironment(name: string) {
   const value = process.env[name]?.trim();
@@ -6,12 +7,14 @@ function requiredEnvironment(name: string) {
   return value;
 }
 
-export async function requestLamaticPlan(input: {
+type LamaticInput = {
   issue: string;
   repositoryContext: string;
   ref: string;
   policyFeedback?: string;
-}, dependencies: {
+};
+
+type LamaticDependencies = {
   fetchImpl?: typeof fetch;
   signal?: AbortSignal;
   configuration?: {
@@ -20,7 +23,9 @@ export async function requestLamaticPlan(input: {
     apiKey: string;
     flowId: string;
   };
-} = {}) {
+};
+
+async function executeLamaticFlow(input: LamaticInput, dependencies: LamaticDependencies = {}) {
   const configuration = dependencies.configuration ?? {
     endpoint: requiredEnvironment("LAMATIC_API_URL"),
     projectId: requiredEnvironment("LAMATIC_PROJECT_ID"),
@@ -74,6 +79,21 @@ export async function requestLamaticPlan(input: {
       body.errors?.[0]?.message ?? "Lamatic could not produce a probe plan.",
     );
   }
-  const result = execution.result as { plan?: unknown };
+  return execution.result as { plan?: unknown; report?: unknown };
+}
+
+export async function requestLamaticPlan(
+  input: LamaticInput,
+  dependencies: LamaticDependencies = {},
+) {
+  const result = await executeLamaticFlow(input, dependencies);
   return parseReproductionPlan(result.plan ?? result);
+}
+
+export async function requestLamaticReport(
+  input: LamaticInput,
+  dependencies: LamaticDependencies = {},
+) {
+  const result = await executeLamaticFlow(input, dependencies);
+  return parseInvestigationReport(result.report ?? result.plan ?? result);
 }

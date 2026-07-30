@@ -5,16 +5,13 @@ import {
   runTuiUnsavedExitCertification,
   validateCertificationCommands,
 } from "./runtime/certification";
-import {
-  MissingIssueEvidenceContractError,
-  tryDeriveIssueEvidenceAssertion,
-} from "./runtime/claim";
+import { tryDeriveIssueEvidenceAssertion } from "./runtime/claim";
 import { createGitHubIssueReader } from "./runtime/github";
 import {
   normalizeCertificationCommand,
   UnsafeCommandError,
 } from "./runtime/policy";
-import { requestLamaticPlan } from "./lamatic-planner";
+import { requestLamaticPlan, requestLamaticReport } from "./lamatic-planner";
 import { InvestigationDeadline } from "./deadline";
 
 const repositorySnapshotCommand = [
@@ -48,11 +45,13 @@ export async function investigateIssue(
       | "delete"
     >;
     planner?: typeof requestLamaticPlan;
+    reporter?: typeof requestLamaticReport;
   } = {},
 ) {
   const issueReader = dependencies.issueReader ?? createGitHubIssueReader();
   const runtime = dependencies.runtime ?? createDaytonaRuntime();
   const planner = dependencies.planner ?? requestLamaticPlan;
+  const reporter = dependencies.reporter ?? requestLamaticReport;
   const deadline = new InvestigationDeadline();
   const issue = await deadline.run(
     (signal) => issueReader.read(input.issueUrl, { signal }),
@@ -104,7 +103,60 @@ export async function investigateIssue(
       );
     let plan = await requestPlan();
     if (!assertion) {
-      throw new MissingIssueEvidenceContractError(plan.hypothesis);
+      if ("mode" in plan) throw new InvalidCertificationPlanError();
+      const terminalPlan = {
+        ...plan,
+        candidateCommand: normalizeCertificationCommand(plan.candidateCommand),
+        controlCommand: normalizeCertificationCommand(plan.controlCommand),
+      };
+      validateCertificationCommands({
+        candidateCommand: terminalPlan.candidateCommand,
+        controlCommand: terminalPlan.controlCommand,
+        assertion: { kind: "stdout_contains", value: "__isolate_untrusted_placeholder__" },
+      });
+      const run = async (command: string, remainingProbes: number) => {
+        await runtime.resetWorkspace({
+          ...sandbox,
+          timeoutSeconds: deadline.probeTimeoutSeconds(20, remainingProbes + 1),
+        }, deadline);
+        return runtime.runProbe({
+          ...sandbox,
+          timeoutSeconds: deadline.probeTimeoutSeconds(25, remainingProbes),
+          probe: { command, assertions: [{ kind: "exit_code", equals: 0 }] },
+        }, deadline);
+      };
+      const candidateRuns = [
+        await run(terminalPlan.candidateCommand, 3),
+        await run(terminalPlan.candidateCommand, 2),
+      ] as const;
+      const controlRun = await run(terminalPlan.controlCommand, 1);
+      const boundedEvidence = JSON.stringify({
+        hypothesis: terminalPlan.hypothesis,
+        candidateRuns,
+        controlRun,
+      }).slice(0, 45_000);
+      const report = await deadline.run(
+        (signal) => reporter({
+          issue: JSON.stringify(issue),
+          repositoryContext: boundedEvidence,
+          ref: ref ?? "default branch",
+          policyFeedback:
+            "REPORT_MODE. Analyze only supplied runtime observations. Return strict JSON under report with outcome likely_reproduced, not_reproduced, or inconclusive; summary; expectedBehavior; actualBehavior; reproductionSteps; evidence; limitations; markdown. Never claim runtime certification. Distinguish recorded facts from model interpretation.",
+        }, { signal }),
+        { maximumMilliseconds: 25_000 },
+      );
+      return {
+        issue,
+        ref: ref ?? "default",
+        hypothesis: terminalPlan.hypothesis,
+        setup: null,
+        outcome: report.outcome,
+        verdictOwner: "lamatic" as const,
+        gate: null,
+        evidence: { candidateRuns, controlRun },
+        report: { format: "markdown" as const, content: report.markdown },
+        analysis: report,
+      };
     }
     if (assertion.kind === "tui_unsaved_exit") {
       if (!("mode" in plan) || plan.mode !== "tui_unsaved_exit") {
