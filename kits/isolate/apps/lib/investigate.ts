@@ -106,23 +106,34 @@ export async function investigateIssue(
       );
     let plan = await requestPlan();
     if (!assertion) {
-      if ("mode" in plan) throw new InvalidCertificationPlanError();
-      if (testOnlyCommandPattern.test(plan.candidateCommand)) {
-        plan = await requestPlan(directEvidenceRepairFeedback);
-        if ("mode" in plan || testOnlyCommandPattern.test(plan.candidateCommand)) {
-          throw new InvalidCertificationPlanError();
+      let terminalPlan;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          if ("mode" in plan || testOnlyCommandPattern.test(plan.candidateCommand)) {
+            throw new InvalidCertificationPlanError();
+          }
+          const normalized = {
+            ...plan,
+            candidateCommand: normalizeCertificationCommand(plan.candidateCommand),
+            controlCommand: normalizeCertificationCommand(plan.controlCommand),
+          };
+          validateCertificationCommands({
+            candidateCommand: normalized.candidateCommand,
+            controlCommand: normalized.controlCommand,
+            assertion: { kind: "stdout_contains", value: "__isolate_untrusted_placeholder__" },
+          });
+          terminalPlan = normalized;
+          break;
+        } catch (error) {
+          if (
+            attempt === 2 ||
+            (!(error instanceof UnsafeCommandError) &&
+              !(error instanceof InvalidCertificationPlanError))
+          ) throw error;
+          plan = await requestPlan(directEvidenceRepairFeedback);
         }
       }
-      const terminalPlan = {
-        ...plan,
-        candidateCommand: normalizeCertificationCommand(plan.candidateCommand),
-        controlCommand: normalizeCertificationCommand(plan.controlCommand),
-      };
-      validateCertificationCommands({
-        candidateCommand: terminalPlan.candidateCommand,
-        controlCommand: terminalPlan.controlCommand,
-        assertion: { kind: "stdout_contains", value: "__isolate_untrusted_placeholder__" },
-      });
+      if (!terminalPlan) throw new InvalidCertificationPlanError();
       const run = async (command: string, remainingProbes: number) => {
         await runtime.resetWorkspace({
           ...sandbox,
