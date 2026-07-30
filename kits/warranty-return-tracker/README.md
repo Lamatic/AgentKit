@@ -1,6 +1,6 @@
 # Warranty & Return-Window Tracker
 
-A Lamatic AgentKit workflow that turns messy purchase receipts and order confirmations into actionable return and warranty deadlines.
+A Lamatic AgentKit kit with a runnable Next.js interface that turns messy purchase receipts and order confirmations into actionable return and warranty deadlines.
 
 ## Problem
 
@@ -20,7 +20,25 @@ It is designed to avoid guessing when information is missing.
 
 ## How It Works
 
-The workflow uses four nodes:
+The kit includes a Next.js interface for submitting purchase text and viewing the resulting coverage summary.
+
+The end-to-end path is:
+
+```text
+Next.js app
+    ↓
+Lamatic API-triggered workflow
+    ↓
+Generate JSON
+    ↓
+Deterministic Code
+    ↓
+API Response
+    ↓
+Coverage summary UI
+```
+
+The Lamatic workflow itself uses four nodes:
 
 ```text
 API Request
@@ -122,6 +140,47 @@ Returns structured JSON containing the purchase information, calculated item dea
 }
 ```
 
+## Running the App
+
+The runnable Next.js app is located at:
+
+```text
+apps/warranty-return-tracker
+```
+
+Install dependencies:
+
+```bash
+cd apps/warranty-return-tracker
+npm install
+```
+
+Copy `.env.example` to `.env.local` and provide:
+
+```text
+LAMATIC_API_KEY
+LAMATIC_PROJECT_ID
+LAMATIC_ENDPOINT
+LAMATIC_FLOW_ID
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+For a production build:
+
+```bash
+npm run build
+npm start
+```
+
+Do not commit `.env.local` or real API credentials.
+
 ## Missing Information
 
 The tracker does not invent missing policies.
@@ -203,5 +262,8 @@ The workflow handles:
 
 - Lamatic AgentKit
 - Lamatic Studio
+- Next.js 14
+- React
+- TypeScript
 - Structured LLM extraction
-- Deterministic JavaScript deadline and recommendation logic
+- Deterministic JavaScript deadline and recommendation logic.
