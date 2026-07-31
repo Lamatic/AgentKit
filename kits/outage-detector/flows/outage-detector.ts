@@ -430,6 +430,6 @@ export const edges = [
 // exports documented in CONTRIBUTING.md. Kept alongside the existing
 // exports rather than replacing them, since other tooling may rely on the
 // documented top-level shape.
-export const config_json = { nodes, edges };
+export const config_json = { nodes: nodes, edges: edges };
 
 export default { meta, inputs, references, nodes, edges, config_json };
