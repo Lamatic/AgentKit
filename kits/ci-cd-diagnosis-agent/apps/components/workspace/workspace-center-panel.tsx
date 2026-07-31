@@ -40,35 +40,35 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
   }, [analysis]);
 
   return (
-    <div className="glass-panel rounded-[24px] p-6 space-y-6 flex-1">
+    <div className="glass-panel rounded-[32px] p-8 space-y-8 flex-1">
       {/* Category, Risk, Confidence Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/5">
         <div>
           <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
             AI Diagnosis Summary
           </span>
-          <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-            <span className="rounded-full bg-cyan-500/20 border border-cyan-500/30 px-3 py-1 text-xs font-semibold text-cyan-300">
+          <div className="flex items-center gap-2.5 mt-2 flex-wrap">
+            <span className="rounded-full bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 text-xs font-medium text-cyan-400 backdrop-blur-md">
               {classification.category}
             </span>
             {classification.sub_category && (
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-[var(--text-dim)]">
+              <span className="rounded-full bg-white/5 border border-white/5 px-3 py-1 text-xs font-medium text-[var(--text-dim)] backdrop-blur-md">
                 {classification.sub_category}
               </span>
             )}
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold border ${riskToBadgeBg(diagnosis.risk.level)}`}>
+            <span className={`rounded-full px-3 py-1 text-xs font-medium border backdrop-blur-md ${riskToBadgeBg(diagnosis.risk.level).replace('bg-', 'bg-').replace('/20', '/10')}`}>
               Risk: {diagnosis.risk.level}
             </span>
           </div>
         </div>
 
         {/* Confidence Ring Indicator */}
-        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-[18px] px-4 py-2 self-start sm:self-auto">
-          <div className="relative flex items-center justify-center h-9 w-9">
-            <svg className="h-9 w-9 -rotate-90 transform" viewBox="0 0 36 36">
+        <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-[24px] px-5 py-3 self-start sm:self-auto backdrop-blur-xl shadow-sm">
+          <div className="relative flex items-center justify-center h-10 w-10">
+            <svg className="h-10 w-10 -rotate-90 transform drop-shadow-md" viewBox="0 0 36 36">
               <path
-                className="text-white/10"
-                strokeWidth="3.5"
+                className="text-white/5"
+                strokeWidth="3"
                 stroke="currentColor"
                 fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -76,7 +76,7 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
               <path
                 className="text-cyan-400"
                 strokeDasharray={`${Math.round(classification.confidence_score * 100)}, 100`}
-                strokeWidth="3.5"
+                strokeWidth="3"
                 strokeLinecap="round"
                 stroke="currentColor"
                 fill="none"
@@ -88,22 +88,22 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
             </span>
           </div>
           <div>
-            <p className="text-xs font-bold text-white">Confidence Score</p>
-            <p className="text-[10px] text-[var(--muted)]">{formatConfidence(classification.confidence_score)}</p>
+            <p className="text-xs font-semibold text-white tracking-tight">Confidence Score</p>
+            <p className="text-[11px] text-[var(--muted)]">{formatConfidence(classification.confidence_score)}</p>
           </div>
         </div>
       </div>
 
       {/* Root Cause Card */}
-      <div className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+      <div className="space-y-3">
+        <h2 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
           Root Cause Analysis
         </h2>
-        <div className="rounded-[18px] border border-rose-500/30 bg-rose-950/20 p-5 space-y-2.5">
-          <h3 className="text-base font-bold text-white tracking-tight">
+        <div className="rounded-[24px] border border-rose-500/10 bg-gradient-to-br from-rose-950/10 to-transparent p-6 space-y-3 shadow-sm backdrop-blur-xl">
+          <h3 className="text-lg font-semibold text-white tracking-tight">
             {analysis.root_cause_summary}
           </h3>
-          <p className="text-xs text-[var(--text-dim)] leading-relaxed">
+          <p className="text-[13px] text-[var(--text-dim)] leading-relaxed">
             {analysis.detailed_explanation}
           </p>
         </div>
@@ -113,8 +113,8 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
       <WorkspaceRecoveryPlan diagnosis={diagnosis} />
 
       {/* Cited Evidence Explorer */}
-      <div className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+      <div className="space-y-3">
+        <h2 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
           Cited Evidence ({analysis.evidence_cited.length} Lines Isolated)
         </h2>
         <div className="space-y-2">
@@ -122,13 +122,13 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
             <div
               key={idx}
               onClick={() => onJumpToEvidence && onJumpToEvidence(line)}
-              className="group cursor-pointer rounded-[14px] border border-white/10 bg-white/5 p-3 font-mono text-xs text-rose-300 hover:border-cyan-500/50 hover:bg-cyan-950/20 transition-all flex items-center justify-between"
+              className="group cursor-pointer rounded-[16px] border border-white/5 bg-white/[0.02] p-3.5 font-mono text-[11px] text-rose-300 hover:border-cyan-500/30 hover:bg-cyan-950/10 transition-all duration-300 flex items-center justify-between"
             >
-              <div className="truncate pr-2">
-                <span className="text-[var(--muted)] mr-2">[{idx + 1}]</span>
-                <span className="group-hover:text-cyan-200">{line}</span>
+              <div className="truncate pr-4">
+                <span className="text-[var(--muted)] mr-3 opacity-70">[{idx + 1}]</span>
+                <span className="group-hover:text-cyan-200 transition-colors">{line}</span>
               </div>
-              <span className="text-[10px] text-cyan-400 group-hover:underline whitespace-nowrap">
+              <span className="text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Jump to line →
               </span>
             </div>
@@ -137,26 +137,26 @@ export function WorkspaceCenterPanel({ diagnosis, onJumpToEvidence }: WorkspaceC
       </div>
 
       {/* Dynamic Failure Chronology */}
-      <div className="space-y-2 pt-2 border-t border-white/10">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+      <div className="space-y-4 pt-4 border-t border-white/5">
+        <h2 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
           Failure Chronology ({dynamicChronology.length} Milestones)
         </h2>
-        <div className="space-y-3 pl-2 border-l-2 border-white/10 ml-2">
+        <div className="space-y-4 pl-3 border-l-[1.5px] border-white/10 ml-2">
           {dynamicChronology.map((ev, idx) => (
-            <div key={idx} className="relative pl-4">
+            <div key={idx} className="relative pl-5">
               <span
-                className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${
+                className={`absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-[var(--bg)] ${
                   ev.color === "cyan"
                     ? "bg-cyan-400"
                     : ev.color === "amber"
                     ? "bg-amber-400"
-                    : "bg-rose-500 pulse-glow"
+                    : "bg-rose-500"
                 }`}
               />
-              <p className={`text-xs font-semibold ${ev.color === "rose" ? "text-rose-400" : "text-white"}`}>
+              <p className={`text-sm font-medium tracking-tight ${ev.color === "rose" ? "text-rose-400" : "text-white/90"}`}>
                 {ev.title}
               </p>
-              <p className="text-[11px] text-[var(--muted)] truncate">{ev.detail}</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5 truncate">{ev.detail}</p>
             </div>
           ))}
         </div>

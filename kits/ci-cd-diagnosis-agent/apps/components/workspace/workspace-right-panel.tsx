@@ -83,43 +83,43 @@ export function WorkspaceRightPanel({ diagnosis }: WorkspaceRightPanelProps) {
   }, [classification, analysis]);
 
   return (
-    <aside className="glass-panel rounded-[24px] p-6 space-y-6 flex-1 max-w-md">
+    <aside className="glass-panel rounded-[32px] p-8 space-y-8 flex-1">
       {/* Suggested Fixes Header */}
-      <div className="space-y-3 pb-4 border-b border-white/10">
+      <div className="space-y-3 pb-6 border-b border-white/5">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
             Suggested Verified Fix
           </h2>
           {resolution.is_fix_valid ? (
-            <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-[10px] font-medium text-emerald-400 backdrop-blur-md">
               ✓ Verified Patch
             </span>
           ) : (
-            <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-amber-400">
+            <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-[10px] font-medium text-amber-400 backdrop-blur-md">
               ⚠ Unverified Patch
             </span>
           )}
         </div>
-        <p className="text-xs text-[var(--text-dim)] leading-relaxed">
+        <p className="text-[13px] text-[var(--text-dim)] leading-relaxed">
           {resolution.verification_notes}
         </p>
       </div>
 
       {/* Code Snippets */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {resolution.fixes.map((fix, idx) => (
-          <div key={idx} className="rounded-[18px] border border-white/10 bg-black/40 p-4 space-y-2.5">
+          <div key={idx} className="rounded-[24px] border border-white/5 bg-black/20 p-5 space-y-3 shadow-sm backdrop-blur-md">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-white">{fix.description}</span>
+              <span className="text-xs font-semibold text-white/90">{fix.description}</span>
               <button
                 onClick={() => handleCopyCode(fix.code, idx)}
-                className="rounded-[10px] border border-white/10 bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-white/20 transition-all flex items-center gap-1"
+                className="rounded-[12px] border border-white/5 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-white/10 hover:scale-95 transition-all duration-300 flex items-center gap-1.5"
               >
                 {copiedIdx === idx ? "✓ Copied" : "Copy Code"}
               </button>
             </div>
 
-            <pre className="rounded-[12px] bg-black/60 p-3 font-mono text-xs text-cyan-300 overflow-x-auto border border-white/5">
+            <pre className="rounded-[16px] bg-[#0a0a0c] p-4 font-mono text-xs text-cyan-300 overflow-x-auto border border-white/5 shadow-inner">
               <code>{fix.code}</code>
             </pre>
           </div>
@@ -128,29 +128,29 @@ export function WorkspaceRightPanel({ diagnosis }: WorkspaceRightPanelProps) {
 
       {/* Security Warnings */}
       {(resolution.security_warnings || risk.warning) && (
-        <div className="rounded-[18px] border border-amber-500/30 bg-amber-950/20 p-4 space-y-1.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+        <div className="rounded-[24px] border border-amber-500/10 bg-amber-950/10 p-5 space-y-2 backdrop-blur-md">
+          <div className="flex items-center gap-2 text-xs font-semibold text-amber-400">
             <span>⚠</span> Security & Operational Review
           </div>
-          <p className="text-xs text-[var(--text-dim)] leading-relaxed">
+          <p className="text-[12px] text-[var(--text-dim)] leading-relaxed">
             {resolution.security_warnings || risk.warning}
           </p>
         </div>
       )}
 
       {/* Dynamic RAG Knowledge Base References */}
-      <div className="space-y-3 pt-4 border-t border-white/10">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+      <div className="space-y-4 pt-6 border-t border-white/5">
+        <h2 className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
           Retrieved RAG Knowledge Guides
         </h2>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {dynamicKnowledgeArticles.map((art, i) => (
-            <div key={i} className="rounded-[14px] border border-white/10 bg-white/5 p-3 space-y-1 hover:border-cyan-500/40 transition-all">
+            <div key={i} className="group rounded-[20px] border border-white/5 bg-white/[0.02] p-4 space-y-1.5 hover:border-cyan-500/30 hover:bg-white/[0.04] transition-all duration-300 cursor-pointer">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-white">{art.title}</span>
-                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-white/10 text-[var(--muted)]">{art.category}</span>
+                <span className="text-[13px] font-semibold text-white/90 group-hover:text-cyan-100 transition-colors">{art.title}</span>
+                <span className="text-[9px] uppercase px-2 py-1 rounded-md bg-white/5 text-[var(--muted)] tracking-wider">{art.category}</span>
               </div>
-              <p className="text-[11px] text-[var(--text-dim)]">{art.summary}</p>
+              <p className="text-[11px] text-[var(--text-dim)] leading-relaxed">{art.summary}</p>
             </div>
           ))}
         </div>

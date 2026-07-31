@@ -639,20 +639,20 @@ export function DiagnosisWorkspace() {
           </div>
 
           {/* Multi-Panel Layout */}
-          <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-            {/* Left Sidebar (Execution Context & Metadata) */}
-            <div className="lg:w-72 flex-shrink-0">
-              <WorkspaceSidebar metadata={activeMetadata} ciProvider={ciProvider} />
-            </div>
+          <div className="flex flex-col gap-6">
+            {/* Top Header / Context Bar */}
+            <WorkspaceSidebar metadata={activeMetadata} ciProvider={ciProvider} />
 
-            {/* Center Panel (Root Cause & Chronology) */}
-            <div className="flex-1 min-w-0">
-              <WorkspaceCenterPanel diagnosis={result} />
-            </div>
+            <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+              {/* Center Panel (Root Cause & Chronology) */}
+              <div className="flex-1 min-w-0">
+                <WorkspaceCenterPanel diagnosis={result} />
+              </div>
 
-            {/* Right Panel (Verified Fixes & RAG Guides) */}
-            <div className="lg:w-80 flex-shrink-0">
-              <WorkspaceRightPanel diagnosis={result} />
+              {/* Inspector Panel (Verified Fixes & RAG Guides) */}
+              <div className="lg:w-96 flex-shrink-0">
+                <WorkspaceRightPanel diagnosis={result} />
+              </div>
             </div>
           </div>
 
