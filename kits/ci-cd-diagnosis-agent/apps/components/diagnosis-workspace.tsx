@@ -646,7 +646,7 @@ export function DiagnosisWorkspace() {
             </div>
 
             {/* Center Panel (Root Cause & Chronology) */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <WorkspaceCenterPanel diagnosis={result} />
             </div>
 
