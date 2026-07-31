@@ -17,28 +17,32 @@ async function callLamatic(query: string, variables: Record<string, any>) {
       "x-project-id": process.env.LAMATIC_PROJECT_ID!,
     },
     body: JSON.stringify({ query, variables }),
+    signal: AbortSignal.timeout(60000),
   });
-  if (!response.ok) {
-    throw new Error(`Lamatic request failed: ${response.status}`);
+  const json = await response.json();
+  if (!response.ok || json.errors) {
+    throw new Error(
+      json.errors?.[0]?.message ??
+        `Lamatic request failed (${response.status})`,
+    );
   }
-  return response.json();
+  return json;
 }
 
 export async function planTrip(input: TripInput) {
-
   if (!input.city?.trim()) {
-    throw new Error('City is required');
+    throw new Error("City is required");
   }
   if (!input.travelDate) {
-    throw new Error('Travel date is required');
+    throw new Error("Travel date is required");
   }
   if (!Number.isFinite(input.days) || input.days < 1 || input.days > 30) {
-    throw new Error('Days must be between 1 and 30');
+    throw new Error("Days must be between 1 and 30");
   }
   if (!Number.isFinite(input.budget) || input.budget < 0) {
-    throw new Error('Budget must be a positive number');
+    throw new Error("Budget must be a positive number");
   }
-  
+
   const executeQuery = `
     query ExecuteWorkflow(
       $workflowId: String!
