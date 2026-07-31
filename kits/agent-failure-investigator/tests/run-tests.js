@@ -9,22 +9,15 @@
  * are well-formed, and that the report composer produces all sections.
  */
 
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
+const { createSandbox } = require("../bench/harness");
 
-const ROOT = path.join(__dirname, "..");
-const ctx = { console };
-vm.createContext(ctx);
 const SCRIPTS = [
   "js/traces.js",
   "rules/core.js", "rules/tool_failure.js", "rules/hallucination.js",
   "rules/rag.js", "rules/prompt.js", "rules/wrong_tool.js",
   "js/adapters.js", "js/engine.js", "js/advisor.js", "js/compare.js", "js/report.js"
 ];
-for (const f of SCRIPTS) {
-  vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx, { filename: f });
-}
+const { get } = createSandbox(SCRIPTS);
 
 const EXPECTED = {
   "case-001": "HALLUCINATION",
@@ -39,7 +32,7 @@ const check = (cond, msg) => {
   if (!cond) { failures++; console.error("  FAIL " + msg); }
 };
 
-const g = (name) => vm.runInContext(name, ctx); // consts live in the context's lexical scope
+const g = get; // consts live in the context's lexical scope
 for (const c of g("SAMPLE_TRACES")) {
   const r = g("runInvestigation")(c.trace);
   const rep = g("composeReport")(r, c.trace);

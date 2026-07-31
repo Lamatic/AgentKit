@@ -12,6 +12,16 @@ const clockOf = raw => {
 
 const asText = v => v == null ? "" : (typeof v === "string" ? v : JSON.stringify(v));
 
+// Timeout detection must run before generic error detection everywhere below,
+// since "timed out" text also matches error-ish patterns in some frameworks.
+const isTimeoutText = v => /timed?[\s_-]?out/i.test(asText(v));
+const normalizeStatus = s => {
+  const v = asText(s).trim().toLowerCase();
+  if (isTimeoutText(v)) return "timeout";
+  if (v === "failed" || v === "failure" || v === "errored") return "error";
+  return s;
+};
+
 const emptyTrace = meta => ({
   meta, system_prompt: "", conversation: [], available_tools: [],
   tool_calls: [], retrieved_docs: [], logs: [], final_response: null
@@ -29,7 +39,7 @@ class Adapter {
 new Adapter("native", "Native", doc =>
   doc && typeof doc === "object" && !Array.isArray(doc) &&
   ("final_response" in doc || "tool_calls" in doc) && !("spans" in doc),
-  doc => doc
+  doc => ({ ...emptyTrace(doc.meta), ...doc })
 );
 
 new Adapter("langgraph", "LangGraph", doc => {
@@ -58,14 +68,15 @@ new Adapter("langgraph", "LangGraph", doc => {
     if (kind === "on_tool_end") {
       const rec = openTools[ev.run_id || ev.name] || { ts, tool: ev.name || "tool", input: {}, duration_ms: 0 };
       rec.output = asText(data.output);
-      rec.status = /error|exception|traceback/i.test(rec.output) ? "error" : "success";
+      rec.status = isTimeoutText(rec.output) ? "timeout"
+        : /error|exception|traceback/i.test(rec.output) ? "error" : "success";
       rec.duration_ms = ev.duration_ms || rec.duration_ms || 0;
       out.tool_calls.push(rec);
       delete openTools[ev.run_id || ev.name];
     }
     if (kind === "on_tool_error") {
       const rec = openTools[ev.run_id || ev.name] || { ts, tool: ev.name || "tool", input: {}, duration_ms: ev.duration_ms || 0 };
-      rec.status = /timeout/i.test(asText(data.error)) ? "timeout" : "error";
+      rec.status = isTimeoutText(data.error) ? "timeout" : "error";
       rec.output = asText(data.error);
       out.tool_calls.push(rec);
       delete openTools[ev.run_id || ev.name];
@@ -112,7 +123,7 @@ new Adapter("openai-agents", "OpenAI Agents SDK", doc =>
           const errText = asText(span.error?.message || d.error);
           out.tool_calls.push({
             ts, tool: d.name || "function", input: safeJson(d.input),
-            status: span.error ? (/timeout/i.test(errText) ? "timeout" : "error") : "success",
+            status: span.error ? (isTimeoutText(errText) ? "timeout" : "error") : "success",
             duration_ms: ms, output: asText(d.output)
           });
           break;
@@ -160,7 +171,7 @@ new Adapter("crewai", "CrewAI", doc =>
       (task.tool_calls || task.tools_used || []).forEach(u => out.tool_calls.push({
         ts: clockOf(u.timestamp || u.start_time || ts),
         tool: u.tool || u.name || "tool", input: u.input ?? u.arguments ?? {},
-        status: u.error ? (/timeout/i.test(asText(u.error)) ? "timeout" : "error") : (u.status || "success"),
+        status: u.error ? (isTimeoutText(u.error) ? "timeout" : "error") : normalizeStatus(u.status || "success"),
         duration_ms: u.duration_ms || 0, output: asText(u.result ?? u.output ?? u.error)
       }));
       const done = task.output?.raw ?? task.output ?? task.result;
@@ -191,7 +202,7 @@ new Adapter("autogen", "AutoGen", doc => {
       const key = m.tool_call_id || m.name;
       const rec = pending[key] || { ts, tool: m.name || "function", input: {}, duration_ms: 0 };
       rec.output = asText(m.content);
-      rec.status = /error|exception|timed?\s*out/i.test(rec.output) ? (/timed?\s*out/i.test(rec.output) ? "timeout" : "error") : "success";
+      rec.status = isTimeoutText(rec.output) ? "timeout" : /error|exception/i.test(rec.output) ? "error" : "success";
       out.tool_calls.push(rec);
       delete pending[key];
       return;
@@ -213,13 +224,14 @@ new Adapter("lamatic", "Lamatic", doc =>
     doc.nodes.forEach((node, i) => {
       const ts = clockOf(node.startedAt || node.timestamp || i);
       const kind = String(node.nodeType || node.type || "").toLowerCase();
-      const ok = !node.error && node.status !== "failed" && node.status !== "error";
+      const timedOut = isTimeoutText(node.status) || isTimeoutText(node.error);
+      const ok = !node.error && !timedOut && normalizeStatus(asText(node.status)) !== "error";
       if (kind.includes("trigger") || kind.includes("input")) {
         out.conversation.push({ role: "user", ts, content: asText(node.output?.query ?? node.input?.query ?? node.output ?? node.input) });
       } else if (kind.includes("rag") || kind.includes("retriev") || kind.includes("vector") || kind.includes("memory")) {
         out.tool_calls.push({
           ts, tool: node.nodeName || "vector_search", input: node.input ?? {},
-          status: ok ? "success" : "error", duration_ms: node.durationMs || node.duration_ms || 0,
+          status: ok ? "success" : (timedOut ? "timeout" : "error"), duration_ms: node.durationMs || node.duration_ms || 0,
           output: asText(node.output)
         });
         (node.output?.documents || node.output?.chunks || []).forEach((d, j) => out.retrieved_docs.push({
@@ -232,10 +244,9 @@ new Adapter("lamatic", "Lamatic", doc =>
         const text = node.output?.text ?? node.output?.response ?? node.output;
         if (ok && text != null) out.final_response = { ts: clockOf(node.endedAt || ts), content: asText(text) };
       } else if (kind.includes("tool") || kind.includes("api") || kind.includes("code") || kind.includes("http")) {
-        const errText = asText(node.error);
         out.tool_calls.push({
           ts, tool: node.nodeName || node.toolName || "tool", input: node.input ?? {},
-          status: ok ? "success" : (/timeout/i.test(errText + node.status) ? "timeout" : "error"),
+          status: ok ? "success" : (timedOut ? "timeout" : "error"),
           duration_ms: node.durationMs || node.duration_ms || 0,
           output: asText(node.output ?? node.error)
         });

@@ -16,18 +16,11 @@
  */
 const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
 const { performance } = require("perf_hooks");
 const { forgeDataset, inflateTrace, countEvents } = require("./forge");
+const { createSandbox } = require("./harness");
 
-const ROOT = path.join(__dirname, "..");
-const sandbox = { console, module: { exports: {} } };
-vm.createContext(sandbox);
-[
-  "rules/core.js", "rules/tool_failure.js", "rules/hallucination.js",
-  "rules/rag.js", "rules/prompt.js", "rules/wrong_tool.js", "js/engine.js"
-].forEach(f => vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), sandbox, { filename: f }));
-const investigate = vm.runInContext("runInvestigation", sandbox);
+const investigate = createSandbox().get("runInvestigation");
 
 const SIZES = process.argv.slice(2).map(Number).filter(Boolean);
 if (!SIZES.length) SIZES.push(100, 1000, 10000);

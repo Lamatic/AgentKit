@@ -2,7 +2,7 @@
 
 **A forensic diagnostic tool for AI agents.** Upload a failed agent trace — from **LangGraph, OpenAI Agents SDK, CrewAI, AutoGen, Lamatic, or the native format** — and get a structured failure report with clickable evidence, a failure-propagation graph, a reconstructed timeline, a remediation playbook, and an exportable investigation document.
 
-```
+```text
 Upload trace.json  →  Auto-detect format  →  Convert  →  Investigate
 ```
 
@@ -19,7 +19,7 @@ Every adapter maps a framework's run log onto one canonical trace schema; the ru
 
 Every AI team asks the same question: *why did the agent fail?* Today the answer means reading logs manually, re-reading prompts manually, and diffing tool calls manually. Agent Failure Investigator automates that investigation.
 
-```
+```text
 ===================== FAILURE REPORT =====================
 Failure Category      TOOL FAILURE
 Confidence            87%   (evidence-weighted, capped at 95)
@@ -60,7 +60,7 @@ The pipeline in one sentence: a raw framework export is claimed and translated b
 <details>
 <summary>Text version of the diagram (for terminal readers)</summary>
 
-```
+```text
  trace.json (any supported framework)
         │
         ▼
@@ -97,7 +97,7 @@ The pipeline in one sentence: a raw framework export is claimed and translated b
 
 The rule engine is a plugin system: dropping a new file into `rules/` that calls `definePlugin({ id, category, points, title, fix, prevention, test })` adds a detector — no engine change, no build step.
 
-```
+```text
 rules/
   core.js           categories, registry, shared text analysis
   hallucination.js  R14 · R22
@@ -111,8 +111,9 @@ rules/
 
 No build step, no dependencies, no API key required.
 
-```
+```bash
 git clone <repo>
+cd kits/agent-failure-investigator
 open index.html        # or just double-click it
 ```
 
@@ -120,7 +121,8 @@ Pick one of the five preloaded cases (one per failure category) and press **Run 
 
 To run the regression tests and the benchmark:
 
-```
+```bash
+cd kits/agent-failure-investigator
 node tests/run-tests.js
 node bench/run.js 100      # accuracy benchmark (any N: 100 / 1000 / 10000)
 node bench/scale.js        # latency vs trace size (100 / 1,000 / 10,000 events)
@@ -158,7 +160,8 @@ Two takeaways: latency grows **near-linearly** with trace size (rules are single
 
 Both benchmarks regenerate deterministically:
 
-```
+```bash
+cd kits/agent-failure-investigator
 node bench/run.js 10000        # → bench/results.json
 node bench/scale.js            # → bench/scale-results.json  (100 / 1,000 / 10,000 events)
 node bench/scale.js 100 50000  # custom sizes
@@ -211,7 +214,7 @@ The rule catalog is intentionally a plain array: teams could ship their own rule
 
 ## Repository layout
 
-```
+```text
 index.html            app shell (zero build step)
 css/style.css         diagnostic console theme
 rules/                pluggable rule engine — one file per failure class
@@ -225,6 +228,7 @@ js/report.js          report composer (offline) + optional Claude narration
 js/app.js             UI: import, case picker, ECG timeline, report, viewer
 js/traces.js          5 sample failure cases
 bench/forge.js        seeded trace synthesizer (+ neutral-event inflation)
+bench/harness.js      shared VM bootstrap for benchmarks and tests
 bench/run.js          accuracy benchmark at dataset scale
 bench/scale.js        latency-vs-trace-size benchmark
 docs/architecture.svg architecture diagram (embedded above)

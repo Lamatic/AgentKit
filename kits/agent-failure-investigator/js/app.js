@@ -191,7 +191,7 @@ function renderTimeline(events) {
     `}
     ${marks.map(m => `
       <circle cx="${m.x}" cy="${baseY}" r="4" fill="${colors[m.e.kind] || "var(--dim)"}"/>
-      <text x="${m.x}" y="${baseY + 26}" text-anchor="middle" class="tl-ts">${m.e.ts || ""}</text>
+      <text x="${m.x}" y="${baseY + 26}" text-anchor="middle" class="tl-ts">${escapeHtml(m.e.ts || "")}</text>
     `).join("")}
   </svg>`;
   host.innerHTML = svg;
@@ -199,7 +199,7 @@ function renderTimeline(events) {
   events.forEach((e) => {
     const chip = document.createElement("div");
     chip.className = `tl-chip tl-${e.kind}`;
-    chip.innerHTML = `<span class="tl-chip-ts">${e.ts || ""}</span><span>${escapeHtml(e.label)}</span>`;
+    chip.innerHTML = `<span class="tl-chip-ts">${escapeHtml(e.ts || "")}</span><span>${escapeHtml(e.label)}</span>`;
     labels.appendChild(chip);
     if (e !== events[events.length - 1]) {
       const arrow = document.createElement("span");
