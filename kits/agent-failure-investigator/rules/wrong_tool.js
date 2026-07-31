@@ -14,7 +14,12 @@
       const toolbox = trace.available_tools || [];
       if (!query || !calls.length || toolbox.length < 2) return null;
       const used = new Set(calls.map(c => c.tool));
-      let bar = toolbox.filter(t => used.has(t.name)).reduce((m, t) => Math.max(m, affinity(query, t)), 0);
+      let bar = 0, bestCallIdx = 0;
+      calls.forEach((c, i) => {
+        const t = toolbox.find(tb => tb.name === c.tool);
+        const s = t ? affinity(query, t) : 0;
+        if (s > bar) { bar = s; bestCallIdx = i; }
+      });
       let winner = null;
       toolbox.forEach(t => {
         if (used.has(t.name)) return;
@@ -23,8 +28,8 @@
       });
       if (!winner) return null;
       return {
-        evidence: `The query matches "${winner.name}" (${bar} keyword overlaps: internal/policy/SLA-type terms) far better than the tool actually called, "${calls[0].tool}".`,
-        refs: [{ type: "tool", index: 0 }]
+        evidence: `The query matches "${winner.name}" (${bar} keyword overlaps: internal/policy/SLA-type terms) far better than the tool actually called, "${calls[bestCallIdx].tool}".`,
+        refs: [{ type: "tool", index: bestCallIdx }]
       };
     }
   });

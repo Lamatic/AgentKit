@@ -77,6 +77,10 @@ function printPdfReport(result, report, trace, formatLabel) {
     .replace(/^---$/gm, "<hr>");
 
   const w = window.open("", "_blank");
+  if (!w) {
+    showToast("Popup blocked — allow popups for this page to export the PDF report.");
+    return;
+  }
   w.document.write(`<!DOCTYPE html><html><head><title>Investigation Report</title><style>
     body{font-family:Georgia,serif;max-width:760px;margin:36px auto;color:#1a1a1a;line-height:1.55}
     h1{border-bottom:3px solid #1a1a1a;padding-bottom:8px}

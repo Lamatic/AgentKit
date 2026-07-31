@@ -8,7 +8,13 @@ const CATEGORIES = {
 
 const RULES = [];
 
-const definePlugin = spec => { RULES.push(spec); return spec; };
+const definePlugin = spec => {
+  if (RULES.some(r => r.id === spec.id)) {
+    throw new Error(`definePlugin: duplicate rule id "${spec.id}" — every rule id must be unique.`);
+  }
+  RULES.push(spec);
+  return spec;
+};
 
 const STOPWORDS = new Set("a,an,the,and,or,for,to,of,in,on,at,is,are,was,were,be,been,with,by,from,as,that,this,it,its,your,our,you,we,i,me,my,per,if,not,no,yes,do,does,did,have,has,had,will,would,can,could,should,into,about,after,before,than,then,them,they,their,there,here,what,which,who,when,where,how,all,any,each,but,so,such,via,use,using,used".split(","));
 

@@ -66,10 +66,14 @@ function composeReport(result, trace) {
   const fixes = dedupe(firedRules.map(f => ({ ruleId: f.rule.id, text: f.rule.fix })));
   const preventive = dedupe(firedRules.map(f => ({ ruleId: f.rule.id, text: f.rule.prevention })));
 
+  const rootCauseTemplate = ROOT_CAUSE_TEMPLATES[result.primary] ||
+    (r => `${primaryCat ? primaryCat.label : r.primary} was diagnosed. ` +
+      `${r.fired.filter(f => f.rule.category === r.primary).map(f => f.evidence).join(" ")}`.trim());
+
   return {
     category: primaryCat,
     confidence: result.confidence,
-    rootCause: ROOT_CAUSE_TEMPLATES[result.primary](result),
+    rootCause: rootCauseTemplate(result),
     contributing: others,
     fixes,
     preventive
