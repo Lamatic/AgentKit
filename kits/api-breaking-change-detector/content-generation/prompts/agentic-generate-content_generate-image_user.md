@@ -1,0 +1,1 @@
+CREATE AN IMAGE FOR THIS INSTRUCTION : {{triggerNode_1.output.instructions}}
