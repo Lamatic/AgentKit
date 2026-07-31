@@ -31,6 +31,7 @@ export default {
   ],
 
   links: {
-    github: "https://github.com/<YOUR_GITHUB_USERNAME>/AgentKit/tree/main/kits/hackathon-project-mentor"
+     github:
+"https://github.com/Lamatic/AgentKit/tree/main/kits/hackathon-project-mentor"
   }
 };

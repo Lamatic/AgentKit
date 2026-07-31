@@ -23,7 +23,7 @@ The primary goal of this agent is to help participants:
 
 The agent follows a simple conversational workflow:
 
-```
+```text
 User Input
       │
       ▼
