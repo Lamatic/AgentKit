@@ -7,6 +7,7 @@
 [![Build Status](https://img.shields.io/badge/Status-100%25%20Verified%20%26%20Production%20Hardened-emerald?style=for-the-badge)](https://github.com/pawanchhimwal/AgentKit)
 
 An enterprise-grade, autonomous AI CI/CD Diagnosis Agent built with **Lamatic AgentKit**, **Next.js**, **TypeScript**, and **Gemini**. Automatically retrieves failing GitHub Actions workflow execution logs, sanitizes credentials in memory, isolates failure loci, and executes a 10-node RAG diagnostic pipeline to deliver verified root causes, code fixes, and security reviews.
+here's link to ci/cd diagnosis https://agent-kit-zeta.vercel.app/
 
 ---
 
