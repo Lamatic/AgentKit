@@ -17,109 +17,79 @@ export function WorkspaceSidebar({ metadata, ciProvider }: WorkspaceSidebarProps
   };
 
   return (
-    <aside className="glass-panel rounded-[24px] p-5 space-y-6 flex flex-col justify-between">
-      <div className="space-y-5">
-        {/* Header */}
-        <div className="pb-4 border-b border-white/10">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
-            Execution Context
-          </span>
-          <h3 className="text-sm font-semibold text-white mt-1">
-            {ciProvider === "github" ? "GitHub Actions" : "GitLab CI"}
-          </h3>
-        </div>
-
-        {/* Repository info */}
-        <div className="space-y-1">
-          <span className="text-[11px] text-[var(--muted)]">Repository</span>
-          <p className="text-xs font-mono text-cyan-400 font-medium truncate">
-            {metadata?.repoOwner && metadata?.repoName
-              ? `${metadata.repoOwner}/${metadata.repoName}`
-              : "Manual Log Upload"}
-          </p>
-        </div>
-
-        {/* Branch & Commit */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <span className="text-[11px] text-[var(--muted)]">Branch</span>
-            <p className="text-xs font-mono text-white/90 truncate">
-              {metadata?.branch || "main"}
-            </p>
+    <div className="glass-panel rounded-[24px] px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+      <div className="flex items-center gap-6 flex-wrap">
+        {/* Header / Context */}
+        <div className="flex items-center gap-3 pr-6 border-r border-white/10">
+          <div className="h-8 w-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+            <svg className="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
           </div>
           <div>
-            <span className="text-[11px] text-[var(--muted)]">Commit SHA</span>
-            <p className="text-xs font-mono text-white/90 truncate">
-              {metadata?.commitSha ? metadata.commitSha.substring(0, 7) : "N/A"}
-            </p>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
+              Execution Context
+            </span>
+            <h3 className="text-sm font-semibold text-white">
+              {ciProvider === "github" ? "GitHub Actions" : "GitLab CI"}
+            </h3>
           </div>
         </div>
 
-        {/* Triggered By Actor */}
-        <div className="space-y-1">
-          <span className="text-[11px] text-[var(--muted)]">Triggered By</span>
-          <div className="flex items-center gap-2">
-            {metadata?.actorAvatar ? (
-              <img
-                src={metadata.actorAvatar}
-                alt={metadata.actorLogin || "user"}
-                className="h-5 w-5 rounded-full border border-white/20"
-              />
+        {/* Repository & Branch */}
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider">Repository</span>
+            <span className="text-xs font-mono text-cyan-400 font-medium">
+              {metadata?.repoOwner && metadata?.repoName
+                ? `${metadata.repoOwner}/${metadata.repoName}`
+                : "Manual Log Upload"}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider">Branch / Commit</span>
+            <div className="flex items-center gap-1.5 text-xs font-mono text-white/90">
+              <span>{metadata?.branch || "main"}</span>
+              <span className="text-[var(--muted)]">@</span>
+              <span>{metadata?.commitSha ? metadata.commitSha.substring(0, 7) : "N/A"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Run Details */}
+        <div className="flex items-center gap-6 pl-6 border-l border-white/10 hidden lg:flex">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider">Run #</span>
+            <span className="text-xs font-mono text-white/90">{metadata?.runNumber ? `#${metadata.runNumber}` : "N/A"}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider">Duration</span>
+            <span className="text-xs font-mono text-white/90">{formatDuration(metadata?.durationSeconds)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Actor & Security Badge */}
+      <div className="flex items-center gap-4">
+        {metadata?.actorLogin && (
+          <div className="flex items-center gap-2 pr-4 border-r border-white/10">
+            {metadata.actorAvatar ? (
+              <img src={metadata.actorAvatar} alt={metadata.actorLogin} className="h-6 w-6 rounded-full border border-white/20" />
             ) : (
-              <div className="h-5 w-5 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-[10px] text-cyan-300">
+              <div className="h-6 w-6 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-[10px] text-cyan-300">
                 AI
               </div>
             )}
-            <span className="text-xs text-white/90 font-medium truncate">
-              @{metadata?.actorLogin || "developer"}
+            <span className="text-xs text-white/90 font-medium hidden sm:inline-block">
+              @{metadata.actorLogin}
             </span>
           </div>
-        </div>
-
-        {/* Execution Metrics */}
-        <div className="space-y-3 pt-3 border-t border-white/10">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-[var(--muted)]">Run Number</span>
-            <span className="font-mono text-white font-medium">
-              {metadata?.runNumber ? `#${metadata.runNumber}` : "Manual Log"}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-[var(--muted)]">Duration</span>
-            <span className="font-mono text-white font-medium">
-              {formatDuration(metadata?.durationSeconds)}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-[var(--muted)]">Runner Environment</span>
-            <span className="font-mono text-white/80 text-[11px]">
-              {metadata?.repoOwner ? "github-hosted-runner" : "local-upload"}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-[var(--muted)]">Timestamp</span>
-            <span className="font-mono text-white/80 text-[11px]">
-              {metadata?.timestamp
-                ? new Date(metadata.timestamp).toLocaleTimeString()
-                : new Date().toLocaleTimeString()}
-            </span>
-          </div>
+        )}
+        <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/30 px-3 py-1.5 backdrop-blur-md">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="text-[10px] text-emerald-400 font-semibold tracking-wide">Zero-Trust Sanitized</span>
         </div>
       </div>
-
-      {/* Security Status Tag */}
-      <div className="rounded-[16px] border border-emerald-500/30 bg-emerald-950/30 p-3.5 text-center backdrop-blur-md">
-        <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-medium">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-glow" />
-          Zero-Trust Sanitized
-        </div>
-        <p className="text-[10px] text-[var(--muted)] mt-1">
-          AWS & GitHub secrets redacted in RAM before AI processing
-        </p>
-      </div>
-    </aside>
+    </div>
   );
 }
