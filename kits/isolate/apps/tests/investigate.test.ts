@@ -478,7 +478,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
     expect(calls).toContain("tui-control");
     expect(calls.at(-1)).toBe("delete");
     expect(plannerInputs[0]?.policyFeedback).toMatch(
-      /repository-defined environment variable[\s\S]*never downloads[\s\S]*effective working directory[\s\S]*bun --cwd/,
+      /repository-defined environment variable[\s\S]*never downloads[\s\S]*effective working directory[\s\S]*bun run --cwd/,
     );
   });
 
