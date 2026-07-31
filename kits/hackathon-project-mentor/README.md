@@ -93,6 +93,23 @@ The agent generates a structured project plan including:
 - Llama 3.3 70B (or compatible LLM)
 
 ---
+## Setup
+
+### Prerequisites
+
+- A Lamatic account
+- Access to Lamatic Studio
+- A configured LLM provider (e.g., Groq)
+- A supported language model (e.g., Llama 3.3 70B)
+
+### Steps
+
+1. Import or open the Hackathon Project Mentor flow in Lamatic Studio.
+2. Configure your preferred LLM provider and model.
+3. Deploy the flow.
+4. Open the chat interface.
+5. Provide your hackathon theme, project idea, team size, timeline, and tech stack.
+6. Review the generated project plan, architecture, roadmap, and pitch guidance.
 
 ## License
 

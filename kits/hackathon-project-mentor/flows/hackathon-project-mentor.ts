@@ -67,9 +67,10 @@ export const nodes = [
           "displayMode": "popup",
           "placeholder": "Compose your message",
           "suggestions": [
-            "What is lamatic?",
-            "How do I add data to my chatbot?",
-            "Explain this product to me"
+             "Help me build an AI healthcare hackathon project in 36 hours.",
+  "Suggest an MVP for a Smart City hackathon idea.",
+  "Create a project roadmap for a team of 4 developers.",
+  "Generate a winning pitch for my hackathon project."
           ],
           "errorMessage": "Oops! Something went wrong. Please try again.",
           "hideBranding": false,
