@@ -17,7 +17,7 @@ export function getDiagnosisHistory(): DiagnosisHistoryItem[] {
 
 export function saveDiagnosisToHistory(
   diagnosis: Diagnosis,
-  metadata?: WorkspaceMetadata
+  metadata?: WorkspaceMetadata | null
 ): DiagnosisHistoryItem {
   const newItem: DiagnosisHistoryItem = {
     id: `diag_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

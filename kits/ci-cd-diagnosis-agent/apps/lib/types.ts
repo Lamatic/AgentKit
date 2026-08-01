@@ -162,6 +162,7 @@ export interface WorkspaceMetadata {
   repoName?: string;
   branch?: string;
   commitSha?: string;
+  commitMessage?: string;
   actorLogin?: string;
   actorAvatar?: string;
   runNumber?: number;
