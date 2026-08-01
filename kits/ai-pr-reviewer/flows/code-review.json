@@ -1,4 +1,4 @@
-{
+export default {
   "name": "Automated Code Review Flow",
   "description": "Analyzes input code snippets for security vulnerabilities and optimization opportunities.",
   "nodes": [
@@ -34,4 +34,4 @@
     { "source": "input_code", "target": "llm_auditor" },
     { "source": "llm_auditor", "target": "output_report" }
   ]
-}
+};
