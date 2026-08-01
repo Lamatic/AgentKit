@@ -330,7 +330,7 @@ export function DiagnosisWorkspace() {
       const diagObj = data as Diagnosis;
       setCurrentStep(AGENT_STEPS.length);
       setResult(diagObj);
-      saveDiagnosisToHistory(diagObj, null);
+      saveDiagnosisToHistory(diagObj);
       setStatus("done");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unknown error.";
