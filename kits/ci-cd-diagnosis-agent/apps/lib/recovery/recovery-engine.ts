@@ -113,8 +113,7 @@ export function generateRecoveryPlan(diagnosis: Diagnosis): RecoveryPlan {
         return [
           `--- a/${targetFilename}`,
           `+++ b/${targetFilename}`,
-          `@@ -1,1 +1,${1 + addedCount} @@`,
-          ` # Verified AI Fix Patch`,
+          `@@ -1,0 +1,${addedCount} @@`,
           ...fixLines.map((line) => `+${line}`),
         ].join("\n");
       })(),
