@@ -366,6 +366,7 @@ export function DiagnosisWorkspace() {
       repoName: repo,
       branch: run.headBranch || "main",
       commitSha: run.headSha || "beb0902",
+      commitMessage: run.headCommitMessage || (run.name ? `${run.name} #${run.runNumber || ""}` : "Manual workflow scan"),
       actorLogin: run.actor?.login || "user",
       actorAvatar: run.actor?.avatarUrl || "",
       runNumber: run.runNumber || 142,
