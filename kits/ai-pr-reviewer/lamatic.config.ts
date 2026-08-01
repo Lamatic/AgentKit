@@ -5,5 +5,8 @@ export default {
   type: "template",
   author: "Sushobhita Majhi",
   category: "Developer Tools / CI-CD",
-  tags: ["LLM", "Code Review", "DevSecOps", "Agentic Workflow"]
+  tags: ["LLM", "Code Review", "DevSecOps", "Agentic Workflow"],
+  links: {
+    github: "kits/ai-pr-reviewer"
+  }
 };
