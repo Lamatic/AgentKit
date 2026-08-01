@@ -19,7 +19,7 @@ export interface FetchReposResult {
 export async function fetchUserRepositories(
   options: FetchReposOptions
 ): Promise<FetchReposResult | { error: string; status: number }> {
-  const { accessToken, page = 1, perPage = 100, sort = "updated" } = options;
+  const { accessToken, page = 1, perPage = 30, sort = "updated" } = options;
 
   const url = new URL("https://api.github.com/user/repos");
   url.searchParams.set("sort", sort);
@@ -49,6 +49,12 @@ export async function fetchUserRepositories(
     }
 
     const rawRepos = await response.json();
+
+    // Guard: GitHub should return an array; if not, return a structured error
+    if (!Array.isArray(rawRepos)) {
+      console.error("[repos] Unexpected GitHub response shape:", rawRepos);
+      return { error: "Unexpected response from GitHub API. Please try again.", status: 502 };
+    }
 
     // Map GitHub API output to sanitized GitHubRepo interface
     const repositories: GitHubRepo[] = rawRepos.map((item: any) => ({

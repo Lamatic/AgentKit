@@ -9,15 +9,19 @@ export async function GET() {
   let githubStatus = "healthy";
   let lamaticStatus = "healthy";
 
-  // 1. Probe GitHub REST API reachability
+  // 1. Probe GitHub REST API reachability (with 3s timeout to prevent hanging)
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
     const ghRes = await fetch("https://api.github.com/zen", {
       headers: { "User-Agent": "AgentKit-Diagnosis-HealthProbe" },
       next: { revalidate: 0 },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     if (!ghRes.ok) githubStatus = "degraded";
-  } catch {
-    githubStatus = "unreachable";
+  } catch (err) {
+    githubStatus = err instanceof Error && err.name === "AbortError" ? "timeout" : "unreachable";
   }
 
   // 2. Probe Lamatic AI Endpoint config

@@ -30,7 +30,7 @@ export default {
     github:
       "https://github.com/Lamatic/AgentKit/tree/main/kits/ci-cd-diagnosis-agent",
     deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fci-cd-diagnosis-agent%2Fapps&env=LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL,CICD_DIAGNOSIS_FLOW_ID",
-    docs: "https://github.com/Lamatic/AgentKit/tree/main/kits/ci-cd-diagnosis-agent/docs",
+      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fci-cd-diagnosis-agent%2Fapps&env=LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL,CICD_DIAGNOSIS_FLOW_ID,GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET,SESSION_SECRET,NEXT_PUBLIC_APP_URL",
+    docs: "https://github.com/Lamatic/AgentKit/tree/main/kits/ci-cd-diagnosis-agent/lamatic-setup.md",
   },
 };

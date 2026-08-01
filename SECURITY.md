@@ -27,4 +27,6 @@ The AgentKit CI/CD Diagnosis Agent takes security seriously. As a tool designed 
 
 If you discover a potential security vulnerability in this project, please do **NOT** open a public GitHub issue.
 
-Instead, please report security concerns directly to the maintainers via security report or email. We will acknowledge receipt within 24 hours and provide regular status updates regarding resolution.
+Instead, please report security concerns via GitHub's private vulnerability reporting: https://github.com/Lamatic/AgentKit/security/advisories/new
+
+We will acknowledge receipt within 24 hours and provide regular status updates regarding resolution.

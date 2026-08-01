@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=for-the-badge)](LICENSE)
 [![Build Status](https://img.shields.io/badge/Status-100%25%20Verified%20%26%20Production%20Hardened-emerald?style=for-the-badge)](https://github.com/pawanchhimwal/AgentKit)
 
-An enterprise-grade, autonomous AI CI/CD Diagnosis Agent built with **Lamatic AgentKit**, **Next.js**, **TypeScript**, and **Gemini**. Automatically retrieves failing GitHub Actions workflow execution logs, sanitizes credentials in memory, isolates failure loci, and executes a 10-node RAG diagnostic pipeline to deliver verified root causes, code fixes, and security reviews.
+An enterprise-grade, autonomous AI CI/CD Diagnosis Agent built with **Lamatic AgentKit**, **Next.js**, **TypeScript**, and **Gemini**. Automatically retrieves failing GitHub Actions workflow execution logs, sanitizes credentials in memory, isolates failure loci, and executes a 8-node RAG diagnostic pipeline to deliver verified root causes, code fixes, and security reviews.
 
 ---
 
@@ -37,7 +37,7 @@ graph TD
         E -->|ANSI Stripper & Secret Redactor| F["🧹 Clean Log Locus"]
     end
 
-    subgraph 10-Node Lamatic AgentKit Pipeline
+    subgraph 8-Node Lamatic AgentKit Pipeline
         F -->|POST /api/github/diagnose| G["🧠 Lamatic Cloud AI Engine"]
         G --> H["1. Log Cleaner Node"]
         H --> I["2. Evidence Extractor Node"]
@@ -96,7 +96,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | :--- | :--- | :--- | :--- |
 | `GET /api/health` | `GET` | Live health probe for GitHub & Lamatic API connectivity | Public Probe |
 | `POST /api/diagnose` | `POST` | Manual log upload AI diagnosis endpoint | Rate-Limited |
-| `GET /api/auth/github` | `GET` | Initiates GitHub OAuth 2.0 PKCE flow | State Validated |
+| `GET /api/auth/github/login` | `GET` | Initiates GitHub OAuth 2.0 PKCE flow | State Validated |
 | `GET /api/github/repos` | `GET` | Discovers user's connected GitHub repositories | Session Cookie |
 | `GET /api/github/runs` | `GET` | Fetches workflow runs and failure statuses | Session Cookie |
 | `POST /api/github/diagnose` | `POST` | Fetches, unzips, cleans & diagnoses a GitHub Action run | Session Cookie |

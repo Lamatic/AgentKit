@@ -38,23 +38,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(homeUrl);
   }
 
-  // 4. Fetch User Profile
-  const profile = await fetchGitHubUserProfile(tokenResult.accessToken);
+  // 4. Fetch User Profile (wrapped to handle network failures gracefully)
+  let profile: Awaited<ReturnType<typeof fetchGitHubUserProfile>>;
+  try {
+    profile = await fetchGitHubUserProfile(tokenResult.accessToken);
+  } catch {
+    homeUrl.searchParams.set("auth_error", "Failed to fetch GitHub user profile. Please try again.");
+    return NextResponse.redirect(homeUrl);
+  }
+
   if (!profile) {
     homeUrl.searchParams.set("auth_error", "Failed to fetch GitHub user profile.");
     return NextResponse.redirect(homeUrl);
   }
 
-  // 5. Seal Session into HTTP-only cookie (Never expose token to client)
-  await setSession({
-    accessToken: tokenResult.accessToken,
-    user: {
-      login: profile.login,
-      avatarUrl: profile.avatar_url,
-      name: profile.name || undefined,
-      email: profile.email || undefined,
-    },
-  });
+  // 5. Seal Session into HTTP-only cookie (wrapped to handle cookie write failures)
+  try {
+    await setSession({
+      accessToken: tokenResult.accessToken,
+      user: {
+        login: profile.login,
+        avatarUrl: profile.avatar_url,
+        name: profile.name || undefined,
+        email: profile.email || undefined,
+      },
+    });
+  } catch {
+    homeUrl.searchParams.set("auth_error", "Failed to establish a secure session. Please try again.");
+    return NextResponse.redirect(homeUrl);
+  }
 
   // 6. Redirect back to homepage on success
   homeUrl.searchParams.set("auth_success", "true");
