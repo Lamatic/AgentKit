@@ -12,7 +12,7 @@ export function generateRecoveryPlan(diagnosis: Diagnosis): RecoveryPlan {
 
   // Calculate dynamic success rate based on AI confidence score
   const confidenceScore = diagnosis.classification.confidence_score || 0.95;
-  const estimatedSuccessRate = Math.min(99, Math.max(85, Math.round(confidenceScore * 100)));
+  const estimatedSuccessRate = Math.min(99, Math.round(confidenceScore * 100));
 
   // Detect target filename dynamically
   let targetFilename = ".github/workflows/ci.yml";
@@ -107,11 +107,17 @@ export function generateRecoveryPlan(diagnosis: Diagnosis): RecoveryPlan {
     ],
     gitPatch: {
       targetFilename,
-      patchDiff: `--- a/${targetFilename}
-+++ b/${targetFilename}
-@@ -1,3 +1,4 @@
- # Verified AI Fix Patch
-+${fixCode}`,
+      patchDiff: (() => {
+        const fixLines = fixCode.split("\n");
+        const addedCount = fixLines.length;
+        return [
+          `--- a/${targetFilename}`,
+          `+++ b/${targetFilename}`,
+          `@@ -1,1 +1,${1 + addedCount} @@`,
+          ` # Verified AI Fix Patch`,
+          ...fixLines.map((line) => `+${line}`),
+        ].join("\n");
+      })(),
       commitMessage: `fix(ci): ${rootCause.toLowerCase().slice(0, 50)}`,
       prTitle: `fix(ci): ${rootCause.slice(0, 60)}`,
       prDescription: `## 🤖 AI Recovery Plan Overview

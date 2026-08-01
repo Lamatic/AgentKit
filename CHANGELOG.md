@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [1.0.0] - 2026-07-28
 
 ### Added
+
 - **GX-1 — GitHub OAuth & Connection Layer**: OAuth 2.0 PKCE authentication with AES-256-GCM sealed cookies.
 - **GX-2 — Repository Discovery**: Searchable, sortable, paginated GitHub repository selector.
 - **GX-3 — Workflow Discovery**: Actions workflow and failure run discovery with status badges.

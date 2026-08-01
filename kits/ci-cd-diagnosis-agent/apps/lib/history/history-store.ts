@@ -1,39 +1,33 @@
+"use client";
+
 import type { Diagnosis, DiagnosisHistoryItem, WorkspaceMetadata } from "@/lib/types";
 
-const HISTORY_STORAGE_KEY = "agentkit_diagnosis_history_v2";
+const HISTORY_STORAGE_KEY = "agentkit_diagnosis_history";
+const MAX_HISTORY_ITEMS = 50;
 
-/**
- * Retrieves full diagnosis history array from localStorage (starts empty if no diagnoses performed yet)
- */
 export function getDiagnosisHistory(): DiagnosisHistoryItem[] {
   if (typeof window === "undefined") return [];
-
   try {
-    const saved = localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (!saved) return [];
-    const parsed = JSON.parse(saved) as DiagnosisHistoryItem[];
-    return Array.isArray(parsed) ? parsed : [];
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-/**
- * Saves a newly completed diagnosis dynamically into local history
- */
 export function saveDiagnosisToHistory(
   diagnosis: Diagnosis,
-  metadata?: WorkspaceMetadata | null
+  metadata?: WorkspaceMetadata
 ): DiagnosisHistoryItem {
   const newItem: DiagnosisHistoryItem = {
     id: `diag_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     repoOwner: metadata?.repoOwner || "Manual Upload",
     repoName: metadata?.repoName || "Local Log",
     workflowName: metadata?.repoName ? `${metadata.repoName} CI/CD Build` : "Manual Log Upload",
-    runNumber: metadata?.runNumber || Math.floor(Math.random() * 100) + 1,
+    runNumber: metadata?.runNumber ?? 0,
     branch: metadata?.branch || "main",
     commitSha: metadata?.commitSha ? metadata.commitSha.substring(0, 7) : "head",
-    commitMessage: "Automated AI Diagnostic Scan",
+    commitMessage: metadata?.commitMessage || "Manual diagnosis scan",
     actorLogin: metadata?.actorLogin || "developer",
     actorAvatar: metadata?.actorAvatar || "",
     timestamp: metadata?.timestamp || new Date().toISOString(),
@@ -42,46 +36,37 @@ export function saveDiagnosisToHistory(
   };
 
   const history = getDiagnosisHistory();
-  const updated = [newItem, ...history];
+  // Cap history at MAX_HISTORY_ITEMS to prevent localStorage quota exhaustion
+  const updated = [newItem, ...history].slice(0, MAX_HISTORY_ITEMS);
 
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // Ignore storage quota errors
+    } catch (err) {
+      // Storage quota exceeded — notify caller so UI can warn the user
+      console.warn("[history-store] Failed to save diagnosis to localStorage:", err);
     }
   }
 
   return newItem;
 }
 
-/**
- * Toggles bookmark status of a specific diagnosis
- */
-export function toggleHistoryBookmark(id: string): DiagnosisHistoryItem[] {
+export function toggleBookmark(id: string): void {
   const history = getDiagnosisHistory();
-  const updated = history.map((item) => (item.id === id ? { ...item, isBookmarked: !item.isBookmarked } : item));
-
+  const updated = history.map((item) =>
+    item.id === id ? { ...item, isBookmarked: !item.isBookmarked } : item
+  );
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
     } catch {
-      // Ignore
+      // ignore
     }
   }
-
-  return updated;
 }
 
-/**
- * Clears stored history
- */
 export function clearDiagnosisHistory(): void {
   if (typeof window !== "undefined") {
-    try {
-      localStorage.removeItem(HISTORY_STORAGE_KEY);
-    } catch {
-      // Ignore
-    }
+    localStorage.removeItem(HISTORY_STORAGE_KEY);
   }
 }

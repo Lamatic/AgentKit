@@ -2,13 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { createLamaticClient, getLamaticConfig } from "@/lib/lamatic-client";
 import { DiagnoseRequestSchema, DiagnosisSchema } from "@/lib/types";
 import { truncateLog } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export async function POST(request: NextRequest) {
-  // ── 1. Size guard ──────────────────────────────────────────────────────────
-  const contentLength = request.headers.get("content-length");
-  if (contentLength && parseInt(contentLength, 10) > MAX_BYTES) {
+  // ── 0. Rate limit guard ────────────────────────────────────────────────────
+  const rateLimitResult = checkRateLimit(request);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before submitting another diagnosis." },
+      { status: 429 }
+    );
+  }
+
+  // ── 1. Bounded body read (guards against missing content-length header) ────
+  const bodyBuffer = await request.arrayBuffer().catch(() => null);
+  if (!bodyBuffer) {
+    return NextResponse.json({ error: "Failed to read request body." }, { status: 400 });
+  }
+  if (bodyBuffer.byteLength > MAX_BYTES) {
     return NextResponse.json(
       { error: "Log file exceeds the 5 MB limit. Please upload a smaller log or paste only the failing section." },
       { status: 413 }
@@ -18,7 +31,7 @@ export async function POST(request: NextRequest) {
   // ── 2. Parse & validate body ───────────────────────────────────────────────
   let body: unknown;
   try {
-    body = await request.json();
+    body = JSON.parse(new TextDecoder().decode(bodyBuffer));
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
@@ -61,8 +74,8 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 5. Validate response schema ────────────────────────────────────────────
-  const payloadToValidate = typeof rawResult === "object" && rawResult !== null && "result" in rawResult 
-    ? (rawResult as any).result 
+  const payloadToValidate = typeof rawResult === "object" && rawResult !== null && "result" in rawResult
+    ? (rawResult as any).result
     : rawResult;
 
   const validated = DiagnosisSchema.safeParse(payloadToValidate);
