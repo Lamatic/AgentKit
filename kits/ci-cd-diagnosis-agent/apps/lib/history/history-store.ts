@@ -51,7 +51,7 @@ export function saveDiagnosisToHistory(
   return newItem;
 }
 
-export function toggleHistoryBookmark(id: string): void {
+export function toggleHistoryBookmark(id: string): DiagnosisHistoryItem[] {
   const history = getDiagnosisHistory();
   const updated = history.map((item) =>
     item.id === id ? { ...item, isBookmarked: !item.isBookmarked } : item
@@ -63,6 +63,7 @@ export function toggleHistoryBookmark(id: string): void {
       // ignore
     }
   }
+  return updated;
 }
 
 export function clearDiagnosisHistory(): void {
