@@ -1,0 +1,6 @@
+.lamatic/
+node_modules/
+.env.local
+.env*
+!.env.example
+scam-shield-nextjs/

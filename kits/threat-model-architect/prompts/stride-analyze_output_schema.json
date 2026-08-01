@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "properties": {
+    "system_name": { "type": "string" },
+    "summary": { "type": "string" },
+    "threats": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "stride_category": {
+            "type": "string",
+            "enum": [
+              "spoofing",
+              "tampering",
+              "repudiation",
+              "information_disclosure",
+              "denial_of_service",
+              "elevation_of_privilege"
+            ]
+          },
+          "component_ids": { "type": "array", "items": { "type": "string" } },
+          "data_flow_ids": { "type": "array", "items": { "type": "string" } },
+          "description": { "type": "string" },
+          "impact": { "type": "string" },
+          "preconditions": { "type": "array", "items": { "type": "string" } },
+          "evidence": { "type": "string", "enum": ["stated", "inferred"] },
+          "confidence": { "type": "string", "enum": ["low", "medium", "high"] },
+          "mitigations": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "open_questions": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": [
+          "id",
+          "title",
+          "stride_category",
+          "component_ids",
+          "data_flow_ids",
+          "description",
+          "impact",
+          "preconditions",
+          "evidence",
+          "confidence",
+          "mitigations",
+          "open_questions"
+        ]
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "analyzed_components": { "type": "array", "items": { "type": "string" } },
+        "stride_categories_covered": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "spoofing",
+              "tampering",
+              "repudiation",
+              "information_disclosure",
+              "denial_of_service",
+              "elevation_of_privilege"
+            ]
+          }
+        }
+      },
+      "required": ["analyzed_components", "stride_categories_covered"]
+    },
+    "missing_info": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["system_name", "summary", "threats", "coverage", "missing_info"]
+}
