@@ -1,0 +1,37 @@
+{
+  "name": "Automated Code Review Flow",
+  "description": "Analyzes input code snippets for security vulnerabilities and optimization opportunities.",
+  "nodes": [
+    {
+      "id": "input_code",
+      "type": "trigger",
+      "label": "Code Snippet Input",
+      "config": {
+        "inputType": "text",
+        "placeholder": "Paste your code snippet or git diff here..."
+      }
+    },
+    {
+      "id": "llm_auditor",
+      "type": "llm",
+      "label": "DevSecOps LLM",
+      "config": {
+        "model": "gpt-4o",
+        "temperature": 0.1,
+        "systemPrompt": "You are a Principal Security Engineer and strict code reviewer. Analyze the provided code. Output a JSON object containing: 1) 'pass_fail' (boolean), 2) 'vulnerabilities' (array of strings, empty if none), 3) 'optimizations' (array of specific refactoring suggestions), and 4) 'pr_comment' (a polite markdown summary of your review ready for GitHub)."
+      }
+    },
+    {
+      "id": "output_report",
+      "type": "response",
+      "label": "CI/CD JSON Response",
+      "config": {
+        "format": "json"
+      }
+    }
+  ],
+  "edges": [
+    { "source": "input_code", "target": "llm_auditor" },
+    { "source": "llm_auditor", "target": "output_report" }
+  ]
+}
