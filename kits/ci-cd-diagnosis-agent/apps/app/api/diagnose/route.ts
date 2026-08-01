@@ -8,8 +8,11 @@ const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export async function POST(request: NextRequest) {
   // ── 0. Rate limit guard ────────────────────────────────────────────────────
-  const rateLimitResult = checkRateLimit(request);
-  if (!rateLimitResult.allowed) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim()
+    || request.headers.get("x-real-ip")
+    || "anonymous";
+  const rateLimitResult = checkRateLimit(ip, 10, 60 * 1000);
+  if (!rateLimitResult.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait before submitting another diagnosis." },
       { status: 429 }
