@@ -6,16 +6,27 @@ let lastModified = {{ variablesNode_289.output.last_modified }};
 
 let metadataProps = [];
 
-if (Array.isArray(vectors) && Array.isArray(texts) && vectors.length === texts.length && vectors.length > 0) {
-  metadataProps = vectors.map((vector, idx) => ({
-    content: texts[idx],
-    title: title,
-    source: source,
-    last_modified: lastModified,
-    chunk_id: `${source || title || "sharepoint"}-${idx}`
-  }));
+if (!Array.isArray(vectors)) {
+  throw new Error("Expected vectors to be an array.");
 }
 
+if (!Array.isArray(texts)) {
+  throw new Error("Expected texts to be an array.");
+}
+
+if (vectors.length !== texts.length) {
+  throw new Error(
+    `Vector count (${vectors.length}) does not match text count (${texts.length}).`
+  );
+}
+
+metadataProps = vectors.map((vector, idx) => ({
+  content: texts[idx],
+  title: title,
+  source: source,
+  last_modified: lastModified,
+  chunk_id: `${source || title || "sharepoint"}-${idx}`
+}));
 output = {
   metadata: metadataProps,
   vectors: vectors

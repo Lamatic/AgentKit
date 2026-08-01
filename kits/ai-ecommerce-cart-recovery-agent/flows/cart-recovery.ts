@@ -127,7 +127,7 @@ export const inputs = {
       "type": "string",
       "label": "Approved Offer",
       "required": false,
-      "isPrivate": false,
+      "isPrivate": true,
       "description": "Approved coupon, promotion, or recovery offer that the agent may recommend. Leave blank when no offer is authorized.",
       "defaultValue": ""
     },
@@ -136,7 +136,7 @@ export const inputs = {
       "type": "string",
       "label": "Discount Limit",
       "required": false,
-      "isPrivate": false,
+      "isPrivate": true,
       "description": "Maximum approved discount or eligibility restriction for recovery offers.",
       "defaultValue": ""
     }
@@ -207,6 +207,7 @@ export const nodes = [
             "content": "@prompts/cart-recovery-user.md"
           }
         ],
+
         "memories": "@model-configs/cart-recovery.ts",
         "messages": "@model-configs/cart-recovery.ts",
         "certainty": "@model-configs/cart-recovery.ts",
@@ -217,8 +218,9 @@ export const nodes = [
         "last_activity": "{{RAGNode_711.input.last_activity}}",
         "approved_offer": "{{RAGNode_711.input.approved_offer}}",
         "discount_limit": "{{RAGNode_711.input.discount_limit}}",
-                "embeddingModelName": "@model-configs/cart-recovery.ts",
-        "generativeModelName": "@model-configs/cart-recovery.ts"
+              "vectorDB": "{{RAGNode_711.input.vectorDB}}",
+"embeddingModelName": "{{RAGNode_711.input.embeddingModelName}}",
+"generativeModelName": "{{RAGNode_711.input.generativeModelName}}"
       }
     }
   },

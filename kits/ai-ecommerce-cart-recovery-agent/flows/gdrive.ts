@@ -328,7 +328,7 @@ export const nodes = [
     "values": {
       "nodeName": "Index to DB",
       "primaryKeys": [
-        "title"
+        "chunk_id"
       ],
       "vectorsField": "{{codeNode_560.output.vectors}}",
       "metadataField": "{{codeNode_560.output.metadata}}",

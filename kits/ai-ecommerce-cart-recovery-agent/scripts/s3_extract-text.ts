@@ -8,5 +8,5 @@ if (
 ) {
   output = files[0].data[0];
 } else {
-  output = null;
+  output = "";
 }

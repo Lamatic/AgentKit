@@ -111,7 +111,7 @@
  * - This flow uses `syncBatchScrape`, not asynchronous crawl orchestration, so it is best suited to bounded URL lists and moderate scraping jobs.
  * - The scrape configuration is conservative: `onlyMainContent` is enabled, `crawlSubPages` is disabled, `includeSubdomains` is disabled, and `ignoreQueryParameters` is enabled. These settings favor clean page extraction over exhaustive site traversal.
  * - Chunking is character-based rather than semantic. For highly structured or very long pages, retrieval quality may improve if chunk sizing, overlap, or separators are tuned.
- * - The vector index uses `title` as the primary key with overwrite semantics. **This can cause collisions** when multiple pages share the same title, especially across common landing pages like `Home` or `About`.
+ * - The vector index uses `chunk_id` as the primary key with overwrite semantics. Each indexed chunk receives a deterministic `chunk_id` generated from its source and chunk index, preventing collisions when different pages share the same title while still allowing safe overwrites of identical chunks.
  * - The response contract is intentionally minimal. Operational systems that require auditability should add explicit logging or richer response fields for counts, failed URLs, and indexing diagnostics.
  * - Two custom scripts are central to the final shape of the indexed records. If retrieval quality or metadata fidelity is poor, inspect `scraping-indexation_extract-chunks` and `scraping-indexation_transform-metadata` first.
  */
