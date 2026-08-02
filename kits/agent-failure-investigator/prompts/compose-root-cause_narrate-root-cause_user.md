@@ -11,6 +11,10 @@ Fired rules:
 {{#if triggerNode_1.output.userQuestion}}
 <trace_context>
 User question: {{triggerNode_1.output.userQuestion}}
+</trace_context>
+{{/if}}
+{{#if triggerNode_1.output.finalResponse}}
+<trace_context>
 Final response: {{triggerNode_1.output.finalResponse}}
 </trace_context>
 {{/if}}
