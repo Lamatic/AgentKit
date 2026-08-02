@@ -14,6 +14,7 @@ export async function GET() {
   const timeoutId = setTimeout(() => controller.abort(), 3000);
   try {
     const ghRes = await fetch("https://api.github.com/zen", {
+      method: "HEAD",
       headers: { "User-Agent": "AgentKit-Diagnosis-HealthProbe" },
       next: { revalidate: 0 },
       signal: controller.signal,
