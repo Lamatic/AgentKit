@@ -1,6 +1,5 @@
 const CONTRADICTION_TABLE = [
   { a: /\b(concise|brief|short|single sentence|one sentence)\b/, b: /\b(comprehensive|detailed|in-depth|thorough|with examples)\b/, nameA: "be concise", nameB: "be comprehensive/detailed" },
-  { a: /\balways\s+respond\s+in\b/, b: /\bprovide\s+comprehensive\b/, nameA: "a fixed response format", nameB: "open-ended depth" },
   { a: /\bnever\s+use\s+bullet/i, b: /\buse\s+bullet/i, nameA: "never use bullets", nameB: "use bullets" }
 ];
 
@@ -48,7 +47,7 @@ definePlugin({
   fix: "Pin the output contract: exact length range, exact structure, temperature review.",
   prevention: "Add an output-shape validator to the flow so drift is caught at run time, not by users.",
   test(trace) {
-    const li = findLogIndex(trace, l => /output.*(varies|mismatch|instab)/i.test(l.event + " " + l.message));
+    const li = findLogIndex(trace, l => l.event === "output.validation" || /output.*(varies|mismatch|instab)/i.test(l.event + " " + l.message));
     return li === -1 ? null : {
       evidence: "Flow logs report unstable output shape across recent runs — a classic symptom of an under-specified prompt.",
       refs: [{ type: "log", index: li }]

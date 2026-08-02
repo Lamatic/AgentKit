@@ -64,7 +64,7 @@ This is a single-flow template. The primary "product" of this kit is the determi
 
 ## Environment Setup
 - The client-side application (`index.html`) requires no build step, no dependencies, and no API key for its default, deterministic mode.
-- `ANTHROPIC_API_KEY` — (optional, client-side only today) pasted into the report panel's API-key field to enable "Compose with Claude" narration directly from the browser; never stored, kept in memory only for the session.
+- `ANTHROPIC_API_KEY` — (optional, client-side only today) pasted into the report panel's API-key field to enable "Compose with Claude" narration directly from the browser; never stored, kept in memory only for the session. This mode is intended for local or otherwise trusted deployments only — the key is readable by any page JavaScript for the session, so shared or untrusted deployments should use the backend narration flow below instead.
 - LLM provider credentials as required by `@model-configs/compose-root-cause_narrate-root-cause.ts` — enable narration through this flow instead of the direct browser call, once deployed.
 
 ## Quickstart

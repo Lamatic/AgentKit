@@ -6,6 +6,7 @@
 let currentTraceId = null;
 let currentTrace = null;
 let lastResult = null;
+let narratedRootCause = null;
 
 let importedFormatLabel = null;
 
@@ -15,10 +16,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("custom-toggle").addEventListener("click", toggleCustom);
   document.getElementById("llm-btn").addEventListener("click", onComposeWithClaude);
   document.getElementById("trace-file").addEventListener("change", onUploadTrace);
-  document.getElementById("export-md").addEventListener("click", () => lastResult && saveMarkdownReport(lastResult, composeReport(lastResult, currentTrace), currentTrace, importedFormatLabel));
-  document.getElementById("export-pdf").addEventListener("click", () => lastResult && printPdfReport(lastResult, composeReport(lastResult, currentTrace), currentTrace, importedFormatLabel));
+  document.getElementById("export-md").addEventListener("click", () => lastResult && saveMarkdownReport(lastResult, buildExportReport(), currentTrace, importedFormatLabel));
+  document.getElementById("export-pdf").addEventListener("click", () => lastResult && printPdfReport(lastResult, buildExportReport(), currentTrace, importedFormatLabel));
   bootCompare();
 });
+
+function buildExportReport() {
+  const report = composeReport(lastResult, currentTrace);
+  if (narratedRootCause) report.rootCause = narratedRootCause;
+  return report;
+}
 
 function onUploadTrace(ev) {
   const file = ev.target.files[0];
@@ -129,6 +136,7 @@ function onRun() {
   }
   if (!currentTrace) return;
 
+  narratedRootCause = null;
   lastResult = runInvestigation(currentTrace);
   const report = composeReport(lastResult, currentTrace);
 
@@ -180,14 +188,14 @@ function renderTimeline(events) {
   <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Failure timeline">
     <line x1="0" y1="${baseY}" x2="${W}" y2="${baseY}" stroke="var(--line)" stroke-width="1"/>
     ${failX !== null ? `
-      <path d="${clipPath(path)}" fill="none" stroke="var(--green)" stroke-width="2" clip-path="url(#pre)"/>
+      <path d="${path}" fill="none" stroke="var(--green)" stroke-width="2" clip-path="url(#pre)"/>
       <defs>
         <clipPath id="pre"><rect x="0" y="0" width="${failX - 10}" height="${H}"/></clipPath>
         <clipPath id="post"><rect x="${failX - 10}" y="0" width="${W - failX + 10}" height="${H}"/></clipPath>
       </defs>
-      <path d="${clipPath(path)}" fill="none" stroke="var(--red)" stroke-width="2" clip-path="url(#post)" stroke-dasharray="0"/>
+      <path d="${path}" fill="none" stroke="var(--red)" stroke-width="2" clip-path="url(#post)" stroke-dasharray="0"/>
     ` : `
-      <path d="${clipPath(path)}" fill="none" stroke="var(--green)" stroke-width="2"/>
+      <path d="${path}" fill="none" stroke="var(--green)" stroke-width="2"/>
     `}
     ${marks.map(m => `
       <circle cx="${m.x}" cy="${baseY}" r="4" fill="${colors[m.e.kind] || "var(--dim)"}"/>
@@ -209,8 +217,6 @@ function renderTimeline(events) {
     }
   });
 }
-
-function clipPath(p) { return p; }
 
 /* ---------- report ---------- */
 
@@ -415,6 +421,7 @@ async function onComposeWithClaude() {
     const text = await composeRootCauseWithClaude(key, lastResult, currentTrace);
     document.getElementById("root-cause").textContent = text;
     document.getElementById("root-cause-mode").textContent = "narrated by Claude · findings unchanged";
+    narratedRootCause = text;
   } catch (e) {
     showToast("LLM call failed (" + e.message + ") — kept the rule-based narrative.");
   } finally {

@@ -34,8 +34,8 @@
     <div class="section-title">Open a case</div>
     <div id="cases"></div>
     <div class="picker-actions">
-      <button id="run-btn" class="primary" disabled>Run investigation</button>
-      <button id="custom-toggle" class="ghost">Paste your own trace (JSON)</button>
+      <button id="run-btn" type="button" class="primary" disabled>Run investigation</button>
+      <button id="custom-toggle" type="button" class="ghost">Paste your own trace (JSON)</button>
       <label class="ghost upload-label" for="trace-file">Upload trace.json — auto-detects format</label>
       <input type="file" id="trace-file" accept=".json,application/json" hidden />
       <span id="format-pill" class="format-pill hidden"></span>
@@ -81,7 +81,7 @@
           <div class="mode-tag" id="root-cause-mode"></div>
           <div class="llm-row">
             <input id="api-key" type="password" aria-label="Anthropic API key" placeholder="Optional: Anthropic API key for LLM narration" autocomplete="off" />
-            <button id="llm-btn" class="ghost">Compose with Claude</button>
+            <button id="llm-btn" type="button" class="ghost">Compose with Claude</button>
           </div>
           <div class="llm-note">The LLM only narrates the findings above — the diagnosis itself is deterministic. Key stays in memory, never stored.</div>
 
@@ -98,8 +98,8 @@
           <div id="remediation"></div>
 
           <div class="export-row">
-            <button id="export-md" class="ghost">Export Markdown</button>
-            <button id="export-pdf" class="ghost">Export PDF</button>
+            <button id="export-md" type="button" class="ghost">Export Markdown</button>
+            <button id="export-pdf" type="button" class="ghost">Export PDF</button>
           </div>
         </div>
 
@@ -132,7 +132,7 @@
           <label class="ghost upload-label small" for="cmp-b-file">or upload</label>
           <input type="file" id="cmp-b-file" accept=".json" hidden />
         </div>
-        <button id="cmp-run" class="primary">Compare</button>
+        <button id="cmp-run" type="button" class="primary">Compare</button>
       </div>
       <div id="cmp-result"></div>
     </div>

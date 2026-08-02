@@ -31,7 +31,10 @@ function runInvestigation(trace) {
   let fired = [];
   for (const rule of RULES) {
     let hit = null;
-    try { hit = rule.test(trace); } catch (e) { /* a broken rule must never kill the run */ }
+    try { hit = rule.test(trace); } catch (e) {
+      /* a broken rule must never kill the run */
+      if (typeof console !== "undefined" && console.warn) console.warn(`Rule ${rule.id} threw during test():`, e);
+    }
     if (hit) fired.push({ rule, evidence: hit.evidence, refs: hit.refs || [] });
   }
 
@@ -95,6 +98,7 @@ function buildTimeline(trace, fired, primary) {
 
   if (trace.final_response) {
     const respIsFailure = primary === "HALLUCINATION" || primary === "RAG_FAILURE" || primary === "WRONG_TOOL" ||
+      primary === "TOOL_FAILURE" || primary === "PROMPT_AMBIGUITY" ||
       fired.some(f => f.refs.some(r => r.type === "response"));
     events.push({
       ts: trace.final_response.ts,

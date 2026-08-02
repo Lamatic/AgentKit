@@ -22,8 +22,14 @@ const { createSandbox } = require("./harness");
 
 const investigate = createSandbox().get("runInvestigation");
 
-const SIZES = process.argv.slice(2).map(Number).filter(Boolean);
-if (!SIZES.length) SIZES.push(100, 1000, 10000);
+const rawSizeArgs = process.argv.slice(2);
+const SIZES = rawSizeArgs.length ? rawSizeArgs.map(Number) : [100, 1000, 10000];
+for (const s of SIZES) {
+  if (!Number.isSafeInteger(s) || s <= 0) {
+    console.error(`Invalid trace size "${s}" — expected a positive integer.`);
+    process.exit(1);
+  }
+}
 const TRACES_PER_SIZE = 60;
 const stat = arr => {
   const s = [...arr].sort((a, b) => a - b);
@@ -36,8 +42,18 @@ const stat = arr => {
 };
 
 // base corpus: verdicts on the small, un-padded traces are ground truth
-const base = forgeDataset(TRACES_PER_SIZE);
+// stratified: 10 per class (5 failure categories + healthy), matching the
+// "10 per class" contract described above.
+const base = forgeDataset(TRACES_PER_SIZE, { stratified: true });
 base.forEach(item => { item.baseVerdict = investigate(item.trace).primary; });
+
+const minEvents = Math.max(...base.map(item => countEvents(item.trace)));
+for (const s of SIZES) {
+  if (s < minEvents) {
+    console.error(`Trace size ${s} is smaller than the source trace event count (${minEvents}) — cannot inflate.`);
+    process.exit(1);
+  }
+}
 
 console.log("\n  SCALING BENCHMARK — engine latency vs trace size");
 console.log("  " + "─".repeat(74));
