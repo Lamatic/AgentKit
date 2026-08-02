@@ -39,7 +39,9 @@ against a real Athena workgroup.
    of: `SELECT`, `WITH`, `DESCRIBE`, `DESC`, `SHOW`, `EXPLAIN` (case-insensitive).
 5. **Banned-word scan.** The full statement is scanned (as whole words, `\bWORD\b`) for:
    `INSERT UPDATE DELETE MERGE DROP CREATE ALTER TRUNCATE GRANT REVOKE CALL SET UNLOAD
-   REPLACE INTO COPY VACUUM`.
+   INTO COPY VACUUM`. (`REPLACE` is not banned — it is a standard read-only string
+   scalar function in Athena/Trino/Spark SQL; `CREATE OR REPLACE` is already caught by
+   the `CREATE` ban.)
 
 ## Cost rules (new in v2)
 
@@ -100,7 +102,8 @@ SELECT * FROM sales.orders o CROSS JOIN sales.customers c;     -- cartesian
 SELECT o.*, c.* FROM sales.orders o JOIN sales.customers c;    -- join with no ON/USING
 SELECT * FROM sales.orders;                                    -- unbounded wide scan
 SELECT * FROM sales.orders; DROP TABLE sales.orders;           -- stacked
-SELECT * FROM sales.orders /* ; */ -- \nDROP TABLE sales.orders; -- comment-smuggled write
+SELECT * FROM sales.orders /* ; */ -- harmless comment
+DROP TABLE sales.orders;                                  -- comment-smuggled write
 ```
 
 ## Known limitations (by design, not a full SQL parser)

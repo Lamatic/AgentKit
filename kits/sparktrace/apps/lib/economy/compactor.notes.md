@@ -2,8 +2,14 @@
 
 `compact(result: QueryExecutionResult): CompactResult` (`apps/lib/economy/compactor.ts`)
 is the token-saver: the orchestrator MUST call it on every raw execution result before
-that result reaches any model — models only ever see a `CompactResult`, never
+that result reaches the analyst — the analyst only ever sees a `CompactResult`, never
 `QueryExecutionResult.rows`.
+
+The reporter is handed the whole `Investigation` (which retains each step's raw
+`execution`, kept for the record/UI) rather than individual `CompactResult`s, so the
+"models never see raw rows" guarantee for that flow is enforced one level up: 
+`lamatic-client.ts`'s `toModelSafeInvestigation()` strips every `steps[].execution`
+(and trims `pipeline.files[].content`) before the payload is sent to the reporter flow.
 
 ## Sampling
 

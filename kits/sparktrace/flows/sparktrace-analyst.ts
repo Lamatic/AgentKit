@@ -1,105 +1,76 @@
 /*
  * # SparkTrace Analyst
- * The evidence-analysis and root-cause-reporting reasoning flow of the SparkTrace
- * investigation loop. Operates in two modes selected by an input `mode` field: `"analyze"`
- * turns one query's execution result into a verdict + next action; `"report"` synthesizes
- * the full investigation into a final root-cause report.
+ * The evidence-analysis reasoning flow of the SparkTrace investigation loop. Turns one
+ * diagnostic query's COMPACTED execution result into a verdict on the single hypothesis it
+ * tested, plus an advisory hint for the planner.
  *
  * ## Purpose
- * This single flow backs two calls in the orchestrator's loop
- * (`apps/actions/orchestrate.ts`):
- * - `reasoner.analyze({symptom, hypothesis, query, execution})` (step 3e) — called once per
- *   investigation step, right after `executor.execute()` returns a `QueryExecutionResult`.
- *   It decides whether the hypothesis just tested is `confirmed`/`refuted`/`inconclusive`
- *   and what the loop should do next.
- * - `reasoner.report({investigation})` (step 4) — called once, after the loop has confirmed
- *   a hypothesis or exhausted `maxSteps`, to synthesize the final `RootCauseReport`.
+ * Backs the single `reasoner.analyze({symptom, hypothesis, query, result})` call in the
+ * orchestrator's loop (`apps/actions/orchestrate.ts`) — called once per investigation step,
+ * right after `compact()` turns a `QueryExecutionResult` into a `CompactResult`. It decides
+ * whether the hypothesis just tested is `confirmed`/`refuted`/`inconclusive` and, optionally,
+ * what it thinks the loop should do next (advisory only — the PLANNER makes the actual next
+ * action decision, in v2).
  *
- * Both responsibilities share the same evidence-discipline requirements (ground every claim
- * in real query results, never fabricate rows, always state confidence), so they are
- * implemented as one flow whose system prompt branches on `mode` rather than as two
- * near-duplicate flows. **The `mode` field on the trigger input is what switches behavior**;
- * the node's JSON schema is a superset covering both output shapes, and the prompt
- * instructs the model to populate only the fields for the requested mode.
+ * Root-cause synthesis is a SEPARATE flow (`sparktrace-reporter.ts`); this flow is
+ * single-purpose and never echoes a `mode`.
  *
  * ## When To Use
- * - `mode: "analyze"` — immediately after any `QueryExecutionResult` comes back from the
- *   `QueryExecutor`, to decide the verdict on the hypothesis just tested.
- * - `mode: "report"` — once, at the end of the loop (hypothesis confirmed or `maxSteps`
- *   reached), to produce the caller-facing root-cause report.
+ * - Immediately after any `QueryExecutionResult` is compacted into a `CompactResult`, to
+ *   decide the verdict on the hypothesis just tested.
  *
  * ## When Not To Use
- * - Do not call `mode: "report"` mid-loop before any steps have real evidence — the report
- *   will correctly say "inconclusive", but it wastes a call; prefer calling it once the loop
- *   naturally terminates.
- * - Do not call `mode: "analyze"` without a real `execution` result — this flow never
- *   fabricates evidence, so an empty/missing `execution` will only ever yield `inconclusive`.
+ * - Do not call without a real `result` (`CompactResult`) — this flow never fabricates
+ *   evidence, so an empty/errored `result` will only ever yield `inconclusive`.
+ * - Do not call this flow for final root-cause synthesis — use `sparktrace-reporter`.
  *
  * ## Inputs
  * | Field | Type | Required | Description |
  * |---|---|---|---|
- * | `mode` | `"analyze" \| "report"` | Yes | Selects which output shape/behavior to run. |
- * | `symptom` | `string` | analyze mode only | The original reported problem. |
- * | `hypothesis` | `Hypothesis` | analyze mode only | The hypothesis this query tested. |
- * | `query` | `DiagnosticQuery` | analyze mode only | The query that was executed. |
- * | `execution` | `QueryExecutionResult` | analyze mode only | The real result of running `query`. |
- * | `investigation` | `Investigation` | report mode only | The full investigation state (`plan`, `hypotheses`, `steps`, etc). |
+ * | `symptom` | `string` | Yes | The original reported problem. |
+ * | `hypothesis` | `Hypothesis` | Yes | The hypothesis this query tested. |
+ * | `query` | `DiagnosticQuery` | Yes | The query that was executed. |
+ * | `result` | `CompactResult` | Yes | The compacted digest of the execution (<=10 sample rows + stats) — never raw rows. |
  *
- * ## Outputs
- * **analyze mode** — `StepAnalysis`:
+ * ## Outputs — `StepAnalysis`
  * | Field | Type | Description |
  * |---|---|---|
  * | `verdict` | `"confirmed" \| "refuted" \| "inconclusive"` | Whether the evidence supports the hypothesis. |
- * | `reasoning` | `string` | Evidence-grounded explanation citing the actual execution result. |
- * | `nextAction` | `"conclude" \| "next-hypothesis" \| "refine-query"` | What the orchestrator loop should do next. |
- *
- * **report mode** — `RootCauseReport`:
- * | Field | Type | Description |
- * |---|---|---|
- * | `rootCause` | `string` | The identified cause, or an explicit inconclusive statement. |
- * | `confidence` | `number` | 0–1 confidence in the root cause. |
- * | `evidence` | `EvidenceItem[]` | `{ hypothesisId, queryId, finding }[]` pulled from `investigation.steps`. |
- * | `suggestedFix` | `string` | Concrete engineering fix (or next diagnostic step if inconclusive). |
- * | `caveats` | `string[]` | Limitations on confidence (truncated results, untested hypotheses, etc). |
+ * | `reasoning` | `string` | Evidence-grounded explanation citing the actual `result`. |
+ * | `hint` | `"conclude" \| "next-hypothesis" \| "refine-query"` (optional) | Advisory only — the planner decides the actual next action. |
  *
  * ## Dependencies
  * ### Upstream
- * - `sparktrace-query-gen` + `QueryExecutor.execute` — supply `query`/`execution` for analyze mode.
- * - The orchestrator's accumulated `Investigation` state — supplies `investigation` for report mode.
+ * - `sparktrace-query-gen` + `QueryExecutor.execute` + the deterministic `compact()` layer —
+ *   supply `query`/`result` (never the raw `QueryExecutionResult.rows`).
  * ### Downstream
- * - The orchestrator branches its loop on `nextAction` (analyze mode) or emits the final
- *   `{ type: "report", report }` `InvestigationEvent` (report mode) straight to the UI.
+ * - The orchestrator's planner reads `verdict` (hard gate on hypothesis status) and may
+ *   consider `hint` alongside the full accumulated evidence.
  * ### External Services
  * - Configured text generation model via `generativeModelName` on the `Generate JSON` node.
  * ### Environment Variables
- * - `SPARKTRACE_ANALYST` — deployed flow id used by `apps/lib/lamatic-client.ts` for both calls.
+ * - `SPARKTRACE_ANALYST_FLOW_ID` — deployed flow id used by `apps/lib/lamatic-client.ts`.
  * - `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` — Lamatic client credentials.
  *
  * ## Node Walkthrough
- * 1. `API Request` (`triggerNode` / `graphqlNode`) — receives the mode-tagged payload.
+ * 1. `API Request` (`triggerNode` / `graphqlNode`) — receives `{ symptom, hypothesis, query, result }`.
  * 2. `Generate JSON` (`InstructorLLMNode`) — applies
- *    `@prompts/sparktrace-analyst_generate-json_system.md` (branches instructions on `mode`,
- *    shared evidence/confidence/no-fabrication discipline) and
- *    `@prompts/sparktrace-analyst_generate-json_user.md` (injects the mode-appropriate
- *    fields), constrained to a schema that is a superset of `StepAnalysis` and
- *    `RootCauseReport` plus the echoed `mode`.
- * 3. `API Response` (`graphqlResponseNode`) — maps all possible output fields through; the
- *    caller (`apps/lib/lamatic-client.ts`) reads only the fields relevant to the `mode` it
- *    invoked with and validates/casts into `StepAnalysis` or `RootCauseReport`.
+ *    `@prompts/sparktrace-analyst_generate-json_system.md` (evidence/confidence/no-fabrication
+ *    discipline) and `@prompts/sparktrace-analyst_generate-json_user.md` (injects `symptom`,
+ *    `hypothesis`, `query`, `result`), constrained to the `StepAnalysis` schema.
+ * 3. `API Response` (`graphqlResponseNode`) — maps `verdict`, `reasoning`, `hint` straight
+ *    through; the caller (`apps/lib/lamatic-client.ts`) validates/casts into `StepAnalysis`.
  *
  * ## Error Scenarios
  * | Symptom | Likely Cause | Fix |
  * |---|---|---|
- * | `verdict` always `inconclusive` | `execution.rows`/`columns` genuinely empty or `execution.error` set | Check the upstream query/executor; this is often correct behavior, not a bug. |
- * | `report` mode returns generic-sounding `rootCause` | No step in `investigation.steps` actually reached `verdict: "confirmed"` | Expected when the loop was cut short by `maxSteps`; surfaced via `caveats`. |
- * | `evidence[].queryId` not found in `investigation.steps` | Model hallucinated an id despite instructions | Add downstream validation in `lamatic-client.ts` and reject/retry if ids don't match `steps[].query.id`. |
- * | Wrong output fields populated for the requested `mode` | `mode` was omitted or malformed in the request | Always pass `mode: "analyze"` or `mode: "report"` explicitly; validate before calling. |
+ * | `verdict` always `inconclusive` | `result.sampleRows`/`stats` genuinely empty or `result.error` set | Check the upstream query/executor/compactor; this is often correct behavior, not a bug. |
+ * | `hint` missing | Model had no strong opinion | Expected — `hint` is optional/advisory; the planner still decides. |
  *
  * ## Notes
- * - Output is strict JSON (`InstructorLLMNode` schema-constrained). The schema below is a
- *   superset covering both modes' fields plus `mode`; the client should only trust the
- *   subset matching the `mode` it requested.
- * - This flow never queries AWS itself — it only reasons over evidence it is handed.
+ * - Output is strict JSON (`InstructorLLMNode` schema-constrained), matching `StepAnalysis`
+ *   exactly — no superset, no `mode` field.
+ * - This flow never queries AWS itself — it only reasons over the compacted evidence it is handed.
  */
 
 // Flow: sparktrace-analyst
@@ -107,13 +78,12 @@
 // ── Meta ──────────────────────────────────────────────
 export const meta = {
   "name": "SparkTrace Analyst",
-  "description": "Analyzes a diagnostic query's execution result to confirm/refute a hypothesis (analyze mode), or synthesizes the full investigation into a root-cause report (report mode).",
+  "description": "Analyzes a diagnostic query's compacted execution result to confirm/refute a hypothesis, returning a verdict, evidence-grounded reasoning, and an advisory next-step hint.",
   "tags": [
     "🕵️ Agentic",
     "🛠️ Data Engineering"
   ],
   "testInput": {
-    "mode": "analyze",
     "symptom": "The daily revenue_by_region table has undercounted revenue for the last 3 days compared to the source orders table.",
     "hypothesis": {
       "id": "hyp-join-explosion-1",
@@ -130,16 +100,20 @@ export const meta = {
       "sql": "SELECT o.region_id, COUNT(*) AS dropped_orders, SUM(o.amount) AS dropped_amount FROM raw.orders o LEFT JOIN raw.dim_region d ON o.region_id = d.region_id WHERE d.region_id IS NULL AND o.order_date >= date_add('day', -3, current_date) GROUP BY o.region_id",
       "purpose": "Finds orders whose region_id has no match in dim_region, which an inner join would silently drop, undercounting revenue."
     },
-    "execution": {
+    "result": {
       "queryId": "qry-hyp-join-explosion-1-1",
       "columns": ["region_id", "dropped_orders", "dropped_amount"],
-      "rows": [
+      "sampleRows": [
         { "region_id": "R-99", "dropped_orders": 214, "dropped_amount": 18342.51 }
       ],
+      "stats": {
+        "columns": [
+          { "name": "dropped_orders", "type": "bigint", "min": 214, "max": 214, "avg": 214, "nulls": 0, "distinct": 1 }
+        ]
+      },
       "rowCount": 1,
       "bytesScanned": 5242880,
       "runtimeMs": 812,
-      "engine": "athena",
       "truncated": false
     }
   },
@@ -163,7 +137,7 @@ export const inputs = {
       "required": true,
       "isPrivate": true,
       "modelType": "generator/text",
-      "description": "Select the model used to analyze query evidence and synthesize the root-cause report.",
+      "description": "Select the model used to analyze the compacted query evidence and produce a verdict.",
       "typeOptions": {
         "loadOptionsMethod": "listModels"
       },
@@ -204,7 +178,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"mode\": { \"type\": \"string\", \"enum\": [\"analyze\", \"report\"] },\n    \"symptom\": { \"type\": \"string\" },\n    \"hypothesis\": { \"type\": \"object\" },\n    \"query\": { \"type\": \"object\" },\n    \"execution\": { \"type\": \"object\" },\n    \"investigation\": { \"type\": \"object\" }\n  },\n  \"required\": [\"mode\"]\n}"
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"symptom\": { \"type\": \"string\" },\n    \"hypothesis\": { \"type\": \"object\" },\n    \"query\": { \"type\": \"object\" },\n    \"result\": { \"type\": \"object\" }\n  },\n  \"required\": [\"symptom\", \"hypothesis\", \"query\", \"result\"]\n}"
       }
     }
   },
@@ -221,7 +195,7 @@ export const nodes = [
       "values": {
         "nodeName": "Generate JSON",
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"mode\": { \"type\": \"string\", \"enum\": [\"analyze\", \"report\"] },\n    \"verdict\": { \"type\": \"string\", \"enum\": [\"confirmed\", \"refuted\", \"inconclusive\"], \"description\": \"analyze mode only\" },\n    \"reasoning\": { \"type\": \"string\", \"description\": \"analyze mode only\" },\n    \"nextAction\": { \"type\": \"string\", \"enum\": [\"conclude\", \"next-hypothesis\", \"refine-query\"], \"description\": \"analyze mode only\" },\n    \"rootCause\": { \"type\": \"string\", \"description\": \"report mode only\" },\n    \"confidence\": { \"type\": \"number\", \"description\": \"report mode only\" },\n    \"evidence\": {\n      \"type\": \"array\",\n      \"description\": \"report mode only\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"hypothesisId\": { \"type\": \"string\" },\n          \"queryId\": { \"type\": \"string\" },\n          \"finding\": { \"type\": \"string\" }\n        },\n        \"required\": [\"hypothesisId\", \"queryId\", \"finding\"]\n      }\n    },\n    \"suggestedFix\": { \"type\": \"string\", \"description\": \"report mode only\" },\n    \"caveats\": { \"type\": \"array\", \"description\": \"report mode only\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"mode\"]\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"verdict\": { \"type\": \"string\", \"enum\": [\"confirmed\", \"refuted\", \"inconclusive\"] },\n    \"reasoning\": { \"type\": \"string\" },\n    \"hint\": { \"type\": \"string\", \"enum\": [\"conclude\", \"next-hypothesis\", \"refine-query\"], \"description\": \"optional — advisory only\" }\n  },\n  \"required\": [\"verdict\", \"reasoning\"]\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -255,7 +229,7 @@ export const nodes = [
         "retries": "0",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"mode\": \"{{InstructorLLMNode_530.output.mode}}\",\n  \"verdict\": \"{{InstructorLLMNode_530.output.verdict}}\",\n  \"reasoning\": \"{{InstructorLLMNode_530.output.reasoning}}\",\n  \"nextAction\": \"{{InstructorLLMNode_530.output.nextAction}}\",\n  \"rootCause\": \"{{InstructorLLMNode_530.output.rootCause}}\",\n  \"confidence\": \"{{InstructorLLMNode_530.output.confidence}}\",\n  \"evidence\": \"{{InstructorLLMNode_530.output.evidence}}\",\n  \"suggestedFix\": \"{{InstructorLLMNode_530.output.suggestedFix}}\",\n  \"caveats\": \"{{InstructorLLMNode_530.output.caveats}}\"\n}"
+        "outputMapping": "{\n  \"verdict\": \"{{InstructorLLMNode_530.output.verdict}}\",\n  \"reasoning\": \"{{InstructorLLMNode_530.output.reasoning}}\",\n  \"hint\": \"{{InstructorLLMNode_530.output.hint}}\"\n}"
       }
     }
   }

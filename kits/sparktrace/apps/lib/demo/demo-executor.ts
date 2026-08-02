@@ -128,7 +128,7 @@ let dbPromise: Promise<{ db: any; tables: ScenarioTable[]; dataDir: string }> | 
 
 function getDb() {
   if (dbPromise) return dbPromise;
-  dbPromise = (async () => {
+  const pending = (async () => {
     const { dir, scenario } = loadScenario();
     const dataDir = path.join(dir, "data");
     // alasql's bundled types are loose; treat the DB handle as `any` so
@@ -150,6 +150,11 @@ function getDb() {
 
     return { db, tables: scenario.tables, dataDir };
   })();
+  pending.catch(() => {
+    // Don't memoize a failure — the next execute() should retry.
+    if (dbPromise === pending) dbPromise = null;
+  });
+  dbPromise = pending;
   return dbPromise;
 }
 

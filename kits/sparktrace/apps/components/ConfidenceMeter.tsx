@@ -21,6 +21,7 @@ export function ConfidenceMeter({ value, label = "Confidence", className }: Conf
       </div>
       <div
         role="progressbar"
+        aria-label={label}
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}

@@ -23,6 +23,10 @@
   --input: oklch(0.9 0 0);
   --ring: oklch(0.55 0 0);
   --radius: 0.625rem;
+  --success: oklch(0.6 0.16 155);
+  --warning: oklch(0.75 0.16 75);
+  --slate: oklch(0.5 0.03 255);
+  --violet: oklch(0.55 0.22 295);
 }
 
 .dark {
@@ -45,6 +49,10 @@
   --border: oklch(0.3 0 0);
   --input: oklch(0.3 0 0);
   --ring: oklch(0.5 0 0);
+  --success: oklch(0.72 0.17 155);
+  --warning: oklch(0.8 0.16 85);
+  --slate: oklch(0.75 0.02 255);
+  --violet: oklch(0.75 0.15 295);
 }
 
 /* System-preference fallback for visitors who never toggle the app's theme
@@ -71,6 +79,10 @@
     --border: oklch(0.3 0 0);
     --input: oklch(0.3 0 0);
     --ring: oklch(0.5 0 0);
+    --success: oklch(0.72 0.17 155);
+    --warning: oklch(0.8 0.16 85);
+    --slate: oklch(0.75 0.02 255);
+    --violet: oklch(0.75 0.15 295);
   }
 }
 
@@ -96,6 +108,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-slate: var(--slate);
+  --color-violet: var(--violet);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

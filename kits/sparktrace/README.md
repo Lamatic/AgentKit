@@ -10,7 +10,7 @@ Not a "symptom → query" generator. It's an investigator: plan → hypothesize 
 
 ## The planner loop
 
-```
+```text
               ┌────────────────────── apps/ (Next.js) ──────────────────────┐
  user ──►     │  UI  ──►  actions/orchestrate.ts  (planner-driven loop)      │
  symptom      │            │                                                  │
@@ -23,7 +23,7 @@ Not a "symptom → query" generator. It's an investigator: plan → hypothesize 
                         AWS (live: Athena/Glue/S3)  |  alasql (demo fixtures)
 ```
 
-```
+```text
 ingest symptom + repo pointer
   → repo-reader → PipelineContext
   → loop (≤ stepBudget, default 6):
@@ -131,7 +131,7 @@ All variables live in [`apps/.env.example`](apps/.env.example). **None are requi
 
 ## Repo structure
 
-```
+```text
 sparktrace/
 ├── lamatic.config.ts          # kit metadata, 5 tiered flow steps, links
 ├── agent.md                   # agent identity + capability doc
@@ -158,4 +158,5 @@ sparktrace/
 ---
 
 ## License
+
 MIT License – see [LICENSE](../LICENSE).

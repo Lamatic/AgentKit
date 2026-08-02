@@ -18,16 +18,13 @@
  *      query with no `LIMIT` clause gets `LIMIT 1000` injected, and the
  *      result is returned with `rewritten: true` and the modified SQL in
  *      `normalizedSql`.
- *   c. `SELECT *` with no aggregation is flagged as a violation (a full
- *      wide-column scan with no `LIMIT`-independent narrowing is exactly
- *      the shape of an accidental full-table pull) — a warning-grade
- *      finding, but since QueryGuardResult has no separate warning
- *      channel, `SELECT *` is only rejected when it ALSO has no LIMIT
- *      and no aggregation. If a LIMIT is present (or gets injected) and
- *      there is no aggregation, `SELECT *` is downgraded to an advisory
- *      violation entry only when there is neither aggregation nor a cap
- *      — see `checkSelectStarWithoutAggregation` below for the exact
- *      rule.
+ *   c. `SELECT *` is rejected when it has NEITHER an aggregation
+ *      construct (`GROUP BY`/`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`/`DISTINCT`/
+ *      `HAVING`) NOR an explicit `LIMIT` — that shape is an unbounded
+ *      full-column scan. If either is present, `SELECT *` is allowed.
+ *      This check runs before the LIMIT-injection in (b), so an
+ *      unaggregated `SELECT *` is never auto-repaired by an injected
+ *      LIMIT — see `isUnaggregatedSelectStar` below for the exact rule.
  *
  * Strategy (defense in depth against a single-purpose parser, not a
  * full SQL grammar) for the base read-only pass:
@@ -85,7 +82,6 @@ const BANNED_WORDS = [
   "CALL",
   "SET",
   "UNLOAD",
-  "REPLACE",
   "INTO",
   "COPY",
   "VACUUM",
