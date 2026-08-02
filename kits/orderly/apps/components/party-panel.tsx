@@ -54,7 +54,10 @@ export function PartyPanel({
     onDinersChange([
       ...diners,
       {
-        id: `diner-${Date.now()}`,
+        // Date.now() collides when two diners are added inside the same
+        // millisecond, and duplicate IDs make the solver count two people as
+        // one. randomUUID has no such failure mode.
+        id: crypto.randomUUID(),
         label: `Diner ${nextIndex}`,
         avoidAllergens: [],
         diet: null,
@@ -138,7 +141,7 @@ export function PartyPanel({
               </div>
             </fieldset>
 
-            <fieldset disabled={disabled}>
+            <fieldset className="mb-3" disabled={disabled}>
               <legend className="mb-1.5 text-xs font-medium text-[var(--color-muted-foreground)]">
                 Diet
               </legend>
@@ -165,6 +168,34 @@ export function PartyPanel({
                 })}
               </div>
             </fieldset>
+
+            {/* Dislikes are a soft constraint: they surface as "caution" on a
+                dish rather than removing it, unlike allergies and diets. */}
+            <div>
+              <Label
+                htmlFor={`dislikes-${diner.id}`}
+                className="mb-1.5 block text-xs font-medium text-[var(--color-muted-foreground)]"
+              >
+                Would rather avoid{" "}
+                <span className="font-normal">(comma separated, optional)</span>
+              </Label>
+              <Input
+                id={`dislikes-${diner.id}`}
+                value={diner.dislikes.join(", ")}
+                placeholder="coriander, olives"
+                disabled={disabled}
+                onChange={(event) =>
+                  updateDiner(diner.id, {
+                    dislikes: event.target.value
+                      .split(",")
+                      .map((entry) => entry.trim())
+                      .filter((entry) => entry !== "")
+                      .slice(0, 20),
+                  })
+                }
+                className="h-8"
+              />
+            </div>
           </div>
         ))}
       </div>

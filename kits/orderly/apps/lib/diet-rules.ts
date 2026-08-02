@@ -10,7 +10,7 @@
 // (which would be unsafe). Callers must handle three states; the solver treats
 // `"unknown"` for a diner's stated diet as `caution`, not as permission.
 
-import type { DietVerdict, Tristate } from "./types";
+import type { DietId, DietVerdict, Tristate } from "./types";
 import { findKeywordInAny } from "./keyword-match";
 import { mapIngredientsToAllergens } from "./allergen-table";
 
@@ -230,10 +230,7 @@ export function dietVerdict(
  * Exists so callers do not re-map diet IDs to field names at each call site;
  * the solver and the UI both need this and must agree.
  */
-export function verdictForDiet(
-  verdict: DietVerdict,
-  diet: "vegetarian" | "vegan" | "halal" | "gluten-free"
-): Tristate {
+export function verdictForDiet(verdict: DietVerdict, diet: DietId): Tristate {
   switch (diet) {
     case "vegetarian":
       return verdict.vegetarian;
@@ -243,5 +240,11 @@ export function verdictForDiet(
       return verdict.halal;
     case "gluten-free":
       return verdict.glutenFree;
+    default: {
+      // Exhaustiveness guard: adding a member to DietId without mapping it here
+      // is a compile error rather than a diet that silently never applies.
+      const unhandled: never = diet;
+      throw new Error(`Unhandled diet: ${String(unhandled)}`);
+    }
   }
 }

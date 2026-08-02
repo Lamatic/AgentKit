@@ -40,6 +40,7 @@ export default function HomePage() {
   const [report, setReport] = useState<ScanReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [pending, startTransition] = useTransition();
 
   async function handleFile(file: File | undefined) {
@@ -47,41 +48,60 @@ export default function HomePage() {
     setUploading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    const result = await uploadMenuPhoto(formData);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const result = await uploadMenuPhoto(formData);
 
-    setUploading(false);
-    if (result.ok) {
-      setImageUrl(result.url);
-    } else {
-      // Uploads are optional infrastructure; the URL field always works, so a
-      // failure here is a nudge rather than a dead end.
-      setError(result.error);
+      if (result.ok) {
+        setImageUrl(result.url);
+      } else {
+        // Uploads are optional infrastructure; the URL field always works, so a
+        // failure here is a nudge rather than a dead end.
+        setError(result.error);
+      }
+    } catch {
+      // A server action can reject outright — a dropped connection mid-upload,
+      // a body-size limit hit at the edge. Without this the catch-free version
+      // left `uploading` true forever and the form permanently disabled.
+      setError("That photo could not be uploaded. Paste a link to a menu image instead.");
+    } finally {
+      setUploading(false);
     }
   }
 
   function handleScan() {
     setError(null);
+    // `startTransition` only tracks the synchronous part of an async callback,
+    // so `pending` drops back to false as soon as the await is reached and the
+    // button would re-enable mid-request. This flag spans the whole call.
+    setScanning(true);
     startTransition(async () => {
-      const response = await scanMenu({
-        imageUrl,
-        targetLanguage,
-        diners,
-        budget,
-        servingModel,
-      });
+      try {
+        const response = await scanMenu({
+          imageUrl,
+          targetLanguage,
+          diners,
+          budget,
+          servingModel,
+        });
 
-      if (response.ok) {
-        setReport(response.report);
-      } else {
+        if (response.ok) {
+          setReport(response.report);
+        } else {
+          setReport(null);
+          setError(response.error);
+        }
+      } catch {
         setReport(null);
-        setError(response.error);
+        setError("Something went wrong reading that menu. Please try again.");
+      } finally {
+        setScanning(false);
       }
     });
   }
 
-  const busy = pending || uploading;
+  const busy = pending || uploading || scanning;
   const canScan = imageUrl.trim() !== "" && diners.length > 0 && !busy;
 
   return (

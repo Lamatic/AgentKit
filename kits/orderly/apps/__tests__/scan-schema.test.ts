@@ -5,6 +5,7 @@ import {
   FlowResultSchema,
   ScanRequestSchema,
   fieldErrors,
+  isPubliclyFetchableImageUrl,
   parseFlowResult,
 } from "../lib/scan-schema";
 
@@ -104,6 +105,112 @@ describe("ScanRequestSchema — rejects malformed requests", () => {
     const { targetLanguage, ...withoutLanguage } = VALID_REQUEST;
     void targetLanguage;
     assert.throws(() => ScanRequestSchema.parse(withoutLanguage));
+  });
+
+  // ── 2b. Duplicate diner IDs ──
+  //
+  // The solver tracks coverage in a Set keyed on diner ID, so two diners
+  // sharing an ID would silently count as one and leave someone unfed without
+  // ever appearing in `unfed`.
+  it("rejects duplicate diner ids", () => {
+    assert.throws(() =>
+      ScanRequestSchema.parse({
+        ...VALID_REQUEST,
+        diners: [
+          { id: "same", label: "Priya" },
+          { id: "same", label: "Sam" },
+        ],
+      })
+    );
+  });
+
+  it("accepts distinct diner ids", () => {
+    assert.doesNotThrow(() =>
+      ScanRequestSchema.parse({
+        ...VALID_REQUEST,
+        diners: [
+          { id: "a", label: "Priya" },
+          { id: "b", label: "Sam" },
+        ],
+      })
+    );
+  });
+});
+
+describe("isPubliclyFetchableImageUrl", () => {
+  // ── 2c. The vision node fetches this URL server-side ──
+  //
+  // An unvalidated URL turns the flow into a request proxy: point it at a cloud
+  // metadata endpoint or a service on the loopback interface and the response,
+  // or merely the timing, leaks. These are the addresses that must never reach it.
+  it("accepts ordinary public https image URLs", () => {
+    for (const url of [
+      "https://example.com/menu.jpg",
+      "https://raw.githubusercontent.com/owner/repo/main/menu.jpg",
+      "https://abc123.public.blob.vercel-storage.com/menus/1-menu.jpg",
+      "https://cdn.example.co.uk:8443/a/b/menu.png?v=2",
+    ]) {
+      assert.equal(isPubliclyFetchableImageUrl(url), true, `${url} should be allowed`);
+    }
+  });
+
+  it("rejects non-https schemes, including paste-only ones", () => {
+    for (const url of [
+      "http://example.com/menu.jpg",
+      "file:///etc/passwd",
+      "ftp://example.com/menu.jpg",
+      "data:image/png;base64,iVBORw0KGgo=",
+      "blob:https://example.com/8f7d-4a2b",
+      "javascript:alert(1)",
+    ]) {
+      assert.equal(isPubliclyFetchableImageUrl(url), false, `${url} should be rejected`);
+    }
+  });
+
+  it("rejects loopback and localhost", () => {
+    for (const url of [
+      "https://localhost/menu.jpg",
+      "https://127.0.0.1/menu.jpg",
+      "https://127.1.2.3/menu.jpg",
+      "https://[::1]/menu.jpg",
+      "https://app.localhost/menu.jpg",
+    ]) {
+      assert.equal(isPubliclyFetchableImageUrl(url), false, `${url} should be rejected`);
+    }
+  });
+
+  it("rejects private, link-local and metadata addresses", () => {
+    for (const url of [
+      "https://10.0.0.5/menu.jpg",
+      "https://192.168.1.1/menu.jpg",
+      "https://172.16.0.1/menu.jpg",
+      "https://172.31.255.255/menu.jpg",
+      "https://169.254.169.254/latest/meta-data/", // cloud metadata
+      "https://metadata.google.internal/computeMetadata/v1/",
+      "https://0.0.0.0/menu.jpg",
+      "https://[fe80::1]/menu.jpg",
+      "https://[fd00::1]/menu.jpg",
+    ]) {
+      assert.equal(isPubliclyFetchableImageUrl(url), false, `${url} should be rejected`);
+    }
+  });
+
+  it("does not reject public addresses that merely look similar", () => {
+    // 172.32.x is outside the private 172.16-31 range; 11.x is public.
+    assert.equal(isPubliclyFetchableImageUrl("https://172.32.0.1/menu.jpg"), true);
+    assert.equal(isPubliclyFetchableImageUrl("https://11.0.0.1/menu.jpg"), true);
+  });
+
+  it("rejects malformed input", () => {
+    for (const url of ["", "not-a-url", "https://", "   "]) {
+      assert.equal(isPubliclyFetchableImageUrl(url), false, `${url} should be rejected`);
+    }
+  });
+
+  it("is enforced by ScanRequestSchema, not merely available", () => {
+    assert.throws(() =>
+      ScanRequestSchema.parse({ ...VALID_REQUEST, imageUrl: "http://127.0.0.1/menu.jpg" })
+    );
   });
 });
 

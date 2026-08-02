@@ -155,11 +155,67 @@ describe("matchAllergens", () => {
     assert.equal(matchAllergens("tako")[0]?.allergen, "molluscs");
   });
 
-  // ── 10. Determinism ──
-  it("returns identical output for identical input", () => {
-    const a = matchAllergens("breaded prawn with soy sauce and sesame");
-    const b = matchAllergens("breaded prawn with soy sauce and sesame");
-    assert.deepStrictEqual(a, b);
+  // ── 10. Exact output, pinning the documented ordering ──
+  //
+  // Asserting the whole array rather than re-running the function and comparing
+  // it to itself: this pins the KEYS_LONGEST_FIRST iteration order, the
+  // one-hit-per-allergen rule, and the specific key credited for each match.
+  it("returns the documented matches in the documented order", () => {
+    // Order is KEYS_LONGEST_FIRST: key length descending, then lexicographic.
+    // "soy sauce" (9), "breaded" (7), "sesame" (6), "prawn" (5).
+    assert.deepStrictEqual(
+      matchAllergens("breaded prawn with soy sauce and sesame"),
+      [
+        { allergen: "soybeans", matchedIngredient: "soy sauce" },
+        { allergen: "cereals-gluten", matchedIngredient: "breaded" },
+        { allergen: "sesame", matchedIngredient: "sesame" },
+        { allergen: "crustaceans", matchedIngredient: "prawn" },
+      ]
+    );
+  });
+});
+
+describe("matchAllergens — free-from qualifiers", () => {
+  // ── 11. A dish advertising absence must not be flagged for presence ──
+  //
+  // "egg-free mayonnaise" says there is no egg. Matching the key inside the
+  // qualifier would invert the menu's meaning and warn about a dish precisely
+  // because it went out of its way to say it was safe.
+  it("does not flag an allergen immediately negated by 'free'", () => {
+    const cases: Array<[string, string]> = [
+      ["egg-free", "eggs"],
+      ["egg free", "eggs"],
+      ["milk-free chocolate", "milk"],
+      ["soy free dressing", "soybeans"],
+    ];
+
+    for (const [text, allergen] of cases) {
+      const hits = matchAllergens(text).map((h) => h.allergen);
+      assert.ok(
+        !hits.includes(allergen as never),
+        `"${text}" should not report ${allergen}, which it says it is free of`
+      );
+    }
+  });
+
+  it("still flags the allergen when 'free' is not the next word", () => {
+    // "egg noodles" also matches `noodle`, which sorts first by length, so
+    // assert membership rather than position.
+    assert.ok(
+      matchAllergens("egg noodles").some((h) => h.allergen === "eggs"),
+      "'egg noodles' contains egg"
+    );
+    assert.ok(
+      matchAllergens("free-range egg").some((h) => h.allergen === "eggs"),
+      "'free-range egg' contains egg and must still be flagged"
+    );
+  });
+
+  it("only suppresses the negated key, not other allergens present", () => {
+    // Soy-free, but the soba noodles still carry gluten.
+    const hits = matchAllergens("soy-free noodles").map((h) => h.allergen);
+    assert.ok(!hits.includes("soybeans"));
+    assert.ok(hits.includes("cereals-gluten"));
   });
 });
 

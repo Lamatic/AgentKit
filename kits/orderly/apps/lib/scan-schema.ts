@@ -46,16 +46,91 @@ export const BudgetSchema = z.object({
 
 export const ServingModelSchema = z.enum(["shared", "individual"]);
 
+/**
+ * Hostnames and address forms that must never be handed to the vision node.
+ *
+ * The flow fetches `menuImage` server-side, so an unvalidated URL turns this
+ * app into a request proxy: a caller could aim it at a cloud metadata endpoint,
+ * a service on the loopback interface, or something inside a private network
+ * and learn from the response or the timing. Restricting the scheme to HTTPS
+ * and rejecting non-public hosts closes the obvious paths.
+ */
+const BLOCKED_HOSTNAMES = new Set([
+  "localhost",
+  "localhost.localdomain",
+  "metadata",
+  "metadata.google.internal",
+  "instance-data",
+]);
+
+/** IPv4/IPv6 forms that are loopback, private, link-local, or unspecified. */
+const BLOCKED_IP_PATTERNS: readonly RegExp[] = [
+  /^127\./, // loopback
+  /^10\./, // private class A
+  /^192\.168\./, // private class C
+  /^172\.(1[6-9]|2\d|3[01])\./, // private class B
+  /^169\.254\./, // link-local, incl. cloud metadata at 169.254.169.254
+  /^0\./, // unspecified
+  /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./, // carrier-grade NAT
+  /^::1?$/, // IPv6 loopback / unspecified
+  /^fe80:/i, // IPv6 link-local
+  /^f[cd][0-9a-f]{2}:/i, // IPv6 unique-local
+];
+
+/**
+ * Validates that a URL is something safe to ask a remote service to fetch.
+ *
+ * Exported so the same rule can be reused and tested independently of the
+ * request schema.
+ */
+export function isPubliclyFetchableImageUrl(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+
+  // HTTPS only. This also rejects blob:, data: and file:, none of which a
+  // remote fetcher can resolve anyway.
+  if (url.protocol !== "https:") return false;
+
+  const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (hostname === "") return false;
+  if (BLOCKED_HOSTNAMES.has(hostname)) return false;
+  if (hostname.endsWith(".localhost") || hostname.endsWith(".internal")) return false;
+  if (BLOCKED_IP_PATTERNS.some((pattern) => pattern.test(hostname))) return false;
+
+  return true;
+}
+
+export const ImageUrlSchema = z
+  .string()
+  .url()
+  .refine(isPubliclyFetchableImageUrl, {
+    message:
+      "Must be a public https:// image URL. Local, private-network, and blob:/data: URLs cannot be fetched by the vision model.",
+  });
+
 export const ScanRequestSchema = z.object({
   /**
    * A publicly-fetchable image URL. The vision node fetches this itself, so a
    * blob: or data: URL will not work — the app uploads to storage first.
    */
-  imageUrl: z.string().url(),
+  imageUrl: ImageUrlSchema,
   targetLanguage: z.string().min(2).max(32),
   sourceLanguageHint: z.string().max(32).optional(),
   /** Capped at 8: past that the greedy set cover stops being a good heuristic. */
-  diners: z.array(DinerSchema).min(1).max(8),
+  diners: z
+    .array(DinerSchema)
+    .min(1)
+    .max(8)
+    // The solver keys coverage off diner IDs in a Set, so duplicates would make
+    // two people silently count as one and leave someone unfed without saying so.
+    .refine(
+      (diners) => new Set(diners.map((d) => d.id)).size === diners.length,
+      { message: "Each diner must have a unique id." }
+    ),
   budget: BudgetSchema.nullable().default(null),
   servingModel: ServingModelSchema.default("shared"),
 });

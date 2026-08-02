@@ -44,7 +44,7 @@ it rather than the point of it.
 
 ## What it does
 
-```
+```text
 ┌─ MODEL ─ the menu-scan flow ──────────────────────────┐
 │  reads the photograph (OCR + vision)                  │
 │  transliterates and translates each dish name         │
@@ -53,7 +53,7 @@ it rather than the point of it.
 │  reports lines it could not read                      │
 └───────────────────────────────────────────────────────┘
                         ↓  structured JSON
-┌─ DETERMINISTIC CODE ─ apps/lib/, 158 tests ───────────┐
+┌─ DETERMINISTIC CODE ─ apps/lib/, 178 tests ───────────┐
 │  ingredient → EU-14 allergen mapping                  │
 │  dietary rules (vegetarian/vegan/halal/gluten-free)   │
 │  price and currency parsing                           │
@@ -69,7 +69,7 @@ The model never sees the budget and never picks a dish.
 > **Party of four.** Priya avoids tree nuts and is vegetarian. Sam avoids
 > crustaceans. Alex and Jo have no restrictions. **€60, sharing plates.**
 
-```
+```text
 YOUR ORDER                                    €54.00 EUR · €6.00 left
   ✓ Caldo Verde              everyone                          €8.00
   ✓ Grão com Espinafre       everyone                         €12.00
@@ -195,7 +195,7 @@ service.
 npm run dev         # development server
 npm run build       # production build
 npm run typecheck   # tsc --noEmit
-npm test            # 158 tests across 6 suites
+npm test            # 178 tests across 6 suites
 ```
 
 ---
@@ -212,7 +212,7 @@ tested properly rather than smoke-tested.
 | `price.test.ts` | European vs Anglo separators, ranges, unparseable prices |
 | `allergen-engine.test.ts` | contains vs may-contain provenance, per-diner verdicts |
 | `table-solver.test.ts` | **every guarantee above, asserted on output** |
-| `scan-schema.test.ts` | strict inbound validation, permissive model-output parsing |
+| `scan-schema.test.ts` | strict inbound validation, permissive model-output parsing, image-URL safety |
 
 The test worth reading is the adversarial one: on a menu where the almond cake
 is by far the cheapest way to feed everyone, a nut-allergic diner at the table
