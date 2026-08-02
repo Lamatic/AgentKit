@@ -279,6 +279,16 @@ class DemoReasoner implements LamaticReasoner {
 
   private analyzeAntiJoin(result: CompactResult): StepAnalysis {
     const droppedCol = result.stats.columns.find((c) => c.name === "dropped_orders");
+
+    if (result.rowCount > 0 && droppedCol?.avg === undefined) {
+      return {
+        verdict: "inconclusive",
+        reasoning:
+          `The anti-join returned ${result.rowCount} row(s) but no numeric "dropped_orders" statistic was available to quantify the impact.`,
+        hint: "refine-query",
+      };
+    }
+
     const totalDropped = droppedCol?.avg !== undefined ? Math.round(droppedCol.avg * result.rowCount) : 0;
 
     if (result.rowCount > 0 && totalDropped > 0) {

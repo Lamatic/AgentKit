@@ -35,13 +35,17 @@ const STATUS_COPY: Record<string, string> = {
   reporting: "Synthesizing root cause…",
   done: "Investigation complete",
   error: "Investigation failed",
+  cancelled: "Investigation cancelled",
 };
 
 export default function SparkTracePage() {
   const [symptom, setSymptom] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [useDemoScenario, setUseDemoScenario] = useState(true);
-  const [mode, setMode] = useState<ExecutionMode>("demo");
+  // Mode is derived from the source selection, never chosen independently —
+  // a demo scenario always runs in demo mode, a custom repo always in live
+  // mode, so the two can never be submitted mismatched.
+  const mode: ExecutionMode = useDemoScenario ? "demo" : "live";
 
   const { investigation, isRunning, error, start, reset } = useInvestigation();
 
@@ -136,23 +140,10 @@ export default function SparkTracePage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Mode</label>
-                <div className="flex overflow-hidden rounded-md border border-border">
-                  {(["demo", "live"] as ExecutionMode[]).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setMode(m)}
-                      disabled={isRunning}
-                      className={cn(
-                        "px-3 py-2 text-sm font-medium capitalize transition-colors",
-                        mode === m
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {m}
-                    </button>
-                  ))}
+                {/* Derived from "Use demo scenario", not independently selectable —
+                    see the mode/useDemoScenario coupling above handleSubmit. */}
+                <div className="flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium capitalize text-muted-foreground">
+                  {mode}
                 </div>
               </div>
             </div>

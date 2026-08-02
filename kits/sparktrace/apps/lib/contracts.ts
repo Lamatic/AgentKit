@@ -236,7 +236,8 @@ export type InvestigationStatus =
   | "investigating"
   | "reporting"
   | "done"
-  | "error";
+  | "error"
+  | "cancelled";
 
 export interface Investigation {
   id: string;

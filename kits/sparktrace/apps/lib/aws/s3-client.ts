@@ -65,7 +65,11 @@ export async function sampleObject(
  * directories (`dt=2026-07-19/`). Returns the common-prefix strings
  * as-is (e.g. `"raw/orders/dt=2026-07-19/"`).
  */
-export async function listPartitions(bucket: string, prefix: string): Promise<string[]> {
+export async function listPartitions(
+  bucket: string,
+  prefix: string,
+  maxPartitions = 1000
+): Promise<string[]> {
   const client = getClient();
   const partitions: string[] = [];
   let continuationToken: string | undefined;
@@ -81,6 +85,9 @@ export async function listPartitions(bucket: string, prefix: string): Promise<st
     );
     for (const cp of page.CommonPrefixes ?? []) {
       if (cp.Prefix) partitions.push(cp.Prefix);
+    }
+    if (partitions.length >= maxPartitions) {
+      return partitions.slice(0, maxPartitions);
     }
     continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
   } while (continuationToken);

@@ -139,7 +139,13 @@ function computeColumnStats(columns: string[], rows: Array<Record<string, unknow
     }
 
     if (nulls > 0) stat.nulls = nulls;
-    stat.distinct = distinctCapped ? distinct.size : distinct.size;
+    // When the scan was capped, `distinct.size` is a lower bound on the
+    // true distinct count, not an exact one — annotate `type` so callers
+    // (and models) can tell the two cases apart.
+    stat.distinct = distinct.size;
+    if (distinctCapped) {
+      stat.type = `${stat.type} (distinct counted over first ${DISTINCT_SCAN_CAP} rows)`;
+    }
 
     return stat;
   });
@@ -218,6 +224,6 @@ export function compact(result: QueryExecutionResult): CompactResult {
     rowCount: result.rowCount,
     bytesScanned: result.bytesScanned,
     runtimeMs: result.runtimeMs,
-    truncated: result.rowCount > sampleRows.length,
+    truncated: result.truncated === true || result.rowCount > sampleRows.length,
   };
 }

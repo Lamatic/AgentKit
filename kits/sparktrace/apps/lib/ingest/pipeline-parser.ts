@@ -23,8 +23,14 @@ import type {
 // Regex heuristics
 // ─────────────────────────────────────────────────────────────
 
-/** Matches like `.table("db.tbl")` / `.table('tbl')` — a spark.read(...).table(...) or spark.table(...) call. */
-const RE_TABLE_CALL = /\.table\(\s*["']([\w.]+)["']\s*\)/gi;
+/**
+ * Matches `.table("db.tbl")` / `.table('tbl')` calls that are NOT preceded
+ * by `spark` — e.g. `spark.read.table(...)` — so it never overlaps with
+ * `RE_SPARK_TABLE`'s `spark.table(...)` shorthand (a negative lookbehind
+ * keeps the two matchers disjoint and prevents double-counting a single
+ * `spark.table(...)` call as two `read_table` mentions).
+ */
+const RE_TABLE_CALL = /(?<!spark)\.table\(\s*["']([\w.]+)["']\s*\)/gi;
 /** `spark.table("db.tbl")` shorthand. */
 const RE_SPARK_TABLE = /spark\.table\(\s*["']([\w.]+)["']\s*\)/gi;
 /** `spark.read...parquet/csv/json/orc/load("path")` — path, not a catalog table, but still a read source. */

@@ -1,9 +1,13 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 /**
- * Tiny className joiner — deliberately dependency-free (no clsx/tailwind-merge)
- * so apps/components/ui/* compiles without extra packages being installed by
- * another module. Falsy values are skipped; later classes simply win via
- * normal CSS cascade / source order, same as clsx without the merge step.
+ * className joiner + Tailwind conflict resolver. `clsx` handles the falsy
+ * filtering and conditional/array/object class-value forms; `twMerge`
+ * (Tailwind v4-compatible) then resolves same-property Tailwind utility
+ * conflicts so a later class (e.g. a caller override) wins regardless of
+ * generated CSS source order — plain concatenation can't guarantee that.
  */
-export function cn(...classes: Array<string | false | null | undefined | 0>): string {
-  return classes.filter(Boolean).join(" ");
+export function cn(...classes: ClassValue[]): string {
+  return twMerge(clsx(classes));
 }

@@ -2,7 +2,7 @@
  * SparkTrace — Athena Query Executor (live mode)
  * ------------------------------------------------------------------
  * Implements `QueryExecutor` against AWS Athena. Every query passed
- * in here is assumed to have already passed `safety/query-linter.ts`
+ * in here is assumed to have already passed `safety/query-guard.ts`
  * — this client does not re-validate SQL, it only executes it against
  * a read-only-configured Athena workgroup (enforced by AWS IAM /
  * workgroup config, not by this code — see README).
@@ -37,6 +37,8 @@ export const MAX_ROWS = 1000;
 const POLL_TIMEOUT_MS = 60_000;
 /** Delay between GetQueryExecution polls. */
 const POLL_INTERVAL_MS = 700;
+/** Cap on the exponential poll backoff. */
+const MAX_POLL_INTERVAL_MS = 5_000;
 
 const TERMINAL_STATES: QueryExecutionState[] = ["SUCCEEDED", "FAILED", "CANCELLED"];
 
@@ -115,6 +117,7 @@ export class AthenaQueryExecutor implements QueryExecutor {
       let stateChangeReason: string | undefined;
       let bytesScanned: number | undefined;
       let engineMs: number | undefined;
+      let pollDelay = POLL_INTERVAL_MS;
 
       while (true) {
         const exec = await this.client.send(
@@ -135,7 +138,8 @@ export class AthenaQueryExecutor implements QueryExecutor {
             error: `Timed out waiting for Athena query ${queryExecutionId} to finish (last state: ${state ?? "unknown"}).`,
           };
         }
-        await sleep(POLL_INTERVAL_MS);
+        await sleep(pollDelay);
+        pollDelay = Math.min(pollDelay * 1.5, MAX_POLL_INTERVAL_MS);
       }
 
       const runtimeMs = engineMs ?? Date.now() - started;
@@ -173,8 +177,13 @@ export class AthenaQueryExecutor implements QueryExecutor {
         }
 
         let pageRows: Row[] = page.ResultSet?.Rows ?? [];
-        if (isFirstPage && pageRows.length > 0) {
-          pageRows = pageRows.slice(1); // drop header row
+        if (isFirstPage) {
+          if (pageRows.length > 0) {
+            pageRows = pageRows.slice(1); // drop header row
+          }
+          // Flip regardless of whether this page had rows, so an empty
+          // first page can't cause the *next* page's first row to be
+          // mistaken for a header and dropped.
           isFirstPage = false;
         }
 

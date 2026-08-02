@@ -135,6 +135,7 @@ export function useInvestigation(): UseInvestigationResult {
   const cancel = useCallback(() => {
     abortRef.current?.abort();
     setIsRunning(false);
+    setInvestigation((inv) => (inv ? { ...inv, status: "cancelled" } : inv));
   }, []);
 
   return { investigation, isRunning, error, consume, start, cancel, reset };

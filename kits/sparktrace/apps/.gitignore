@@ -6,9 +6,7 @@ node_modules/
 out/
 
 # env files — never commit real secrets
-.env
-.env.local
-.env.*.local
+.env*
 !.env.example
 
 # misc

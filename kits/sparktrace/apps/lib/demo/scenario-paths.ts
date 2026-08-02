@@ -38,6 +38,11 @@ export interface ScenarioJson {
  * the repo root, `sparktrace/`, or `sparktrace/apps/` (dev vs. build vs.
  * various deploy targets), and falling back to a path relative to this
  * source file's own location on disk.
+ *
+ * NOTE: assets/sample-scenario/ lives outside the `apps` app dir, so it
+ * isn't automatically discovered by Next's output file tracing. It's
+ * explicitly included for the server build via `outputFileTracingIncludes`
+ * in next.config.mjs — keep that config in sync with these candidates.
  */
 export function resolveScenarioDir(): string {
   const candidates = [

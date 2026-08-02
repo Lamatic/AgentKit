@@ -214,7 +214,12 @@ export async function* runInvestigation(
       }
 
       hypothesesTried.push(hypothesis);
-      investigation.hypotheses.push(hypothesis);
+      const existingIdx = investigation.hypotheses.findIndex((h) => h.id === hypothesis.id);
+      if (existingIdx >= 0) {
+        investigation.hypotheses[existingIdx] = hypothesis;
+      } else {
+        investigation.hypotheses.push(hypothesis);
+      }
 
       const tables = await gatherTables(investigation, deps);
       const query = await deps.reasoner.generateQuery({
@@ -310,10 +315,16 @@ export async function* runInvestigation(
  *
  * TODO(integration): the import paths/export names below are my best
  * read of the v2 module map. Confirm each against what Modules B and D
- * actually export; see _MODULE_C_NOTES.md for the full list I'm
- * expecting (in particular: ../lib/safety/query-guard and
- * ../lib/economy/compactor do not exist yet as of this change — see
- * notes).
+ * actually export; see _MODULE_C_NOTES.md for the full list.
+ *
+ * Step ids/envKeys (sparktrace-planner, sparktrace-repo-reader,
+ * sparktrace-query-gen, sparktrace-analyst, sparktrace-reporter) are
+ * declared once, as the canonical source of truth, in the parent kit's
+ * `../../lamatic.config` — not re-imported here because that file lives
+ * outside the Next.js app root (`apps/`, the deployed root-directory)
+ * and isn't guaranteed to be bundled/reachable at runtime; duplicating
+ * the flow-id env var names as string literals in lamatic-client.ts
+ * (SPARKTRACE_*_FLOW_ID) avoids that cross-boundary import risk.
  */
 export async function buildDeps(mode: ExecutionMode): Promise<OrchestratorDeps> {
   // apps/lib/safety/query-guard.ts — Module B, pure function, no deps.

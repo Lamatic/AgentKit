@@ -61,6 +61,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const encoder = new TextEncoder();
 
+  let cancelled = false;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const write = (event: InvestigationEvent) => {
@@ -69,6 +70,7 @@ export async function POST(req: Request): Promise<Response> {
       try {
         const deps = await buildDeps(input.mode);
         for await (const event of runInvestigation(input, deps)) {
+          if (cancelled) break;
           write(event);
         }
       } catch (err) {
@@ -81,6 +83,11 @@ export async function POST(req: Request): Promise<Response> {
       } finally {
         controller.close();
       }
+    },
+    cancel() {
+      // Client disconnected/aborted. We can't cancel an in-flight
+      // reasoner/executor call, but we can stop starting new turns.
+      cancelled = true;
     },
   });
 

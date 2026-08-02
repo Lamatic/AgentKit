@@ -42,8 +42,10 @@ import type {
   HypothesisCategory,
   HypothesisStatus,
   Investigation,
+  InvestigationStep,
   LamaticReasoner,
   PipelineContext,
+  PipelineFile,
   PlannerAction,
   PlannerDecision,
   PlannerEvidence,
@@ -397,6 +399,56 @@ function validateRootCauseReport(raw: unknown, flowLabel: string): RootCauseRepo
 }
 
 // ─────────────────────────────────────────────────────────────
+// Model-payload sanitization (enforces "models never see raw rows /
+// whole-repo file bodies" beyond what each flow actually needs)
+// ─────────────────────────────────────────────────────────────
+
+/** Slim file descriptor sent to models that only need to know a file exists. */
+type ModelSafePipelineFile = Pick<PipelineFile, "path" | "language" | "role">;
+
+/** `PipelineContext` with file bodies stripped — paths only. */
+type ModelSafePipelineContext = Omit<PipelineContext, "files"> & {
+  files: ModelSafePipelineFile[];
+};
+
+/** `InvestigationStep` with the raw (up-to-1000-row) execution result removed. */
+type ModelSafeInvestigationStep = Omit<InvestigationStep, "execution">;
+
+/** `Investigation` safe to hand to a model: no raw execution, no full file bodies. */
+type ModelSafeInvestigation = Omit<Investigation, "steps" | "pipeline"> & {
+  steps: ModelSafeInvestigationStep[];
+  pipeline: ModelSafePipelineContext;
+};
+
+/**
+ * Strips `PipelineContext.files[].content` (whole-repo file bodies), keeping
+ * only `summary`, `tables`, `dag`, and file paths/metadata. Use for any flow
+ * that just needs to know the shape of the pipeline, not full source — NOT
+ * for `readRepo()`'s focus area, which needs the real file content.
+ */
+function toModelSafePipeline(pipeline: PipelineContext): ModelSafePipelineContext {
+  return {
+    ...pipeline,
+    files: pipeline.files.map((f) => ({ path: f.path, language: f.language, role: f.role })),
+  };
+}
+
+/**
+ * Strips every `steps[].execution` (up to 1000 raw Athena rows each) and
+ * trims `pipeline.files[].content` before an `Investigation` is sent to a
+ * model. This is the single enforcement point backing the compactor's
+ * "models never see raw rows" guarantee for flows (like the reporter) that
+ * otherwise receive the whole `Investigation` object.
+ */
+function toModelSafeInvestigation(investigation: Investigation): ModelSafeInvestigation {
+  return {
+    ...investigation,
+    pipeline: toModelSafePipeline(investigation.pipeline),
+    steps: investigation.steps.map(({ execution, ...rest }) => rest),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 // Reasoner implementation
 // ─────────────────────────────────────────────────────────────
 
@@ -444,7 +496,9 @@ class LamaticClientReasoner implements LamaticReasoner {
     const flowLabel = "sparktrace-planner";
     const raw = await this.callFlow("SPARKTRACE_PLANNER_FLOW_ID", flowLabel, {
       symptom: input.symptom,
-      pipeline: input.pipeline,
+      // Slimmed: summary/tables/dag/paths only — the planner picks a
+      // hypothesis/focus, it doesn't need every file's full body.
+      pipeline: toModelSafePipeline(input.pipeline),
       evidence: input.evidence,
       hypothesesTried: input.hypothesesTried,
     });
@@ -453,6 +507,9 @@ class LamaticClientReasoner implements LamaticReasoner {
 
   async readRepo(input: { symptom: string; pipeline: PipelineContext; focus: string }): Promise<RepoInsight> {
     const flowLabel = "sparktrace-repo-reader";
+    // Intentionally NOT sanitized: readRepo's whole job is to read real file
+    // content for the requested focus area, so it gets the full pipeline
+    // (including PipelineFile.content) unlike the other flows.
     const raw = await this.callFlow("SPARKTRACE_REPO_READER_FLOW_ID", flowLabel, {
       symptom: input.symptom,
       pipeline: input.pipeline,
@@ -495,8 +552,10 @@ class LamaticClientReasoner implements LamaticReasoner {
 
   async report(input: { investigation: Investigation }): Promise<RootCauseReport> {
     const flowLabel = "sparktrace-reporter";
+    // Sanitized: strips steps[].execution (raw rows) and pipeline file
+    // bodies before the whole Investigation is handed to the reporter.
     const raw = await this.callFlow("SPARKTRACE_REPORTER_FLOW_ID", flowLabel, {
-      investigation: input.investigation,
+      investigation: toModelSafeInvestigation(input.investigation),
     });
     return validateRootCauseReport(raw, flowLabel);
   }
