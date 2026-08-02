@@ -1,4 +1,4 @@
-const escapeMd = s => String(s ?? "").replace(/([\\`*_{}[\]()#+.!|>-])/g, "\\$1");
+const escapeMd = s => String(s ?? "").replace(/\r\n|\r|\n/g, " ").replace(/([\\`*_{}[\]()#+.!|>-])/g, "\\$1");
 
 function investigationToMarkdown(result, report, trace, formatLabel) {
   const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
