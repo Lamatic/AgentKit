@@ -12,7 +12,7 @@
 // ingredient hints in the menu's own language as often as in the diner's.
 
 import type { AllergenId } from "./types";
-import { containsKeyword } from "./keyword-match";
+import { normalizedTextHasKeyword, normalizeText } from "./keyword-match";
 
 // ---------------------------------------------------------------------------
 // The table
@@ -247,7 +247,12 @@ const KEYS_LONGEST_FIRST: readonly string[] = Object.keys(ALLERGEN_TABLE).sort(
  * so the output is deterministic for a given input.
  */
 export function matchAllergens(text: string): AllergenMatch[] {
-  if (text.trim() === "") return [];
+  // Normalised once here rather than once per key: this loop runs over every
+  // entry in the table, and re-normalising the same string ~180 times per call
+  // is the difference between a trivial cost and a measurable one on a menu of
+  // thirty dishes.
+  const haystack = normalizeText(text);
+  if (haystack === "") return [];
 
   const seen = new Map<AllergenId, string>();
 
@@ -255,7 +260,7 @@ export function matchAllergens(text: string): AllergenMatch[] {
     const allergen = ALLERGEN_TABLE[key];
     // A longer key for this allergen already matched — keep the better explanation.
     if (seen.has(allergen)) continue;
-    if (containsKeyword(text, key)) {
+    if (normalizedTextHasKeyword(haystack, key)) {
       seen.set(allergen, key);
     }
   }

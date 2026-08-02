@@ -8,10 +8,14 @@
 // Two ideas do most of the work here.
 //
 // **Provenance.** An allergen is reported as `"contains"` only when its keyword
-// appears in the dish *name* — a transcription of what the restaurant itself
-// printed. Anything derived from the model's inferred ingredient list, or from
-// its own prose description, is `"may-contain"`. The distinction is shown in
-// the UI and is the difference between reporting a menu and inventing one.
+// appears in the dish *name*: the original as printed, or a transliteration or
+// translation of it. The latter two are model output, but they render a string
+// the restaurant chose rather than an inference about what is in the pot.
+// Excluding them would mean no non-Latin menu could ever produce a firm result,
+// and those are precisely the menus where a diner is least able to check for
+// themselves. Anything derived from the model's inferred ingredient list, or
+// from its own prose description, is `"may-contain"`. The distinction is shown
+// in the UI and is the difference between reporting a menu and inventing one.
 //
 // **Both certainties disqualify.** For the purposes of a diner who has told us
 // to avoid an allergen, `"may-contain"` is as disqualifying as `"contains"`.

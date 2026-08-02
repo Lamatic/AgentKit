@@ -184,6 +184,22 @@ export function planTable(input: SolverInput): TablePlan {
   let unreadableCount = 0;
   let unpricedCount = 0;
 
+  /**
+   * The currency every price is compared against.
+   *
+   * The budget sets it when there is one. Without a budget the first readable
+   * priced dish does, because a total summed across two currencies is a
+   * meaningless number whether or not anyone set a spending limit — and the
+   * order still shows a total.
+   */
+  const referenceCurrency =
+    budget !== null && budget.currency !== ""
+      ? budget.currency
+      : (dishes.find(
+          (dish) =>
+            !dish.unreadable && dish.price !== null && dish.price.currency !== ""
+        )?.price?.currency ?? "");
+
   for (const dish of dishes) {
     if (dish.unreadable) {
       unreadableCount += 1;
@@ -245,15 +261,17 @@ export function planTable(input: SolverInput): TablePlan {
     }
 
     if (
-      budget !== null &&
+      referenceCurrency !== "" &&
       dish.price.currency !== "" &&
-      budget.currency !== "" &&
-      dish.price.currency !== budget.currency
+      dish.price.currency !== referenceCurrency
     ) {
       rejected.push({
         dishId: dish.id,
         reason: "currency-mismatch",
-        detail: `priced in ${dish.price.currency}, which cannot be compared with a ${budget.currency} budget`,
+        detail:
+          budget !== null
+            ? `priced in ${dish.price.currency}, which cannot be compared with a ${referenceCurrency} budget`
+            : `priced in ${dish.price.currency}, which cannot be totalled with the rest of the menu in ${referenceCurrency}`,
       });
       continue;
     }
@@ -515,10 +533,12 @@ function selectShared(
     if (affordable.length === 0) break;
 
     affordable.sort((a, b) => {
-      const aNew = categories.has((a.dish.category ?? "").toLowerCase()) ? 1 : 0;
-      const bNew = categories.has((b.dish.category ?? "").toLowerCase()) ? 1 : 0;
+      // 1 when the category is already on the table, 0 when it is new. Sorting
+      // ascending therefore puts the unrepresented categories first.
+      const aRepresented = categories.has((a.dish.category ?? "").toLowerCase()) ? 1 : 0;
+      const bRepresented = categories.has((b.dish.category ?? "").toLowerCase()) ? 1 : 0;
       return (
-        aNew - bNew ||
+        aRepresented - bRepresented ||
         b.eligibleIds.size - a.eligibleIds.size ||
         byPriceThenId(a, b)
       );

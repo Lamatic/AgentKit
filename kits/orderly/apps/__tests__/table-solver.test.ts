@@ -265,6 +265,26 @@ describe("planTable — unreadable prices", () => {
     assert.ok(!namesIn(result).includes("Imported Special"));
     assert.ok(result.rejected.some((r) => r.reason === "currency-mismatch"));
   });
+
+  it("rejects a mixed-currency menu even when there is no budget", () => {
+    // Without a budget there is no ceiling to enforce, but the plan still
+    // reports a total. Summing yen into a euro total produces a number that
+    // means nothing, so the mismatch is rejected either way.
+    const menu = [
+      dish("Green Salad", "€6", ["lettuce"]),
+      dish("Imported Special", "¥3000", ["rice"]),
+    ];
+    const result = plan(menu, [diner("a")], null);
+
+    assert.ok(!namesIn(result).includes("Imported Special"));
+    assert.ok(
+      result.rejected.some(
+        (r) => r.reason === "currency-mismatch" && r.detail.includes("totalled")
+      ),
+      "the reason should explain it cannot be totalled, not blame a budget"
+    );
+    assert.equal(result.currency, "EUR");
+  });
 });
 
 // ---------------------------------------------------------------------------
