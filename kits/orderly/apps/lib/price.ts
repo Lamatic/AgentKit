@@ -1,0 +1,227 @@
+// price.ts — parsing printed menu prices into comparable numbers.
+//
+// This module exists because budget is a hard constraint in Orderly, not a
+// decoration. A misparsed price is not a cosmetic bug: it either blows the
+// diner's budget or silently drops an affordable dish. Two rules follow from
+// that:
+//
+//   1. When a price cannot be parsed, return `null`. Never fall back to 0.
+//      A dish that appears free will be picked first by any budget-aware
+//      selection, which is the worst possible failure mode.
+//   2. When a price is a range ("8–12"), take the upper bound. Overestimating
+//      the bill is recoverable; underestimating it is what leaves someone
+//      short at the till.
+
+import type { ParsedPrice } from "./types";
+
+// ---------------------------------------------------------------------------
+// Currency detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Currency symbols and their ISO 4217 codes.
+ *
+ * Several symbols are genuinely ambiguous across countries — `$` is used by
+ * the US, Canada, Australia and others; `¥` by both Japan and China. We resolve
+ * to the most common interpretation and let the caller override with an
+ * explicit hint from the flow's `detectedLanguage` / `currency` output, which
+ * is derived from the menu itself and is better evidence than the glyph.
+ *
+ * Longer symbols are tested first so `R$` wins over `$`.
+ */
+const SYMBOL_TO_CURRENCY: Readonly<Record<string, string>> = {
+  R$: "BRL",
+  CHF: "CHF",
+  kr: "SEK",
+  zł: "PLN",
+  Kč: "CZK",
+  $: "USD",
+  "€": "EUR",
+  "£": "GBP",
+  "¥": "JPY",
+  "₹": "INR",
+  "₩": "KRW",
+  "₽": "RUB",
+  "₺": "TRY",
+  "฿": "THB",
+  "₫": "VND",
+  "₪": "ILS",
+};
+
+/** ISO 4217 codes we accept when written out literally, e.g. "980 JPY". */
+const ISO_CODES = new Set([
+  "USD", "EUR", "GBP", "JPY", "INR", "KRW", "CNY", "AUD", "CAD", "CHF",
+  "SEK", "NOK", "DKK", "PLN", "CZK", "HUF", "TRY", "THB", "VND", "ILS",
+  "BRL", "MXN", "ZAR", "SGD", "HKD", "NZD", "RUB", "AED", "SAR", "IDR",
+  "MYR", "PHP", "TWD",
+]);
+
+/**
+ * Identifies the currency of a price string.
+ *
+ * Checks written ISO codes first (unambiguous), then symbols longest-first.
+ * Returns `null` when nothing is recognised — the caller falls back to a hint.
+ */
+export function detectCurrency(raw: string): string | null {
+  const upper = raw.toUpperCase();
+  for (const code of ISO_CODES) {
+    // Whole-word match, so "980 JPY" is recognised while the "USD" inside a
+    // longer token is not. Currency words like "EUROS" are left to the symbol
+    // pass rather than being special-cased here.
+    if (new RegExp(`\\b${code}\\b`).test(upper)) return code;
+  }
+
+  const symbols = Object.keys(SYMBOL_TO_CURRENCY).sort(
+    (a, b) => b.length - a.length
+  );
+  for (const symbol of symbols) {
+    if (raw.includes(symbol)) return SYMBOL_TO_CURRENCY[symbol];
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Number parsing
+// ---------------------------------------------------------------------------
+
+/**
+ * Interprets a numeric token that may use either European (`1.200,50`) or
+ * Anglo (`1,200.50`) grouping.
+ *
+ * The rules, in order:
+ *
+ *  1. **Both separators present** — the *rightmost* is the decimal separator.
+ *     `1.200,50` → 1200.50 · `1,200.50` → 1200.50
+ *  2. **One separator, appearing more than once** — it is a group separator.
+ *     `1.200.000` → 1000000
+ *  3. **One separator, followed by exactly three digits** — ambiguous in
+ *     principle (`1.200` could be one-point-two). Treated as a group
+ *     separator, because three-digit groups are overwhelmingly thousands and
+ *     because three-decimal-place menu prices essentially do not exist.
+ *     `1.200` → 1200 · `1,200` → 1200
+ *  4. **One separator, followed by one or two digits** — a decimal separator.
+ *     `12,50` → 12.50 · `12.5` → 12.5
+ *
+ * Returns `null` for anything that is not a well-formed number.
+ */
+function parseNumericToken(token: string): number | null {
+  const cleaned = token.replace(/\s/g, "");
+  if (!/^\d[\d.,]*$/.test(cleaned)) return null;
+
+  const lastDot = cleaned.lastIndexOf(".");
+  const lastComma = cleaned.lastIndexOf(",");
+
+  let normalized: string;
+
+  if (lastDot !== -1 && lastComma !== -1) {
+    // Rule 1 — rightmost separator is the decimal point.
+    const decimalIndex = Math.max(lastDot, lastComma);
+    const integerPart = cleaned.slice(0, decimalIndex).replace(/[.,]/g, "");
+    const fractionPart = cleaned.slice(decimalIndex + 1);
+    normalized = `${integerPart}.${fractionPart}`;
+  } else if (lastDot === -1 && lastComma === -1) {
+    normalized = cleaned;
+  } else {
+    const separator = lastDot !== -1 ? "." : ",";
+    const occurrences = cleaned.split(separator).length - 1;
+    const trailing = cleaned.slice(cleaned.lastIndexOf(separator) + 1);
+
+    if (occurrences > 1 || trailing.length === 3) {
+      // Rules 2 and 3 — grouping.
+      normalized = cleaned.split(separator).join("");
+    } else {
+      // Rule 4 — decimal.
+      normalized = cleaned.replace(separator, ".");
+    }
+  }
+
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/** Matches every numeric run in a string, including grouped and decimal forms. */
+const NUMBER_PATTERN = /\d[\d.,]*/g;
+
+/**
+ * Parses a printed price into a comparable amount and currency.
+ *
+ * Returns `null` when no number can be found — "market price", "MP", "—", an
+ * empty string. Callers **must** handle `null` by excluding the dish from
+ * budget arithmetic and telling the user, rather than substituting a value.
+ *
+ * When the string holds a range, the **upper** bound is returned, so the
+ * budget is never optimistic.
+ *
+ * @param raw - The price exactly as printed, e.g. `"¥980"`, `"1.200,50 €"`.
+ * @param currencyHint - ISO code from the flow's menu-level currency detection,
+ *   used when the price string itself carries no symbol.
+ */
+export function parsePrice(
+  raw: string | undefined | null,
+  currencyHint?: string
+): ParsedPrice | null {
+  if (raw === undefined || raw === null) return null;
+
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+
+  const tokens = trimmed.match(NUMBER_PATTERN);
+  if (tokens === null || tokens.length === 0) return null;
+
+  const values = tokens
+    .map(parseNumericToken)
+    .filter((value): value is number => value !== null);
+
+  if (values.length === 0) return null;
+
+  // Ranges resolve to their upper bound — see the module header.
+  const amount = Math.max(...values);
+  if (!Number.isFinite(amount) || amount < 0) return null;
+
+  const currency = detectCurrency(trimmed) ?? currencyHint?.toUpperCase() ?? "";
+
+  return { amount, currency };
+}
+
+/**
+ * Renders a price for display.
+ *
+ * Zero-decimal currencies (JPY, KRW, VND) are shown without a fractional part,
+ * since "¥980.00" is not how anyone writes yen.
+ */
+export function formatPrice(price: ParsedPrice): string {
+  const zeroDecimal = new Set(["JPY", "KRW", "VND", "IDR", "HUF"]);
+  const digits = zeroDecimal.has(price.currency) ? 0 : 2;
+  const amount = price.amount.toFixed(digits);
+  return price.currency === "" ? amount : `${amount} ${price.currency}`;
+}
+
+/**
+ * Sums prices that share a currency.
+ *
+ * Throws on a currency mismatch rather than silently adding incompatible
+ * numbers — a bill totalled across two currencies is meaningless, and the
+ * solver relies on this total to enforce the budget ceiling.
+ */
+export function sumPrices(prices: readonly ParsedPrice[]): ParsedPrice {
+  if (prices.length === 0) return { amount: 0, currency: "" };
+
+  const currencies = new Set(prices.map((p) => p.currency).filter((c) => c !== ""));
+  if (currencies.size > 1) {
+    throw new Error(
+      `Cannot total prices in mixed currencies: ${[...currencies].join(", ")}`
+    );
+  }
+
+  const amount = prices.reduce((total, price) => total + price.amount, 0);
+  // Rounded to cents to keep floating-point drift out of budget comparisons.
+  return {
+    amount: Math.round(amount * 100) / 100,
+    currency: [...currencies][0] ?? "",
+  };
+}
