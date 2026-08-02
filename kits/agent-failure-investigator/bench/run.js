@@ -5,7 +5,12 @@ const { forgeDataset } = require("./forge");
 const { createSandbox } = require("./harness");
 
 const investigate = createSandbox().get("runInvestigation");
-const N = Number(process.argv[2]) || 100;
+const rawArg = process.argv[2];
+const N = rawArg === undefined ? 100 : Number(rawArg);
+if (!Number.isSafeInteger(N) || N <= 0) {
+  console.error(`Invalid trace count "${rawArg}" — expected a positive integer.`);
+  process.exit(1);
+}
 const dataset = forgeDataset(N);
 
 let correct = 0, falsePositive = 0, falseNegative = 0, misclassified = 0;

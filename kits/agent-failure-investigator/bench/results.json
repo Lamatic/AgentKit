@@ -1,12 +1,12 @@
 {
-  "generated": "2026-07-14T16:35:29.096Z",
+  "generated": "2026-08-02T13:59:03.621Z",
   "traces": 100,
   "accuracy": "95.0%",
   "false_positives": "0.0%",
   "false_negatives": "0.0%",
   "misclassified": "5.0%",
-  "avg_ms": 0.25,
-  "p95_ms": 0.76,
+  "avg_ms": 0.28,
+  "p95_ms": 0.44,
   "per_category": {
     "RAG_FAILURE": {
       "total": 18,

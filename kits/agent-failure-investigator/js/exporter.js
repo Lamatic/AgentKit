@@ -1,3 +1,5 @@
+const escapeMd = s => String(s ?? "").replace(/([\\`*_{}[\]()#+.!|>-])/g, "\\$1");
+
 function investigationToMarkdown(result, report, trace, formatLabel) {
   const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
   const cat = report.category ? report.category.label : "No failure detected";
@@ -7,41 +9,41 @@ function investigationToMarkdown(result, report, trace, formatLabel) {
   push(`# Investigation Report`, ``);
   push(`| | |`, `|---|---|`);
   push(`| Generated | ${stamp} UTC |`);
-  push(`| Agent | ${trace.meta?.agent || "—"} |`);
-  push(`| Model | ${trace.meta?.model || "—"} |`);
-  push(`| Source format | ${formatLabel || "Native"} |`);
-  push(`| **Failure category** | **${cat}** |`);
+  push(`| Agent | ${escapeMd(trace.meta?.agent) || "—"} |`);
+  push(`| Model | ${escapeMd(trace.meta?.model) || "—"} |`);
+  push(`| Source format | ${escapeMd(formatLabel) || "Native"} |`);
+  push(`| **Failure category** | **${escapeMd(cat)}** |`);
   push(`| Confidence | ${result.confidence}% |`, ``);
 
   push(`## Timeline`, ``);
-  result.timeline.forEach(e => push(`- \`${e.ts || "—"}\` ${e.kind === "fail" ? "🔴" : e.kind === "warn" ? "🟡" : "🟢"} ${e.label}`));
+  result.timeline.forEach(e => push(`- \`${escapeMd(e.ts) || "—"}\` ${e.kind === "fail" ? "🔴" : e.kind === "warn" ? "🟡" : "🟢"} ${escapeMd(e.label)}`));
   push(``);
 
   push(`## Evidence`, ``);
   const primaryEvidence = result.fired.filter(f => f.rule.category === result.primary);
   if (!primaryEvidence.length) push(`_No rule fired — the trace looks healthy._`);
-  primaryEvidence.forEach(f => push(`- **[${f.rule.id}]** ${f.evidence}`));
+  primaryEvidence.forEach(f => push(`- **[${f.rule.id}]** ${escapeMd(f.evidence)}`));
   push(``);
 
-  push(`## Root cause`, ``, report.rootCause || "—", ``);
+  push(`## Root cause`, ``, escapeMd(report.rootCause) || "—", ``);
 
   if (report.contributing?.length) {
     push(`## Contributing factors`, ``);
-    report.contributing.forEach(c => push(`- ${c.category.label} (+${c.points} pts): ${c.rules.join(", ")}`));
+    report.contributing.forEach(c => push(`- ${escapeMd(c.category.label)} (+${c.points} pts): ${escapeMd(c.rules.join(", "))}`));
     push(``);
   }
 
   push(`## Recommendations`, ``);
-  (report.fixes || []).forEach(f => push(`- [${f.ruleId}] ${f.text}`));
+  (report.fixes || []).forEach(f => push(`- [${f.ruleId}] ${escapeMd(f.text)}`));
   const remediation = typeof adviseRemediation === "function" ? adviseRemediation(result) : [];
   if (remediation.length) {
     push(``, `### Remediation playbook`, ``);
-    remediation.forEach(r => push(`- **${r.tag}** — ${r.why}`));
+    remediation.forEach(r => push(`- **${escapeMd(r.tag)}** — ${escapeMd(r.why)}`));
   }
   push(``);
 
   push(`## Prevention`, ``);
-  (report.preventive || []).forEach(p => push(`- [${p.ruleId}] ${p.text}`));
+  (report.preventive || []).forEach(p => push(`- [${p.ruleId}] ${escapeMd(p.text)}`));
   push(``, `---`, `_Deterministic diagnosis by Agent Failure Investigator — ${result.fired.length} rule(s) fired out of ${RULES.length} in catalog._`);
 
   return lines.join("\n");

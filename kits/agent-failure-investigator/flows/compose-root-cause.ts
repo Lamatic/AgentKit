@@ -66,6 +66,9 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────────
+// Payload fields (primaryCategory, confidence, findings, userQuestion,
+// finalResponse) come in via the trigger's `advance_schema` and are NOT
+// part of `inputs` — those are runtime args, not pre-deployment config.
 export const inputs = {};
 
 // ── References ────────────────────────────────────────
@@ -99,7 +102,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\n  \"primaryCategory\": \"string\",\n  \"confidence\": \"number\",\n  \"findings\": \"string\",\n  \"userQuestion\": \"string?\",\n  \"finalResponse\": \"string?\"\n}"
       }
     }
   },

@@ -1,16 +1,18 @@
-let seed = 1337;
-const rng = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
-const pick = arr => arr[Math.floor(rng() * arr.length)];
-const between = (lo, hi) => lo + Math.floor(rng() * (hi - lo + 1));
+function makeRng(seed) {
+  let s = seed;
+  return () => (s = (s * 48271) % 2147483647) / 2147483647;
+}
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+const between = (rng, lo, hi) => lo + Math.floor(rng() * (hi - lo + 1));
 
 const CITIES = ["Berlin", "Beirut", "Tokyo", "Lagos", "Lima", "Oslo", "Doha", "Porto"];
-const ORDERS = () => `A-${between(10000, 99999)}`;
-const CLOCK = () => `${String(between(9, 18)).padStart(2, "0")}:${String(between(0, 59)).padStart(2, "0")}:${String(between(0, 59)).padStart(2, "0")}`;
+const orderId = rng => `A-${between(rng, 10000, 99999)}`;
+const clock = rng => `${String(between(rng, 9, 18)).padStart(2, "0")}:${String(between(rng, 0, 59)).padStart(2, "0")}:${String(between(rng, 0, 59)).padStart(2, "0")}`;
 
-const skeleton = () => {
-  const t = CLOCK();
+const skeleton = rng => {
+  const t = clock(rng);
   return {
-    meta: { agent: pick(["support-bot", "booking-bot", "hr-bot", "sales-bot"]), flow_id: `flow_${between(1000, 9999)}`, model: pick(["gpt-4o-mini", "claude-haiku", "llama-3-70b"]), session: `s${between(100, 999)}`, date: "2026-07-08" },
+    meta: { agent: pick(rng, ["support-bot", "booking-bot", "hr-bot", "sales-bot"]), flow_id: `flow_${between(rng, 1000, 9999)}`, model: pick(rng, ["gpt-4o-mini", "claude-haiku", "llama-3-70b"]), session: `s${between(rng, 100, 999)}`, date: "2026-07-08" },
     system_prompt: "You are a support agent. Use the tools provided and base every answer on tool results and retrieved documents.",
     conversation: [{ role: "user", ts: t, content: "" }],
     available_tools: [
@@ -22,59 +24,59 @@ const skeleton = () => {
 };
 
 const FORGES = {
-  TOOL_FAILURE() {
-    const t = skeleton();
-    t.conversation[0].content = `Where is my order ${ORDERS()}? It's late.`;
+  TOOL_FAILURE(rng) {
+    const t = skeleton(rng);
+    t.conversation[0].content = `Where is my order ${orderId(rng)}? It's late.`;
     const doomed = rng() < 0.5;
-    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "x" }, status: doomed ? "timeout" : "error", duration_ms: doomed ? between(8000, 15000) : between(100, 900), output: "" });
+    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "x" }, status: doomed ? "timeout" : "error", duration_ms: doomed ? between(rng, 8000, 15000) : between(rng, 100, 900), output: "" });
     if (rng() < 0.7) t.logs.push({ ts: t.conversation[0].ts, level: "WARN", event: "flow.fallback", message: "fallback branch activated after tool failure" });
-    t.final_response.content = `Your order will arrive by 2026-07-${between(10, 28)} via the standard carrier.`;
+    t.final_response.content = `Your order will arrive by 2026-07-${between(rng, 10, 28)} via the standard carrier.`;
     return t;
   },
-  HALLUCINATION() {
-    const t = skeleton();
-    t.conversation[0].content = `Where is my order ${ORDERS()}?`;
-    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "x" }, status: "success", duration_ms: between(90, 400), output: `{"status":"in_transit","carrier":"DHL","eta":"2026-07-12","last_scan":"${pick(CITIES)} hub"}` });
-    t.final_response.content = `Great news — your package was delivered on July ${between(1, 6)}th and signed for at ${between(8, 11)}:00. A refund of $${between(20, 90)} was also issued per Section ${between(2, 7)}.${between(1, 9)}.`;
+  HALLUCINATION(rng) {
+    const t = skeleton(rng);
+    t.conversation[0].content = `Where is my order ${orderId(rng)}?`;
+    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "x" }, status: "success", duration_ms: between(rng, 90, 400), output: `{"status":"in_transit","carrier":"DHL","eta":"2026-07-12","last_scan":"${pick(rng, CITIES)} hub"}` });
+    t.final_response.content = `Great news — your package was delivered on July ${between(rng, 1, 6)}th and signed for at ${between(rng, 8, 11)}:00. A refund of $${between(rng, 20, 90)} was also issued per Section ${between(rng, 2, 7)}.${between(rng, 1, 9)}.`;
     return t;
   },
-  RAG_FAILURE() {
-    const t = skeleton();
+  RAG_FAILURE(rng) {
+    const t = skeleton(rng);
     t.conversation[0].content = "What is our refund SLA for enterprise customers?";
     const empty = rng() < 0.55;
-    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "knowledge_base_search", input: { q: "refund sla" }, status: "success", duration_ms: between(60, 300), output: empty ? "[]" : "results below" });
+    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "knowledge_base_search", input: { q: "refund sla" }, status: "success", duration_ms: between(rng, 60, 300), output: empty ? "[]" : "results below" });
     if (empty) {
       t.logs.push({ ts: t.conversation[0].ts, level: "WARN", event: "retrieval.empty", message: "0 chunks above threshold" });
     } else {
-      const n = between(2, 4);
+      const n = between(rng, 2, 4);
       for (let i = 0; i < n; i++) t.retrieved_docs.push({ id: `doc-${i}`, source: "handbook.md", score: rng() * 0.35, content: "General onboarding notes about office equipment and travel booking procedures." });
     }
-    t.final_response.content = `Enterprise refunds are processed within ${between(3, 21)} business days, per Section ${between(1, 9)}.${between(1, 9)} of the policy.`;
+    t.final_response.content = `Enterprise refunds are processed within ${between(rng, 3, 21)} business days, per Section ${between(rng, 1, 9)}.${between(rng, 1, 9)} of the policy.`;
     return t;
   },
-  WRONG_TOOL() {
-    const t = skeleton();
+  WRONG_TOOL(rng) {
+    const t = skeleton(rng);
     t.conversation[0].content = "What does our internal policy say about SLA credits and refund rules for enterprise accounts?";
-    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "none" }, status: "success", duration_ms: between(80, 500), output: `{"status":"unknown","carrier":null,"note":"no shipment found"}` });
+    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "none" }, status: "success", duration_ms: between(rng, 80, 500), output: `{"status":"unknown","carrier":null,"note":"no shipment found"}` });
     t.final_response.content = "Our policy offers generous credits for any missed commitments.";
     return t;
   },
-  PROMPT_AMBIGUITY() {
-    const t = skeleton();
+  PROMPT_AMBIGUITY(rng) {
+    const t = skeleton(rng);
     t.system_prompt = "Always respond in a single sentence. Provide comprehensive, detailed answers with examples. Format output as appropriate, escalate if needed, add caveats when necessary, etc.";
     t.conversation[0].content = "Summarize our shipping policy.";
-    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "knowledge_base_search", input: { q: "shipping" }, status: "success", duration_ms: between(60, 250), output: "Standard shipping takes 5 to 9 business days per the policy document." });
+    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "knowledge_base_search", input: { q: "shipping" }, status: "success", duration_ms: between(rng, 60, 250), output: "Standard shipping takes 5 to 9 business days per the policy document." });
     t.retrieved_docs.push({ id: "doc-1", source: "shipping-policy.md", score: 0.82, content: "Standard shipping takes 5 to 9 business days. Carrier delays are outside our control." });
     if (rng() < 0.6) t.logs.push({ ts: t.conversation[0].ts, level: "WARN", event: "output.validation", message: "response shape varies across recent runs" });
     t.final_response.content = "Standard shipping takes 5 to 9 business days; carrier delays are outside our control.";
     return t;
   },
-  HEALTHY() {
-    const t = skeleton();
-    const city = pick(CITIES);
-    t.conversation[0].content = `Where is my order ${ORDERS()}?`;
+  HEALTHY(rng) {
+    const t = skeleton(rng);
+    const city = pick(rng, CITIES);
+    t.conversation[0].content = `Where is my order ${orderId(rng)}?`;
     const payload = `{"status":"in_transit","carrier":"DHL","eta":"2026-07-12","last_scan":"${city} hub"}`;
-    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "x" }, status: "success", duration_ms: between(90, 400), output: payload });
+    t.tool_calls.push({ ts: t.conversation[0].ts, tool: "get_order_status", input: { order_id: "x" }, status: "success", duration_ms: between(rng, 90, 400), output: payload });
     t.retrieved_docs.push({ id: "doc-1", source: "shipping-policy.md", score: 0.84, content: "Standard shipping takes 5 to 9 business days. Track parcels with the carrier tracking id." });
     t.final_response.content = `Your order is in_transit with DHL, last scan at the ${city} hub, eta 2026-07-12. Standard shipping takes 5 to 9 business days.`;
     t.logs.push({ ts: t.conversation[0].ts, level: "INFO", event: "tool.result", message: "200 OK" });
@@ -83,10 +85,10 @@ const FORGES = {
 };
 
 const GRIME = {
-  HALLUCINATION(t) {
-    t.final_response.content = `Your order is in_transit with DHL. It was actually delivered on July ${between(1, 6)}th per Section ${between(2, 7)}.${between(1, 9)} of the carrier terms.`;
+  HALLUCINATION(t, rng) {
+    t.final_response.content = `Your order is in_transit with DHL. It was actually delivered on July ${between(rng, 1, 6)}th per Section ${between(rng, 2, 7)}.${between(rng, 1, 9)} of the carrier terms.`;
   },
-  RAG_FAILURE(t) {
+  RAG_FAILURE(t, rng) {
     if (t.retrieved_docs.length) t.retrieved_docs.forEach(d => { d.score = 0.42 + rng() * 0.16; });
     else t.logs = t.logs.filter(l => l.event !== "retrieval.empty");
   },
@@ -100,27 +102,46 @@ const GRIME = {
   TOOL_FAILURE(t) {
     t.logs = t.logs.filter(l => !/fallback/.test(l.event));
   },
-  HEALTHY(t) {
-    t.tool_calls[0].duration_ms = between(4000, 7000);
+  HEALTHY(t, rng) {
+    t.tool_calls[0].duration_ms = between(rng, 4000, 7000);
     t.logs.push({ ts: t.conversation[0].ts, level: "INFO", event: "flow.callback", message: "post-response webhook fired" });
     t.system_prompt += " Escalate to a human if needed.";
   }
 };
 
-function forgeDataset(total) {
-  // Proportional mix (percent of total) so the class balance is identical
-  // at N=100, N=1,000 and N=10,000 and results stay comparable across scales.
-  const RATIOS = [
-    ["TOOL_FAILURE", 0.18], ["HALLUCINATION", 0.18], ["RAG_FAILURE", 0.18],
-    ["WRONG_TOOL", 0.13], ["PROMPT_AMBIGUITY", 0.13]
-  ];
-  const mix = RATIOS.map(([label, r]) => [label, Math.round(total * r)]);
-  mix.push(["HEALTHY", total - mix.reduce((s, [, n]) => s + n, 0)]);
+// Proportional mix (percent of total) so the class balance is identical
+// at N=100, N=1,000 and N=10,000 and results stay comparable across scales.
+// Ratios sum to exactly 1 so the largest-remainder allocation below always
+// produces non-negative counts that sum exactly to `total`.
+const RATIOS = [
+  ["TOOL_FAILURE", 0.18], ["HALLUCINATION", 0.18], ["RAG_FAILURE", 0.18],
+  ["WRONG_TOOL", 0.13], ["PROMPT_AMBIGUITY", 0.13], ["HEALTHY", 0.20]
+];
+
+/** Largest-remainder apportionment: floors plus a bounded remainder distribution. */
+function allocate(total, ratios) {
+  const raw = ratios.map(([label, r]) => [label, total * r]);
+  const counts = raw.map(([label, v]) => [label, Math.floor(v)]);
+  const used = counts.reduce((s, [, n]) => s + n, 0);
+  const remainders = raw
+    .map(([, v], i) => [i, v - counts[i][1]])
+    .sort((a, b) => b[1] - a[1]);
+  let remaining = total - used;
+  for (let k = 0; remaining > 0; k++, remaining--) {
+    counts[remainders[k % remainders.length][0]][1]++;
+  }
+  return counts;
+}
+
+function forgeDataset(total, opts = {}) {
+  const rng = makeRng(1337);
+  const ratios = opts.stratified ? RATIOS.map(([label]) => [label, 1 / RATIOS.length]) : RATIOS;
+  const mix = allocate(total, ratios);
   const dataset = [];
   mix.forEach(([label, n]) => {
     for (let i = 0; i < n; i++) {
-      const trace = FORGES[label]();
-      if (rng() < 0.28) GRIME[label](trace);
+      const trace = FORGES[label](rng);
+      if (rng() < 0.28) GRIME[label](trace, rng);
       dataset.push({ label: label === "HEALTHY" ? null : label, trace });
     }
   });
@@ -150,17 +171,18 @@ function countEvents(t) {
  */
 const NOISE_EVENTS = ["node.enter", "node.exit", "llm.token_usage", "memory.checkpoint", "http.request", "http.response", "queue.dequeue", "cache.hit"];
 function inflateTrace(trace, targetEvents) {
+  const rng = makeRng(4242);
   const t = JSON.parse(JSON.stringify(trace));
   let need = targetEvents - countEvents(t);
   while (need-- > 0) {
     const r = rng();
-    const ts = CLOCK();
+    const ts = clock(rng);
     if (r < 0.86) {
-      t.logs.push({ ts, level: "INFO", event: pick(NOISE_EVENTS), message: `step ${between(1, 9999)} completed in ${between(1, 40)}ms` });
+      t.logs.push({ ts, level: "INFO", event: pick(rng, NOISE_EVENTS), message: `step ${between(rng, 1, 9999)} completed in ${between(rng, 1, 40)}ms` });
     } else if (r < 0.95) {
-      t.conversation.push({ role: "assistant", ts, content: `Working on it — step ${between(1, 999)} of the plan.` });
+      t.conversation.push({ role: "assistant", ts, content: `Working on it — step ${between(rng, 1, 999)} of the plan.` });
     } else {
-      t.tool_calls.push({ ts, tool: "heartbeat_ping", input: { seq: between(1, 9999) }, status: "success", duration_ms: between(1, 30), output: `{"ok":true}` });
+      t.tool_calls.push({ ts, tool: "heartbeat_ping", input: { seq: between(rng, 1, 9999) }, status: "success", duration_ms: between(rng, 1, 30), output: `{"ok":true}` });
     }
   }
   return t;

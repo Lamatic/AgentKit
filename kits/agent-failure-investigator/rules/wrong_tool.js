@@ -1,5 +1,9 @@
 (function () {
-  const affinity = (query, tool) => sharedTokens(query, `${tool.name.replace(/_/g, " ")} ${tool.description}`);
+  const affinityTokens = (query, tool) => {
+    const tb = new Set(tokenize(`${tool.name.replace(/_/g, " ")} ${tool.description}`));
+    return [...new Set(tokenize(query))].filter(t => tb.has(t));
+  };
+  const affinity = (query, tool) => affinityTokens(query, tool).length;
 
   definePlugin({
     id: "R41",
@@ -20,15 +24,16 @@
         const s = t ? affinity(query, t) : 0;
         if (s > bar) { bar = s; bestCallIdx = i; }
       });
-      let winner = null;
+      let winner = null, winnerTokens = [];
       toolbox.forEach(t => {
         if (used.has(t.name)) return;
-        const s = affinity(query, t);
-        if (s > bar && s >= 2) { winner = t; bar = s; }
+        const toks = affinityTokens(query, t);
+        const s = toks.length;
+        if (s > bar && s >= 2) { winner = t; bar = s; winnerTokens = toks; }
       });
       if (!winner) return null;
       return {
-        evidence: `The query matches "${winner.name}" (${bar} keyword overlaps: internal/policy/SLA-type terms) far better than the tool actually called, "${calls[bestCallIdx].tool}".`,
+        evidence: `The query matches "${winner.name}" (shared terms: ${winnerTokens.join(", ")}) far better than the tool actually called, "${calls[bestCallIdx].tool}".`,
         refs: [{ type: "tool", index: bestCallIdx }]
       };
     }

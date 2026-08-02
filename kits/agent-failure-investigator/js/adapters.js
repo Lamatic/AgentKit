@@ -19,7 +19,7 @@ const normalizeStatus = s => {
   const v = asText(s).trim().toLowerCase();
   if (isTimeoutText(v)) return "timeout";
   if (v === "failed" || v === "failure" || v === "errored") return "error";
-  return s;
+  return v;
 };
 
 const emptyTrace = meta => ({
