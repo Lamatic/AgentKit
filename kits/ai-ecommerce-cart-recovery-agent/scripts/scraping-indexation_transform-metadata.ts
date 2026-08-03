@@ -4,8 +4,6 @@ let title = {{ variablesNode_658.output.title }};
 let description = {{ variablesNode_658.output.description }};
 let source = {{ variablesNode_658.output.source }};
 
-let metadataProps = [];
-
 if (!Array.isArray(vectors)) {
   throw new Error("Expected vectors to be an array.");
 }
@@ -20,13 +18,18 @@ if (vectors.length !== texts.length) {
   );
 }
 
-metadataProps = vectors.map((vector, idx) => ({
+if (typeof source !== "string" || source.trim() === "") {
+  throw new Error("Expected each scraped page to have a unique source URL.");
+}
+
+let metadataProps = vectors.map((vector, idx) => ({
   content: texts[idx],
   title: title,
   description: description,
   source: source,
- chunk_id: `${source || title || "scraping"}-${idx}`
+  chunk_id: `${source.trim()}-${idx}`
 }));
+
 output = {
   metadata: metadataProps,
   vectors: vectors

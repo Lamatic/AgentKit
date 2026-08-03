@@ -80,7 +80,7 @@
  *
  * 4. `Variables` (`dynamicNode`)
  *    - For each crawled page, the `Variables` node normalizes a small metadata set into working fields:
- *    - `title` comes from `currentValue.metadata.title`
+ *    - `chunk_id` comes from `currentValue.metadata.chunk_id`
  *    - `description` comes from `currentValue.metadata.description`
  *    - `source` comes from `currentValue.metadata.url`
  *    - These fields become the canonical metadata inputs for later transformation and indexing.
@@ -128,7 +128,7 @@
  * - The response is intentionally minimal. If operators need observability such as crawled page count, chunk count, failed URLs, or indexed record IDs, the flow would need additional response mapping or logging nodes.
  * - The chunking configuration favors relatively small chunks with light overlap. This is usually good for retrieval precision, but it may fragment highly structured pages such as API references or large tables.
  * - `onlyMainContent` is enabled, which helps remove boilerplate but may also omit useful navigation-linked context or side-panel content that some documentation sites treat as meaningful.
- * - Because duplicate handling is `overwrite` and the primary key is `title`, this flow is best suited to sites with stable, unique page titles. Sites with many repeated titles can cause accidental replacement unless the metadata transform script introduces stronger uniqueness downstream.
+ * - Because duplicate handling is `overwrite` and the primary key is `chunk_id`, this flow is best suited to sites with stable, unique page chunk_ids. Sites with many repeated chunk_ids can cause accidental replacement unless the metadata transform script introduces stronger uniqueness downstream.
  */
 
 // Flow: crawling-indexation
@@ -253,6 +253,7 @@ export const nodes = [
         "waitFor": 2000,
         "crawlDepth": "5",
         "crawlLimit": "10",
+        "crawlSubPages": true,
         "excludePath": [],
         "excludeTags": [],
         "includePath": [],
@@ -328,7 +329,7 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Variables",
-        "mapping": "{\n  \"title\": {\n    \"type\": \"string\",\n    \"value\": \"{{forLoopNode_370.output.currentValue.metadata.title}}\"\n  },\n  \"description\": {\n    \"type\": \"string\",\n    \"value\": \"{{forLoopNode_370.output.currentValue.metadata.description}}\"\n  },\n  \"source\": {\n    \"type\": \"string\",\n    \"value\": \"{{forLoopNode_370.output.currentValue.metadata.url}}\"\n  }\n}"
+        "mapping": "{\n  \"chunk_id\": {\n    \"type\": \"string\",\n    \"value\": \"{{forLoopNode_370.output.currentValue.metadata.chunk_id}}\"\n  },\n  \"description\": {\n    \"type\": \"string\",\n    \"value\": \"{{forLoopNode_370.output.currentValue.metadata.description}}\"\n  },\n  \"source\": {\n    \"type\": \"string\",\n    \"value\": \"{{forLoopNode_370.output.currentValue.metadata.url}}\"\n  }\n}"
       }
     }
   },

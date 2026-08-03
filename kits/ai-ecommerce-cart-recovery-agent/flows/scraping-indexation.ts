@@ -5,7 +5,9 @@
  * ## Purpose
  * This flow is responsible for turning one or more public website URLs into searchable knowledge. It accepts a list of URLs, uses Firecrawl to scrape page content, splits each page into chunk-sized units, vectorizes those chunks with a configured embedding model, and writes the resulting vectors plus metadata into a selected vector database. Its job is ingestion and index-building, not retrieval or answer generation.
  *
- * The outcome is a populated or refreshed vector index containing page-level content from the supplied websites. That matters because the downstream chatbot depends on this indexed corpus to retrieve relevant passages at query time. Without this ingestion step, the RAG layer has no grounded web-derived knowledge to search over.
+ * The outcome is a populated or refreshed vector index containing page-level content from the supplied websites.
+*Records without a stable source identifier are rejected during metadata transformation to ensure every indexed chunk has a unique and deterministic identifier.
+ That matters because the downstream chatbot depends on this indexed corpus to retrieve relevant passages at query time. Without this ingestion step, the RAG layer has no grounded web-derived knowledge to search over.
  *
  * Within the broader bundle, this flow sits in the ingestion stage of the plan-retrieve-synthesize chain. It is an entry-point indexing flow alongside other source-specific indexers such as Google Drive, S3, Postgres, or SharePoint variants. After it runs, the `Knowledge Chatbot` flow can query the same vector store to retrieve these indexed chunks and synthesize answers grounded in scraped site content.
  *

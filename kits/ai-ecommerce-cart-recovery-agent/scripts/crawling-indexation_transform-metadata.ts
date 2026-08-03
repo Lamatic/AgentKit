@@ -3,8 +3,6 @@ let texts = {{ codeNode_331.output }};
 let title = {{ variablesNode_849.output.title }};
 let source = {{ variablesNode_849.output.source }};
 
-let metadataProps = [];
-
 if (!Array.isArray(vectors)) {
   throw new Error("Expected vectors to be an array.");
 }
@@ -19,11 +17,15 @@ if (vectors.length !== texts.length) {
   );
 }
 
-metadataProps = vectors.map((vector, idx) => ({
+if (typeof source !== "string" || source.trim() === "") {
+  throw new Error("Expected each document to have a unique source.");
+}
+
+let metadataProps = vectors.map((vector, idx) => ({
   title: title,
   source: source,
   content: texts[idx],
-  chunk_id: `${source || title || "gsheet"}-${idx}`
+  chunk_id: `${source.trim()}-${idx}`
 }));
 
 output = {

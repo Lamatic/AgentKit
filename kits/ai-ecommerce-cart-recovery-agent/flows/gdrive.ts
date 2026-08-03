@@ -1,17 +1,17 @@
 /*
  * # GDrive
- * A Google Drive indexation flow that ingests documents from a selected Drive folder, chunks and vectorizes their content, and writes the results into the shared vector store used by the wider Knowledge Chatbot system.
+ * A Google Drive indexation flow that ingests documents from a selected Drive folder, chunks and vectorizes their content, and writes the results into the shared vector store used by the AI E-Commerce Cart Recovery Agent.
  *
  * ## Purpose
  * This flow is responsible for turning files stored in Google Drive into retrieval-ready vector records. It solves the ingestion side of the problem for teams whose source of truth lives in Drive folders: authenticate to Google Drive, read document content, split it into manageable chunks, create embeddings for those chunks, attach normalized metadata, and index the resulting records into a vector database.
  *
  * The outcome is a searchable knowledge base segment derived from one chosen Google Drive folder. That matters because the downstream chatbot flow can only retrieve grounded context from content that has already been indexed. Without this flow, Google Drive content remains unavailable to retrieval and cannot contribute to answer generation.
  *
- * Within the broader Knowledge Chatbot bundle, this is an entry-point indexation flow in the ingestion stage of the pipeline. It sits before retrieval and synthesis: first this flow prepares the source material for semantic search, then the separate chatbot flow queries the vector index at runtime, retrieves the most relevant chunks, and uses them to synthesize answers. It is one of several sibling indexation flows, so it should be selected specifically when Google Drive is the source system.
+ * Within the broader AI E-Commerce Cart Recovery Agent bundle, this is an entry-point indexation flow in the ingestion stage of the pipeline. It sits before retrieval and synthesis: first this flow prepares the source material for semantic search, then the separate chatbot flow queries the vector index at runtime, retrieves the most relevant chunks, and uses them to synthesize answers. It is one of several sibling indexation flows, so it should be selected specifically when Google Drive is the source system.
  *
  * ## When To Use
  * - Use when the knowledge source you want to ingest is stored in a Google Drive folder.
- * - Use when you need to build or refresh vector index entries from Google Drive documents for the Knowledge Chatbot.
+ * - Use when you need to build or refresh vector index entries from Google Drive documents for the Cart Recovery Agent..
  * - Use when a scheduled or operator-triggered ingestion job should pull Drive content incrementally rather than requiring a manual export.
  * - Use when you already have valid Google Drive credentials configured in Lamatic and a target vector database selected.
  * - Use when the chatbot must answer questions grounded in internal documents maintained in Drive.
@@ -33,8 +33,7 @@
  * | `vectorDB` | `select` | Yes | Target vector database where generated embeddings and metadata are indexed. |
  * | `embeddingModelName` | `model` | Yes | Embedding model used to convert extracted chunk text into vectors. |
  *
- * Below the table, several constraints are worth noting. The `folderUrl` input must refer to a Google Drive folder accessible to the selected `credentials`; although the node supports list and URL modes, the exported configuration defaults to `list`. The `mapping.source` field is exposed as a use-case input, but the current node configuration hardcodes a Google Drive folder URL into the mapping value, so implementers should verify whether they intend this field to remain fixed or be overridden at runtime. The flow assumes the trigger can extract textual `content` and a stable `document_key` from Drive items. Content quality, file support, and extraction success depend on the Google Drive connector and the accessible file types within the folder.
- *
+ 
  * ## Outputs
  * | Field | Type | Description |
  * |---|---|---|
@@ -49,12 +48,12 @@
  *
  * ## Dependencies
  * ### Upstream Flows
- * - None. This is a standalone entry-point ingestion flow for the Knowledge Chatbot bundle.
+ * - None. This is a standalone entry-point ingestion flow for the AI E-Commerce Cart Recovery Agent  bundle.
  * - It does not require another Lamatic flow to run before it, but it does require that the selected Google Drive folder already contain accessible documents and that the target vector database be available.
  * - In the broader bundle lifecycle, operators typically run this flow before using the separate chatbot flow, because the chatbot depends on the vector index populated here.
  *
  * ### Downstream Flows
- * - `Knowledge Chatbot` flow — consumes the vector index populated by this flow during retrieval. It does not usually ingest a direct API payload from this flow; instead it relies on the indexed chunk vectors and metadata now present in the shared vector database.
+ * - `Cart Recovery flow` — consumes the vector index populated by this flow during retrieval. It does not usually ingest a direct API payload from this flow; instead it relies on the indexed chunk vectors and metadata now present in the shared vector database.
  * - Any orchestration or operational workflow that monitors ingestion jobs may also consume the final indexing status returned by this flow.
  *
  * ### External Services
@@ -70,19 +69,17 @@
  * ## Node Walkthrough
  * 1. `Google Drive` (`triggerNode`) starts the flow by authenticating with the selected Google Drive account and reading content from the specified Drive folder. It is configured as the trigger node, uses `incremental_append` sync mode, and includes a weekly cron expression. For each retrieved document, it exposes at least `content` and `document_key`, which the downstream nodes use.
  *
- * 2. `Variables` (`variablesNode`) creates normalized working variables for the rest of the pipeline. In this flow, it maps `title` from `{{triggerNode_1.output.document_key}}` and sets `source` to a Google Drive folder URL. This is where the flow defines the human-readable or source-tracking metadata that will later be attached to indexed records.
+ * 2. `chunking` (`chunkNode`) splits `{{triggerNode_1.output.content}}` into smaller retrieval-friendly segments. It uses recursive character splitting with a target chunk size of `500` characters, `50` characters of overlap, and separators of paragraph break, line break, and space. The goal is to preserve semantic continuity while keeping chunks short enough for embedding and retrieval.
  *
- * 3. `chunking` (`chunkNode`) splits `{{triggerNode_1.output.content}}` into smaller retrieval-friendly segments. It uses recursive character splitting with a target chunk size of `500` characters, `50` characters of overlap, and separators of paragraph break, line break, and space. The goal is to preserve semantic continuity while keeping chunks short enough for embedding and retrieval.
+ * 3. `Extract Chunked Text` (`codeNode`) runs the referenced script `@scripts/gdrive_extract-chunked-text.ts`. Based on its placement and input/output wiring, this step reshapes the chunker output into the exact text array or text payload expected by the embedding node. It effectively extracts the clean chunk text from the richer chunk structure.
  *
- * 4. `Extract Chunked Text` (`codeNode`) runs the referenced script `@scripts/gdrive_extract-chunked-text.ts`. Based on its placement and input/output wiring, this step reshapes the chunker output into the exact text array or text payload expected by the embedding node. It effectively extracts the clean chunk text from the richer chunk structure.
+ * 4. `Get Vectors` (`vectorizeNode`) sends the extracted chunk text from `{{codeNode_539.output}}` to the selected embedding model. This node produces vector embeddings for each text chunk so the content can be searched semantically later.
  *
- * 5. `Get Vectors` (`vectorizeNode`) sends the extracted chunk text from `{{codeNode_539.output}}` to the selected embedding model. This node produces vector embeddings for each text chunk so the content can be searched semantically later.
+ * 5. `Transform Metadata` (`codeNode`) runs `@scripts/gdrive_transform-metadata.ts`. This step combines the vectorization output with the earlier variables such as `title` and `source`, then packages the results into two fields expected by the indexer: `vectors` and `metadata`. It is the normalization step that ensures the final records match the vector database schema.
  *
- * 6. `Transform Metadata` (`codeNode`) runs `@scripts/gdrive_transform-metadata.ts`. This step combines the vectorization output with the earlier variables such as `title` and `source`, then packages the results into two fields expected by the indexer: `vectors` and `metadata`. It is the normalization step that ensures the final records match the vector database schema.
+ * 6. `Index to DB` (`IndexNode`) writes the transformed `vectors` and `metadata` into the chosen vector database. It uses `title` as the configured primary key and is set to `overwrite` on duplicates, meaning later runs can replace existing records with the same primary key rather than creating parallel duplicates.
  *
- * 7. `Index to DB` (`IndexNode`) writes the transformed `vectors` and `metadata` into the chosen vector database. It uses `title` as the configured primary key and is set to `overwrite` on duplicates, meaning later runs can replace existing records with the same primary key rather than creating parallel duplicates.
- *
- * 8. `addNode` (`addNode`) is only a trailing placeholder from the studio canvas and does not contribute functional runtime behavior.
+ * 7. `addNode` (`addNode`) is only a trailing placeholder from the studio canvas and does not contribute functional runtime behavior.
  *
  * ## Error Scenarios
  * | Symptom | Likely Cause | Recommended Fix |

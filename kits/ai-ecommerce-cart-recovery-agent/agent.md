@@ -58,19 +58,19 @@ This architecture allows store-specific knowledge to remain separate from the ru
 The kit follows the general pipeline:
 
 Data Source
-â†“
+↓
 Extract / Read Content
-â†“
+↓
 Chunk or Normalize Content
-â†“
+↓
 Generate Embeddings
-â†“
+↓
 Create Metadata
-â†“
+↓
 Vector Index
-â†“
+↓
 Cart Recovery RAG
-â†“
+↓
 Personalized Recovery Response
 
 The indexation flows prepare information for retrieval.
@@ -781,17 +781,17 @@ These scripts perform operations including:
 A successful Cart Recovery interaction should follow this pattern:
 
 Customer message
-â†“
+↓
 Cart Recovery flow
-â†“
+↓
 RAG retrieval
-â†“
+↓
 Relevant indexed product/store knowledge
-â†“
+↓
 Cart context + retrieved context
-â†“
+↓
 Generative model
-â†“
+↓
 Personalized recovery response
 
 The generated response should focus on helping the customer make an informed decision and complete the purchase when appropriate.
