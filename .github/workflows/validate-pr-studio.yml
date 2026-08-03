@@ -64,6 +64,7 @@ jobs:
         with:
           ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          allow-unsafe-pr-checkout: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
