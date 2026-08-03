@@ -32,6 +32,19 @@ describe("detectCurrency", () => {
     assert.equal(detectCurrency("12.50 usd"), "USD");
   });
 
+  it("recognises an ISO code butted against the digits", () => {
+    // `\b` sits between a letter and a digit, so a word-boundary match missed
+    // these entirely. Menus and OCR both produce them.
+    assert.equal(detectCurrency("980JPY"), "JPY");
+    assert.equal(detectCurrency("12.50USD"), "USD");
+    assert.equal(detectCurrency("USD12"), "USD");
+  });
+
+  it("still refuses to find a code inside a longer word", () => {
+    assert.equal(detectCurrency("CRUSADE"), null);
+    assert.equal(detectCurrency("MEUROPE"), null);
+  });
+
   // ── 3. Nothing recognisable ──
   it("returns null when no currency is present", () => {
     assert.equal(detectCurrency("980"), null);
@@ -147,18 +160,41 @@ describe("parsePrice — determinism", () => {
 });
 
 describe("formatPrice", () => {
-  // ── 10. Zero-decimal currencies ──
+  // ── 10. Currency-aware rendering ──
+  //
+  // Delegated to Intl, which knows that yen has no minor unit and that the
+  // symbol goes before the number in en-US. The locale is pinned so this does
+  // not render differently on a French laptop than in CI.
   it("omits decimals for currencies that do not use them", () => {
-    assert.equal(formatPrice({ amount: 980, currency: "JPY" }), "980 JPY");
-    assert.equal(formatPrice({ amount: 12000, currency: "KRW" }), "12000 KRW");
+    assert.equal(formatPrice({ amount: 980, currency: "JPY" }), "¥980");
+    assert.equal(formatPrice({ amount: 12000, currency: "KRW" }), "₩12,000");
   });
 
-  it("shows two decimals for everything else", () => {
-    assert.equal(formatPrice({ amount: 12.5, currency: "EUR" }), "12.50 EUR");
+  it("shows two decimals and the symbol for everything else", () => {
+    assert.equal(formatPrice({ amount: 12.5, currency: "EUR" }), "€12.50");
+    assert.equal(formatPrice({ amount: 10, currency: "USD" }), "$10.00");
   });
 
   it("omits the currency when it is unknown", () => {
     assert.equal(formatPrice({ amount: 12.5, currency: "" }), "12.50");
+  });
+
+  it("renders an unrecognised but well-formed code without crashing", () => {
+    // Intl accepts any three-letter code and falls back to printing it. Note
+    // it separates with U+00A0, not a plain space, so this asserts content
+    // rather than exact whitespace.
+    const formatted = formatPrice({ amount: 12.5, currency: "XYZ" });
+    assert.match(formatted, /XYZ/);
+    assert.match(formatted, /12\.50/);
+  });
+
+  it("falls back rather than throwing on a malformed currency code", () => {
+    // Intl throws a RangeError on anything that is not three letters. A
+    // formatter is never the right place to crash a request.
+    for (const currency of ["E", "TOOLONG", "1$"]) {
+      assert.doesNotThrow(() => formatPrice({ amount: 12.5, currency }));
+      assert.match(formatPrice({ amount: 12.5, currency }), /12\.50/);
+    }
   });
 });
 

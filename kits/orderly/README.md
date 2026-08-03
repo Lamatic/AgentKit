@@ -53,7 +53,7 @@ it rather than the point of it.
 │  reports lines it could not read                      │
 └───────────────────────────────────────────────────────┘
                         ↓  structured JSON
-┌─ DETERMINISTIC CODE ─ apps/lib/, 178 tests ───────────┐
+┌─ DETERMINISTIC CODE ─ apps/lib/, 188 tests ───────────┐
 │  ingredient → EU-14 allergen mapping                  │
 │  dietary rules (vegetarian/vegan/halal/gluten-free)   │
 │  price and currency parsing                           │
@@ -136,8 +136,10 @@ per-diner behaviour returns.
 ### "Contains" vs "may contain"
 
 An allergen is reported as **contains** only when its keyword appears in the
-dish *name*, a transcription of what the restaurant printed. Anything derived
-from the model's inferred ingredient list is **may contain**.
+dish *name*: the original as printed, or a transliteration or translation of it.
+Those last two are model output, but they render a string the restaurant chose
+rather than an inference about what is in the pot. Anything derived from the
+model's guessed ingredient list is **may contain**.
 
 Both disqualify equally. The distinction informs the human; it never relaxes the
 constraint. A maybe-allergen is not a risk anyone should be asked to take on the
@@ -195,7 +197,7 @@ service.
 npm run dev         # development server
 npm run build       # production build
 npm run typecheck   # tsc --noEmit
-npm test            # 178 tests across 6 suites
+npm test            # 188 tests across 6 suites
 ```
 
 ---

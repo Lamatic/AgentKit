@@ -4,6 +4,7 @@ import {
   DeepDiveRequestSchema,
   FlowResultSchema,
   ScanRequestSchema,
+  embeddedIPv4,
   fieldErrors,
   isPubliclyFetchableImageUrl,
   parseFlowResult,
@@ -193,6 +194,37 @@ describe("isPubliclyFetchableImageUrl", () => {
     ]) {
       assert.equal(isPubliclyFetchableImageUrl(url), false, `${url} should be rejected`);
     }
+  });
+
+  // ── IPv4-mapped IPv6 ──
+  //
+  // `URL` normalises "[::ffff:127.0.0.1]" to the hexadecimal "::ffff:7f00:1",
+  // which matches no IPv4 pattern and starts with neither fe80 nor fc00. Both
+  // spellings must be decoded and judged on the address they actually carry.
+  it("rejects loopback and private addresses written as IPv4-mapped IPv6", () => {
+    for (const url of [
+      "https://[::ffff:127.0.0.1]/menu.jpg",
+      "https://[::ffff:7f00:1]/menu.jpg",
+      "https://[::ffff:10.0.0.1]/menu.jpg",
+      "https://[::ffff:a00:1]/menu.jpg",
+      "https://[::ffff:192.168.1.1]/menu.jpg",
+      "https://[::ffff:169.254.169.254]/menu.jpg",
+      "https://[0:0:0:0:0:ffff:127.0.0.1]/menu.jpg",
+    ]) {
+      assert.equal(isPubliclyFetchableImageUrl(url), false, `${url} should be rejected`);
+    }
+  });
+
+  it("still accepts an IPv4-mapped address carrying a public IPv4", () => {
+    assert.equal(isPubliclyFetchableImageUrl("https://[::ffff:8.8.8.8]/menu.jpg"), true);
+  });
+
+  it("decodes both spellings of a mapped address identically", () => {
+    assert.equal(embeddedIPv4("::ffff:7f00:1"), "127.0.0.1");
+    assert.equal(embeddedIPv4("::ffff:127.0.0.1"), "127.0.0.1");
+    assert.equal(embeddedIPv4("::ffff:a00:1"), "10.0.0.1");
+    assert.equal(embeddedIPv4("example.com"), null);
+    assert.equal(embeddedIPv4("2001:db8::ffff:1"), null);
   });
 
   it("does not reject public addresses that merely look similar", () => {

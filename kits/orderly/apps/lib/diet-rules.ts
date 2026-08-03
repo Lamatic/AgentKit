@@ -87,6 +87,20 @@ const PORK = [
   "gammon", "chorizo", "cerdo", "porco", "buta",
 ] as const;
 
+/**
+ * Ingredients whose halal status depends on their source rather than their
+ * presence.
+ *
+ * Rennet is the case that matters: it may be microbial or animal-derived, and
+ * if animal-derived the answer turns on how that animal was slaughtered. A
+ * menu cannot say which.
+ *
+ * Only an explicit mention counts. Inferring rennet from the mere presence of
+ * cheese would mark most Western dishes uncertain and drown the signal in
+ * noise, so this fires when a menu actually names it.
+ */
+const HALAL_UNCERTAIN = ["rennet", "animal rennet", "cuajo", "presura"] as const;
+
 /** Alcohol, including cooking wines. Disqualifies halal outright. */
 const ALCOHOL = [
   "wine", "beer", "sake", "mirin", "rum", "brandy", "whisky", "whiskey",
@@ -140,6 +154,7 @@ export function dietVerdict(
   const otherAnimalHit = findKeywordInAny(searchable, OTHER_ANIMAL);
   const porkHit = findKeywordInAny(searchable, PORK);
   const alcoholHit = findKeywordInAny(searchable, ALCOHOL);
+  const rennetHit = findKeywordInAny(searchable, HALAL_UNCERTAIN);
 
   const glutenHit = mapIngredientsToAllergens(searchable).find(
     (match) => match.allergen === "cereals-gluten"
@@ -153,6 +168,7 @@ export function dietVerdict(
     otherAnimalHit === null &&
     porkHit === null &&
     alcoholHit === null &&
+    rennetHit === null &&
     glutenHit === undefined;
 
   // No ingredients and nothing incriminating in the name — decline to conclude.
@@ -210,6 +226,13 @@ export function dietVerdict(
   } else if (meatHit !== null || seafoodHit !== null) {
     halal = "unknown";
     reasons.push("halal status depends on preparation — confirm with staff");
+  } else if (rennetHit !== null) {
+    // Rennet may be microbial or animal-derived, and if animal-derived the
+    // answer turns on slaughter method. Neither is visible on a menu.
+    halal = "unknown";
+    reasons.push(
+      `contains ${rennetHit}, which may be animal-derived — confirm with staff`
+    );
   } else {
     halal = cleared;
   }
