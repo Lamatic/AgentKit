@@ -53,7 +53,7 @@ it rather than the point of it.
 │  reports lines it could not read                      │
 └───────────────────────────────────────────────────────┘
                         ↓  structured JSON
-┌─ DETERMINISTIC CODE ─ apps/lib/, 190 tests ───────────┐
+┌─ DETERMINISTIC CODE ─ apps/lib/, 192 tests ───────────┐
 │  ingredient → EU-14 allergen mapping                  │
 │  dietary rules (vegetarian/vegan/halal/gluten-free)   │
 │  price and currency parsing                           │
@@ -197,7 +197,7 @@ service.
 npm run dev         # development server
 npm run build       # production build
 npm run typecheck   # tsc --noEmit
-npm test            # 190 tests across 6 suites
+npm test            # 192 tests across 6 suites
 ```
 
 ---

@@ -151,11 +151,22 @@ function parseNumericToken(token: string): number | null {
 const NUMBER_PATTERN = /\d[\d.,]*/g;
 
 /**
- * Detects two numbers joined by a range separator, e.g. "8-12", "18 / 24",
- * "8 to 12". A few non-digit characters are tolerated after the separator so a
- * repeated currency symbol ("$18 / $24") still reads as one range.
+ * Captures the two endpoints of a price range: "8-12", "18 / 24", "8 to 12".
+ *
+ * Both endpoints are captured rather than merely detected, because the range is
+ * frequently not the only pair of numbers on the line. "Serves 20 · $8–$12" has
+ * a range of 8 to 12 and a serving count of 20; taking the largest number in
+ * the line would return 20 and price the dish at more than double.
+ *
+ * A slash only counts as a separator when it is spaced. Menus write fractions
+ * unspaced ("1/2 chicken"), and reading those as a range made a half portion
+ * look like a price of 2.
+ *
+ * A few non-digit characters are tolerated after the separator so a repeated
+ * currency symbol ("$18 / $24") still reads as one range.
  */
-const RANGE_JOIN = /\d[\d.,]*\s*(?:[-–—/]|\bto\b)\s*[^\d\s]{0,3}\s*\d/;
+const RANGE_JOIN =
+  /(\d[\d.,]*)\s*(?:[-–—]\s*|\s+\/\s*|\s+to\s+)[^\d\s]{0,3}\s*(\d[\d.,]*)/;
 
 /**
  * Parses a printed price into a comparable amount and currency.
@@ -191,13 +202,24 @@ export function parsePrice(
 
   // A genuine range ("8-12", "18 / 24", "8 to 12") resolves to its upper bound,
   // because the dish really can cost the higher figure and a budget must assume
-  // it will. Anywhere else, the last number is the price: menu lines put the
-  // price at the end and the leading figures are quantities or portions
-  // ("Serves 2 · $18", "2 pcs $14"). Taking the maximum there was arbitrary
-  // rather than cautious, and got "Was $30, now $20" wrong.
-  const amount = RANGE_JOIN.test(trimmed)
-    ? Math.max(...values)
-    : values[values.length - 1];
+  // it will. Only the two captured endpoints are considered: other numbers on
+  // the line are portions or serving counts, not prices.
+  //
+  // Anywhere else the last number is the price, because menu lines put the
+  // price at the end and the leading figures are quantities ("Serves 2 · $18",
+  // "2 pcs $14").
+  const range = RANGE_JOIN.exec(trimmed);
+  const endpoints =
+    range === null
+      ? null
+      : [parseNumericToken(range[1]), parseNumericToken(range[2])].filter(
+          (value): value is number => value !== null
+        );
+
+  const amount =
+    endpoints !== null && endpoints.length === 2
+      ? Math.max(...endpoints)
+      : values[values.length - 1];
 
   if (!Number.isFinite(amount) || amount < 0) return null;
 
