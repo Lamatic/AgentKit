@@ -98,6 +98,22 @@ describe("parsePrice — the documented formats", () => {
     assert.deepEqual(parsePrice("8–12 €"), { amount: 12, currency: "EUR" });
     assert.deepEqual(parsePrice("8-12 €"), { amount: 12, currency: "EUR" });
     assert.equal(parsePrice("$18 / $24")?.amount, 24);
+    assert.equal(parsePrice("8 to 12 EUR")?.amount, 12);
+  });
+
+  // ── 6b. Outside a range, the last number is the price ──
+  //
+  // Menu lines put the price at the end; the leading figures are portions or
+  // quantities. Taking the maximum here was arbitrary rather than cautious,
+  // and got discount strings backwards.
+  it("takes the final number when the line is not a range", () => {
+    assert.equal(parsePrice("Serves 2 · $18")?.amount, 18);
+    assert.equal(parsePrice("2 pcs $14")?.amount, 14);
+    assert.equal(parsePrice("1/2 chicken $24")?.amount, 24);
+  });
+
+  it("reads a discounted price as the current one, not the old one", () => {
+    assert.equal(parsePrice("Was $30 now $20")?.amount, 20);
   });
 
   // ── 7. Currency hint fallback ──

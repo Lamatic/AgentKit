@@ -10,7 +10,9 @@
 //      selection, which is the worst possible failure mode.
 //   2. When a price is a range ("8–12"), take the upper bound. Overestimating
 //      the bill is recoverable; underestimating it is what leaves someone
-//      short at the till.
+//      short at the till. Outside a range the last number wins, because menu
+//      lines put the price at the end and the leading figures are portions
+//      ("Serves 2 · $18").
 
 import type { ParsedPrice } from "./types";
 
@@ -149,6 +151,13 @@ function parseNumericToken(token: string): number | null {
 const NUMBER_PATTERN = /\d[\d.,]*/g;
 
 /**
+ * Detects two numbers joined by a range separator, e.g. "8-12", "18 / 24",
+ * "8 to 12". A few non-digit characters are tolerated after the separator so a
+ * repeated currency symbol ("$18 / $24") still reads as one range.
+ */
+const RANGE_JOIN = /\d[\d.,]*\s*(?:[-–—/]|\bto\b)\s*[^\d\s]{0,3}\s*\d/;
+
+/**
  * Parses a printed price into a comparable amount and currency.
  *
  * Returns `null` when no number can be found — "market price", "MP", "—", an
@@ -180,8 +189,16 @@ export function parsePrice(
 
   if (values.length === 0) return null;
 
-  // Ranges resolve to their upper bound — see the module header.
-  const amount = Math.max(...values);
+  // A genuine range ("8-12", "18 / 24", "8 to 12") resolves to its upper bound,
+  // because the dish really can cost the higher figure and a budget must assume
+  // it will. Anywhere else, the last number is the price: menu lines put the
+  // price at the end and the leading figures are quantities or portions
+  // ("Serves 2 · $18", "2 pcs $14"). Taking the maximum there was arbitrary
+  // rather than cautious, and got "Was $30, now $20" wrong.
+  const amount = RANGE_JOIN.test(trimmed)
+    ? Math.max(...values)
+    : values[values.length - 1];
+
   if (!Number.isFinite(amount) || amount < 0) return null;
 
   const currency = detectCurrency(trimmed) ?? currencyHint?.toUpperCase() ?? "";
