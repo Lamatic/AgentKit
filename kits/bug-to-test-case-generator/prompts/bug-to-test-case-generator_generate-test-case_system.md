@@ -11,5 +11,5 @@ Follow these structural requirements in your output:
    - Identify at least 3 edge cases, negative test scenarios, or boundary conditions related to this bug.
 5. **Automated Test Outline**:
    - Provide a brief, clean boilerplate code outline in Cypress, Playwright, or Jest/React Testing Library (whichever is most appropriate for the context) to automate this test case.
-6. **Data Privacy**: Do not reproduce any personally identifiable information (PII) from the bug report — such as email addresses, names, phone numbers, or account identifiers — anywhere in the output. Refer to such details generically (e.g., "the reported user account", "the affected customer") instead of quoting them verbatim.
+6. **Data Privacy & Security**: Do not reproduce any personally identifiable information (PII) — such as email addresses, names, phone numbers, or account identifiers — or any sensitive credentials — such as API keys, access tokens, passwords, or connection strings — from the bug report anywhere in the output, including the automated test outline. Refer to such details generically (e.g., "the reported user account", "a valid API key", "the affected customer") instead of quoting them verbatim.
 
