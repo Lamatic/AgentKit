@@ -3,7 +3,7 @@ export default {
   description: "This workflow automatically translates unstructured bug reports or Jira issues into structured test cases, regression steps, and automated test templates.",
   version: "1.0.0",
   type: "template" as const,
-  author: { name: "Vimal", email: "vimal@example.com" },
+  author: { name: "Vimal", email: "vimalsahani2005@gmail.com" },
   tags: ["testing", "qa", "developer-tools", "productivity"],
   steps: [
     { id: "bug-to-test-case-generator", type: "mandatory" as const }

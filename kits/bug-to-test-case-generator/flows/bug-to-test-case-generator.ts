@@ -35,12 +35,17 @@ export const meta = {
   "deployUrl": "https://studio.lamatic.ai/template/bug-to-test-case-generator",
   "author": {
     "name": "Vimal",
-    "email": "vimal@example.com"
+    "email": "vimalsahani2005@gmail.com"
   }
 };
 
 // ── Inputs ────────────────────────────────────────────
-export const inputs = {};
+export const inputs = {
+  bugTitle: { type: "string", required: true },
+  bugDescription: { type: "string", required: true },
+  stepsToReproduce: { type: "string", required: true },
+  environment: { type: "string", required: false }
+};
 
 // ── References ────────────────────────────────────────
 export const references = {
@@ -71,7 +76,16 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": JSON.stringify({
+          type: "object",
+          properties: {
+            bugTitle: { type: "string" },
+            bugDescription: { type: "string" },
+            stepsToReproduce: { type: "string" },
+            environment: { type: "string" }
+          },
+          required: ["bugTitle", "bugDescription", "stepsToReproduce"]
+        })
       }
     }
   },
