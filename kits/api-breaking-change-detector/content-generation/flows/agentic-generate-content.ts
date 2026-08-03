@@ -87,7 +87,7 @@
  *
  * 5. `Parse JSON` (`codeNode`)
  *    - This code step runs only after the `JSON` branch.
- *    - It uses the script `@scripts/agentic-generate-content_parse-json.ts` to transform or validate the raw model output into a parsed JSON structure suitable for a cleaner final response.
+ *    - It uses the script `./scripts/agentic-generate-content_parse-json.ts` to transform or validate the raw model output into a parsed JSON structure suitable for a cleaner final response.
  *    - This step is the branch-specific safeguard that distinguishes `json` mode from plain text generation.
  *
  * 6. `Generate Image` (`ImageGenNode`)
@@ -98,12 +98,12 @@
  *
  * 7. `Invalid Mode` (`codeNode`)
  *    - This branch runs when `mode` does not match `text`, `json`, or `image`.
- *    - It executes `@scripts/agentic-generate-content_invalid-mode.ts` to produce an explicit invalid-mode result rather than letting the flow fail silently.
+ *    - It executes `./scripts/agentic-generate-content_invalid-mode.ts` to produce an explicit invalid-mode result rather than letting the flow fail silently.
  *    - Its output is also sent to `Finalise Output`, ensuring all branches converge on a common response pathway.
  *
  * 8. `Finalise Output` (`codeNode`)
  *    - This node is the convergence point for all branches.
- *    - It executes `@scripts/agentic-generate-content_finalise-output.ts` to normalise the branch output into the final API payload shape expected by the response mapping.
+ *    - It executes `./scripts/agentic-generate-content_finalise-output.ts` to normalise the branch output into the final API payload shape expected by the response mapping.
  *    - Because every branch feeds into this node, it is the final place where text output, parsed JSON, image output, or invalid-mode messaging is packaged consistently.
  *
  * 9. `API Response` (`responseNode`)
@@ -236,9 +236,9 @@ export const references = {
     "agentic_generate_content_generate_image": "@model-configs/agentic-generate-content_generate-image.ts"
   },
   "scripts": {
-    "agentic_generate_content_invalid_mode": "@scripts/agentic-generate-content_invalid-mode.ts",
-    "agentic_generate_content_parse_json": "@scripts/agentic-generate-content_parse-json.ts",
-    "agentic_generate_content_finalise_output": "@scripts/agentic-generate-content_finalise-output.ts"
+    "agentic_generate_content_invalid_mode": "./scripts/agentic-generate-content_invalid-mode.ts",
+    "agentic_generate_content_parse_json": "./scripts/agentic-generate-content_parse-json.ts",
+    "agentic_generate_content_finalise_output": "./scripts/agentic-generate-content_finalise-output.ts"
   }
 };
 
@@ -318,7 +318,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "@scripts/agentic-generate-content_invalid-mode.ts",
+        "code": "./scripts/agentic-generate-content_invalid-mode.ts",
         "nodeName": "Invalid Mode"
       }
     },
@@ -418,7 +418,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "@scripts/agentic-generate-content_parse-json.ts",
+        "code": "./scripts/agentic-generate-content_parse-json.ts",
         "nodeName": "Parse JSON"
       }
     },
@@ -474,7 +474,7 @@ export const nodes = [
       "modes": {},
       "nodeId": "codeNode",
       "values": {
-        "code": "@scripts/agentic-generate-content_finalise-output.ts",
+        "code": "./scripts/agentic-generate-content_finalise-output.ts",
         "nodeName": "Finalise Output"
       }
     },
