@@ -2,6 +2,7 @@
 
 import { lamaticClient } from "@/lib/lamatic-client"
 import config from "../../lamatic.config"
+import { z } from "zod"
 
 export async function processStatement(
   statement_text: string,
@@ -55,22 +56,25 @@ export async function processStatement(
       throw new Error("No subscriptions found in response")
     }
 
-    const validSubscriptions = subscriptions.filter((sub: any) => 
-      sub && typeof sub === 'object' &&
-      typeof sub.merchant === 'string' &&
-      typeof sub.amount === 'string' &&
-      typeof sub.frequency === 'string' &&
-      typeof sub.verdict === 'string' &&
-      typeof sub.reason === 'string'
+    const subscriptionsSchema = z.array(
+      z.object({
+        merchant: z.string(),
+        amount: z.string(),
+        frequency: z.string(),
+        verdict: z.enum(["keep", "cancel", "review"]),
+        reason: z.string(),
+      }).strict()
     );
 
-    if (validSubscriptions.length === 0 && subscriptions.length > 0) {
-      throw new Error("Subscriptions were found but did not match the expected schema");
+    const parseResult = subscriptionsSchema.safeParse(subscriptions);
+
+    if (!parseResult.success) {
+      throw new Error(`Malformed subscription response: ${parseResult.error.message}`);
     }
 
     return {
       success: true,
-      data: { subscriptions: validSubscriptions },
+      data: { subscriptions: parseResult.data },
     }
   } catch (error) {
     console.error("[v0] Generation error:", error)
