@@ -1,7 +1,7 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import {config} from "../orchestrate.js"
+import config from "../../lamatic.config"
 
 export async function processStatement(
   statement_text: string,
@@ -14,15 +14,15 @@ export async function processStatement(
     console.log("[v0] Processing statement of length:", statement_text.length)
 
     // Get the first workflow from the config
-    const flows = config.flows
-    const firstFlowKey = Object.keys(flows)[0]
+    const steps = config.steps
+    const firstStep = steps[0]
 
-    if (!firstFlowKey) {
+    if (!firstStep) {
       throw new Error("No workflows found in configuration")
     }
 
-    const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows];
-    console.log("[v0] Using workflow:", flow.name, flow.workflowId);
+    const workflowId = process.env[firstStep.envKey];
+    console.log("[v0] Using workflow ID:", workflowId);
 
     // Prepare inputs based on the flow's input schema
     const inputs: Record<string, any> = {
@@ -31,10 +31,10 @@ export async function processStatement(
 
     console.log("[v0] Sending inputs to flow...")
 
-    if(!flow.workflowId){
+    if(!workflowId){
       throw Error("Workflow not found in config.")
     }
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    const resData = await lamaticClient.executeFlow(workflowId, inputs)
     console.log("[v0] Raw response:", resData)
 
     if (resData?.status === 'error' || resData?.statusCode >= 400) {
@@ -55,9 +55,22 @@ export async function processStatement(
       throw new Error("No subscriptions found in response")
     }
 
+    const validSubscriptions = subscriptions.filter((sub: any) => 
+      sub && typeof sub === 'object' &&
+      typeof sub.merchant === 'string' &&
+      typeof sub.amount === 'string' &&
+      typeof sub.frequency === 'string' &&
+      typeof sub.verdict === 'string' &&
+      typeof sub.reason === 'string'
+    );
+
+    if (validSubscriptions.length === 0 && subscriptions.length > 0) {
+      throw new Error("Subscriptions were found but did not match the expected schema");
+    }
+
     return {
       success: true,
-      data: { subscriptions },
+      data: { subscriptions: validSubscriptions },
     }
   } catch (error) {
     console.error("[v0] Generation error:", error)
