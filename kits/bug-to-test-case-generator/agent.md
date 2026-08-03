@@ -11,7 +11,7 @@ The goal of this agent system is to bridge the gap between development teams rep
 2. Edge cases and boundaries to check.
 3. A boilerplate automated test outline to jumpstart automated verification.
 
-Operational inputs are the bug title, description, reproduction steps, and optional environment details. The output is a cleanly structured markdown document containing the testing plan.
+Operational inputs are the bug title, description, reproduction steps, and optional environment details. The output is a cleanly structured Markdown document containing the testing plan.
 
 ---
 
@@ -35,7 +35,7 @@ Operational inputs are the bug title, description, reproduction steps, and optio
      - Runs an LLM generation prompt chain:
        - System prompt (`bug-to-test-case-generator_generate-test-case_system.md`) instructs the model on QA best practices, structural formatting, and test-writing techniques.
        - User prompt (`bug-to-test-case-generator_generate-test-case_user.md`) injects the user's bug title, description, reproduction steps, and environment.
-     - Produces the final structured markdown testing plan.
+     - Produces the final structured Markdown testing plan.
   3. `API Response` (`graphqlResponseNode`)
      - Formats and returns the test plan result to the caller as the API response.
 
@@ -44,7 +44,7 @@ Operational inputs are the bug title, description, reproduction steps, and optio
   - Route to this flow to standardise the format of test specifications generated from developer/user bug reports.
 
 - Output
-  - Successful response: A structured markdown document outlining the test case, edge cases, and automated test boilerplate.
+  - Successful response: A structured Markdown document outlining the test case, edge cases, and automated test boilerplate.
   - Format: Returned through `graphqlResponseNode` as a GraphQL/API response payload.
 
 - Dependencies
