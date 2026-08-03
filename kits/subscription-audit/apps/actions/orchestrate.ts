@@ -37,6 +37,10 @@ export async function processStatement(
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
     console.log("[v0] Raw response:", resData)
 
+    if (resData?.status === 'error' || resData?.statusCode >= 400) {
+      throw new Error(resData.message || `API Error: ${resData.statusCode}`)
+    }
+
     // Extract the subscriptions from the response
     const subscriptions = resData?.result?.subscriptions || resData?.subscriptions || resData?.result
 
