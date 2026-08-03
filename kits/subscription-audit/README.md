@@ -25,6 +25,7 @@ Before running this project, you must build and deploy the flow in Lamatic, then
 **Post: Wire into this repo**
 1. Create a `.env.local` file in `apps/` and set the keys (see below)
 2. Install and run locally:
+   - `cd apps`
    - `npm install`
    - `npm run dev`
 3. Deploy (Vercel recommended):
@@ -51,6 +52,7 @@ LAMATIC_API_KEY="Your Lamatic API Key"
 ### 2. Install & Run
 
 ```bash
+cd apps
 npm install
 npm run dev
 # Open http://localhost:3000
@@ -59,6 +61,7 @@ npm run dev
 ---
 
 ## 📂 Repo Structure
+
 /flows
 └── subscription-audit.ts # Lamatic flow definition
 /prompts

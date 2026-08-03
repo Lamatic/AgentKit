@@ -91,7 +91,16 @@ export const meta = {
 };
 
 // ── Inputs ────────────────────────────────────────
-export const inputs = {};
+export const inputs = {
+  "triggerNode_1": [
+    {
+      "name": "statement_text",
+      "label": "Statement Text",
+      "type": "string",
+      "required": true
+    }
+  ]
+};
 
 // ── References ────────────────────────────────────────
 export const references = {
@@ -132,7 +141,7 @@ export const nodes = [
       "values": {
         "nodeName": "Generate JSON",
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"subscriptions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"merchant\": { \"type\": \"string\" },\n          \"amount\": { \"type\": \"string\" },\n          \"frequency\": { \"type\": \"string\" },\n          \"verdict\": { \"type\": \"string\" },\n          \"reason\": { \"type\": \"string\" }\n        },\n        \"additionalProperties\": true\n      }\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"subscriptions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"merchant\": { \"type\": \"string\" },\n          \"amount\": { \"type\": \"string\" },\n          \"frequency\": { \"type\": \"string\" },\n          \"verdict\": { \"type\": \"string\", \"enum\": [\"keep\", \"cancel\", \"review\"] },\n          \"reason\": { \"type\": \"string\" }\n        },\n        \"required\": [\"merchant\", \"amount\", \"frequency\", \"verdict\", \"reason\"],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\"subscriptions\"],\n  \"additionalProperties\": false\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
