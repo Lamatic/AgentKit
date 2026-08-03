@@ -8,8 +8,7 @@ const nextConfig = {
   },
   experimental: {
     externalDir: true,
-  },
-  transpilePackages: ["../../lamatic.config.ts"],
+  }
 }
 
 export default nextConfig
