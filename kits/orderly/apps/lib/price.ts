@@ -65,10 +65,11 @@ const ISO_CODES = new Set([
 export function detectCurrency(raw: string): string | null {
   const upper = raw.toUpperCase();
   for (const code of ISO_CODES) {
-    // Whole-word match, so "980 JPY" is recognised while the "USD" inside a
-    // longer token is not. Currency words like "EUROS" are left to the symbol
-    // pass rather than being special-cased here.
-    if (new RegExp(`\\b${code}\\b`).test(upper)) return code;
+    // Bounded by a string edge or a non-letter, rather than by \b. A word
+    // boundary sits between a letter and a digit, so `\bJPY\b` fails on
+    // "980JPY" — a spelling menus and OCR both produce. Requiring a non-letter
+    // neighbour still refuses to find "USD" inside a longer word.
+    if (new RegExp(`(?<![A-Z])${code}(?![A-Z])`).test(upper)) return code;
   }
 
   const symbols = Object.keys(SYMBOL_TO_CURRENCY).sort(
@@ -195,10 +196,21 @@ export function parsePrice(
  * since "¥980.00" is not how anyone writes yen.
  */
 export function formatPrice(price: ParsedPrice): string {
-  const zeroDecimal = new Set(["JPY", "KRW", "VND", "IDR", "HUF"]);
-  const digits = zeroDecimal.has(price.currency) ? 0 : 2;
-  const amount = price.amount.toFixed(digits);
-  return price.currency === "" ? amount : `${amount} ${price.currency}`;
+  if (price.currency === "") return price.amount.toFixed(2);
+
+  try {
+    // The locale is pinned rather than left to the host. An unpinned
+    // Intl.NumberFormat renders differently on a French laptop than in CI,
+    // which would make every assertion about this output environment-dependent.
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: price.currency,
+    }).format(price.amount);
+  } catch {
+    // Intl throws on a currency code it does not recognise. A menu can carry
+    // one; a crash in a formatter is never the right answer to that.
+    return `${price.amount.toFixed(2)} ${price.currency}`;
+  }
 }
 
 /**

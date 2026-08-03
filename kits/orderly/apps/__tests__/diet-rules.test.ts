@@ -278,3 +278,28 @@ describe("verdictForDiet", () => {
     assert.equal(verdictForDiet(verdict, "gluten-free"), false);
   });
 });
+
+describe("dietVerdict — halal uncertainty from rennet", () => {
+  // ── 14. Source-dependent ingredients ──
+  //
+  // Rennet may be microbial or animal-derived, and if animal-derived the answer
+  // turns on slaughter method. A menu cannot say which, so "unknown" is the
+  // only honest verdict.
+  it("returns 'unknown' halal when rennet is named", () => {
+    const verdict = dietVerdict(["cheese", "rennet"]);
+    assert.equal(verdict.halal, "unknown");
+    assert.ok(verdict.reasons.some((r) => r.includes("rennet")));
+    assert.ok(verdict.reasons.some((r) => r.includes("confirm with staff")));
+  });
+
+  it("does not infer rennet from the mere presence of cheese", () => {
+    // Marking every cheese dish uncertain would flag most Western menus and
+    // drown the signal. Only an explicit mention counts.
+    assert.equal(dietVerdict(["cheese", "tomato"]).halal, true);
+  });
+
+  it("keeps pork and alcohol as firm rejections, not uncertainty", () => {
+    assert.equal(dietVerdict(["cheese", "rennet", "pork"]).halal, false);
+    assert.equal(dietVerdict(["cheese", "rennet", "wine"]).halal, false);
+  });
+});

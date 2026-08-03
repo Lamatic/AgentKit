@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { ALLERGEN_LABELS, ALL_ALLERGENS } from "@/lib/types";
 import type { AllergenId, Budget, Diner, DietId, ServingModel } from "@/lib/types";
@@ -15,6 +16,72 @@ const DIETS: Array<{ id: DietId; label: string }> = [
 ];
 
 const CURRENCIES = ["EUR", "USD", "GBP", "JPY", "INR", "BRL", "THB"];
+
+/**
+ * A unique identifier for a diner.
+ *
+ * Duplicate IDs make the solver count two people as one, so this has to be
+ * reliable. `crypto.randomUUID` is only defined in a secure context, and this
+ * app is genuinely run over plain HTTP on a LAN during development, where
+ * calling it directly would throw. The fallback pairs the clock with a random
+ * suffix, which survives two diners being added in the same millisecond.
+ */
+export function newDinerId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `diner-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * The dislikes input, holding its own raw text while the diner types.
+ *
+ * Driving this straight from `dislikes.join(", ")` made it unusable: the
+ * change handler split and filtered on every keystroke, so typing a comma
+ * produced an entry that was immediately re-joined without it and the caret
+ * fought the user. Raw text lives here; the parent only ever sees the
+ * normalised list.
+ */
+function DislikesField({
+  diner,
+  disabled,
+  onChange,
+}: {
+  diner: Diner;
+  disabled: boolean;
+  onChange: (dislikes: string[]) => void;
+}) {
+  const [raw, setRaw] = useState(diner.dislikes.join(", "));
+
+  return (
+    <div>
+      <Label
+        htmlFor={`dislikes-${diner.id}`}
+        className="mb-1.5 block text-xs font-medium text-[var(--color-muted-foreground)]"
+      >
+        Would rather avoid{" "}
+        <span className="font-normal">(comma separated, optional)</span>
+      </Label>
+      <Input
+        id={`dislikes-${diner.id}`}
+        value={raw}
+        placeholder="coriander, olives"
+        disabled={disabled}
+        onChange={(event) => {
+          setRaw(event.target.value);
+          onChange(
+            event.target.value
+              .split(",")
+              .map((entry) => entry.trim())
+              .filter((entry) => entry !== "")
+              .slice(0, 20)
+          );
+        }}
+        className="h-8"
+      />
+    </div>
+  );
+}
 
 interface PartyPanelProps {
   diners: Diner[];
@@ -54,10 +121,7 @@ export function PartyPanel({
     onDinersChange([
       ...diners,
       {
-        // Date.now() collides when two diners are added inside the same
-        // millisecond, and duplicate IDs make the solver count two people as
-        // one. randomUUID has no such failure mode.
-        id: crypto.randomUUID(),
+        id: newDinerId(),
         label: `Diner ${nextIndex}`,
         avoidAllergens: [],
         diet: null,
@@ -171,31 +235,11 @@ export function PartyPanel({
 
             {/* Dislikes are a soft constraint: they surface as "caution" on a
                 dish rather than removing it, unlike allergies and diets. */}
-            <div>
-              <Label
-                htmlFor={`dislikes-${diner.id}`}
-                className="mb-1.5 block text-xs font-medium text-[var(--color-muted-foreground)]"
-              >
-                Would rather avoid{" "}
-                <span className="font-normal">(comma separated, optional)</span>
-              </Label>
-              <Input
-                id={`dislikes-${diner.id}`}
-                value={diner.dislikes.join(", ")}
-                placeholder="coriander, olives"
-                disabled={disabled}
-                onChange={(event) =>
-                  updateDiner(diner.id, {
-                    dislikes: event.target.value
-                      .split(",")
-                      .map((entry) => entry.trim())
-                      .filter((entry) => entry !== "")
-                      .slice(0, 20),
-                  })
-                }
-                className="h-8"
-              />
-            </div>
+            <DislikesField
+              diner={diner}
+              disabled={disabled}
+              onChange={(dislikes) => updateDiner(diner.id, { dislikes })}
+            />
           </div>
         ))}
       </div>

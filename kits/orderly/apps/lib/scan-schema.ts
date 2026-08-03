@@ -78,6 +78,41 @@ const BLOCKED_IP_PATTERNS: readonly RegExp[] = [
 ];
 
 /**
+ * Extracts the IPv4 address embedded in an IPv4-mapped IPv6 host, or `null`.
+ *
+ * This exists because the blocklist above can be walked straight past
+ * otherwise. `https://[::ffff:127.0.0.1]/` is loopback, but `URL` normalises
+ * the host to the hexadecimal form `::ffff:7f00:1`, which matches no IPv4
+ * pattern and does not begin with `fe80` or `fc00`. Both the dotted and
+ * hexadecimal spellings are decoded here so the embedded address can be tested
+ * as the IPv4 address it actually is.
+ */
+export function embeddedIPv4(hostname: string): string | null {
+  const lower = hostname.toLowerCase();
+  const marker = lower.lastIndexOf("ffff:");
+  if (marker === -1) return null;
+
+  // Everything before the marker must be the all-zero prefix of a mapped
+  // address, in either the "::" or the "0:0:0:0:0:" spelling.
+  if (!/^[0:]*$/.test(lower.slice(0, marker))) return null;
+
+  const tail = lower.slice(marker + "ffff:".length);
+
+  // Dotted spelling: ::ffff:127.0.0.1
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(tail)) return tail;
+
+  // Hexadecimal spelling: ::ffff:7f00:1
+  const hex = /^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(tail);
+  if (hex !== null) {
+    const high = Number.parseInt(hex[1], 16);
+    const low = Number.parseInt(hex[2], 16);
+    return [(high >> 8) & 255, high & 255, (low >> 8) & 255, low & 255].join(".");
+  }
+
+  return null;
+}
+
+/**
  * Validates that a URL is something safe to ask a remote service to fetch.
  *
  * Exported so the same rule can be reused and tested independently of the
@@ -100,6 +135,12 @@ export function isPubliclyFetchableImageUrl(value: string): boolean {
   if (BLOCKED_HOSTNAMES.has(hostname)) return false;
   if (hostname.endsWith(".localhost") || hostname.endsWith(".internal")) return false;
   if (BLOCKED_IP_PATTERNS.some((pattern) => pattern.test(hostname))) return false;
+
+  // An IPv4-mapped IPv6 host is judged on the address it actually carries.
+  const mapped = embeddedIPv4(hostname);
+  if (mapped !== null && BLOCKED_IP_PATTERNS.some((p) => p.test(mapped))) {
+    return false;
+  }
 
   return true;
 }
