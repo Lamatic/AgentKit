@@ -45,8 +45,8 @@ export async function processStatement(
     let subscriptions = null;
     if (Array.isArray(resData?.result?.subscriptions)) {
       subscriptions = resData.result.subscriptions;
-    } else if (Array.isArray(resData?.subscriptions)) {
-      subscriptions = resData.subscriptions;
+    } else if (Array.isArray((resData as any)?.subscriptions)) {
+      subscriptions = (resData as any).subscriptions;
     } else if (Array.isArray(resData?.result)) {
       subscriptions = resData.result;
     }
