@@ -101,7 +101,24 @@ describe("parsePrice — the documented formats", () => {
     assert.equal(parsePrice("8 to 12 EUR")?.amount, 12);
   });
 
-  // ── 6b. Outside a range, the last number is the price ──
+  // ── 6b. A range uses its own endpoints, not the line's largest number ──
+  //
+  // The range is often not the only pair of numbers present. Taking the
+  // largest number anywhere on the line priced this dish at 20 instead of 12.
+  it("ignores unrelated numbers when a range is present", () => {
+    assert.equal(parsePrice("Serves 20 · $8–$12")?.amount, 12);
+  });
+
+  // ── 6c. Unspaced slashes are fractions, not ranges ──
+  //
+  // Menus write half portions as "1/2". Reading that as a range priced a
+  // GBP 1.50 dish at 2.
+  it("does not treat an unspaced fraction as a range", () => {
+    assert.equal(parsePrice("1/2 chicken $1.50")?.amount, 1.5);
+    assert.equal(parsePrice("1/2 chicken $24")?.amount, 24);
+  });
+
+  // ── 6d. Outside a range, the last number is the price ──
   //
   // Menu lines put the price at the end; the leading figures are portions or
   // quantities. Taking the maximum here was arbitrary rather than cautious,
@@ -109,7 +126,6 @@ describe("parsePrice — the documented formats", () => {
   it("takes the final number when the line is not a range", () => {
     assert.equal(parsePrice("Serves 2 · $18")?.amount, 18);
     assert.equal(parsePrice("2 pcs $14")?.amount, 14);
-    assert.equal(parsePrice("1/2 chicken $24")?.amount, 24);
   });
 
   it("reads a discounted price as the current one, not the old one", () => {
