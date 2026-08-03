@@ -41,8 +41,15 @@ export async function processStatement(
       throw new Error(resData.message || `API Error: ${resData.statusCode}`)
     }
 
-    // Extract the subscriptions from the response
-    const subscriptions = resData?.result?.subscriptions || resData?.subscriptions || resData?.result
+    // Extract the subscriptions from the response safely
+    let subscriptions = null;
+    if (Array.isArray(resData?.result?.subscriptions)) {
+      subscriptions = resData.result.subscriptions;
+    } else if (Array.isArray(resData?.subscriptions)) {
+      subscriptions = resData.subscriptions;
+    } else if (Array.isArray(resData?.result)) {
+      subscriptions = resData.result;
+    }
 
     if (!subscriptions) {
       throw new Error("No subscriptions found in response")
