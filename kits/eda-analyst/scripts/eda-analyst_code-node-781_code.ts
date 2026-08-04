@@ -24,14 +24,14 @@ function _computeImpute(rows, col, strat){
 }
 
 function applyCleaning(rows, plan){
-  rows=rows||[]; plan=plan||{}; const colPlans=plan.columns||[]; const changelog=[]; const drops={}, imputes={};
+  rows=rows||[]; plan=plan||{}; const colPlans=plan.columns||[]; const changelog=[]; const dropCols=[], dropReason={}, imputes={};
   for(let i=0;i<colPlans.length;i++){ const cp=colPlans[i];
-    if(cp.action==="drop") drops[cp.column]=cp.reason||"";
+    if(cp.action==="drop"){ dropCols.push(cp.column); dropReason[cp.column]=cp.reason||""; }
     else if(cp.action==="impute"&&cp.impute) imputes[cp.column]=cp.impute; }
   const imputeVals={}; for(const col in imputes){ imputeVals[col]=_computeImpute(rows,col,imputes[col]); }
   const fillCount={};
   let cleaned=rows.map(function(r){ const o={};
-    for(const k in r){ if(k==="__proto__"||k==="constructor"||k==="prototype") continue; if(!drops[k]) o[k]=r[k]; }
+    for(const k in r){ if(k==="__proto__"||k==="constructor"||k==="prototype") continue; if(dropCols.indexOf(k)===-1) o[k]=r[k]; }
     for(const col in imputeVals){ if(imputeVals[col]===null||imputeVals[col]===undefined) continue;
       if(!_present(o[col])){ o[col]=String(imputeVals[col]); fillCount[col]=(fillCount[col]||0)+1; } }
     return o; });
@@ -40,7 +40,7 @@ function applyCleaning(rows, plan){
     cleaned=out; changelog.push({target:"(rows)",action:"dedupe",detail:"Removed "+removed+" duplicate rows.",reason:plan.dedupeReason||""}); }
   for(const col in imputes){ let rsn=""; for(let i=0;i<colPlans.length;i++) if(colPlans[i].column===col) rsn=colPlans[i].reason||"";
     changelog.push({target:col,action:"impute",detail:imputes[col]+" = "+imputeVals[col]+"; filled "+(fillCount[col]||0)+" missing.",reason:rsn}); }
-  for(const col in drops){ changelog.push({target:col,action:"drop",detail:"Dropped column.",reason:drops[col]}); }
+  for(let di=0;di<dropCols.length;di++){ const col=dropCols[di]; changelog.push({target:col,action:"drop",detail:"Dropped column.",reason:dropReason[col]}); }
   return { cleanedRows: cleaned, changelog: changelog };
 }
 

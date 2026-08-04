@@ -61,6 +61,7 @@ export default function Page() {
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com/data.csv"
             onKeyDown={(e) => { if (e.key === "Enter" && !loading) run(); }}
+            disabled={loading}
           />
           <button type="button" className="btn" onClick={run} disabled={loading}>
             {loading ? "Analyzing…" : "Analyze"}
@@ -70,7 +71,7 @@ export default function Page() {
         <div className="samples">
           <span className="hint" style={{ marginTop: 0 }}>Try:</span>
           {SAMPLES.map((s) => (
-            <button type="button" key={s.label} className="chip" onClick={() => setUrl(s.url)}>{s.label}</button>
+            <button type="button" key={s.label} className="chip" onClick={() => setUrl(s.url)} disabled={loading}>{s.label}</button>
           ))}
         </div>
         <p className="hint">Must be a public, direct-download CSV link. Analysis runs several reasoning steps, so it can take up to a minute.</p>
