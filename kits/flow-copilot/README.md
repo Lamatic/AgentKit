@@ -1,24 +1,21 @@
 # Flow Copilot
-
-Translates a plain-English AI agent requirement into a structured Lamatic Flow blueprint.
+Translates a plain-English AI agent requirement into a structured Lamatic Flow blueprint, grounded in real Lamatic node documentation via RAG.
 
 ## What this does
-
 Give Flow Copilot a plain-English description of the AI agent you want to build (e.g., "I want a bot that reads customer emails and drafts replies"), and it returns:
-
 - A one-sentence summary of the agent
 - A numbered, step-by-step suggested flow using real Lamatic node types
-- The exact node sequence (e.g., `Chat Trigger → LLM Node → Condition Node → LLM Node`)
+- The exact node sequence
 - Any assumptions it made, if the original request was ambiguous
+- A structured JSON blueprint (flow name, trigger, nodes, node sequence, assumptions) for downstream use
 
 ## How to use
-
 1. Open the deployed Chat Widget for this flow
 2. Type a plain-English description of the AI agent you want to build
 3. Read the returned blueprint — it lists the exact nodes to add and how to connect them in Lamatic Studio
+4. Continue the conversation for follow-up refinements — Flow Copilot remembers prior turns
 
 ## Example
-
 **Input:**
 > I want an agent that summarizes long PDF reports into 3 bullet points.
 
@@ -33,11 +30,16 @@ Give Flow Copilot a plain-English description of the AI agent you want to build 
 > Node type sequence: Trigger → Code Node → LLM Node
 
 ## Flow structure
-
-- **Chat Trigger** — receives the user's plain-English request
-- **Generate Text (LLM Node)** — powered by Gemini, analyzes the request and produces the structured blueprint using a system prompt that enforces Lamatic's real node types and output format
+- **Chat Widget** — receives the user's plain-English request
+- **Memory Retrieve** — pulls prior conversation context for multi-turn continuity
+- **RAG Node** — retrieves relevant Lamatic node documentation from a vector store to ground the blueprint in real node types and patterns
+- **Generate Text (LLM Node)** — powered by Gemini, analyzes the request plus retrieved context and produces the structured blueprint
+- **Generate JSON (Instructor LLM Node)** — parses the blueprint into structured fields: `flowName`, `trigger`, `nodes`, `nodeSequence`, `assumptions`
+- **Memory Add** — stores the exchange for future conversation turns
 - **Chat Response** — returns the blueprint to the user
 
-## Model used
+## Knowledge base
+A companion flow, `ingest-node-docs`, seeds a `lamaticnodedocs` vector store with Lamatic node reference documentation, including common flow patterns and best practices, which the RAG node queries at runtime.
 
-Google Gemini (via Lamatic's Gemini API integration)
+## Model used
+Google Gemini (`gemini-3.5-flash-lite`, via Lamatic's Gemini API integration) — chosen for low latency and near-zero reasoning overhead.
