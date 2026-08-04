@@ -15,7 +15,7 @@ export default {
     }
   ],
   "links": {
-    "deploy": "",
-    "github": ""
+  "deploy": "",
+  "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/sporting-director"
   }
 };
