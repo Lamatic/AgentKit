@@ -78,9 +78,9 @@ To minimize integration headaches, components must be built in an "outside-in" a
 ### 6. Root Cause Analyzer
 *   **Purpose:** Deduce mechanics of failure.
 *   **Inputs:** Evidence JSON, Knowledge JSON.
-*   **Outputs:** `{"root_cause": "string", "cited_evidence": ["string"]}`
+*   **Outputs:** `{"root_cause": "string", "evidence_cited": ["string"]}`
 *   **Internal Logic:** LLM deductive reasoning combining symptom and theory.
-*   **Validation Rules:** `cited_evidence` must be a subset of input `evidence`.
+*   **Validation Rules:** `evidence_cited` must be a subset of input `evidence`.
 *   **Edge Cases:** Knowledge contradicts evidence.
 *   **Error Handling:** Output low confidence score.
 *   **Performance / Latency:** 3-6 seconds.
@@ -135,7 +135,7 @@ To minimize integration headaches, components must be built in an "outside-in" a
 ## 3. Node Design (Lamatic AgentKit Context)
 
 *   **Code Nodes (Log Cleaner, Output Formatter):** Use Code Nodes because string manipulation (Regex) and JSON aggregation are deterministic tasks. Using an LLM for these is expensive, slow, and prone to hallucinations (e.g., LLMs modifying log line numbers or hallucinating JSON keys).
-*   **LLM Nodes (Extractor, Classifier, Planner, RCA, Fix, Verifier, Risk):** Use LLM nodes. Each must be configured with a specific Prompt Template, strict JSON output schema enforcement (`response_format`), and temperature overrides (0.0).
+*   **LLM Nodes (Extractor, Classifier, Planner, RCA, Verifier, Risk):** Use LLM nodes configured with strict JSON schemas (`response_format`) and temperature overrides (0.0 for deterministic classification/analysis, 0.2 for the Fix Generator candidate diff generation).
 *   **Knowledge Node (Retrieval):** Use AgentKit's native Knowledge/RAG node to abstract vector database connections, embedding generation, and chunk retrieval.
 
 ---

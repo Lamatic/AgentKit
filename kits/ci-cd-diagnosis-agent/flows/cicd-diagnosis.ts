@@ -7,7 +7,7 @@
 
 export const meta = {
   name: "CI/CD Pipeline Failure Diagnosis",
-  description: "Analyzes CI/CD pipeline failure logs from GitHub Actions and GitLab CI, identifies root causes, and generates actionable, verified code fixes.",
+  description: "Ingests CI/CD failure logs, sanitizes sensitive tokens, and analyzes failure root causes with Gemini 2.0 to generate structured remediation plans and actionable code patches.",
   tags: ["ci-cd", "devops", "diagnosis", "rag", "gemini"],
   testInput: {
     logContent: "npm ERR! code ENOENT\nnpm ERR! syscall open\nnpm ERR! path /app/package.json",
@@ -17,7 +17,7 @@ export const meta = {
   },
   author: {
     name: "Pawan Chhimwal",
-    email: "pawanchhimwal@gmail.com"
+    email: ""
   }
 };
 

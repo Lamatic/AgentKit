@@ -323,7 +323,7 @@ export const GitHubRunsRequestSchema = z.object({
   status: z.enum(["failure", "success", "all"]).default("failure"),
 });
 
-export const GitHubDiagnoseRequestSchema = z.object({
+export const GitHubDiagnoseRunRequestSchema = z.object({
   owner: z.string().min(1),
   repo: z.string().min(1),
   runId: z.number().int().positive(),
@@ -342,28 +342,42 @@ kits/ci-cd-diagnosis-agent/apps/
 │   │   │   └── github/
 │   │   │       ├── callback/route.ts   # OAuth Callback handler
 │   │   │       ├── login/route.ts      # OAuth Initiation
-│   │   │       └── logout/route.ts     # Destroy session cookie
-│   │   ├── diagnose/route.ts           # Existing Manual Diagnose API
+│   │   │       └── session/route.ts    # Session status & user info
+│   │   ├── diagnose/route.ts           # Manual Log Diagnose API
 │   │   ├── github/
 │   │   │   ├── diagnose/route.ts       # GitHub Run fetch -> Lamatic execution
 │   │   │   ├── repos/route.ts          # Repository list proxy
-│   │   │   └── runs/route.ts           # Workflow runs proxy
-│   │   └── health/route.ts
+│   │   │   ├── runs/route.ts           # Workflow runs proxy
+│   │   │   └── workflows/route.ts      # Repository workflows proxy
+│   │   └── health/route.ts             # Health check endpoint
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
 ├── components/
-│   ├── diagnosis-workspace.tsx         # Updated with GitHub Tab
+│   ├── diagnosis-workspace.tsx         # Main interactive workspace
+│   ├── system-health-modal.tsx         # Live service health status modal
+│   ├── dashboard/                      # Metrics, history table & analytics
 │   ├── github/
 │   │   ├── github-connect-card.tsx     # OAuth Login CTA
 │   │   ├── github-repo-selector.tsx    # Repo dropdown with search
-│   │   └── github-run-list.tsx         # List of failed workflow runs
-│   └── ui/                             # Glassmorphic base components
+│   │   └── github-workflow-list.tsx    # List of failed workflow runs
+│   └── workspace/                      # Log viewer, recovery plan, & exports
 ├── lib/
+│   ├── auth/
+│   │   ├── github.ts                   # OAuth URL builder & token exchange
+│   │   └── session.ts                  # Encrypted AES-256 session cookies
 │   ├── github/
-│   │   ├── auth-config.ts              # Iron-session & OAuth client options
-│   │   ├── client.ts                   # Octokit client factory
-│   │   └── log-extractor.ts            # Zip unpacking & secret redaction
+│   │   ├── log-service.ts              # In-memory log extraction & secret redaction
+│   │   ├── repos.ts                    # GitHub repository fetching
+│   │   └── workflows.ts                # GitHub workflow run fetching
+│   ├── history/
+│   │   └── history-store.ts            # Persistent diagnosis history
+│   ├── observability/
+│   │   └── logger.ts                   # Structured JSON logging
+│   ├── recovery/
+│   │   └── recovery-engine.ts          # Client-side heuristic fallback engine
+│   ├── security/
+│   │   └── rate-limit.ts               # In-memory token bucket rate limiter
 │   ├── lamatic-client.ts
 │   ├── types.ts                        # Shared TypeScript types & schemas
 │   └── utils.ts

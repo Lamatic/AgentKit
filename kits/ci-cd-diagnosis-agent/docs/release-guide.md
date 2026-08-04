@@ -5,20 +5,32 @@
 An outstanding open-source repository immediately communicates maturity and stability to reviewers. The following structure is strictly recommended for the final release:
 
 ```text
-/
-├── .github/                    # Issue templates, PR templates, workflows
-├── apps/
-│   ├── web/                    # Next.js Frontend
-│   └── backend/                # Next.js API integrations
+kits/ci-cd-diagnosis-agent/
+├── apps/                       # Next.js Full-Stack Application
+│   ├── app/                    # Next.js App Router (UI + API routes)
+│   ├── components/             # React workspace & dashboard components
+│   ├── lib/                    # Auth, GitHub, Lamatic clients, & recovery engine
+│   ├── .env.example            # Application environment configuration template
+│   └── package.json            # Application dependencies & build scripts
+├── flows/                      # Lamatic Flow Definitions
+│   └── cicd-diagnosis.ts       # Declarative flow graph exported for Lamatic Studio
+├── prompts/                    # Externalized Markdown Prompts
+│   ├── cicd-diagnosis_analyzer_system.md
+│   └── cicd-diagnosis_analyzer_user.md
+├── model-configs/              # Model Inference Parameters
+│   └── cicd-diagnosis_analyzer.ts
+├── scripts/                    # Flow Code Scripts
+│   └── cicd-diagnosis_sanitize_logs.ts
+├── constitutions/              # AI Safety & Guardrails
+│   └── default.md
 ├── knowledge/                  # RAG Markdown documents
 ├── docs/                       # Architecture, Strategy, and Planning docs (Phases 0-8)
-├── lamatic/                    # Exported Lamatic AgentKit JSON flows and prompt definitions
-├── tests/                      # E2E and Unit test suites
-├── assets/                     # High-res images, Mermaid exports, Demo GIFs
-├── examples/                   # Sample CI/CD logs for users to test the app with
-└── README.md                   # The entry point
+├── examples/                   # Sample CI/CD logs for testing
+├── lamatic.config.ts           # Kit manifest and metadata
+├── agent.md                    # Agent Kit documentation
+└── README.md                   # Kit overview and quickstart
 ```
-*Why this structure?* Reviewers look for separation of concerns. `lamatic/` proves you have orchestrated workflows. `knowledge/` proves your RAG strategy is local and extensible. `examples/` lowers the barrier to entry for testing.
+*Why this structure?* Adheres to the standard AgentKit layout. `flows/` and `prompts/` export reproducible workflow logic. `knowledge/` provides localized RAG remediation articles. `examples/` lowers the barrier to testing.
 
 ---
 
@@ -28,14 +40,14 @@ Comprehensive documentation separates amateur hacks from enterprise products.
 
 | Document | Purpose |
 | :--- | :--- |
-| `README.md` | The front page. Pitch, architecture overview, and quick-start. |
-| `docs/architecture.md` | System design, components, and data flow. |
-| `docs/lamatic-workflow.md` | Explicit explanation of the AgentKit DAG and conditional routing. |
-| `docs/knowledge-architecture.md`| RAG strategy, metadata schemas, and chunking logic. |
-| `docs/prompt-architecture.md` | Guardrails, JSON schemas, and agent persona definitions. |
-| `docs/testing-strategy.md` | QA strategy, metrics, and failure injection scenarios. |
-| `CONTRIBUTING.md` | Guide for onboarding new developers (how to write a RAG file). |
-| `LICENSE` | Open-source licensing (MIT/Apache 2.0). |
+| `kits/ci-cd-diagnosis-agent/README.md` | The front page. Pitch, architecture overview, and quick-start. |
+| `kits/ci-cd-diagnosis-agent/docs/architecture.md` | System design, components, and data flow. |
+| `kits/ci-cd-diagnosis-agent/docs/lamatic-workflow.md` | Explicit explanation of the AgentKit DAG and conditional routing. |
+| `kits/ci-cd-diagnosis-agent/docs/knowledge-architecture.md`| RAG strategy, metadata schemas, and chunking logic. |
+| `kits/ci-cd-diagnosis-agent/docs/prompt-architecture.md` | Guardrails, JSON schemas, and agent persona definitions. |
+| `kits/ci-cd-diagnosis-agent/docs/testing-strategy.md` | QA strategy, metrics, and failure injection scenarios. |
+| `kits/ci-cd-diagnosis-agent/agent.md` | Lamatic AgentKit integration and metadata summary. |
+| `kits/ci-cd-diagnosis-agent/lamatic.config.ts` | Kit manifest, tags, and deployment metadata. |
 
 ---
 
@@ -48,13 +60,14 @@ The README must impress reviewers within the first 30 seconds.
 *   **Demo GIF:** A looping 10-second GIF showing a log upload and instant RCA generation.
 *   **Features:** Bullet points emphasizing *Multi-Agent Orchestration*, *Adversarial Verification*, and *Explainable RAG*.
 *   **Architecture Diagram:** Embedded Mermaid or high-res PNG.
-*   **Tech Stack:** Next.js, Lamatic AgentKit, Gemini, Vercel.
+*   **Tech Stack:** Next.js (App Router), Lamatic AgentKit, Gemini 2.0 Flash, Vercel.
 *   **Quick Start (Running Locally):** 
-    1. `git clone`
-    2. `npm install`
-    3. `cp .env.example .env` (Add Lamatic Key)
-    4. `npm run dev`
-*   **Testing with Examples:** Tell users to use files in the `/examples` folder.
+    1. `git clone https://github.com/Lamatic/AgentKit.git`
+    2. `cd kits/ci-cd-diagnosis-agent/apps`
+    3. `npm install`
+    4. `cp .env.example .env.local` (Configure Lamatic keys)
+    5. `npm run dev`
+*   **Testing with Examples:** Tell users to use sample log files in `kits/ci-cd-diagnosis-agent/examples/`.
 *   **Acknowledgements:** Explicitly credit the Lamatic AgentKit Challenge.
 
 ---

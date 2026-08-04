@@ -18,7 +18,7 @@
 
 | Component | Score | Evaluation | Recommended Improvement |
 | :--- | :--- | :--- | :--- |
-| **Modularity (Agents)** | 9/10 | Excellent decoupling. Nodes act purely on JSON schemas. | Extract prompt templates into versioned JSON files. |
+| **Modularity (Agents)** | 9/10 | Excellent decoupling. Nodes act purely on JSON schemas. | Maintain externalized Markdown prompt templates under `kits/ci-cd-diagnosis-agent/prompts/`. |
 | **Workflow (AgentKit)** | 9/10 | DAG architecture provides immense explainability. | Add WebSocket streaming for real-time UI updates. |
 | **RAG (Knowledge)** | 8/10 | Markdown chunking works well for code context. | Migrate from local vector store to a hosted Pinecone index. |
 | **Backend API** | 8/10 | Thin proxy protects secrets. | Add Zod payload size validation earlier in the middleware. |
@@ -121,7 +121,7 @@ To move from an MVP to a true SaaS platform:
 ## 13. Maintainability
 
 *   **Code Readability (9/10):** TypeScript interfaces explicitly map to Lamatic JSON schemas.
-*   **Prompt Organization (8/10):** Prompts are currently stored inside Lamatic. We should maintain "infrastructure as code" backups of all prompt templates in the GitHub repo.
+*   **Prompt Organization (9/10):** Prompt templates are maintained as version-controlled Markdown files in `kits/ci-cd-diagnosis-agent/prompts/` while Lamatic acts as the runtime consumer.
 
 ---
 

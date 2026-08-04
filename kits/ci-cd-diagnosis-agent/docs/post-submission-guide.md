@@ -14,7 +14,7 @@ You must be able to defend every engineering decision.
     *   *Problem:* LLMs hallucinate specific CLI flags or internal infrastructure paths.
     *   *Why Chosen:* Markdown chunks perfectly via headers. Providing exact proprietary documentation (like custom GitHub Actions paths) grounds the Root Cause Analyzer and Fix Generator.
 *   **Why Planner & Verifier?**
-    *   *Why Chosen:* Planner prevents RAG database poisoning by executing targeted semantic searches based on classification. Verifier acts as an adversarial Red Team to prevent the Fix Generator from blindly outputting `chmod 777` or hallucinating syntax.
+    *   *Why Chosen:* Planner narrows retrieval through targeted semantic searches based on classification rather than broad unfocused queries. Verifier acts as an adversarial Red Team to prevent the Fix Generator from blindly outputting insecure commands (like `chmod 777`) or hallucinating syntax.
 *   **Why structured JSON?**
     *   *Why Chosen:* LLM text outputs are notoriously difficult to parse predictably. Forcing JSON Schema mode guarantees deterministic API contracts between nodes, enabling graceful fallbacks.
 
@@ -109,7 +109,7 @@ To migrate this to a SaaS enterprise platform:
 
 ## 9. Performance & Security Review
 
-*   **Latency Bottleneck:** The Evidence Extractor reads the entire cleaned log. Optimisation: Pre-filter the log in the Code Node to only include lines containing `err`, `fail`, `crit`, `warn`, `exit`.
+*   **Latency Bottleneck:** The Evidence Extractor reads the entire cleaned log. Optimisation: Pre-filter the log in the Code Node to preserve key failure markers including `FATAL ERROR:`, `Killed`, `err`, `fail`, `crit`, `warn`, and `exit` or extract a bounded tail window around failures.
 *   **Security Risk:** Remote Code Execution (RCE) via prompt injection.
     *   *Mitigation:* Strict use of `response_mime_type: "application/json"`. The LLM cannot execute code, it can only return a string payload. The frontend uses `react-syntax-highlighter` which sanitizes HTML, preventing XSS.
 

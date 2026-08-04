@@ -21,5 +21,4 @@ This report summarizes the production readiness audit, architecture verification
 - [x] All TypeScript models compile with **0 errors** (`npm run typecheck`).
 - [x] Live health probe `GET /api/health` returns HTTP 200 OK.
 - [x] GitHub Actions `.zip` log extraction operates 100% in RAM with AWS & GitHub secret redaction.
-- [x] OWASP HTTP security headers active in `next.config.js`.
-- [x] Lamatic Challenge 2-Minute Demo Script and 5-Minute Technical Presentation ready in `docs/demo-script-and-submission-guide.md`.
+- [x] Lamatic Challenge presentation guide, demo scripts, and evaluation responses ready in `docs/release-guide.md` and `docs/post-submission-guide.md`.

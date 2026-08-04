@@ -57,11 +57,11 @@ The system must support the following major CI/CD failure categories, mapped dir
 
 Every troubleshooting document must adhere to this Markdown template to optimize vector embedding and LLM comprehension.
 
-```markdown
+````markdown
 ---
 id: [unique-identifier-e.g.-docker-exit-137]
 title: [Human readable title]
-domain: [infrastructure | languages | platforms | security | networking]
+domain: [infrastructure | languages | platforms | security | networking | version-control]
 technology: [e.g., docker, npm, github-actions]
 severity: [high | medium | low]
 keywords: [comma, separated, keywords, exit code 137, oom, killed]
@@ -89,7 +89,7 @@ Exact, copy-pasted log output (e.g., "Killed", "Exit code 137", "FATAL ERROR: In
 ### Fix 1: [Name of primary fix]
 **Description:** What this fix does.
 **Implementation:**
-```yaml | bash
+```yaml
 # Code to apply
 ```
 
@@ -101,7 +101,7 @@ How the Fix Verifier agent or human can prove the issue is resolved.
 
 ## References
 Links to official docs or GitHub issues.
-```
+````
 
 ---
 
@@ -141,7 +141,7 @@ The Retrieval architecture uses **Hybrid Search** (Dense Vector + Sparse BM25 Ke
     *   *Semantic Search (Dense):* Finds conceptually similar documents (e.g., matches "package conflict" with "peer dependency").
     *   *Keyword Search (BM25):* Ensures exact matches for specific error codes (e.g., `ERR_PNPM_PEER_DEP_ISSUES`).
 4.  **Ranking (Reciprocal Rank Fusion - RRF):** Merges the results of Semantic and Keyword searches to bubble up the best matches.
-5.  **Top-K Selection:** Select the Top 3 to 5 chunks to inject into the Root Cause Analyzer's context window (keeping total retrieved context under 3,000 tokens).
+5.  **Top-K Selection:** Select the Top 3 chunks to inject into the Root Cause Analyzer's context window (keeping total retrieved context under 3,000 tokens).
 
 ---
 
@@ -176,8 +176,8 @@ To launch the MVP successfully, the following high-priority documents must be cr
 *   `npm-ci-lockfile-mismatch.md` (package-lock.json not matching package.json)
 *   `node-heap-out-of-memory.md` (JavaScript heap out of memory during Webpack/Vite build)
 
-**Security & Permissions (security/)**
-*   `permission-denied-sh.md` (Missing execution bit on bash scripts)
+**Security & Permissions (security/permissions/)**
+*   `permission-denied-script.md` (Missing execution bit on bash scripts)
 *   `github-token-permissions.md` (403 when trying to push tags or packages)
 
 ---
@@ -188,7 +188,7 @@ To launch the MVP successfully, the following high-priority documents must be cr
 *   *Evidence Extractor:* `/entrypoint.sh: Permission denied`
 *   *Planner Output:* `{"query": "bash script permission denied entrypoint", "filters": {"domain": ["security", "infrastructure"]}}`
 *   *Retrieved Chunks:*
-    *   **Chunk A (Top 1):** `security/permission-denied-sh.md` -> `## Recommended Fixes: Run git update-index --chmod=+x entrypoint.sh` (Selected due to exact keyword match on "Permission denied" and semantic match on bash scripts).
+    *   **Chunk A (Top 1):** `security/permissions/permission-denied-script.md` -> `## Recommended Fixes: Run git update-index --chmod=+x entrypoint.sh` (Selected due to exact keyword match on "Permission denied" and semantic match on bash scripts).
 
 **Example 2: Node.js Memory Crash**
 *   *Evidence Extractor:* `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory`
@@ -211,7 +211,7 @@ Adding new technologies (e.g., Rust, Kubernetes, Bazel) requires **zero architec
 ## 11. Quality Standards (Acceptance Criteria)
 
 Before a knowledge document can be merged into the `knowledge/` directory, it must pass these criteria:
-*   [ ] **Schema Valid:** YAML frontmatter contains all required fields (`id`, `title`, `domain`, `technology`, `keywords`).
+*   [ ] **Schema Valid:** YAML frontmatter contains all required fields (`id`, `title`, `domain`, `technology`, `severity`, `keywords`, `last_updated`).
 *   [ ] **Real Evidence:** The `Typical Error Messages` section contains at least one real, raw log snippet.
 *   [ ] **Actionable Fix:** The `Recommended Fixes` section contains runnable code (CLI commands, YAML blocks), not just prose.
 *   [ ] **No Duplication:** The error discussed is not already covered by an existing document (verified by vector similarity check against existing docs).
@@ -244,5 +244,5 @@ To unblock development and testing of the RAG pipeline immediately, author these
 1.  `infrastructure/docker/exit-code-137.md` (Tests basic RAG and exact code matching)
 2.  `languages/node/npm-peer-dependency-conflict.md` (Tests complex multi-line error extraction matching)
 3.  `platforms/github-actions/yaml-syntax-errors.md` (Tests YAML code block fix generation)
-4.  `security/permissions/permission-denied-sh.md` (Tests simple bash command fix generation)
+4.  `security/permissions/permission-denied-script.md` (Tests simple bash command fix generation)
 5.  `infrastructure/docker/no-space-left-on-device.md` (Tests environment-level root cause analysis)

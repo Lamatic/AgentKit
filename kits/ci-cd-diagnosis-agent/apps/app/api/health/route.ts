@@ -21,6 +21,7 @@ export async function GET() {
     if (ghRes.ok) {
       await ghRes.text(); // Consume body to release sockets
     } else {
+      await ghRes.text().catch(() => {}); // Consume or discard non-ok body to prevent socket leak
       githubStatus = "degraded";
     }
   } catch (err) {
