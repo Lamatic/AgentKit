@@ -484,11 +484,12 @@ class LamaticClientReasoner implements LamaticReasoner {
     const client = this.getClient(flowLabel);
 
     let resData: { result?: unknown };
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       resData = await Promise.race([
         client.executeFlow(flowId, inputs),
         new Promise<never>((_, reject) => {
-          setTimeout(
+          timeout = setTimeout(
             () => reject(new Error(`flow execution timed out after ${FLOW_TIMEOUT_MS}ms`)),
             FLOW_TIMEOUT_MS
           );
@@ -497,6 +498,8 @@ class LamaticClientReasoner implements LamaticReasoner {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(`[lamatic-client] ${flowLabel}: flow execution failed: ${message}`);
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
     if (!resData || resData.result === undefined || resData.result === null) {
       throw new Error(`[lamatic-client] ${flowLabel}: flow returned no result.`);
