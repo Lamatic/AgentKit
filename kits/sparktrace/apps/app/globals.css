@@ -23,10 +23,11 @@
   --input: oklch(0.9 0 0);
   --ring: oklch(0.55 0 0);
   --radius: 0.625rem;
-  --success: oklch(0.6 0.16 155);
-  --warning: oklch(0.75 0.16 75);
+  --success: oklch(0.42 0.14 155);
+  --warning: oklch(0.45 0.15 75);
   --slate: oklch(0.5 0.03 255);
   --violet: oklch(0.55 0.22 295);
+  --info: oklch(0.5 0.15 235);
 }
 
 .dark {
@@ -53,6 +54,7 @@
   --warning: oklch(0.8 0.16 85);
   --slate: oklch(0.75 0.02 255);
   --violet: oklch(0.75 0.15 295);
+  --info: oklch(0.75 0.13 235);
 }
 
 /* System-preference fallback for visitors who never toggle the app's theme
@@ -83,6 +85,7 @@
     --warning: oklch(0.8 0.16 85);
     --slate: oklch(0.75 0.02 255);
     --violet: oklch(0.75 0.15 295);
+    --info: oklch(0.75 0.13 235);
   }
 }
 
@@ -112,6 +115,7 @@
   --color-warning: var(--warning);
   --color-slate: var(--slate);
   --color-violet: var(--violet);
+  --color-info: var(--info);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

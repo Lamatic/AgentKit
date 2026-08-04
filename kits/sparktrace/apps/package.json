@@ -39,7 +39,7 @@
     "react-hook-form": "^7.60.0",
     "react-markdown": "10.1.0",
     "sonner": "^1.7.4",
-    "tailwind-merge": "^2.5.5",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "3.25.67"
   },

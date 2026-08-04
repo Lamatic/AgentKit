@@ -31,7 +31,7 @@ import type {
 } from "../contracts";
 import { loadScenario, type ScenarioTable } from "./scenario-paths";
 
-const MAX_ROWS = 500;
+import { MAX_ROWS } from "../aws/athena-client";
 
 /** Minimal, quote-aware CSV parser. The sample data is small and clean;
  * this handles double-quoted fields and embedded commas without pulling

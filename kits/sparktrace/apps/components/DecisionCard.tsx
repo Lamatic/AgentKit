@@ -29,17 +29,17 @@ export function DecisionCard({ decision, index, className }: DecisionCardProps) 
   return (
     <div
       className={cn(
-        "rounded-xl border border-violet-500/30 bg-violet-500/5 p-4 shadow-sm dark:bg-violet-500/10",
+        "rounded-xl border border-violet/30 bg-violet/5 p-4 shadow-sm",
         className
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-400">
+        <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-violet/15 text-violet">
           <Brain className="size-3.5" />
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-violet-600 dark:text-violet-400">
+            <span className="text-xs font-medium text-violet">
               {index !== undefined ? `Planner · turn ${index}` : "Planner"}
             </span>
             <Badge variant="violet" className="gap-1 font-mono">

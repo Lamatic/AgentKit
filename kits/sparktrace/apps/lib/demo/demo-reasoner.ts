@@ -322,7 +322,16 @@ class DemoReasoner implements LamaticReasoner {
 
     const dropRatio = detectTailVolumeDrop(result);
 
-    if (dropRatio !== undefined && dropRatio >= 0.3) {
+    if (dropRatio === undefined) {
+      return {
+        verdict: "inconclusive",
+        reasoning:
+          "The per-day volume query returned rows, but no usable numeric \"order_count\" series was available to compare the recent days against the earlier run rate.",
+        hint: "refine-query",
+      };
+    }
+
+    if (dropRatio >= 0.3) {
       return {
         verdict: "confirmed",
         reasoning:

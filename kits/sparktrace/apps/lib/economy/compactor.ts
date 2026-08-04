@@ -68,6 +68,34 @@ function looksLikeIsoDate(v: unknown): v is string {
 }
 
 /**
+ * Builds a bounded, self-contained distinct-value key for a raw cell value.
+ * Type-tags primitives so e.g. the number 1 and the string "1" never
+ * collide, and safely serializes objects — falling back to a stable
+ * token (rather than throwing) for values `JSON.stringify` can't handle,
+ * such as nested `bigint` or cyclic references. Never throws.
+ */
+function distinctKey(raw: unknown): string {
+  if (raw === null) return "null";
+  if (raw === undefined) return "undefined";
+  switch (typeof raw) {
+    case "number":
+      return `n:${raw}`;
+    case "string":
+      return `s:${raw}`;
+    case "boolean":
+      return `b:${raw}`;
+    case "bigint":
+      return `bi:${raw}`;
+    default:
+      try {
+        return `o:${JSON.stringify(raw)}`;
+      } catch {
+        return "o:[unserializable]";
+      }
+  }
+}
+
+/**
  * Head+tail sample of up to MAX_SAMPLE_ROWS rows: first ceil(n/2) rows
  * from the head, last floor(n/2) rows from the tail (deduped when the
  * two windows would overlap on a small result).
@@ -108,7 +136,7 @@ function computeColumnStats(columns: string[], rows: Array<Record<string, unknow
       }
 
       if (i < DISTINCT_SCAN_CAP) {
-        distinct.add(typeof raw === "object" && raw !== null ? JSON.stringify(raw) : String(raw));
+        distinct.add(distinctKey(raw));
       } else {
         distinctCapped = true;
       }
@@ -152,20 +180,18 @@ function computeColumnStats(columns: string[], rows: Array<Record<string, unknow
 }
 
 /** Finds the first column whose non-null values all look like ISO dates
- * (scanning up to DISTINCT_SCAN_CAP rows), and returns its min/max span. */
+ * and returns its min/max span. */
 function computeDateSpan(
   columns: string[],
   rows: Array<Record<string, unknown>>
 ): ResultStats["dateSpan"] {
-  const scanRows = rows.length > DISTINCT_SCAN_CAP ? rows.slice(0, DISTINCT_SCAN_CAP) : rows;
-
   for (const column of columns) {
     let sawValue = false;
     let allIsoDates = true;
     let min: string | undefined;
     let max: string | undefined;
 
-    for (const row of scanRows) {
+    for (const row of rows) {
       const raw = row[column];
       if (raw === null || raw === undefined) continue;
       sawValue = true;

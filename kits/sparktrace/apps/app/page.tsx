@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Activity,
   AlertCircle,
@@ -38,29 +40,56 @@ const STATUS_COPY: Record<string, string> = {
   cancelled: "Investigation cancelled",
 };
 
+// A demo scenario always runs in demo mode, a custom repo always in live
+// mode, so `useDemoScenario` and `mode` can never be submitted mismatched —
+// `repoUrl` is only required (and URL-validated) once demo mode is off.
+const formSchema = z
+  .object({
+    symptom: z.string().trim().min(1, "Describe the symptom you're seeing."),
+    useDemoScenario: z.boolean(),
+    repoUrl: z.string().trim(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.useDemoScenario) return;
+    if (!data.repoUrl) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Enter a pipeline repo URL.", path: ["repoUrl"] });
+      return;
+    }
+    if (!z.string().url().safeParse(data.repoUrl).success) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Enter a valid URL.", path: ["repoUrl"] });
+    }
+  });
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function SparkTracePage() {
-  const [symptom, setSymptom] = useState("");
-  const [repoUrl, setRepoUrl] = useState("");
-  const [useDemoScenario, setUseDemoScenario] = useState(true);
-  // Mode is derived from the source selection, never chosen independently —
-  // a demo scenario always runs in demo mode, a custom repo always in live
-  // mode, so the two can never be submitted mismatched.
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    mode: "onChange",
+    defaultValues: { symptom: "", useDemoScenario: true, repoUrl: "" },
+  });
+
+  const useDemoScenario = watch("useDemoScenario");
+  // Mode is derived from the source selection, never chosen independently.
   const mode: ExecutionMode = useDemoScenario ? "demo" : "live";
 
   const { investigation, isRunning, error, start, reset } = useInvestigation();
 
-  const canSubmit = symptom.trim().length > 0 && !isRunning && (useDemoScenario || repoUrl.trim().length > 0);
+  const canSubmit = isValid && !isRunning;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-
+  const onSubmit = async (data: FormValues) => {
     const input: RunInvestigationInput = {
-      symptom: symptom.trim(),
+      symptom: data.symptom.trim(),
       mode,
       source: useDemoScenario
         ? { scenarioId: "demo" }
-        : { repoUrl: repoUrl.trim() },
+        : { repoUrl: data.repoUrl.trim() },
     };
 
     await start(input);
@@ -93,7 +122,7 @@ export default function SparkTracePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="symptom" className="text-sm font-medium">
                 Symptom
@@ -101,11 +130,11 @@ export default function SparkTracePage() {
               <Textarea
                 id="symptom"
                 placeholder='e.g. "Daily revenue in the sink table has been ~12% lower than expected since Tuesday"'
-                value={symptom}
-                onChange={(e) => setSymptom(e.target.value)}
                 disabled={isRunning}
                 rows={3}
+                {...register("symptom")}
               />
+              {errors.symptom && <p className="text-xs text-destructive">{errors.symptom.message}</p>}
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -116,7 +145,7 @@ export default function SparkTracePage() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setUseDemoScenario((v) => !v)}
+                    onClick={() => setValue("useDemoScenario", !useDemoScenario, { shouldValidate: true })}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
                       useDemoScenario
@@ -132,16 +161,18 @@ export default function SparkTracePage() {
                 <Input
                   id="repoUrl"
                   placeholder="https://github.com/org/pipeline-repo"
-                  value={repoUrl}
-                  onChange={(e) => setRepoUrl(e.target.value)}
                   disabled={isRunning || useDemoScenario}
+                  {...register("repoUrl")}
                 />
+                {errors.repoUrl && !useDemoScenario && (
+                  <p className="text-xs text-destructive">{errors.repoUrl.message}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Mode</label>
                 {/* Derived from "Use demo scenario", not independently selectable —
-                    see the mode/useDemoScenario coupling above handleSubmit. */}
+                    see the mode/useDemoScenario coupling in the zod schema above. */}
                 <div className="flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium capitalize text-muted-foreground">
                   {mode}
                 </div>
@@ -177,7 +208,7 @@ export default function SparkTracePage() {
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+            <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
               <p>{error}</p>
             </div>
