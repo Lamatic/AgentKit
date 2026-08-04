@@ -15,7 +15,7 @@ export default {
     }
   ],
   "links": {
-  "deploy": "",
+  "deploy": "https://kishoharsorganization282-kishoharsproject403.lamatic.dev/graphql",
   "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/sporting-director"
   }
 };
