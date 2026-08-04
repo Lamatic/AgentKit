@@ -1,0 +1,6 @@
+# OS files
+.DS_Store
+
+# Environment — only .env.example is ever committed
+.env
+.env*.local
