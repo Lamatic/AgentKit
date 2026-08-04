@@ -18,6 +18,11 @@ const GROUPS: { key: Severity; label: string; tone: string; openByDefault: boole
 
 const KNOWN = new Set<string>(["breaking", "potentially-breaking", "additive"]);
 
+/** Grouping is presentation, not policy — tolerate whatever casing arrives. */
+function sev(c: ReviewedChange): string {
+  return String(c.severity ?? "").toLowerCase().trim().replace(/\s+/g, "-");
+}
+
 function render(value: unknown): string {
   if (value === null || value === undefined) return "—";
   if (typeof value === "string") return value;
@@ -114,8 +119,8 @@ export default function ChangeList({ changes }: { changes: ReviewedChange[] }) {
         // change can silently disappear from the list.
         const inGroup =
           g.key === "unclassified"
-            ? changes.filter((c) => !KNOWN.has(c.severity))
-            : changes.filter((c) => c.severity === g.key);
+            ? changes.filter((c) => !KNOWN.has(sev(c)))
+            : changes.filter((c) => sev(c) === g.key);
         if (!inGroup.length) return null;
         return (
           <Group
