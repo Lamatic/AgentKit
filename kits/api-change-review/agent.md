@@ -30,6 +30,8 @@ Comparing two schemas is a solved problem with a right answer. Running it in Typ
 
 The flow therefore receives **change facts, never raw specs**, and the app carries **no severity mapping of its own**. Severity is the flow's answer; duplicating the rules client-side would let the two drift apart silently.
 
+Each change fact crosses the boundary JSON-encoded. Studio's trigger schema offers only `[]` or `[string]` for arrays, and object-shaped items are rejected at ingestion with HTTP 400, so the app serializes and the assemble node parses. That node accepts both shapes, so nothing breaks if the schema is later widened to `[]`.
+
 ## Flows
 
 ### `api-review-change`
@@ -38,7 +40,7 @@ The flow therefore receives **change facts, never raw specs**, and the app carri
 
 | Field | Type | Meaning |
 |---|---|---|
-| `changes` | array | Change facts from `diffSpecs()` |
+| `changes` | `[string]` | Change facts from `diffSpecs()`, each JSON-encoded |
 | `totalChanges` | int | Length of `changes` |
 | `oldVersion` | string | `info.version` of the previous spec, or null |
 | `newVersion` | string | `info.version` of the new spec, or null |

@@ -64,7 +64,11 @@ export async function reviewApiChanges(input: {
 
     const client = getLamaticClient();
     const raw = await client.executeFlow(flowIdFor("step1"), {
-      changes: diff.changes,
+      // The trigger declares `changes` as [string] — Studio offers only [] or
+      // [string] for arrays, and object-shaped items are rejected at ingestion
+      // with HTTP 400. Each fact goes over as JSON; the flow's assemble node
+      // parses it back and accepts either shape.
+      changes: diff.changes.map((c) => JSON.stringify(c)),
       totalChanges: diff.totalChanges,
       oldVersion: diff.oldVersion,
       newVersion: diff.newVersion,
