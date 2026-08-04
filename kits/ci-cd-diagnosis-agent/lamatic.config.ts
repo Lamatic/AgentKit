@@ -21,7 +21,7 @@ export default {
   ],
   steps: [
     {
-      id: "cicd-diagnosis",
+      id: "cicd",
       type: "mandatory" as const,
       envKey: "CICD_DIAGNOSIS_FLOW_ID",
     },
