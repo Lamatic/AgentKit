@@ -101,7 +101,7 @@ Beyond `constitutions/default.md`:
 | Text generation model | Migration notes + changelog | Configured in Studio on the Generate Text node |
 | Structured output model | Per-change severity assessment | Configured in Studio on the Generate JSON node |
 
-No other external service is called. The app makes exactly one outbound request per review, from a server action.
+No other external service is called. A review that finds changes makes exactly one outbound request, from a server action; a review of two identical specs makes zero, because the no-change result is produced locally without calling the flow.
 
 ## Environment setup
 

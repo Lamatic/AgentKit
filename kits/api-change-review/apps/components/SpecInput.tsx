@@ -26,13 +26,18 @@ export default function SpecInput({
   }
 
   const lineCount = value ? value.split("\n").length : 0;
+  const fieldId = `spec-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
     <div className="flex min-w-0 flex-1 flex-col rounded-xl border border-edge bg-panel">
       <div className="flex items-center justify-between gap-3 border-b border-edge px-4 py-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold">{label}</h2>
-          <p className="truncate text-xs text-muted">{hint}</p>
+          <h2 className="text-sm font-semibold">
+            <label htmlFor={fieldId}>{label}</label>
+          </h2>
+          <p id={`${fieldId}-hint`} className="truncate text-xs text-muted">
+            {hint}
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {value ? (
@@ -56,12 +61,14 @@ export default function SpecInput({
         </div>
       </div>
       <textarea
+        id={fieldId}
+        aria-describedby={`${fieldId}-hint`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         spellCheck={false}
         placeholder="Paste an OpenAPI 3.x document (YAML or JSON), or upload a file."
-        className="h-72 w-full resize-y bg-transparent p-4 text-xs leading-relaxed text-ink outline-none placeholder:text-muted disabled:opacity-60"
+        className="h-72 w-full resize-y bg-transparent p-4 text-xs leading-relaxed text-ink outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset placeholder:text-muted disabled:opacity-60"
       />
     </div>
   );

@@ -40,10 +40,18 @@ export default function Page() {
     setLoading(true);
     setError(null);
     setResult(null);
-    const res = await reviewApiChanges({ oldSpecText, newSpecText, audience });
-    if (res.ok) setResult(res.data);
-    else setError(res.error);
-    setLoading(false);
+    try {
+      const res = await reviewApiChanges({ oldSpecText, newSpecText, audience });
+      if (res.ok) setResult(res.data);
+      else setError(res.error);
+    } catch (e: any) {
+      // The action returns errors as values, but the call itself can still
+      // reject — a dropped connection, or a server-action transport failure.
+      // Without this the spinner never stops.
+      setError(e?.message ?? "The request failed before it reached the server.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const canRun = oldSpecText.trim() && newSpecText.trim() && !loading;
@@ -96,7 +104,7 @@ export default function Page() {
             value={audience}
             onChange={(e) => setAudience(e.target.value)}
             disabled={loading}
-            className="rounded-md border border-edge bg-panel-2 px-2.5 py-1.5 text-sm text-ink outline-none disabled:opacity-50"
+            className="rounded-md border border-edge bg-panel-2 px-2.5 py-1.5 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-50"
           >
             {AUDIENCES.map((a) => (
               <option key={a.id} value={a.id}>

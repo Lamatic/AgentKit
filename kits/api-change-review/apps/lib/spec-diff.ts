@@ -57,20 +57,20 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
   }
 
   // ---------- flatten a schema into dot-path leaves ----------
-  function flatten(spec: any, schema: any, prefix: any, depth: any, acc: any, required: any) {
+  function flatten(spec: any, schema: any, prefix: any, depth: any, acc: any) {
     schema = deref(spec, schema);
     if (!schema || typeof schema !== 'object' || depth > MAX_DEPTH) return acc;
 
     if (Array.isArray(schema.allOf)) {
-      schema.allOf.forEach(function (s: any) { flatten(spec, s, prefix, depth + 1, acc, required); });
+      schema.allOf.forEach(function (s: any) { flatten(spec, s, prefix, depth + 1, acc); });
     }
     const variant = schema.oneOf || schema.anyOf;
     if (Array.isArray(variant)) {
-      variant.forEach(function (s: any, i: any) { flatten(spec, s, prefix, depth + 1, acc, false); });
+      variant.forEach(function (s: any) { flatten(spec, s, prefix, depth + 1, acc); });
     }
 
     if (schema.type === 'array' && schema.items) {
-      return flatten(spec, schema.items, prefix + '[]', depth + 1, acc, required);
+      return flatten(spec, schema.items, prefix + '[]', depth + 1, acc);
     }
 
     if (schema.properties) {
@@ -86,7 +86,7 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
           enum: child && Array.isArray(child.enum) ? child.enum.slice() : null,
           deprecated: !!(child && child.deprecated)
         };
-        flatten(spec, child, path, depth + 1, acc, req.indexOf(name) !== -1);
+        flatten(spec, child, path, depth + 1, acc);
       });
     }
     return acc;
@@ -178,11 +178,17 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
   const newPaths = (newSpec && newSpec.paths) || {};
 
   Object.keys(oldPaths).forEach(function (path: any) {
-    if (!newPaths[path]) { add('endpoint.removed', path, path, null); return; }
+    const oldItem = oldPaths[path];
+    const newItem = newPaths[path];
+    // A null path item is legal YAML. Check the old side first: if there was
+    // nothing there to begin with, this is not a removal — the second pass
+    // records it as added when the new side has content.
+    if (!oldItem || typeof oldItem !== 'object') return;
+    if (!newItem || typeof newItem !== 'object') { add('endpoint.removed', path, path, null); return; }
 
     METHODS.forEach(function (m: any) {
-      const a = deref(oldSpec, oldPaths[path][m]);
-      const b = deref(newSpec, newPaths[path][m]);
+      const a = deref(oldSpec, oldItem[m]);
+      const b = deref(newSpec, newItem[m]);
       if (!a) return;
       const where = m.toUpperCase() + ' ' + path;
       if (!b) { add('operation.removed', where, where, null); return; }
@@ -190,8 +196,8 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
       if (!a.deprecated && b.deprecated) add('operation.deprecated', where, false, true);
 
       diffParams(
-        paramMap(oldSpec, (oldPaths[path].parameters || []).concat(a.parameters || [])),
-        paramMap(newSpec, (newPaths[path].parameters || []).concat(b.parameters || [])),
+        paramMap(oldSpec, (oldItem.parameters || []).concat(a.parameters || [])),
+        paramMap(newSpec, (newItem.parameters || []).concat(b.parameters || [])),
         where
       );
 
@@ -200,8 +206,8 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
         if (!aBody && bBody && bBody.required) add('requestBody.added.required', where, null, true);
         if (aBody && bBody && !aBody.required && bBody.required) add('requestBody.required.added', where, false, true);
         diffProps(
-          flatten(oldSpec, schemaOf(oldSpec, aBody), '', 0, {}, false),
-          flatten(newSpec, schemaOf(newSpec, bBody), '', 0, {}, false),
+          flatten(oldSpec, schemaOf(oldSpec, aBody), '', 0, {}),
+          flatten(newSpec, schemaOf(newSpec, bBody), '', 0, {}),
           where + ' request', 'request'
         );
       }
@@ -211,8 +217,8 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
         if (!bRes[code]) { add('response.status.removed', where + ' :: ' + code, code, null); return; }
         if (String(code).charAt(0) !== '2') return; // only diff success payloads
         diffProps(
-          flatten(oldSpec, schemaOf(oldSpec, aRes[code]), '', 0, {}, false),
-          flatten(newSpec, schemaOf(newSpec, bRes[code]), '', 0, {}, false),
+          flatten(oldSpec, schemaOf(oldSpec, aRes[code]), '', 0, {}),
+          flatten(newSpec, schemaOf(newSpec, bRes[code]), '', 0, {}),
           where + ' response ' + code, 'response'
         );
       });
@@ -227,9 +233,13 @@ export function diffSpecs(oldSpec: any, newSpec: any): DiffResult {
   });
 
   Object.keys(newPaths).forEach(function (path: any) {
-    if (!oldPaths[path]) { add('endpoint.added', path, null, path); return; }
+    const newItem = newPaths[path];
+    const oldItem = oldPaths[path];
+    // Same ordering: nothing on the new side is not an addition.
+    if (!newItem || typeof newItem !== 'object') return;
+    if (!oldItem) { add('endpoint.added', path, null, path); return; }
     METHODS.forEach(function (m: any) {
-      if (newPaths[path][m] && !oldPaths[path][m]) {
+      if (newItem[m] && !oldItem[m]) {
         add('operation.added', m.toUpperCase() + ' ' + path, null, m.toUpperCase() + ' ' + path);
       }
     });
