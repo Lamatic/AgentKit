@@ -4,16 +4,18 @@ Give it two versions of an OpenAPI spec. It tells you what breaks, for whom, and
 
 ## What you get back
 
-- **Every change classified** — `breaking`, `potentially-breaking`, or `additive`, each with the reasoning and the concrete consumer impact.
-- **A merge verdict** — `safe-to-merge`, `review-required`, `needs-major-version`, or `no-api-change`.
+- **Each detected change classified** — `breaking`, `potentially-breaking`, or `additive`, with the reasoning and the consumer impact. Anything the classifier does not return an assessment for is surfaced as `unclassified` rather than dropped.
+- **A merge verdict** — `safe-to-merge`, `review-required`, `needs-major-version`, or `no-api-change`, computed from the severity counts.
 - **Migration notes** in markdown, written for the audience you pick.
 - **A changelog entry** in Keep a Changelog style.
+
+The diff is exhaustive over the surface it covers (see [Limitations](#limitations)); the severity and the prose are model-generated and should be read as a strong first pass, not a guarantee.
 
 The audience selector ("consumer developers" vs "public release notes") changes the tone and level of detail of both documents from the same diff.
 
 ## How it works
 
-```
+```text
 Two OpenAPI specs
    │
    ├─ lib/spec-diff.ts        deterministic, runs in the app
@@ -57,11 +59,11 @@ Use the deploy link in `lamatic.config.ts`, or point Vercel at this repo with th
 
 ## Layout
 
-```
+```text
 kits/api-change-review/
 ├── lamatic.config.ts          project metadata
 ├── agent.md                   agent identity + capabilities
-├── flows/api-change-review.ts the flow graph, exported from Lamatic Studio
+├── flows/api-review-review.ts the flow graph, exported from Lamatic Studio
 ├── constitutions/default.md   guardrails
 ├── prompts/                   externalized LLM prompts
 ├── model-configs/             externalized model settings

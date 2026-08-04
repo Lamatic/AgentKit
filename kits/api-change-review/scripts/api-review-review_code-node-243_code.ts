@@ -2,7 +2,9 @@ const meta = {{triggerNode_1.output}};
 
 output = {
   verdict: "no-api-change",
-  summary: "No differences found in the API surface between the two specs. Safe to merge.",
+  // Kept identical to the assemble node and the app's local short-circuit —
+  // three producers of the same result must not word it three ways.
+  summary: "No differences found in the API surface between the two specs.",
   oldVersion: meta.oldVersion,
   newVersion: meta.newVersion,
   totalChanges: 0,

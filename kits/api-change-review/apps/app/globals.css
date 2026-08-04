@@ -7,6 +7,7 @@
   --border: #253048;
   --text: #e8edf7;
   --muted: #94a3b8;
+  --link: #7cc4ff;
 }
 
 @theme inline {
@@ -16,6 +17,7 @@
   --color-edge: var(--border);
   --color-ink: var(--text);
   --color-muted: var(--muted);
+  --color-link: var(--link);
 }
 
 html,
@@ -73,7 +75,7 @@ pre {
   margin: 0.9em 0;
 }
 .md pre code { background: none; border: none; padding: 0; }
-.md a { color: #7cc4ff; text-decoration: underline; }
+.md a { color: var(--link); text-decoration: underline; }
 .md hr { border-color: var(--border); margin: 1.25em 0; }
 .md blockquote {
   border-left: 3px solid var(--border);

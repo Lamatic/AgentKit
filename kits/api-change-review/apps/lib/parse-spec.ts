@@ -8,20 +8,23 @@ export function parseSpec(text: string, label: string): any {
   const trimmed = text.trim();
   if (!trimmed) throw new Error(`${label} is empty.`);
 
+  let parsed: unknown;
   try {
-    return JSON.parse(trimmed);
+    parsed = JSON.parse(trimmed);
   } catch {
-    let parsed: unknown;
     try {
       parsed = yaml.load(trimmed);
     } catch (e: any) {
       throw new Error(`${label} is not valid JSON or YAML: ${e.message}`);
     }
-    if (!parsed || typeof parsed !== "object") {
-      throw new Error(`${label} is not valid JSON or YAML: it did not parse to an object.`);
-    }
-    return parsed;
   }
+
+  // Applies to both paths: `JSON.parse("123")` and `yaml.load("a string")` each
+  // succeed and return a scalar, which is never a spec.
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error(`${label} is not valid JSON or YAML: it did not parse to an object.`);
+  }
+  return parsed;
 }
 
 /**
