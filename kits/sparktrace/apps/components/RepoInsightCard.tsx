@@ -13,7 +13,7 @@ export function RepoInsightCard({ insight, className }: RepoInsightCardProps) {
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
-          <FileSearch className="size-4 text-sky-500" />
+          <FileSearch className="size-4 text-info" />
           <span className="font-mono text-xs font-normal text-muted-foreground">read_repo</span>
           <span className="text-balance">{insight.focus}</span>
         </CardTitle>

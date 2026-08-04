@@ -178,7 +178,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"symptom\": { \"type\": \"string\" },\n    \"hypothesis\": { \"type\": \"object\" },\n    \"query\": { \"type\": \"object\" },\n    \"result\": { \"type\": \"object\" }\n  },\n  \"required\": [\"symptom\", \"hypothesis\", \"query\", \"result\"]\n}"
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"symptom\": { \"type\": \"string\" },\n    \"hypothesis\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"id\": { \"type\": \"string\" },\n        \"title\": { \"type\": \"string\" }\n      },\n      \"required\": [\"id\", \"title\"]\n    },\n    \"query\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"id\": { \"type\": \"string\" },\n        \"sql\": { \"type\": \"string\" }\n      },\n      \"required\": [\"id\", \"sql\"]\n    },\n    \"result\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"columns\": { \"type\": \"array\" },\n        \"sampleRows\": { \"type\": \"array\", \"maxItems\": 10 },\n        \"stats\": { \"type\": \"object\" },\n        \"rowCount\": { \"type\": \"number\" }\n      },\n      \"required\": [\"columns\", \"sampleRows\", \"stats\", \"rowCount\"]\n    }\n  },\n  \"required\": [\"symptom\", \"hypothesis\", \"query\", \"result\"]\n}"
       }
     }
   },

@@ -59,6 +59,14 @@ const ALLOWED_LEADING_KEYWORDS = new Set([
 ]);
 
 /**
+ * `EXPLAIN ANALYZE` (any amount of whitespace between the two words) is
+ * NOT a read-only/no-cost statement: unlike plain `EXPLAIN`, it actually
+ * executes the query and scans data in both Athena and Trino, so it must
+ * be rejected even though its leading keyword is the allowed `EXPLAIN`.
+ */
+const EXPLAIN_ANALYZE_RE = /^EXPLAIN\s+ANALYZE\b/i;
+
+/**
  * Words that, anywhere in the statement, indicate a write, DDL, DML,
  * or administrative operation. Checked as whole words (via `\b`) so
  * `created_at` doesn't trigger on `CREATE`, etc.
@@ -332,6 +340,10 @@ export function guardQuery(query: DiagnosticQuery): QueryGuardResult {
     if (!leadingKeyword || !ALLOWED_LEADING_KEYWORDS.has(leadingKeyword)) {
       violations.push(
         `Statement must start with one of SELECT, WITH, DESCRIBE, DESC, SHOW, EXPLAIN (found "${leadingKeyword || "<none>"}").`
+      );
+    } else if (leadingKeyword === "EXPLAIN" && EXPLAIN_ANALYZE_RE.test(trimmedMasked)) {
+      violations.push(
+        `"EXPLAIN ANALYZE" actually executes the statement and scans data (Athena/Trino), violating the read-only/cost-safety contract — only non-executing EXPLAIN is allowed.`
       );
     }
 

@@ -61,6 +61,15 @@ import type {
 // Env / config (read lazily — see file header)
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * Hard deadline for a single `executeFlow` call. The Lamatic SDK's
+ * `executeFlow` does not accept an `AbortSignal`, so a timeout here can't
+ * truly cancel the underlying network call — it only stops the caller
+ * (and the five reasoner methods built on `callFlow`) from waiting on a
+ * hung or unexpectedly slow flow forever.
+ */
+const FLOW_TIMEOUT_MS = 60_000;
+
 function requireEnv(name: string, flowLabel: string): string {
   const value = process.env[name];
   if (!value) {
@@ -476,7 +485,15 @@ class LamaticClientReasoner implements LamaticReasoner {
 
     let resData: { result?: unknown };
     try {
-      resData = await client.executeFlow(flowId, inputs);
+      resData = await Promise.race([
+        client.executeFlow(flowId, inputs),
+        new Promise<never>((_, reject) => {
+          setTimeout(
+            () => reject(new Error(`flow execution timed out after ${FLOW_TIMEOUT_MS}ms`)),
+            FLOW_TIMEOUT_MS
+          );
+        }),
+      ]);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(`[lamatic-client] ${flowLabel}: flow execution failed: ${message}`);

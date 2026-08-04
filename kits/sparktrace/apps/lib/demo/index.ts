@@ -5,7 +5,8 @@
  * `RunInvestigationInput.mode === "demo"`. Each returned implementation
  * satisfies the corresponding contracts.ts interface with the same
  * shapes/error-semantics as its live (AWS-backed) counterpart, so the
- * orchestrator itself stays mode-agnostic (see ARCHITECTURE.md §5 seam #2).
+ * orchestrator itself stays mode-agnostic (see README.md's architecture
+ * overview for the demo/live provider seam).
  */
 
 export { makeDemoCatalog, DemoCatalogProvider } from "./demo-catalog";

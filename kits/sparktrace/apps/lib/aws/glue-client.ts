@@ -64,7 +64,7 @@ export class GlueCatalogProvider implements CatalogProvider {
     this.client = new GlueClient({ region });
   }
 
-  async listTables(): Promise<TableRef[]> {
+  async listTables(maxTables = 1000): Promise<TableRef[]> {
     const results: TableRef[] = [];
     let nextToken: string | undefined;
 
@@ -75,6 +75,7 @@ export class GlueCatalogProvider implements CatalogProvider {
       for (const table of page.TableList ?? []) {
         results.push(tableRefFromGlueTable(table, this.database));
       }
+      if (results.length >= maxTables) return results.slice(0, maxTables);
       nextToken = page.NextToken;
     } while (nextToken);
 

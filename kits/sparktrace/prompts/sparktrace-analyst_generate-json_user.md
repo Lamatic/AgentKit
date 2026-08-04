@@ -1,3 +1,5 @@
+# Analyst Input
+
 Symptom:
 {{triggerNode_1.output.symptom}}
 
