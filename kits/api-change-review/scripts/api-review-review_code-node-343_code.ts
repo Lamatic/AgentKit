@@ -29,6 +29,36 @@ function toObject(v) {
   return v && typeof v === "object" ? v : null;
 }
 
+// The model echoes the severity labels in the casing used by the prompt's rule
+// list, which is upper case. Normalise rather than trust it — an unmatched
+// severity silently zeroes the counts and downgrades the verdict to
+// safe-to-merge, which is the one wrong answer this flow must never give.
+function normSeverity(v) {
+  const s = String(v == null ? "" : v).toLowerCase().trim().replace(/\s+/g, "-");
+  if (s === "breaking" || s === "potentially-breaking" || s === "additive") return s;
+  return "unclassified";
+}
+
+// The drafting node is asked for a line containing only ---CHANGELOG---, but
+// markdown rendering turns that into a horizontal rule plus a heading, and the
+// whole reply often arrives inside a code fence. Find the separator by content
+// instead of by exact match.
+function splitSections(raw) {
+  let t = String(raw == null ? "" : raw).trim();
+  t = t.replace(/^```[a-zA-Z]*[ \t]*\r?\n/, "").replace(/\r?\n```[ \t]*$/, "");
+  const lines = t.split(/\r?\n/);
+  let at = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^[ \t]*-*[ \t]*#*[ \t]*CHANGELOG[ \t]*-*[ \t]*$/i.test(lines[i])) { at = i; break; }
+  }
+  if (at === -1) return [t, ""];
+  // Trim before stripping: the separator is usually preceded by a blank line,
+  // which would otherwise keep the rule off the end of the string.
+  let head = lines.slice(0, at).join("\n").trim();
+  head = head.replace(/\r?\n[ \t]*-{3,}[ \t]*$/, "").trim();
+  return [head, lines.slice(at + 1).join("\n").trim()];
+}
+
 const changeFacts = toArray(facts.changes)
   .map(toObject)
   .filter(function (c) { return c && c.id; });
@@ -60,7 +90,7 @@ if (!facts || !changeFacts.length) {
       location: c.location,
       before: c.before,
       after: c.after,
-      severity: a.severity || "unclassified",
+      severity: normSeverity(a.severity),
       reason: a.reason || null,
       consumerImpact: a.consumerImpact || null,
       confidence: typeof a.confidence === "number" ? a.confidence : null
@@ -73,7 +103,7 @@ if (!facts || !changeFacts.length) {
     additive: changes.filter(function (c) { return c.severity === "additive"; }).length
   };
 
-  const parts = text.split(/^---CHANGELOG---\s*$/m);
+  const parts = splitSections(text);
 
   output = {
     verdict: counts.breaking > 0 ? "needs-major-version"
