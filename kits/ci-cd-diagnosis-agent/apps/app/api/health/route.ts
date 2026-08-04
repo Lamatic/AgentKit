@@ -14,12 +14,15 @@ export async function GET() {
   const timeoutId = setTimeout(() => controller.abort(), 3000);
   try {
     const ghRes = await fetch("https://api.github.com/zen", {
-      method: "HEAD",
       headers: { "User-Agent": "AgentKit-Diagnosis-HealthProbe" },
       next: { revalidate: 0 },
       signal: controller.signal,
     });
-    if (!ghRes.ok) githubStatus = "degraded";
+    if (ghRes.ok) {
+      await ghRes.text(); // Consume body to release sockets
+    } else {
+      githubStatus = "degraded";
+    }
   } catch (err) {
     githubStatus = err instanceof Error && err.name === "AbortError" ? "timeout" : "unreachable";
   } finally {
