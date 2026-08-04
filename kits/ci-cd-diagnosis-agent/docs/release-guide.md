@@ -13,14 +13,10 @@ kits/ci-cd-diagnosis-agent/
 │   ├── .env.example            # Application environment configuration template
 │   └── package.json            # Application dependencies & build scripts
 ├── flows/                      # Lamatic Flow Definitions
-│   └── cicd-diagnosis.ts       # Declarative flow graph exported for Lamatic Studio
-├── prompts/                    # Externalized Markdown Prompts
-│   ├── cicd-diagnosis_analyzer_system.md
-│   └── cicd-diagnosis_analyzer_user.md
-├── model-configs/              # Model Inference Parameters
-│   └── cicd-diagnosis_analyzer.ts
-├── scripts/                    # Flow Code Scripts
-│   └── cicd-diagnosis_sanitize_logs.ts
+│   └── cicd.ts                 # Declarative 12-node flow graph exported for Lamatic Studio
+├── prompts/                    # Externalized Markdown Prompts (14 templates)
+├── model-configs/              # Model Inference Parameters (7 model configs)
+├── scripts/                    # Flow Code Scripts (evidence extractor, knowledge, formatter)
 ├── constitutions/              # AI Safety & Guardrails
 │   └── default.md
 ├── knowledge/                  # RAG Markdown documents
