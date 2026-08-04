@@ -289,31 +289,37 @@ Avoid monolithic prompts. Every agent has a focused system prompt.
 ## 7. Folder Structure
 
 ```text
-/
-├── apps/
-│   ├── web/                    # Next.js Frontend
-│   │   ├── src/
-│   │   │   ├── app/            # App Router (pages: /, /upload, /results)
-│   │   │   ├── components/     # UI components (UploadDropzone, MarkdownRenderer, AgentStepper)
-│   │   │   └── lib/            # Frontend utilities (API clients)
-│   └── backend/                # Next.js / Node.js API + AgentKit
-│       ├── src/
-│       │   ├── api/            # REST endpoint definitions
-│       │   ├── agentkit/       # Lamatic flows and node definitions
-│       │   ├── prompts/        # Liquid/Markdown prompt templates per agent
-│       │   ├── tools/          # Custom tools (e.g., Vector DB connector)
-│       │   └── types/          # Shared TypeScript interfaces & Zod schemas
-├── knowledge/                  # Markdown files for RAG
-│   ├── github-actions/
-│   ├── docker/
-│   ├── npm/
-│   └── infrastructure/
-├── docs/                       # Architecture docs, ADRs
-└── package.json                # Monorepo configuration (Turborepo or workspaces)
+kits/ci-cd-diagnosis-agent/
+├── apps/                       # Next.js Full-Stack Application
+│   ├── app/                    # App Router (pages: /, API endpoints: /api/...)
+│   ├── components/             # React workspace & dashboard components
+│   ├── lib/                    # Auth, GitHub, Lamatic clients, & recovery engine
+│   ├── .env.example            # Next.js environment configuration template
+│   └── package.json            # Application dependencies & scripts
+├── flows/                      # Lamatic Flow Definitions
+│   └── cicd-diagnosis.ts       # Declarative flow graph exported for Lamatic Studio
+├── prompts/                    # Externalized Markdown Prompts
+│   ├── cicd-diagnosis_analyzer_system.md
+│   └── cicd-diagnosis_analyzer_user.md
+├── model-configs/              # Model Inference Parameters
+│   └── cicd-diagnosis_analyzer.ts
+├── scripts/                    # Flow Code Scripts
+│   └── cicd-diagnosis_sanitize_logs.ts
+├── constitutions/              # AI Safety & Guardrails
+│   └── default.md
+├── knowledge/                  # RAG Failure Remediation Documents
+│   ├── platforms/github-actions/
+│   ├── infrastructure/docker/
+│   ├── languages/node/
+│   └── security/permissions/
+├── docs/                       # Comprehensive Architecture & Design Docs
+├── lamatic.config.ts           # Kit manifest and metadata
+├── agent.md                    # Agent Kit documentation
+└── README.md                   # Kit overview and quickstart
 ```
 
 **Why this structure?**
-A monorepo approach cleanly separates the Next.js presentation layer from the AgentKit orchestration layer while allowing them to share TypeScript types (the Data Contracts). The `knowledge/` directory sits at the root, making it easily manageable by documentation teams without touching code.
+This structure adheres to the AgentKit kit specification, cleanly packaging the Next.js presentation application inside `apps/`, standardizing AI safety guardrails in `constitutions/`, and decoupling flow definitions (`flows/`), prompts (`prompts/`), model configurations (`model-configs/`), and RAG knowledge base articles (`knowledge/`).
 
 ---
 

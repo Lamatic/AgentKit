@@ -6,7 +6,7 @@ This document describes the end-to-end technical architecture, component design,
 
 ## 1. High-Level Architecture Overview
 
-The system is built as a Next.js 16 App Router application integrated with **Lamatic AgentKit Cloud Studio**, GitHub OAuth 2.0 PKCE authentication, and GitHub Actions REST APIs.
+The system is built as a Next.js App Router application integrated with **Lamatic AgentKit Cloud Studio**, GitHub OAuth 2.0 PKCE authentication, and GitHub Actions REST APIs.
 
 ```mermaid
 graph LR
@@ -15,7 +15,7 @@ graph LR
     APIProxy -->|3. Fetch Zip Logs| GitHub["🐙 GitHub REST API"]
     APIProxy -->|4. In-Memory Zip Extract & Sanitize| LogService["🧹 lib/github/log-service.ts"]
     LogService -->|5. Clean Log Locus| LamaticSDK["🧠 Lamatic AgentKit SDK"]
-    LamaticSDK -->|6. Execute 10-Agent Flow| LamaticCloud["☁️ Lamatic AI Cloud"]
+    LamaticSDK -->|6. Execute Diagnosis Flow| LamaticCloud["☁️ Lamatic AI Cloud"]
     LamaticCloud -->|7. JSON Diagnosis| Frontend
     Frontend -->|8. Render Workspace| UI["💻 Multi-Panel AI Debugging View"]
 ```
@@ -35,18 +35,20 @@ To maintain enterprise security compliance and prevent temporary disk vulnerabil
 
 ---
 
-## 3. 10-Node Lamatic AgentKit Workflow Flow
+## 3. Lamatic AgentKit Diagnosis Pipeline
 
-The diagnosis engine executes across 10 specialized agent nodes inside Lamatic Studio:
+The diagnosis engine executes through specialized analysis stages:
 
-1. **Log Cleaner Node**: Normalizes stack traces and strips progress spinners.
-2. **Evidence Extractor Node**: Isolates precise failure lines.
-3. **Error Classifier Node**: Categorizes failure (Infrastructure, Dependencies, Code Syntax, Test Failure).
-4. **RAG Knowledge Retriever**: Queries vector knowledge base for known fixes.
-5. **Root Cause Analyzer Node**: Synthesizes root cause explanation.
-6. **Fix Generator Node**: Generates code patches.
-7. **Fix Verifier Node**: Validates code patch correctness.
-8. **Security Reviewer Node**: Audits code patch for security implications.
+1. **Webhook/API Trigger**: Ingests build logs, repository context, and branch information.
+2. **Log Sanitization Script**: Deterministically strips sensitive credentials and formats log lines.
+3. **Evidence Extractor Node**: Isolates precise failure lines and error codes.
+4. **Error Classifier Node**: Categorizes failure (Infrastructure, Dependencies, Code Syntax, Test Failure, Permissions).
+5. **RAG Knowledge Retriever**: Queries vector knowledge base for known fixes.
+6. **Root Cause Analyzer Node**: Synthesizes root cause explanation with mandatory evidence citations.
+7. **Fix Generator Node**: Generates candidate code diffs and step-by-step remediation plans.
+8. **Fix Verifier Node**: Validates code patch syntax and checks for regressions.
+9. **Security Reviewer Node**: Audits code patch for security implications.
+10. **Output Formatter Node**: Serializes validated structured JSON response.
 
 ---
 

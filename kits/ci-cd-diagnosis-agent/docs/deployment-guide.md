@@ -30,7 +30,7 @@ SESSION_SECRET=32_character_random_secret_string
 ```
 
 ### 4. Deploy
-Click **Deploy**. Vercel will build the Next.js 16 app and deploy serverless functions.
+Click **Deploy**. Vercel will build the Next.js app and deploy serverless functions.
 
 ---
 

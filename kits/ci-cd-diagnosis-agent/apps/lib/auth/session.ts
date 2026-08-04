@@ -8,6 +8,16 @@ const STATE_COOKIE = "__Host-gh-oauth-state";
 const DEFAULT_SECRET = "agentkit_github_oauth_session_secret_32_chars_min!";
 
 function getSecretKey(): Buffer {
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!process.env.SESSION_SECRET ||
+      process.env.SESSION_SECRET === DEFAULT_SECRET ||
+      process.env.SESSION_SECRET.trim() === "")
+  ) {
+    throw new Error(
+      "SESSION_SECRET must be configured with a secure, unique 32+ char secret in production."
+    );
+  }
   const secret = process.env.SESSION_SECRET || DEFAULT_SECRET;
   return crypto.createHash("sha256").update(secret).digest();
 }
