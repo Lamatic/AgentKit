@@ -211,7 +211,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"verdict\": \"string\",\n  \"summary\": \"string\",\n  \"oldVersion\": \"string\",\n  \"newVersion\": \"string\",\n  \"totalChanges\": \"number\",\n  \"counts\": \"object\",\n  \"changes\": \"array\",\n  \"migrationNotes\": \"string\",\n  \"changelog\": \"string\"\n}"
+        "outputMapping": "{\n  \"verdict\": \"{{codeNode_343.output.verdict}}\",\n  \"summary\": \"{{codeNode_343.output.summary}}\",\n  \"oldVersion\": \"{{codeNode_343.output.oldVersion}}\",\n  \"newVersion\": \"{{codeNode_343.output.newVersion}}\",\n  \"totalChanges\": \"{{codeNode_343.output.totalChanges}}\",\n  \"counts\": \"{{codeNode_343.output.counts}}\",\n  \"changes\": \"{{codeNode_343.output.changes}}\",\n  \"migrationNotes\": \"{{codeNode_343.output.migrationNotes}}\",\n  \"changelog\": \"{{codeNode_343.output.changelog}}\"\n}"
       }
     }
   }
