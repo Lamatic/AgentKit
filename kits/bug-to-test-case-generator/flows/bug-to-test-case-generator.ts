@@ -76,16 +76,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": JSON.stringify({
-          type: "object",
-          properties: {
-            bugTitle: { type: "string" },
-            bugDescription: { type: "string" },
-            stepsToReproduce: { type: "string" },
-            environment: { type: "string" }
-          },
-          required: ["bugTitle", "bugDescription", "stepsToReproduce"]
-        })
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"bugTitle\": {\n      \"type\": \"string\"\n    },\n    \"bugDescription\": {\n      \"type\": \"string\"\n    },\n    \"stepsToReproduce\": {\n      \"type\": \"string\"\n    },\n    \"environment\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"bugTitle\",\n    \"bugDescription\",\n    \"stepsToReproduce\"\n  ]\n}"
       }
     }
   },
