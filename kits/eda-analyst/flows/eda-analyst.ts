@@ -114,7 +114,7 @@ export const nodes = [
         "comment": "",
         "fileUrl": "{{triggerNode_1.output.fileUrl}}",
         "headers": true,
-        "maxRows": "0",
+        "maxRows": "5000",
         "encoding": "utf8",
         "nodeName": "Extract from File",
         "password": "",

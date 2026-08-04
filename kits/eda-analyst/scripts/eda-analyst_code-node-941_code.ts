@@ -4,6 +4,9 @@
 
 const rows = {{codeNode_579.output.rows}};
 
+// AUTHORITATIVE copy of buildProfile. A mirror lives in
+// scripts/eda-analyst_code-node-781_code.ts (ApplyCleaning re-profiles the
+// cleaned rows). Lamatic code nodes can't share modules — keep the two in sync.
 function buildProfile(files) {
   const rows = (files && files[0] && Array.isArray(files[0].data)) ? files[0].data : [];
   const meta = (files && files[0] && files[0].metadata) ? files[0].metadata : {};

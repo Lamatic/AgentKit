@@ -15,11 +15,21 @@ export default function Page() {
   const [res, setRes] = useState<AnalyzeResult | null>(null);
 
   async function run() {
+    const trimmed = url.trim();
+    if (!trimmed) {
+      setRes({ ok: false, error: "Please enter a CSV URL." });
+      return;
+    }
     setLoading(true);
     setRes(null);
-    const r = await analyze(url.trim());
-    setRes(r);
-    setLoading(false);
+    try {
+      const r = await analyze(trimmed);
+      setRes(r);
+    } catch (e: any) {
+      setRes({ ok: false, error: String(e?.message || e) || "Something went wrong." });
+    } finally {
+      setLoading(false);
+    }
   }
 
   function download() {
@@ -42,14 +52,17 @@ export default function Page() {
 
       <div className="card">
         <div className="row">
+          <label htmlFor="csv-url" className="sr-only">CSV URL</label>
           <input
+            id="csv-url"
             className="input"
+            aria-label="CSV URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com/data.csv"
             onKeyDown={(e) => { if (e.key === "Enter" && !loading) run(); }}
           />
-          <button className="btn" onClick={run} disabled={loading}>
+          <button type="button" className="btn" onClick={run} disabled={loading}>
             {loading ? "Analyzing…" : "Analyze"}
           </button>
         </div>
@@ -57,7 +70,7 @@ export default function Page() {
         <div className="samples">
           <span className="hint" style={{ marginTop: 0 }}>Try:</span>
           {SAMPLES.map((s) => (
-            <span key={s.label} className="chip" onClick={() => setUrl(s.url)}>{s.label}</span>
+            <button type="button" key={s.label} className="chip" onClick={() => setUrl(s.url)}>{s.label}</button>
           ))}
         </div>
         <p className="hint">Must be a public, direct-download CSV link. Analysis runs several reasoning steps, so it can take up to a minute.</p>
@@ -65,7 +78,8 @@ export default function Page() {
         {loading && (
           <div className="status"><span className="spinner" /> Profiling → cleaning → analyzing → rendering…</div>
         )}
-        {res && !res.ok && <div className="error">{res.error}</div>}
+        {res && !res.ok && <div className="error">{res.error || "Something went wrong."}</div>}
+        {res && res.ok && !res.dashboardHtml && <div className="error">No dashboard was returned by the agent.</div>}
       </div>
 
       {res?.ok && res.dashboardHtml && (
@@ -79,7 +93,7 @@ export default function Page() {
               )}
               {typeof res.chartCount === "number" && <span className="badge">{res.chartCount} charts</span>}
             </div>
-            <button className="btn secondary" onClick={download}>Download .html</button>
+            <button type="button" className="btn secondary" onClick={download}>Download .html</button>
           </div>
           <iframe className="frame" title="EDA dashboard" srcDoc={res.dashboardHtml} sandbox="allow-scripts" />
         </div>

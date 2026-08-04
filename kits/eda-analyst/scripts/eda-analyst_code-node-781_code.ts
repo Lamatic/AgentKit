@@ -31,7 +31,7 @@ function applyCleaning(rows, plan){
   const imputeVals={}; for(const col in imputes){ imputeVals[col]=_computeImpute(rows,col,imputes[col]); }
   const fillCount={};
   let cleaned=rows.map(function(r){ const o={};
-    for(const k in r){ if(!drops[k]) o[k]=r[k]; }
+    for(const k in r){ if(k==="__proto__"||k==="constructor"||k==="prototype") continue; if(!drops[k]) o[k]=r[k]; }
     for(const col in imputeVals){ if(imputeVals[col]===null||imputeVals[col]===undefined) continue;
       if(!_present(o[col])){ o[col]=String(imputeVals[col]); fillCount[col]=(fillCount[col]||0)+1; } }
     return o; });
@@ -44,6 +44,8 @@ function applyCleaning(rows, plan){
   return { cleanedRows: cleaned, changelog: changelog };
 }
 
+// MIRROR of buildProfile — the authoritative copy is in
+// scripts/eda-analyst_code-node-941_code.ts. Keep the two synchronized.
 function buildProfile(files){
   const rows=(files&&files[0]&&Array.isArray(files[0].data))?files[0].data:[];
   const meta=(files&&files[0]&&files[0].metadata)?files[0].metadata:{}; const rowCount=rows.length;

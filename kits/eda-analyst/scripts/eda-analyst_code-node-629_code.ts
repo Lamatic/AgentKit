@@ -18,4 +18,5 @@ const arr = Array.isArray(batchOut) ? batchOut : [batchOut];
 let allCols = [];
 for (let i = 0; i < arr.length; i++) allCols = allCols.concat(extractCols(arr[i]));
 
-output = { dedupe: chunker.dedupe, dedupeReason: chunker.dedupeReason, columns: allCols };
+const ch = chunker || {};
+output = { dedupe: ch.dedupe, dedupeReason: ch.dedupeReason, columns: allCols };

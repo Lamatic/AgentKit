@@ -7,6 +7,8 @@ const profile = {{codeNode_458.output.profile}};
 function _colMap(p){ const m={}; const c=(p&&p.columns)||[]; for(let i=0;i<c.length;i++) m[c[i].name]=c[i]; return m; }
 function _isNum(c){ return c && c.type==="numeric"; }
 function _cat(c){ return c && (c.type==="categorical"||c.type==="boolean"||(c.type==="numeric"&&c.cardinality<=20)); }
+// AUTHORITATIVE, reason-returning task validator. A boolean mirror lives in
+// scripts/eda-analyst_code-node-443_code.ts (MergeInsights). Keep the two in sync.
 function validateTask(t,m){
   if(!t||!t.method) return {ok:false,why:"no method"};
   if(t.method==="distribution"){ const c=m[t.column]; if(!c) return {ok:false,why:"distribution: unknown column "+t.column}; if(c.isLikelyId) return {ok:false,why:"distribution: ID-like "+t.column}; return {ok:true}; }

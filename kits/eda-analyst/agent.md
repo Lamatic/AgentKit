@@ -8,7 +8,7 @@ Turning a raw CSV into a trustworthy first-look dashboard normally means manual 
 
 ## Flow: `eda-analyst`
 - **Trigger:** an API request with `{ fileUrl }` (a public CSV URL).
-- **Processing (three guarded stages):**
+- **Processing (four guarded stages):**
   1. **Profile** — code computes per-column type, missingness, cardinality, distributions, outliers, and pairwise correlations.
   2. **Sanitize** — a Batched LLM planner decides per-column cleaning (keep / impute mean|median|mode / drop) and whether to deduplicate; code applies the plan and a **validation gate reverts to the original data** if the result is worse.
   3. **Analyze** — an LLM plans 4–6 grounded analyses; a code validator drops invalid tasks and, only if coverage is thin, triggers a single re-plan; code executes each analysis; a findings gate rejects any with broken chart data.
