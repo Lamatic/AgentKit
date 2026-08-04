@@ -17,10 +17,48 @@ export const meta = {
 
 // -- Inputs --
 export const inputs = {
+  "memoryRetrieveNode_859": [
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model"
+    }
+  ],
+  "RAGNode_640": [
+    {
+      "name": "vectorDB",
+      "label": "Database",
+      "type": "select"
+    },
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
+      "type": "model"
+    },
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ],
   "LLMNode_474": [
     {
       "name": "generativeModelName",
       "label": "Generative Model Name",
+      "type": "model"
+    }
+  ],
+  "InstructorLLMNode_429": [
+    {
+      "name": "generativeModelName",
+      "label": "Generative Model Name",
+      "type": "model"
+    }
+  ],
+  "memoryNode_302": [
+    {
+      "name": "embeddingModelName",
+      "label": "Embedding Model Name",
       "type": "model"
     }
   ]
@@ -32,11 +70,21 @@ export const references = {
     "default": "@constitutions/default.md"
   },
   "prompts": {
+    "flow_copilot_ragnode_640_system_0": "@prompts/flow-copilot_ragnode-640_system_0.md",
+    "flow_copilot_ragnode_640_user_1": "@prompts/flow-copilot_ragnode-640_user_1.md",
     "flow_copilot_llmnode_474_system_0": "@prompts/flow-copilot_llmnode-474_system_0.md",
-    "flow_copilot_llmnode_474_user_1": "@prompts/flow-copilot_llmnode-474_user_1.md"
+    "flow_copilot_llmnode_474_user_1": "@prompts/flow-copilot_llmnode-474_user_1.md",
+    "flow_copilot_instructor_llmnode_429_system_0": "@prompts/flow-copilot_instructor-llmnode-429_system_0.md",
+    "flow_copilot_instructor_llmnode_429_user_1": "@prompts/flow-copilot_instructor-llmnode-429_user_1.md"
   },
   "modelConfigs": {
-    "flow_copilot_llmnode_474_generative_model_name": "@model-configs/flow-copilot_llmnode-474_generative-model-name.ts"
+    "flow_copilot_memory_retrieve_node_859_embedding_model_name": "@model-configs/flow-copilot_memory-retrieve-node-859_embedding-model-name.ts",
+    "flow_copilot_ragnode_640_generative_model_name": "@model-configs/flow-copilot_ragnode-640_generative-model-name.ts",
+    "flow_copilot_ragnode_640_embedding_model_name": "@model-configs/flow-copilot_ragnode-640_embedding-model-name.ts",
+    "flow_copilot_llmnode_474_generative_model_name": "@model-configs/flow-copilot_llmnode-474_generative-model-name.ts",
+    "flow_copilot_instructor_llmnode_429_generative_model_name": "@model-configs/flow-copilot_instructor-llmnode-429_generative-model-name.ts",
+    "flow_copilot_memory_node_302_generative_model_name": "@model-configs/flow-copilot_memory-node-302_generative-model-name.ts",
+    "flow_copilot_memory_node_302_embedding_model_name": "@model-configs/flow-copilot_memory-node-302_embedding-model-name.ts"
   }
 };
 
@@ -88,6 +136,63 @@ export const nodes = [
     }
   },
   {
+    "id": "memoryRetrieveNode_859",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "memoryRetrieveNode",
+      "values": {
+        "id": "memoryRetrieveNode_859",
+        "limit": "3",
+        "filters": "[]",
+        "nodeName": "Memory Retrieve",
+        "searchQuery": "{{triggerNode_1.output.chatMessage}}",
+        "memoryCollection": "flowcopilotconversationmemory",
+        "embeddingModelName": "@model-configs/flow-copilot_memory-retrieve-node-859_embedding-model-name.ts"
+      }
+    }
+  },
+  {
+    "id": "RAGNode_640",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "RAGNode",
+      "values": {
+        "limit": "3",
+        "filters": "",
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/flow-copilot_ragnode-640_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/flow-copilot_ragnode-640_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "RAG",
+        "vectorDB": [
+          "lamaticnodedocs"
+        ],
+        "certainty": "0.7",
+        "queryField": "{{triggerNode_1.output.chatMessage}}",
+        "embeddingModelName": "@model-configs/flow-copilot_ragnode-640_embedding-model-name.ts",
+        "generativeModelName": "@model-configs/flow-copilot_ragnode-640_generative-model-name.ts"
+      }
+    }
+  },
+  {
     "id": "LLMNode_474",
     "type": "dynamicNode",
     "position": {
@@ -120,6 +225,64 @@ export const nodes = [
     }
   },
   {
+    "id": "InstructorLLMNode_429",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "InstructorLLMNode",
+      "values": {
+        "tools": [],
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"flowName\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"trigger\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"type\": {\n          \"type\": \"string\",\n          \"required\": true\n        },\n        \"config\": {\n          \"type\": \"string\",\n          \"required\": true\n        }\n      },\n      \"additionalProperties\": true\n    },\n    \"nodes\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"type\": {\n            \"type\": \"string\",\n            \"required\": true\n          },\n          \"purpose\": {\n            \"type\": \"string\",\n            \"required\": true\n          }\n        },\n        \"additionalProperties\": true\n      }\n    },\n    \"nodeSequence\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\",\n        \"required\": true\n      }\n    },\n    \"assumptions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\",\n        \"required\": true\n      }\n    }\n  }\n}",
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/flow-copilot_instructor-llmnode-429_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/flow-copilot_instructor-llmnode-429_user_1.md"
+          }
+        ],
+        "memories": "[]",
+        "messages": "[]",
+        "nodeName": "Generate JSON",
+        "attachments": "",
+        "generativeModelName": "@model-configs/flow-copilot_instructor-llmnode-429_generative-model-name.ts"
+      }
+    }
+  },
+  {
+    "id": "memoryNode_302",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "memoryNode",
+      "values": {
+        "id": "memoryNode_302",
+        "nodeName": "Memory Add",
+        "uniqueId": "{{triggerNode_1.output.sessionId}}",
+        "sessionId": "{{triggerNode_1.output.sessionId}}",
+        "memoryValue": [
+          {
+            "role": "user",
+            "content": "User asked: {{triggerNode_1.output.chatMessage}} — Assistant responded: {{llmNode_474.output.generatedResponse}}"
+          }
+        ],
+        "memoryCollection": "flowcopilotconversationmemory",
+        "embeddingModelName": "@model-configs/flow-copilot_memory-node-302_embedding-model-name.ts",
+        "generativeModelName": "@model-configs/flow-copilot_memory-node-302_generative-model-name.ts"
+      }
+    }
+  },
+  {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
     "position": {
@@ -142,16 +305,48 @@ export const nodes = [
 
 export const edges = [
   {
-    "id": "triggerNode_1-LLMNode_474",
-    "source": "triggerNode_1",
+    "id": "RAGNode_640-LLMNode_474",
+    "source": "RAGNode_640",
     "target": "LLMNode_474",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "LLMNode_474-responseNode_triggerNode_1",
+    "id": "triggerNode_1-memoryRetrieveNode_859",
+    "source": "triggerNode_1",
+    "target": "memoryRetrieveNode_859",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "memoryRetrieveNode_859-RAGNode_640",
+    "source": "memoryRetrieveNode_859",
+    "target": "RAGNode_640",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "LLMNode_474-InstructorLLMNode_429",
     "source": "LLMNode_474",
+    "target": "InstructorLLMNode_429",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "InstructorLLMNode_429-memoryNode_302",
+    "source": "InstructorLLMNode_429",
+    "target": "memoryNode_302",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "memoryNode_302-responseNode_triggerNode_1-567",
+    "source": "memoryNode_302",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
