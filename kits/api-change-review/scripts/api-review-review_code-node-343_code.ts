@@ -4,6 +4,12 @@
 // Generate Text never ran) degrades to undefined instead of a
 // syntax error.
 // Replace node IDs with yours via "Add Variable (x)".
+//
+// The trigger declares changes as [string], which is the only array
+// shape Studio offers besides an untyped [], so the app sends each
+// change fact as a JSON string. toObject parses those back. Both
+// shapes are accepted, so this keeps working if the schema is ever
+// widened to [].
 // ============================================================
 const facts = {{triggerNode_1.output}};
 
@@ -16,12 +22,21 @@ function toArray(v) {
   return [];
 }
 
-const changeFacts = toArray(facts.changes);
+function toObject(v) {
+  if (typeof v === "string") {
+    try { return JSON.parse(v); } catch (e) { return null; }
+  }
+  return v && typeof v === "object" ? v : null;
+}
+
+const changeFacts = toArray(facts.changes)
+  .map(toObject)
+  .filter(function (c) { return c && c.id; });
 const endpoints = toArray(facts.endpointsTouched);
-const assessments = [{{InstructorLLMNode_713.output.assessments}}][0] || [];
+const assessments = toArray([{{InstructorLLMNode_713.output.assessments}}][0]).map(toObject).filter(Boolean);
 const text = ["", {{LLMNode_804.output.generatedResponse}}].pop() || "";
 
-if (!facts || !facts.totalChanges) {
+if (!facts || !changeFacts.length) {
   output = {
     verdict: "no-api-change",
     summary: "No differences found in the API surface between the two specs.",
@@ -35,9 +50,9 @@ if (!facts || !facts.totalChanges) {
   };
 } else {
   const byId = {};
-  assessments.forEach(function (a) { byId[a.id] = a; });
+  assessments.forEach(function (a) { if (a && a.id) byId[a.id] = a; });
 
-  const changes = facts.changes.map(function (c) {
+  const changes = changeFacts.map(function (c) {
     const a = byId[c.id] || {};
     return {
       id: c.id,
@@ -66,7 +81,7 @@ if (!facts || !facts.totalChanges) {
            : "safe-to-merge",
     summary: counts.breaking + " breaking, " + counts.potentiallyBreaking +
              " potentially breaking, " + counts.additive + " additive across " +
-             (facts.endpointsTouched || []).length + " endpoint(s).",
+             endpoints.length + " endpoint(s).",
     oldVersion: facts.oldVersion,
     newVersion: facts.newVersion,
     totalChanges: changes.length,
