@@ -67,7 +67,10 @@ function buildDashboard(profile, findings, changelog, validation) {
     else if (c.topValues && c.topValues.length) stat = "top: " + c.topValues[0].value + " (" + c.topValues[0].count + ")";
     h += "<tr><td>" + esc(c.name) + (c.isLikelyId ? " <span class='chip'>id</span>" : "") + "</td><td><span class='chip'>" + esc(c.type) + "</span></td><td>" + esc(c.missingPct) + "%</td><td>" + esc(c.cardinality) + "</td><td>" + esc(stat) + "</td></tr>"; }
   h += "</tbody></table></div>";
-  h += "<script>var SPECS=" + JSON.stringify(specs) + ";var PAL=['#38bdf8','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6','#22d3ee'];";
+  // Serialize safely for embedding inside an inline <script>: escape "<" (so a
+  // CSV-controlled value can't emit </script>) and the JS line separators U+2028/U+2029.
+  const specsJson = JSON.stringify(specs).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  h += "<script>var SPECS=" + specsJson + ";var PAL=['#38bdf8','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6','#22d3ee'];";
   h += "SPECS.forEach(function(s){var el=document.getElementById(s.id);if(!el)return;var cfg;" +
     "if(s.kind==='scatter'){cfg={type:'scatter',data:{datasets:[{data:s.points,backgroundColor:'#38bdf8'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:s.xLabel,color:'#94a3b8'},ticks:{color:'#94a3b8'},grid:{color:'rgba(148,163,184,.15)'}},y:{title:{display:true,text:s.yLabel,color:'#94a3b8'},ticks:{color:'#94a3b8'},grid:{color:'rgba(148,163,184,.15)'}}}}};}" +
     "else if(s.kind==='pie'){cfg={type:'doughnut',data:{labels:s.labels,datasets:[{data:s.data,backgroundColor:PAL}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#94a3b8'}}}}};}" +

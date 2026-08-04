@@ -34,6 +34,7 @@ function _compare(rows,task){
     if(!groups[key]) groups[key]={sum:0,n:0,cnt:0}; groups[key].cnt++;
     if(agg!=="count"){ const v=_num(rows[i][m]); if(!isNaN(v)&&isFinite(v)){ groups[key].sum+=v; groups[key].n++; } } }
   let keys=Object.keys(groups);
+  if(!keys.length) return { method:"compare", chart:null, title:(agg==="count"?"count":agg+" of "+m)+" by "+g, summary:"No groups found for "+g+"." };
   const valOf=function(k){ const gr=groups[k]; if(agg==="count") return gr.cnt; if(agg==="sum") return gr.sum; return gr.n?gr.sum/gr.n:0; };
   keys.sort(function(a,b){return valOf(b)-valOf(a);}); if(keys.length>20) keys=keys.slice(0,20);
   const data=keys.map(function(k){return _round(valOf(k),3);});
@@ -68,5 +69,5 @@ function runAnalysis(rows,task){
 const findings = [];
 for (let i = 0; i < (tasks || []).length; i++) { const t = tasks[i];
   try { const f = runAnalysis(rows, t); if (t.title) f.title = t.title; f.reason = t.reason || ""; findings.push(f); }
-  catch (e) { findings.push({ method: t.method, title: t.title || "Error", reason: t.reason || "", summary: "Error: " + String(e), chart: null }); } }
+  catch (e) { findings.push({ method: t.method, title: t.title || "Error", reason: t.reason || "", error: String(e), summary: "Error: " + String(e), chart: null }); } }
 output = { findings: findings };

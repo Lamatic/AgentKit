@@ -9,6 +9,9 @@ const profile = {{codeNode_458.output.profile}};
 function _colMap(p){ const m={}; const c=(p&&p.columns)||[]; for(let i=0;i<c.length;i++) m[c[i].name]=c[i]; return m; }
 function _isNum(c){ return c && c.type==="numeric"; }
 function _cat(c){ return c && (c.type==="categorical"||c.type==="boolean"||(c.type==="numeric"&&c.cardinality<=20)); }
+// NOTE: boolean mirror of the reason-returning validateTask in
+// scripts/eda-analyst_code-node-459_code.ts (that file is authoritative).
+// Lamatic code nodes can't import shared modules, so keep the two in sync.
 function validateTask(t,m){
   if(!t||!t.method) return false;
   if(t.method==="distribution"){ const c=m[t.column]; return !!c && !c.isLikelyId; }
@@ -19,7 +22,7 @@ function validateTask(t,m){
 }
 function mergeInsightTasks(validTasks, replanResults, profile){
   const m=_colMap(profile); const seen={}; const out=[];
-  const add=function(t){ if(!validateTask(t,m)) return; const key=(t.method||"")+"|"+(t.column||"")+"|"+(t.groupBy||"")+"|"+(t.measure||"")+"|"+(t.x||"")+"|"+(t.y||""); if(seen[key]) return; seen[key]=1; out.push(t); };
+  const add=function(t){ if(!validateTask(t,m)) return; const key=(t.method||"")+"|"+(t.column||"")+"|"+(t.groupBy||"")+"|"+(t.measure||"")+"|"+(t.agg||"")+"|"+(t.x||"")+"|"+(t.y||""); if(seen[key]) return; seen[key]=1; out.push(t); };
   for(let i=0;i<(validTasks||[]).length;i++) add(validTasks[i]);
   const arr=Array.isArray(replanResults)?replanResults:[];
   for(let i=0;i<arr.length;i++){ const r=arr[i]; let tasks=null;

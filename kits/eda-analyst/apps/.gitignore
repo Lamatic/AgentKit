@@ -12,9 +12,8 @@
 .DS_Store
 
 # env — never commit real keys
-.env
-.env*.local
-.env.local
+.env*
+!.env.example
 
 # typescript
 next-env.d.ts

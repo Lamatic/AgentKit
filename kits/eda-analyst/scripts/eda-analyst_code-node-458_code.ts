@@ -33,6 +33,7 @@ function validateCleaning(before, after, cleanedRows, originalRows, plan) {
     note: passed ? "Validation passed: cleaning preserved data integrity." : "Validation FAILED — reverted to original data. " + issues.join(" ") };
 }
 
-const gate = validateCleaning(before, applied.profile, applied.cleanedRows, originalRows, plan);
-const changelog = (applied.changelog || []).concat([{ target: "(validation)", action: gate.passed ? "pass" : "revert", detail: gate.note, reason: "" }]);
+const app = applied || {};
+const gate = validateCleaning(before, app.profile, app.cleanedRows, originalRows, plan);
+const changelog = (app.changelog || []).concat([{ target: "(validation)", action: gate.passed ? "pass" : "revert", detail: gate.note, reason: "" }]);
 output = { rows: gate.rows, profile: gate.profile, changelog: changelog, validation: { passed: gate.passed, issues: gate.issues } };

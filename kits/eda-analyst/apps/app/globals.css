@@ -19,6 +19,16 @@ body {
 
 .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 60px; }
 
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .header h1 { font-size: 1.8rem; margin: 0 0 6px; }
 .header p { color: var(--muted); margin: 0 0 28px; }
 
