@@ -146,6 +146,7 @@ export default function SparkTracePage() {
                   <button
                     type="button"
                     onClick={() => setValue("useDemoScenario", !useDemoScenario, { shouldValidate: true })}
+                    aria-pressed={useDemoScenario}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
                       useDemoScenario
