@@ -64,7 +64,7 @@ jobs:
         with:
           ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
           fetch-depth: 0
-          allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -107,9 +107,31 @@ jobs:
         env:
           LAMATIC_VALIDATION_ENDPOINT: 'https://studio.lamatic.ai/api/agentkit/validate-pr'
           HEAD_SHA: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
+          RAW_KITS: ${{ steps.detect.outputs.kits }}
         run: |
-          KITS="${{ steps.detect.outputs.kits }}"
-          if [ -z "$KITS" ]; then
+          # Validate kits via Node to prevent shell injection
+          VALIDATED=$(node -e "
+            const fs = require('fs');
+            const raw = process.env.RAW_KITS || '';
+            if (!raw.trim()) { process.exit(0); }
+            const kits = raw.trim().split(/\s+/);
+            const ALLOWED = /^kits\/[a-z0-9][a-z0-9-]*$/;
+            const valid = [];
+            for (const kit of kits) {
+              if (!ALLOWED.test(kit)) {
+                console.error('Rejected invalid kit path: ' + kit);
+                continue;
+              }
+              if (!fs.existsSync(kit) || !fs.statSync(kit).isDirectory()) {
+                console.error('Kit directory not found: ' + kit);
+                continue;
+              }
+              valid.push(kit);
+            }
+            process.stdout.write(valid.join('\\n'));
+          ")
+
+          if [ -z "$VALIDATED" ]; then
             echo "No kits detected — skipping Studio check."
             echo "skipped=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -118,7 +140,8 @@ jobs:
           VALIDATION_FAILED=false
           ALL_ERRORS=""
 
-          for KIT_PATH in $KITS; do
+          while IFS= read -r KIT_PATH; do
+            [ -z "$KIT_PATH" ] && continue
             echo "--- Processing $KIT_PATH ---"
 
             # Determine type from lamatic.config.ts
@@ -268,7 +291,7 @@ jobs:
               ")
               ALL_ERRORS="$ALL_ERRORS\n### $SLUG\n$ERRORS"
             fi
-          done
+          done <<< "$VALIDATED"
 
           echo "validation_failed=$VALIDATION_FAILED" >> "$GITHUB_OUTPUT"
           printf "%b" "$ALL_ERRORS" > /tmp/all_errors.txt
