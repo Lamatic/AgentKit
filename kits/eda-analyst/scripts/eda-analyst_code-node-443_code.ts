@@ -22,7 +22,7 @@ function validateTask(t,m){
 }
 function mergeInsightTasks(validTasks, replanResults, profile){
   const m=_colMap(profile); const seen={}; const out=[];
-  const add=function(t){ if(!validateTask(t,m)) return; const key=(t.method||"")+"|"+(t.action||"")+"|"+(t.column||"")+"|"+(t.groupBy||"")+"|"+(t.measure||"")+"|"+(t.agg||"")+"|"+(t.x||"")+"|"+(t.y||""); if(seen[key]) return; seen[key]=1; out.push(t); };
+  const add=function(t){ if(!validateTask(t,m)) return; const key=JSON.stringify([t.method||"",t.action||"",t.column||"",t.groupBy||"",t.measure||"",t.agg||"",t.x||"",t.y||""]); if(seen[key]) return; seen[key]=1; out.push(t); };
   for(let i=0;i<(validTasks||[]).length;i++) add(validTasks[i]);
   const arr=Array.isArray(replanResults)?replanResults:[];
   for(let i=0;i<arr.length;i++){ const r=arr[i]; let tasks=null;
