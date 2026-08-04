@@ -112,21 +112,42 @@ jobs:
           # Validate kits via Node to prevent shell injection
           VALIDATED=$(node -e "
             const fs = require('fs');
+            const path = require('path');
             const raw = process.env.RAW_KITS || '';
             if (!raw.trim()) { process.exit(0); }
             const kits = raw.trim().split(/\s+/);
             const ALLOWED = /^kits\/[a-z0-9][a-z0-9-]*$/;
             const valid = [];
+            const rejected = [];
+            const checkoutRoot = fs.realpathSync(process.cwd());
             for (const kit of kits) {
               if (!ALLOWED.test(kit)) {
-                console.error('Rejected invalid kit path: ' + kit);
+                rejected.push('Rejected invalid kit path: ' + kit);
                 continue;
               }
-              if (!fs.existsSync(kit) || !fs.statSync(kit).isDirectory()) {
-                console.error('Kit directory not found: ' + kit);
+              if (!fs.existsSync(kit)) {
+                rejected.push('Kit directory not found: ' + kit);
+                continue;
+              }
+              const stat = fs.lstatSync(kit);
+              if (stat.isSymbolicLink()) {
+                rejected.push('Rejected symlinked kit directory: ' + kit);
+                continue;
+              }
+              if (!stat.isDirectory()) {
+                rejected.push('Kit path is not a directory: ' + kit);
+                continue;
+              }
+              const realKit = fs.realpathSync(kit);
+              if (!realKit.startsWith(checkoutRoot + path.sep) && realKit !== checkoutRoot) {
+                rejected.push('Kit resolves outside checkout: ' + kit);
                 continue;
               }
               valid.push(kit);
+            }
+            if (rejected.length > 0) {
+              rejected.forEach(r => console.error(r));
+              process.exit(1);
             }
             process.stdout.write(valid.join('\\n'));
           ")
@@ -165,9 +186,26 @@ jobs:
               const fs = require('fs');
               const path = require('path');
               const kitPath = process.env.KIT_PATH;
+              const kitBoundary = fs.realpathSync(kitPath);
+
+              const isWithinBoundary = (p) => {
+                const real = fs.realpathSync(p);
+                return real === kitBoundary || real.startsWith(kitBoundary + path.sep);
+              };
 
               const readSafe = (p) => {
-                try { return fs.readFileSync(p, 'utf8'); } catch { return null; }
+                try {
+                  const stat = fs.lstatSync(p);
+                  if (stat.isSymbolicLink()) {
+                    console.error('Skipping symlink: ' + p);
+                    return null;
+                  }
+                  if (!isWithinBoundary(p)) {
+                    console.error('Path escapes kit boundary: ' + p);
+                    return null;
+                  }
+                  return fs.readFileSync(p, 'utf8');
+                } catch { return null; }
               };
 
               // Read lamatic.config.ts as raw string
@@ -186,14 +224,25 @@ jobs:
               const flows = [];
               const flowsDir = path.join(kitPath, 'flows');
               if (fs.existsSync(flowsDir)) {
-                const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
-                for (const flowFile of flowFiles) {
-                  const flowName = flowFile.replace('.ts', '');
-                  const flowContent = readSafe(path.join(flowsDir, flowFile));
-                  flows.push({
-                    name: flowName,
-                    flow_ts: flowContent
-                  });
+                const flowDirStat = fs.lstatSync(flowsDir);
+                if (flowDirStat.isSymbolicLink()) {
+                  console.error('Rejected symlinked flows directory');
+                } else {
+                  const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+                  for (const flowFile of flowFiles) {
+                    const flowPath = path.join(flowsDir, flowFile);
+                    const flowStat = fs.lstatSync(flowPath);
+                    if (flowStat.isSymbolicLink() || !isWithinBoundary(flowPath)) {
+                      console.error('Skipping flow file: ' + flowFile);
+                      continue;
+                    }
+                    const flowName = flowFile.replace('.ts', '');
+                    const flowContent = readSafe(flowPath);
+                    flows.push({
+                      name: flowName,
+                      flow_ts: flowContent
+                    });
+                  }
                 }
               }
 
@@ -201,12 +250,22 @@ jobs:
               const readDir = (dirName) => {
                 const dir = path.join(kitPath, dirName);
                 if (!fs.existsSync(dir)) return null;
+                const dirStat = fs.lstatSync(dir);
+                if (dirStat.isSymbolicLink() || !isWithinBoundary(dir)) {
+                  console.error('Rejected directory: ' + dirName);
+                  return null;
+                }
                 const files = {};
                 const walk = (d, prefix) => {
                   fs.readdirSync(d).forEach(f => {
                     const full = path.join(d, f);
+                    const entryStat = fs.lstatSync(full);
+                    if (entryStat.isSymbolicLink() || !isWithinBoundary(full)) {
+                      console.error('Skipping entry: ' + full);
+                      return;
+                    }
                     const key = prefix ? prefix + '/' + f : f;
-                    if (fs.statSync(full).isDirectory()) {
+                    if (entryStat.isDirectory()) {
                       walk(full, key);
                     } else {
                       files[key] = readSafe(full);
