@@ -41,7 +41,7 @@
  * | `indexedCount` | `number` | Number of vector records or chunks written to the selected vector database, if exposed by the index node response. |
  * | `metadata` | `array<object>` | Metadata objects derived from the transformed records that were sent for indexing. |
  * | `vectors` | `array` | Embedding vectors produced for the chunked text and forwarded to the indexer. |
- * | `title` | `string` | Primary document identifier derived from `triggerNode_1.output.document_key` and used as the configured primary key field. |
+ * | `chunk_id` | `string` |Stable unique identifier generated for each indexed chunk. It is used as the configured primary key by the Index node. Records with the same `chunk_id` are overwritten instead of duplicated.|
  * | `source` | `string` | Source URL associated with the indexed records, supplied through the variables mapping. |
  *
  * Below the table, the practical output shape is a structured object centered on the final `Index to DB` operation. The exact response contract is not fully declared in the flow source, so fields such as `status` and `indexedCount` reflect the expected indexing result rather than a guaranteed public schema. Internally, the flow definitely produces chunk text, vectors, and metadata arrays before indexing, but the canonical external response is whatever the index node emits after writing to the vector store. Consumers should therefore treat the indexing result as authoritative and not assume raw chunk-level artifacts are always returned unless they explicitly expose them.
@@ -77,7 +77,7 @@
  *
  * 5. `Transform Metadata` (`codeNode`) runs `@scripts/gdrive_transform-metadata.ts`. This step combines the vectorization output with the earlier variables such as `title` and `source`, then packages the results into two fields expected by the indexer: `vectors` and `metadata`. It is the normalization step that ensures the final records match the vector database schema.
  *
- * 6. `Index to DB` (`IndexNode`) writes the transformed `vectors` and `metadata` into the chosen vector database. It uses `title` as the configured primary key and is set to `overwrite` on duplicates, meaning later runs can replace existing records with the same primary key rather than creating parallel duplicates.
+ *6. `Index to DB` (`IndexNode`) writes the transformed `vectors` and `metadata` into the chosen vector database. It uses `chunk_id` as the configured primary key and is set to `overwrite` on duplicates, meaning records with the same `chunk_id` are updated instead of creating duplicate entries.
  *
  * 7. `addNode` (`addNode`) is only a trailing placeholder from the studio canvas and does not contribute functional runtime behavior.
  *
@@ -90,7 +90,7 @@
  * | Chunking produces little or no usable text | `triggerNode_1.output.content` is empty because source files could not be extracted | Check file formats in Drive, verify the connector supports them, and inspect the trigger output for missing `content`. |
  * | Embedding step fails | `embeddingModelName` is not configured, unavailable, or lacks provider access | Select a valid embedding model in Lamatic and verify the underlying provider credentials and quotas. |
  * | Indexing step fails to write records | `vectorDB` is not configured, unreachable, or schema expectations do not match transformed payloads | Select a valid vector database, verify connectivity, and inspect the metadata transformation script assumptions around fields like `title`, `vectors`, and `metadata`. |
- * | Existing records are unexpectedly replaced | Duplicate handling is configured as `overwrite` and `title` is reused as the primary key | Change the primary key strategy if needed or ensure `document_key` is unique enough for your indexing semantics. |
+ * |Existing records are unexpectedly replaced | Duplicate handling is configured as overwrite and title is reused as the primary key |
  * | Source metadata is incorrect for all indexed records | The `Variables` node hardcodes `source` to a fixed folder URL rather than deriving it dynamically per document | Update the `mapping.source` value or the metadata transformation logic to reflect the actual desired per-document source. |
  * | Downstream chatbot returns no relevant answers after this flow ran | The chatbot flow was run against a different vector database or the indexing job produced no usable chunks | Ensure this flow and the chatbot share the same vector store, confirm records were indexed successfully, and validate chunk/vector counts. |
  * | Automation expects a rich response but only sees indexing status | The flow’s public response comes from the final index node rather than exposing intermediate chunk or vector payloads | Update the flow contract or downstream automation to consume the index result, or add an explicit response-shaping node if richer output is required. |
@@ -98,7 +98,7 @@
  * ## Notes
  * - The trigger node is configured with `incremental_append`, which suggests repeated runs are intended to add new or updated content rather than rebuild the index from scratch.
  * - The configured cron expression indicates a scheduled execution pattern, nominally weekly. Operators should validate the exact schedule semantics in their Lamatic runtime and timezone handling.
- * - The indexing node uses `title` as the sole primary key. This is simple, but it may be too coarse if multiple files or chunks can share the same effective title; review this choice for large or heterogeneous Drive corpora.
+ * - - The indexing node uses `chunk_id` as the sole primary key. Records with the same `chunk_id` are overwritten, so each chunk should have a stable and unique identifier.
  * - Two important transformation steps are implemented in external scripts: `@scripts/gdrive_extract-chunked-text.ts` and `@scripts/gdrive_transform-metadata.ts`. Their behavior determines the final chunk text payload and metadata schema, so changes there can materially alter indexing outcomes even if the flow graph remains unchanged.
  * - The flow metadata name in source includes a trailing space as `GDrive `. Documentation and automation should normalize this to `GDrive` when displaying or referencing the flow.
  * - The `Index to DB` node contains a webhook URL in its configuration. If this is active in your environment, review whether it is a placeholder, audit endpoint, or production callback before deployment.
