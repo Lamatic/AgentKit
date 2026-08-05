@@ -79,8 +79,8 @@ A smaller idea can still be a strong submission if it is focused and well done. 
 
 ## 💬 Need help?
 
-If you have questions or need support, use the team Slack channel here:  
-[Join Slack Support](https://lamatic.ai/docs/slack)
+If you have questions or need support, use the GitHub discussion:  
+[GitHub discussion](https://github.com/Lamatic/AgentKit/discussions)
 
 Look for the **#mission-possible** channel to ask questions, share progress, or request help. The internal team will monitor the channel and support candidates where needed.
 
