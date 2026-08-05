@@ -179,4 +179,4 @@ capped, so a full run costs a fraction of a cent. See [`infra/README.md`](infra/
 
 ## License
 
-MIT License – see [LICENSE](../LICENSE).
+MIT License – see [LICENSE](../../LICENSE).

@@ -49,5 +49,5 @@ echo "   Bucket    : $BUCKET"
 echo "   Workgroup : $(stack_output WorkGroupName)  (per-query cap: $BYTES_CUTOFF bytes)"
 echo "   Glue DBs  : raw, finance"
 echo
-echo "Next:  scripts/smoke.sh   # optional: run one capped Athena query to prove it works"
-echo "       scripts/down.sh    # tear everything down when you're done"
+echo "Next:  bin/smoke.sh   # optional: run one capped Athena query to prove it works"
+echo "       bin/down.sh    # tear everything down when you're done"

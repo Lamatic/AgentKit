@@ -6,7 +6,7 @@ Description: >
   "broken pipeline" scenario, a dedicated read-only Athena workgroup with a
   hard per-query bytes-scanned cap, and (optionally) a least-privilege
   read-only IAM user for the app. NOTHING here bills by the hour.
-  Tear the whole thing down with `scripts/down.sh` (delete-stack).
+  Tear the whole thing down with `bin/down.sh` (delete-stack).
 
 # ---------------------------------------------------------------------------
 # Parameters
@@ -228,6 +228,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - s3:GetObject
+                  - s3:GetBucketLocation
                   - s3:ListBucket
                 Resource:
                   - !GetAtt DataBucket.Arn
@@ -246,7 +247,7 @@ Resources:
       UserName: !Ref AppUser
 
 # ---------------------------------------------------------------------------
-# Outputs — consumed by scripts/write-env.sh to generate the app .env.local.
+# Outputs — consumed by bin/write-env.sh to generate the app .env.local.
 # ---------------------------------------------------------------------------
 Outputs:
   BucketName:
