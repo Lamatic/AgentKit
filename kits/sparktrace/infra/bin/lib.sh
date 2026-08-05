@@ -11,6 +11,13 @@ TEMPLATE="$INFRA_DIR/cloudformation/sparktrace.yaml"
 DATA_DIR="$KIT_ROOT/assets/sample-scenario/data"
 APP_ENV="$KIT_ROOT/apps/.env.local"
 
+# Paths handed to the AWS CLI. On Git Bash / Cygwin / MSYS the shell produces
+# POSIX paths (/cygdrive/f/...) that the native Windows aws.exe cannot open, so
+# convert them. A no-op everywhere else.
+awspath() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi
+}
+
 # --- Load infra/.env (deployer creds + overrides), if present ---------------
 if [ -f "$INFRA_DIR/.env" ]; then
   set -a

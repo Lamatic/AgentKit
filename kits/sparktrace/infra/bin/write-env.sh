@@ -43,7 +43,10 @@ fi
 MANAGED='^(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|AWS_PROFILE|AWS_REGION|ATHENA_WORKGROUP|ATHENA_OUTPUT_LOCATION|GLUE_DATABASE)='
 
 mkdir -p "$(dirname "$APP_ENV")"
-tmp="$(mktemp)"
+# Stage beside the target rather than in $TMPDIR: keeps the final mv on the same
+# filesystem (atomic) and works where /tmp is unwritable.
+tmp="$(mktemp "$(dirname "$APP_ENV")/.env.local.XXXXXX")"
+trap 'rm -f "$tmp"' EXIT
 # keep every existing non-managed line (Lamatic keys, comments, etc.)
 if [ -f "$APP_ENV" ]; then grep -vE "$MANAGED" "$APP_ENV" > "$tmp" || true; fi
 
