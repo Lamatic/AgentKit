@@ -64,7 +64,6 @@ jobs:
         with:
           ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
           fetch-depth: 0
-          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -107,52 +106,9 @@ jobs:
         env:
           LAMATIC_VALIDATION_ENDPOINT: 'https://studio.lamatic.ai/api/agentkit/validate-pr'
           HEAD_SHA: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
-          RAW_KITS: ${{ steps.detect.outputs.kits }}
         run: |
-          # Validate kits via Node to prevent shell injection
-          VALIDATED=$(node -e "
-            const fs = require('fs');
-            const path = require('path');
-            const raw = process.env.RAW_KITS || '';
-            if (!raw.trim()) { process.exit(0); }
-            const kits = raw.trim().split(/\s+/);
-            const ALLOWED = /^kits\/[a-z0-9][a-z0-9-]*$/;
-            const valid = [];
-            const rejected = [];
-            const checkoutRoot = fs.realpathSync(process.cwd());
-            for (const kit of kits) {
-              if (!ALLOWED.test(kit)) {
-                rejected.push('Rejected invalid kit path: ' + kit);
-                continue;
-              }
-              if (!fs.existsSync(kit)) {
-                rejected.push('Kit directory not found: ' + kit);
-                continue;
-              }
-              const stat = fs.lstatSync(kit);
-              if (stat.isSymbolicLink()) {
-                rejected.push('Rejected symlinked kit directory: ' + kit);
-                continue;
-              }
-              if (!stat.isDirectory()) {
-                rejected.push('Kit path is not a directory: ' + kit);
-                continue;
-              }
-              const realKit = fs.realpathSync(kit);
-              if (!realKit.startsWith(checkoutRoot + path.sep) && realKit !== checkoutRoot) {
-                rejected.push('Kit resolves outside checkout: ' + kit);
-                continue;
-              }
-              valid.push(kit);
-            }
-            if (rejected.length > 0) {
-              rejected.forEach(r => console.error(r));
-              process.exit(1);
-            }
-            process.stdout.write(valid.join('\\n'));
-          ")
-
-          if [ -z "$VALIDATED" ]; then
+          KITS="${{ steps.detect.outputs.kits }}"
+          if [ -z "$KITS" ]; then
             echo "No kits detected — skipping Studio check."
             echo "skipped=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -161,8 +117,7 @@ jobs:
           VALIDATION_FAILED=false
           ALL_ERRORS=""
 
-          while IFS= read -r KIT_PATH; do
-            [ -z "$KIT_PATH" ] && continue
+          for KIT_PATH in $KITS; do
             echo "--- Processing $KIT_PATH ---"
 
             # Determine type from lamatic.config.ts
@@ -186,26 +141,9 @@ jobs:
               const fs = require('fs');
               const path = require('path');
               const kitPath = process.env.KIT_PATH;
-              const kitBoundary = fs.realpathSync(kitPath);
-
-              const isWithinBoundary = (p) => {
-                const real = fs.realpathSync(p);
-                return real === kitBoundary || real.startsWith(kitBoundary + path.sep);
-              };
 
               const readSafe = (p) => {
-                try {
-                  const stat = fs.lstatSync(p);
-                  if (stat.isSymbolicLink()) {
-                    console.error('Skipping symlink: ' + p);
-                    return null;
-                  }
-                  if (!isWithinBoundary(p)) {
-                    console.error('Path escapes kit boundary: ' + p);
-                    return null;
-                  }
-                  return fs.readFileSync(p, 'utf8');
-                } catch { return null; }
+                try { return fs.readFileSync(p, 'utf8'); } catch { return null; }
               };
 
               // Read lamatic.config.ts as raw string
@@ -224,25 +162,14 @@ jobs:
               const flows = [];
               const flowsDir = path.join(kitPath, 'flows');
               if (fs.existsSync(flowsDir)) {
-                const flowDirStat = fs.lstatSync(flowsDir);
-                if (flowDirStat.isSymbolicLink()) {
-                  console.error('Rejected symlinked flows directory');
-                } else {
-                  const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
-                  for (const flowFile of flowFiles) {
-                    const flowPath = path.join(flowsDir, flowFile);
-                    const flowStat = fs.lstatSync(flowPath);
-                    if (flowStat.isSymbolicLink() || !isWithinBoundary(flowPath)) {
-                      console.error('Skipping flow file: ' + flowFile);
-                      continue;
-                    }
-                    const flowName = flowFile.replace('.ts', '');
-                    const flowContent = readSafe(flowPath);
-                    flows.push({
-                      name: flowName,
-                      flow_ts: flowContent
-                    });
-                  }
+                const flowFiles = fs.readdirSync(flowsDir).filter(f => f.endsWith('.ts'));
+                for (const flowFile of flowFiles) {
+                  const flowName = flowFile.replace('.ts', '');
+                  const flowContent = readSafe(path.join(flowsDir, flowFile));
+                  flows.push({
+                    name: flowName,
+                    flow_ts: flowContent
+                  });
                 }
               }
 
@@ -250,22 +177,12 @@ jobs:
               const readDir = (dirName) => {
                 const dir = path.join(kitPath, dirName);
                 if (!fs.existsSync(dir)) return null;
-                const dirStat = fs.lstatSync(dir);
-                if (dirStat.isSymbolicLink() || !isWithinBoundary(dir)) {
-                  console.error('Rejected directory: ' + dirName);
-                  return null;
-                }
                 const files = {};
                 const walk = (d, prefix) => {
                   fs.readdirSync(d).forEach(f => {
                     const full = path.join(d, f);
-                    const entryStat = fs.lstatSync(full);
-                    if (entryStat.isSymbolicLink() || !isWithinBoundary(full)) {
-                      console.error('Skipping entry: ' + full);
-                      return;
-                    }
                     const key = prefix ? prefix + '/' + f : f;
-                    if (entryStat.isDirectory()) {
+                    if (fs.statSync(full).isDirectory()) {
                       walk(full, key);
                     } else {
                       files[key] = readSafe(full);
@@ -350,7 +267,7 @@ jobs:
               ")
               ALL_ERRORS="$ALL_ERRORS\n### $SLUG\n$ERRORS"
             fi
-          done <<< "$VALIDATED"
+          done
 
           echo "validation_failed=$VALIDATION_FAILED" >> "$GITHUB_OUTPUT"
           printf "%b" "$ALL_ERRORS" > /tmp/all_errors.txt
