@@ -45,7 +45,10 @@ function buildProfile(files) {
     else if (numericRatio >= 0.9 && count > 0) type = "numeric";
     else if (cardinality > 0 && cardinality <= Math.max(20, count * 0.05)) type = "categorical";
     else type = "text";
-    const isLikelyId = cardinality === count && count > 1 && (/(^|_|\b)id$/i.test(col) || type === "numeric" || type === "text");
+    // Only treat all-distinct columns as IDs when they are id-named, text, or integer-valued.
+    // Continuous (fractional) numeric columns are frequently all-distinct and must stay analytic.
+    const allInteger = type === "numeric" && nums.length > 0 && nums.every(function (n) { return Number.isInteger(n); });
+    const isLikelyId = cardinality === count && count > 1 && (/(^|_|\b)id$/i.test(col) || type === "text" || allInteger);
     const p = { name: col, type: type, isLikelyId: isLikelyId, count: count, missing: missing, missingPct: rowCount > 0 ? round(100*missing/rowCount,2) : 0, cardinality: cardinality, sample: values.slice(0,3) };
     if (type === "numeric" && nums.length > 0) {
       const sorted = nums.slice().sort(function(a,b){return a-b;});

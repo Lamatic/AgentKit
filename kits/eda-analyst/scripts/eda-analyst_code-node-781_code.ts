@@ -62,7 +62,8 @@ function buildProfile(files){
     const numericRatio=count>0?nums.length/count:0; let isBoolean=false;
     if(cardinality>0&&cardinality<=2){ const low=distinct.map(function(d){return d.toLowerCase();}); for(let b=0;b<BOOL_SETS.length;b++){ if(low.every(function(d){return BOOL_SETS[b].indexOf(d)!==-1;})){isBoolean=true;break;} } }
     let type; if(isBoolean) type="boolean"; else if(numericRatio>=0.9&&count>0) type="numeric"; else if(cardinality>0&&cardinality<=Math.max(20,count*0.05)) type="categorical"; else type="text";
-    const isLikelyId=cardinality===count&&count>1&&(/(^|_|\b)id$/i.test(col)||type==="numeric"||type==="text");
+    const allInteger=type==="numeric"&&nums.length>0&&nums.every(function(n){return Number.isInteger(n);});
+    const isLikelyId=cardinality===count&&count>1&&(/(^|_|\b)id$/i.test(col)||type==="text"||allInteger);
     const p={name:col,type:type,isLikelyId:isLikelyId,count:count,missing:missing,missingPct:rowCount>0?_round(100*missing/rowCount,2):0,cardinality:cardinality,sample:values.slice(0,3)};
     if(type==="numeric"&&nums.length>0){ const sorted=nums.slice().sort(function(a,b){return a-b;}); let s=0; for(let i=0;i<sorted.length;i++) s+=sorted[i]; const mean=s/sorted.length;
       const q1=_quantile(sorted,0.25), median=_quantile(sorted,0.5), q3=_quantile(sorted,0.75); let vs=0; for(let i=0;i<sorted.length;i++) vs+=(sorted[i]-mean)*(sorted[i]-mean);
