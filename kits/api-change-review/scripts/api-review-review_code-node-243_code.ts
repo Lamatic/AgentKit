@@ -8,7 +8,7 @@ output = {
   oldVersion: meta.oldVersion,
   newVersion: meta.newVersion,
   totalChanges: 0,
-  counts: { breaking: 0, potentiallyBreaking: 0, additive: 0 },
+  counts: { breaking: 0, potentiallyBreaking: 0, additive: 0, unclassified: 0 },
   changes: [],
   migrationNotes: null,
   changelog: null

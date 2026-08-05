@@ -73,7 +73,7 @@ if (!facts || !changeFacts.length) {
     oldVersion: facts ? facts.oldVersion : null,
     newVersion: facts ? facts.newVersion : null,
     totalChanges: 0,
-    counts: { breaking: 0, potentiallyBreaking: 0, additive: 0 },
+    counts: { breaking: 0, potentiallyBreaking: 0, additive: 0, unclassified: 0 },
     changes: [],
     migrationNotes: null,
     changelog: null
@@ -100,18 +100,23 @@ if (!facts || !changeFacts.length) {
   const counts = {
     breaking: changes.filter(function (c) { return c.severity === "breaking"; }).length,
     potentiallyBreaking: changes.filter(function (c) { return c.severity === "potentially-breaking"; }).length,
-    additive: changes.filter(function (c) { return c.severity === "additive"; }).length
+    additive: changes.filter(function (c) { return c.severity === "additive"; }).length,
+    unclassified: changes.filter(function (c) { return c.severity === "unclassified"; }).length
   };
 
   const parts = splitSections(text);
 
   output = {
+    // Unclassified means the classifier returned nothing usable for that change,
+    // so its impact is unknown — not absent. Letting it fall through to
+    // safe-to-merge would turn a gap in the assessment into a green light.
     verdict: counts.breaking > 0 ? "needs-major-version"
-           : counts.potentiallyBreaking > 0 ? "review-required"
+           : (counts.potentiallyBreaking > 0 || counts.unclassified > 0) ? "review-required"
            : "safe-to-merge",
     summary: counts.breaking + " breaking, " + counts.potentiallyBreaking +
-             " potentially breaking, " + counts.additive + " additive across " +
-             endpoints.length + " endpoint(s).",
+             " potentially breaking, " + counts.additive + " additive" +
+             (counts.unclassified ? ", " + counts.unclassified + " unclassified" : "") +
+             " across " + endpoints.length + " endpoint(s).",
     oldVersion: facts.oldVersion,
     newVersion: facts.newVersion,
     totalChanges: changes.length,

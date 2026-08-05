@@ -104,7 +104,7 @@ export default function Page() {
             value={audience}
             onChange={(e) => setAudience(e.target.value)}
             disabled={loading}
-            className="rounded-md border border-edge bg-panel-2 px-2.5 py-1.5 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-50"
+            className="rounded-md border border-edge bg-panel-2 px-2.5 py-1.5 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
           >
             {AUDIENCES.map((a) => (
               <option key={a.id} value={a.id}>
@@ -118,7 +118,7 @@ export default function Page() {
           type="button"
           onClick={run}
           disabled={!canRun}
-          className="ml-auto rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-40"
+          className="ml-auto rounded-lg bg-accent-strong px-4 py-2 text-sm font-semibold text-accent-ink transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading ? "Reviewing…" : "Review changes"}
         </button>
@@ -126,7 +126,7 @@ export default function Page() {
 
       {loading ? (
         <div className="rounded-xl border border-edge bg-panel px-4 py-3 text-sm text-muted">
-          <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-sky-400 align-middle" />
+          <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-accent align-middle" />
           Diffing locally, then asking the flow to classify each change. This takes
           a few seconds.
         </div>

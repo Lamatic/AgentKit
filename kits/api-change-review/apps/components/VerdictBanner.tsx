@@ -51,7 +51,11 @@ export default function VerdictBanner({ result }: { result: ReviewResult }) {
     breaking: 0,
     potentiallyBreaking: 0,
     additive: 0,
+    unclassified: 0,
   };
+  // Only shown when it happens, but it must be shown — it is why an otherwise
+  // clean diff can still come back as review-required.
+  const unclassified = counts.unclassified ?? 0;
 
   return (
     <div className={`rounded-xl border ${v.ring} ${v.tint} p-5`}>
@@ -72,7 +76,9 @@ export default function VerdictBanner({ result }: { result: ReviewResult }) {
           ) : null}
         </div>
 
-        <div className="grid shrink-0 grid-cols-4 gap-2">
+        <div
+          className={`grid shrink-0 gap-2 ${unclassified ? "grid-cols-5" : "grid-cols-4"}`}
+        >
           <Count n={counts.breaking} label="Breaking" tone="text-red-400" />
           <Count
             n={counts.potentiallyBreaking}
@@ -80,6 +86,9 @@ export default function VerdictBanner({ result }: { result: ReviewResult }) {
             tone="text-amber-400"
           />
           <Count n={counts.additive} label="Additive" tone="text-emerald-400" />
+          {unclassified ? (
+            <Count n={unclassified} label="Unknown" tone="text-slate-300" />
+          ) : null}
           <Count n={result.totalChanges} label="Total" tone="text-ink" />
         </div>
       </div>
