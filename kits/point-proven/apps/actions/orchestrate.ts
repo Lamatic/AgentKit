@@ -262,7 +262,7 @@ async function runFlow(
       }
       if (/reading ['"]?output['"]?/i.test(res?.message ?? "")) {
         throw new Error(
-          `${label} failed: a code node referenced an undefined output. Check that Group By Source (codeNode_551) is wired to Vector Search, then Deploy and retry.`
+          `${label} failed: a code node referenced an undefined output. Check that your flow nodes are properly wired and deployed, then retry.`
         );
       }
       throw new Error(

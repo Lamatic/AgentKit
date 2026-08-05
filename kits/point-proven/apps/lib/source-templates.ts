@@ -22,10 +22,9 @@ const BROOKINGS =
   "https://www.brookings.edu/articles/regulating-general-purpose-ai-areas-of-convergence-and-divergence-across-the-eu-and-the-us";
 const EFF =
   "https://www.eff.org/deeplinks/2026/06/ai-regulation-should-be-rational-not-retaliatory";
-/** NIST + OECD return final HTTP 200 from the app server (Europarl/AI Act hosts often do not). */
+/** NIST + AI Act return HTTP 200 (OECD returns 403). */
 const NIST = "https://www.nist.gov/artificial-intelligence";
-const OECD =
-  "https://www.oecd.org/en/topics/policy-issues/artificial-intelligence.html";
+const AI_ACT = "https://artificialintelligenceact.eu/";
 
 /** Clickable packs: 1, 2, and 4 source templates. */
 export const SOURCE_TEMPLATES: SourceTemplate[] = [
@@ -39,14 +38,14 @@ export const SOURCE_TEMPLATES: SourceTemplate[] = [
   {
     id: "eu-us-compare",
     label: "2 sources · EU vs US",
-    urls: [BROOKINGS, OECD],
+    urls: [BROOKINGS, AI_ACT],
     query:
       "Where do EU and US approaches to regulating general-purpose AI converge, and where do they diverge?",
   },
   {
     id: "ai-regulation-4",
     label: "4 sources · AI regulation",
-    urls: [BROOKINGS, EFF, NIST, OECD],
+    urls: [BROOKINGS, EFF, NIST, AI_ACT],
     query:
       "How do major actors propose regulating general-purpose AI, and where do EU, US, and civil-liberties perspectives agree or clash?",
   },
