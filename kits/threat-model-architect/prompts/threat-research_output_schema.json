@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "research_findings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "threat_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["research_needed"] },
+          "owasp_category": { "type": "string" },
+          "cwe_ids": { "type": "array", "items": { "type": "string" } },
+          "risk_pattern": { "type": "string" },
+          "validation_steps": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "source_types": { "type": "array", "items": { "type": "string" } },
+          "verified_cves": {
+            "type": "array",
+            "maxItems": 0,
+            "items": { "type": "string" }
+          }
+        },
+        "required": [
+          "threat_id",
+          "status",
+          "owasp_category",
+          "cwe_ids",
+          "risk_pattern",
+          "validation_steps",
+          "source_types",
+          "verified_cves"
+        ]
+      }
+    },
+    "research_summary": { "type": "string" },
+    "research_limitations": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["research_findings", "research_summary", "research_limitations"]
+}
