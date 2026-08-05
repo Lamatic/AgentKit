@@ -273,7 +273,7 @@ export const nodes = [
         "memoryValue": [
           {
             "role": "user",
-            "content": "User asked: {{triggerNode_1.output.chatMessage}} — Assistant responded: {{llmNode_474.output.generatedResponse}}"
+            "content": "User asked: {{triggerNode_1.output.chatMessage}} — Assistant responded: {{InstructorLLMNode_429.output.flowName}} | Sequence: {{InstructorLLMNode_429.output.nodeSequence}} | Assumptions: {{InstructorLLMNode_429.output.assumptions}}"
           }
         ],
         "memoryCollection": "flowcopilotconversationmemory",
@@ -293,7 +293,7 @@ export const nodes = [
       "nodeId": "chatResponseNode",
       "values": {
         "id": "responseNode_triggerNode_1",
-        "content": "{{LLMNode_474.output.generatedResponse}}",
+        "content": "Here's your flow blueprint: {{InstructorLLMNode_429.output.flowName}}— Sequence: {{InstructorLLMNode_429.output.nodeSequence}}— Assumptions: {{InstructorLLMNode_429.output.assumptions}}",
         "nodeName": "Chat Response",
         "references": "",
         "webhookUrl": "",
