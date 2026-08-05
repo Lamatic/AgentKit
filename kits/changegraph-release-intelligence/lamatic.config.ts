@@ -35,10 +35,15 @@ export default {
   ],
 
   links: {
-    github:
-      "https://github.com/Lamatic/AgentKit/tree/main/kits/changegraph-release-intelligence",
+  demo:
+    "https://changegraph-release-intelligence.vercel.app",
 
-    deploy:
-      "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit&root-directory=kits%2Fchangegraph-release-intelligence%2Fapps",
-  },
+  github:
+    "https://github.com/Mayankverma210405/AgentKit-lamantic/tree/6e58be07061b6434c64e5bbb8a640914cf97d65f/kits/changegraph-release-intelligence",
+
+  deploy:
+    "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit&root-directory=kits%2Fchangegraph-release-intelligence%2Fapps&env=LAMATIC_API_KEY%2CLAMATIC_PROJECT_ID%2CLAMATIC_API_URL%2CANALYZE_CHANGE_IMPACT_FLOW_ID%2CGENERATE_RELEASE_PLAN_FLOW_ID",
+
+},
 };
+
