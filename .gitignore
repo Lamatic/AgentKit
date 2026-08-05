@@ -1,6 +1,52 @@
-**/.DS_Store
+```
+# Dependencies
+node_modules/
+package-lock.json
 
+# Build artifacts
+dist/
+build/
+target/
+
+# Environment variables
 .env
-.claude
-REFACTOR_PLAN.md
-scripts
+.env.local
+*.env.*
+
+# Cache directories
+.cache/
+.node_cache/
+.npm/
+.yarn/
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Python specific (if applicable)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Temporary files
+*.tmp
+*.temp
+*~
+```

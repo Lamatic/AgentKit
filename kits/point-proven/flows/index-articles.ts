@@ -43,9 +43,9 @@
  * ## Outputs
  * | Field | Type | Description |
  * |---|---|---|
- * | `indexed_count` | number | Count of scraped pages processed in this run (from Firecrawl `data` length when available). |
+ * | `indexed_count` | number | Count of successfully indexed chunks across all pages (from Index node output). |
  * | `collection` | string | Operator-facing label for the configured vector store (`configured` when a private Vector DB selection is present). |
- * | `errors` | array | Reserved list for scrape/index errors; empty on a clean run. |
+ * | `errors` | array | List of per-page errors from scrape, vectorization, or index-write failures. |
  *
  * ## Dependencies
  * ### Upstream Flows
@@ -280,7 +280,8 @@ export const nodes = [
       "modes": {},
       "values": {
         "nodeName": "Loop End",
-        "connectedTo": "forLoopNode_370"
+        "connectedTo": "forLoopNode_370",
+        "outputAccumulator": "{\n  \"indexed_count\": \"{{vectorNode_157.output.indexed_count || 0}}\",\n  \"errors\": \"{{vectorNode_157.output.errors || []}}\"\n}"
       }
     }
   },
@@ -394,7 +395,9 @@ export const nodes = [
         ],
         "vectorsField": "{{codeNode_305.output.vectors}}",
         "metadataField": "{{codeNode_305.output.metadata}}",
-        "duplicateOperation": "overwrite"
+        "duplicateOperation": "overwrite",
+        "indexedCountField": "{{codeNode_305.output.indexed_count}}",
+        "errorsField": "{{codeNode_305.output.errors}}"
       }
     }
   },
@@ -409,7 +412,7 @@ export const nodes = [
       "nodeId": "graphqlResponseNode",
       "values": {
         "nodeName": "API Response",
-        "outputMapping": "{\n  \"indexed_count\": \"{{firecrawlNode_785.output.data.length}}\",\n  \"collection\": \"configured\",\n  \"errors\": []\n}"
+        "outputMapping": "{\n  \"indexed_count\": \"{{forLoopEndNode_301.output.accumulated.indexed_count || 0}}\",\n  \"collection\": \"configured\",\n  \"errors\": \"{{forLoopEndNode_301.output.accumulated.errors || []}}\"\n}"
       }
     }
   }

@@ -88,6 +88,9 @@ let citation_id = hostnameFromUrl(sourceStr);
 let keptVectors = [];
 let keptTexts = [];
 
+// Track errors for each page processed
+let pageErrors = [];
+
 for (let i = 0; i < vectors.length; i++) {
   let chunkText = asString(texts[i]);
   if (!chunkText && texts[i] && typeof texts[i] === "object") {
@@ -101,6 +104,14 @@ for (let i = 0; i < vectors.length; i++) {
   if (isJunkChunk(chunkText)) continue;
   keptVectors.push(vectors[i]);
   keptTexts.push(chunkText);
+}
+
+// If all chunks were filtered as junk, record an error for this page
+if (vectors.length > 0 && keptVectors.length === 0) {
+  pageErrors.push({
+    source: sourceStr,
+    error: "All content chunks filtered as junk or boilerplate"
+  });
 }
 
 // Longest chunks carry the most retrievable substance.
@@ -138,4 +149,4 @@ for (let i = 0; i < keptVectors.length; i++) {
   });
 }
 
-output = { metadata: metadataProps, vectors: keptVectors };
+output = { metadata: metadataProps, vectors: keptVectors, indexed_count: keptVectors.length, errors: pageErrors };
