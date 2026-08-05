@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Creates this month's "challenge: <month>-<year>" label on the repo.
+# Requires: GITHUB_TOKEN env var with repo scope, and REPO="Lamatic/AgentKit".
+#
+# Run manually, via cron, or as a GitHub Action scheduled workflow
+# (e.g. `0 0 1 * *` — midnight on the 1st of every month).
+
+set -euo pipefail
+
+REPO="${REPO:-Lamatic/AgentKit}"
+MONTH=$(date +%B | tr '[:upper:]' '[:lower:]')  # e.g. august
+YEAR=$(date +%Y)
+LABEL="challenge: ${MONTH}-${YEAR}"
+
+# Rotate a small palette so consecutive months look visually distinct.
+COLORS=("F9A825" "26A69A" "8E24AA" "5C6BC0" "EF5350" "43A047")
+MONTH_NUM=$(date +%-m)
+COLOR=${COLORS[$(( (MONTH_NUM - 1) % 6 ))]}
+
+curl -s -X POST \
+  -H "Authorization: token ${GITHUB_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/${REPO}/labels" \
+  -d "{\"name\":\"${LABEL}\",\"color\":\"${COLOR}\",\"description\":\"Contributions eligible for the ${MONTH^} ${YEAR} community challenge\"}"
+
+echo "Created label: ${LABEL} (color #${COLOR})"
+
+# Also ensure the reusable status labels exist (idempotent — ignores 422 if present)
+for pair in "challenge: eligible|C5CAE9|Counts toward the current month's challenge" \
+            "challenge: winner|FFD700|Top 5 shoutout for the month" \
+            "challenge: standout|1B5E20|Top 2 standout contributions of the month"; do
+  IFS='|' read -r name color desc <<< "$pair"
+  curl -s -X POST \
+    -H "Authorization: token ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/repos/${REPO}/labels" \
+    -d "{\"name\":\"${name}\",\"color\":\"${color}\",\"description\":\"${desc}\"}" > /dev/null || true
+done
