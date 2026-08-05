@@ -14,7 +14,9 @@ export const meta = {
     "📞 Sports",
     "📞 Entertainment"
   ],
-  "testInput": null,
+  "testInput": {
+    "match_summary": "Man City 2-1 Arsenal, Arsenal had a red card in the 30th minute"
+  },
   "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/armchair-tactician",
   "documentationUrl": "",
   "deployUrl": "",
@@ -56,7 +58,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\"type\":\"object\",\"properties\":{\"match_summary\":{\"type\":\"string\"}}}"
       }
     }
   },
