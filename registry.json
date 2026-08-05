@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-06-24T15:59:50.185Z",
+  "generated": "2026-08-05T12:06:31.251Z",
   "repository": "https://github.com/Lamatic/AgentKit",
-  "count": 79,
+  "count": 80,
   "typeCounts": {
-    "kit": 30,
+    "kit": 31,
     "bundle": 6,
     "template": 43
   },
@@ -3057,6 +3057,65 @@
         "hasAgentMd": true,
         "hasReadme": true,
         "hasEnvExample": false,
+        "hasChatWidget": false,
+        "hasSearchWidget": false
+      }
+    },
+    {
+      "slug": "point-proven",
+      "name": "Point Proven",
+      "description": "Index debate sources and build a citation-backed brief with key claims, clash points, agreed points, themes, and per-source summaries.",
+      "version": "1.0.0",
+      "type": "kit",
+      "tags": [
+        "debate",
+        "research",
+        "analysis",
+        "synthesis"
+      ],
+      "author": {
+        "name": "ravijaanthony",
+        "email": "ravijaanthony@gmail.com"
+      },
+      "steps": [
+        {
+          "id": "index-articles",
+          "type": "mandatory",
+          "envKey": "INDEX_ARTICLES_FLOW_ID"
+        },
+        {
+          "id": "synthesize-digest",
+          "type": "mandatory",
+          "envKey": "SYNTHESIZE_DIGEST_FLOW_ID"
+        }
+      ],
+      "links": {
+        "demo": "https://pointproven.vercel.app",
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/point-proven",
+        "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fpoint-proven%2Fapps&env=INDEX_ARTICLES_FLOW_ID,SYNTHESIZE_DIGEST_FLOW_ID,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY"
+      },
+      "path": "kits/point-proven",
+      "flows": {
+        "count": 2,
+        "names": [
+          "index-articles",
+          "synthesize-digest"
+        ]
+      },
+      "resources": {
+        "prompts": 2,
+        "scripts": 4,
+        "modelConfigs": 1,
+        "constitutions": 1,
+        "triggers": 0,
+        "memory": 0,
+        "tools": 0
+      },
+      "capabilities": {
+        "hasApps": true,
+        "hasAgentMd": true,
+        "hasReadme": true,
+        "hasEnvExample": true,
         "hasChatWidget": false,
         "hasSearchWidget": false
       }
