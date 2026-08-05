@@ -91,7 +91,7 @@
  * | Embedding step fails | `embeddingModelName` is not configured, unavailable, or lacks provider access | Select a valid embedding model in Lamatic and verify the underlying provider credentials and quotas. |
  * | Indexing step fails to write records | `vectorDB` is not configured, unreachable, or schema expectations do not match transformed payloads | Select a valid vector database, verify connectivity, and inspect the metadata transformation script assumptions around fields like `title`, `vectors`, and `metadata`. |
  * |Existing records are unexpectedly replaced | Duplicate handling is configured as overwrite and title is reused as the primary key |
- * | Source metadata is incorrect for all indexed records | The `Variables` node hardcodes `source` to a fixed folder URL rather than deriving it dynamically per document | Update the `mapping.source` value or the metadata transformation logic to reflect the actual desired per-document source. |
+ * |Source metadata is incorrect for all indexed records | The `Variables` node initializes `source` as an empty string unless a value is provided through the configured mapping. | Update the `mapping.source` value or metadata transformation logic to provide the desired per-document source when required. |
  * | Downstream chatbot returns no relevant answers after this flow ran | The chatbot flow was run against a different vector database or the indexing job produced no usable chunks | Ensure this flow and the chatbot share the same vector store, confirm records were indexed successfully, and validate chunk/vector counts. |
  * | Automation expects a rich response but only sees indexing status | The flow’s public response comes from the final index node rather than exposing intermediate chunk or vector payloads | Update the flow contract or downstream automation to consume the index result, or add an explicit response-shaping node if richer output is required. |
  *
@@ -100,8 +100,8 @@
  * - The configured cron expression indicates a scheduled execution pattern, nominally weekly. Operators should validate the exact schedule semantics in their Lamatic runtime and timezone handling.
  * - - The indexing node uses `chunk_id` as the sole primary key. Records with the same `chunk_id` are overwritten, so each chunk should have a stable and unique identifier.
  * - Two important transformation steps are implemented in external scripts: `@scripts/gdrive_extract-chunked-text.ts` and `@scripts/gdrive_transform-metadata.ts`. Their behavior determines the final chunk text payload and metadata schema, so changes there can materially alter indexing outcomes even if the flow graph remains unchanged.
- * - The flow metadata name in source includes a trailing space as `GDrive `. Documentation and automation should normalize this to `GDrive` when displaying or referencing the flow.
- * - The `Index to DB` node contains a webhook URL in its configuration. If this is active in your environment, review whether it is a placeholder, audit endpoint, or production callback before deployment.
+ * - The flow metadata name is `GDrive` and should be referenced consistently across documentation and automation.
+ * -The `Index to DB` node contains a webhook URL in its configuration. If this is active in your environment, review whether it is a placeholder, audit endpoint, or production callback before deployment.
  */
 
 // Flow: gdrive

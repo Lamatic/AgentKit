@@ -1,8 +1,7 @@
-let vectors = {{ vectorizeNode_639.output.vectors }};
-let texts = {{ codeNode_254.output }};
-let title = {{ variablesNode_289.output.title }};
-let source = {{ variablesNode_289.output.source }};
-let lastModified = {{ variablesNode_289.output.last_modified }};
+let vectors = {{ vectorizeNode_623.output.vectors }};
+let texts = {{ codeNode_539.output }};
+let title = {{ variablesNode_272.output.title }};
+let source = {{ variablesNode_272.output.source }};
 
 if (!Array.isArray(vectors)) {
   throw new Error("Expected vectors to be an array.");
@@ -18,12 +17,15 @@ if (vectors.length !== texts.length) {
   );
 }
 
+if (typeof title !== "string" || title.trim() === "") {
+  throw new Error("Expected a GDrive document identity.");
+}
+
 let metadataProps = vectors.map((vector, idx) => ({
-  content: texts[idx],
   title: title,
+  content: texts[idx],
   source: source,
-  last_modified: lastModified,
-  chunk_id: `${title || source || "onedrive"}-${idx}`
+  chunk_id: `${title}-${idx}`
 }));
 
 output = {
