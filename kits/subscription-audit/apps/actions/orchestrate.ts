@@ -1,0 +1,98 @@
+"use server"
+
+import { lamaticClient } from "@/lib/lamatic-client"
+import config from "../../lamatic.config"
+import { z } from "zod"
+
+export async function processStatement(
+  statement_text: string,
+): Promise<{
+  success: boolean
+  data?: any
+  error?: string
+}> {
+  try {
+    console.log("[subscription-audit] Processing statement of length:", statement_text.length)
+
+    // Get the first workflow from the config
+    const steps = config.steps
+    const firstStep = steps[0]
+
+    if (!firstStep) {
+      throw new Error("No workflows found in configuration")
+    }
+
+    const workflowId = process.env[firstStep.envKey];
+    console.log("[subscription-audit] Using workflow ID:", workflowId);
+
+    // Prepare inputs based on the flow's input schema
+    const inputs: Record<string, any> = {
+      statement_text,
+    }
+
+    console.log("[subscription-audit] Sending inputs to flow...")
+
+    if(!workflowId){
+      throw Error("Workflow not found in config.")
+    }
+    const resData = await lamaticClient.executeFlow(workflowId, inputs)
+    console.log("[subscription-audit] Raw response:", resData)
+
+    if (resData?.status === 'error' || resData?.statusCode >= 400) {
+      throw new Error(resData.message || `API Error: ${resData.statusCode}`)
+    }
+
+    // Extract the subscriptions from the response safely
+    let subscriptions = null;
+    if (Array.isArray(resData?.result?.subscriptions)) {
+      subscriptions = resData.result.subscriptions;
+    } else if (Array.isArray((resData as any)?.subscriptions)) {
+      subscriptions = (resData as any).subscriptions;
+    } else if (Array.isArray(resData?.result)) {
+      subscriptions = resData.result;
+    }
+
+    if (!subscriptions) {
+      throw new Error("No subscriptions found in response")
+    }
+
+    const subscriptionsSchema = z.array(
+      z.object({
+        merchant: z.string(),
+        amount: z.string(),
+        frequency: z.string(),
+        verdict: z.enum(["keep", "cancel", "review"]),
+        reason: z.string(),
+      }).strict()
+    );
+
+    const parseResult = subscriptionsSchema.safeParse(subscriptions);
+
+    if (!parseResult.success) {
+      throw new Error(`Malformed subscription response: ${parseResult.error.message}`);
+    }
+
+    return {
+      success: true,
+      data: { subscriptions: parseResult.data },
+    }
+  } catch (error) {
+    console.error("[subscription-audit] Generation error:", error)
+
+    let errorMessage = "Unknown error occurred"
+    if (error instanceof Error) {
+      errorMessage = error.message
+      if (error.message.includes("fetch failed")) {
+        errorMessage =
+          "Network error: Unable to connect to the service. Please check your internet connection and try again."
+      } else if (error.message.includes("API key")) {
+        errorMessage = "Authentication error: Please check your API configuration."
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    }
+  }
+}
