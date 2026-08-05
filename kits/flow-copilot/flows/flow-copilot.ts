@@ -273,7 +273,7 @@ export const nodes = [
         "memoryValue": [
           {
             "role": "user",
-            "content": "User asked: {{triggerNode_1.output.chatMessage}} — Assistant responded: {{InstructorLLMNode_429.output.flowName}} | Sequence: {{InstructorLLMNode_429.output.nodeSequence}} | Assumptions: {{InstructorLLMNode_429.output.assumptions}}"
+            "content": "User asked: {{triggerNode_1.output.chatMessage}} — Assistant responded: {{InstructorLLMNode_429.output.flowName}} | Trigger: {{InstructorLLMNode_429.output.trigger}} | Nodes: {{InstructorLLMNode_429.output.nodes}} | Sequence: {{InstructorLLMNode_429.output.nodeSequence}} | Assumptions: {{InstructorLLMNode_429.output.assumptions}}"
           }
         ],
         "memoryCollection": "flowcopilotconversationmemory",
@@ -293,7 +293,7 @@ export const nodes = [
       "nodeId": "chatResponseNode",
       "values": {
         "id": "responseNode_triggerNode_1",
-        "content": "Here's your flow blueprint: {{InstructorLLMNode_429.output.flowName}}— Sequence: {{InstructorLLMNode_429.output.nodeSequence}}— Assumptions: {{InstructorLLMNode_429.output.assumptions}}",
+        "content": "Here's your flow blueprint: {{InstructorLLMNode_429.output.flowName}}— Sequence: {{InstructorLLMNode_429.output.nodeSequence}}— Assumptions: {{InstructorLLMNode_429.output.assumptions}}— Trigger: {{InstructorLLMNode_429.output.trigger}}— Nodes: {{InstructorLLMNode_429.output.nodes}}",
         "nodeName": "Chat Response",
         "references": "",
         "webhookUrl": "",
