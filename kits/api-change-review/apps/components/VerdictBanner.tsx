@@ -79,15 +79,15 @@ export default function VerdictBanner({ result }: { result: ReviewResult }) {
         <div
           className={`grid shrink-0 gap-2 ${unclassified ? "grid-cols-5" : "grid-cols-4"}`}
         >
-          <Count n={counts.breaking} label="Breaking" tone="text-red-400" />
+          <Count n={counts.breaking} label="Breaking" tone="text-severity-breaking" />
           <Count
             n={counts.potentiallyBreaking}
             label="Maybe"
-            tone="text-amber-400"
+            tone="text-severity-maybe"
           />
-          <Count n={counts.additive} label="Additive" tone="text-emerald-400" />
+          <Count n={counts.additive} label="Additive" tone="text-severity-additive" />
           {unclassified ? (
-            <Count n={unclassified} label="Unknown" tone="text-slate-300" />
+            <Count n={unclassified} label="Unknown" tone="text-severity-unknown" />
           ) : null}
           <Count n={result.totalChanges} label="Total" tone="text-ink" />
         </div>

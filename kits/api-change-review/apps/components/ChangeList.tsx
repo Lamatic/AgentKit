@@ -4,16 +4,16 @@ import { useState } from "react";
 import type { ReviewedChange, Severity } from "../lib/types";
 
 const GROUPS: { key: Severity; label: string; tone: string; openByDefault: boolean }[] = [
-  { key: "breaking", label: "Breaking", tone: "text-red-400", openByDefault: true },
+  { key: "breaking", label: "Breaking", tone: "text-severity-breaking", openByDefault: true },
   {
     key: "potentially-breaking",
     label: "Potentially breaking",
-    tone: "text-amber-400",
+    tone: "text-severity-maybe",
     openByDefault: true,
   },
-  { key: "unclassified", label: "Unclassified", tone: "text-slate-300", openByDefault: true },
+  { key: "unclassified", label: "Unclassified", tone: "text-severity-unknown", openByDefault: true },
   // Additive changes are noise when you are scanning for what breaks.
-  { key: "additive", label: "Additive", tone: "text-emerald-400", openByDefault: false },
+  { key: "additive", label: "Additive", tone: "text-severity-additive", openByDefault: false },
 ];
 
 const KNOWN = new Set<string>(["breaking", "potentially-breaking", "additive"]);

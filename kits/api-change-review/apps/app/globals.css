@@ -15,6 +15,13 @@
   --accent-strong: #0ea5e9;
   --accent-ink: #020617;
   --focus: var(--accent);
+
+  /* Severity ramp. Defined once because the verdict counts and the change-list
+     group headings colour the same four buckets — two literals would drift. */
+  --severity-breaking: #f87171;
+  --severity-maybe: #fbbf24;
+  --severity-additive: #34d399;
+  --severity-unknown: #cbd5e1;
 }
 
 @theme inline {
@@ -29,6 +36,10 @@
   --color-accent-strong: var(--accent-strong);
   --color-accent-ink: var(--accent-ink);
   --color-focus: var(--focus);
+  --color-severity-breaking: var(--severity-breaking);
+  --color-severity-maybe: var(--severity-maybe);
+  --color-severity-additive: var(--severity-additive);
+  --color-severity-unknown: var(--severity-unknown);
 }
 
 html,
