@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-08-05T12:06:31.251Z",
+  "generated": "2026-08-05T14:37:03.509Z",
   "repository": "https://github.com/Lamatic/AgentKit",
   "count": 80,
   "typeCounts": {
