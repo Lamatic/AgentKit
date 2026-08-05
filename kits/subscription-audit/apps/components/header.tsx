@@ -17,7 +17,7 @@ export function Header() {
             />
             <h1 className="text-2xl font-bold tracking-tight select-none">
               <span className="text-slate-800">Lamatic</span>
-              <span className="text-rose-500"> Generator</span>
+              <span className="text-emerald-600"> Subscription Audit</span>
             </h1>
           </div>
         </Link>

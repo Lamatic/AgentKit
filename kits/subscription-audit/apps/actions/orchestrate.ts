@@ -12,7 +12,7 @@ export async function processStatement(
   error?: string
 }> {
   try {
-    console.log("[v0] Processing statement of length:", statement_text.length)
+    console.log("[subscription-audit] Processing statement of length:", statement_text.length)
 
     // Get the first workflow from the config
     const steps = config.steps
@@ -23,20 +23,20 @@ export async function processStatement(
     }
 
     const workflowId = process.env[firstStep.envKey];
-    console.log("[v0] Using workflow ID:", workflowId);
+    console.log("[subscription-audit] Using workflow ID:", workflowId);
 
     // Prepare inputs based on the flow's input schema
     const inputs: Record<string, any> = {
       statement_text,
     }
 
-    console.log("[v0] Sending inputs to flow...")
+    console.log("[subscription-audit] Sending inputs to flow...")
 
     if(!workflowId){
       throw Error("Workflow not found in config.")
     }
     const resData = await lamaticClient.executeFlow(workflowId, inputs)
-    console.log("[v0] Raw response:", resData)
+    console.log("[subscription-audit] Raw response:", resData)
 
     if (resData?.status === 'error' || resData?.statusCode >= 400) {
       throw new Error(resData.message || `API Error: ${resData.statusCode}`)
@@ -77,7 +77,7 @@ export async function processStatement(
       data: { subscriptions: parseResult.data },
     }
   } catch (error) {
-    console.error("[v0] Generation error:", error)
+    console.error("[subscription-audit] Generation error:", error)
 
     let errorMessage = "Unknown error occurred"
     if (error instanceof Error) {
