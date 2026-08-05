@@ -20,12 +20,11 @@
 <h2 align="center">Stack to Build Reliable AI Agents</h2>
   <br/>
   <h3 align="center">Opensource SDK ♦️ Collaborative Studio ♦️ Serverless Deployment</h3>
-<p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>| <a href="https://lamatic.ai/docs/slack">Join Slack community</a>
+<p align="center"><a href="https://lamatic.ai/" >Website</a> | <a href="https://lamatic.ai/docs">Docs</a>
 </p>
 </p>
 
 <p align="center">
-<a href="https://lamatic.ai/docs/slack"><img src="https://img.shields.io/badge/Slack-Join%20Us-4A154B?logo=slack&logoColor=white" alt="Join lamatic.ai Slack"></a>
 <a href="https://github.com/Lamatic/AgentKit/stargazers">
   <img src="https://img.shields.io/github/stars/Lamatic/AgentKit?logo=github" alt="GitHub Stars" />
 </a>
@@ -41,6 +40,18 @@
 ## ✨ About AgentKit
 
 Deploy intelligent AI agents in minutes with enterprise-grade security, scalable architecture, and seamless integrations. Power everything from customer support to workflow automation with the future of agent-powered business.
+
+***
+
+## 💬 Questions or stuck on something?
+
+Please use [GitHub Discussions](https://github.com/Lamatic/AgentKit/discussions) 
+instead of Slack for contribution questions — it's searchable, so your question
+might already be answered, and it helps future contributors too.
+
+- 🐛 Found a bug? [Open an issue](https://github.com/Lamatic/AgentKit/issues)
+- ❓ Have a question? [Ask in Discussions](https://github.com/Lamatic/AgentKit/discussions/new?category=q-a)
+- 💡 Have an idea? [Share it in Discussions](https://github.com/Lamatic/AgentKit/discussions/new?category=ideas)
 
 ***
 
@@ -222,7 +233,8 @@ We welcome your ideas and improvements! See [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [Lamatic.ai](https://lamatic.ai)
 - [Lamatic University](https://lamatic.ai/university)
 - [Case Studies](https://lamatic.ai/case-studies)
+- [Slack](https://lamatic.ai/docs/slack)
 
 ***
 
-Powerful, scalable agentic automations for the modern enterprise — with security, speed, and service at the core.
+Powerful, scalable agentic automations for the modern enterprise with security, speed, and service at the core.
