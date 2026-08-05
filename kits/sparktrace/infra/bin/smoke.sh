@@ -25,7 +25,9 @@ QID="$(aws athena start-query-execution \
   --query QueryExecutionId --output text)"
 info "QueryExecutionId: $QID"
 
-while :; do
+deadline=$((SECONDS + 300))
+STATE=""
+while (( SECONDS < deadline )); do
   read -r STATE REASON < <(aws athena get-query-execution --region "$AWS_REGION" \
     --query-execution-id "$QID" \
     --query "QueryExecution.Status.[State,StateChangeReason]" --output text)
@@ -35,6 +37,11 @@ while :; do
     *) sleep 1 ;;
   esac
 done
+
+if [ "${STATE:-}" != "SUCCEEDED" ]; then
+  aws athena stop-query-execution --region "$AWS_REGION" --query-execution-id "$QID" >/dev/null 2>&1 || true
+  die "Query did not finish within 300s (stopped it) — check the Athena console."
+fi
 
 SCANNED="$(aws athena get-query-execution --region "$AWS_REGION" --query-execution-id "$QID" \
   --query "QueryExecution.Statistics.DataScannedInBytes" --output text)"
