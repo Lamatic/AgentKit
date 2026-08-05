@@ -125,7 +125,10 @@ export default function Page() {
       </div>
 
       {loading ? (
-        <div className="rounded-xl border border-edge bg-panel px-4 py-3 text-sm text-muted">
+        <div
+          role="status"
+          className="rounded-xl border border-edge bg-panel px-4 py-3 text-sm text-muted"
+        >
           <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-accent align-middle" />
           Diffing locally, then asking the flow to classify each change. This takes
           a few seconds.
