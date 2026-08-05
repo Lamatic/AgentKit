@@ -8,6 +8,13 @@
   --text: #e8edf7;
   --muted: #94a3b8;
   --link: #7cc4ff;
+
+  /* Accent ramp. --focus is the semantic token every focus ring uses, so the
+     indicator moves with the accent rather than drifting from it. */
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --accent-ink: #020617;
+  --focus: var(--accent);
 }
 
 @theme inline {
@@ -18,6 +25,10 @@
   --color-ink: var(--text);
   --color-muted: var(--muted);
   --color-link: var(--link);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
 }
 
 html,

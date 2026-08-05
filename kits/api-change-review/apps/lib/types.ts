@@ -28,7 +28,7 @@ export type ReviewResult = {
   oldVersion: string | null;
   newVersion: string | null;
   totalChanges: number;
-  counts: { breaking: number; potentiallyBreaking: number; additive: number };
+  counts: { breaking: number; potentiallyBreaking: number; additive: number; unclassified: number };
   changes: ReviewedChange[];
   migrationNotes: string | null;
   changelog: string | null;

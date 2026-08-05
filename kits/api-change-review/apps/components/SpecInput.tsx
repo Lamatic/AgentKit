@@ -68,7 +68,7 @@ export default function SpecInput({
         disabled={disabled}
         spellCheck={false}
         placeholder="Paste an OpenAPI 3.x document (YAML or JSON), or upload a file."
-        className="h-72 w-full resize-y bg-transparent p-4 text-xs leading-relaxed text-ink outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset placeholder:text-muted disabled:opacity-60"
+        className="h-72 w-full resize-y bg-transparent p-4 text-xs leading-relaxed text-ink outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset placeholder:text-muted disabled:opacity-60"
       />
     </div>
   );

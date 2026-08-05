@@ -20,7 +20,7 @@ Two OpenAPI specs
    ├─ apps/lib/spec-diff.ts     deterministic — runs in the Next.js app
    │     └─ change facts        { id, kind, location, before, after, requiredNow }
    │
-   └─ flows/api-review-change   judgment — runs in Lamatic
+   └─ flows/api-review-review   judgment — runs in Lamatic
          ├─ Generate JSON       severity + consumer impact per change
          ├─ Generate Text       migration notes ---CHANGELOG--- changelog
          └─ Code                assemble into the response shape
@@ -34,7 +34,7 @@ Each change fact crosses the boundary JSON-encoded. Studio's trigger schema offe
 
 ## Flows
 
-### `api-review-change`
+### `api-review-review`
 
 **Trigger** — API Request (GraphQL). Accepts:
 
@@ -58,7 +58,7 @@ Each change fact crosses the boundary JSON-encoded. Studio's trigger schema offe
   oldVersion: string | null,
   newVersion: string | null,
   totalChanges: number,
-  counts: { breaking: number, potentiallyBreaking: number, additive: number },
+  counts: { breaking: number, potentiallyBreaking: number, additive: number, unclassified: number },
   changes: Array<{
     id, kind, location, before, after,
     severity: "breaking" | "potentially-breaking" | "additive" | "unclassified",
@@ -71,7 +71,7 @@ Each change fact crosses the boundary JSON-encoded. Studio's trigger schema offe
 }
 ```
 
-The verdict is computed arithmetically from the severity counts, not asked of a model: any breaking change means `needs-major-version`, any potentially-breaking means `review-required`, otherwise `safe-to-merge`.
+The verdict is computed arithmetically from the severity counts, not asked of a model: any breaking change means `needs-major-version`; any potentially-breaking *or unclassified* change means `review-required`; otherwise `safe-to-merge`. Unclassified counts against the verdict deliberately — it means the classifier returned nothing usable for that change, so its impact is unknown rather than absent, and a gap in the assessment must not read as a green light.
 
 **When to use it** — before merging a spec change, when cutting a release, or when a consumer asks what changed between two published versions.
 
@@ -84,7 +84,7 @@ Beyond `constitutions/default.md`:
 - **Never invent API surface.** The classifier receives already-computed facts and returns exactly one assessment per input change, keyed by `id`. It does not re-derive changes or add ones it was not given.
 - **Reason from data, not from labels.** A `param.added` that is required is breaking despite sitting in the additive category. Where the severity rule and the `requiredNow` value disagree, the data wins and confidence drops.
 - **Never invent endpoints, fields, versions, or dates** in the migration notes or changelog. Fields are referenced by the exact path supplied.
-- **Unassessed changes are surfaced, not hidden.** Any change the classifier does not return an assessment for is marked `unclassified` and still rendered.
+- **Unassessed changes are surfaced, not hidden.** Any change the classifier does not return an assessment for is marked `unclassified`, is still rendered, and forces the verdict to at least `review-required`.
 
 ### Not in scope
 
@@ -116,7 +116,7 @@ All four are read server-side only. None is prefixed `NEXT_PUBLIC_`, and the SDK
 
 ## Quickstart
 
-1. Deploy the `api-review-change` flow in Lamatic Studio and copy its Flow ID.
+1. Deploy the `api-review-review` flow in Lamatic Studio and copy its Flow ID.
 2. `cd kits/api-change-review/apps`
 3. `cp .env.example .env.local` and fill in the four values above.
 4. `npm install && npm run dev`
