@@ -1,29 +1,26 @@
 ```
 # Dependencies
 node_modules/
-package-lock.json
+.julia/
+zig*/
+target/
 
 # Build artifacts
 dist/
 build/
-target/
+*.tsbuildinfo
 
-# Environment variables
+# Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# Cache directories
-.cache/
-.node_cache/
-.npm/
-.yarn/
-
-# IDE specific
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
 # Logs
 *.log
@@ -33,20 +30,60 @@ coverage/
 htmlcov/
 .coverage
 
-# OS generated
-.DS_Store
-Thumbs.db
-
-# Python specific (if applicable)
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 *.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules
+*.bin
+*.dex
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info
+.eggs
+.eggs/
+dist/
+build/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Temporary files
-*.tmp
-*.temp
-*~
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.prof
+.DS_Store
+Thumbs.db
 ```
