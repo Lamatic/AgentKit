@@ -4,6 +4,12 @@ ChangeGraph is a pre-deployment release-intelligence kit for Lamatic workflows.
 
 It compares baseline and candidate workflow exports, identifies structural and semantic changes, calculates downstream blast radius, assigns a deterministic risk score, and generates a safe-promotion decision with targeted tests and rollback guidance.
 
+## Live demo
+
+[Open ChangeGraph](https://changegraph-release-intelligence.vercel.app)
+
+The live application compares baseline and candidate Lamatic workflow exports and generates a deterministic release-risk report.
+
 ## Why ChangeGraph
 
 AI workflow releases can introduce risk through seemingly small modifications:
