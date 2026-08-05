@@ -1,17 +1,29 @@
-let vectors = {{ vectorizeNode_623.output.vectors }};
-let texts = {{ codeNode_539.output }};
-let title = {{ variablesNode_272.output.title }};
-let source = {{ variablesNode_272.output.source }};
+let vectors = {{ vectorizeNode_639.output.vectors }};
+let texts = {{ codeNode_254.output }};
+let title = {{ variablesNode_289.output.title }};
+let source = {{ variablesNode_289.output.source }};
+let lastModified = {{ variablesNode_289.output.last_modified }};
 
-if (!Array.isArray(vectors) || !Array.isArray(texts) || vectors.length !== texts.length) {
-  throw new Error("Expected aligned vector and text arrays.");
+if (!Array.isArray(vectors)) {
+  throw new Error("Expected vectors to be an array.");
+}
+
+if (!Array.isArray(texts)) {
+  throw new Error("Expected texts to be an array.");
+}
+
+if (vectors.length !== texts.length) {
+  throw new Error(
+    `Vector count (${vectors.length}) does not match text count (${texts.length}).`
+  );
 }
 
 let metadataProps = vectors.map((vector, idx) => ({
-  title: title,
   content: texts[idx],
+  title: title,
   source: source,
-  chunk_id: `${source || title || "gdrive"}-${idx}`
+  last_modified: lastModified,
+  chunk_id: `${title || source || "onedrive"}-${idx}`
 }));
 
 output = {
