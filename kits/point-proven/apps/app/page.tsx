@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 
 const SOURCE_BOX_TIP =
-  "Paste https://www.… article URLs here, or pick one template below. Bubbles appear inside this box. Only one template can be active at a time — switching replaces the URLs. After you index, this box locks.";
+  "Paste https://… article URLs here, or pick one template below. Bubbles appear inside this box. Only one template can be active at a time — switching replaces the URLs. After you index, this box locks.";
 
 const QUERY_BOX_TIP =
   "The motion / research question follows the active template, or you can type a custom one before indexing. After sources are indexed, this field locks so the brief matches what you indexed.";
@@ -301,7 +301,7 @@ export default function Home() {
             ? {
                 ...c,
                 status: "error",
-                message: "Enter a valid https://www.… URL",
+                message: "Enter a valid https://… URL",
                 httpStatus: undefined,
               }
             : c
@@ -424,7 +424,7 @@ export default function Home() {
         }
 
         try {
-          const one = await indexSingleArticle(urls[i]);
+          const one = await indexSingleArticle(urls[i], { deadlineMs: deadline });
           totalIndexed += one.indexed_count;
           if (one.errors?.length) errors.push(...one.errors);
           successCount += 1;

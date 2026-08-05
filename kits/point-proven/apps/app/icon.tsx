@@ -3,8 +3,16 @@ import { ImageResponse } from "next/og";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-/** Matches Point Proven `--primary` (oklch 0.42 0.06 165) as a favicon-safe hex. */
+/**
+ * Icon colors use hard-coded hex values as an ImageResponse rendering exemption.
+ * ImageResponse generates static PNGs at build/edge time and cannot resolve CSS
+ * variables or runtime theme tokens. These values match the default light theme:
+ * - PRIMARY: oklch(0.42 0.06 165) → #2f5c4f
+ * - background: oklch(0.98 0.008 165) → #f4f7f5
+ * For dark mode support, consumers should override via next.config.js routes.
+ */
 const PRIMARY = "#2f5c4f";
+const BACKGROUND = "#f4f7f5";
 
 /**
  * Browser tab / app icon — same Lucide BookOpen silhouette as the Point Proven header.
@@ -19,7 +27,7 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#f4f7f5",
+          background: BACKGROUND,
           borderRadius: 6,
         }}
       >

@@ -2,12 +2,20 @@
 
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { Agent, fetch as undiciFetch, interceptors } from "undici";
 
 export type UrlReachabilityResult = {
   ok: boolean;
   finalUrl?: string;
   status: number | null;
   message?: string;
+};
+
+type SafeUrl = {
+  url: URL;
+  /** Validated public address to pin at connect time (null = literal public IP URL). */
+  pinnedAddress: string;
+  family: 4 | 6;
 };
 
 const CHECK_TIMEOUT_MS = 12_000;
@@ -58,7 +66,17 @@ function isBlockedHostname(hostname: string): boolean {
   return false;
 }
 
-async function assertSafeUrl(raw: string): Promise<URL> {
+function isPrivateAddress(address: string, family: number): boolean {
+  if (family === 4) return isPrivateIpv4(address);
+  if (family === 6) return isPrivateIpv6(address);
+  return true;
+}
+
+/**
+ * Validate scheme/host and resolve DNS once. Returns a public IP to pin so a
+ * later rebinding cannot steer the socket to a private address.
+ */
+async function assertSafeUrl(raw: string): Promise<SafeUrl> {
   let parsed: URL;
   try {
     parsed = new URL(raw);
@@ -74,28 +92,83 @@ async function assertSafeUrl(raw: string): Promise<URL> {
     throw new Error("Local or private network addresses are not allowed");
   }
 
-  // Literal IPs already checked above; resolve hostnames and reject private results.
-  if (!isIP(parsed.hostname.replace(/^\[|\]$/g, ""))) {
-    let addresses: { address: string; family: number }[];
-    try {
-      addresses = await lookup(parsed.hostname, { all: true });
-    } catch {
-      throw new Error("Could not resolve hostname");
+  const bareHost = parsed.hostname.replace(/^\[|\]$/g, "");
+  const literalFamily = isIP(bareHost);
+  if (literalFamily === 4 || literalFamily === 6) {
+    if (isPrivateAddress(bareHost, literalFamily)) {
+      throw new Error("Local or private network addresses are not allowed");
     }
-    if (!addresses.length) {
-      throw new Error("Could not resolve hostname");
-    }
-    for (const { address, family } of addresses) {
-      if (family === 4 && isPrivateIpv4(address)) {
-        throw new Error("Local or private network addresses are not allowed");
-      }
-      if (family === 6 && isPrivateIpv6(address)) {
-        throw new Error("Local or private network addresses are not allowed");
-      }
-    }
+    return {
+      url: parsed,
+      pinnedAddress: bareHost,
+      family: literalFamily,
+    };
   }
 
-  return parsed;
+  let addresses: { address: string; family: number }[];
+  try {
+    addresses = await lookup(parsed.hostname, { all: true });
+  } catch {
+    throw new Error("Could not resolve hostname");
+  }
+  if (!addresses.length) {
+    throw new Error("Could not resolve hostname");
+  }
+
+  const publicAddresses = addresses.filter(
+    ({ address, family }) => !isPrivateAddress(address, family)
+  );
+  if (!publicAddresses.length) {
+    throw new Error("Local or private network addresses are not allowed");
+  }
+
+  // Prefer IPv4 for broader host compatibility, then IPv6.
+  const chosen =
+    publicAddresses.find((a) => a.family === 4) ?? publicAddresses[0];
+
+  return {
+    url: parsed,
+    pinnedAddress: chosen.address,
+    family: chosen.family === 6 ? 6 : 4,
+  };
+}
+
+function pinnedDispatcher(safe: SafeUrl) {
+  const pinned = safe.pinnedAddress;
+  const family = safe.family;
+  return new Agent().compose(
+    interceptors.dns({
+      dualStack: false,
+      affinity: family,
+      maxTTL: 0,
+      lookup(_origin, _options, callback) {
+        callback(null, [{ address: pinned, family, ttl: 0 }]);
+      },
+    })
+  );
+}
+
+async function fetchPinned(
+  safe: SafeUrl,
+  method: "HEAD" | "GET",
+  signal: AbortSignal
+): Promise<Response> {
+  const dispatcher = pinnedDispatcher(safe);
+  try {
+    // undici Response is API-compatible here; cast across the DOM Response mismatch.
+    const res = (await undiciFetch(safe.url.toString(), {
+      method,
+      redirect: "manual",
+      signal,
+      headers: { "User-Agent": "Point-Proven-UrlCheck/1.0" },
+      dispatcher,
+    })) as unknown as Response;
+    return res;
+  } finally {
+    // Graceful close waits for the response body to drain; callers cancel the
+    // body after this returns, so don't block the return path on cleanup.
+    void dispatcher.close().catch(() => undefined);
+  }
 }
 
 async function fetchWithRedirectGuard(
@@ -106,14 +179,8 @@ async function fetchWithRedirectGuard(
   let current = startUrl;
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    await assertSafeUrl(current);
-
-    const res = await fetch(current, {
-      method,
-      redirect: "manual",
-      signal,
-      headers: { "User-Agent": "Point-Proven-UrlCheck/1.0" },
-    });
+    const safe = await assertSafeUrl(current);
+    const res = await fetchPinned(safe, method, signal);
 
     if (res.status >= 300 && res.status < 400) {
       const location = res.headers.get("location");
@@ -132,9 +199,9 @@ async function fetchWithRedirectGuard(
 }
 
 /**
- * Live reachability check. Follows redirects with per-hop SSRF validation;
- * success only if final status is 200. Tries HEAD first, then GET only when
- * HEAD is unsupported/blocked (403/405/501).
+ * Live reachability check. Follows redirects with per-hop SSRF validation and
+ * DNS pinning; success only if final status is 200. Tries HEAD first, then GET
+ * only when HEAD is unsupported/blocked (403/405/501).
  */
 export async function checkUrlReachability(
   url: string
