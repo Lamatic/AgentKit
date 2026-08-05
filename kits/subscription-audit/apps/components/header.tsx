@@ -4,7 +4,7 @@ import Image from "next/image"
 
 export function Header() {
   return (
-    <header className="border-b border-slate-200 px-6 py-4 bg-white">
+    <header className="border-b border-border px-6 py-4 bg-background">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <Link href="/" className="hover:opacity-80 transition-opacity">
           <div className="flex items-center gap-3">
@@ -16,8 +16,8 @@ export function Header() {
               className="w-8 h-8"
             />
             <h1 className="text-2xl font-bold tracking-tight select-none">
-              <span className="text-slate-800">Lamatic</span>
-              <span className="text-emerald-600"> Subscription Audit</span>
+              <span className="text-foreground">Lamatic</span>
+              <span className="text-emerald-600 dark:text-emerald-400"> Subscription Audit</span>
             </h1>
           </div>
         </Link>
@@ -26,7 +26,7 @@ export function Header() {
             href="https://lamatic.ai/docs"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 bg-sky-100 text-sky-700 rounded-md hover:bg-sky-200 transition-colors flex items-center gap-2 shadow-sm"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2 shadow-sm"
           >
             <FileText className="h-4 w-4" />
             Docs
@@ -35,7 +35,7 @@ export function Header() {
             href="https://github.com/Lamatic/AgentKit"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors flex items-center gap-2 shadow-sm"
+            className="px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/80 transition-colors flex items-center gap-2 shadow-sm"
           >
             <Github className="h-4 w-4" />
             GitHub
@@ -45,3 +45,4 @@ export function Header() {
     </header>
   )
 }
+
