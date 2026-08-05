@@ -141,6 +141,7 @@ sparktrace/
 ├── model-configs/             # per-flow model tier (Opus/Sonnet/Haiku)
 ├── constitutions/default.md   # guardrails, incl. read-only + investigation discipline
 ├── assets/sample-scenario/    # demo pipeline + fixture data + ground truth
+├── infra/                     # optional one-click AWS IaC for live mode (CloudFormation + scripts)
 └── apps/                      # the Next.js app
     ├── actions/orchestrate.ts # the planner-driven loop
     ├── lib/
@@ -154,6 +155,25 @@ sparktrace/
     ├── app/ | components/     # UI
     └── .env.example
 ```
+
+---
+
+## Live deployment (AWS, optional)
+
+Demo mode needs no cloud. To run the *same* investigation against real AWS,
+[`infra/`](infra/README.md) ships one-click infrastructure-as-code
+(CloudFormation + scripts): it provisions an S3 bucket, the Glue Data Catalog
+tables for the scenario, and a dedicated read-only Athena workgroup with a hard
+per-query scan cap, then wires the credentials into `apps/.env.local`.
+
+```bash
+cd infra && cp .env.example .env   # paste deployer AWS keys (gitignored)
+bash bin/up.sh                     # deploy + load data + configure the app
+bash bin/down.sh                   # tear it all down
+```
+
+Nothing in the stack bills hourly (no EC2/NAT/RDS); Athena is per-query and
+capped, so a full run costs a fraction of a cent. See [`infra/README.md`](infra/README.md).
 
 ---
 
