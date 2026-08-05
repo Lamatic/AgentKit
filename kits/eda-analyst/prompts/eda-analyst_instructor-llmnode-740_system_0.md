@@ -11,4 +11,6 @@ Rules:
 - Use only exact column names from the profile.
 - Never analyze ID-like columns (isLikelyId = true).
 - Prefer meaningful distributions, high missingness, strong correlations, or outliers.
-- Return 4 to 6 tasks including at least one "distribution", one "compare", one "relationship".
+- Return 4 to 6 valid tasks when the profile supports them; return fewer rather than emit invalid ones.
+- Include a "compare" task only when a categorical or boolean column exists, and a "relationship" task only when at least two eligible numeric columns exist. Include a "distribution" task whenever any analyzable column exists.
+- Never invent column names to satisfy the task count.
