@@ -1,0 +1,1 @@
+The user's request is: {{triggerNode_1.output.chatMessage}}

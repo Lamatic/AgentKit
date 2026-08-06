@@ -43,6 +43,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          allow-unsafe-pr-checkout: true
 
       - name: Fetch base branch
         run: git fetch origin ${{ github.event.pull_request.base.ref }}
@@ -304,6 +305,7 @@ jobs:
               echo ":stop_sign: Please fix the errors above before this PR can be merged."
               echo ""
               echo "Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) and [CLAUDE.md](./CLAUDE.md) for the expected folder structure."
+              echo "❓ Need help? Ask in [GitHub Discussions](https://github.com/Lamatic/AgentKit/discussions) — don't DM on Slack, it helps future contributors if the answer is public."
             fi
           } > "$SUMMARY_FILE"
 

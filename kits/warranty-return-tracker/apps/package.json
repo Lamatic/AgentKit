@@ -1,0 +1,8 @@
+{
+  "name": "warranty-return-tracker-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "warranty-return-tracker"
+  ]
+}
