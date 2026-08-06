@@ -197,6 +197,7 @@ describe("investigateIssue", () => {
 
     expect(result.outcome).toBe("reproduced");
     expect(result.hypothesis).toBe("Case is normalized unexpectedly.");
+    expect(result.hypothesisSource).toBe("planner");
     expect(result.gate).toEqual({
       repeatCount: 2,
       allCandidateRunsPassed: true,
@@ -457,6 +458,7 @@ test("does not retry a deterministic malformed Lamatic report", async () => {
     expect(result.hypothesis).toBe(
       "The update token invokes self-update instead of opening the file.",
     );
+    expect(result.hypothesisSource).toBe("evidence_review");
   });
 
   test("certifies an ordinary TUI unsaved-exit issue without a formatted output signature", async () => {

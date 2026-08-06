@@ -281,6 +281,7 @@ export async function investigateIssue(
         issue,
         ref: ref ?? "default",
         hypothesis: report.summary,
+        hypothesisSource: "evidence_review" as const,
         setup: null,
         outcome: "inconclusive" as const,
         verdictOwner: "runtime" as const,
@@ -311,6 +312,7 @@ export async function investigateIssue(
         issue,
         ref: ref ?? "default",
         hypothesis: plan.hypothesis,
+        hypothesisSource: "planner" as const,
         setup: plan.setupCommand,
         ...certification,
       };
@@ -364,6 +366,7 @@ export async function investigateIssue(
       issue,
       ref: ref ?? "default",
       hypothesis: plan.hypothesis,
+      hypothesisSource: "planner" as const,
       setup: null,
       ...certification,
     };
