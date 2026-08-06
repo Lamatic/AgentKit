@@ -23,6 +23,9 @@ const VOLATILE_KEYS = new Set([
   "dragging",
   "positionabsolute",
   "measured",
+]);
+
+const POSITIONAL_KEYS = new Set([
   "width",
   "height",
   "x",
@@ -67,6 +70,7 @@ function normalizeText(value: string): string {
 
 function normalizeForComparison(
   value: unknown,
+  parentKey = "",
 ): unknown {
   if (
     value === null ||
@@ -81,12 +85,17 @@ function normalizeForComparison(
   }
 
   if (Array.isArray(value)) {
-    return value.map(normalizeForComparison);
+    return value.map((item) =>
+      normalizeForComparison(item, parentKey),
+    );
   }
 
   if (!isRecord(value)) {
     return String(value);
   }
+
+  const isPositionObject =
+    parentKey.toLowerCase() === "position";
 
   const entries = Object.entries(value)
     .filter(([key, child]) => {
@@ -94,6 +103,10 @@ function normalizeForComparison(
 
       return (
         !VOLATILE_KEYS.has(normalizedKey) &&
+        !(
+          isPositionObject &&
+          POSITIONAL_KEYS.has(normalizedKey)
+        ) &&
         child !== undefined &&
         typeof child !== "function"
       );
@@ -103,7 +116,7 @@ function normalizeForComparison(
     )
     .map(([key, child]) => [
       key,
-      normalizeForComparison(child),
+      normalizeForComparison(child, key),
     ]);
 
   return Object.fromEntries(entries);
@@ -207,21 +220,6 @@ function inferNodeCategory(
   ) {
     return "prompt";
   }
-  if (
-  searchable.includes("fallback") ||
-  searchable.includes("backup model")
-) {
-  return "fallback";
-}
-
-if (
-  searchable.includes("model") ||
-  searchable.includes("temperature") ||
-  searchable.includes("top_p") ||
-  searchable.includes("topp")
-) {
-  return "model";
-}
 
   if (
     searchable.includes("schema") ||
@@ -236,6 +234,15 @@ if (
     searchable.includes("backup model")
   ) {
     return "fallback";
+  }
+
+  if (
+    searchable.includes("model") ||
+    searchable.includes("temperature") ||
+    searchable.includes("top_p") ||
+    searchable.includes("topp")
+  ) {
+    return "model";
   }
 
   if (

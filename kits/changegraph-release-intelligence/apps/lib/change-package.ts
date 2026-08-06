@@ -19,7 +19,7 @@ interface BuildChangePackageInput {
   riskAssessment: RiskAssessment;
 }
 
-const CHANGE_CATEGORIES: ChangeCategory[] = [
+export const CHANGE_CATEGORIES = [
   "prompt",
   "model",
   "schema",
@@ -32,7 +32,7 @@ const CHANGE_CATEGORIES: ChangeCategory[] = [
   "branching",
   "environment",
   "other",
-];
+] as const satisfies readonly ChangeCategory[];
 
 function uniqueSorted(
   values: string[],
@@ -90,7 +90,7 @@ function summarizeWorkflow(
   };
 }
 
-function createCategoryCounts(
+export function createCategoryCounts(
   structuralDiff: StructuralDiff,
 ): Record<ChangeCategory, number> {
   const counts = Object.fromEntries(

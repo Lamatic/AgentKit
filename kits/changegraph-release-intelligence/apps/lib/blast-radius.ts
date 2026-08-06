@@ -21,6 +21,11 @@ interface DirectSeed {
   changeId: string;
 }
 
+interface FlowGraph {
+  nodes: Map<string, ParsedNode>;
+  adjacency: Map<string, string[]>;
+}
+
 interface NodeAccumulator {
   flowId: string;
   flowName: string;
@@ -88,6 +93,28 @@ function buildAdjacency(
       [...targets].sort(),
     ]),
   );
+}
+
+const flowGraphCache =
+  new WeakMap<ParsedFlow, FlowGraph>();
+
+function flowGraph(
+  flow: ParsedFlow,
+): FlowGraph {
+  const cached = flowGraphCache.get(flow);
+
+  if (cached) {
+    return cached;
+  }
+
+  const graph = {
+    nodes: nodeMap(flow),
+    adjacency: buildAdjacency(flow),
+  };
+
+  flowGraphCache.set(flow, graph);
+
+  return graph;
 }
 
 function flowAliases(flow: ParsedFlow): string[] {
@@ -176,7 +203,10 @@ function nodeReferencesResource(
 function isResourceChange(change: WorkflowChange): boolean {
   return (
     change.component.includes("/") &&
-    !change.component.includes("->")
+    !change.component.includes("->") &&
+    /\.(?:md|tsx?|jsx?|json|ya?ml)$/i.test(
+      change.component,
+    )
   );
 }
 
@@ -213,25 +243,25 @@ function createFlowContexts(
 
 function addSeed(
   seeds: DirectSeed[],
+  seedKeys: Set<string>,
   flow: ParsedFlow,
   nodeId: string,
   changeId: string,
 ): void {
-  const exists = seeds.some(
-    (seed) =>
-      normalizePath(seed.flow.path) ===
-        normalizePath(flow.path) &&
-      normalize(seed.nodeId) === normalize(nodeId) &&
-      seed.changeId === changeId,
-  );
+  const key =
+    `${normalizePath(flow.path).toLowerCase()}::` +
+    `${normalize(nodeId)}::${changeId}`;
 
-  if (!exists) {
-    seeds.push({
-      flow,
-      nodeId,
-      changeId,
-    });
+  if (seedKeys.has(key)) {
+    return;
   }
+
+  seedKeys.add(key);
+  seeds.push({
+    flow,
+    nodeId,
+    changeId,
+  });
 }
 
 function seedRemovedNodeDownstream(
@@ -239,6 +269,7 @@ function seedRemovedNodeDownstream(
   removedNodeId: string,
   changeId: string,
   seeds: DirectSeed[],
+  seedKeys: Set<string>,
 ): boolean {
   const { baseline, candidate } = context;
 
@@ -246,8 +277,10 @@ function seedRemovedNodeDownstream(
     return false;
   }
 
-  const baselineAdjacency = buildAdjacency(baseline);
-  const candidateNodes = nodeMap(candidate);
+  const baselineAdjacency =
+    flowGraph(baseline).adjacency;
+  const candidateNodes =
+    flowGraph(candidate).nodes;
   const downstreamIds =
     baselineAdjacency.get(normalize(removedNodeId)) ?? [];
 
@@ -262,6 +295,7 @@ function seedRemovedNodeDownstream(
 
     addSeed(
       seeds,
+      seedKeys,
       candidate,
       candidateNode.id,
       changeId,
@@ -279,6 +313,7 @@ function collectDirectSeeds(
   warnings: string[],
 ): DirectSeed[] {
   const seeds: DirectSeed[] = [];
+  const seedKeys = new Set<string>();
 
   for (const change of structuralDiff.changes) {
     let matched = false;
@@ -311,6 +346,7 @@ function collectDirectSeeds(
           for (const node of candidate.nodes) {
             addSeed(
               seeds,
+              seedKeys,
               candidate,
               node.id,
               change.changeId,
@@ -333,6 +369,7 @@ function collectDirectSeeds(
           if (sourceNode) {
             addSeed(
               seeds,
+              seedKeys,
               candidate,
               sourceNode.id,
               change.changeId,
@@ -343,6 +380,7 @@ function collectDirectSeeds(
           if (targetNode) {
             addSeed(
               seeds,
+              seedKeys,
               candidate,
               targetNode.id,
               change.changeId,
@@ -359,6 +397,7 @@ function collectDirectSeeds(
         if (candidateNode) {
           addSeed(
             seeds,
+            seedKeys,
             candidate,
             candidateNode.id,
             change.changeId,
@@ -381,6 +420,7 @@ function collectDirectSeeds(
             baselineNode.id,
             change.changeId,
             seeds,
+            seedKeys,
           )
         ) {
           matched = true;
@@ -389,13 +429,14 @@ function collectDirectSeeds(
 
       // Prompt/model/config files are linked to nodes through
       // @reference strings in node configuration.
-      if (isResourceChange(change)) {
+      if (suffix === null && isResourceChange(change)) {
         for (const node of candidate.nodes) {
           if (
             nodeReferencesResource(node, change.component)
           ) {
             addSeed(
               seeds,
+              seedKeys,
               candidate,
               node.id,
               change.changeId,
@@ -408,7 +449,7 @@ function collectDirectSeeds(
         // If a referenced file was removed, inspect baseline nodes and
         // map equivalent node IDs into the candidate flow.
         if (baseline) {
-          const candidateNodes = nodeMap(candidate);
+          const candidateNodes = flowGraph(candidate).nodes;
 
           for (const baselineNode of baseline.nodes) {
             if (
@@ -427,6 +468,7 @@ function collectDirectSeeds(
             if (equivalentNode) {
               addSeed(
                 seeds,
+                seedKeys,
                 candidate,
                 equivalentNode.id,
                 change.changeId,
@@ -505,8 +547,8 @@ function traverseSeed(
   accumulator: Map<string, NodeAccumulator>,
 ): void {
   const flow = seed.flow;
-  const nodes = nodeMap(flow);
-  const adjacency = buildAdjacency(flow);
+  const { nodes, adjacency } =
+    flowGraph(flow);
   const startingNode = nodes.get(normalize(seed.nodeId));
 
   if (!startingNode) {
@@ -525,7 +567,16 @@ function traverseSeed(
     },
   ];
 
-  const shortestDistance = new Map<string, number>();
+  const shortestDistance =
+    new Map<string, number>();
+
+  const enqueuedPathsByNode =
+    new Map<string, Set<string>>([
+      [
+        normalize(startingNode.id),
+        new Set([startingNode.id]),
+      ],
+    ]);
 
   while (queue.length > 0) {
     const current = queue.shift();
@@ -585,10 +636,36 @@ function traverseSeed(
         continue;
       }
 
+      const nextPath = [
+        ...current.path,
+        nextNode.id,
+      ];
+
+      const nextPathKey =
+        nextPath.join(" -> ");
+
+      const existingPaths =
+        enqueuedPathsByNode.get(nextNodeId) ??
+        new Set<string>();
+
+      if (
+        existingPaths.has(nextPathKey) ||
+        existingPaths.size >=
+          MAX_PATHS_PER_NODE
+      ) {
+        continue;
+      }
+
+      existingPaths.add(nextPathKey);
+      enqueuedPathsByNode.set(
+        nextNodeId,
+        existingPaths,
+      );
+
       queue.push({
         nodeId: nextNode.id,
         distance: current.distance + 1,
-        path: [...current.path, nextNode.id],
+        path: nextPath,
       });
     }
   }

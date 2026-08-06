@@ -75,7 +75,9 @@ possible, risk, or likely.
 - When runtimeEvidence is empty, state this in unknowns.
 - When testsExecuted is empty, state this in unknowns.
 - Detect cross-cutting risks when multiple changes affect the same path.
-- Do not invent runtime measurements, failures, or performance effects.LOW-RISK CALIBRATION RULES:
+- Do not invent runtime measurements, failures, or performance effects.
+
+LOW-RISK CALIBRATION RULES:
 - Classify a change as low when it only adjusts wording, tone, clarity,
 conciseness, formatting preference, labels, descriptions, or metadata,
 and does not alter schemas, tools, permissions, safety requirements,
