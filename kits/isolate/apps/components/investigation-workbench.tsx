@@ -21,6 +21,7 @@ type Investigation = {
   issue: { title: string; url: string; repositoryUrl: string; number: number };
   ref: string;
   hypothesis: string;
+  hypothesisSource?: "planner" | "evidence_review";
   outcome: "reproduced" | "not_reproduced_under_tested_conditions" | "likely_reproduced" | "not_reproduced" | "inconclusive";
   verdictOwner?: "lamatic";
   gate: {
@@ -337,6 +338,7 @@ function WaitingPanel() {
 function ResultPanel({ result }: { result: Investigation }) {
   const reproduced = ["reproduced", "likely_reproduced"].includes(result.outcome);
   const exploratory = result.verdictOwner === "lamatic";
+  const evidenceReviewHypothesis = result.hypothesisSource === "evidence_review";
   const outcomeLabel = result.outcome === "likely_reproduced"
     ? "Likely reproduced"
     : result.outcome === "inconclusive"
@@ -360,9 +362,13 @@ function ResultPanel({ result }: { result: Investigation }) {
       </header>
 
       <section className="block" aria-labelledby="hypothesis-title">
-        <h3 id="hypothesis-title">Agent hypothesis</h3>
+        <h3 id="hypothesis-title">
+          {evidenceReviewHypothesis ? "Evidence review" : "Agent hypothesis"}
+        </h3>
         <p className="block-note">
-          Preliminary. Written by Lamatic. Not certification.
+          {evidenceReviewHypothesis
+            ? "Written by Lamatic after the runtime probes ran. Not certification."
+            : "Preliminary. Written by Lamatic before the runtime probes ran. Not certification."}
         </p>
         <p className="hypothesis">{result.hypothesis}</p>
       </section>
