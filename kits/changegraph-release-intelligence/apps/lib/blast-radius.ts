@@ -8,6 +8,9 @@ import type {
   WorkflowChange,
 } from "@/types/changegraph";
 
+export const MAX_WORKFLOW_GRAPH_NODES_PER_FLOW = 500;
+export const MAX_WORKFLOW_GRAPH_EDGES_PER_FLOW = 2_000;
+
 const MAX_PATHS_PER_NODE = 5;
 
 interface FlowContext {
@@ -46,6 +49,31 @@ function normalizePath(value: string): string {
     .replaceAll("\\", "/")
     .replace(/^\.\/+/, "")
     .replace(/^\/+/, "");
+}
+
+function assertGraphBounds(
+  snapshot: WorkflowGraphSnapshot,
+  label: "baseline" | "candidate",
+): void {
+  for (const flow of snapshot.flows) {
+    if (
+      flow.nodes.length >
+      MAX_WORKFLOW_GRAPH_NODES_PER_FLOW
+    ) {
+      throw new Error(
+        `${label} workflow graph flow "${flow.path}" exceeds the ${MAX_WORKFLOW_GRAPH_NODES_PER_FLOW} node limit.`,
+      );
+    }
+
+    if (
+      flow.edges.length >
+      MAX_WORKFLOW_GRAPH_EDGES_PER_FLOW
+    ) {
+      throw new Error(
+        `${label} workflow graph flow "${flow.path}" exceeds the ${MAX_WORKFLOW_GRAPH_EDGES_PER_FLOW} edge limit.`,
+      );
+    }
+  }
 }
 
 function filenameWithoutExtension(path: string): string {
@@ -676,6 +704,9 @@ export function calculateBlastRadius(
   candidate: WorkflowGraphSnapshot,
   structuralDiff: StructuralDiff,
 ): BlastRadiusAnalysis {
+  assertGraphBounds(baseline, "baseline");
+  assertGraphBounds(candidate, "candidate");
+
   const warnings: string[] = [];
   const contexts = createFlowContexts(
     baseline,

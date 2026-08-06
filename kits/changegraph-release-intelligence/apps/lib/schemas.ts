@@ -1,5 +1,10 @@
 import * as z from "zod";
 
+import {
+  MAX_WORKFLOW_GRAPH_EDGES_PER_FLOW,
+  MAX_WORKFLOW_GRAPH_NODES_PER_FLOW,
+} from "@/lib/blast-radius";
+
 import { CHANGE_CATEGORIES } from "@/lib/change-package";
 
 import type {
@@ -352,12 +357,16 @@ const WorkflowGraphFlowSchema = z
     id: z.string().min(1),
     name: z.string().min(1),
     path: z.string().min(1),
-    nodes: z.array(
-      WorkflowGraphNodeSchema,
-    ),
-    edges: z.array(
-      WorkflowGraphEdgeSchema,
-    ),
+    nodes: z
+      .array(WorkflowGraphNodeSchema)
+      .max(
+        MAX_WORKFLOW_GRAPH_NODES_PER_FLOW,
+      ),
+    edges: z
+      .array(WorkflowGraphEdgeSchema)
+      .max(
+        MAX_WORKFLOW_GRAPH_EDGES_PER_FLOW,
+      ),
   })
   .superRefine((flow, context) => {
     const nodeIds = new Set<string>();
@@ -611,6 +620,17 @@ export const ChangePackageSchema = z
     );
   });
 
+function normalizeWorkflowPath(
+  value: string,
+): string {
+  return value
+    .trim()
+    .replaceAll("\\", "/")
+    .replace(/^\.\/+/, "")
+    .replace(/^\/+/, "")
+    .toLowerCase();
+}
+
 export const AnalyzeChangeGraphRequestSchema =
   z
     .object({
@@ -695,16 +715,25 @@ export const AnalyzeChangeGraphRequestSchema =
           .sort();
 
         const graphFlowPaths = graph.flows
-          .map((flow) => flow.path)
+          .map((flow) =>
+            normalizeWorkflowPath(
+              flow.path,
+            ),
+          )
           .sort();
 
         const summaryFlowIds = [
           ...summary.flowIds,
         ].sort();
 
-        const summaryFlowPaths = [
-          ...summary.flowPaths,
-        ].sort();
+        const summaryFlowPaths =
+          summary.flowPaths
+            .map((flowPath) =>
+              normalizeWorkflowPath(
+                flowPath,
+              ),
+            )
+            .sort();
 
         if (
           JSON.stringify(graphFlowIds) !==
