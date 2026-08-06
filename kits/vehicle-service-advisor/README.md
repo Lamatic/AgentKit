@@ -2,6 +2,8 @@
 
 A safety-first AgentKit that turns vague vehicle symptoms into a structured pre-inspection report. It helps an owner decide how urgently to act, understand plausible causes, collect useful evidence, and communicate clearly with a qualified technician.
 
+**Live demo:** https://agent-kit-smoky.vercel.app
+
 ## The problem
 
 Vehicle owners commonly arrive at a workshop with observations such as “it sounds strange,” “a light came on,” or “it smells hot.” That ambiguity can hide urgent safety risks and makes the first service conversation inefficient. Search results often amplify the problem by presenting one symptom as a confirmed failure.

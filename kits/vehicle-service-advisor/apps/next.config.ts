@@ -5,7 +5,6 @@ const kitRoot = path.resolve(process.cwd(), "..");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: kitRoot,
   turbopack: {
     root: kitRoot,
   },
