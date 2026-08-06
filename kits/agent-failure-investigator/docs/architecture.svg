@@ -1,0 +1,162 @@
+<svg viewBox="0 0 1460 760" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, 'IBM Plex Mono', Menlo, Consolas, monospace">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8fa0a6"/>
+    </marker>
+    <marker id="arrDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#55656e"/>
+    </marker>
+  </defs>
+
+  <!-- canvas -->
+  <rect width="1460" height="760" fill="#0e1216"/>
+
+  <!-- header -->
+  <text x="48" y="52" fill="#e7ecea" font-size="22" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">AGENT FAILURE INVESTIGATOR <tspan fill="#ff5d5d">— ARCHITECTURE</tspan></text>
+  <text x="48" y="76" fill="#8fa0a6" font-size="12.5">Data flow: raw framework trace → canonical schema → deterministic diagnosis → investigation report</text>
+  <line x1="48" y1="94" x2="1412" y2="94" stroke="#26313a" stroke-width="1"/>
+
+  <!-- ============ STAGE 1: INPUT & ADAPTERS ============ -->
+  <rect x="48" y="130" width="240" height="340" rx="10" fill="#151b21" stroke="#26313a" stroke-width="1.5"/>
+  <rect x="48" y="130" width="240" height="4" rx="2" fill="#5ca8ff"/>
+  <text x="64" y="162" fill="#5ca8ff" font-size="11" letter-spacing="2">STAGE 1</text>
+  <text x="64" y="184" fill="#e7ecea" font-size="15" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">Input &amp; Adapters</text>
+  <text x="64" y="203" fill="#8fa0a6" font-size="11">js/adapters.js</text>
+
+  <rect x="64" y="218" width="208" height="30" rx="6" fill="#1a2229" stroke="#26313a"/>
+  <text x="76" y="237" fill="#e7ecea" font-size="12">trace.json <tspan fill="#8fa0a6">(any framework)</tspan></text>
+
+  <!-- framework chips -->
+  <g font-size="10.5" fill="#8fa0a6">
+    <rect x="64" y="260" width="98" height="22" rx="11" fill="#1a2229" stroke="#26313a"/><text x="76" y="275">LangGraph</text>
+    <rect x="170" y="260" width="102" height="22" rx="11" fill="#1a2229" stroke="#26313a"/><text x="180" y="275">OpenAI SDK</text>
+    <rect x="64" y="288" width="76" height="22" rx="11" fill="#1a2229" stroke="#26313a"/><text x="76" y="303">CrewAI</text>
+    <rect x="148" y="288" width="82" height="22" rx="11" fill="#1a2229" stroke="#26313a"/><text x="160" y="303">AutoGen</text>
+    <rect x="64" y="316" width="78" height="22" rx="11" fill="#1a2229" stroke="#26313a"/><text x="76" y="331">Lamatic</text>
+    <rect x="150" y="316" width="68" height="22" rx="11" fill="#1a2229" stroke="#26313a"/><text x="162" y="331">Native</text>
+  </g>
+
+  <text x="64" y="366" fill="#8fa0a6" font-size="11.5">each adapter:</text>
+  <text x="64" y="386" fill="#43d69b" font-size="12">claim(doc)  <tspan fill="#8fa0a6">auto-detect</tspan></text>
+  <text x="64" y="406" fill="#43d69b" font-size="12">translate(doc)  <tspan fill="#8fa0a6">convert</tspan></text>
+  <text x="64" y="444" fill="#55656e" font-size="10.5">The engine never learns which</text>
+  <text x="64" y="458" fill="#55656e" font-size="10.5">framework the trace came from.</text>
+
+  <line x1="288" y1="300" x2="330" y2="300" stroke="#8fa0a6" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- ============ STAGE 2: CANONICAL TRACE ============ -->
+  <rect x="334" y="130" width="220" height="340" rx="10" fill="#151b21" stroke="#26313a" stroke-width="1.5"/>
+  <rect x="334" y="130" width="220" height="4" rx="2" fill="#3ac6c0"/>
+  <text x="350" y="162" fill="#3ac6c0" font-size="11" letter-spacing="2">STAGE 2</text>
+  <text x="350" y="184" fill="#e7ecea" font-size="15" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">Canonical Trace</text>
+  <text x="350" y="203" fill="#8fa0a6" font-size="11">docs/trace-schema.md</text>
+
+  <rect x="350" y="220" width="188" height="196" rx="8" fill="#0e1216" stroke="#26313a"/>
+  <g font-size="11.5" fill="#e7ecea">
+    <text x="364" y="244" fill="#8fa0a6">{</text>
+    <text x="376" y="264">system_prompt</text>
+    <text x="376" y="286">conversation<tspan fill="#8fa0a6">[]</tspan></text>
+    <text x="376" y="308">available_tools<tspan fill="#8fa0a6">[]</tspan></text>
+    <text x="376" y="330">tool_calls<tspan fill="#8fa0a6">[]</tspan></text>
+    <text x="376" y="352">retrieved_docs<tspan fill="#8fa0a6">[]</tspan></text>
+    <text x="376" y="374">logs<tspan fill="#8fa0a6">[]</tspan></text>
+    <text x="376" y="396">final_response</text>
+    <text x="364" y="412" fill="#8fa0a6">}</text>
+  </g>
+  <text x="350" y="444" fill="#55656e" font-size="10.5">One schema. The full request</text>
+  <text x="350" y="458" fill="#55656e" font-size="10.5">lifecycle of a single agent run.</text>
+
+  <line x1="554" y1="300" x2="596" y2="300" stroke="#8fa0a6" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- ============ STAGE 3: RULE ENGINE ============ -->
+  <rect x="600" y="130" width="250" height="340" rx="10" fill="#151b21" stroke="#26313a" stroke-width="1.5"/>
+  <rect x="600" y="130" width="250" height="4" rx="2" fill="#b18cff"/>
+  <text x="616" y="162" fill="#b18cff" font-size="11" letter-spacing="2">STAGE 3</text>
+  <text x="616" y="184" fill="#e7ecea" font-size="15" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">Rule Engine</text>
+  <text x="616" y="203" fill="#8fa0a6" font-size="11">rules/ — pluggable, 13 pure rules</text>
+
+  <g font-size="12">
+    <circle cx="626" cy="234" r="4" fill="#ff5d5d"/><text x="640" y="238" fill="#e7ecea">tool_failure.js <tspan fill="#8fa0a6">R11 R12 R13</tspan></text>
+    <circle cx="626" cy="262" r="4" fill="#b18cff"/><text x="640" y="266" fill="#e7ecea">hallucination.js <tspan fill="#8fa0a6">R14 R22</tspan></text>
+    <circle cx="626" cy="290" r="4" fill="#3ac6c0"/><text x="640" y="294" fill="#e7ecea">rag.js <tspan fill="#8fa0a6">R21 R23 R25</tspan></text>
+    <circle cx="626" cy="318" r="4" fill="#ffb224"/><text x="640" y="322" fill="#e7ecea">prompt.js <tspan fill="#8fa0a6">R31 R32 R33</tspan></text>
+    <circle cx="626" cy="346" r="4" fill="#5ca8ff"/><text x="640" y="350" fill="#e7ecea">wrong_tool.js <tspan fill="#8fa0a6">R41 R42</tspan></text>
+  </g>
+
+  <rect x="616" y="372" width="218" height="48" rx="8" fill="#0e1216" stroke="#26313a"/>
+  <text x="630" y="392" fill="#43d69b" font-size="11.5">test(trace) →</text>
+  <text x="630" y="410" fill="#e7ecea" font-size="11.5">{ evidence, refs[] } | null</text>
+
+  <text x="616" y="444" fill="#55656e" font-size="10.5">Every finding carries references</text>
+  <text x="616" y="458" fill="#55656e" font-size="10.5">into the raw trace. No black box.</text>
+
+  <line x1="850" y1="300" x2="892" y2="300" stroke="#8fa0a6" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- ============ STAGE 4: RESOLUTION & SCORING ============ -->
+  <rect x="896" y="130" width="240" height="340" rx="10" fill="#151b21" stroke="#26313a" stroke-width="1.5"/>
+  <rect x="896" y="130" width="240" height="4" rx="2" fill="#ffb224"/>
+  <text x="912" y="162" fill="#ffb224" font-size="11" letter-spacing="2">STAGE 4</text>
+  <text x="912" y="184" fill="#e7ecea" font-size="15" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">Resolution &amp; Scoring</text>
+  <text x="912" y="203" fill="#8fa0a6" font-size="11">js/engine.js</text>
+
+  <g font-size="12" fill="#e7ecea">
+    <text x="912" y="238">1&#160; conflict resolution</text>
+    <text x="928" y="256" fill="#8fa0a6" font-size="11">root causes suppress symptoms</text>
+    <text x="912" y="286">2&#160; evidence-weighted points</text>
+    <text x="928" y="304" fill="#8fa0a6" font-size="11">per failure category</text>
+    <text x="912" y="334">3&#160; primary category = argmax</text>
+    <text x="912" y="364">4&#160; timeline reconstruction</text>
+  </g>
+
+  <rect x="912" y="384" width="208" height="36" rx="8" fill="#0e1216" stroke="#26313a"/>
+  <text x="926" y="407" fill="#ffb224" font-size="11.5">conf = 35 + 0.8·pts <tspan fill="#8fa0a6">(cap 95)</tspan></text>
+
+  <text x="912" y="444" fill="#55656e" font-size="10.5">Never 100% — an investigator</text>
+  <text x="912" y="458" fill="#55656e" font-size="10.5">reports evidence, not certainty.</text>
+
+  <line x1="1136" y1="300" x2="1178" y2="300" stroke="#8fa0a6" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- ============ STAGE 5: REPORT & OUTPUTS ============ -->
+  <rect x="1182" y="130" width="230" height="340" rx="10" fill="#151b21" stroke="#26313a" stroke-width="1.5"/>
+  <rect x="1182" y="130" width="230" height="4" rx="2" fill="#43d69b"/>
+  <text x="1198" y="162" fill="#43d69b" font-size="11" letter-spacing="2">STAGE 5</text>
+  <text x="1198" y="184" fill="#e7ecea" font-size="15" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">Report &amp; Outputs</text>
+  <text x="1198" y="203" fill="#8fa0a6" font-size="11">report.js · advisor.js · exporter.js</text>
+
+  <g font-size="12" fill="#e7ecea">
+    <text x="1198" y="238">▸ failure report + evidence</text>
+    <text x="1198" y="264">▸ propagation graph</text>
+    <text x="1198" y="290">▸ ECG timeline</text>
+    <text x="1198" y="316">▸ remediation playbook</text>
+    <text x="1198" y="342">▸ A/B run comparison</text>
+  </g>
+
+  <g font-size="11">
+    <rect x="1198" y="366" width="92" height="26" rx="6" fill="#1a2229" stroke="#26313a"/><text x="1212" y="383" fill="#43d69b">Export .md</text>
+    <rect x="1300" y="366" width="96" height="26" rx="6" fill="#1a2229" stroke="#26313a"/><text x="1314" y="383" fill="#43d69b">Export PDF</text>
+  </g>
+
+  <text x="1198" y="430" fill="#55656e" font-size="10.5">Every claim in the report is</text>
+  <text x="1198" y="444" fill="#55656e" font-size="10.5">clickable back to raw evidence</text>
+  <text x="1198" y="458" fill="#55656e" font-size="10.5">[R11] [R13] … in the trace.</text>
+
+  <!-- ============ OPTIONAL LLM BRANCH ============ -->
+  <rect x="896" y="540" width="516" height="120" rx="10" fill="#151b21" stroke="#55656e" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="912" y="572" fill="#8fa0a6" font-size="11" letter-spacing="2">OPTIONAL — OFF BY DEFAULT</text>
+  <text x="912" y="596" fill="#e7ecea" font-size="14" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">LLM Narration <tspan fill="#8fa0a6" font-weight="400" font-size="11">(Claude API, js/report.js)</tspan></text>
+  <text x="912" y="620" fill="#8fa0a6" font-size="11.5">Rewrites the Root Cause section as prose from the engine's fired rules —</text>
+  <text x="912" y="638" fill="#8fa0a6" font-size="11.5">receives findings as fixed facts; cannot add, remove or reweigh evidence.</text>
+  <path d="M 1290 540 L 1290 474" stroke="#55656e" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arrDim)"/>
+  <text x="1302" y="514" fill="#55656e" font-size="10.5">language only,</text>
+  <text x="1302" y="528" fill="#55656e" font-size="10.5">never diagnosis</text>
+
+  <!-- ============ INVARIANT STRIP ============ -->
+  <rect x="48" y="540" width="800" height="120" rx="10" fill="#0e1216" stroke="#26313a" stroke-width="1.5"/>
+  <text x="64" y="572" fill="#ff5d5d" font-size="11" letter-spacing="2">DESIGN INVARIANT</text>
+  <text x="64" y="600" fill="#e7ecea" font-size="14" font-weight="700" font-family="'Space Grotesk', system-ui, sans-serif">Diagnosis is deterministic. Language is not.</text>
+  <text x="64" y="624" fill="#8fa0a6" font-size="11.5">Same trace in → same verdict out, every run, offline, in &lt;1 ms typical. Rules are cheap,</text>
+  <text x="64" y="642" fill="#8fa0a6" font-size="11.5">explainable and auditable; the report is reproducible evidence, not model opinion.</text>
+
+  <!-- footer -->
+  <text x="48" y="708" fill="#55656e" font-size="10.5">Extending: drop a file into rules/ calling definePlugin({ id, category, points, title, fix, prevention, test }) — no engine change, no build step.</text>
+</svg>
