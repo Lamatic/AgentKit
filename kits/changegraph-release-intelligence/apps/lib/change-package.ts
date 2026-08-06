@@ -19,20 +19,36 @@ interface BuildChangePackageInput {
   riskAssessment: RiskAssessment;
 }
 
-export const CHANGE_CATEGORIES = [
-  "prompt",
-  "model",
-  "schema",
-  "tool",
-  "permission",
-  "node",
-  "edge",
-  "fallback",
-  "retry",
-  "branching",
-  "environment",
-  "other",
-] as const satisfies readonly ChangeCategory[];
+function defineChangeCategories<
+  const Categories extends
+    readonly ChangeCategory[],
+>(
+  categories:
+    Exclude<
+      ChangeCategory,
+      Categories[number]
+    > extends never
+      ? Categories
+      : never,
+): Categories {
+  return categories;
+}
+
+export const CHANGE_CATEGORIES =
+  defineChangeCategories([
+    "prompt",
+    "model",
+    "schema",
+    "tool",
+    "permission",
+    "node",
+    "edge",
+    "fallback",
+    "retry",
+    "branching",
+    "environment",
+    "other",
+  ] as const satisfies readonly ChangeCategory[]);
 
 function uniqueSorted(
   values: string[],

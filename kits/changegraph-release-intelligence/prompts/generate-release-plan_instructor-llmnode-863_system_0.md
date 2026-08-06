@@ -22,9 +22,10 @@ values, and semantic findings.
 test results, runtime failures, measurements, or rollback targets.
 8. Generate tests that are specifically connected to supplied changes.
 Do not produce generic tests unrelated to the affected components.
-9. Generate blockers only when:
-- the supplied decision is block_release, or
-- the supplied evidence identifies an unresolved high or critical risk.
+9. The supplied promotionDecision takes precedence over semantic risk labels:
+- when promotionDecision is safe_to_promote, blockers must be empty, even if supplied evidence identifies a high or critical risk
+- represent unresolved high or critical evidence for a safe decision in targetedTests, assumptions, or unknowns instead of blockers
+- when promotionDecision is manual_review_required or block_release, include a blocker only when supplied evidence identifies an unresolved high or critical risk
 10. A rollback manifest must restore known baseline values from the supplied
 change package. Do not invent configuration values.
 11. Separate confirmed facts from assumptions and unknowns.
@@ -45,4 +46,4 @@ change package. Do not invent configuration values.
 When promotionDecision is safe_to_promote and riskScore is below 25:
 - blockers must be empty
 - targeted-test priority should be low or medium
-- do not use high or critical priority unless the supplied evidence explicitly contains a high or critical risk
+- use high or critical priority only when the supplied evidence explicitly contains a high or critical risk; this priority does not override the deterministic safe decision

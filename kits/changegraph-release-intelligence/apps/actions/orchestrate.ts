@@ -345,7 +345,7 @@ function buildDeterministicFallbackReleasePlan(
       `${changes.length} structural change(s) were detected.`,
       `Deterministic decision: ${risk.decision}.`,
       `Deterministic risk score: ${risk.score}/100.`,
-      "A deterministic fallback release plan was generated because the AI release-plan response could not be validated.",
+      "A deterministic fallback release plan was generated because the AI release-plan response could not be safely used.",
     ],
 
     assumptions:
@@ -353,7 +353,7 @@ function buildDeterministicFallbackReleasePlan(
 
     unknowns: uniqueSorted([
       ...semanticAnalysis.unknowns,
-      `Release-plan flow validation failure: ${safeFailureReason}`,
+      `Release-plan fallback reason: ${safeFailureReason}`,
     ]),
   };
 }
@@ -685,17 +685,30 @@ try {
     );
   }
 
-  if (
+  const decisionMismatch =
     generatedReleasePlan.promotionDecision !==
-    deterministicRisk.decision
-  ) {
+    deterministicRisk.decision;
+
+  if (decisionMismatch) {
     warnings.push(
       `The release-plan flow returned "${generatedReleasePlan.promotionDecision}", but the deterministic engine decided "${deterministicRisk.decision}". The deterministic decision was preserved.`,
     );
   }
 
+  /*
+   * A mismatched decision invalidates decision-dependent model fields
+   * such as blockers, the summary, and the deployment checklist.
+   */
+  const basePlan = decisionMismatch
+    ? buildDeterministicFallbackReleasePlan(
+        input,
+        semanticAnalysis,
+        `The release-plan flow returned "${generatedReleasePlan.promotionDecision}" instead of "${deterministicRisk.decision}".`,
+      )
+    : generatedReleasePlan;
+
   const releasePlan: ReleasePlan = {
-    ...generatedReleasePlan,
+    ...basePlan,
 
     // AI output must not override deterministic safety controls.
     riskScore: deterministicRisk.score,

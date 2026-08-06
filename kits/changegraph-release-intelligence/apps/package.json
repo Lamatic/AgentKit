@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@vercel/functions": "^3.7.6",
     "jszip": "^3.10.1",
     "lamatic": "^0.3.2",
     "lucide-react": "^1.28.0",
