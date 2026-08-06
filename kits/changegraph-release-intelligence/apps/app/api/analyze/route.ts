@@ -517,73 +517,104 @@ export async function POST(
       );
     }
 
-    const requestId =
-      crypto.randomUUID();
-
-    const executionStartedAt =
-      performance.now();
-
     let flowExecutionCount = 0;
 
     try {
-      /*
-       * The browser supplies validated workflow graph snapshots, but the
-       * server recomputes the blast radius and deterministic risk score.
-       * The request-supplied blast-radius and risk fields are never trusted.
-       * This traversal stays inside the concurrency guard.
-       */
-      const blastRadius =
-        calculateBlastRadius(
-          validation.data.baselineGraph,
-          validation.data.candidateGraph,
-          structuralDiff,
-        );
+      const requestId =
+        crypto.randomUUID();
 
-      const riskAssessment =
-        calculateRiskAssessment(
-          structuralDiff,
-          blastRadius,
-        );
+      const executionStartedAt =
+        performance.now();
 
-      const normalizedChangePackage:
-        ChangePackage = {
-          ...submittedPackage,
+      try {
+        /*
+         * The browser supplies validated workflow graph snapshots, but the
+         * server recomputes the blast radius and deterministic risk score.
+         * The request-supplied blast-radius and risk fields are never trusted.
+         * This traversal stays inside the concurrency guard.
+         */
+        const blastRadius =
+          calculateBlastRadius(
+            validation.data.baselineGraph,
+            validation.data.candidateGraph,
+            structuralDiff,
+          );
 
-          summary: {
-            ...submittedPackage.summary,
+        const riskAssessment =
+          calculateRiskAssessment(
+            structuralDiff,
+            blastRadius,
+          );
 
-            totalChanges:
-              structuralDiff.changes.length,
+        const normalizedChangePackage:
+          ChangePackage = {
+            ...submittedPackage,
 
-            categoryCounts:
-              createCategoryCounts(
-                structuralDiff,
-              ),
+            summary: {
+              ...submittedPackage.summary,
 
-            directlyAffectedNodes:
-              blastRadius
-                .directlyAffectedNodeIds
-                .length,
+              totalChanges:
+                structuralDiff.changes.length,
 
-            downstreamAffectedNodes:
-              blastRadius
-                .indirectlyAffectedNodeIds
-                .length,
+              categoryCounts:
+                createCategoryCounts(
+                  structuralDiff,
+                ),
+
+              directlyAffectedNodes:
+                blastRadius
+                  .directlyAffectedNodeIds
+                  .length,
+
+              downstreamAffectedNodes:
+                blastRadius
+                  .indirectlyAffectedNodeIds
+                  .length,
+            },
+
+            blastRadius,
+
+            riskAssessment,
+          };
+
+        flowExecutionCount =
+          FLOW_EXECUTIONS_PER_ANALYSIS;
+
+        const orchestration =
+          await orchestrateChangeGraph({
+            flowPurpose:
+              validation.data.flowPurpose,
+
+            baselineVersion:
+              validation.data
+                .baselineVersion,
+
+            candidateVersion:
+              validation.data
+                .candidateVersion,
+
+            releaseContext:
+              validation.data
+                .releaseContext,
+
+            changePackage:
+              normalizedChangePackage,
+          });
+
+        console.info(
+          "ChangeGraph flow execution metrics",
+          {
+            requestId,
+            flowExecutionCount,
+            latencyMs: Math.round(
+              performance.now() -
+                executionStartedAt,
+            ),
+            outcome: "success",
           },
+        );
 
-          blastRadius,
-
-          riskAssessment,
-        };
-
-      flowExecutionCount =
-        FLOW_EXECUTIONS_PER_ANALYSIS;
-
-      const orchestration =
-        await orchestrateChangeGraph({
-          flowPurpose:
-            validation.data.flowPurpose,
-
+        const report: ChangeGraphReport = {
           baselineVersion:
             validation.data
               .baselineVersion,
@@ -592,90 +623,61 @@ export async function POST(
             validation.data
               .candidateVersion,
 
-          releaseContext:
-            validation.data
-              .releaseContext,
+          structuralDiff,
 
-          changePackage:
-            normalizedChangePackage,
-        });
+          blastRadius,
 
-      console.info(
-        "ChangeGraph flow execution metrics",
-        {
-          requestId,
-          flowExecutionCount,
-          latencyMs: Math.round(
-            performance.now() -
-              executionStartedAt,
-          ),
-          outcome: "success",
-        },
-      );
+          riskAssessment,
 
-      const report: ChangeGraphReport = {
-        baselineVersion:
-          validation.data
-            .baselineVersion,
+          semanticAnalysis:
+            orchestration
+              .semanticAnalysis,
 
-        candidateVersion:
-          validation.data
-            .candidateVersion,
+          releasePlan:
+            orchestration.releasePlan,
+        };
 
-        structuralDiff,
+        const warnings = uniqueSorted([
+          ...normalizedChangePackage
+            .baseline.warnings,
 
-        blastRadius,
+          ...normalizedChangePackage
+            .candidate.warnings,
 
-        riskAssessment,
+          ...blastRadius.warnings,
 
-        semanticAnalysis:
-          orchestration
-            .semanticAnalysis,
+          ...orchestration.warnings,
+        ]);
 
-        releasePlan:
-          orchestration.releasePlan,
-      };
-
-      const warnings = uniqueSorted([
-        ...normalizedChangePackage
-          .baseline.warnings,
-
-        ...normalizedChangePackage
-          .candidate.warnings,
-
-        ...blastRadius.warnings,
-
-        ...orchestration.warnings,
-      ]);
-
-      return Response.json(
-        {
-          report,
-          warnings,
-        },
-        {
-          status: 200,
-          headers: {
-            "Cache-Control":
-              "no-store",
+        return Response.json(
+          {
+            report,
+            warnings,
           },
-        },
-      );
-    } catch (error) {
-      console.info(
-        "ChangeGraph flow execution metrics",
-        {
-          requestId,
-          flowExecutionCount,
-          latencyMs: Math.round(
-            performance.now() -
-              executionStartedAt,
-          ),
-          outcome: "error",
-        },
-      );
+          {
+            status: 200,
+            headers: {
+              "Cache-Control":
+                "no-store",
+            },
+          },
+        );
+      } catch (error) {
+        console.info(
+          "ChangeGraph flow execution metrics",
+          {
+            requestId,
+            flowExecutionCount,
+            latencyMs: Math.round(
+              performance.now() -
+                executionStartedAt,
+            ),
+            outcome: "error",
+          },
+        );
 
-      throw error;
+        throw error;
+      }
     } finally {
       releaseExecutionSlot(key);
     }
