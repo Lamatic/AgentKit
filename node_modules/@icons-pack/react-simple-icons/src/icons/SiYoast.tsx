@@ -1,0 +1,45 @@
+
+    import * as React from 'react';
+
+    import { IconType } from '../types';
+
+    type SiYoastProps = React.ComponentPropsWithoutRef<'svg'> & {
+      /**
+       * The title provides an accessible short text description to the SVG
+       */
+      title?: string;
+      /**
+       * Hex color or color name or "default" to use the default hex for each icon
+       */
+      color?: string;
+      /**
+       * The size of the Icon.
+       */
+      size?: string | number;
+    }
+
+    const defaultColor = '#A61E69';
+
+    const SiYoast: IconType = React.forwardRef<SVGSVGElement, SiYoastProps>(function SiYoast({title = 'Yoast', color = 'currentColor', size = 24, ...others }, ref) {
+      if (color === 'default') {
+        color = defaultColor;
+      }
+
+      return (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width={size}
+          height={size}
+          fill={color}
+          viewBox='0 0 24 24'
+          ref={ref}
+          {...others}
+        >
+          <title>{title}</title>
+          <path d='M16.61 0 11.4 14.477 8.806 6.36H5.941l3.804 9.77a4.017 4.017 0 0 1 0 2.925c-.387.993-1.073 2.158-2.96 2.505V24c1.512-.06 2.692-.562 3.694-1.57 1.032-1.036 1.919-2.655 2.79-5.091L19.739 0ZM5.357 3.274a3.706 3.706 0 0 0-3.695 3.695v10.358a3.706 3.706 0 0 0 3.695 3.694h.817l.26-.034c1.76-.237 2.37-1.224 2.733-2.158a3.4 3.4 0 0 0 0-2.475L5.035 5.738H9.26l2.174 6.81 3.339-9.274Zm13.792.08L13.853 17.55c-.502 1.403-1.015 2.54-1.559 3.47h10.044V6.97a3.706 3.706 0 0 0-3.19-3.616Z' />
+        </svg>
+      );
+    });
+
+    export { SiYoast as default, defaultColor };
+  

@@ -1,0 +1,51 @@
+'use strict';
+
+Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
+
+const jsxRuntime = require('react/jsx-runtime');
+const React = require('react');
+
+function _interopNamespaceDefault(e) {
+  const n = Object.create(null, { [Symbol.toStringTag]: { value: 'Module' } });
+  if (e) {
+    for (const k in e) {
+      if (k !== 'default') {
+        const d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: () => e[k]
+        });
+      }
+    }
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+const React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
+const defaultColor = "#EF2929";
+const SiManageiq = React__namespace.forwardRef(function SiManageiq2({ title = "ManageIQ", color = "currentColor", size = 24, ...others }, ref) {
+  if (color === "default") {
+    color = defaultColor;
+  }
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: size,
+      height: size,
+      fill: color,
+      viewBox: "0 0 24 24",
+      ref,
+      ...others,
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("title", { children: title }),
+        /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M12.095.1C5.718.094.544 5.26.538 11.637v.022c0 2.069.547 4.005 1.496 5.683l2.869-2.868a7.685 7.685 0 0 1-.54-2.815c0-4.262 3.47-7.73 7.732-7.73s7.732 3.468 7.732 7.73-3.47 7.732-7.732 7.732a7.685 7.685 0 0 1-2.6-.46L6.596 21.83a11.515 11.515 0 0 0 5.499 1.388c2.316 0 4.467-.686 6.275-1.856l2.393 2.392L24 20.512l-2.349-2.349c1.262-1.852 2-4.09 2-6.505C23.66 5.269 18.452.078 12.096.101L12.095.1zm0 9.34c-1.225 0-2.214.991-2.214 2.217s.989 2.215 2.214 2.215a2.216 2.216 0 1 0 0-4.432zm-4.24 3.368C7.57 13.09.273 20.39 0 20.662L3.24 23.9l7.855-7.855-3.24-3.238v.001z" })
+      ]
+    }
+  );
+});
+
+exports.default = SiManageiq;
+exports.defaultColor = defaultColor;

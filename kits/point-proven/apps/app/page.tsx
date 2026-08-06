@@ -31,6 +31,10 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
+import { SiGithub } from "@icons-pack/react-simple-icons";
+
+const GITHUB_KIT_URL =
+  "https://github.com/Lamatic/AgentKit/tree/main/kits/point-proven";
 
 const SOURCE_BOX_TIP =
   "Paste https://… article URLs here, or pick one template below. Bubbles appear inside this box. Only one template can be active at a time — switching replaces the URLs. After you index, this box locks.";
@@ -75,11 +79,10 @@ function TemplateToggles({
               type="button"
               size="sm"
               variant={isActive ? "secondary" : "outline"}
-              className={`h-8 text-xs ${
-                isActive
-                  ? "pointer-events-none opacity-55 grayscale"
-                  : ""
-              }`}
+              className={`h-8 text-xs ${isActive
+                ? "pointer-events-none opacity-55 grayscale"
+                : ""
+                }`}
               disabled={disabled || isActive}
               aria-pressed={isActive}
               onClick={() => onSelect(t)}
@@ -141,11 +144,11 @@ export default function Home() {
       prev.map((c) =>
         c.id === id
           ? {
-              ...c,
-              status: "checking",
-              message: "Checking…",
-              httpStatus: undefined,
-            }
+            ...c,
+            status: "checking",
+            message: "Checking…",
+            httpStatus: undefined,
+          }
           : c
       )
     );
@@ -176,10 +179,10 @@ export default function Home() {
         prev.map((c) =>
           c.id === id
             ? {
-                ...c,
-                status: "error",
-                message: e instanceof Error ? e.message : "Check failed",
-              }
+              ...c,
+              status: "error",
+              message: e instanceof Error ? e.message : "Check failed",
+            }
             : c
         )
       );
@@ -299,11 +302,11 @@ export default function Home() {
         prev.map((c) =>
           c.id === id
             ? {
-                ...c,
-                status: "error",
-                message: "Enter a valid https://… URL",
-                httpStatus: undefined,
-              }
+              ...c,
+              status: "error",
+              message: "Enter a valid https://… URL",
+              httpStatus: undefined,
+            }
             : c
         )
       );
@@ -442,9 +445,9 @@ export default function Home() {
         const first = errors[0];
         const msg =
           first &&
-          typeof first === "object" &&
-          first !== null &&
-          "message" in first
+            typeof first === "object" &&
+            first !== null &&
+            "message" in first
             ? String((first as { message: unknown }).message)
             : "All URLs failed to index.";
         throw new Error(msg);
@@ -507,9 +510,20 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center gap-3">
           <BookOpen className="size-6 text-primary" />
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Point Proven
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold tracking-tight">
+                Point Proven
+              </h1>
+              <a
+                href={GITHUB_KIT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View Point Proven on GitHub"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <SiGithub className="size-4" />
+              </a>
+            </div>
             <p className="text-sm text-muted-foreground">
               Index your sources, get a cited brief for debate prep
             </p>
@@ -546,11 +560,10 @@ export default function Home() {
                 </div>
 
                 <div
-                  className={`w-full rounded-lg border bg-background transition-colors ${
-                    urlsEditable
-                      ? "hover:border-primary/40 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/30"
-                      : "cursor-not-allowed opacity-80"
-                  }`}
+                  className={`w-full rounded-lg border bg-background transition-colors ${urlsEditable
+                    ? "hover:border-primary/40 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/30"
+                    : "cursor-not-allowed opacity-80"
+                    }`}
                 >
                   <div className="space-y-3 p-3">
                     <HoverTip tip={SOURCE_BOX_TIP} className="block w-full">
@@ -759,11 +772,10 @@ export default function Home() {
                         setActiveTemplateId(null);
                       }
                     }}
-                    className={`min-h-[100px] w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground ${
-                      queryEditable
-                        ? "hover:border-primary/40 focus:border-primary/50 focus:ring-2 focus:ring-ring/30"
-                        : "cursor-not-allowed opacity-80"
-                    }`}
+                    className={`min-h-[100px] w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground ${queryEditable
+                      ? "hover:border-primary/40 focus:border-primary/50 focus:ring-2 focus:ring-ring/30"
+                      : "cursor-not-allowed opacity-80"
+                      }`}
                     placeholder="e.g. Does export-control retaliation against AI labs violate free speech protections?"
                   />
                 </HoverTip>

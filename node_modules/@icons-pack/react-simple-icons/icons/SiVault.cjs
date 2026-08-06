@@ -1,0 +1,51 @@
+'use strict';
+
+Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
+
+const jsxRuntime = require('react/jsx-runtime');
+const React = require('react');
+
+function _interopNamespaceDefault(e) {
+  const n = Object.create(null, { [Symbol.toStringTag]: { value: 'Module' } });
+  if (e) {
+    for (const k in e) {
+      if (k !== 'default') {
+        const d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: () => e[k]
+        });
+      }
+    }
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+const React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
+const defaultColor = "#FFEC6E";
+const SiVault = React__namespace.forwardRef(function SiVault2({ title = "Vault", color = "currentColor", size = 24, ...others }, ref) {
+  if (color === "default") {
+    color = defaultColor;
+  }
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: size,
+      height: size,
+      fill: color,
+      viewBox: "0 0 24 24",
+      ref,
+      ...others,
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("title", { children: title }),
+        /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M0 0l11.955 24L24 0zm13.366 4.827h1.393v1.38h-1.393zm-2.77 5.569H9.22V8.993h1.389zm0-2.087H9.22V6.906h1.389zm0-2.086H9.22V4.819h1.389zm2.087 6.263h-1.377V11.08h1.388zm0-2.09h-1.377V8.993h1.388zm0-2.087h-1.377V6.906h1.388zm0-2.086h-1.377V4.819h1.388zm.683.683h1.393v1.389h-1.393zm0 3.475V8.993h1.389v1.388Z" })
+      ]
+    }
+  );
+});
+
+exports.default = SiVault;
+exports.defaultColor = defaultColor;

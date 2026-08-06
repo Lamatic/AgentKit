@@ -1,0 +1,51 @@
+'use strict';
+
+Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
+
+const jsxRuntime = require('react/jsx-runtime');
+const React = require('react');
+
+function _interopNamespaceDefault(e) {
+  const n = Object.create(null, { [Symbol.toStringTag]: { value: 'Module' } });
+  if (e) {
+    for (const k in e) {
+      if (k !== 'default') {
+        const d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: () => e[k]
+        });
+      }
+    }
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+const React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
+const defaultColor = "#1C4913";
+const SiNunjucks = React__namespace.forwardRef(function SiNunjucks2({ title = "Nunjucks", color = "currentColor", size = 24, ...others }, ref) {
+  if (color === "default") {
+    color = defaultColor;
+  }
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: size,
+      height: size,
+      fill: color,
+      viewBox: "0 0 24 24",
+      ref,
+      ...others,
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("title", { children: title }),
+        /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M0 12v12h24V0H0v12zm8.2-1.9V3h3v17.3h-3c-.7-2.5-1.4-5-2.2-7.5v7.5H3V3h3c.8 2.3 1.5 4.7 2.2 7.1zM20.9 7v11.6c0 .2-.1.7-.5 1.1-.4.4-.8.5-.9.6h-5.1c-.2 0-.7-.1-1-.5-.4-.4-.5-.9-.6-1.2v-3.8c1-.2 2-.5 3-.7v3.1h2.1V7h3zM0 24" })
+      ]
+    }
+  );
+});
+
+exports.default = SiNunjucks;
+exports.defaultColor = defaultColor;

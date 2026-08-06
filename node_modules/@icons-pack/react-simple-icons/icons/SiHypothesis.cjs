@@ -1,0 +1,51 @@
+'use strict';
+
+Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
+
+const jsxRuntime = require('react/jsx-runtime');
+const React = require('react');
+
+function _interopNamespaceDefault(e) {
+  const n = Object.create(null, { [Symbol.toStringTag]: { value: 'Module' } });
+  if (e) {
+    for (const k in e) {
+      if (k !== 'default') {
+        const d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: () => e[k]
+        });
+      }
+    }
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
+const React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
+
+const defaultColor = "#BD1C2B";
+const SiHypothesis = React__namespace.forwardRef(function SiHypothesis2({ title = "Hypothesis", color = "currentColor", size = 24, ...others }, ref) {
+  if (color === "default") {
+    color = defaultColor;
+  }
+  return /* @__PURE__ */ jsxRuntime.jsxs(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: size,
+      height: size,
+      fill: color,
+      viewBox: "0 0 24 24",
+      ref,
+      ...others,
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx("title", { children: title }),
+        /* @__PURE__ */ jsxRuntime.jsx("path", { d: "M3.425 0c-.93 0-1.71.768-1.71 1.72v17.14c0 .94.78 1.71 1.71 1.71h5.95l2.62 3.43 2.62-3.43h5.95c.93 0 1.72-.77 1.72-1.71V1.72c0-.95-.79-1.72-1.72-1.72H3.425m1.71 3.43h2.58v6s.86-1.71 2.56-1.71c1.72 0 3.46.85 3.46 3.52v5.9h-2.58V12c0-1.39-.88-1.93-1.73-1.71-.86.21-1.71 1.12-1.71 3v3.85h-2.58V3.43m12.86 10.29c.95 0 1.72.78 1.72 1.7a1.71 1.71 0 01-1.72 1.71 1.71 1.71 0 01-1.71-1.71c0-.92.76-1.71 1.71-1.71z" })
+      ]
+    }
+  );
+});
+
+exports.default = SiHypothesis;
+exports.defaultColor = defaultColor;

@@ -1,0 +1,45 @@
+
+    import * as React from 'react';
+
+    import { IconType } from '../types';
+
+    type SiYetiProps = React.ComponentPropsWithoutRef<'svg'> & {
+      /**
+       * The title provides an accessible short text description to the SVG
+       */
+      title?: string;
+      /**
+       * Hex color or color name or "default" to use the default hex for each icon
+       */
+      color?: string;
+      /**
+       * The size of the Icon.
+       */
+      size?: string | number;
+    }
+
+    const defaultColor = '#00263C';
+
+    const SiYeti: IconType = React.forwardRef<SVGSVGElement, SiYetiProps>(function SiYeti({title = 'Yeti', color = 'currentColor', size = 24, ...others }, ref) {
+      if (color === 'default') {
+        color = defaultColor;
+      }
+
+      return (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width={size}
+          height={size}
+          fill={color}
+          viewBox='0 0 24 24'
+          ref={ref}
+          {...others}
+        >
+          <title>{title}</title>
+          <path d='M14.575 8.582v1.685h2.183v5.15h2.14v-5.15h2.183V8.583h-6.505ZM0 8.582l2.699 3.972v2.864h2.144v-2.864l2.693-3.971H5.172l-1.398 2.305-1.397-2.305zm8.022 0v6.836h5.84v-1.663h-3.694v-.974H13.3v-1.54h-3.132v-.974h3.589V8.583Zm13.832 0 .001 6.836H24V8.583Z' />
+        </svg>
+      );
+    });
+
+    export { SiYeti as default, defaultColor };
+  

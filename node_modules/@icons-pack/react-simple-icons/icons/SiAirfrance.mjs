@@ -1,0 +1,27 @@
+import { jsxs, jsx } from 'react/jsx-runtime';
+import * as React from 'react';
+
+const defaultColor = "#002157";
+const SiAirfrance = React.forwardRef(function SiAirfrance2({ title = "Air France", color = "currentColor", size = 24, ...others }, ref) {
+  if (color === "default") {
+    color = defaultColor;
+  }
+  return /* @__PURE__ */ jsxs(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: size,
+      height: size,
+      fill: color,
+      viewBox: "0 0 24 24",
+      ref,
+      ...others,
+      children: [
+        /* @__PURE__ */ jsx("title", { children: title }),
+        /* @__PURE__ */ jsx("path", { d: "M13.776 3.9L5.184 16.332C4.051 17.969 2.208 19.548 0 19.721v.379h9.552c2.544 0 4.397-1.656 5.616-3.48L24 3.9Z" })
+      ]
+    }
+  );
+});
+
+export { SiAirfrance as default, defaultColor };

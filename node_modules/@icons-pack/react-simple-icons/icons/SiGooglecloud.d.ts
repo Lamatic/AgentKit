@@ -1,0 +1,4 @@
+import { IconType } from '../types';
+declare const defaultColor = "#4285F4";
+declare const SiGooglecloud: IconType;
+export { SiGooglecloud as default, defaultColor };

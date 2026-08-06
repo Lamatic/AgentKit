@@ -1,0 +1,45 @@
+
+    import * as React from 'react';
+
+    import { IconType } from '../types';
+
+    type SiYubicoProps = React.ComponentPropsWithoutRef<'svg'> & {
+      /**
+       * The title provides an accessible short text description to the SVG
+       */
+      title?: string;
+      /**
+       * Hex color or color name or "default" to use the default hex for each icon
+       */
+      color?: string;
+      /**
+       * The size of the Icon.
+       */
+      size?: string | number;
+    }
+
+    const defaultColor = '#84BD00';
+
+    const SiYubico: IconType = React.forwardRef<SVGSVGElement, SiYubicoProps>(function SiYubico({title = 'Yubico', color = 'currentColor', size = 24, ...others }, ref) {
+      if (color === 'default') {
+        color = defaultColor;
+      }
+
+      return (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width={size}
+          height={size}
+          fill={color}
+          viewBox='0 0 24 24'
+          ref={ref}
+          {...others}
+        >
+          <title>{title}</title>
+          <path d='m12.356 12.388 2.521-7.138h3.64l-6.135 15.093H8.539l1.755-4.136L6 5.25h3.717ZM12 0C5.381 0 0 5.381 0 12s5.381 12 12 12 12-5.381 12-12S18.619 0 12 0Zm0 1.5c5.808 0 10.5 4.692 10.5 10.5S17.808 22.5 12 22.5 1.5 17.808 1.5 12 6.192 1.5 12 1.5Z' />
+        </svg>
+      );
+    });
+
+    export { SiYubico as default, defaultColor };
+  

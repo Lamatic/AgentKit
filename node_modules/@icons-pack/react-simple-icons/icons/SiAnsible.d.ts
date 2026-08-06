@@ -1,0 +1,4 @@
+import { IconType } from '../types';
+declare const defaultColor = "#EE0000";
+declare const SiAnsible: IconType;
+export { SiAnsible as default, defaultColor };

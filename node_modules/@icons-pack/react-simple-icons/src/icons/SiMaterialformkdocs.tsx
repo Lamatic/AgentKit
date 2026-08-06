@@ -1,0 +1,45 @@
+
+    import * as React from 'react';
+
+    import { IconType } from '../types';
+
+    type SiMaterialformkdocsProps = React.ComponentPropsWithoutRef<'svg'> & {
+      /**
+       * The title provides an accessible short text description to the SVG
+       */
+      title?: string;
+      /**
+       * Hex color or color name or "default" to use the default hex for each icon
+       */
+      color?: string;
+      /**
+       * The size of the Icon.
+       */
+      size?: string | number;
+    }
+
+    const defaultColor = '#526CFE';
+
+    const SiMaterialformkdocs: IconType = React.forwardRef<SVGSVGElement, SiMaterialformkdocsProps>(function SiMaterialformkdocs({title = 'Material for MkDocs', color = 'currentColor', size = 24, ...others }, ref) {
+      if (color === 'default') {
+        color = defaultColor;
+      }
+
+      return (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width={size}
+          height={size}
+          fill={color}
+          viewBox='0 0 24 24'
+          ref={ref}
+          {...others}
+        >
+          <title>{title}</title>
+          <path d='m17.029 18.772.777 1.166-5.417 2.709L0 16.451V4.063l5.417-2.709 5.298 7.948 7.867-5.24L24 1.354V16.84l-5.417 2.709zm2.023-13.827v13.253l3.949-1.975V2.97zM5.076 2.642 1.458 4.45 12.73 21.358l3.618-1.809z' />
+        </svg>
+      );
+    });
+
+    export { SiMaterialformkdocs as default, defaultColor };
+  
