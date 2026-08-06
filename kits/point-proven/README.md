@@ -111,8 +111,8 @@ This contribution is a **kit**: two Lamatic flows plus a **Next.js app** under `
 ### Run the app locally
 
 ```bash
-cd kits/point-proven/apps
-cp .env.example .env.local   # fill flow IDs + Lamatic API credentials
+cd kits/point-proven/
+cp .env.example .env.local; mv .env.local ./apps/   # fill flow IDs + Lamatic API credentials
 npm install
 npm run dev
 ```
