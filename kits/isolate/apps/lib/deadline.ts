@@ -1,3 +1,11 @@
+/**
+ * Aggregate wall-clock budget for one investigation.
+ *
+ * Every remote call (Lamatic, GitHub, Daytona) draws from this single budget so a
+ * slow provider cannot push the request past the platform function timeout and
+ * leave a sandbox running. A cleanup reserve is withheld from every draw so the
+ * sandbox can always be deleted.
+ */
 export class InvestigationDeadline {
   private readonly expiresAt: number;
 
@@ -8,6 +16,11 @@ export class InvestigationDeadline {
     this.expiresAt = this.now() + totalMilliseconds;
   }
 
+  /**
+   * Milliseconds left in the budget after withholding a cleanup reserve.
+   *
+   * @throws when the budget is already exhausted.
+   */
   remainingMilliseconds(cleanupReserveMilliseconds = 0) {
     const remaining =
       this.expiresAt - this.now() - cleanupReserveMilliseconds;
@@ -17,6 +30,12 @@ export class InvestigationDeadline {
     return remaining;
   }
 
+  /**
+   * Run an operation under the smaller of its own maximum and the remaining budget.
+   *
+   * The operation receives an `AbortSignal` that fires when the budget expires, so
+   * in-flight fetches are cancelled rather than abandoned.
+   */
   async run<T>(
     operation: (signal: AbortSignal, timeoutMilliseconds: number) => Promise<T>,
     options: {
@@ -49,6 +68,10 @@ export class InvestigationDeadline {
     }
   }
 
+  /**
+   * Per-probe timeout in seconds, dividing the remaining budget across the probes
+   * still to run so a single slow probe cannot starve the ones after it.
+   */
   probeTimeoutSeconds(maximumSeconds: number, probesRemaining = 1) {
     const remainingSeconds = Math.floor(
       this.remainingMilliseconds(35_000) / 1_000 / probesRemaining,

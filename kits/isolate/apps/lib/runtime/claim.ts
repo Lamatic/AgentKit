@@ -20,6 +20,9 @@ export type OutputIssueEvidenceAssertion = z.infer<
   typeof outputIssueEvidenceAssertionSchema
 >;
 
+/**
+ * Raised when an issue carries no machine-checkable assertion to certify against.
+ */
 export class MissingIssueEvidenceContractError extends Error {
   constructor(hypothesis?: string) {
     super(
@@ -31,6 +34,12 @@ export class MissingIssueEvidenceContractError extends Error {
   }
 }
 
+/**
+ * Extract an explicit `Observed stdout`/`Observed stderr` assertion from an issue
+ * body.
+ *
+ * @returns the assertion, or `null` when the issue declares none.
+ */
 export function tryExtractIssueEvidenceAssertion(body: string) {
   try {
     return extractIssueEvidenceAssertion(body);
@@ -40,6 +49,13 @@ export function tryExtractIssueEvidenceAssertion(body: string) {
   }
 }
 
+/**
+ * Resolve the assertion to certify against: an explicit output field if present,
+ * otherwise the TUI unsaved-exit contract when the issue names a terminal surface,
+ * a Ctrl+Q quit shortcut, an exit, and lost or unsaved state.
+ *
+ * @returns the assertion, or `null` when no supported evidence contract applies.
+ */
 export function tryDeriveIssueEvidenceAssertion(input: {
   title: string;
   body: string;
@@ -80,6 +96,14 @@ export function tryDeriveIssueEvidenceAssertion(input: {
 const fieldPattern =
   /^Observed (stdout|stderr):\s*(?:`([^`\r\n]+)`|([^\r\n]+))\s*$/gim;
 
+/**
+ * Parse the single `Observed stdout`/`Observed stderr` field from an issue body.
+ *
+ * Exactly one field must be present: zero leaves nothing to certify, and more than
+ * one leaves the target ambiguous.
+ *
+ * @throws {MissingIssueEvidenceContractError} when that condition is not met.
+ */
 export function extractIssueEvidenceAssertion(
   body: string,
 ): OutputIssueEvidenceAssertion {

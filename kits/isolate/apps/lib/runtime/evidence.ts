@@ -19,6 +19,10 @@ export const certificationSchema = z.object({
   }),
 });
 
+/**
+ * Indent captured output as a Markdown code block, with a placeholder for empty
+ * streams.
+ */
 function indentBlock(value: string) {
   if (!value) return "    (empty)";
   return value
@@ -29,6 +33,10 @@ function indentBlock(value: string) {
     .join("\n");
 }
 
+/**
+ * Render one probe run — command, exit code, duration, assertions, and both output
+ * streams — as a Markdown section.
+ */
 function renderRun(label: string, run: ProbeEvaluation) {
   const assertions = run.assertions
     .map(
@@ -59,6 +67,10 @@ function renderRun(label: string, run: ProbeEvaluation) {
   ].join("\n");
 }
 
+/**
+ * Render the full reproduction report: outcome, the certification rule, every
+ * candidate run, and the negative control.
+ */
 function renderMarkdownReport({
   outcome,
   candidateRuns,
@@ -84,6 +96,15 @@ function renderMarkdownReport({
   ].join("\n");
 }
 
+/**
+ * Apply the deterministic certification gate to recorded runs.
+ *
+ * Every run must carry the identical issue-derived assertion; `reproduced` requires
+ * at least two passing candidate runs and a control that rejects the same
+ * assertion. Any other combination is `not_reproduced_under_tested_conditions`.
+ *
+ * @throws when the runs do not share one assertion contract.
+ */
 export function certifyEvidence({
   candidateRuns,
   controlRun,

@@ -53,6 +53,9 @@ const EXPECTED_STEPS = [
   "Delete the sandbox",
 ] as const;
 
+/**
+ * Trigger a client-side download of an exported report.
+ */
 function download(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
   const anchor = document.createElement("a");
@@ -62,6 +65,9 @@ function download(name: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Pass/fail/observed marker shown beside a recorded run.
+ */
 function StatusGlyph({
   ok,
   label,
@@ -77,6 +83,9 @@ function StatusGlyph({
   );
 }
 
+/**
+ * One recorded run: command, exit code, duration, and both captured streams.
+ */
 function Finding({
   title,
   run,
@@ -127,6 +136,10 @@ function Finding({
   );
 }
 
+/**
+ * Reviewer surface: submit an issue URL, watch the investigation, and read or
+ * export the resulting evidence.
+ */
 export function InvestigationWorkbench() {
   const formId = useId();
   const [issueUrl, setIssueUrl] = useState("");
@@ -290,6 +303,9 @@ export function InvestigationWorkbench() {
   );
 }
 
+/**
+ * Placeholder shown before an investigation has been submitted.
+ */
 function EmptyPanel() {
   return (
     <section className="primer" aria-labelledby="primer-title">
@@ -317,6 +333,9 @@ function EmptyPanel() {
   );
 }
 
+/**
+ * Progress placeholder shown while an investigation is running.
+ */
 function WaitingPanel() {
   return (
     <section className="waiting" aria-labelledby="waiting-title">
@@ -335,6 +354,9 @@ function WaitingPanel() {
   );
 }
 
+/**
+ * Completed investigation: hypothesis, outcome, evidence, and export actions.
+ */
 function ResultPanel({ result }: { result: Investigation }) {
   const reproduced = ["reproduced", "likely_reproduced"].includes(result.outcome);
   const exploratory = result.verdictOwner === "lamatic";
