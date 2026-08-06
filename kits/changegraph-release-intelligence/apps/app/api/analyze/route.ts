@@ -1,3 +1,4 @@
+import { ipAddress } from "@vercel/functions";
 import * as z from "zod";
 
 import { orchestrateChangeGraph } from "@/actions/orchestrate";
@@ -22,6 +23,7 @@ const MAX_REQUESTS_PER_WINDOW = 8;
 const MAX_GLOBAL_CONCURRENT = 4;
 const MAX_CLIENT_CONCURRENT = 1;
 const FLOW_EXECUTIONS_PER_ANALYSIS = 2;
+const MAX_TRACKED_CLIENTS = 10_000;
 
 interface RateLimitState {
   count: number;
@@ -58,29 +60,58 @@ function uniqueSorted(
 function clientKey(
   request: Request,
 ): string {
-  const forwarded =
-    request.headers.get(
-      "x-forwarded-for",
-    );
-
   const candidate =
-    forwarded?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get(
-      "cf-connecting-ip",
-    ) ||
+    ipAddress(request) ??
     "unknown-client";
 
   return candidate.slice(0, 200);
+}
+
+function purgeExpiredRateLimits(
+  now: number,
+): void {
+  for (
+    const [client, state]
+    of requestCounts
+  ) {
+    if (state.resetAt <= now) {
+      requestCounts.delete(client);
+    }
+  }
+}
+
+function ensureRateLimitCapacity(): void {
+  while (
+    requestCounts.size >=
+    MAX_TRACKED_CLIENTS
+  ) {
+    const oldestClient =
+      requestCounts.keys().next().value;
+
+    if (oldestClient === undefined) {
+      break;
+    }
+
+    requestCounts.delete(oldestClient);
+  }
 }
 
 function consumeRateLimit(
   key: string,
 ): number | null {
   const now = Date.now();
+
+  /*
+   * This map is process-local and therefore best-effort on serverless
+   * platforms. Purge stale entries before looking up or inserting a key.
+   */
+  purgeExpiredRateLimits(now);
+
   const current = requestCounts.get(key);
 
-  if (!current || current.resetAt <= now) {
+  if (!current) {
+    ensureRateLimitCapacity();
+
     requestCounts.set(key, {
       count: 1,
       resetAt:
@@ -103,21 +134,6 @@ function consumeRateLimit(
   }
 
   current.count += 1;
-
-  /*
-   * This map is process-local and therefore best-effort on serverless
-   * platforms. Keep it bounded so stale clients do not accumulate.
-   */
-  if (requestCounts.size > 10_000) {
-    for (
-      const [client, state]
-      of requestCounts
-    ) {
-      if (state.resetAt <= now) {
-        requestCounts.delete(client);
-      }
-    }
-  }
 
   return null;
 }

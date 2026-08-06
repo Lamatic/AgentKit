@@ -75,17 +75,11 @@ const ConfidenceSchema = NumericInputSchema.transform(
 
     /*
      * A bare value of 1 is ambiguous: it could mean 100% in normalized
-     * form or 1% in percentage form. Require the producer to return
-     * either a value below 1 or an explicit percentage above 1.
+     * form or 1% in percentage form. Resolve it to normalized full
+     * confidence instead of rejecting the entire semantic payload.
      */
     if (parsed === 1) {
-      context.addIssue({
-        code: "custom",
-        message:
-          "Confidence value 1 is ambiguous; use a normalized value below 1 or an explicit percentage above 1.",
-      });
-
-      return z.NEVER;
+      return 1;
     }
 
     return parsed > 1
