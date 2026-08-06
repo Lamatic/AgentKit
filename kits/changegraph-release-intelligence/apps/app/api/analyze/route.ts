@@ -496,55 +496,6 @@ export async function POST(
         submittedPackage,
       );
 
-    /*
-     * The browser supplies validated workflow graph snapshots, but the
-     * server recomputes the blast radius and deterministic risk score.
-     * The request-supplied blast-radius and risk fields are never trusted.
-     */
-    const blastRadius =
-      calculateBlastRadius(
-        validation.data.baselineGraph,
-        validation.data.candidateGraph,
-        structuralDiff,
-      );
-
-    const riskAssessment =
-      calculateRiskAssessment(
-        structuralDiff,
-        blastRadius,
-      );
-
-    const normalizedChangePackage:
-      ChangePackage = {
-        ...submittedPackage,
-
-        summary: {
-          ...submittedPackage.summary,
-
-          totalChanges:
-            structuralDiff.changes.length,
-
-          categoryCounts:
-            createCategoryCounts(
-              structuralDiff,
-            ),
-
-          directlyAffectedNodes:
-            blastRadius
-              .directlyAffectedNodeIds
-              .length,
-
-          downstreamAffectedNodes:
-            blastRadius
-              .indirectlyAffectedNodeIds
-              .length,
-        },
-
-        blastRadius,
-
-        riskAssessment,
-      };
-
     const executionSlot =
       acquireExecutionSlot(key);
 
@@ -572,15 +523,63 @@ export async function POST(
     const executionStartedAt =
       performance.now();
 
-    let orchestration:
-      Awaited<
-        ReturnType<
-          typeof orchestrateChangeGraph
-        >
-      >;
+    let flowExecutionCount = 0;
 
     try {
-      orchestration =
+      /*
+       * The browser supplies validated workflow graph snapshots, but the
+       * server recomputes the blast radius and deterministic risk score.
+       * The request-supplied blast-radius and risk fields are never trusted.
+       * This traversal stays inside the concurrency guard.
+       */
+      const blastRadius =
+        calculateBlastRadius(
+          validation.data.baselineGraph,
+          validation.data.candidateGraph,
+          structuralDiff,
+        );
+
+      const riskAssessment =
+        calculateRiskAssessment(
+          structuralDiff,
+          blastRadius,
+        );
+
+      const normalizedChangePackage:
+        ChangePackage = {
+          ...submittedPackage,
+
+          summary: {
+            ...submittedPackage.summary,
+
+            totalChanges:
+              structuralDiff.changes.length,
+
+            categoryCounts:
+              createCategoryCounts(
+                structuralDiff,
+              ),
+
+            directlyAffectedNodes:
+              blastRadius
+                .directlyAffectedNodeIds
+                .length,
+
+            downstreamAffectedNodes:
+              blastRadius
+                .indirectlyAffectedNodeIds
+                .length,
+          },
+
+          blastRadius,
+
+          riskAssessment,
+        };
+
+      flowExecutionCount =
+        FLOW_EXECUTIONS_PER_ANALYSIS;
+
+      const orchestration =
         await orchestrateChangeGraph({
           flowPurpose:
             validation.data.flowPurpose,
@@ -605,8 +604,7 @@ export async function POST(
         "ChangeGraph flow execution metrics",
         {
           requestId,
-          flowExecutionCount:
-            FLOW_EXECUTIONS_PER_ANALYSIS,
+          flowExecutionCount,
           latencyMs: Math.round(
             performance.now() -
               executionStartedAt,
@@ -614,13 +612,61 @@ export async function POST(
           outcome: "success",
         },
       );
+
+      const report: ChangeGraphReport = {
+        baselineVersion:
+          validation.data
+            .baselineVersion,
+
+        candidateVersion:
+          validation.data
+            .candidateVersion,
+
+        structuralDiff,
+
+        blastRadius,
+
+        riskAssessment,
+
+        semanticAnalysis:
+          orchestration
+            .semanticAnalysis,
+
+        releasePlan:
+          orchestration.releasePlan,
+      };
+
+      const warnings = uniqueSorted([
+        ...normalizedChangePackage
+          .baseline.warnings,
+
+        ...normalizedChangePackage
+          .candidate.warnings,
+
+        ...blastRadius.warnings,
+
+        ...orchestration.warnings,
+      ]);
+
+      return Response.json(
+        {
+          report,
+          warnings,
+        },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control":
+              "no-store",
+          },
+        },
+      );
     } catch (error) {
       console.info(
         "ChangeGraph flow execution metrics",
         {
           requestId,
-          flowExecutionCount:
-            FLOW_EXECUTIONS_PER_ANALYSIS,
+          flowExecutionCount,
           latencyMs: Math.round(
             performance.now() -
               executionStartedAt,
@@ -633,58 +679,6 @@ export async function POST(
     } finally {
       releaseExecutionSlot(key);
     }
-
-    const report: ChangeGraphReport = {
-      baselineVersion:
-        validation.data
-          .baselineVersion,
-
-      candidateVersion:
-        validation.data
-          .candidateVersion,
-
-      structuralDiff,
-
-      blastRadius:
-        normalizedChangePackage
-          .blastRadius,
-
-      riskAssessment,
-
-      semanticAnalysis:
-        orchestration
-          .semanticAnalysis,
-
-      releasePlan:
-        orchestration.releasePlan,
-    };
-
-    const warnings = uniqueSorted([
-      ...normalizedChangePackage
-        .baseline.warnings,
-
-      ...normalizedChangePackage
-        .candidate.warnings,
-
-      ...normalizedChangePackage
-        .blastRadius.warnings,
-
-      ...orchestration.warnings,
-    ]);
-
-    return Response.json(
-      {
-        report,
-        warnings,
-      },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control":
-            "no-store",
-        },
-      },
-    );
   } catch (error) {
     console.error(
       "ChangeGraph analysis failed:",
