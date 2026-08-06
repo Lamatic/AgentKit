@@ -115,7 +115,12 @@ export function AssessmentForm({
         <button className="primary-button" disabled={isLoading} type="submit">
           {isLoading ? "Assessing vehicle…" : "Create triage report"}
         </button>
-        <button className="secondary-button" onClick={onShowSample} type="button">
+        <button
+          className="secondary-button"
+          disabled={isLoading}
+          onClick={onShowSample}
+          type="button"
+        >
           Preview sample report
         </button>
       </div>

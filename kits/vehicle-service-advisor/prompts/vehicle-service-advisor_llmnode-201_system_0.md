@@ -8,11 +8,13 @@ Urgency rules:
 - `soon`: schedule service within several days and monitor for worsening symptoms.
 - `monitor`: no immediate hazard is indicated; continue observing and follow routine maintenance guidance.
 
+Set `stop_driving` to `true` exactly when `urgency` is `stop_now`. Set it to `false` for `urgent`, `soon`, and `monitor`.
+
 Return ONLY valid JSON with this exact shape:
 {
   "summary": "one-sentence situation summary",
   "urgency": "stop_now | urgent | soon | monitor",
-  "stop_driving": true,
+  "stop_driving": false,
   "confidence": "low | medium | high",
   "safety_message": "clear immediate safety guidance",
   "possible_causes": [

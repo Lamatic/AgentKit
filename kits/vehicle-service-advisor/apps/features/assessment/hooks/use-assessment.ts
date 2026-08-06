@@ -8,6 +8,8 @@ import type {
 } from "@/features/assessment/types/assessment";
 import { SAMPLE_REPORT } from "@/features/assessment/types/sample-report";
 
+const ASSESSMENT_FAILURE_MESSAGE = "The assessment could not be completed.";
+
 export function useAssessment() {
   const [report, setReport] = useState<AssessmentReport | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,14 +20,18 @@ export function useAssessment() {
     setError(null);
     setReport(null);
 
-    const result = await assessVehicle(input);
-    setIsLoading(false);
-
-    if (result.success && result.report) {
-      setReport(result.report);
-      return;
+    try {
+      const result = await assessVehicle(input);
+      if (result.success && result.report) {
+        setReport(result.report);
+        return;
+      }
+      setError(result.error ?? ASSESSMENT_FAILURE_MESSAGE);
+    } catch {
+      setError(ASSESSMENT_FAILURE_MESSAGE);
+    } finally {
+      setIsLoading(false);
     }
-    setError(result.error ?? "The assessment could not be completed.");
   }
 
   function showSampleReport(): void {

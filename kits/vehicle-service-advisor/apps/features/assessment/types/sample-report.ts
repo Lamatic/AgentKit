@@ -3,11 +3,11 @@ import type { AssessmentReport } from "./assessment";
 export const SAMPLE_REPORT: AssessmentReport = {
   summary:
     "The rising temperature and sweet smell suggest a cooling-system leak that needs prompt inspection.",
-  urgency: "urgent",
-  stopDriving: false,
+  urgency: "stop_now",
+  stopDriving: true,
   confidence: "medium",
   safetyMessage:
-    "Avoid long drives and stop safely if the temperature gauge rises again. Never open the cooling system while hot.",
+    "Keep the engine off and do not drive the vehicle. Arrange towing for immediate professional inspection, and never open the cooling system while hot.",
   possibleCauses: [
     {
       cause: "External coolant leak",
@@ -27,9 +27,9 @@ export const SAMPLE_REPORT: AssessmentReport = {
   inspectionPlan: [
     {
       priority: 1,
-      action: "Check the coolant level only after the engine is fully cold.",
+      action: "Keep the engine off and arrange transport to a repair facility.",
       performedBy: "owner",
-      reason: "A low level supports the leak hypothesis and changes driving safety.",
+      reason: "Driving an overheating vehicle can cause severe engine damage.",
     },
     {
       priority: 2,
@@ -39,8 +39,9 @@ export const SAMPLE_REPORT: AssessmentReport = {
     },
   ],
   ownerActions: [
+    "Do not drive or restart the vehicle while an overheating condition is suspected.",
+    "Arrange towing for immediate professional inspection.",
     "Photograph any puddle without touching or tasting the fluid.",
-    "Arrange a professional inspection within 24 hours.",
   ],
   mechanicBrief:
     "2018 Honda City, 74,000 km: temperature rises in traffic, sweet smell after parking, temperature warning appeared once, and coolant was topped up two weeks ago.",
