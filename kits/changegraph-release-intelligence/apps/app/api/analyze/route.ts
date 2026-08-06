@@ -1,13 +1,13 @@
 import * as z from "zod";
 
 import { orchestrateChangeGraph } from "@/actions/orchestrate";
+import { createCategoryCounts } from "@/lib/change-package";
 import { calculateRiskAssessment } from "@/lib/risk-score";
 import {
   AnalyzeChangeGraphRequestSchema,
 } from "@/lib/schemas";
 
 import type {
-  ChangeCategory,
   ChangeGraphReport,
   ChangePackage,
   StructuralDiff,
@@ -17,21 +17,34 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_REQUEST_BYTES = 3_500_000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const MAX_REQUESTS_PER_WINDOW = 8;
+const MAX_GLOBAL_CONCURRENT = 4;
+const MAX_CLIENT_CONCURRENT = 1;
+const FLOW_EXECUTIONS_PER_ANALYSIS = 2;
 
-const CHANGE_CATEGORIES: ChangeCategory[] = [
-  "prompt",
-  "model",
-  "schema",
-  "tool",
-  "permission",
-  "node",
-  "edge",
-  "fallback",
-  "retry",
-  "branching",
-  "environment",
-  "other",
-];
+interface RateLimitState {
+  count: number;
+  resetAt: number;
+}
+
+interface ExecutionSlotResult {
+  allowed: boolean;
+  status?: number;
+  message?: string;
+}
+
+const requestCounts =
+  new Map<string, RateLimitState>();
+
+const activeByClient =
+  new Map<string, number>();
+
+let activeGlobalExecutions = 0;
+
+class RequestTooLargeError extends Error {}
+
+class InvalidContentLengthError extends Error {}
 
 function uniqueSorted(
   values: string[],
@@ -42,22 +55,216 @@ function uniqueSorted(
   );
 }
 
-function calculateCategoryCounts(
-  changePackage: ChangePackage,
-): Record<ChangeCategory, number> {
-  const counts = Object.fromEntries(
-    CHANGE_CATEGORIES.map(
-      (category) => [category, 0],
-    ),
-  ) as Record<ChangeCategory, number>;
+function clientKey(
+  request: Request,
+): string {
+  const forwarded =
+    request.headers.get(
+      "x-forwarded-for",
+    );
 
-  for (
-    const change of changePackage.changes
-  ) {
-    counts[change.category] += 1;
+  const candidate =
+    forwarded?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    request.headers.get(
+      "cf-connecting-ip",
+    ) ||
+    "unknown-client";
+
+  return candidate.slice(0, 200);
+}
+
+function consumeRateLimit(
+  key: string,
+): number | null {
+  const now = Date.now();
+  const current = requestCounts.get(key);
+
+  if (!current || current.resetAt <= now) {
+    requestCounts.set(key, {
+      count: 1,
+      resetAt:
+        now + RATE_LIMIT_WINDOW_MS,
+    });
+
+    return null;
   }
 
-  return counts;
+  if (
+    current.count >=
+    MAX_REQUESTS_PER_WINDOW
+  ) {
+    return Math.max(
+      1,
+      Math.ceil(
+        (current.resetAt - now) / 1_000,
+      ),
+    );
+  }
+
+  current.count += 1;
+
+  /*
+   * This map is process-local and therefore best-effort on serverless
+   * platforms. Keep it bounded so stale clients do not accumulate.
+   */
+  if (requestCounts.size > 10_000) {
+    for (
+      const [client, state]
+      of requestCounts
+    ) {
+      if (state.resetAt <= now) {
+        requestCounts.delete(client);
+      }
+    }
+  }
+
+  return null;
+}
+
+function acquireExecutionSlot(
+  key: string,
+): ExecutionSlotResult {
+  const activeForClient =
+    activeByClient.get(key) ?? 0;
+
+  if (
+    activeForClient >=
+    MAX_CLIENT_CONCURRENT
+  ) {
+    return {
+      allowed: false,
+      status: 429,
+      message:
+        "An analysis is already running for this client.",
+    };
+  }
+
+  if (
+    activeGlobalExecutions >=
+    MAX_GLOBAL_CONCURRENT
+  ) {
+    return {
+      allowed: false,
+      status: 503,
+      message:
+        "Analysis capacity is temporarily full. Try again shortly.",
+    };
+  }
+
+  activeByClient.set(
+    key,
+    activeForClient + 1,
+  );
+
+  activeGlobalExecutions += 1;
+
+  return {
+    allowed: true,
+  };
+}
+
+function releaseExecutionSlot(
+  key: string,
+): void {
+  const activeForClient =
+    activeByClient.get(key) ?? 0;
+
+  if (activeForClient <= 1) {
+    activeByClient.delete(key);
+  } else {
+    activeByClient.set(
+      key,
+      activeForClient - 1,
+    );
+  }
+
+  activeGlobalExecutions = Math.max(
+    0,
+    activeGlobalExecutions - 1,
+  );
+}
+
+async function readBodyWithLimit(
+  request: Request,
+): Promise<string> {
+  const contentLengthHeader =
+    request.headers.get(
+      "content-length",
+    );
+
+  if (contentLengthHeader !== null) {
+    const declaredLength = Number(
+      contentLengthHeader,
+    );
+
+    if (
+      !Number.isFinite(declaredLength) ||
+      declaredLength < 0
+    ) {
+      throw new InvalidContentLengthError(
+        "Content-Length must be a non-negative number.",
+      );
+    }
+
+    if (
+      declaredLength >
+      MAX_REQUEST_BYTES
+    ) {
+      throw new RequestTooLargeError(
+        "The analysis request is too large.",
+      );
+    }
+  }
+
+  if (!request.body) {
+    return "";
+  }
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+
+  let totalBytes = 0;
+  let rawBody = "";
+
+  try {
+    while (true) {
+      const {
+        done,
+        value,
+      } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      totalBytes += value.byteLength;
+
+      if (
+        totalBytes >
+        MAX_REQUEST_BYTES
+      ) {
+        await reader.cancel();
+
+        throw new RequestTooLargeError(
+          "The analysis request is too large.",
+        );
+      }
+
+      rawBody += decoder.decode(
+        value,
+        {
+          stream: true,
+        },
+      );
+    }
+
+    rawBody += decoder.decode();
+
+    return rawBody;
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 function reconstructStructuralDiff(
@@ -111,14 +318,6 @@ function determineErrorStatus(
     return 502;
   }
 
-  if (
-    message.includes(
-      "missing required server environment variable",
-    )
-  ) {
-    return 500;
-  }
-
   return 500;
 }
 
@@ -164,24 +363,25 @@ export async function POST(
     );
   }
 
-  const declaredLength = Number(
-    request.headers.get(
-      "content-length",
-    ),
-  );
+  const key = clientKey(request);
 
-  if (
-    Number.isFinite(declaredLength) &&
-    declaredLength >
-      MAX_REQUEST_BYTES
-  ) {
+  const retryAfter =
+    consumeRateLimit(key);
+
+  if (retryAfter !== null) {
     return Response.json(
       {
         error:
-          "The analysis request is too large.",
+          "Too many analysis requests. Try again shortly.",
       },
       {
-        status: 413,
+        status: 429,
+        headers: {
+          "Retry-After":
+            String(retryAfter),
+          "Cache-Control":
+            "no-store",
+        },
       },
     );
   }
@@ -189,8 +389,39 @@ export async function POST(
   let rawBody: string;
 
   try {
-    rawBody = await request.text();
-  } catch {
+    rawBody =
+      await readBodyWithLimit(request);
+  } catch (error) {
+    if (
+      error instanceof
+      RequestTooLargeError
+    ) {
+      return Response.json(
+        {
+          error:
+            "The analysis request is too large.",
+        },
+        {
+          status: 413,
+        },
+      );
+    }
+
+    if (
+      error instanceof
+      InvalidContentLengthError
+    ) {
+      return Response.json(
+        {
+          error:
+            error.message,
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
     return Response.json(
       {
         error:
@@ -198,25 +429,6 @@ export async function POST(
       },
       {
         status: 400,
-      },
-    );
-  }
-
-  const actualBytes =
-    new TextEncoder().encode(
-      rawBody,
-    ).byteLength;
-
-  if (
-    actualBytes > MAX_REQUEST_BYTES
-  ) {
-    return Response.json(
-      {
-        error:
-          "The analysis request is too large.",
-      },
-      {
-        status: 413,
       },
     );
   }
@@ -292,8 +504,8 @@ export async function POST(
             structuralDiff.changes.length,
 
           categoryCounts:
-            calculateCategoryCounts(
-              submittedPackage,
+            createCategoryCounts(
+              structuralDiff,
             ),
 
           directlyAffectedNodes:
@@ -312,26 +524,94 @@ export async function POST(
         riskAssessment,
       };
 
-    const orchestration =
-      await orchestrateChangeGraph({
-        flowPurpose:
-          validation.data.flowPurpose,
+    const executionSlot =
+      acquireExecutionSlot(key);
 
-        baselineVersion:
-          validation.data
-            .baselineVersion,
+    if (!executionSlot.allowed) {
+      return Response.json(
+        {
+          error:
+            executionSlot.message,
+        },
+        {
+          status:
+            executionSlot.status ?? 429,
+          headers: {
+            "Retry-After": "5",
+            "Cache-Control":
+              "no-store",
+          },
+        },
+      );
+    }
 
-        candidateVersion:
-          validation.data
-            .candidateVersion,
+    const requestId =
+      crypto.randomUUID();
 
-        releaseContext:
-          validation.data
-            .releaseContext,
+    const executionStartedAt =
+      performance.now();
 
-        changePackage:
-          normalizedChangePackage,
-      });
+    let orchestration:
+      Awaited<
+        ReturnType<
+          typeof orchestrateChangeGraph
+        >
+      >;
+
+    try {
+      orchestration =
+        await orchestrateChangeGraph({
+          flowPurpose:
+            validation.data.flowPurpose,
+
+          baselineVersion:
+            validation.data
+              .baselineVersion,
+
+          candidateVersion:
+            validation.data
+              .candidateVersion,
+
+          releaseContext:
+            validation.data
+              .releaseContext,
+
+          changePackage:
+            normalizedChangePackage,
+        });
+
+      console.info(
+        "ChangeGraph flow execution metrics",
+        {
+          requestId,
+          flowExecutionCount:
+            FLOW_EXECUTIONS_PER_ANALYSIS,
+          latencyMs: Math.round(
+            performance.now() -
+              executionStartedAt,
+          ),
+          outcome: "success",
+        },
+      );
+    } catch (error) {
+      console.info(
+        "ChangeGraph flow execution metrics",
+        {
+          requestId,
+          flowExecutionCount:
+            FLOW_EXECUTIONS_PER_ANALYSIS,
+          latencyMs: Math.round(
+            performance.now() -
+              executionStartedAt,
+          ),
+          outcome: "error",
+        },
+      );
+
+      throw error;
+    } finally {
+      releaseExecutionSlot(key);
+    }
 
     const report: ChangeGraphReport = {
       baselineVersion:

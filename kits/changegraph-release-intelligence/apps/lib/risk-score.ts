@@ -97,9 +97,18 @@ function countTerms(
   const text = serialize(value);
 
   return terms.reduce((count, term) => {
-    return text.includes(term.toLowerCase())
-      ? count + 1
-      : count;
+    const normalizedTerm =
+      term.toLowerCase();
+
+    if (!normalizedTerm) {
+      return count;
+    }
+
+    return (
+      count +
+      text.split(normalizedTerm).length -
+      1
+    );
   }, 0);
 }
 
@@ -290,6 +299,46 @@ function stringSet(value: unknown): Set<string> {
   );
 }
 
+function expandJsonStrings(
+  value: unknown,
+): unknown {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+
+    if (
+      trimmed.startsWith("{") ||
+      trimmed.startsWith("[")
+    ) {
+      try {
+        return expandJsonStrings(
+          JSON.parse(trimmed),
+        );
+      } catch {
+        return value;
+      }
+    }
+
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(expandJsonStrings);
+  }
+
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(
+        ([key, child]) => [
+          key,
+          expandJsonStrings(child),
+        ],
+      ),
+    );
+  }
+
+  return value;
+}
+
 function collectSchemaFacts(
   value: unknown,
 ): SchemaFacts {
@@ -356,7 +405,7 @@ function collectSchemaFacts(
     }
   }
 
-  visit(value, "$");
+  visit(expandJsonStrings(value), "$");
 
   return facts;
 }

@@ -1,24 +1,13 @@
 import * as z from "zod";
 
+import { CHANGE_CATEGORIES } from "@/lib/change-package";
+
 import type {
   ReleasePlan,
   SemanticAnalysis,
 } from "@/types/changegraph";
 
-export const ChangeCategorySchema = z.enum([
-  "prompt",
-  "model",
-  "schema",
-  "tool",
-  "permission",
-  "node",
-  "edge",
-  "fallback",
-  "retry",
-  "branching",
-  "environment",
-  "other",
-]);
+export const ChangeCategorySchema = z.enum(CHANGE_CATEGORIES);
 
 export const RiskLevelSchema = z.enum([
   "low",
@@ -58,36 +47,74 @@ const BooleanSchema = z.preprocess(
   z.boolean(),
 );
 
-const ConfidenceSchema = z.preprocess(
-  (value) => {
+const NumericInputSchema = z.union([
+  z.number(),
+  z.string().trim().min(1),
+]);
+
+const ConfidenceSchema = NumericInputSchema.transform(
+  (value, context) => {
+    const parsed =
+      typeof value === "number"
+        ? value
+        : Number(value);
+
     if (
-      typeof value !== "string" &&
-      typeof value !== "number"
+      !Number.isFinite(parsed) ||
+      parsed < 0 ||
+      parsed > 100
     ) {
-      return value;
+      context.addIssue({
+        code: "custom",
+        message:
+          "Confidence must be a finite number from 0 to 1 or a percentage above 1 and up to 100.",
+      });
+
+      return z.NEVER;
     }
 
-    const parsed = Number(value);
+    /*
+     * A bare value of 1 is ambiguous: it could mean 100% in normalized
+     * form or 1% in percentage form. Require the producer to return
+     * either a value below 1 or an explicit percentage above 1.
+     */
+    if (parsed === 1) {
+      context.addIssue({
+        code: "custom",
+        message:
+          "Confidence value 1 is ambiguous; use a normalized value below 1 or an explicit percentage above 1.",
+      });
+
+      return z.NEVER;
+    }
+
+    return parsed > 1
+      ? parsed / 100
+      : parsed;
+  },
+);
+
+const RiskScoreSchema = NumericInputSchema.transform(
+  (value, context) => {
+    const parsed =
+      typeof value === "number"
+        ? value
+        : Number(value);
 
     if (!Number.isFinite(parsed)) {
-      return value;
-    }
+      context.addIssue({
+        code: "custom",
+        message:
+          "Risk score must be a finite numeric value.",
+      });
 
-    // Accept either 0–1 or percentage-style 0–100.
-    if (parsed > 1 && parsed <= 100) {
-      return parsed / 100;
+      return z.NEVER;
     }
 
     return parsed;
   },
-  z.number().min(0).max(1),
-);
-
-const RiskScoreSchema = z
-  .coerce
-  .number()
-  .min(0)
-  .max(100)
+)
+  .pipe(z.number().min(0).max(100))
   .transform((value) => Math.round(value));
 
 export const SemanticFindingSchema = z.object({
@@ -380,20 +407,17 @@ const WorkflowPackageSummarySchema = z.object({
   warnings: StringArraySchema,
 });
 
-const CategoryCountsSchema = z.object({
-  prompt: NonNegativeIntegerSchema,
-  model: NonNegativeIntegerSchema,
-  schema: NonNegativeIntegerSchema,
-  tool: NonNegativeIntegerSchema,
-  permission: NonNegativeIntegerSchema,
-  node: NonNegativeIntegerSchema,
-  edge: NonNegativeIntegerSchema,
-  fallback: NonNegativeIntegerSchema,
-  retry: NonNegativeIntegerSchema,
-  branching: NonNegativeIntegerSchema,
-  environment: NonNegativeIntegerSchema,
-  other: NonNegativeIntegerSchema,
-});
+const CategoryCountsSchema = z.object(
+  Object.fromEntries(
+    CHANGE_CATEGORIES.map((category) => [
+      category,
+      NonNegativeIntegerSchema,
+    ]),
+  ) as Record<
+    (typeof CHANGE_CATEGORIES)[number],
+    typeof NonNegativeIntegerSchema
+  >,
+);
 
 export const ChangePackageSchema = z
   .object({

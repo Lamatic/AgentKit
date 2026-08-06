@@ -217,7 +217,7 @@ function buildDeterministicFallbackReleasePlan(
         );
 
   const targetedTests: TargetedTest[] =
-    changes.slice(0, 12).map(
+    changes.map(
       (change, index) => {
         const finding =
           findingsByChangeId.get(
@@ -431,7 +431,6 @@ function buildDeterministicFallbackSemanticAnalysis(
 
   const findings: SemanticFinding[] =
     input.changePackage.changes
-      .slice(0, 20)
       .map((change) => ({
         changeId: change.changeId,
         category: change.category,
@@ -605,7 +604,7 @@ try {
     );
 }
 
-  
+
 
   /*
    * Flow 2: release-plan generation
@@ -645,7 +644,7 @@ try {
       "Release-plan flow",
     );
 
-  
+
 
 let generatedReleasePlan: ReleasePlan;
 

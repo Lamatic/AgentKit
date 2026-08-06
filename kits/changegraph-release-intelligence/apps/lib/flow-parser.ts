@@ -436,14 +436,26 @@ function extractEnvironmentReferences(
 ): string[] {
   const references = new Set<string>();
 
-  const patterns = [
+  const generalPatterns = [
     /process\.env\.([A-Z][A-Z0-9_]*)/g,
     /\b(?:envKey|environmentVariable)\s*[:=]\s*["']([A-Z][A-Z0-9_]*)["']/g,
     /\$\{([A-Z][A-Z0-9_]{2,})\}/g,
-    /^\s*(?:export\s+)?([A-Z][A-Z0-9_]{2,})\s*=/gm,
   ];
 
+  const dotenvPattern =
+    /^\s*(?:export\s+)?([A-Z][A-Z0-9_]{2,})\s*=/gm;
+
   for (const file of files) {
+    const normalizedPath =
+      file.path.replaceAll("\\", "/");
+
+    const patterns =
+      /(^|\/)\.env(?:\.[^/]*)?$/i.test(
+        normalizedPath,
+      )
+        ? [...generalPatterns, dotenvPattern]
+        : generalPatterns;
+
     for (const pattern of patterns) {
       pattern.lastIndex = 0;
 
