@@ -42,6 +42,9 @@ type TuiProbeRuntime = {
   }, deadline: InvestigationDeadline): Promise<ProbeEvaluation>;
 };
 
+/**
+ * Raised when a plan cannot produce a meaningful candidate/control comparison.
+ */
 export class InvalidCertificationPlanError extends Error {
   constructor() {
     super("Candidate and control commands must exercise different cases.");
@@ -49,6 +52,12 @@ export class InvalidCertificationPlanError extends Error {
   }
 }
 
+/**
+ * Check both commands against the command policy and require them to differ, so
+ * the control genuinely varies a condition rather than repeating the candidate.
+ *
+ * @throws {UnsafeCommandError} or {InvalidCertificationPlanError} on rejection.
+ */
 export function validateCertificationCommands({
   candidateCommand,
   controlCommand,
@@ -65,6 +74,10 @@ export function validateCertificationCommands({
   }
 }
 
+/**
+ * Run the terminal certification sequence: the candidate twice and the negative
+ * control once, each from a freshly reset workspace, then apply the evidence gate.
+ */
 export async function runCertification({
   runtime,
   sandboxId,
@@ -130,6 +143,13 @@ export async function runCertification({
   });
 }
 
+/**
+ * Run the TUI unsaved-exit certification sequence.
+ *
+ * The runtime owns the fixture, the keystrokes, and the filesystem assertion: it
+ * drives a real PTY, confirms the file is unchanged after the quit key twice, and
+ * requires the save control to reject the same assertion.
+ */
 export async function runTuiUnsavedExitCertification({
   runtime,
   sandboxId,

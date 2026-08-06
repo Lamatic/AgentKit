@@ -46,6 +46,11 @@ export const probeEvaluationSchema = z.object({
 export type ProbeSpec = z.infer<typeof probeSpecSchema>;
 export type CommandObservation = z.infer<typeof commandObservationSchema>;
 
+/**
+ * Score a recorded command observation against a probe's assertions.
+ *
+ * Purely deterministic: no model output participates in the pass/fail decision.
+ */
 export function evaluateProbe(
   probe: ProbeSpec,
   observation: CommandObservation,

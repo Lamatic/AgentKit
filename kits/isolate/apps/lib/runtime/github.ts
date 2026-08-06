@@ -23,6 +23,9 @@ type FetchLike = (
   init?: RequestInit,
 ) => Promise<Response>;
 
+/**
+ * Raised when a URL is not a public GitHub issue URL.
+ */
 export class InvalidGitHubIssueUrlError extends Error {
   constructor(
     message =
@@ -33,9 +36,20 @@ export class InvalidGitHubIssueUrlError extends Error {
   }
 }
 
+/**
+ * Reads public GitHub issues over the REST API, unauthenticated by design so the
+ * kit never holds repository credentials.
+ */
 export class GitHubIssueReader {
   constructor(private readonly request: FetchLike = fetch) {}
 
+  /**
+   * Fetch and normalise a public issue.
+   *
+   * A caller-supplied signal is composed with a 10s bound rather than replacing it,
+   * so an upstream stall still aborts. Pull requests and private or missing issues
+   * are rejected.
+   */
   async read(issueUrl: string, options: { signal?: AbortSignal } = {}) {
     const parsedUrl = issueUrlSchema.safeParse(issueUrl);
     if (!parsedUrl.success) throw new InvalidGitHubIssueUrlError();
@@ -103,6 +117,9 @@ export class GitHubIssueReader {
   }
 }
 
+/**
+ * Construct the default issue reader.
+ */
 export function createGitHubIssueReader() {
   return new GitHubIssueReader();
 }

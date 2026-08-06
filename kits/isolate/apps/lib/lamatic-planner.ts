@@ -1,6 +1,11 @@
 import { parseReproductionPlan } from "./runtime/plan";
 import { parseInvestigationReport } from "./runtime/investigation-report";
 
+/**
+ * Read a required environment variable, trimmed.
+ *
+ * @throws when the variable is missing or blank.
+ */
 function requiredEnvironment(name: string) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing ${name} configuration.`);
@@ -25,6 +30,15 @@ type LamaticDependencies = {
   };
 };
 
+/**
+ * Execute the deployed Lamatic flow over its GraphQL `executeWorkflow` contract.
+ *
+ * The call is made directly rather than through the `lamatic` SDK because the SDK
+ * cannot propagate an `AbortSignal`, and every model call in this kit must be
+ * cancellable by the aggregate investigation deadline. The response body is read
+ * as text and parsed defensively so a non-JSON upstream reply surfaces as a clear
+ * error instead of a parser exception.
+ */
 async function executeLamaticFlow(input: LamaticInput, dependencies: LamaticDependencies = {}) {
   const configuration = dependencies.configuration ?? {
     endpoint: requiredEnvironment("LAMATIC_API_URL"),
@@ -92,6 +106,10 @@ async function executeLamaticFlow(input: LamaticInput, dependencies: LamaticDepe
   return execution.result as { plan?: unknown; report?: unknown };
 }
 
+/**
+ * Ask the planner flow for a reproduction plan and validate it against the plan
+ * schema before the runtime is allowed to act on it.
+ */
 export async function requestLamaticPlan(
   input: LamaticInput,
   dependencies: LamaticDependencies = {},
@@ -100,6 +118,12 @@ export async function requestLamaticPlan(
   return parseReproductionPlan(result.plan ?? result);
 }
 
+/**
+ * Ask the reporter flow to interpret recorded runtime evidence.
+ *
+ * The returned report is interpretation only; the reproduction outcome stays
+ * runtime-owned.
+ */
 export async function requestLamaticReport(
   input: LamaticInput,
   dependencies: LamaticDependencies = {},

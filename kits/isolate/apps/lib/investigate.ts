@@ -35,6 +35,11 @@ const directEvidenceRepairFeedback =
 const testOnlyCommandPattern = /\b(?:bun|npm|pnpm|yarn)\s+(?:run\s+)?test\b/i;
 const maximumModelContextCharacters = 45_000;
 
+/**
+ * Whether a model-call failure is worth retrying (rate limits, timeouts, network
+ * and 5xx faults) as opposed to a deterministic one such as missing configuration
+ * or a schema rejection.
+ */
 function isTransientModelError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return /(?:429|rate.?limit|timeout|timed out|temporar|unavailable|network|fetch|502|503|504)/i.test(
@@ -42,6 +47,12 @@ function isTransientModelError(error: unknown) {
   );
 }
 
+/**
+ * Run a model call, retrying once for transient failures only.
+ *
+ * The backoff is capped by the remaining deadline so a retry can never consume the
+ * budget reserved for sandbox cleanup.
+ */
 async function requestWithRetry<T>(
   operation: () => Promise<T>,
   deadline: InvestigationDeadline,
@@ -60,6 +71,13 @@ async function requestWithRetry<T>(
   throw failure;
 }
 
+/**
+ * Reject a plan whose command talks to a localhost service without first starting
+ * a repository-owned script in the background.
+ *
+ * Each probe runs in its own shell against a clean workspace, so a command that
+ * assumes an already-running service would produce evidence of nothing.
+ */
 function assertRequiredLocalServiceStarted(command: string) {
   const usesLocalService = /https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i.test(
     command,
@@ -76,6 +94,13 @@ function assertRequiredLocalServiceStarted(command: string) {
   }
 }
 
+/**
+ * Derive a deterministic probe pair from the repository snapshot when the planner
+ * cannot be reached, covering the two exploratory shapes this kit supports: a
+ * UTF-8 sequence split across stdin chunks, and a narrow-versus-wide terminal.
+ *
+ * @returns the fallback plan, or `null` when the repository offers no usable script.
+ */
 function repositoryFallbackPlan(repositoryContext: string, issueText: string) {
   const script = ["dev", "cli", "start"].find((name) =>
     new RegExp(`"${name}"\\s*:`).test(repositoryContext),
@@ -96,6 +121,16 @@ function repositoryFallbackPlan(repositoryContext: string, issueText: string) {
   };
 }
 
+/**
+ * Run one end-to-end investigation: read the issue, snapshot the repository in a
+ * disposable sandbox, plan a probe with Lamatic, execute it under the command
+ * policy, and certify the evidence.
+ *
+ * The model proposes; the runtime decides. `reproduced` is returned only when two
+ * candidate runs satisfy the issue-derived assertion and the negative control
+ * rejects it. The sandbox is always deleted, and a cleanup failure is surfaced
+ * rather than swallowed.
+ */
 export async function investigateIssue(
   input: { issueUrl: string; ref?: string },
   dependencies: {

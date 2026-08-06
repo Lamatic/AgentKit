@@ -3,6 +3,9 @@ import { MissingIssueEvidenceContractError } from "./runtime/claim";
 import { InvalidGitHubIssueUrlError } from "./runtime/github";
 import { UnsafeCommandError } from "./runtime/policy";
 
+/**
+ * Raised when the submitted issue URL or ref fails request validation.
+ */
 export class InvalidInvestigationRequestError extends Error {
   constructor() {
     super("Enter a valid public GitHub issue URL and repository ref.");
@@ -10,6 +13,12 @@ export class InvalidInvestigationRequestError extends Error {
   }
 }
 
+/**
+ * Map an internal error to the status and message that may be shown to a caller.
+ *
+ * Anything unrecognised collapses to a generic 500 so provider messages, sandbox
+ * identifiers, and stack details never reach the client.
+ */
 export function publicInvestigationError(error: unknown) {
   if (error instanceof InvalidInvestigationRequestError) {
     return {

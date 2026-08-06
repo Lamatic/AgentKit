@@ -81,6 +81,10 @@ const dependencyInstallCommand = [
 const packageRegistryAllowList =
   "registry.npmjs.org,registry.npmjs.com,registry.yarnpkg.com,npm.pkg.github.com";
 
+/**
+ * Redact credential-shaped values from captured output and cap its length, so
+ * evidence stays bounded and never carries a leaked secret out of the sandbox.
+ */
 function sanitizeOutput(value: string) {
   const redacted = value
     .replace(
@@ -102,6 +106,10 @@ function sanitizeOutput(value: string) {
   return `${redacted.slice(0, maximumOutputLength - marker.length)}${marker}`;
 }
 
+/**
+ * Whether the provider refused a network-policy change because the account tier
+ * does not permit sandbox-level overrides.
+ */
 function isTierNetworkRestriction(error: unknown) {
   return (
     error instanceof Error &&
@@ -111,6 +119,11 @@ function isTierNetworkRestriction(error: unknown) {
   );
 }
 
+/**
+ * Apply a sandbox network policy, tolerating accounts whose tier cannot override
+ * it. Cleanup calls waive the cleanup reserve so teardown can still run when the
+ * budget is nearly spent.
+ */
 async function updateNetworkPolicy(
   client: DaytonaLike,
   sandbox: SandboxLike,
@@ -741,6 +754,9 @@ export class DaytonaSandboxRuntime {
   }
 }
 
+/**
+ * Resolve the Daytona API URL from the environment, without a trailing slash.
+ */
 export function resolveDaytonaApiUrl(
   environment: Record<string, string | undefined>,
 ) {
@@ -751,6 +767,9 @@ export function resolveDaytonaApiUrl(
   ).replace(/\/$/, "");
 }
 
+/**
+ * Resolve the Daytona API key or JWT from the environment.
+ */
 export function resolveDaytonaCredential(
   environment: Record<string, string | undefined>,
 ) {
@@ -761,6 +780,10 @@ export function resolveDaytonaCredential(
   );
 }
 
+/**
+ * Build the Daytona client configuration, preferring an API key over a JWT and
+ * including the organization and target only when they are set.
+ */
 export function resolveDaytonaConfiguration(
   environment: Record<string, string | undefined>,
 ) {
@@ -778,6 +801,10 @@ export function resolveDaytonaConfiguration(
   };
 }
 
+/**
+ * Construct a Daytona client, temporarily removing blank optional environment
+ * variables that the SDK would otherwise treat as explicit empty values.
+ */
 export function createNormalizedDaytonaClient() {
   const environment = process.env;
   const configuration = resolveDaytonaConfiguration(environment);
@@ -797,6 +824,12 @@ export function createNormalizedDaytonaClient() {
   }
 }
 
+/**
+ * Create the sandbox runtime: create and destroy sandboxes, clone a public
+ * repository at an optional ref, install dependencies behind a registry allow list,
+ * isolate the network, run terminal and PTY probes, and reset the workspace between
+ * runs so each probe starts from an identical state.
+ */
 export function createDaytonaRuntime() {
   const { configuration, daytona } = createNormalizedDaytonaClient();
   const { apiUrl } = configuration;

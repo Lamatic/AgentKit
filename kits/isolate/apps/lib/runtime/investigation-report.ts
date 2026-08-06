@@ -13,6 +13,14 @@ export const investigationReportSchema = z.object({
 
 export type InvestigationReport = z.infer<typeof investigationReportSchema>;
 
+/**
+ * Parse a reporter response into a validated investigation report.
+ *
+ * The schema deliberately has no `reproduced` value: `assessment` is model
+ * interpretation, and the reproduction outcome stays runtime-owned.
+ *
+ * @throws when the response does not match the report schema.
+ */
 export function parseInvestigationReport(value: unknown) {
   const normalizeLegacyOutcome = (report: unknown) => {
     if (typeof report !== "object" || report === null || !("outcome" in report)) {

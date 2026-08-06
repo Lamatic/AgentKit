@@ -14,6 +14,9 @@ const forbiddenCommandPatterns = [
 
 const externalUrlPattern = /https?:\/\/(?!localhost(?::\d+)?(?:[\s/'"`]|$)|127\.0\.0\.1(?::\d+)?(?:[\s/'"`]|$)|\[::1\](?::\d+)?(?:[\s/'"`]|$))[^\s'"`]+/i;
 
+/**
+ * Raised when a proposed command violates the runtime command policy.
+ */
 export class UnsafeCommandError extends Error {
   constructor() {
     super("The probe violated Isolate's command policy.");
@@ -21,6 +24,12 @@ export class UnsafeCommandError extends Error {
   }
 }
 
+/**
+ * Reject commands that escalate privileges, touch credentials or host paths, reach
+ * the network, or use command substitution.
+ *
+ * @throws {UnsafeCommandError} when any forbidden pattern matches.
+ */
 export function assertSafeCommand(command: string) {
   if (
     forbiddenCommandPatterns.some((pattern) => pattern.test(command)) ||
@@ -52,10 +61,16 @@ const forbiddenRunnerOptions = new Set([
 ]);
 const forbiddenEnvironmentNames = /^(?:BUN_INSTALL|BUN_OPTIONS|HOME|INIT_CWD|LD_.*|DYLD_.*|NODE_OPTIONS|NODE_PATH|NPM_CONFIG_.*|PATH|PNPM_.*|PWD|YARN_.*)$/i;
 
+/**
+ * Split a command segment into shell tokens, keeping quoted spans intact.
+ */
 function shellTokens(segment: string) {
   return segment.match(/'(?:[^']*)'|"(?:\\.|[^"\\])*"|[^\s]+/g) ?? [];
 }
 
+/**
+ * Strip one layer of matching single or double quotes from a token.
+ */
 function unquote(token: string) {
   if (
     token.length >= 2 &&
@@ -67,6 +82,10 @@ function unquote(token: string) {
   return token;
 }
 
+/**
+ * Whether a token points outside the cloned repository — an absolute path, a home
+ * path, a parent traversal, a `file:` URL, or an assignment whose value does.
+ */
 function referencesOutsideRepository(token: string): boolean {
   const value = unquote(token);
   const assignedValue = value.includes("=") ? value.slice(value.indexOf("=") + 1) : "";
@@ -79,6 +98,15 @@ function referencesOutsideRepository(token: string): boolean {
   );
 }
 
+/**
+ * Whether a segment is a repository-owned package script invocation.
+ *
+ * Only `<runner> run|test <script>` is accepted, with the single exception of the
+ * structured `bun run --cwd <relative-directory>` workspace form. Runner-level
+ * options, loader and preload flags, and environment assignments that would change
+ * module resolution are all rejected, because each is a way to execute code the
+ * repository does not own.
+ */
 function isRepositoryRunnerSegment(segment: string) {
   const tokens = shellTokens(segment);
   let index = 0;
@@ -144,6 +172,13 @@ function isRepositoryRunnerSegment(segment: string) {
   });
 }
 
+/**
+ * Validate a certification command: safe, free of shell metacharacters, composed
+ * only of repository-owned runner segments and bounded `sleep` delays, and — when a
+ * signature is supplied — not containing the expected output itself.
+ *
+ * @throws {UnsafeCommandError} when any of those conditions fails.
+ */
 export function assertCertificationCommand(command: string, signature = "") {
   assertSafeCommand(command);
   const segments = command.split(/\s*(?:&&|&)\s*/).filter(Boolean);
@@ -168,6 +203,12 @@ export function assertCertificationCommand(command: string, signature = "") {
 const splitUtf8StreamProbePattern = /^\(printf '\\342'; sleep 0\.1; printf '\\202\\254\\n'\) \| (.+)$/;
 const intactUtf8StreamProbePattern = /^printf '\\342\\202\\254\\n' \| (.+)$/;
 
+/**
+ * Validate an exploratory command, additionally allowing the two fixed `printf`
+ * stdin-streaming shapes whose runner half must still pass certification policy.
+ *
+ * @throws {UnsafeCommandError} when neither form applies.
+ */
 export function assertExploratoryCommand(command: string) {
   try {
     return assertCertificationCommand(command);
@@ -183,6 +224,10 @@ export function assertExploratoryCommand(command: string) {
   return command;
 }
 
+/**
+ * Rewrite `;` separators as `&&` so a failing setup step cannot be masked by a
+ * later one that succeeds.
+ */
 export function normalizeCertificationCommand(command: string) {
   return command.replace(/\s*;\s*/g, " && ");
 }

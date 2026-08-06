@@ -28,6 +28,10 @@ type RuntimeFactory = () => Pick<
 
 type IssueReader = Pick<ReturnType<typeof createGitHubIssueReader>, "read">;
 
+/**
+ * Convert a tool failure into an MCP error result, passing through the messages
+ * that are safe to show and collapsing everything else to a generic one.
+ */
 function mcpToolError(error: unknown) {
   if (
     error instanceof MissingIssueEvidenceContractError ||
@@ -52,6 +56,10 @@ function mcpToolError(error: unknown) {
   };
 }
 
+/**
+ * Build the Isolate MCP server and register its tools over the same runtime and
+ * command policy the HTTP route uses.
+ */
 function createIsolateServer(
   runtimeFactory: RuntimeFactory,
   issueReader: IssueReader,
@@ -228,6 +236,13 @@ function createIsolateServer(
   return server;
 }
 
+/**
+ * Handle an authenticated MCP request.
+ *
+ * The bearer token is compared in constant time against the configured secret, with
+ * a case-insensitive scheme and no trailing tokens, so the check leaks neither
+ * timing nor formatting slack.
+ */
 export async function handleMcp(
   request: Request,
   secret: string | undefined,

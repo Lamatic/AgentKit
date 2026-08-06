@@ -16,6 +16,12 @@ const requestSchema = z.object({
   ref: z.string().trim().min(1).max(255).optional(),
 });
 
+/**
+ * Run one investigation for a submitted public GitHub issue URL.
+ *
+ * Requests are validated, bounded by a concurrency slot, and answered with a
+ * sanitised error when anything fails.
+ */
 export async function POST(request: Request) {
   const release = acquireInvestigationSlot();
   if (!release) {

@@ -20,6 +20,12 @@ export const reproductionPlanSchema = z.union([
 
 export type ReproductionPlan = z.infer<typeof reproductionPlanSchema>;
 
+/**
+ * Parse a planner response into a validated reproduction plan, tolerating a
+ * JSON string wrapped in a Markdown code fence.
+ *
+ * @throws when the response does not match either plan shape.
+ */
 export function parseReproductionPlan(value: unknown) {
   if (typeof value === "object" && value !== null) {
     return reproductionPlanSchema.parse(value);
