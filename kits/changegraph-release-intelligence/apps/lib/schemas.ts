@@ -333,6 +333,120 @@ const JsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
   ]),
 );
 
+const WorkflowGraphNodeSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  config: z.record(
+    z.string(),
+    JsonValueSchema,
+  ),
+});
+
+const WorkflowGraphEdgeSchema = z.object({
+  source: z.string().min(1),
+  target: z.string().min(1),
+});
+
+const WorkflowGraphFlowSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    path: z.string().min(1),
+    nodes: z.array(
+      WorkflowGraphNodeSchema,
+    ),
+    edges: z.array(
+      WorkflowGraphEdgeSchema,
+    ),
+  })
+  .superRefine((flow, context) => {
+    const nodeIds = new Set<string>();
+
+    flow.nodes.forEach((node, index) => {
+      const nodeKey =
+        node.id.trim().toLowerCase();
+
+      if (nodeIds.has(nodeKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["nodes", index, "id"],
+          message:
+            "Node IDs must be unique within each flow graph.",
+        });
+      }
+
+      nodeIds.add(nodeKey);
+    });
+
+    flow.edges.forEach((edge, index) => {
+      const sourceKey =
+        edge.source.trim().toLowerCase();
+
+      const targetKey =
+        edge.target.trim().toLowerCase();
+
+      if (!nodeIds.has(sourceKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["edges", index, "source"],
+          message:
+            "Every graph edge source must reference a submitted node.",
+        });
+      }
+
+      if (!nodeIds.has(targetKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["edges", index, "target"],
+          message:
+            "Every graph edge target must reference a submitted node.",
+        });
+      }
+    });
+  });
+
+const WorkflowGraphSnapshotSchema = z
+  .object({
+    flows: z.array(
+      WorkflowGraphFlowSchema,
+    ),
+  })
+  .superRefine((snapshot, context) => {
+    const flowIds = new Set<string>();
+    const flowPaths = new Set<string>();
+
+    snapshot.flows.forEach((flow, index) => {
+      const flowIdKey =
+        flow.id.trim().toLowerCase();
+
+      const flowPathKey = flow.path
+        .replaceAll("\\", "/")
+        .trim()
+        .toLowerCase();
+
+      if (flowIds.has(flowIdKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["flows", index, "id"],
+          message:
+            "Flow IDs must be unique within a workflow graph.",
+        });
+      }
+
+      if (flowPaths.has(flowPathKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["flows", index, "path"],
+          message:
+            "Flow paths must be unique within a workflow graph.",
+        });
+      }
+
+      flowIds.add(flowIdKey);
+      flowPaths.add(flowPathKey);
+    });
+  });
+
 const WorkflowChangeSchema = z.object({
   changeId: z.string().min(1),
   category: ChangeCategorySchema,
@@ -526,6 +640,12 @@ export const AnalyzeChangeGraphRequestSchema =
 
       changePackage:
         ChangePackageSchema,
+
+      baselineGraph:
+        WorkflowGraphSnapshotSchema,
+
+      candidateGraph:
+        WorkflowGraphSnapshotSchema,
     })
     .superRefine((value, context) => {
       if (
@@ -563,4 +683,63 @@ export const AnalyzeChangeGraphRequestSchema =
             "flowPurpose must match changePackage.flowPurpose.",
         });
       }
+
+      const verifyGraphSummary = (
+        graph: typeof value.baselineGraph,
+        summary:
+          typeof value.changePackage.baseline,
+        path: "baselineGraph" | "candidateGraph",
+      ): void => {
+        const graphFlowIds = graph.flows
+          .map((flow) => flow.id)
+          .sort();
+
+        const graphFlowPaths = graph.flows
+          .map((flow) => flow.path)
+          .sort();
+
+        const summaryFlowIds = [
+          ...summary.flowIds,
+        ].sort();
+
+        const summaryFlowPaths = [
+          ...summary.flowPaths,
+        ].sort();
+
+        if (
+          JSON.stringify(graphFlowIds) !==
+          JSON.stringify(summaryFlowIds)
+        ) {
+          context.addIssue({
+            code: "custom",
+            path: [path, "flows"],
+            message:
+              "Workflow graph flow IDs must match the submitted workflow summary.",
+          });
+        }
+
+        if (
+          JSON.stringify(graphFlowPaths) !==
+          JSON.stringify(summaryFlowPaths)
+        ) {
+          context.addIssue({
+            code: "custom",
+            path: [path, "flows"],
+            message:
+              "Workflow graph flow paths must match the submitted workflow summary.",
+          });
+        }
+      };
+
+      verifyGraphSummary(
+        value.baselineGraph,
+        value.changePackage.baseline,
+        "baselineGraph",
+      );
+
+      verifyGraphSummary(
+        value.candidateGraph,
+        value.changePackage.candidate,
+        "candidateGraph",
+      );
     });

@@ -19,7 +19,10 @@ import {
 
 import { readWorkflowArchive } from "@/lib/archive-reader";
 import { calculateBlastRadius } from "@/lib/blast-radius";
-import { buildChangePackage } from "@/lib/change-package";
+import {
+  buildChangePackage,
+  createWorkflowGraphSnapshot,
+} from "@/lib/change-package";
 import { parseWorkflowExport } from "@/lib/flow-parser";
 import { calculateRiskAssessment } from "@/lib/risk-score";
 import { compareWorkflowExports } from "@/lib/structural-diff";
@@ -282,6 +285,14 @@ export function ChangeGraphDashboard() {
             candidateVersion,
             releaseContext,
             changePackage,
+            baselineGraph:
+              createWorkflowGraphSnapshot(
+                baseline,
+              ),
+            candidateGraph:
+              createWorkflowGraphSnapshot(
+                candidate,
+              ),
           }),
         },
       );

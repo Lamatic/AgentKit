@@ -5,6 +5,7 @@ import type {
   ParsedWorkflowExport,
   RiskAssessment,
   StructuralDiff,
+  WorkflowGraphSnapshot,
   WorkflowPackageSummary,
 } from "@/types/changegraph";
 
@@ -71,6 +72,27 @@ function requireText(
   }
 
   return normalized;
+}
+
+export function createWorkflowGraphSnapshot(
+  workflow: ParsedWorkflowExport,
+): WorkflowGraphSnapshot {
+  return {
+    flows: workflow.flows.map((flow) => ({
+      id: flow.id,
+      name: flow.name,
+      path: flow.path,
+      nodes: flow.nodes.map((node) => ({
+        id: node.id,
+        name: node.name,
+        config: node.config,
+      })),
+      edges: flow.edges.map((edge) => ({
+        source: edge.source,
+        target: edge.target,
+      })),
+    })),
+  };
 }
 
 function summarizeWorkflow(
