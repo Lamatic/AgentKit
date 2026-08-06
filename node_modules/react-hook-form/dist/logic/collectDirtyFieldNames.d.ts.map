@@ -1,0 +1,1 @@
+{"version":3,"file":"collectDirtyFieldNames.d.ts","sourceRoot":"","sources":["../../src/logic/collectDirtyFieldNames.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,UAAU,CAAC;AAQ5C,MAAM,CAAC,OAAO,UAAU,sBAAsB,CAC5C,SAAS,EAAE,WAAW,EACtB,iBAAiB,EAAE,WAAW,EAC9B,MAAM,SAAK,EACX,KAAK,GAAE,MAAM,EAAO,YAiBrB"}

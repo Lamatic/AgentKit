@@ -1,0 +1,305 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`standardSchemaResolver > should collect all root errors when validateAllFieldCriteria is true 1`] = `
+{
+  "errors": {
+    "root": {
+      "message": "Invalid union
+Missing discriminator",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Invalid union",
+        "1": "Missing discriminator",
+      },
+    },
+  },
+  "values": {},
+}
+`;
+
+exports[`standardSchemaResolver > should correctly handle path segments that are objects 1`] = `
+{
+  "errors": {
+    "like": [
+      {
+        "id": {
+          "message": "Custom error",
+          "ref": undefined,
+          "type": "",
+        },
+      },
+    ],
+    "username": {
+      "message": "Custom error",
+      "ref": {
+        "name": "username",
+      },
+      "type": "",
+    },
+  },
+  "values": {},
+}
+`;
+
+exports[`standardSchemaResolver > should return a root error when a standard schema issue has no path 1`] = `
+{
+  "errors": {
+    "root": {
+      "message": "Invalid input",
+      "ref": undefined,
+      "type": "",
+    },
+  },
+  "values": {},
+}
+`;
+
+exports[`standardSchemaResolver > should return a single error from standardSchemaResolver when validation fails 1`] = `
+{
+  "errors": {
+    "accessToken": {
+      "message": "Invalid input",
+      "ref": undefined,
+      "type": "",
+    },
+    "birthYear": {
+      "message": "Expected number, received string",
+      "ref": undefined,
+      "type": "",
+    },
+    "dateStr": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+    },
+    "email": {
+      "message": "Invalid email",
+      "ref": {
+        "name": "email",
+      },
+      "type": "",
+    },
+    "enabled": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+    },
+    "like": [
+      {
+        "id": {
+          "message": "Expected number, received string",
+          "ref": undefined,
+          "type": "",
+        },
+        "name": {
+          "message": "Required",
+          "ref": undefined,
+          "type": "",
+        },
+      },
+    ],
+    "password": {
+      "message": "One uppercase character",
+      "ref": {
+        "name": "password",
+      },
+      "type": "",
+    },
+    "repeatPassword": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+    },
+    "tags": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+    },
+    "url": {
+      "message": "Custom error url",
+      "ref": undefined,
+      "type": "",
+    },
+    "username": {
+      "message": "Required",
+      "ref": {
+        "name": "username",
+      },
+      "type": "",
+    },
+  },
+  "values": {},
+}
+`;
+
+exports[`standardSchemaResolver > should return all the errors from standardSchemaResolver when validation fails with \`validateAllFieldCriteria\` set to true 1`] = `
+{
+  "errors": {
+    "accessToken": {
+      "message": "Invalid input",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Invalid input",
+      },
+    },
+    "birthYear": {
+      "message": "Expected number, received string",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Expected number, received string",
+      },
+    },
+    "dateStr": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Required",
+      },
+    },
+    "email": {
+      "message": "Invalid email",
+      "ref": {
+        "name": "email",
+      },
+      "type": "",
+      "types": {
+        "0": "Invalid email",
+      },
+    },
+    "enabled": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Required",
+      },
+    },
+    "like": [
+      {
+        "id": {
+          "message": "Expected number, received string",
+          "ref": undefined,
+          "type": "",
+          "types": {
+            "0": "Expected number, received string",
+          },
+        },
+        "name": {
+          "message": "Required",
+          "ref": undefined,
+          "type": "",
+          "types": {
+            "0": "Required",
+          },
+        },
+      },
+    ],
+    "password": {
+      "message": "One uppercase character",
+      "ref": {
+        "name": "password",
+      },
+      "type": "",
+      "types": {
+        "0": "One uppercase character",
+        "1": "One lowercase character",
+        "2": "One number",
+        "3": "Must be at least 8 characters in length",
+      },
+    },
+    "repeatPassword": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Required",
+      },
+    },
+    "tags": {
+      "message": "Required",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Required",
+      },
+    },
+    "url": {
+      "message": "Custom error url",
+      "ref": undefined,
+      "type": "",
+      "types": {
+        "0": "Custom error url",
+      },
+    },
+    "username": {
+      "message": "Required",
+      "ref": {
+        "name": "username",
+      },
+      "type": "",
+      "types": {
+        "0": "Required",
+      },
+    },
+  },
+  "values": {},
+}
+`;
+
+exports[`standardSchemaResolver > should return values from standardSchemaResolver when validation pass & raw=true 1`] = `
+{
+  "errors": {},
+  "values": {
+    "accessToken": "accessToken",
+    "birthYear": 2000,
+    "dateStr": "2020-01-01T00:00:00.000Z",
+    "email": "john@doe.com",
+    "enabled": true,
+    "like": [
+      {
+        "id": 1,
+        "name": "name",
+      },
+    ],
+    "password": "Password123_",
+    "repeatPassword": "Password123_",
+    "tags": [
+      "tag1",
+      "tag2",
+    ],
+    "url": "https://react-hook-form.com/",
+    "username": "Doe",
+  },
+}
+`;
+
+exports[`standardSchemaResolver > should return values from standardSchemaResolver when validation pass 1`] = `
+{
+  "errors": {},
+  "values": {
+    "accessToken": "accessToken",
+    "birthYear": 2000,
+    "dateStr": 2020-01-01T00:00:00.000Z,
+    "email": "john@doe.com",
+    "enabled": true,
+    "like": [
+      {
+        "id": 1,
+        "name": "name",
+      },
+    ],
+    "password": "Password123_",
+    "repeatPassword": "Password123_",
+    "tags": [
+      "tag1",
+      "tag2",
+    ],
+    "url": "https://react-hook-form.com/",
+    "username": "Doe",
+  },
+}
+`;

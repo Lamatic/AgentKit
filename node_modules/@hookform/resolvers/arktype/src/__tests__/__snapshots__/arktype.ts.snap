@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`arktypeResolver > should return a single error from arktypeResolver when validation fails 1`] = `
+{
+  "errors": {
+    "accessToken": {
+      "message": "accessToken must be a number or a string (was missing)",
+      "ref": undefined,
+      "type": "",
+    },
+    "birthYear": {
+      "message": "birthYear must be a number (was a string)",
+      "ref": undefined,
+      "type": "",
+    },
+    "dateStr": {
+      "message": "dateStr must be a Date (was missing)",
+      "ref": undefined,
+      "type": "",
+    },
+    "email": {
+      "message": "email must be an email address (was "")",
+      "ref": {
+        "name": "email",
+      },
+      "type": "",
+    },
+    "enabled": {
+      "message": "enabled must be boolean (was missing)",
+      "ref": undefined,
+      "type": "",
+    },
+    "like": [
+      {
+        "id": {
+          "message": "like[0].id must be a number (was a string)",
+          "ref": undefined,
+          "type": "",
+        },
+        "name": {
+          "message": "like[0].name must be a string (was missing)",
+          "ref": undefined,
+          "type": "",
+        },
+      },
+    ],
+    "password": {
+      "message": "password must be matched by .*[A-Za-z].* or matched by .*\\d.* (was "___")",
+      "ref": {
+        "name": "password",
+      },
+      "type": "",
+    },
+    "repeatPassword": {
+      "message": "repeatPassword must be a string (was missing)",
+      "ref": undefined,
+      "type": "",
+    },
+    "tags": {
+      "message": "tags must be an array (was missing)",
+      "ref": undefined,
+      "type": "",
+    },
+    "username": {
+      "message": "username must be a string (was missing)",
+      "ref": {
+        "name": "username",
+      },
+      "type": "",
+    },
+  },
+  "values": {},
+}
+`;

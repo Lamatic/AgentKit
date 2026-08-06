@@ -79,7 +79,7 @@ export const nodes = [
       "values": {
         "nodeName": "Web Search",
         "credentials": "Serper Basic Auth",
-        "query": "{{triggerNode_1.output.playerName}} transfer news 2026",
+        "query": "{{triggerNode_1.output.playerName}} transfer news",
         "type": "https://google.serper.dev/search",
         "dateRange": "qdr:m",
         "results": 10,
@@ -134,7 +134,7 @@ export const nodes = [
       "nodeId": "graphqlResponseNode",
       "values": {
         "nodeName": "API Response",
-        "outputMapping": "{\n  \"report\": \"generate Text.text\"\n}",
+        "outputMapping": "{\n  \"report\": \"{{LLMNode_505.output.generatedResponse}}\"\n}",
         "webhookUrl": "",
         "headers": "{\"content-type\":\"application/json\"}",
         "retries": "0",

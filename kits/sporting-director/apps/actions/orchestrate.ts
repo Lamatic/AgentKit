@@ -16,8 +16,16 @@ export async function generateReport(
   budget: string,
   needs: string
 ): Promise<ScoutActionResult> {
-  if (!playerName.trim() || !buyingClub.trim()) {
-    return { success: false, error: "Player name and buying club are required." };
+  if (
+    !playerName.trim() ||
+    !buyingClub.trim() ||
+    !budget.trim() ||
+    !needs.trim()
+  ) {
+    return {
+      success: false,
+      error: "Player name, buying club, budget, and club needs are required"
+    }
   }
 
   try {
@@ -43,11 +51,11 @@ export async function generateReport(
     }
 
     const raw = response.result as { report?: string };
-
-    return {
-      success: true,
-      data: { report: typeof raw.report === "string" ? raw.report : "" },
-    };
+    if (!raw.report || !raw.report.trim()){
+      return { success: false, error: "The workflow returned an empty report."};
+    }
+    return { success: true, data: { report: raw.report }};
+      
   } catch {
     console.error("generateReport failed while executing the Lamatic workflow.");
     return {

@@ -1,32 +1,54 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { generateReport } from "@/actions/orchestrate";
 
+const formSchema = z.object({
+  playerName: z.string().min(1, "Player name is required"),
+  buyingClub: z.string().min(1, "Buying club is required"),
+  budget: z.string().min(1, "Budget is required"),
+  needs: z.string().min(1, "Club needs is required"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function Home() {
-  const [playerName, setPlayerName] = useState("");
-  const [buyingClub, setBuyingClub] = useState("");
-  const [budget, setBudget] = useState("");
-  const [needs, setNeeds] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
+
   const [report, setReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(values: FormValues) {
     setLoading(true);
     setError(null);
     setReport(null);
 
-    const result = await generateReport(playerName, buyingClub, budget, needs);
+    try {
+      const result = await generateReport(
+        values.playerName,
+        values.buyingClub,
+        values.budget,
+        values.needs
+      );
 
-    if (!result.success) {
-      setError(result.error);
-    } else {
-      setReport(result.data.report);
+      if (!result.success) {
+        setError(result.error);
+      } else {
+        setReport(result.data.report);
+      }
+    } catch {
+      setError("Could not generate the report. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -52,50 +74,62 @@ export default function Home() {
         </div>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="space-y-3 mb-10 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl"
         >
           <div>
-            <label className="block text-xs text-white/60 mb-1">Player Name</label>
+            <label htmlFor="playerName" className="block text-xs text-white/60 mb-1">Player Name</label>
             <input
-              required
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              id="playerName"
+              {...register("playerName")}
               className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/50 transition-colors"
               placeholder="e.g. Sunil Chetri"
             />
+            {errors.playerName && (
+              <p className="text-xs text-red-300 mt-1">{errors.playerName.message}</p>
+            )}
           </div>
+
           <div>
-            <label className="block text-xs text-white/60 mb-1">Buying Club</label>
+            <label htmlFor="buyingClub" className="block text-xs text-white/60 mb-1">Buying Club</label>
             <input
-              required
-              value={buyingClub}
-              onChange={(e) => setBuyingClub(e.target.value)}
+              id="buyingClub"
+              {...register("buyingClub")}
               className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/50 transition-colors"
               placeholder="e.g. Chennayin FC"
             />
+            {errors.buyingClub && (
+              <p className="text-xs text-red-300 mt-1">{errors.buyingClub.message}</p>
+            )}
           </div>
+
           <div>
-            <label className="block text-xs text-white/60 mb-1">Budget</label>
+            <label htmlFor="budget" className="block text-xs text-white/60 mb-1">Budget</label>
             <input
-              required
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
+              id="budget"
+              {...register("budget")}
               className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/50 transition-colors"
               placeholder="e.g. £80 million"
             />
+            {errors.budget && (
+              <p className="text-xs text-red-300 mt-1">{errors.budget.message}</p>
+            )}
           </div>
+
           <div>
-            <label className="block text-xs text-white/60 mb-1">Club Needs</label>
+            <label htmlFor="needs" className="block text-xs text-white/60 mb-1">Club Needs</label>
             <textarea
-              required
-              value={needs}
-              onChange={(e) => setNeeds(e.target.value)}
+              id="needs"
+              {...register("needs")}
               className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/50 transition-colors resize-none"
               placeholder="e.g. India's finest talent"
               rows={2}
             />
+            {errors.needs && (
+              <p className="text-xs text-red-300 mt-1">{errors.needs.message}</p>
+            )}
           </div>
+
           <button
             type="submit"
             disabled={loading}

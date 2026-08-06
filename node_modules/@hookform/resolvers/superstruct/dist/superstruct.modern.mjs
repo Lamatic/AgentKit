@@ -1,0 +1,2 @@
+import{toNestErrors as r,validateFieldsNatively as e}from"@hookform/resolvers";import{validate as s}from"superstruct";function o(o,t,a={}){return(u,i,n)=>{const m=s(u,o,t);return m[0]?{values:{},errors:r((p=m[0],p.failures().reduce((r,e)=>(r[e.path.join(".")]={message:e.message,type:e.type})&&r,{})),n)}:(n.shouldUseNativeValidation&&e({},n),{values:a.raw?Object.assign({},u):m[1],errors:{}});var p}}export{o as superstructResolver};
+//# sourceMappingURL=superstruct.modern.mjs.map
