@@ -6,71 +6,52 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# 1. Configuration from Environment Variables
-API_URL = "https://sabeersorganization905-sabeersproject750.lamatic.dev/graphql"
-BEARER_TOKEN = os.getenv("LAMATIC_API_KEY")
-PROJECT_ID = os.getenv("LAMATIC_PROJECT_ID")
-WORKFLOW_ID = os.getenv("LAMATIC_WORKFLOW_ID")
+API_URL = os.getenv("LAMATIC_API_URL")
+API_KEY = os.getenv("LAMATIC_API_KEY")
 
-if not BEARER_TOKEN or not PROJECT_ID or not WORKFLOW_ID:
-    raise ValueError("Missing required environment variables in .env file.")
+if not API_URL or not API_KEY:
+    raise ValueError("LAMATIC_API_URL and LAMATIC_API_KEY must be set in .env")
 
-# 2. Test Schemas
-v1_schema = json.dumps({
-    "endpoint": "/v1/users",
-    "method": "POST",
-    "request_body": {
-        "user_id": "string",
-        "email": "string",
-        "age": "integer"
-    }
-})
+# 1. Load schemas dynamically from local files instead of hardcoding JSON strings
+base_dir = os.path.dirname(os.path.abspath(__file__))
 
-v2_schema = json.dumps({
-    "endpoint": "/v2/users",
-    "method": "POST",
-    "request_body": {
-        "user_id": "string",
-        "email": "string",
-        "phone": "string"
-    }
-})
+v1_path = os.path.join(base_dir, "v1_schema.json")
+v2_path = os.path.join(base_dir, "v2_schema.json")
 
-# 3. GraphQL Payload Construction
-query = """
-query ExecuteWorkflow($workflowId: String!, $v1_schema: String, $v2_schema: String) {
-  executeWorkflow(workflowId: $workflowId, payload: { v1_schema: $v1_schema, v2_schema: $v2_schema }) {
-    status
-    result
-  }
-}
-"""
+with open(v1_path, "r", encoding="utf-8") as f:
+    v1_schema = json.load(f)
+
+with open(v2_path, "r", encoding="utf-8") as f:
+    v2_schema = json.load(f)
 
 payload = {
-    "query": query,
-    "variables": {
-        "workflowId": WORKFLOW_ID,
-        "v1_schema": v1_schema,
-        "v2_schema": v2_schema
-    }
+    "v1_schema": v1_schema,
+    "v2_schema": v2_schema
 }
 
 headers = {
-    "Authorization": f"Bearer {BEARER_TOKEN}",
-    "Content-Type": "application/json",
-    "x-project-id": PROJECT_ID
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
 }
 
-# 4. Send Request
-print("Triggering Lamatic Workflow...")
-response = requests.post(API_URL, json=payload, headers=headers)
-
-if response.status_code == 200:
+def run_test():
+    print("Sending request to Lamatic Flow...")
+    
+    # 2. Add timeout parameter (connect timeout: 10s, read timeout: 60s)
+    response = requests.post(API_URL, json=payload, headers=headers, timeout=(10, 60))
+    
+    # 3. Throw HTTP error exception if status code is not 200 OK
+    response.raise_for_status()
+    
     res_data = response.json()
-    workflow_result = res_data.get("data", {}).get("executeWorkflow", {}).get("result", {})
-    report = workflow_result.get("report", "No report field returned.")
+    
+    # Handle GraphQL / Lamatic workflow response errors cleanly
+    if "errors" in res_data:
+        raise RuntimeError(f"Workflow execution failed with errors: {res_data['errors']}")
+        
+    print("Flow Execution Successful!")
+    print("\n--- Output Report ---")
+    print(res_data)
 
-    print("\n--- GENERATED REPORT ---")
-    print(report)
-else:
-    print(f"❌ Error {response.status_code}: {response.text}")
+if __name__ == "__main__":
+    run_test()

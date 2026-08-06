@@ -57,7 +57,7 @@ python samples/test_flow.py
 
 **Generated Migration Report Output:**
 
-```markdown
+````markdown
 ### 1. High-Level Summary
 - **Status:** ⚠️ BREAKING CHANGES DETECTED
 - **Summary:** The API is transitioning from `/v1/users` to `/v2/users`. The `age` integer field has been removed, and `phone` string field introduced.
@@ -87,7 +87,7 @@ python samples/test_flow.py
 ```json
 { "user_id": "usr_12345", "email": "dev@example.com", "phone": "+15555550199" }
 ```
-```
+````
 
 ---
 
