@@ -89,6 +89,13 @@ Each completed report preserves the tested repository and ref, hypothesis,
 commands, assertion results, exit codes, durations, and bounded terminal
 evidence.
 
+The `hypothesisSource` field states where the reported hypothesis came from.
+Certified and TUI investigations return `planner`: the hypothesis Lamatic wrote
+before any probe ran. Exploratory evidence reviews return `evidence_review`: a
+summary Lamatic wrote after the probes ran, once the planner hypothesis was no
+longer supported by the recorded evidence. Neither value affects the outcome,
+which stays runtime-owned.
+
 ## Lamatic integration
 
 The exported `isolate-reproduction` flow is the investigation planner. It
