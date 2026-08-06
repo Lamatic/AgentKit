@@ -1,0 +1,1 @@
+Debate topic: {{triggerNode_1.output.topic}}. Your position: {{triggerNode_1.output.position}}. Opponent's position: {{triggerNode_1.output.opponentPosition}}. Round: {{triggerNode_1.output.round}}. Is this a rebuttal round: {{triggerNode_1.output.isRebuttal}}. Transcript so far (empty if this is round 1): {{triggerNode_1.output.transcript}}.

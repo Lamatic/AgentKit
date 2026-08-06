@@ -1,0 +1,52 @@
+{
+  "triggerNode": {
+    "nodeId": "triggerNode_1",
+    "nodeType": "graphqlNode",
+    "nodeName": "API Request",
+    "values": {
+      "advance_schema": "{\n  \"migration_sql\": \"string\",\n  \"db_dialect\": \"string\"\n}",
+      "responeType": "realtime"
+    }
+  },
+  "nodes": [
+    {
+      "nodeId": "LLMNode_880",
+      "nodeType": "LLMNode",
+      "nodeName": "Generate Text",
+      "values": {
+        "prompts": [
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            "role": "system",
+            "content": "@prompts/db-migration-safety-checker_llmnode-190_system_0.md"
+          },
+          {
+            "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            "role": "user",
+            "content": "@prompts/db-migration-safety-checker_llmnode-190_user_1.md"
+          }
+        ],
+        "tools": [],
+        "credentials": "",
+        "messages": "[]",
+        "memories": "[]",
+        "attachments": "",
+        "generativeModelName": "@model-configs/db-migration-safety-checker_llmnode-190_generative-model-name.ts"
+      },
+      "needs": ["triggerNode_1"]
+    }
+  ],
+  "responseNode": {
+    "nodeId": "responseNode_triggerNode_1",
+    "nodeType": "graphqlResponseNode",
+    "nodeName": "API Response",
+    "values": {
+      "outputMapping": "{\n  \"result\": \"{{LLMNode_880.output.generatedResponse}}\"\n}",
+      "webhookUrl": "",
+      "headers": "{\"content-type\":\"application/json\"}",
+      "retries": "0",
+      "retry_delay": "0"
+    },
+    "needs": ["LLMNode_880"]
+  }
+}

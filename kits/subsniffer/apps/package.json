@@ -1,0 +1,29 @@
+{
+  "name": "subsniffer",
+  "author": "Lamatic AgentKit Challenge",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lamatic": "latest",
+    "lucide-react": "^0.454.0",
+    "next": "^15.5.20",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.9",
+    "@types/node": "^22",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.1.9",
+    "typescript": "^5"
+  }
+}

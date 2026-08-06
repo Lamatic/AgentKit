@@ -1,0 +1,328 @@
+/* ============================================================
+   Bug Bridge Dashboard — Global Styles
+   Design: dark, information-dense, no decorative chrome.
+   The UI earns its place by making cluster accumulation and
+   severity escalation visible at a glance.
+   ============================================================ */
+
+:root {
+  --bg: #0d0f14;
+  --surface: #161920;
+  --surface-hover: #1e222e;
+  --surface-selected: #1a2540;
+  --border: #2a2f3d;
+  --border-active: #3d5af1;
+
+  --text-primary: #e8eaf0;
+  --text-secondary: #8b90a0;
+  --text-muted: #555b6e;
+
+  --sev-p1: #e53935;
+  --sev-p2: #fb8c00;
+  --sev-p3: #f9a825;
+  --sev-p4: #43a047;
+
+  --accent: #3d5af1;
+  --error-bg: #2a1218;
+  --error-border: #7f1d1d;
+  --error-text: #fca5a5;
+
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.cluster-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.dashboard-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+}
+
+.dashboard-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.dashboard-stats {
+  display: flex;
+  gap: 8px;
+}
+
+.stat-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-chip.p1 {
+  border-color: var(--sev-p1);
+  color: var(--sev-p1);
+}
+
+/* ── Error Banner ────────────────────────────────────────── */
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 28px 0;
+  padding: 12px 16px;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: 6px;
+  color: var(--error-text);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.error-icon { font-size: 16px; flex-shrink: 0; }
+
+/* ── Table ───────────────────────────────────────────────── */
+.table-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 28px 28px;
+}
+
+.cluster-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.cluster-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.cluster-row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.cluster-row:hover { background: var(--surface-hover); }
+.cluster-row--selected { background: var(--surface-selected); }
+.cluster-row:focus { outline: 2px solid var(--border-active); outline-offset: -2px; }
+
+.cluster-row td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+/* ── Severity Badge ──────────────────────────────────────── */
+.severity-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #fff;
+}
+
+/* ── Misc cell elements ──────────────────────────────────── */
+.cluster-id {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.issue-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.issue-link:hover { text-decoration: underline; }
+
+.singleton-label {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+
+.timestamp {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ── Empty State ─────────────────────────────────────────── */
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 60px 28px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Detail Panel ────────────────────────────────────────── */
+.detail-panel {
+  width: 380px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.detail-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detail-cluster-id {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+  word-break: break-all;
+}
+
+.detail-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+.detail-close:hover { background: var(--surface-hover); }
+
+.detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.detail-stat { display: flex; justify-content: space-between; align-items: center; }
+
+.detail-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.detail-value { font-size: 13px; color: var(--text-primary); }
+
+.detail-sev {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+}
+.detail-sev--p1 { background: var(--sev-p1); }
+.detail-sev--p2 { background: var(--sev-p2); }
+.detail-sev--p3 { background: var(--sev-p3); }
+.detail-sev--p4 { background: var(--sev-p4); }
+
+.detail-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.detail-section-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.ticket-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.ticket-index {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 18px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ticket-id {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--text-primary);
+}

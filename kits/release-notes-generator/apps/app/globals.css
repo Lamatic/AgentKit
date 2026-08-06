@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b1120;
+    --foreground: #e2e8f0;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Minimal prose styling for the rendered Markdown release notes */
+.notes h1 { font-size: 1.5rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
+.notes h2 { font-size: 1.15rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.notes ul { list-style: disc; padding-left: 1.4rem; margin: 0.25rem 0 0.75rem; }
+.notes li { margin: 0.2rem 0; }
+.notes p { margin: 0.4rem 0; }
+.notes code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(148, 163, 184, 0.2);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}

@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/*
+ * Orderly palette.
+ *
+ * The three verdict colours are the load-bearing part. They are never the only
+ * signal — every verdict also carries an icon and a text label — because a
+ * safety UI that depends on colour alone fails some of the people most likely
+ * to need it. See `dish-card.tsx`.
+ */
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+
+  --color-primary: #0f172a;
+  --color-primary-foreground: #f8fafc;
+
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #0f172a;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  /* Verdicts */
+  --color-safe: #15803d;
+  --color-safe-bg: #f0fdf4;
+  --color-safe-border: #bbf7d0;
+
+  --color-caution: #b45309;
+  --color-caution-bg: #fffbeb;
+  --color-caution-border: #fde68a;
+
+  --color-avoid: #b91c1c;
+  --color-avoid-bg: #fef2f2;
+  --color-avoid-border: #fecaca;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-background: #020617;
+    --color-foreground: #f8fafc;
+
+    --color-card: #0f172a;
+    --color-card-foreground: #f8fafc;
+
+    --color-primary: #f8fafc;
+    --color-primary-foreground: #0f172a;
+
+    --color-muted: #1e293b;
+    --color-muted-foreground: #94a3b8;
+
+    --color-border: #1e293b;
+    --color-input: #1e293b;
+    --color-ring: #cbd5e1;
+
+    --color-destructive: #ef4444;
+
+    --color-safe: #4ade80;
+    --color-safe-bg: #052e16;
+    --color-safe-border: #166534;
+
+    --color-caution: #fbbf24;
+    --color-caution-bg: #2c1a05;
+    --color-caution-border: #92400e;
+
+    --color-avoid: #f87171;
+    --color-avoid-bg: #2c0b0b;
+    --color-avoid-border: #991b1b;
+  }
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Menu text in non-Latin scripts should not fall back to a mismatched face. */
+.script-original {
+  font-family:
+    ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans CJK JP",
+    "Noto Sans Devanagari", "Noto Sans", sans-serif;
+}

@@ -1,0 +1,35 @@
+{
+  "flowBrief": "The sales team wants a Lamatic Flow that receives a website lead form and sends an enriched lead summary to Slack.\n\nThe Flow is triggered by a public webhook. It receives name, email, company, free-text message, and requested budget. The LLM writes a lead summary and decides whether the lead is high priority. The Flow then calls a CRM API to create or update a lead and posts a message to a Slack channel.\n\nThe CRM API requires `CRM_API_TOKEN`. The current notes say the token is pasted into the Studio node during testing. The Slack webhook URL is also in the node configuration. There is no `.env.example` yet.\n\nThere are no evals yet. The team plans to test manually with one sample lead before launch. Error behavior is still undecided: if the CRM API fails, the Flow may still post to Slack, but no one has written down what the Slack message should say.\n\nThe form may include personal contact details. Logging is currently \"log everything so we can debug launch issues.\"",
+  "optionalFlowExport": "",
+  "detectedSignals": {
+    "hasEnoughContext": true,
+    "envLikeTokens": [
+      "CRM_API_TOKEN"
+    ],
+    "categorySignals": {
+      "evals-and-tests": [
+        "evals",
+        "test",
+        "sample"
+      ],
+      "tool-boundaries": [
+        "api",
+        "webhook"
+      ],
+      "failure-paths": [
+        "error"
+      ],
+      "security-and-privacy": [],
+      "env-and-setup-docs": [
+        "env",
+        ".env.example"
+      ],
+      "observability-and-logging": [
+        "log",
+        "logging",
+        "debug"
+      ],
+      "cost-and-latency": []
+    }
+  }
+}

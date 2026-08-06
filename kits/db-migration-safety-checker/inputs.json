@@ -1,0 +1,12 @@
+{
+  "migration_sql": {
+    "type": "string",
+    "description": "The raw SQL of the migration to analyze",
+    "required": true
+  },
+  "db_dialect": {
+    "type": "string",
+    "description": "SQL dialect, defaults to postgres",
+    "required": false
+  }
+}

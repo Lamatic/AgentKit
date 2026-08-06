@@ -1,0 +1,65 @@
+<svg width="880" height="500" viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Reputation Pulse system architecture</title>
+<desc>Caller invokes a Lamatic flow of four nodes — API Request, Fetch Reviews, Generate Reputation Pulse, API Response — with Fetch Reviews calling the external Apify Google Maps Reviews Scraper, and Generate Reputation Pulse calling an external LLM provider.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect width="880" height="500" fill="#ffffff"/>
+<style>
+.th{font:600 14px -apple-system,Segoe UI,Roboto,sans-serif;fill:#1f2937}
+.ts{font:400 12px -apple-system,Segoe UI,Roboto,sans-serif;fill:#4b5563}
+.arr{stroke:#64748b;stroke-width:1.5;fill:none}
+.gray{fill:#f1f5f9;stroke:#94a3b8}
+.coral{fill:#fff1ee;stroke:#fb923c}
+.purple{fill:#f3f0ff;stroke:#a78bfa}
+</style>
+
+<line x1="200" y1="76" x2="200" y2="120" class="arr" marker-end="url(#arrow)"/>
+<line x1="200" y1="176" x2="200" y2="220" class="arr" marker-end="url(#arrow)"/>
+<line x1="200" y1="276" x2="200" y2="320" class="arr" marker-end="url(#arrow)"/>
+<line x1="200" y1="376" x2="200" y2="420" class="arr" marker-end="url(#arrow)"/>
+<line x1="360" y1="248" x2="560" y2="248" class="arr" marker-end="url(#arrow)"/>
+<line x1="360" y1="348" x2="560" y2="348" class="arr" marker-end="url(#arrow)"/>
+
+<g>
+<rect x="40" y="20" width="320" height="56" rx="8" class="gray" stroke-width="1"/>
+<text class="th" x="200" y="38" text-anchor="middle">Caller</text>
+<text class="ts" x="200" y="58" text-anchor="middle">Business owner or a scheduled job</text>
+</g>
+
+<g>
+<rect x="40" y="120" width="320" height="56" rx="8" class="gray" stroke-width="1"/>
+<text class="th" x="200" y="138" text-anchor="middle">API Request</text>
+<text class="ts" x="200" y="158" text-anchor="middle">Receives business + competitor URLs</text>
+</g>
+
+<g>
+<rect x="40" y="220" width="320" height="56" rx="8" class="coral" stroke-width="1"/>
+<text class="th" x="200" y="238" text-anchor="middle">Fetch Reviews</text>
+<text class="ts" x="200" y="258" text-anchor="middle">Calls Apify, reshapes review data</text>
+</g>
+
+<g>
+<rect x="560" y="220" width="300" height="56" rx="8" class="coral" stroke-width="1" stroke-dasharray="5 4"/>
+<text class="th" x="710" y="238" text-anchor="middle">Apify (external)</text>
+<text class="ts" x="710" y="258" text-anchor="middle">Google Maps Reviews Scraper actor</text>
+</g>
+
+<g>
+<rect x="40" y="320" width="320" height="56" rx="8" class="purple" stroke-width="1"/>
+<text class="th" x="200" y="338" text-anchor="middle">Generate Reputation Pulse</text>
+<text class="ts" x="200" y="358" text-anchor="middle">Clusters themes, drafts replies</text>
+</g>
+
+<g>
+<rect x="560" y="320" width="300" height="56" rx="8" class="purple" stroke-width="1" stroke-dasharray="5 4"/>
+<text class="th" x="710" y="338" text-anchor="middle">LLM Provider (external)</text>
+<text class="ts" x="710" y="358" text-anchor="middle">Your configured model + credentials</text>
+</g>
+
+<g>
+<rect x="40" y="420" width="320" height="56" rx="8" class="gray" stroke-width="1"/>
+<text class="th" x="200" y="438" text-anchor="middle">API Response</text>
+<text class="ts" x="200" y="458" text-anchor="middle">Returns the report + 2 numbers</text>
+</g>
+</svg>
