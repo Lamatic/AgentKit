@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --ink: #17211c;
   --muted: #647069;
@@ -172,7 +174,7 @@ textarea { resize: vertical; line-height: 1.5; }
 input:focus, select:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22, 75, 53, 0.09); }
 
 .form-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
-.primary-button, .secondary-button { border-radius: 999px; padding: 12px 20px; font-size: 0.84rem; font-weight: 750; }
+.primary-button, .secondary-button { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 12px 20px; font-size: 0.84rem; font-weight: 750; }
 .primary-button { border: 1px solid var(--green); color: white; background: var(--green); }
 .primary-button:hover { background: #0f3d2a; }
 .primary-button:disabled { opacity: 0.55; cursor: wait; }

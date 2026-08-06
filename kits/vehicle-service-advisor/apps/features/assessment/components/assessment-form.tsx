@@ -1,10 +1,9 @@
 "use client";
 
-import type { FormEvent } from "react";
-import type {
-  AssessmentInput,
-  Drivability,
-} from "@/features/assessment/types/assessment";
+import { FileText } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import type { AssessmentInput } from "@/features/assessment/types/assessment";
 
 interface AssessmentFormProps {
   isLoading: boolean;
@@ -12,36 +11,23 @@ interface AssessmentFormProps {
   onShowSample: () => void;
 }
 
-function getField(formData: FormData, name: string): string {
-  return String(formData.get(name) ?? "").trim();
-}
-
-function mapFormData(formData: FormData): AssessmentInput {
-  return {
-    make: getField(formData, "make"),
-    model: getField(formData, "model"),
-    year: getField(formData, "year"),
-    mileage: getField(formData, "mileage"),
-    fuelType: getField(formData, "fuelType"),
-    symptoms: getField(formData, "symptoms"),
-    warningLights: getField(formData, "warningLights"),
-    recentService: getField(formData, "recentService"),
-    drivability: getField(formData, "drivability") as Drivability,
-  };
-}
+const DEFAULT_VALUES: Pick<AssessmentInput, "fuelType" | "drivability"> = {
+  fuelType: "petrol",
+  drivability: "normal",
+};
 
 export function AssessmentForm({
   isLoading,
   onSubmit,
   onShowSample,
 }: AssessmentFormProps) {
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    await onSubmit(mapFormData(new FormData(event.currentTarget)));
-  }
+  const { handleSubmit, register } = useForm<AssessmentInput>({
+    defaultValues: DEFAULT_VALUES,
+    shouldUseNativeValidation: true,
+  });
 
   return (
-    <form className="assessment-form" onSubmit={handleSubmit}>
+    <form className="assessment-form" onSubmit={handleSubmit(onSubmit)}>
       <div className="section-heading">
         <span className="eyebrow">Vehicle intake</span>
         <h2>Tell us what the vehicle is doing</h2>
@@ -51,26 +37,43 @@ export function AssessmentForm({
       <div className="field-grid field-grid-three">
         <label>
           Make
-          <input name="make" placeholder="Honda" required maxLength={80} />
+          <input
+            placeholder="Honda"
+            maxLength={80}
+            {...register("make", { required: "Enter the vehicle make" })}
+          />
         </label>
         <label>
           Model
-          <input name="model" placeholder="City" required maxLength={80} />
+          <input
+            placeholder="City"
+            maxLength={80}
+            {...register("model", { required: "Enter the vehicle model" })}
+          />
         </label>
         <label>
           Year
-          <input name="year" inputMode="numeric" placeholder="2018" pattern="\d{4}" required />
+          <input
+            inputMode="numeric"
+            placeholder="2018"
+            pattern="\d{4}"
+            {...register("year", { required: "Enter a four-digit year" })}
+          />
         </label>
       </div>
 
       <div className="field-grid field-grid-three">
         <label>
           Mileage
-          <input name="mileage" placeholder="74,000 km" required maxLength={40} />
+          <input
+            placeholder="74,000 km"
+            maxLength={40}
+            {...register("mileage", { required: "Enter the current mileage" })}
+          />
         </label>
         <label>
           Fuel type
-          <select name="fuelType" defaultValue="petrol">
+          <select {...register("fuelType")}>
             <option value="petrol">Petrol</option>
             <option value="diesel">Diesel</option>
             <option value="hybrid">Hybrid</option>
@@ -80,7 +83,7 @@ export function AssessmentForm({
         </label>
         <label>
           Drivability
-          <select name="drivability" defaultValue="normal">
+          <select {...register("drivability")}>
             <option value="normal">Normal</option>
             <option value="limited">Limited</option>
             <option value="immobile">Immobile</option>
@@ -91,38 +94,52 @@ export function AssessmentForm({
       <label>
         Symptoms
         <textarea
-          name="symptoms"
           placeholder="Describe noises, smells, vibrations, leaks, when the issue occurs, and what changed."
-          required
           minLength={10}
           maxLength={2000}
           rows={5}
+          {...register("symptoms", {
+            required: "Describe the symptoms",
+            minLength: { value: 10, message: "Add at least 10 characters" },
+          })}
         />
       </label>
 
       <div className="field-grid">
         <label>
           Warning lights
-          <textarea name="warningLights" placeholder="Names, colors, and when they appeared" maxLength={2000} rows={3} />
+          <textarea
+            placeholder="Names, colors, and when they appeared"
+            maxLength={2000}
+            rows={3}
+            {...register("warningLights")}
+          />
         </label>
         <label>
           Recent service or repairs
-          <textarea name="recentService" placeholder="What was done and approximately when" maxLength={2000} rows={3} />
+          <textarea
+            placeholder="What was done and approximately when"
+            maxLength={2000}
+            rows={3}
+            {...register("recentService")}
+          />
         </label>
       </div>
 
       <div className="form-actions">
-        <button className="primary-button" disabled={isLoading} type="submit">
+        <Button className="primary-button" disabled={isLoading} type="submit">
           {isLoading ? "Assessing vehicle…" : "Create triage report"}
-        </button>
-        <button
+        </Button>
+        <Button
           className="secondary-button"
           disabled={isLoading}
           onClick={onShowSample}
           type="button"
+          variant="outline"
         >
+          <FileText aria-hidden="true" size={16} />
           Preview sample report
-        </button>
+        </Button>
       </div>
       <p className="form-note">No VIN or personal information is needed.</p>
     </form>
