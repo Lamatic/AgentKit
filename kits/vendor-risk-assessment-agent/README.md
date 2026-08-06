@@ -7,11 +7,12 @@
 ![Vite](https://img.shields.io/badge/Vite-Frontend-purple?logo=vite)
 ![Lamatic](https://img.shields.io/badge/Lamatic-AgentKit-success)
 ![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-black)
-![License](https://img.shields.io/badge/License-MIT-green)
 
 </p>
 
-## AgentKit Overview
+---
+
+# AgentKit Overview
 
 This AgentKit provides an enterprise-ready multi-agent workflow for third-party vendor due diligence.
 
@@ -21,7 +22,7 @@ The kit contains:
 - Prompt templates
 - Model configurations
 - Constitutions
-- A React dashboard for interacting with the workflow
+- React dashboard for interacting with the workflow
 
 The workflow consists of three AI agents:
 
@@ -29,43 +30,42 @@ The workflow consists of three AI agents:
 2. Vendor Risk Assessment
 3. Recommendation Generation
 
-An AI-powered Vendor Risk Assessment platform built using **Lamatic AgentKit**. The application analyzes unstructured vendor security questionnaires, extracts key vendor information, evaluates risk across multiple categories, and generates enterprise-ready recommendations through a multi-agent AI workflow.
+The application transforms unstructured vendor questionnaires into structured vendor information, evaluates enterprise risk across multiple domains, and generates actionable business recommendations using a multi-agent AI workflow.
 
-Designed for enterprise third-party risk management, the system demonstrates how multiple AI agents can collaborate to automate vendor due diligence while maintaining structured, explainable outputs.
+Designed for enterprise Third-Party Risk Management (TPRM), this project demonstrates how multiple AI agents can collaborate while maintaining structured, explainable outputs.
 
 ---
 
-## 🚀 Demo
+# 🚀 Demo
 
-**🌐 Live Application:**
+### 🌐 Live Application
 
 https://vendor-risk-assessment-agent.vercel.app/
 
-**Github Repository**
+### GitHub Repository
 
 https://github.com/Rishabh150102/vendor-risk-assessment-agent
 
-
 ---
 
-## ✨ Features
+# ✨ Features
 
-- 🤖 Multi-Agent AI workflow powered by Lamatic AgentKit
-- 📄 Intelligent extraction of vendor information from unstructured text
-- 🔒 Security risk assessment based on enterprise security controls
-- 📋 Compliance evaluation with industry-aware logic
-- 💰 Financial risk analysis
-- ⚙️ Operational risk analysis
-- ⚖️ Legal risk assessment
-- 📈 Overall vendor risk scoring
+- 🤖 Multi-Agent workflow powered by Lamatic AgentKit
+- 📄 Intelligent extraction of vendor information
+- 🔒 Security Risk Assessment
+- 📋 Compliance Risk Assessment
+- 💰 Financial Risk Assessment
+- ⚙️ Operational Risk Assessment
+- ⚖️ Legal Risk Assessment
+- 📈 Overall Vendor Risk Score
 - 💡 AI-generated enterprise recommendations
 - 🎨 Modern responsive dashboard
-- ⚡ Real-time analysis with loading indicators
-- 🧩 Structured JSON outputs for every agent
+- ⚡ Real-time analysis
+- 🧩 Structured JSON outputs from every agent
 
 ---
 
-## 🏗️ Architecture
+# 🏗️ Architecture
 
 ```mermaid
 flowchart TD
@@ -92,24 +92,26 @@ H --> J[Risk Assessment]
 H --> K[Recommendations]
 ```
 
-## 🤖 AI Workflow
+---
 
-The application uses a three-stage AI workflow built with Lamatic AgentKit.
+# 🤖 AI Workflow
 
-### Agent 1 — Vendor Information Extraction
+## Agent 1 — Vendor Information Extraction
 
-Extracts structured vendor information from the user's input, including:
+Extracts structured vendor information including:
 
-- Vendor details
-- Security controls
-- Compliance information
-- Financial information
-- Operational information
-- Legal information
+- Vendor Details
+- Security Controls
+- Compliance Information
+- Financial Information
+- Operational Information
+- Legal Information
 
-### Agent 2 — Vendor Risk Assessment
+---
 
-Analyzes the structured vendor data and evaluates:
+## Agent 2 — Vendor Risk Assessment
+
+Evaluates:
 
 - Security Risk
 - Compliance Risk
@@ -117,11 +119,18 @@ Analyzes the structured vendor data and evaluates:
 - Operational Risk
 - Legal Risk
 
-The agent generates an overall risk score and provides evidence for every decision.
+Generates:
 
-### Agent 3 — Recommendation Agent
+- Overall Risk Score
+- Risk Categories
+- Supporting Evidence
+- Assessment Reasoning
 
-Generates business-focused recommendations based on the assessed risks, including:
+---
+
+## Agent 3 — Recommendation Agent
+
+Generates:
 
 - Executive Summary
 - Positive Findings
@@ -131,59 +140,49 @@ Generates business-focused recommendations based on the assessed risks, includin
 
 ---
 
-## 🔄 How It Works
+# 🔄 How It Works
 
-1. Enter vendor information into the application.
-2. The Vendor Information Extraction Agent converts the unstructured text into structured JSON.
-3. The Risk Assessment Agent evaluates the vendor across:
-   - Security
-   - Compliance
-   - Financial
-   - Operational
-   - Legal
-4. The Recommendation Agent generates business-focused recommendations based on the assessed risks.
-5. The dashboard displays the complete assessment in an easy-to-read format.
+1. User enters vendor information.
+2. Vendor Information Extraction Agent converts the input into structured JSON.
+3. Vendor Risk Assessment Agent evaluates the vendor across Security, Compliance, Financial, Operational and Legal domains.
+4. Recommendation Agent generates business-focused recommendations.
+5. React dashboard displays the complete assessment.
 
 ---
 
-## 🛠️ Tech Stack
+# 🛠️ Tech Stack
 
-### Frontend
+## Frontend
 
 - React 19
 - TypeScript
 - Vite
 - Tailwind CSS
 
-### AI & Orchestration
+## AI & Orchestration
 
 - Lamatic AgentKit
 - OpenAI GPT-4o-mini
 
-### Frontend
-
-- React 19
-- TypeScript
-- Vite
-- Tailwind CSS
-
-### Deployment
+## Deployment
 
 - Vercel
 
-### Version Control
+## Version Control
 
 - Git
 - GitHub
 
 ---
 
-## ⚙️ Installation
+# ⚙️ Installation
+
+Clone the AgentKit repository and navigate to the Vendor Risk Assessment Agent application.
 
 ```bash
-git clone https://github.com/Rishabh150102/vendor-risk-assessment-agent.git
+git clone https://github.com/Rishabh150102/Lamatic-AgentKit.git
 
-cd vendor-risk-assessment-agent
+cd Lamatic-AgentKit/kits/vendor-risk-assessment-agent/apps
 
 npm install
 
@@ -192,9 +191,9 @@ npm run dev
 
 ---
 
-## 🔑 Environment Variables
+# 🔑 Environment Variables
 
-Create a `.env` file in the project root.
+Create a `.env` file inside the `apps/` directory.
 
 ```env
 VITE_LAMATIC_PROJECT_ENDPOINT=
@@ -208,7 +207,7 @@ VITE_LAMATIC_FLOW_ID=
 
 ---
 
-## AgentKit Structure
+# 📂 AgentKit Structure
 
 ```text
 vendor-risk-assessment-agent/
@@ -224,62 +223,58 @@ vendor-risk-assessment-agent/
 
 ---
 
-## 📂 Project Structure
+# 📂 Application Structure
 
-```
-src/
- ├── components/
- ├── hooks/
- ├── lib/
- ├── services/
- ├── types/
- ├── App.tsx
- └── main.tsx
-
-public/
-
-package.json
-
-vite.config.ts
+```text
+apps/
+├── src/
+│   ├── components/
+│   ├── data/
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── types.ts
+│   └── utils.ts
+├── assets/
+├── screenshot/
+├── package.json
+├── vite.config.ts
+└── tsconfig.json
 ```
 
 ---
 
-## 📸 Screenshots
+# 📸 Screenshots
 
-### Home
+## Home
 
 ![Home](apps/screenshot/1-home.png)
 
-### Vendor Information
+## Vendor Information
 
 ![Vendor](apps/screenshot/2-vendor.png)
 
-### Risk Assessment
+## Risk Assessment
 
 ![Risk](apps/screenshot/3-risk.png)
 
-### Recommendations
+## Recommendations
 
-![Recommendation](apps/screenshot/4-recomm.png)
+![Recommendations](apps/screenshot/4-recomm.png)
 
 ---
 
-## 📝 Example Input
+# 📝 Example Input
 
 ```text
 Vendor Name: Acme Corporation
 
 SOC 2 Type II
-
 ISO 27001
 
 AES-256
-
 TLS 1.3
 
 RBAC
-
 MFA
 
 99.99% uptime
@@ -289,7 +284,7 @@ GDPR Compliant
 
 ---
 
-## 🚀 Future Improvements
+# 🚀 Future Improvements
 
 - PDF Upload Support
 - DOCX Upload Support
@@ -300,14 +295,14 @@ GDPR Compliant
 
 ---
 
-## 🤝 Contributing
+# 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome.
 
-Feel free to fork the repository and submit a pull request.
+Please fork the repository and submit a Pull Request.
 
 ---
 
-## 📄 License
+# 📄 License
 
-This project is licensed under the MIT License. 
+This project is submitted as part of the Lamatic AgentKit contribution and follows the licensing terms of the AgentKit repository.
