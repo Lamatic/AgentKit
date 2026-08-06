@@ -2,6 +2,7 @@ import { ipAddress } from "@vercel/functions";
 import * as z from "zod";
 
 import { orchestrateChangeGraph } from "@/actions/orchestrate";
+import { calculateBlastRadius } from "@/lib/blast-radius";
 import { createCategoryCounts } from "@/lib/change-package";
 import { calculateRiskAssessment } from "@/lib/risk-score";
 import {
@@ -496,17 +497,21 @@ export async function POST(
       );
 
     /*
-     * The browser calculates the initial score,
-     * but the server calculates it again.
-     *
-     * This prevents a modified browser request
-     * from directly overriding the submitted
-     * risk score or promotion decision.
+     * The browser supplies validated workflow graph snapshots, but the
+     * server recomputes the blast radius and deterministic risk score.
+     * The request-supplied blast-radius and risk fields are never trusted.
      */
+    const blastRadius =
+      calculateBlastRadius(
+        validation.data.baselineGraph,
+        validation.data.candidateGraph,
+        structuralDiff,
+      );
+
     const riskAssessment =
       calculateRiskAssessment(
         structuralDiff,
-        submittedPackage.blastRadius,
+        blastRadius,
       );
 
     const normalizedChangePackage:
@@ -525,17 +530,17 @@ export async function POST(
             ),
 
           directlyAffectedNodes:
-            submittedPackage
-              .blastRadius
+            blastRadius
               .directlyAffectedNodeIds
               .length,
 
           downstreamAffectedNodes:
-            submittedPackage
-              .blastRadius
+            blastRadius
               .indirectlyAffectedNodeIds
               .length,
         },
+
+        blastRadius,
 
         riskAssessment,
       };

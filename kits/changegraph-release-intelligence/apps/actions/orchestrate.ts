@@ -567,44 +567,42 @@ export async function orchestrateChangeGraph(
       },
     );
 
-  const analysisPayload =
-  unwrapLamaticResult(
-    analysisResponse,
-    "Semantic analysis flow",
-  );
+  const warnings: string[] = [];
 
-const warnings: string[] = [];
+  let semanticAnalysis: SemanticAnalysis;
 
-let semanticAnalysis: SemanticAnalysis;
+  try {
+    const analysisPayload =
+      unwrapLamaticResult(
+        analysisResponse,
+        "Semantic analysis flow",
+      );
 
-try {
-  semanticAnalysis =
-    parseSemanticAnalysisPayload(
-      analysisPayload,
-    );
-} catch (error) {
-  const reason =
-    error instanceof Error
-      ? error.message
-      : "Unknown semantic-analysis validation error.";
+    semanticAnalysis =
+      parseSemanticAnalysisPayload(
+        analysisPayload,
+      );
+  } catch (error) {
+    const reason =
+      error instanceof Error
+        ? error.message
+        : "Unknown semantic-analysis validation error.";
 
-  console.warn(
-    "Semantic-analysis flow returned invalid structured output. Using deterministic fallback.",
-    reason,
-  );
-
-  warnings.push(
-    "The Lamatic semantic-analysis response was incomplete, so ChangeGraph generated a conservative deterministic fallback analysis.",
-  );
-
-  semanticAnalysis =
-    buildDeterministicFallbackSemanticAnalysis(
-      input,
+    console.warn(
+      "Semantic-analysis flow returned invalid structured output. Using deterministic fallback.",
       reason,
     );
-}
 
+    warnings.push(
+      "The Lamatic semantic-analysis response was incomplete, so ChangeGraph generated a conservative deterministic fallback analysis.",
+    );
 
+    semanticAnalysis =
+      buildDeterministicFallbackSemanticAnalysis(
+        input,
+        reason,
+      );
+  }
 
   /*
    * Flow 2: release-plan generation
@@ -638,48 +636,47 @@ try {
       },
     );
 
-  const releasePlanPayload =
-    unwrapLamaticResult(
-      releasePlanResponse,
-      "Release-plan flow",
-    );
+  let generatedReleasePlan: ReleasePlan;
 
+  try {
+    const releasePlanPayload =
+      unwrapLamaticResult(
+        releasePlanResponse,
+        "Release-plan flow",
+      );
 
+    generatedReleasePlan =
+      parseReleasePlanPayload(
+        releasePlanPayload,
+      );
+  } catch (error) {
+    const reason =
+      error instanceof Error
+        ? error.message
+        : "Unknown release-plan validation error.";
 
-let generatedReleasePlan: ReleasePlan;
-
-try {
-  generatedReleasePlan =
-    parseReleasePlanPayload(
-      releasePlanPayload,
-    );
-} catch (error) {
-  const reason =
-    error instanceof Error
-      ? error.message
-      : "Unknown release-plan validation error.";
-
-  console.warn(
-    "Release-plan flow returned invalid structured output. Using deterministic fallback.",
-    reason,
-  );
-
-  warnings.push(
-    "The Lamatic release-plan response was incomplete, so ChangeGraph generated a conservative deterministic fallback plan.",
-  );
-
-  generatedReleasePlan =
-    buildDeterministicFallbackReleasePlan(
-      input,
-      semanticAnalysis,
+    console.warn(
+      "Release-plan flow returned invalid structured output. Using deterministic fallback.",
       reason,
     );
-}
 
-  if (
+    warnings.push(
+      "The Lamatic release-plan response was incomplete, so ChangeGraph generated a conservative deterministic fallback plan.",
+    );
+
+    generatedReleasePlan =
+      buildDeterministicFallbackReleasePlan(
+        input,
+        semanticAnalysis,
+        reason,
+      );
+  }
+
+  const scoreMismatch =
     generatedReleasePlan.riskScore !==
-    deterministicRisk.score
-  ) {
+    deterministicRisk.score;
+
+  if (scoreMismatch) {
     warnings.push(
       `The release-plan flow returned risk score ${generatedReleasePlan.riskScore}, but the deterministic engine calculated ${deterministicRisk.score}. The deterministic score was preserved.`,
     );
@@ -696,14 +693,31 @@ try {
   }
 
   /*
-   * A mismatched decision invalidates decision-dependent model fields
-   * such as blockers, the summary, and the deployment checklist.
+   * A mismatched decision or score invalidates every decision- and
+   * score-dependent model field, including blockers, the summary,
+   * targeted-test priorities, and the deployment checklist.
    */
-  const basePlan = decisionMismatch
+  const planMismatch =
+    decisionMismatch || scoreMismatch;
+
+  const mismatchReason = [
+    decisionMismatch
+      ? `promotion decision "${generatedReleasePlan.promotionDecision}" instead of "${deterministicRisk.decision}"`
+      : null,
+    scoreMismatch
+      ? `risk score ${generatedReleasePlan.riskScore} instead of ${deterministicRisk.score}`
+      : null,
+  ]
+    .filter((value): value is string =>
+      value !== null,
+    )
+    .join(" and ");
+
+  const basePlan = planMismatch
     ? buildDeterministicFallbackReleasePlan(
         input,
         semanticAnalysis,
-        `The release-plan flow returned "${generatedReleasePlan.promotionDecision}" instead of "${deterministicRisk.decision}".`,
+        `The release-plan flow returned ${mismatchReason}.`,
       )
     : generatedReleasePlan;
 

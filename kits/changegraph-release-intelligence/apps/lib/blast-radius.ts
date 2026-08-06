@@ -1,9 +1,9 @@
 import type {
   BlastRadiusAnalysis,
   BlastRadiusNode,
-  ParsedFlow,
-  ParsedNode,
-  ParsedWorkflowExport,
+  WorkflowGraphFlow,
+  WorkflowGraphNode,
+  WorkflowGraphSnapshot,
   StructuralDiff,
   WorkflowChange,
 } from "@/types/changegraph";
@@ -11,18 +11,18 @@ import type {
 const MAX_PATHS_PER_NODE = 5;
 
 interface FlowContext {
-  baseline?: ParsedFlow;
-  candidate?: ParsedFlow;
+  baseline?: WorkflowGraphFlow;
+  candidate?: WorkflowGraphFlow;
 }
 
 interface DirectSeed {
-  flow: ParsedFlow;
+  flow: WorkflowGraphFlow;
   nodeId: string;
   changeId: string;
 }
 
 interface FlowGraph {
-  nodes: Map<string, ParsedNode>;
+  nodes: Map<string, WorkflowGraphNode>;
   adjacency: Map<string, string[]>;
 }
 
@@ -61,14 +61,14 @@ function basename(path: string): string {
   return normalizePath(path).split("/").at(-1) ?? path;
 }
 
-function nodeMap(flow: ParsedFlow): Map<string, ParsedNode> {
+function nodeMap(flow: WorkflowGraphFlow): Map<string, WorkflowGraphNode> {
   return new Map(
     flow.nodes.map((node) => [normalize(node.id), node]),
   );
 }
 
 function buildAdjacency(
-  flow: ParsedFlow,
+  flow: WorkflowGraphFlow,
 ): Map<string, string[]> {
   const adjacency = new Map<string, Set<string>>();
 
@@ -96,10 +96,10 @@ function buildAdjacency(
 }
 
 const flowGraphCache =
-  new WeakMap<ParsedFlow, FlowGraph>();
+  new WeakMap<WorkflowGraphFlow, FlowGraph>();
 
 function flowGraph(
-  flow: ParsedFlow,
+  flow: WorkflowGraphFlow,
 ): FlowGraph {
   const cached = flowGraphCache.get(flow);
 
@@ -117,7 +117,7 @@ function flowGraph(
   return graph;
 }
 
-function flowAliases(flow: ParsedFlow): string[] {
+function flowAliases(flow: WorkflowGraphFlow): string[] {
   return [
     flow.id,
     flow.name,
@@ -138,7 +138,7 @@ function flowAliases(flow: ParsedFlow): string[] {
  */
 function componentSuffix(
   component: string,
-  flows: Array<ParsedFlow | undefined>,
+  flows: Array<WorkflowGraphFlow | undefined>,
 ): string | null {
   const normalizedComponent = normalize(component);
 
@@ -164,9 +164,9 @@ function componentSuffix(
 }
 
 function findNode(
-  flow: ParsedFlow,
+  flow: WorkflowGraphFlow,
   identifier: string,
-): ParsedNode | undefined {
+): WorkflowGraphNode | undefined {
   const normalizedIdentifier = normalize(identifier);
 
   return flow.nodes.find(
@@ -176,7 +176,7 @@ function findNode(
   );
 }
 
-function searchableNodeConfig(node: ParsedNode): string {
+function searchableNodeConfig(node: WorkflowGraphNode): string {
   try {
     return JSON.stringify(node.config).toLowerCase();
   } catch {
@@ -185,7 +185,7 @@ function searchableNodeConfig(node: ParsedNode): string {
 }
 
 function nodeReferencesResource(
-  node: ParsedNode,
+  node: WorkflowGraphNode,
   resourcePath: string,
 ): boolean {
   const searchable = searchableNodeConfig(node);
@@ -211,8 +211,8 @@ function isResourceChange(change: WorkflowChange): boolean {
 }
 
 function createFlowContexts(
-  baseline: ParsedWorkflowExport,
-  candidate: ParsedWorkflowExport,
+  baseline: WorkflowGraphSnapshot,
+  candidate: WorkflowGraphSnapshot,
 ): FlowContext[] {
   const baselineFlows = new Map(
     baseline.flows.map((flow) => [
@@ -244,7 +244,7 @@ function createFlowContexts(
 function addSeed(
   seeds: DirectSeed[],
   seedKeys: Set<string>,
-  flow: ParsedFlow,
+  flow: WorkflowGraphFlow,
   nodeId: string,
   changeId: string,
 ): void {
@@ -492,7 +492,7 @@ function collectDirectSeeds(
 }
 
 function accumulatorKey(
-  flow: ParsedFlow,
+  flow: WorkflowGraphFlow,
   nodeId: string,
 ): string {
   return `${normalizePath(flow.path).toLowerCase()}::${normalize(
@@ -502,8 +502,8 @@ function accumulatorKey(
 
 function addAffectedNode(
   accumulator: Map<string, NodeAccumulator>,
-  flow: ParsedFlow,
-  node: ParsedNode,
+  flow: WorkflowGraphFlow,
+  node: WorkflowGraphNode,
   impact: "direct" | "downstream",
   distance: number,
   changeId: string,
@@ -672,8 +672,8 @@ function traverseSeed(
 }
 
 export function calculateBlastRadius(
-  baseline: ParsedWorkflowExport,
-  candidate: ParsedWorkflowExport,
+  baseline: WorkflowGraphSnapshot,
+  candidate: WorkflowGraphSnapshot,
   structuralDiff: StructuralDiff,
 ): BlastRadiusAnalysis {
   const warnings: string[] = [];

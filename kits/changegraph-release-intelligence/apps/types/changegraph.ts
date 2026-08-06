@@ -158,6 +158,29 @@ export interface ParsedEdge {
   config: Record<string, unknown>;
 }
 
+export interface WorkflowGraphNode {
+  id: string;
+  name: string;
+  config: Record<string, unknown>;
+}
+
+export interface WorkflowGraphEdge {
+  source: string;
+  target: string;
+}
+
+export interface WorkflowGraphFlow {
+  id: string;
+  name: string;
+  path: string;
+  nodes: WorkflowGraphNode[];
+  edges: WorkflowGraphEdge[];
+}
+
+export interface WorkflowGraphSnapshot {
+  flows: WorkflowGraphFlow[];
+}
+
 export interface ParsedSchemaEntry {
   path: string;
   value: unknown;
