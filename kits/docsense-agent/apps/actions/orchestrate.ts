@@ -18,9 +18,13 @@ import { z } from "zod";
 /**
  * Validates the reasoning node's JSON before it reaches the state model.
  * The LLM can drift (missing fields, wrong shapes), so we parse defensively
- * rather than trusting the raw output.
+ * rather than trusting the raw output. docType and extractedFacts are optional:
+ * the reasoning node can echo them through from extraction so the stored
+ * ReceivedDoc keeps a real evidence trail instead of hardcoded placeholders.
  */
 const ReasoningSchema = z.object({
+  docType: z.string().optional(),
+  extractedFacts: z.record(z.unknown()).optional(),
   satisfies: z.array(z.string()).optional(),
   triggers: z
     .array(
@@ -34,6 +38,8 @@ const ReasoningSchema = z.object({
 });
 
 interface ReasoningResult {
+  docType?: string;
+  extractedFacts?: Record<string, unknown>;
   satisfies?: string[];
   triggers?: InferredTrigger[];
 }
@@ -110,21 +116,23 @@ export async function intakeDocument(
       (resData as any)?.data?.output?.result ?? resData?.result
     );
     const validated = ReasoningSchema.safeParse(parsed);
-    const satisfies: string[] = validated.success
-      ? validated.data.satisfies ?? []
-      : [];
-    let triggers: InferredTrigger[] = validated.success
-      ? (validated.data.triggers as InferredTrigger[]) ?? []
-      : [];
+    const reasoning = validated.success ? validated.data : {};
+
+    const satisfies: string[] = reasoning.satisfies ?? [];
+    let triggers: InferredTrigger[] =
+      (reasoning.triggers as InferredTrigger[]) ?? [];
 
     if (current.clientType === "returning" && current.baseline) {
       triggers = detectAnomalies(current.baseline, triggers);
     }
 
+    // Carry the real docType / extractedFacts through when the flow provides
+    // them, so the stored ReceivedDoc keeps an evidence trail. Falls back to
+    // safe defaults if the reasoning node doesn't echo them.
     const doc: ReceivedDoc = {
       docId: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      docType: "unknown",
-      extractedFacts: {},
+      docType: reasoning.docType ?? "unknown",
+      extractedFacts: reasoning.extractedFacts ?? {},
       receivedAt: new Date().toISOString(),
     };
 
