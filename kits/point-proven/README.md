@@ -1,3 +1,5 @@
+![Landing Page Image](./docs/landingPage.png)
+
 # Point Proven
 
 Index debate sources and build a citation-backed brief with key claims, clash points, agreed points, themes, and per-source summaries.
