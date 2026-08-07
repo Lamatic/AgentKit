@@ -8,7 +8,8 @@ const profile = {{codeNode_458.output.profile}};
 
 function _colMap(p){ const m={}; const c=(p&&p.columns)||[]; for(let i=0;i<c.length;i++) m[c[i].name]=c[i]; return m; }
 function _isNum(c){ return c && c.type==="numeric"; }
-function _cat(c){ return c && (c.type==="categorical"||c.type==="boolean"||(c.type==="numeric"&&c.cardinality<=20)); }
+// Low-cardinality (<=20) groupBy only. Mirror of _cat in 459 (keep in sync).
+function _cat(c){ return c && (c.type==="categorical"||c.type==="boolean"||c.type==="numeric") && c.cardinality<=20; }
 // NOTE: boolean mirror of the reason-returning validateTask in
 // scripts/eda-analyst_code-node-459_code.ts (that file is authoritative).
 // Lamatic code nodes can't import shared modules, so keep the two in sync.
