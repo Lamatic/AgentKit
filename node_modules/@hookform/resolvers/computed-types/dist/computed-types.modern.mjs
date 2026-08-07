@@ -1,2 +1,0 @@
-import{validateFieldsNatively as r,toNestErrors as e}from"@hookform/resolvers";function o(o){return async(s,t,a)=>{try{const e=await o(s);return a.shouldUseNativeValidation&&r({},a),{errors:{},values:e}}catch(r){if((r=>null!=r.errors)(r))return{values:{},errors:e((n=r,(n.errors||[]).reduce((r,e)=>(r[e.path.join(".")]={type:e.error.name,message:e.error.message},r),{})),a)};throw r}var n}}export{o as computedTypesResolver};
-//# sourceMappingURL=computed-types.modern.mjs.map

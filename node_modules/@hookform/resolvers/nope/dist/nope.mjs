@@ -1,2 +1,0 @@
-import{toNestErrors as r,validateFieldsNatively as e}from"@hookform/resolvers";var o=function(r,e,t){return void 0===e&&(e={}),void 0===t&&(t=""),Object.keys(r).reduce(function(e,n){var a=t?t+"."+n:n,i=r[n];return"string"==typeof i?e[a]={message:i}:o(i,e,a),e},e)},t=function(t,n){return void 0===n&&(n={abortEarly:!1}),function(a,i,s){var u=t.validate(a,i,n);return u?{values:{},errors:r(o(u),s)}:(s.shouldUseNativeValidation&&e({},s),{values:a,errors:{}})}};export{t as nopeResolver};
-//# sourceMappingURL=nope.module.js.map
