@@ -23,7 +23,7 @@ type Investigation = {
   hypothesis: string;
   hypothesisSource?: "planner" | "evidence_review";
   outcome: "reproduced" | "not_reproduced_under_tested_conditions" | "likely_reproduced" | "not_reproduced" | "inconclusive";
-  verdictOwner?: "lamatic";
+  verdictOwner?: "lamatic" | "runtime";
   gate: {
     repeatCount: number;
     allCandidateRunsPassed: boolean;
@@ -359,8 +359,12 @@ function WaitingPanel() {
  */
 function ResultPanel({ result }: { result: Investigation }) {
   const reproduced = ["reproduced", "likely_reproduced"].includes(result.outcome);
-  const exploratory = result.verdictOwner === "lamatic";
+  // An evidence review is not a certification: its probes were exploratory, so the
+  // runs are shown as observations rather than scored against a gate. The
+  // verdictOwner check keeps older responses, which predate hypothesisSource,
+  // rendering the same way.
   const evidenceReviewHypothesis = result.hypothesisSource === "evidence_review";
+  const exploratory = evidenceReviewHypothesis || result.verdictOwner === "lamatic";
   const outcomeLabel = result.outcome === "likely_reproduced"
     ? "Likely reproduced"
     : result.outcome === "inconclusive"
