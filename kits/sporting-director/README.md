@@ -29,6 +29,7 @@ The agent only reports facts found in search results — it does not invent stat
 4. Run locally: `npm run dev`
 
 ## Flow architecture
+
 API Request (playerName, buyingClub, budget, needs)
 → Web Search (recent news/info about the player)
 → Generate Text (structured feasibility report)

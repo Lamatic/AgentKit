@@ -16,11 +16,12 @@ export async function generateReport(
   budget: string,
   needs: string
 ): Promise<ScoutActionResult> {
+  
+  const requiredValues = [playerName, buyingClub, budget, needs];
   if (
-    !playerName.trim() ||
-    !buyingClub.trim() ||
-    !budget.trim() ||
-    !needs.trim()
+    requiredValues.some(
+      (value) => typeof value !== "string" || !value.trim()
+    )
   ) {
     return {
       success: false,
