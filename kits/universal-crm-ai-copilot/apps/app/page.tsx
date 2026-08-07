@@ -44,7 +44,8 @@ export default function Page() {
       dynamics365: "https://your-org.crm.dynamics.com"
     };
     const domain = domainMap[activeTab] || "https://api.crm.com";
-    return `curl -X POST "${domain}${activePayload.endpoint}" \\\n  -H "Authorization: Bearer YOUR_CRM_ACCESS_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(activePayload.payload)}'`;
+    const payloadStr = JSON.stringify(activePayload.payload).replace(/'/g, "'\\''");
+    return `curl -X POST "${domain}${activePayload.endpoint}" \\\n  -H "Authorization: Bearer YOUR_CRM_ACCESS_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d '${payloadStr}'`;
   };
 
   const handleCopy = async () => {

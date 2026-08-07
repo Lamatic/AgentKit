@@ -690,10 +690,14 @@
             renderCurrentCRM();
         }
 
-        function copyViewer() {
-            const code = document.getElementById('jsonViewer').innerText;
-            navigator.clipboard.writeText(code);
-            alert(`✅ Real-time ${viewerMode.toUpperCase()} Output Copied!`);
+        async function copyViewer() {
+            try {
+                const code = document.getElementById('jsonViewer').innerText;
+                await navigator.clipboard.writeText(code);
+                alert(`✅ Real-time ${viewerMode.toUpperCase()} Output Copied!`);
+            } catch (err) {
+                console.error("Clipboard copy failed", err);
+            }
         }
 
         function loadSample(num) {
