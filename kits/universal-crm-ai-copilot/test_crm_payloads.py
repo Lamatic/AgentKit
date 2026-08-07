@@ -95,7 +95,8 @@ def test_universal_crm_copilot():
 
     # Executable Contract Assertions
     assert output["status"] == "success", "Status must be success"
-    assert output["leadScore"] >= 0 and output["leadScore"] <= 100, "Score must be 0-100"
+    assert output["leadScore"] >= 0, "Score must be at least 0"
+    assert output["leadScore"] <= 100, "Score must be at most 100"
     assert "salesforce" in output["crmPayloads"], "Salesforce payload missing"
     assert "sap" in output["crmPayloads"], "SAP payload missing"
     assert "zoho" in output["crmPayloads"], "Zoho payload missing"
