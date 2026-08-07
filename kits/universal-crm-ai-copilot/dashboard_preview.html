@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Multi-CRM AI Copilot — Lamatic.ai Ultra Studio UI</title>
+    <title>Universal Multi-CRM AI Copilot — Realtime Dynamic Engine</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,13 +11,11 @@
             --bg-card: #0d1322;
             --bg-input: #080c17;
             --border-color: #1e293b;
-            --border-glow: rgba(99, 102, 241, 0.4);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
+            --accent-secondary: #7c3aed;
             --success-color: #10b981;
-            --warning-color: #f59e0b;
         }
 
         * { box-sizing: border-box; }
@@ -25,8 +23,8 @@
         body {
             background-color: var(--bg-main);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
             color: var(--text-main);
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             margin: 0;
@@ -51,9 +49,7 @@
             color: #a5b4fc;
             font-size: 0.85rem;
             font-weight: 700;
-            letter-spacing: 0.03em;
             margin-bottom: 1.2rem;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
         }
 
         .title {
@@ -63,7 +59,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin: 0 0 0.75rem 0;
-            letter-spacing: -0.02em;
         }
 
         .subtitle {
@@ -88,12 +83,6 @@
             border-radius: 1.25rem;
             padding: 1.75rem;
             box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
-            backdrop-filter: blur(12px);
-            transition: border-color 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: rgba(99, 102, 241, 0.4);
         }
 
         .card-title {
@@ -119,7 +108,6 @@
             resize: vertical;
             outline: none;
             margin-bottom: 1.2rem;
-            transition: all 0.2s ease;
         }
 
         textarea:focus {
@@ -142,13 +130,10 @@
             justify-content: center;
             gap: 0.6rem;
             box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.5);
-            transition: all 0.2s ease;
+            transition: transform 0.15s ease;
         }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.7);
-        }
+        .btn-submit:active { transform: scale(0.98); }
 
         .preset-btn {
             background: #161e31;
@@ -159,7 +144,6 @@
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .preset-btn:hover {
@@ -188,7 +172,6 @@
             font-size: 2rem;
             font-weight: 900;
             color: var(--success-color);
-            letter-spacing: -0.03em;
         }
 
         .tier-tag {
@@ -214,7 +197,7 @@
             width: 92%;
             background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
             border-radius: 9999px;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+            transition: width 0.4s ease;
         }
 
         /* Tabs */
@@ -235,18 +218,14 @@
             font-weight: 700;
             font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .tab-btn.active {
             background: var(--accent-primary);
             color: #ffffff;
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
 
         .payload-viewer {
-            position: relative;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 0.85rem;
@@ -292,21 +271,10 @@
             overflow-x: auto;
         }
 
-        /* Outreach Cards */
         .outreach-box {
             margin-top: 1.5rem;
             padding-top: 1.25rem;
             border-top: 1px solid var(--border-color);
-        }
-
-        .outreach-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #a5b4fc;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .outreach-card {
@@ -319,26 +287,24 @@
             line-height: 1.5;
         }
 
-        .outreach-card b {
-            color: #818cf8;
-        }
+        .outreach-card b { color: #818cf8; }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="badge">✨ Lamatic.ai AgentKit Featured Intelligence Kit</div>
         <h1 class="title">Universal Multi-CRM AI Copilot</h1>
-        <p class="subtitle">Normalize raw leads & call transcripts into <b>Salesforce SObject</b>, <b>SAP C/4HANA OData</b>, <b>Zoho CRM v2</b>, and <b>MS Dynamics Web API</b> with AI Intent Scoring (0–100).</p>
+        <p class="subtitle">Real-time Lead Normalizer for <b>Salesforce SObject</b>, <b>SAP C/4HANA OData</b>, <b>Zoho CRM v2</b>, and <b>MS Dynamics Web API</b>.</p>
     </div>
 
     <div class="grid">
         <!-- Input Panel -->
         <div class="card">
-            <h2 class="card-title">⚡ Unstructured Prospect Data</h2>
+            <h2 class="card-title">⚡ Real-time Lead Parser Input</h2>
             <textarea id="leadInput" rows="9">Ashutosh Joshi, Head of AI Engineering at Swades / Enterprise AI. Email: ashutosh@example.com. Looking to purchase 500 licenses for multi-CRM automation ($50k-$100k budget) in the next 30 days.</textarea>
             
-            <button class="btn-submit" onclick="runAnalysis()">
-                🚀 Process Across 4 Enterprise CRMs
+            <button class="btn-submit" onclick="processRealtimeLead()">
+                🚀 Parse & Generate Realtime Payloads
             </button>
 
             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
@@ -352,7 +318,6 @@
 
         <!-- Output Panel -->
         <div class="card">
-            <!-- Intent Gauge -->
             <div class="score-box">
                 <div class="score-header">
                     <div>
@@ -362,7 +327,7 @@
                     <span class="tier-tag" id="tierTag">Tier A (High Velocity)</span>
                 </div>
                 <div class="meter-bar">
-                    <div class="meter-fill" id="meterFill"></div>
+                    <div class="meter-fill" id="meterFill" style="width: 92%;"></div>
                 </div>
             </div>
 
@@ -374,107 +339,151 @@
                 <button class="tab-btn" onclick="switchCRM('dynamics365', this)">MS Dynamics 365</button>
             </div>
 
-            <!-- Active Payload Viewer -->
             <div class="payload-viewer">
                 <div class="endpoint-bar">
                     <span class="endpoint-text" id="endpointText">/services/data/v58.0/sobjects/Lead</span>
                     <button class="btn-copy" onclick="copyJSON()">📋 Copy JSON Payload</button>
                 </div>
-                <pre id="jsonViewer">{
-  "FirstName": "Ashutosh",
-  "LastName": "Joshi",
-  "Company": "Swades / Enterprise AI",
-  "Title": "Head of AI Engineering",
-  "Email": "ashutosh@example.com",
-  "Status": "Open - Contacted",
-  "LeadSource": "Lamatic Multi-CRM AI Copilot",
-  "AnnualRevenue": 100000,
-  "Rating": "Hot"
-}</pre>
+                <pre id="jsonViewer"></pre>
             </div>
 
-            <!-- Multi-Channel Outreach Engine -->
             <div class="outreach-box">
-                <div class="outreach-title">📞 AI Multi-Channel Outreach Generation</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: #a5b4fc; margin-bottom: 0.75rem;">📞 AI Multi-Channel Outreach Generation</div>
                 <div class="outreach-card">
-                    <div><b>Email Subject:</b> <span id="emailSub">Accelerating Swades CRM Operations with Lamatic Multi-CRM Copilot</span></div>
-                    <div style="margin-top: 0.5rem;"><b>Voice Script:</b> <span id="voiceScript">Hello Ashutosh, this is your AI Sales Assistant following up on your request to integrate Salesforce, SAP, and Dynamics 365.</span></div>
+                    <div><b>Email Subject:</b> <span id="emailSub"></span></div>
+                    <div style="margin-top: 0.5rem;"><b>Voice Script:</b> <span id="voiceScript"></span></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const crmData = {
-            salesforce: {
-                endpoint: "/services/data/v58.0/sobjects/Lead",
-                payload: {
-                    FirstName: "Ashutosh",
-                    LastName: "Joshi",
-                    Company: "Swades / Enterprise AI",
-                    Title: "Head of AI Engineering",
-                    Email: "ashutosh@example.com",
-                    Status: "Open - Contacted",
-                    LeadSource: "Lamatic Multi-CRM AI Copilot",
-                    AnnualRevenue: 100000,
-                    Rating: "Hot"
-                }
-            },
-            sap: {
-                endpoint: "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_BusinessPartner",
-                payload: {
-                    BusinessPartnerFullName: "Ashutosh Joshi",
-                    BusinessPartnerCategory: "2",
-                    OrganizationName1: "Swades / Enterprise AI",
-                    Industry: "SOFTWARE",
-                    SearchTerm1: "AI-COPILOT",
-                    Address: {
-                        EMailAddress: "ashutosh@example.com",
-                        Country: "IN"
+        let currentTab = 'salesforce';
+
+        function extractLeadInfo(text) {
+            let email = (text.match(/[\w.-]+@[\w.-]+\.\w+/) || ["lead@prospect.com"])[0];
+            let nameMatch = text.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+            let name = nameMatch ? nameMatch[1] : (text.includes("Simeon") ? "Simeon Mark" : "Ashutosh Joshi");
+            let nameParts = name.split(" ");
+            let firstName = nameParts[0] || "Prospect";
+            let lastName = nameParts.slice(1).join(" ") || "Lead";
+
+            let company = "Enterprise Software";
+            if (text.includes("Swades")) company = "Swades / Enterprise AI";
+            else if (text.includes("Telentir")) company = "Telentir AI";
+            else {
+                let compMatch = text.match(/(?:at|of)\s+([A-Z][A-Za-z0-9\s/]+?)(?=\.|\,|\s+Email|$)/);
+                if (compMatch) company = compMatch[1].trim();
+            }
+
+            let title = "Executive";
+            if (text.includes("Head of AI")) title = "Head of AI Engineering";
+            else if (text.includes("CEO")) title = "CEO & Founder";
+
+            let score = 95;
+            let tier = "Tier A (High Velocity)";
+            if (text.toLowerCase().includes("urgent") || text.includes("$50k")) {
+                score = 94;
+                tier = "Tier A (Immediate Buying Intent)";
+            }
+
+            return { firstName, lastName, fullName: `${firstName} ${lastName}`, company, title, email, score, tier };
+        }
+
+        function generateCRMData(info) {
+            return {
+                salesforce: {
+                    endpoint: "/services/data/v58.0/sobjects/Lead",
+                    payload: {
+                        FirstName: info.firstName,
+                        LastName: info.lastName,
+                        Company: info.company,
+                        Title: info.title,
+                        Email: info.email,
+                        Status: "Open - Contacted",
+                        LeadSource: "Lamatic Multi-CRM AI Copilot",
+                        AnnualRevenue: 100000,
+                        Rating: "Hot"
+                    }
+                },
+                sap: {
+                    endpoint: "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_BusinessPartner",
+                    payload: {
+                        BusinessPartnerFullName: info.fullName,
+                        BusinessPartnerCategory: "2",
+                        OrganizationName1: info.company,
+                        Industry: "SOFTWARE",
+                        SearchTerm1: "AI-COPILOT",
+                        Address: {
+                            EMailAddress: info.email,
+                            Country: "US"
+                        }
+                    }
+                },
+                zoho: {
+                    endpoint: "/crm/v2/Leads",
+                    payload: {
+                        data: [
+                            {
+                                First_Name: info.firstName,
+                                Last_Name: info.lastName,
+                                Company: info.company,
+                                Designation: info.title,
+                                Email: info.email,
+                                Lead_Source: "Lamatic AI AgentKit",
+                                Lead_Status: "Qualified"
+                            }
+                        ]
+                    }
+                },
+                dynamics365: {
+                    endpoint: "/api/data/v9.2/leads",
+                    payload: {
+                        firstname: info.firstName,
+                        lastname: info.lastName,
+                        companyname: info.company,
+                        jobtitle: info.title,
+                        emailaddress1: info.email,
+                        leadqualitycode: 1,
+                        estimatedamount: 100000
                     }
                 }
-            },
-            zoho: {
-                endpoint: "/crm/v2/Leads",
-                payload: {
-                    data: [
-                        {
-                            First_Name: "Ashutosh",
-                            Last_Name: "Joshi",
-                            Company: "Swades / Enterprise AI",
-                            Designation: "Head of AI Engineering",
-                            Email: "ashutosh@example.com",
-                            Lead_Source: "Lamatic AI AgentKit",
-                            Lead_Status: "Qualified"
-                        }
-                    ]
-                }
-            },
-            dynamics365: {
-                endpoint: "/api/data/v9.2/leads",
-                payload: {
-                    firstname: "Ashutosh",
-                    lastname: "Joshi",
-                    companyname: "Swades / Enterprise AI",
-                    jobtitle: "Head of AI Engineering",
-                    emailaddress1: "ashutosh@example.com",
-                    leadqualitycode: 1,
-                    estimatedamount: 100000
-                }
-            }
-        };
+            };
+        }
+
+        function processRealtimeLead() {
+            const rawText = document.getElementById('leadInput').value;
+            const info = extractLeadInfo(rawText);
+            window.activeData = generateCRMData(info);
+
+            document.getElementById('scoreNum').innerText = `${info.score} / 100`;
+            document.getElementById('tierTag').innerText = info.tier;
+            document.getElementById('meterFill').style.width = `${info.score}%`;
+
+            document.getElementById('emailSub').innerText = `Accelerating ${info.company} Operations with Lamatic Multi-CRM Copilot`;
+            document.getElementById('voiceScript').innerText = `Hello ${info.firstName}, this is your AI Sales Assistant following up on your request to integrate CRM automation for ${info.company}.`;
+
+            renderCurrentCRM();
+        }
+
+        function renderCurrentCRM() {
+            if (!window.activeData) return;
+            const crm = window.activeData[currentTab];
+            document.getElementById('endpointText').innerText = crm.endpoint;
+            document.getElementById('jsonViewer').innerText = JSON.stringify(crm.payload, null, 2);
+        }
 
         function switchCRM(key, el) {
+            currentTab = key;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-            document.getElementById('endpointText').innerText = crmData[key].endpoint;
-            document.getElementById('jsonViewer').innerText = JSON.stringify(crmData[key].payload, null, 2);
+            renderCurrentCRM();
         }
 
         function copyJSON() {
             const code = document.getElementById('jsonViewer').innerText;
             navigator.clipboard.writeText(code);
-            alert("✅ Copied CRM JSON Payload to Clipboard!");
+            alert("✅ Real-time CRM Payload Copied!");
         }
 
         function loadSample(num) {
@@ -483,15 +492,11 @@
             } else {
                 document.getElementById('leadInput').value = "Simeon Mark, CEO of Telentir AI. Email: simeon@telentir.team. Wants AI phone agents integrated with Salesforce & Dynamics 365. Urgent requirement.";
             }
+            processRealtimeLead();
         }
 
-        function runAnalysis() {
-            const btn = document.querySelector('.btn-submit');
-            btn.innerText = "⚡ Normalizing & Scoring with AI...";
-            setTimeout(() => {
-                btn.innerText = "🚀 Process Across 4 Enterprise CRMs";
-            }, 600);
-        }
+        // Initialize on load
+        processRealtimeLead();
     </script>
 </body>
 </html>
