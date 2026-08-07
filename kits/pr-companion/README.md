@@ -14,18 +14,28 @@ turns it into something a reviewer can actually use, in seconds.
 
 ## How it works
 
-1. A single Lamatic flow (`flows/pr-companion.ts`) with one LLM node.
+1. A single Lamatic flow (` flows/pr-flow/ `) with one LLM node.
 2. The node takes `diff_or_files`, `commit_messages`, and an optional
    `intent` string as input.
 3. It returns structured Markdown following the four-section format defined
    in `prompts/pr-companion_llm-node_system.md`.
 4. A small Next.js app (`apps/`) provides a form for pasting in the diff and
    commits, and displays/copies the result.
+5. The exported Lamatic flow configuration is included in `flows/pr-flow/` so it can be imported and reused.
+   
+## Features
+
+- Generate conventional commit PR titles
+- Create structured PR descriptions
+- Produce reviewer checklists
+- Generate changelog entries
+- Works from git diffs or changed file lists
+- Runs locally or with a deployed Lamatic flow
 
 ## Run it locally
 
 ```bash
-cd kits/pr-companion/apps
+cd kits/pr-companion/apps/app
 cp .env.example .env.local   
 npm install
 npm run dev
@@ -52,4 +62,4 @@ npm run dev
 
 - Lamatic flow (single LLM node)
 - Next.js 14 (App Router) + TypeScript
-- `@lamatic/sdk` for calling the flow from a server action
+- Lamatic JavaScript SDK (`lamatic`)
