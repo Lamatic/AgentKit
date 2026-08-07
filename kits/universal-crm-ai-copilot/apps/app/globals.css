@@ -1,0 +1,20 @@
+:root {
+  --bg-main: #090d16;
+  --bg-card: #111827;
+  --bg-input: #0b0f19;
+  --border-color: #1e293b;
+  --border-input: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent-primary: #4f46e5;
+  --accent-secondary: #7c3aed;
+  --success-color: #10b981;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+}

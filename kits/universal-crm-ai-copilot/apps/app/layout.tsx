@@ -1,4 +1,5 @@
 import React from "react";
+import "./globals.css";
 
 export const metadata = {
   title: "Universal Multi-CRM AI Copilot — Lamatic.ai",
@@ -8,7 +9,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen">
+      <body className="antialiased">
         {children}
       </body>
     </html>
