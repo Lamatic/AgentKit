@@ -129,6 +129,8 @@ def test_universal_crm_copilot():
     assert output["status"] == "success", "Status must be success"
     assert output["leadScore"] >= 0, "Score must be at least 0"
     assert output["leadScore"] <= 100, "Score must be at most 100"
+    assert output["leadScore"] == 97, "Expected leadScore of 97 for $50k lead"
+    assert output["leadTier"] == "Tier A (Immediate Buying Intent)", "Expected Tier A (Immediate Buying Intent)"
     
     # Verify CRM endpoints
     assert output["crmPayloads"]["salesforce"]["endpoint"] == "/services/data/v58.0/sobjects/Lead"
