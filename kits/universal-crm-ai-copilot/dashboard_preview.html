@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Multi-CRM AI Copilot — Lamatic.ai Ultra Studio UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #060913;
+            --bg-card: #0d1322;
+            --bg-input: #080c17;
+            --border-color: #1e293b;
+            --border-glow: rgba(99, 102, 241, 0.4);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2.5rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            max-width: 1240px;
+            margin: 0 auto 2.5rem auto;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            padding: 0.45rem 1.2rem;
+            border-radius: 9999px;
+            color: #a5b4fc;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 0.75rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 760px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .grid {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #f1f5f9;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 0.85rem;
+            padding: 1.1rem;
+            color: #f8fafc;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            margin-bottom: 1.2rem;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 0.85rem;
+            padding: 0.95rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.7);
+        }
+
+        .preset-btn {
+            background: #161e31;
+            border: 1px solid #283553;
+            color: #94a3b8;
+            border-radius: 0.6rem;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-color: var(--accent-primary);
+        }
+
+        /* Score Meter */
+        .score-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .score-num {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--success-color);
+            letter-spacing: -0.03em;
+        }
+
+        .tier-tag {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 92%;
+            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+            border-radius: 9999px;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .tab-btn {
+            background: #161e31;
+            color: #94a3b8;
+            border: 1px solid transparent;
+            border-radius: 0.65rem;
+            padding: 0.55rem 1.1rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-primary);
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .payload-viewer {
+            position: relative;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 0.85rem;
+            padding: 1.25rem;
+        }
+
+        .endpoint-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .endpoint-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.4rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-copy {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            border-radius: 0.45rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        /* Outreach Cards */
+        .outreach-box {
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .outreach-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .outreach-card {
+            background: #080c17;
+            border: 1px solid #1e293b;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .outreach-card b {
+            color: #818cf8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="badge">✨ Lamatic.ai AgentKit Featured Intelligence Kit</div>
+        <h1 class="title">Universal Multi-CRM AI Copilot</h1>
+        <p class="subtitle">Normalize raw leads & call transcripts into <b>Salesforce SObject</b>, <b>SAP C/4HANA OData</b>, <b>Zoho CRM v2</b>, and <b>MS Dynamics Web API</b> with AI Intent Scoring (0–100).</p>
+    </div>
+
+    <div class="grid">
+        <!-- Input Panel -->
+        <div class="card">
+            <h2 class="card-title">⚡ Unstructured Prospect Data</h2>
+            <textarea id="leadInput" rows="9">Ashutosh Joshi, Head of AI Engineering at Swades / Enterprise AI. Email: ashutosh@example.com. Looking to purchase 500 licenses for multi-CRM automation ($50k-$100k budget) in the next 30 days.</textarea>
+            
+            <button class="btn-submit" onclick="runAnalysis()">
+                🚀 Process Across 4 Enterprise CRMs
+            </button>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 800; margin-bottom: 0.6rem;">⚡ Preset Sample Leads:</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="preset-btn" onclick="loadSample(1)">Sample 1: Enterprise Lead</button>
+                    <button class="preset-btn" onclick="loadSample(2)">Sample 2: Voice AI Startup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="card">
+            <!-- Intent Gauge -->
+            <div class="score-box">
+                <div class="score-header">
+                    <div>
+                        <div style="font-size: 0.75rem; color: #34d399; font-weight: 800; text-transform: uppercase;">AI INTENT SCORE</div>
+                        <div class="score-num" id="scoreNum">92 / 100</div>
+                    </div>
+                    <span class="tier-tag" id="tierTag">Tier A (High Velocity)</span>
+                </div>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="meterFill"></div>
+                </div>
+            </div>
+
+            <!-- CRM Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchCRM('salesforce', this)">Salesforce</button>
+                <button class="tab-btn" onclick="switchCRM('sap', this)">SAP C/4HANA</button>
+                <button class="tab-btn" onclick="switchCRM('zoho', this)">Zoho CRM</button>
+                <button class="tab-btn" onclick="switchCRM('dynamics365', this)">MS Dynamics 365</button>
+            </div>
+
+            <!-- Active Payload Viewer -->
+            <div class="payload-viewer">
+                <div class="endpoint-bar">
+                    <span class="endpoint-text" id="endpointText">/services/data/v58.0/sobjects/Lead</span>
+                    <button class="btn-copy" onclick="copyJSON()">📋 Copy JSON Payload</button>
+                </div>
+                <pre id="jsonViewer">{
+  "FirstName": "Ashutosh",
+  "LastName": "Joshi",
+  "Company": "Swades / Enterprise AI",
+  "Title": "Head of AI Engineering",
+  "Email": "ashutosh@example.com",
+  "Status": "Open - Contacted",
+  "LeadSource": "Lamatic Multi-CRM AI Copilot",
+  "AnnualRevenue": 100000,
+  "Rating": "Hot"
+}</pre>
+            </div>
+
+            <!-- Multi-Channel Outreach Engine -->
+            <div class="outreach-box">
+                <div class="outreach-title">📞 AI Multi-Channel Outreach Generation</div>
+                <div class="outreach-card">
+                    <div><b>Email Subject:</b> <span id="emailSub">Accelerating Swades CRM Operations with Lamatic Multi-CRM Copilot</span></div>
+                    <div style="margin-top: 0.5rem;"><b>Voice Script:</b> <span id="voiceScript">Hello Ashutosh, this is your AI Sales Assistant following up on your request to integrate Salesforce, SAP, and Dynamics 365.</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const crmData = {
+            salesforce: {
+                endpoint: "/services/data/v58.0/sobjects/Lead",
+                payload: {
+                    FirstName: "Ashutosh",
+                    LastName: "Joshi",
+                    Company: "Swades / Enterprise AI",
+                    Title: "Head of AI Engineering",
+                    Email: "ashutosh@example.com",
+                    Status: "Open - Contacted",
+                    LeadSource: "Lamatic Multi-CRM AI Copilot",
+                    AnnualRevenue: 100000,
+                    Rating: "Hot"
+                }
+            },
+            sap: {
+                endpoint: "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_BusinessPartner",
+                payload: {
+                    BusinessPartnerFullName: "Ashutosh Joshi",
+                    BusinessPartnerCategory: "2",
+                    OrganizationName1: "Swades / Enterprise AI",
+                    Industry: "SOFTWARE",
+                    SearchTerm1: "AI-COPILOT",
+                    Address: {
+                        EMailAddress: "ashutosh@example.com",
+                        Country: "IN"
+                    }
+                }
+            },
+            zoho: {
+                endpoint: "/crm/v2/Leads",
+                payload: {
+                    data: [
+                        {
+                            First_Name: "Ashutosh",
+                            Last_Name: "Joshi",
+                            Company: "Swades / Enterprise AI",
+                            Designation: "Head of AI Engineering",
+                            Email: "ashutosh@example.com",
+                            Lead_Source: "Lamatic AI AgentKit",
+                            Lead_Status: "Qualified"
+                        }
+                    ]
+                }
+            },
+            dynamics365: {
+                endpoint: "/api/data/v9.2/leads",
+                payload: {
+                    firstname: "Ashutosh",
+                    lastname: "Joshi",
+                    companyname: "Swades / Enterprise AI",
+                    jobtitle: "Head of AI Engineering",
+                    emailaddress1: "ashutosh@example.com",
+                    leadqualitycode: 1,
+                    estimatedamount: 100000
+                }
+            }
+        };
+
+        function switchCRM(key, el) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('endpointText').innerText = crmData[key].endpoint;
+            document.getElementById('jsonViewer').innerText = JSON.stringify(crmData[key].payload, null, 2);
+        }
+
+        function copyJSON() {
+            const code = document.getElementById('jsonViewer').innerText;
+            navigator.clipboard.writeText(code);
+            alert("✅ Copied CRM JSON Payload to Clipboard!");
+        }
+
+        function loadSample(num) {
+            if(num === 1) {
+                document.getElementById('leadInput').value = "Ashutosh Joshi, Head of AI Engineering at Swades / Enterprise AI. Email: ashutosh@example.com. Looking to purchase 500 licenses for multi-CRM automation ($50k-$100k budget) in the next 30 days.";
+            } else {
+                document.getElementById('leadInput').value = "Simeon Mark, CEO of Telentir AI. Email: simeon@telentir.team. Wants AI phone agents integrated with Salesforce & Dynamics 365. Urgent requirement.";
+            }
+        }
+
+        function runAnalysis() {
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = "⚡ Normalizing & Scoring with AI...";
+            setTimeout(() => {
+                btn.innerText = "🚀 Process Across 4 Enterprise CRMs";
+            }, 600);
+        }
+    </script>
+</body>
+</html>
