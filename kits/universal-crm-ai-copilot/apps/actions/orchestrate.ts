@@ -14,88 +14,91 @@ export async function processCrmLead(leadText: string) {
     const answer = resData?.result?.answer || resData?.output?.answer;
 
     if (!answer) {
-      // Fallback demo response if execution returns default output structure
-      return {
-        success: true,
-        data: {
-          status: "success",
-          leadScore: 92,
-          leadTier: "Tier A (High Velocity)",
-          extractedLead: {
-            name: "Ashutosh Joshi",
-            email: "ashutosh@example.com",
-            company: "Swades / Enterprise AI",
-            jobTitle: "Head of AI Engineering",
-            industry: "Enterprise AI & CRM Automation",
-            budget: "$50,000 - $100,000",
-            urgency: "Immediate (Next 30 Days)"
-          },
-          crmPayloads: {
-            salesforce: {
-              endpoint: "/services/data/v58.0/sobjects/Lead",
-              payload: {
-                FirstName: "Ashutosh",
-                LastName: "Joshi",
-                Company: "Swades / Enterprise AI",
-                Title: "Head of AI Engineering",
-                Email: "ashutosh@example.com",
-                Status: "Open - Contacted",
-                LeadSource: "Lamatic Multi-CRM AI Copilot",
-                AnnualRevenue: 100000,
-                Rating: "Hot"
-              }
+      // Return structured demo data when running in local demo mode or workflow fallback
+      if (process.env.NODE_ENV === "development" || !process.env.LAMATIC_API_KEY) {
+        return {
+          success: true,
+          data: {
+            status: "success",
+            leadScore: 92,
+            leadTier: "Tier A (High Velocity)",
+            extractedLead: {
+              name: "Lead Prospect",
+              email: "prospect@enterprise.com",
+              company: "Enterprise Corp",
+              jobTitle: "Head of Infrastructure",
+              industry: "Enterprise Software",
+              budget: "$50,000 - $100,000",
+              urgency: "Immediate"
             },
-            sap: {
-              endpoint: "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_BusinessPartner",
-              payload: {
-                BusinessPartnerFullName: "Ashutosh Joshi",
-                BusinessPartnerCategory: "2",
-                OrganizationName1: "Swades / Enterprise AI",
-                Industry: "SOFTWARE",
-                SearchTerm1: "AI-COPILOT",
-                Address: {
-                  EMailAddress: "ashutosh@example.com",
-                  Country: "IN"
+            crmPayloads: {
+              salesforce: {
+                endpoint: "/services/data/v58.0/sobjects/Lead",
+                payload: {
+                  FirstName: "Lead",
+                  LastName: "Prospect",
+                  Company: "Enterprise Corp",
+                  Title: "Head of Infrastructure",
+                  Email: "prospect@enterprise.com",
+                  Status: "Open - Contacted",
+                  LeadSource: "Lamatic Multi-CRM AI Copilot",
+                  AnnualRevenue: 100000,
+                  Rating: "Hot"
+                }
+              },
+              sap: {
+                endpoint: "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_BusinessPartner",
+                payload: {
+                  BusinessPartnerFullName: "Lead Prospect",
+                  BusinessPartnerCategory: "2",
+                  OrganizationName1: "Enterprise Corp",
+                  Industry: "SOFTWARE",
+                  SearchTerm1: "AI-COPILOT",
+                  Address: {
+                    EMailAddress: "prospect@enterprise.com",
+                    Country: "US"
+                  }
+                }
+              },
+              zoho: {
+                endpoint: "/crm/v2/Leads",
+                payload: {
+                  data: [
+                    {
+                      First_Name: "Lead",
+                      Last_Name: "Prospect",
+                      Company: "Enterprise Corp",
+                      Designation: "Head of Infrastructure",
+                      Email: "prospect@enterprise.com",
+                      Lead_Source: "Lamatic AI AgentKit",
+                      Lead_Status: "Qualified"
+                    }
+                  ]
+                }
+              },
+              dynamics365: {
+                endpoint: "/api/data/v9.2/leads",
+                payload: {
+                  firstname: "Lead",
+                  lastname: "Prospect",
+                  companyname: "Enterprise Corp",
+                  jobtitle: "Head of Infrastructure",
+                  emailaddress1: "prospect@enterprise.com",
+                  leadqualitycode: 1,
+                  estimatedamount: 100000
                 }
               }
             },
-            zoho: {
-              endpoint: "/crm/v2/Leads",
-              payload: {
-                data: [
-                  {
-                    First_Name: "Ashutosh",
-                    Last_Name: "Joshi",
-                    Company: "Swades / Enterprise AI",
-                    Designation: "Head of AI Engineering",
-                    Email: "ashutosh@example.com",
-                    Lead_Source: "Lamatic AI AgentKit",
-                    Lead_Status: "Qualified"
-                  }
-                ]
-              }
-            },
-            dynamics365: {
-              endpoint: "/api/data/v9.2/leads",
-              payload: {
-                firstname: "Ashutosh",
-                lastname: "Joshi",
-                companyname: "Swades / Enterprise AI",
-                jobtitle: "Head of AI Engineering",
-                emailaddress1: "ashutosh@example.com",
-                leadqualitycode: 1,
-                estimatedamount: 100000
-              }
+            outreach: {
+              emailSubject: "Accelerating CRM Operations with Lamatic Multi-CRM Copilot",
+              emailBody: "Hi Lead,\n\nNotice you are expanding enterprise AI infrastructure. Our Multi-CRM engine seamlessly bridges Salesforce, SAP, Zoho, and Dynamics 365.\n\nBest,\nSales Engineering",
+              linkedinNote: "Hi Lead, let's connect on unifying multi-CRM AI pipelines.",
+              voiceScript: "Hello Lead, this is your AI Sales Assistant following up on your request to integrate Salesforce, SAP, and Dynamics 365."
             }
-          },
-          outreach: {
-            emailSubject: "Accelerating Swades CRM Operations with Lamatic Multi-CRM Copilot",
-            emailBody: "Hi Ashutosh,\n\nNotice you are expanding enterprise AI infrastructure at Swades. Our Multi-CRM engine seamlessly bridges Salesforce, SAP, Zoho, and Dynamics 365.\n\nBest,\nSales Engineering",
-            linkedinNote: "Hi Ashutosh, loved your work on Salesforce Extractor! Let's connect on unifying multi-CRM AI pipelines.",
-            voiceScript: "Hello Ashutosh, this is your AI Sales Assistant following up on your request to integrate Salesforce, SAP, and Dynamics 365. Are you free for a 5-minute call today?"
           }
-        }
-      };
+        };
+      }
+      throw new Error("No response output returned from Lamatic workflow execution.");
     }
 
     return {

@@ -26,9 +26,9 @@ Deploy an AI-powered CRM Lead Intelligence & Dispatch Engine in minutes with Lam
 
 3. Fill in your Lamatic credentials in `.env.local`:
    ```env
-   UNIVERSAL_CRM_AI_COPILOT=6f844470-e9cb-48a0-93b6-870669c77790
-   LAMATIC_PROJECT_ID=e304d4a0-c07b-43ff-b653-18e0a838f7b3
-   LAMATIC_API_KEY=lt-776a06294e47d6a9b2d953791390a8ea
+   UNIVERSAL_CRM_AI_COPILOT=your_flow_id_here
+   LAMATIC_PROJECT_ID=your_project_id_here
+   LAMATIC_API_KEY=your_api_key_here
    LAMATIC_API_URL=https://api.lamatic.ai
    ```
 

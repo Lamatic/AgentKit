@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { processCrmLead } from "@/actions/orchestrate";
-import { Sparkles, Building2, Zap, Send, CheckCircle2, Copy, Layers, PhoneCall, Mail, Linkedin } from "lucide-react";
+import { Sparkles, Building2, Zap, Send, CheckCircle2, Copy, Layers, PhoneCall, AlertCircle } from "lucide-react";
 
 export default function Page() {
   const [leadText, setLeadText] = useState(
@@ -10,26 +10,39 @@ export default function Page() {
   );
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"salesforce" | "sap" | "zoho" | "dynamics365">("salesforce");
   const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const res = await processCrmLead(leadText);
-    setLoading(false);
-    if (res.success) {
-      setResult(res.data);
+    setErrorMessage(null);
+    try {
+      const res = await processCrmLead(leadText);
+      if (res.success) {
+        setResult(res.data);
+      } else {
+        setErrorMessage(res.error || "Failed to process lead.");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const activePayload = result?.crmPayloads?.[activeTab];
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (activePayload) {
-      navigator.clipboard.writeText(JSON.stringify(activePayload.payload, null, 2));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(activePayload.payload, null, 2));
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Clipboard copy failed:", err);
+      }
     }
   };
 
@@ -50,7 +63,7 @@ export default function Page() {
 
       {/* Main Grid */}
       <div style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: "2rem" }}>
-        
+
         {/* Input Form */}
         <div style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: "1rem", padding: "1.5rem", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.5)" }}>
           <h2 style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem", color: "#e2e8f0" }}>
@@ -64,6 +77,11 @@ export default function Page() {
               placeholder="Paste lead email, call transcript, or web form inquiry here..."
               style={{ width: "100%", background: "#0b0f19", border: "1px solid #334155", borderRadius: "0.75rem", padding: "1rem", color: "#f8fafc", fontSize: "0.95rem", resize: "vertical", outline: "none", marginBottom: "1rem" }}
             />
+            {errorMessage && (
+              <div style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "0.5rem", padding: "0.75rem", color: "#fca5a5", fontSize: "0.85rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <AlertCircle size={16} /> {errorMessage}
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}

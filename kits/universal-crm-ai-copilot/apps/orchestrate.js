@@ -1,5 +1,3 @@
-import configData from '../lamatic.config.ts';
-
 export const config = {
   api: {
     endpoint: process.env.LAMATIC_API_URL || "https://api.lamatic.ai",
@@ -8,7 +6,7 @@ export const config = {
   },
   flows: {
     "universal-crm-ai-copilot": {
-      name: configData.name,
+      name: "Universal Multi-CRM AI Copilot",
       workflowId: process.env.UNIVERSAL_CRM_AI_COPILOT
     }
   }
