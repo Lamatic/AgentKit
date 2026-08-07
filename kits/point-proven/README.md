@@ -231,6 +231,13 @@ curl -sS -X POST "$LAMATIC_API_URL/v1/flow/$SYNTHESIZE_DIGEST_FLOW_ID/execute" \
 | `agent.md` | Agent identity and operational reference |
 | `apps/` | Next.js UI + `apps/.env.example` → copy to `apps/.env.local` |
 
+## Desired output:
+### Indexed Source
+![Indexed Source](./docs/indexed_source.png)
+
+### Built Brief
+![Built Brief](./docs/built_brief.png)
+
 ---
 
 *Contribution type: `kit` (flows + `apps/`).*
