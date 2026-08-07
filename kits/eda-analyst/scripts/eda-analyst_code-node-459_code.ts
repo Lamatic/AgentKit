@@ -11,12 +11,13 @@ function _isNum(c){ return c && c.type==="numeric"; }
 // far too many groups for a meaningful comparison.
 function _cat(c){ return c && (c.type==="categorical"||c.type==="boolean"||c.type==="numeric") && c.cardinality<=20; }
 // Which method mix the schema can actually support, so we never demand an
-// impossible task (compare needs a low-cardinality column; relationship needs
-// two eligible numeric columns). Plan-level check; not part of the 443 mirror.
+// impossible task. compare needs BOTH a low-cardinality groupBy AND an eligible
+// (numeric/boolean) measure, matching validateTask; relationship needs two
+// eligible numeric columns. Plan-level check; not part of the 443 mirror.
 function _planCapabilities(p){
-  const cols=(p&&p.columns)||[]; let numeric=0, hasCat=false, analyzable=0;
-  for(let i=0;i<cols.length;i++){ const c=cols[i]; if(!c||c.isLikelyId) continue; analyzable++; if(_isNum(c)) numeric++; if(_cat(c)) hasCat=true; }
-  return { distribution: analyzable>=1, compare: hasCat, relationship: numeric>=2, analyzable: analyzable };
+  const cols=(p&&p.columns)||[]; let numeric=0, hasGroup=false, hasMeasure=false, analyzable=0;
+  for(let i=0;i<cols.length;i++){ const c=cols[i]; if(!c||c.isLikelyId) continue; analyzable++; if(_isNum(c)) numeric++; if(_cat(c)) hasGroup=true; if(_isNum(c)||c.type==="boolean") hasMeasure=true; }
+  return { distribution: analyzable>=1, compare: hasGroup&&hasMeasure, relationship: numeric>=2, analyzable: analyzable };
 }
 // AUTHORITATIVE, reason-returning task validator. A boolean mirror lives in
 // scripts/eda-analyst_code-node-443_code.ts (MergeInsights). Keep the two in sync.
