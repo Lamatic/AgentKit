@@ -17,8 +17,8 @@ export interface StreamInvestigationOptions {
  * Next.js today (it gets awaited/serialized, not streamed). Fetch + a
  * ReadableStream body is the well-trodden way to stream progressive JSON
  * from an app-router server to a client component, so that's what this
- * module assumes. See apps/app/_MODULE_E_NOTES.md for the exact contract
- * (`POST /api/investigate`) this function expects to exist server-side.
+ * module assumes. The contract it expects server-side is
+ * `POST /api/investigate` (see apps/app/api/investigate/route.ts).
  *
  * This function is the ONLY place that knows the transport shape — swap it
  * for a direct server-action call later without touching any component.

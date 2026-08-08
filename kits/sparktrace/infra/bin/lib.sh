@@ -48,10 +48,22 @@ require_aws() {
     || die "AWS credentials not working. Put deployer keys in infra/.env (or set an AWS profile), then retry."
 }
 
-stack_output() {  # stack_output <OutputKey>  -> value (empty if stack/output absent)
-  aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
-    --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue | [0]" --output text 2>/dev/null \
-    | sed 's/^None$//'
+# stack_output <OutputKey> -> value, or empty when the stack or that output is
+# genuinely absent (callers rely on empty for conditional outputs like
+# AppUserName). Any OTHER AWS failure reports the cause and returns non-zero,
+# so a transient error can't masquerade as "no such output" — the same trap
+# stack_status avoids below.
+stack_output() {
+  local out
+  if out="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+              --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue | [0]" --output text 2>&1)"; then
+    printf '%s' "$out" | sed 's/^None$//'
+    return 0
+  fi
+  case "$out" in
+    *"does not exist"*) return 0 ;;
+    *) printf 'stack_output(%s): %s\n' "$1" "$out" >&2; return 1 ;;
+  esac
 }
 
 # Echoes the stack status; DOES_NOT_EXIST only when the stack is genuinely
