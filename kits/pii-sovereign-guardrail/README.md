@@ -36,16 +36,22 @@ of what this does and does not cover, and
 guardrails the flow must never violate (e.g. fail closed, never persist
 the token map).
 
+## Demo ![PII Guardrail demo](./docs/demo.png) *Left: what leaves your infrastructure (masked). Right: what the caller actually receives (rehydrated).*
+
 ## Structure
+
+```
 pii-sovereign-guardrail/
-├── lamatic.config.ts # kit metadata
-├── agent.md # capability doc (read this first)
-├── constitutions/default.md # hard guardrails
-├── flows/pii-sovereign-guardrail.ts # flow graph — real Lamatic Studio export
-├── scripts/ # masking/rehydration logic (real, working)
-├── prompts/ # Layer 2 NER prompts
-├── model-configs/ # LLM configs per node
-└── apps/ # Next.js demo — live masking visualization
+- lamatic.config.ts (kit metadata)
+- agent.md (capability doc, read this first)
+- constitutions/default.md (hard guardrails)
+- flows/pii-sovereign-guardrail.ts (flow graph, real Lamatic Studio export)
+- scripts/ (masking/rehydration logic, real, working
+- prompts/ (Layer 2 NER prompts)
+- model-configs/ (LLM configs per node)
+- apps/ (Next.js demo, live masking visualization)
+
+```
 
 This flow is built, deployed, and tested end-to-end in Lamatic Studio.
 Everything in `flows/`, `scripts/`, `prompts/`, `model-configs/`, and
