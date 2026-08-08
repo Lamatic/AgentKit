@@ -11,6 +11,7 @@ one command down.
 > never committed.
 
 ## 💸 Cost — why you won't wake up to a bill
+
 - **Nothing here bills by the hour.** No EC2, NAT, RDS, Kinesis, endpoints —
   none of the usual "forgot to turn it off" money pits.
 - **S3**: a few KB of CSVs + query results (results auto-expire after 7 days). ~$0.
@@ -22,6 +23,7 @@ one command down.
 - `bin/down.sh` deletes **everything**. `bin/status.sh` shows what's live.
 
 ## Prerequisites
+
 - AWS CLI v2 (already installed here) + deployer credentials.
 - Deployer creds need: CloudFormation, S3, Glue, Athena, and — if
   `CREATE_APP_USER=true` (default) — IAM user/policy/access-key permissions. If
@@ -29,6 +31,7 @@ one command down.
   creds.
 
 ## Usage
+
 ```bash
 cd kits/sparktrace/infra      # (or wherever the kit lives)
 cp .env.example .env          # then paste your DEPLOYER aws keys into .env
@@ -39,6 +42,7 @@ bash bin/down.sh          # tear it ALL down
 ```
 
 ## What `up.sh` does
+
 1. Deploys `cloudformation/sparktrace.yaml` (S3 + Glue `raw`/`finance` DBs + 3
    tables + `sparktrace-readonly` Athena workgroup + optional read-only IAM user).
 2. Uploads `../assets/sample-scenario/data/*.csv` (the kit's sample data) to S3.
@@ -50,15 +54,23 @@ Then, in live mode, the app points at `raw.orders`, `raw.dim_customer`, and
 `finance.daily_revenue` on real Athena.
 
 ## Security
+
 - `.env` (deployer keys) and the generated `apps/.env.local` (app key) are
   **gitignored** and never committed.
+- **No credential is ever published in CloudFormation Outputs.** Stack outputs
+  are readable by anyone with `cloudformation:DescribeStacks`, so the app's
+  access key is minted by `bin/write-env.sh` via `aws iam create-access-key`
+  (the secret is returned once, straight into `.env.local`) rather than by a
+  CFN `AWS::IAM::AccessKey` resource. `bin/down.sh` deletes outstanding keys
+  during teardown.
 - The app runs as a **least-privilege read-only** IAM user: Athena query +
   Glue read + S3 read on data / write only to the results prefix. It cannot
   write your data or create billable resources — a hard backstop under
   SparkTrace's own read-only query guard.
 
 ## Files
-```
+
+```text
 infra/
   cloudformation/sparktrace.yaml   # the whole stack (edit here to change infra)
   bin/up.sh  down.sh  status.sh  smoke.sh  write-env.sh  lib.sh

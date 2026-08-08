@@ -240,11 +240,13 @@ Resources:
                   - s3:PutObject
                 Resource: !Sub "${DataBucket.Arn}/athena-results/*"
 
-  AppAccessKey:
-    Type: AWS::IAM::AccessKey
-    Condition: MakeAppUser
-    Properties:
-      UserName: !Ref AppUser
+  # NOTE: no AWS::IAM::AccessKey here on purpose. A CloudFormation-created key
+  # can only be handed to the caller through Outputs, and stack outputs are
+  # readable by any principal with cloudformation:DescribeStacks — publishing a
+  # live secret access key (CWE-200). Instead `bin/write-env.sh` mints the key
+  # with `aws iam create-access-key` at deploy time, where the secret is
+  # returned exactly once and goes straight into the gitignored .env.local.
+  # `bin/down.sh` deletes any outstanding keys before the stack is torn down.
 
 # ---------------------------------------------------------------------------
 # Outputs — consumed by bin/write-env.sh to generate the app .env.local.
@@ -265,11 +267,9 @@ Outputs:
   AwsRegion:
     Description: Region the stack was deployed to.
     Value: !Ref AWS::Region
-  AppAccessKeyId:
+  AppUserName:
     Condition: MakeAppUser
-    Description: Access key id for the read-only app user.
-    Value: !Ref AppAccessKey
-  AppSecretAccessKey:
-    Condition: MakeAppUser
-    Description: Secret access key for the read-only app user (sensitive).
-    Value: !GetAtt AppAccessKey.SecretAccessKey
+    Description: >
+      Read-only IAM user the app authenticates as. bin/write-env.sh mints its
+      access key at deploy time; no credential is published in these outputs.
+    Value: !Ref AppUser

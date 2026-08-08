@@ -54,7 +54,19 @@ stack_output() {  # stack_output <OutputKey>  -> value (empty if stack/output ab
     | sed 's/^None$//'
 }
 
+# Echoes the stack status; DOES_NOT_EXIST only when the stack is genuinely
+# absent. Any other failure (AccessDenied, throttling, network) echoes
+# AWS_ERROR and reports the cause on stderr — never a false "nothing to do",
+# which would let down.sh claim success while resources stay deployed.
 stack_status() {
-  aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
-    --query "Stacks[0].StackStatus" --output text 2>/dev/null || echo "DOES_NOT_EXIST"
+  local out
+  if out="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+              --query "Stacks[0].StackStatus" --output text 2>&1)"; then
+    printf '%s\n' "$out"
+    return 0
+  fi
+  case "$out" in
+    *"does not exist"*) printf 'DOES_NOT_EXIST\n' ;;
+    *) printf 'AWS_ERROR\n'; printf 'stack_status: %s\n' "$out" >&2 ;;
+  esac
 }
