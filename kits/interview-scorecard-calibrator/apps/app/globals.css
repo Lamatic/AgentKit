@@ -9,6 +9,28 @@
   --accent-soft: #ccfbf1;
   --border: #dbe3ee;
   --muted: #64748b;
+  --input: #e2e8f0;
+  --ring: #0f766e;
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #334155;
+  --destructive: #e11d48;
+  --rec-hire-bg: #d1fae5;
+  --rec-hire-fg: #065f46;
+  --rec-hire-border: #a7f3d0;
+  --rec-lean-hire-bg: #ccfbf1;
+  --rec-lean-hire-fg: #115e59;
+  --rec-lean-hire-border: #99f6e4;
+  --rec-lean-no-bg: #fef3c7;
+  --rec-lean-no-fg: #78350f;
+  --rec-lean-no-border: #fde68a;
+  --rec-no-hire-bg: #ffe4e6;
+  --rec-no-hire-fg: #9f1239;
+  --rec-no-hire-border: #fecdd3;
+  --rec-fallback-bg: #f1f5f9;
+  --rec-fallback-fg: #334155;
+  --rec-fallback-border: #e2e8f0;
 }
 
 @theme inline {
