@@ -152,6 +152,9 @@ export default function Page() {
                     disabled={loading}
                     {...register("level")}
                   />
+                  {errors.level && (
+                    <p className="text-sm text-rose-600">{errors.level.message}</p>
+                  )}
                 </label>
               </div>
 
