@@ -30,39 +30,3 @@ informed decision about what still needs a human review step.
 3. **Token re-hydration** — a per-request token map (never persisted,
    never sent externally) restores the original values into the model's
    response before it reaches the caller.
-4. **Redaction receipt** — the response includes a `tokensRedacted` count
-   and a breakdown by layer/type, so callers can audit what was masked on
-   every request.
-
-## What this agent is NOT
-
-- Not a replacement for a proper DLP (Data Loss Prevention) system in
-  regulated environments (HIPAA/PCI-scope data needs dedicated tooling).
-- Not guaranteed to catch every unstructured mention of PII — Layer 2
-  is probabilistic and should be treated as a strong second line of
-  defense, not a certainty.
-- Not a logging/audit-trail solution by itself — pair it with your existing
-  observability stack if you need compliance-grade audit logs.
-
-## Flow
-
-`flows/pii-guardrail.ts` implements:
-
-```
-rawUserPrompt, targetModel
-      │
-      ▼
-[codeNode] maskDeterministic   → regex pass: emails, keys, phones, cards
-      │
-      ▼
-[LLMNode]  maskEntities         → NER pass: names, addresses, free-text PII
-      │
-      ▼
-[LLMNode]  generate              → sends masked prompt to targetModel
-      │
-      ▼
-[codeNode] rehydrate             → restores original values from token map
-      │
-      ▼
-secureResponse, tokensRedacted
-```
