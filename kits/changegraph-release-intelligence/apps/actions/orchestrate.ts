@@ -34,6 +34,11 @@ export interface OrchestrateChangeGraphResult {
   warnings: string[];
 }
 
+export interface FlowExecutionObserver {
+  onAttempt?: () => void;
+  onComplete?: () => void;
+}
+
 interface LamaticResponseLike {
   status?: unknown;
   result?: unknown;
@@ -515,6 +520,7 @@ function buildDeterministicFallbackSemanticAnalysis(
  */
 export async function orchestrateChangeGraph(
   input: OrchestrateChangeGraphInput,
+  executionObserver?: FlowExecutionObserver,
 ): Promise<OrchestrateChangeGraphResult> {
   const flowPurpose = requireText(
     input.flowPurpose,
@@ -554,6 +560,8 @@ export async function orchestrateChangeGraph(
   /*
    * Flow 1: semantic impact analysis
    */
+  executionObserver?.onAttempt?.();
+
   const analysisResponse =
     await executeLamaticFlow(
       analyzeFlowId,
@@ -566,6 +574,8 @@ export async function orchestrateChangeGraph(
         releaseContext,
       },
     );
+
+  executionObserver?.onComplete?.();
 
   const warnings: string[] = [];
 
@@ -610,6 +620,8 @@ export async function orchestrateChangeGraph(
   const deterministicRisk =
     input.changePackage.riskAssessment;
 
+  executionObserver?.onAttempt?.();
+
   const releasePlanResponse =
     await executeLamaticFlow(
       releasePlanFlowId,
@@ -635,6 +647,8 @@ export async function orchestrateChangeGraph(
           deterministicRisk.decision,
       },
     );
+
+  executionObserver?.onComplete?.();
 
   let generatedReleasePlan: ReleasePlan;
 
