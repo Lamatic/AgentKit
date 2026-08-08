@@ -153,9 +153,19 @@ export class AthenaQueryExecutor implements QueryExecutor {
         };
       }
 
-      // Page through results, capping at MAX_ROWS. Athena includes the
-      // header row (column names) as the first data row of the first
-      // page for SELECT-shaped queries — skip it.
+      // Page through results, capping at MAX_ROWS. Athena repeats the column
+      // names as the first data row of the first page — but ONLY for
+      // SELECT-shaped results. DESCRIBE / SHOW / EXPLAIN (all permitted by
+      // the query guard) return real data in row 0, so stripping it there
+      // would silently discard a row.
+      const leadingKeyword = query.sql
+        .replace(/^﻿/, "")
+        .replace(/^\s*(?:--[^\n]*\n|\/\*[\s\S]*?\*\/|\s)*/, "")
+        .slice(0, 16)
+        .trimStart()
+        .toUpperCase();
+      const hasHeaderRow = /^(SELECT|WITH)\b/.test(leadingKeyword);
+
       let columns: string[] = [];
       let rows: Array<Record<string, unknown>> = [];
       let nextToken: string | undefined;
@@ -167,7 +177,10 @@ export class AthenaQueryExecutor implements QueryExecutor {
           new GetQueryResultsCommand({
             QueryExecutionId: queryExecutionId,
             NextToken: nextToken,
-            MaxResults: Math.min(1000, MAX_ROWS - rows.length + (isFirstPage ? 1 : 0)),
+            MaxResults: Math.min(
+              1000,
+              MAX_ROWS - rows.length + (isFirstPage && hasHeaderRow ? 1 : 0)
+            ),
           })
         );
 
@@ -178,8 +191,8 @@ export class AthenaQueryExecutor implements QueryExecutor {
 
         let pageRows: Row[] = page.ResultSet?.Rows ?? [];
         if (isFirstPage) {
-          if (pageRows.length > 0) {
-            pageRows = pageRows.slice(1); // drop header row
+          if (hasHeaderRow && pageRows.length > 0) {
+            pageRows = pageRows.slice(1); // drop the repeated column-name row
           }
           // Flip regardless of whether this page had rows, so an empty
           // first page can't cause the *next* page's first row to be

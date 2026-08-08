@@ -45,8 +45,7 @@
  * directly from server-side code only (a Route Handler, RSC, or
  * another server action that adapts the event stream into something
  * serializable, e.g. SSE) — see apps/app/api/investigate/route.ts,
- * which is the existing consumer and is unchanged by this rewrite.
- * See _MODULE_C_NOTES.md for the full dependency-wiring notes.
+ * which is the existing consumer.
  */
 
 import type {
@@ -313,18 +312,12 @@ export async function* runInvestigation(
  * is an async function returning `Promise<OrchestratorDeps>` rather
  * than a sync `OrchestratorDeps` — call it with `await`.
  *
- * TODO(integration): the import paths/export names below are my best
- * read of the v2 module map. Confirm each against what Modules B and D
- * actually export; see _MODULE_C_NOTES.md for the full list.
- *
  * Step ids/envKeys (sparktrace-planner, sparktrace-repo-reader,
  * sparktrace-query-gen, sparktrace-analyst, sparktrace-reporter) are
  * declared once, as the canonical source of truth, in the parent kit's
- * `../../lamatic.config` — not re-imported here because that file lives
- * outside the Next.js app root (`apps/`, the deployed root-directory)
- * and isn't guaranteed to be bundled/reachable at runtime; duplicating
- * the flow-id env var names as string literals in lamatic-client.ts
- * (SPARKTRACE_*_FLOW_ID) avoids that cross-boundary import risk.
+ * `../../lamatic.config`. `lib/lamatic-client.ts` imports it and resolves
+ * each step's `envKey` from there, so the flow-id env var names
+ * (SPARKTRACE_*_FLOW_ID) are never duplicated as literals.
  */
 export async function buildDeps(mode: ExecutionMode): Promise<OrchestratorDeps> {
   // apps/lib/safety/query-guard.ts — Module B, pure function, no deps.

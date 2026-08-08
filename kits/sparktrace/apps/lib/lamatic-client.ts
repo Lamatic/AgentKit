@@ -29,11 +29,11 @@
  * partially-configured live setup from failing at import time.
  *
  * NOTE: this module makes real network calls when its methods are
- * invoked. It is not exercised in this change — see
- * apps/actions/_MODULE_C_NOTES.md.
+ * invoked; demo mode never reaches it.
  */
 
 import { Lamatic } from "lamatic";
+import lamaticConfig from "../../lamatic.config";
 import type {
   CompactResult,
   DiagnosticQuery,
@@ -69,6 +69,23 @@ import type {
  * hung or unexpectedly slow flow forever.
  */
 const FLOW_TIMEOUT_MS = 60_000;
+
+/**
+ * Resolve a step's flow-id env var name from the parent kit's
+ * `lamatic.config.ts`, which declares `steps[].envKey` as the canonical
+ * mapping. Reading it here (rather than duplicating the literals) keeps the
+ * config the single source of truth, per CONTRIBUTING.md.
+ */
+function envKeyForStep(stepId: string): string {
+  const step = lamaticConfig.steps.find((s) => s.id === stepId);
+  if (!step?.envKey) {
+    throw new Error(
+      `[lamatic-client] step "${stepId}" has no envKey in lamatic.config.ts — ` +
+        `add it to steps[] so the flow id can be resolved.`
+    );
+  }
+  return step.envKey;
+}
 
 function requireEnv(name: string, flowLabel: string): string {
   const value = process.env[name];
@@ -514,7 +531,7 @@ class LamaticClientReasoner implements LamaticReasoner {
     hypothesesTried: Hypothesis[];
   }): Promise<PlannerDecision> {
     const flowLabel = "sparktrace-planner";
-    const raw = await this.callFlow("SPARKTRACE_PLANNER_FLOW_ID", flowLabel, {
+    const raw = await this.callFlow(envKeyForStep("sparktrace-planner"), flowLabel, {
       symptom: input.symptom,
       // Slimmed: summary/tables/dag/paths only — the planner picks a
       // hypothesis/focus, it doesn't need every file's full body.
@@ -530,7 +547,7 @@ class LamaticClientReasoner implements LamaticReasoner {
     // Intentionally NOT sanitized: readRepo's whole job is to read real file
     // content for the requested focus area, so it gets the full pipeline
     // (including PipelineFile.content) unlike the other flows.
-    const raw = await this.callFlow("SPARKTRACE_REPO_READER_FLOW_ID", flowLabel, {
+    const raw = await this.callFlow(envKeyForStep("sparktrace-repo-reader"), flowLabel, {
       symptom: input.symptom,
       pipeline: input.pipeline,
       focus: input.focus,
@@ -545,7 +562,7 @@ class LamaticClientReasoner implements LamaticReasoner {
     engine: QueryEngine;
   }): Promise<DiagnosticQuery> {
     const flowLabel = "sparktrace-query-gen";
-    const raw = await this.callFlow("SPARKTRACE_QUERY_GEN_FLOW_ID", flowLabel, {
+    const raw = await this.callFlow(envKeyForStep("sparktrace-query-gen"), flowLabel, {
       symptom: input.symptom,
       hypothesis: input.hypothesis,
       tables: input.tables,
@@ -561,7 +578,7 @@ class LamaticClientReasoner implements LamaticReasoner {
     result: CompactResult;
   }): Promise<StepAnalysis> {
     const flowLabel = "sparktrace-analyst";
-    const raw = await this.callFlow("SPARKTRACE_ANALYST_FLOW_ID", flowLabel, {
+    const raw = await this.callFlow(envKeyForStep("sparktrace-analyst"), flowLabel, {
       symptom: input.symptom,
       hypothesis: input.hypothesis,
       query: input.query,
@@ -574,7 +591,7 @@ class LamaticClientReasoner implements LamaticReasoner {
     const flowLabel = "sparktrace-reporter";
     // Sanitized: strips steps[].execution (raw rows) and pipeline file
     // bodies before the whole Investigation is handed to the reporter.
-    const raw = await this.callFlow("SPARKTRACE_REPORTER_FLOW_ID", flowLabel, {
+    const raw = await this.callFlow(envKeyForStep("sparktrace-reporter"), flowLabel, {
       investigation: toModelSafeInvestigation(input.investigation),
     });
     return validateRootCauseReport(raw, flowLabel);
