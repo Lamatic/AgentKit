@@ -36,6 +36,8 @@ of what this does and does not cover, and
 guardrails the flow must never violate (e.g. fail closed, never persist
 the token map).
 
+## Demo ![PII Guardrail demo](./docs/demo.png) *Left: what leaves your infrastructure (masked). Right: what the caller actually receives (rehydrated).*
+
 ## Structure
 
 ```
