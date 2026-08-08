@@ -1,18 +1,4 @@
 import { Lamatic } from "lamatic";
-import { config } from "../orchestrate.js";
-
-const FLOW_ENV_KEY = "CALIBRATE_SCORECARD_FLOW_ID";
-
-/** Returns the deployed calibrate-scorecard flow ID from app env. */
-export function getCalibrateFlowId() {
-  const flowId = process.env[FLOW_ENV_KEY];
-  if (!flowId) {
-    throw new Error(
-      `${FLOW_ENV_KEY} is not set. Set it in the application environment (local env file or hosting provider env vars).`,
-    );
-  }
-  return flowId;
-}
 
 /** Creates a Lamatic SDK client from app-local environment variables. */
 export function getLamaticClient() {
@@ -27,8 +13,8 @@ export function getLamaticClient() {
   }
 
   return new Lamatic({
-    endpoint: config.api.endpoint ?? "",
-    projectId: config.api.projectId ?? null,
-    apiKey: config.api.apiKey ?? "",
+    endpoint: process.env.LAMATIC_API_URL,
+    projectId: process.env.LAMATIC_PROJECT_ID,
+    apiKey: process.env.LAMATIC_API_KEY,
   });
 }
