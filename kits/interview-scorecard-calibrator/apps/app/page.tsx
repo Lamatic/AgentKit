@@ -134,59 +134,86 @@ export default function Page() {
           <section className="rounded-3xl border border-[var(--border)] bg-white/90 p-6 shadow-xl shadow-slate-200/60 md:p-8">
             <form onSubmit={onSubmit} className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-slate-700">Job title</span>
-                  <Input
-                    placeholder="Senior Backend Engineer"
-                    disabled={loading}
-                    {...register("jobTitle")}
-                  />
+                <div className="space-y-2">
+                  <label className="block space-y-2">
+                    <span className="text-sm font-semibold text-slate-700">Job title</span>
+                    <Input
+                      placeholder="Senior Backend Engineer"
+                      disabled={loading}
+                      {...register("jobTitle")}
+                      aria-invalid={errors.jobTitle ? true : undefined}
+                      aria-describedby={errors.jobTitle ? "jobTitle-error" : undefined}
+                    />
+                  </label>
                   {errors.jobTitle && (
-                    <p className="text-sm text-rose-600">{errors.jobTitle.message}</p>
+                    <p id="jobTitle-error" className="text-sm text-[var(--destructive)]">
+                      {errors.jobTitle.message}
+                    </p>
                   )}
-                </label>
-                <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-slate-700">Level</span>
-                  <Input
-                    placeholder="L5"
-                    disabled={loading}
-                    {...register("level")}
-                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block space-y-2">
+                    <span className="text-sm font-semibold text-slate-700">Level</span>
+                    <Input
+                      placeholder="L5"
+                      disabled={loading}
+                      {...register("level")}
+                      aria-invalid={errors.level ? true : undefined}
+                      aria-describedby={errors.level ? "level-error" : undefined}
+                    />
+                  </label>
                   {errors.level && (
-                    <p className="text-sm text-rose-600">{errors.level.message}</p>
+                    <p id="level-error" className="text-sm text-[var(--destructive)]">
+                      {errors.level.message}
+                    </p>
                   )}
-                </label>
+                </div>
               </div>
 
-              <label className="block space-y-2">
-                <span className="text-sm font-semibold text-slate-700">
-                  Competency rubric
-                </span>
-                <Textarea
-                  className="min-h-36"
-                  disabled={loading}
-                  {...register("rubric")}
-                />
+              <div className="space-y-2">
+                <label className="block space-y-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Competency rubric
+                  </span>
+                  <Textarea
+                    className="min-h-36"
+                    disabled={loading}
+                    {...register("rubric")}
+                    aria-invalid={errors.rubric ? true : undefined}
+                    aria-describedby={errors.rubric ? "rubric-error" : undefined}
+                  />
+                </label>
                 {errors.rubric && (
-                  <p className="text-sm text-rose-600">{errors.rubric.message}</p>
+                  <p id="rubric-error" className="text-sm text-[var(--destructive)]">
+                    {errors.rubric.message}
+                  </p>
                 )}
-              </label>
+              </div>
 
-              <label className="block space-y-2">
-                <span className="text-sm font-semibold text-slate-700">
-                  Interviewer notes (2+ interviewers, separated by ---)
-                </span>
-                <Textarea
-                  className="min-h-56"
-                  disabled={loading}
-                  {...register("interviewerNotes")}
-                />
+              <div className="space-y-2">
+                <label className="block space-y-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Interviewer notes (2+ interviewers, separated by ---)
+                  </span>
+                  <Textarea
+                    className="min-h-56"
+                    disabled={loading}
+                    {...register("interviewerNotes")}
+                    aria-invalid={errors.interviewerNotes ? true : undefined}
+                    aria-describedby={
+                      errors.interviewerNotes ? "interviewerNotes-error" : undefined
+                    }
+                  />
+                </label>
                 {errors.interviewerNotes && (
-                  <p className="text-sm text-rose-600">
+                  <p
+                    id="interviewerNotes-error"
+                    className="text-sm text-[var(--destructive)]"
+                  >
                     {errors.interviewerNotes.message}
                   </p>
                 )}
-              </label>
+              </div>
 
               {error && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
