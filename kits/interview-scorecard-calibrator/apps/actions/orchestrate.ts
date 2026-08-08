@@ -1,7 +1,8 @@
 "use server";
 
-import { getCalibrateFlowId, getLamaticClient } from "@/lib/lamatic-client";
+import { getLamaticClient } from "@/lib/lamatic-client";
 import { parseScorecard, splitInterviewerNotes, type Scorecard } from "@/lib/scorecard";
+import kitConfig from "../../lamatic.config";
 
 export type CalibrateInput = {
   jobTitle: string;
@@ -19,6 +20,24 @@ export type CalibrateResult = {
   };
   error?: string;
 };
+
+/** Resolve the deployed calibrate-scorecard flow ID from kit-root lamatic.config. */
+function getCalibrateFlowId() {
+  const step = kitConfig.steps.find((s) => s.id === "calibrate-scorecard");
+  if (!step?.envKey) {
+    throw new Error(
+      'lamatic.config has no step "calibrate-scorecard" with an envKey',
+    );
+  }
+
+  const flowId = process.env[step.envKey];
+  if (!flowId) {
+    throw new Error(
+      `${step.envKey} is not set. Set ${step.envKey} in the application environment.`,
+    );
+  }
+  return flowId;
+}
 
 /** Parse a JSON string when possible; otherwise return the original value. */
 function parseMaybeJson(value: unknown) {
