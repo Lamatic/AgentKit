@@ -6,6 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
 import { calibrateScorecard } from "@/actions/orchestrate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { splitInterviewerNotes, type Scorecard } from "@/lib/scorecard";
 
 const formSchema = z.object({
@@ -41,11 +44,19 @@ Design felt hand-wavy on consistency. Coding was clean. Concerned about stakehol
 
 function recommendationStyles(value?: string) {
   const key = (value || "").toLowerCase();
-  if (key === "hire") return "bg-emerald-100 text-emerald-800 border-emerald-200";
-  if (key === "lean-hire") return "bg-teal-100 text-teal-800 border-teal-200";
-  if (key === "lean-no") return "bg-amber-100 text-amber-900 border-amber-200";
-  if (key === "no-hire") return "bg-rose-100 text-rose-800 border-rose-200";
-  return "bg-slate-100 text-slate-700 border-slate-200";
+  if (key === "hire") {
+    return "bg-[var(--rec-hire-bg)] text-[var(--rec-hire-fg)] border-[var(--rec-hire-border)]";
+  }
+  if (key === "lean-hire") {
+    return "bg-[var(--rec-lean-hire-bg)] text-[var(--rec-lean-hire-fg)] border-[var(--rec-lean-hire-border)]";
+  }
+  if (key === "lean-no") {
+    return "bg-[var(--rec-lean-no-bg)] text-[var(--rec-lean-no-fg)] border-[var(--rec-lean-no-border)]";
+  }
+  if (key === "no-hire") {
+    return "bg-[var(--rec-no-hire-bg)] text-[var(--rec-no-hire-fg)] border-[var(--rec-no-hire-border)]";
+  }
+  return "bg-[var(--rec-fallback-bg)] text-[var(--rec-fallback-fg)] border-[var(--rec-fallback-border)]";
 }
 
 export default function Page() {
@@ -125,8 +136,7 @@ export default function Page() {
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block space-y-2">
                   <span className="text-sm font-semibold text-slate-700">Job title</span>
-                  <input
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-teal-600/30 focus:ring-2"
+                  <Input
                     placeholder="Senior Backend Engineer"
                     disabled={loading}
                     {...register("jobTitle")}
@@ -137,8 +147,7 @@ export default function Page() {
                 </label>
                 <label className="block space-y-2">
                   <span className="text-sm font-semibold text-slate-700">Level</span>
-                  <input
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-teal-600/30 focus:ring-2"
+                  <Input
                     placeholder="L5"
                     disabled={loading}
                     {...register("level")}
@@ -150,8 +159,8 @@ export default function Page() {
                 <span className="text-sm font-semibold text-slate-700">
                   Competency rubric
                 </span>
-                <textarea
-                  className="min-h-36 w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-teal-600/30 focus:ring-2"
+                <Textarea
+                  className="min-h-36"
                   disabled={loading}
                   {...register("rubric")}
                 />
@@ -164,8 +173,8 @@ export default function Page() {
                 <span className="text-sm font-semibold text-slate-700">
                   Interviewer notes (2+ interviewers, separated by ---)
                 </span>
-                <textarea
-                  className="min-h-56 w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-teal-600/30 focus:ring-2"
+                <Textarea
+                  className="min-h-56"
                   disabled={loading}
                   {...register("interviewerNotes")}
                 />
@@ -183,21 +192,18 @@ export default function Page() {
               )}
 
               <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="inline-flex flex-1 items-center justify-center rounded-xl bg-teal-700 px-5 py-3.5 font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-                >
+                <Button type="submit" disabled={loading} className="flex-1" size="lg">
                   {loading ? "Calibrating panel feedback..." : "Calibrate scorecard"}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={loadSample}
                   disabled={loading}
-                  className="rounded-xl border border-slate-300 bg-white px-5 py-3.5 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  size="lg"
                 >
                   Load sample
-                </button>
+                </Button>
               </div>
             </form>
           </section>

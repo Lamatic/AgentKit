@@ -25,7 +25,7 @@ Unlike resume screeners (`hiring`, `hiring-copilot-agent`, `candidate-screener`)
 
 - Lamatic account + deployed flow (import or rebuild from this kit)
 - LLM provider configured in Lamatic Studio (Gemini / OpenAI / etc.)
-- Node.js 18+
+- Node.js 20.9+
 
 ## Setup in Lamatic Studio
 

@@ -42,11 +42,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** Coerce unknown values to strings with an optional fallback. */
-function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback;
-}
-
 /** Validate that a value is an array of strings. */
 function asStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
@@ -61,11 +56,17 @@ function asStringArray(value: unknown): string[] | null {
 export function parseScorecard(value: unknown): Scorecard | null {
   if (!isRecord(value)) return null;
 
-  const recommendation = asString(value.recommendation).toLowerCase();
+  if (typeof value.recommendation !== "string") return null;
+  const recommendation = value.recommendation.toLowerCase();
   if (!RECOMMENDATIONS.includes(recommendation as Recommendation)) return null;
 
-  const confidence = Number(value.confidence);
+  if (typeof value.confidence !== "number") return null;
+  const confidence = value.confidence;
   if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) return null;
+
+  if (typeof value.candidate_summary !== "string") return null;
+  if (typeof value.rationale !== "string") return null;
+  if (typeof value.email_draft !== "string") return null;
 
   if (!Array.isArray(value.competencies) || !Array.isArray(value.disagreements)) {
     return null;
@@ -74,31 +75,43 @@ export function parseScorecard(value: unknown): Scorecard | null {
   const competencies: Competency[] = [];
   for (const item of value.competencies) {
     if (!isRecord(item)) return null;
+    if (typeof item.name !== "string") return null;
+    if (typeof item.weight !== "string") return null;
+    if (typeof item.missing_evidence !== "string") return null;
+    if (typeof item.interviewer_spread !== "string") return null;
+    if (typeof item.calibrated_score !== "number") return null;
+
     const evidence = asStringArray(item.evidence);
-    const score = Number(item.calibrated_score);
+    const score = item.calibrated_score;
     if (!evidence) return null;
     if (!Number.isInteger(score) || score < 1 || score > 5) return null;
+
     competencies.push({
-      name: asString(item.name, "Unnamed competency"),
-      weight: asString(item.weight, "Medium"),
+      name: item.name,
+      weight: item.weight,
       calibrated_score: score,
       evidence,
-      missing_evidence: asString(item.missing_evidence),
-      interviewer_spread: asString(item.interviewer_spread),
+      missing_evidence: item.missing_evidence,
+      interviewer_spread: item.interviewer_spread,
     });
   }
 
   const disagreements: Disagreement[] = [];
   for (const item of value.disagreements) {
     if (!isRecord(item)) return null;
+    if (typeof item.topic !== "string") return null;
+    if (typeof item.summary !== "string") return null;
+    if (typeof item.severity !== "string") return null;
+
     const interviewers = asStringArray(item.interviewers);
-    const severity = asString(item.severity).toLowerCase();
+    const severity = item.severity.toLowerCase();
     if (!interviewers) return null;
     if (!SEVERITIES.includes(severity as Severity)) return null;
+
     disagreements.push({
-      topic: asString(item.topic, "Untitled disagreement"),
+      topic: item.topic,
       interviewers,
-      summary: asString(item.summary),
+      summary: item.summary,
       severity: severity as Severity,
     });
   }
@@ -107,14 +120,14 @@ export function parseScorecard(value: unknown): Scorecard | null {
   if (!followUps) return null;
 
   return {
-    candidate_summary: asString(value.candidate_summary),
+    candidate_summary: value.candidate_summary,
     competencies,
     disagreements,
     recommendation: recommendation as Recommendation,
     confidence,
-    rationale: asString(value.rationale),
+    rationale: value.rationale,
     follow_up_questions: followUps,
-    email_draft: asString(value.email_draft),
+    email_draft: value.email_draft,
   };
 }
 
