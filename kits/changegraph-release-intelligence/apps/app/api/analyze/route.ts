@@ -23,7 +23,6 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 8;
 const MAX_GLOBAL_CONCURRENT = 4;
 const MAX_CLIENT_CONCURRENT = 1;
-const FLOW_EXECUTIONS_PER_ANALYSIS = 2;
 const MAX_TRACKED_CLIENTS = 10_000;
 
 interface RateLimitState {
@@ -517,6 +516,7 @@ export async function POST(
       );
     }
 
+    let flowExecutionAttemptCount = 0;
     let flowExecutionCount = 0;
 
     try {
@@ -577,34 +577,42 @@ export async function POST(
             riskAssessment,
           };
 
-        flowExecutionCount =
-          FLOW_EXECUTIONS_PER_ANALYSIS;
-
         const orchestration =
-          await orchestrateChangeGraph({
-            flowPurpose:
-              validation.data.flowPurpose,
+          await orchestrateChangeGraph(
+            {
+              flowPurpose:
+                validation.data.flowPurpose,
 
-            baselineVersion:
-              validation.data
-                .baselineVersion,
+              baselineVersion:
+                validation.data
+                  .baselineVersion,
 
-            candidateVersion:
-              validation.data
-                .candidateVersion,
+              candidateVersion:
+                validation.data
+                  .candidateVersion,
 
-            releaseContext:
-              validation.data
-                .releaseContext,
+              releaseContext:
+                validation.data
+                  .releaseContext,
 
-            changePackage:
-              normalizedChangePackage,
-          });
+              changePackage:
+                normalizedChangePackage,
+            },
+            {
+              onAttempt: () => {
+                flowExecutionAttemptCount += 1;
+              },
+              onComplete: () => {
+                flowExecutionCount += 1;
+              },
+            },
+          );
 
         console.info(
           "ChangeGraph flow execution metrics",
           {
             requestId,
+            flowExecutionAttemptCount,
             flowExecutionCount,
             latencyMs: Math.round(
               performance.now() -
@@ -667,6 +675,7 @@ export async function POST(
           "ChangeGraph flow execution metrics",
           {
             requestId,
+            flowExecutionAttemptCount,
             flowExecutionCount,
             latencyMs: Math.round(
               performance.now() -
