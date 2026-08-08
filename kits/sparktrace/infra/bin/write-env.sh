@@ -6,14 +6,33 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 require_aws
-[ "$(stack_status)" != "DOES_NOT_EXIST" ] || die "stack '$STACK_NAME' not found — run up.sh first."
+ST="$(stack_status)"
+[ "$ST" != "AWS_ERROR" ] || die "could not read the status of '$STACK_NAME' (see the AWS error above)."
+[ "$ST" != "DOES_NOT_EXIST" ] || die "stack '$STACK_NAME' not found — run up.sh first."
 
 REGION_OUT="$(stack_output AwsRegion)";        REGION_OUT="${REGION_OUT:-$AWS_REGION}"
 WG="$(stack_output WorkGroupName)"
 OUTLOC="$(stack_output AthenaOutputLocation)"
 GLUEDB="$(stack_output GlueDatabase)"
-KEY_ID="$(stack_output AppAccessKeyId)"
-KEY_SECRET="$(stack_output AppSecretAccessKey)"
+
+# Mint the app's access key here rather than in CloudFormation: a CFN-created
+# key is only retrievable through stack Outputs, which any principal with
+# DescribeStacks can read. `create-access-key` returns the secret exactly once,
+# and it goes straight into the gitignored .env.local below.
+KEY_ID=""; KEY_SECRET=""
+APP_USER="$(stack_output AppUserName)"
+if [ -n "$APP_USER" ]; then
+  # IAM allows at most 2 keys per user; clear old ones so re-runs stay clean.
+  for kid in $(aws iam list-access-keys --user-name "$APP_USER" \
+                 --query 'AccessKeyMetadata[].AccessKeyId' --output text 2>/dev/null); do
+    aws iam delete-access-key --user-name "$APP_USER" --access-key-id "$kid" 2>/dev/null || true
+  done
+  created="$(aws iam create-access-key --user-name "$APP_USER" \
+               --query 'AccessKey.[AccessKeyId,SecretAccessKey]' --output text)" \
+    || die "could not create an access key for $APP_USER."
+  KEY_ID="$(printf '%s' "$created" | awk '{print $1}')"
+  KEY_SECRET="$(printf '%s' "$created" | awk '{print $2}')"
+fi
 
 # Decide the credential source the APP uses, and emit a COMPLETE set so the AWS
 # SDK's default chain can't silently resolve a different identity for
@@ -22,7 +41,7 @@ KEY_SECRET="$(stack_output AppSecretAccessKey)"
 #   2. fallback: mirror the deployer's own source — a named profile, or the full
 #      static triplet including a session token for temporary credentials.
 CRED_LINES=""
-if [ -n "$KEY_ID" ] && [ "$KEY_ID" != "None" ]; then
+if [ -n "$KEY_ID" ]; then
   CRED_LINES="AWS_ACCESS_KEY_ID=$KEY_ID
 AWS_SECRET_ACCESS_KEY=$KEY_SECRET"
 elif [ -n "${AWS_PROFILE:-}" ]; then
