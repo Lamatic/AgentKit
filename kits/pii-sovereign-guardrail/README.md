@@ -37,41 +37,37 @@ guardrails the flow must never violate (e.g. fail closed, never persist
 the token map).
 
 ## Structure
-
-```
 pii-sovereign-guardrail/
-├── lamatic.config.ts              # kit metadata
-├── agent.md                       # capability doc (read this first)
-├── constitutions/default.md       # hard guardrails
-├── flows/pii-guardrail.ts         # flow graph (⚠️ see note below)
-├── scripts/                       # masking/rehydration logic (real, working)
-├── prompts/                       # Layer 2 NER prompts
-├── model-configs/                 # LLM configs per node
-└── apps/                          # Next.js demo — live masking visualization
-```
+├── lamatic.config.ts # kit metadata
+├── agent.md # capability doc (read this first)
+├── constitutions/default.md # hard guardrails
+├── flows/pii-sovereign-guardrail.ts # flow graph — real Lamatic Studio export
+├── scripts/ # masking/rehydration logic (real, working)
+├── prompts/ # Layer 2 NER prompts
+├── model-configs/ # LLM configs per node
+└── apps/ # Next.js demo — live masking visualization
 
-> ⚠️ **`flows/pii-guardrail.ts` needs one manual step.** The node graph in
-> that file is a best-effort scaffold of the documented Lamatic export
-> shape, not a byte-for-byte real export. Before deploying: build the node
-> sequence described in `agent.md` inside Lamatic Studio's visual editor,
-> wire in the `@scripts` / `@prompts` / `@model-configs` files from this
-> kit, deploy, then use Studio's **Export** to regenerate this file for
-> real. Everything else in this kit (masking logic, prompts, demo app) is
-> a complete, working implementation.
+This flow is built, deployed, and tested end-to-end in Lamatic Studio.
+Everything in `flows/`, `scripts/`, `prompts/`, `model-configs/`, and
+`constitutions/` is the real Studio export, not a scaffold — Layer 1
+(regex), Layer 2 (LLM NER), the target model call, and rehydration have
+all been verified working together on live test runs.
 
 ## Running the demo locally
 
 ```bash
 cd kits/pii-sovereign-guardrail/apps
-cp .env.example .env.local     # fill in once you've deployed the flow in Studio
+cp .env.example .env.local     # fill in your own Lamatic + model credentials
 npm install
 npm run dev
 ```
 
 The app works out of the box in **demo mode** (Layer 1 only, no LLM call,
 no API keys needed) so you can see the redaction pipeline immediately.
-Once `PII_GUARDRAIL_FLOW_ID` is set to a real deployed flow, it automatically
-switches to the full two-layer pipeline.
+Once `.env.local` is filled in with a deployed flow's `LAMATIC_API_KEY`,
+`LAMATIC_PROJECT_ID`, `LAMATIC_API_URL`, and `PII_GUARDRAIL_FLOW_ID`, it
+automatically switches to the full two-layer pipeline against the real
+deployed flow.
 
 ## What this does NOT do
 
