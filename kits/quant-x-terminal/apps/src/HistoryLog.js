@@ -16,9 +16,9 @@ function HistoryLog({ history, onSelectHistoryItem, onClearHistory }) {
         <div style={{ color: '#8b949e', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No local simulation records found.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {history.map((item, index) => (
-          <div 
-              key={`${item.ticker}-${item.time}-${index}`}
+          {history.map((item) => (
+            <div 
+              key={`${item.ticker}-${item.time}`}
               onClick={() => onSelectHistoryItem(item)}
               style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}
               onMouseOver={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
