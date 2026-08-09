@@ -10,7 +10,7 @@ Job seekers, especially those applying to many roles at once, often can't tell w
 **Input → Generate Text (LLM) → Response**
 
 - **Input**: `rejection_email_text` — the full text of the rejection email
-- **Generate Text**: a single LLM call, prompted to classify the email's type, reapply signal, and tone, and to translate any real feedback into plain language
+- **Generate Text**: a single LLM call, prompted to classify the email's type, reapply signal, and tone, and to translate any real feedback into plain language. The email text is treated strictly as data, never as instructions to follow.
 - **Response**: returns the structured result back to the caller
 
 ## Guardrails
