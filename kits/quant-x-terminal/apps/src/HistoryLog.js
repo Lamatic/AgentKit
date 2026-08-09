@@ -1,4 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+function HistoryItem({ item, onSelectHistoryItem }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const activeBorderColor = isHovered || isFocused ? '#58a6ff' : '#30363d';
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelectHistoryItem(item)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelectHistoryItem(item);
+        }
+      }}
+      style={{
+        backgroundColor: '#161b22',
+        border: `1px solid ${activeBorderColor}`,
+        borderRadius: '6px',
+        padding: '10px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#58a6ff', fontWeight: 'bold', marginBottom: '4px' }}>
+        <span>{item.ticker.split(':')[1] || item.ticker}</span>
+        <span style={{ color: '#8b949e', fontSize: '10px', fontWeight: 'normal' }}>{item.time}</span>
+      </div>
+      <div style={{ color: '#c9d1d9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {item.prompt}
+      </div>
+    </div>
+  );
+}
 
 function HistoryLog({ history, onSelectHistoryItem, onClearHistory }) {
   return (
@@ -16,33 +58,16 @@ function HistoryLog({ history, onSelectHistoryItem, onClearHistory }) {
         <div style={{ color: '#8b949e', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No local simulation records found.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {history.map((item) => (
-            <div 
-              role="button"
-              tabIndex={0}
-              key={item.id || `${item.ticker}-${item.time}`}
-              onClick={() => onSelectHistoryItem(item)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onSelectHistoryItem(item);
-                }
-              }}
-              style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s', outline: 'none' }}
-              onMouseOver={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
-              onMouseOut={(e) => e.currentTarget.style.borderColor = '#30363d'}
-              onFocus={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
-              onBlur={(e) => e.currentTarget.style.borderColor = '#30363d'}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#58a6ff', fontWeight: 'bold', marginBottom: '4px' }}>
-                <span>{item.ticker.split(':')[1] || item.ticker}</span>
-                <span style={{ color: '#8b949e', fontSize: '10px', fontWeight: 'normal' }}>{item.time}</span>
-              </div>
-              <div style={{ color: '#c9d1d9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {item.prompt}
-              </div>
-            </div>
-          ))}
+          {history.map((item, idx) => {
+            const uniqueKey = item.id || `${item.ticker}-${item.time}-${idx}`;
+            return (
+              <HistoryItem
+                key={uniqueKey}
+                item={item}
+                onSelectHistoryItem={onSelectHistoryItem}
+              />
+            );
+          })}
         </div>
       )}
     </div>
