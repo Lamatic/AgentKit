@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import type {
   AssessmentReport,
   Urgency,
@@ -90,9 +91,14 @@ export function AssessmentReportView({ report, onClear }: AssessmentReportProps)
           <p>{report.mechanicBrief}</p>
         </section>
         <p className="limitations">{report.limitations}</p>
-        <button className="secondary-button" onClick={onClear} type="button">
+        <Button
+          className="secondary-button"
+          onClick={onClear}
+          type="button"
+          variant="outline"
+        >
           Start another assessment
-        </button>
+        </Button>
       </div>
     </article>
   );
