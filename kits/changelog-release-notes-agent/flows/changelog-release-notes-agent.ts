@@ -71,7 +71,7 @@ export const nodes = [
       "nodeId": "apiNode",
       "values": {
         "id": "apiNode_326",
-        "url": "https://api.github.com/repos/{{triggerNode_1.output.owner}}/{{triggerNode_1.output.repo}}/pulls?state=closed&sort=updated&direction=desc&per_page=25",
+        "url": "https://api.github.com/search/issues?q=repo:{{triggerNode_1.output.owner}}/{{triggerNode_1.output.repo}}+is:pr+is:merged&sort=updated&order=desc&per_page=25",
         "body": "",
         "method": "GET",
         "headers": "{\"Accept\":\"application/vnd.github+json\"}",
