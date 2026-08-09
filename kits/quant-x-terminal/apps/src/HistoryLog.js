@@ -17,8 +17,8 @@ function HistoryLog({ history, onSelectHistoryItem, onClearHistory }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {history.map((item, index) => (
-            <div 
-              key={index} 
+          <div 
+              key={`${item.ticker}-${item.time}-${index}`}
               onClick={() => onSelectHistoryItem(item)}
               style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}
               onMouseOver={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
