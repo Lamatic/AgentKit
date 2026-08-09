@@ -3,12 +3,11 @@
 // -- Meta --
 export const meta = {
   "name": "Autonomous Enterprise Audit Sanctions Compliance",
-  "description": "",
-  "tags": [],
+  "description": "Autonomous Enterprise Audit & Sanctions Compliance Screener",
+  "tags": ["Compliance", "Enterprise", "Audit", "vendors", "financial"],
   "testInput": null,
-  "githubUrl": "",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/autonomous-enterprise-audit-sanctions-compliance",
   "documentationUrl": "",
-  "deployUrl": "",
   "author": {
     "name": "Anupam Maiti",
     "email": "personalusecase10@gmail.com"
@@ -273,17 +272,17 @@ export const nodes = [
         "classifier": [
           {
             "label": "Memory Retrieve",
-            "value": "agentClassifierNode_252-addNode_484",
+            "value": "agentClassifierNode_252-memoryRetrieveNode_264-651",
             "description": "Use when the document requires checking past session history, previous audit logs, or entity interaction history."
           },
           {
             "label": "Hybrid Search",
-            "value": "agentClassifierNode_252-plus-node-addNode_508532-616",
+            "value": "agentClassifierNode_252-apiNode_483-112",
             "description": "Use when the document requires searching internal regulatory knowledge bases, legal policies, or sanctions compliance indices."
           },
           {
             "label": "API",
-            "value": "agentClassifierNode_252-addNode_891",
+            "value": "agentClassifierNode_252-hybridSearchNode_546-234",
             "description": "Use when the document is a vendor onboarding form or compliance checklist requiring immediate external database verification or API submission."
           }
         ],
@@ -348,7 +347,7 @@ export const nodes = [
       "values": {
         "id": "apiNode_483",
         "url": "https://api-sandbox.middesk.com/v1/businesses",
-        "body": "{\n  \"vendor_name\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.vendor_details.vendor_name || '' }}\",\n  \"has_all_signoffs\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.has_all_signoffs || false }}\",\n  \"document_title\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.document_title || '' }}\",\n  \"compliance_checklist\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.compliance_checklist || [] }}\",\n  \"extracted_text\": \"{{ agenticDocExtractionNode_581.output.extractedText || '' }}\"\n}",
+        "body": "{\n  \"vendor_name\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.vendor_details.vendor_name || '' }}\",\n  \"has_all_signoffs\": {{ ... .has_all_signoffs || false }},\"has_all_signoffs\": {{ ... .has_all_signoffs || false }},,\n  \"document_title\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.document_title || '' }}\",\n  \"compliance_checklist\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.compliance_checklist || [] }}\",\n  \"extracted_text\": \"{{ agenticDocExtractionNode_581.output.extractedText || '' }}\"\n}",
         "method": "POST",
         "headers": "{\"Content-Type\":\"application/json\"}",
         "retries": "0",
@@ -432,7 +431,7 @@ export const nodes = [
         "selectedTools": [
           "hub_repo_search"
         ],
-        "promptTemplate": "Evaluate high-risk escalation details for vendor  and verify compliance records against external audit rules.{{agenticDocExtractionNode_581.output.extractedText}}",
+        "promptTemplate": "Evaluate high-risk escalation details for vendor {{agenticDocExtractionNode_581.output.structuredData.0.annotation.vendor_details.vendor_name}} and verify compliance records against external audit rules.\n\n{{agenticDocExtractionNode_581.output.extractedText}}",
         "generativeModelName": "@model-configs/autonomous-enterprise-audit-sanctions-compliance_mcp-node-737_generative-model-name.ts"
       }
     }
@@ -503,7 +502,7 @@ export const nodes = [
       "values": {
         "id": "vectorizeNode_704",
         "nodeName": "Vectorize",
-        "inputText": "{{InstructorLLMNode_771.output.vendor_name}}{{InstructorLLMNode_771.output.document_title}}{{InstructorLLMNode_771.output.summary}}",
+         "inputText": "{{InstructorLLMNode_771.output.vendor_name}} | {{InstructorLLMNode_771.output.document_title}} | {{InstructorLLMNode_771.output.summary}}",
         "embeddingModelName": "@model-configs/autonomous-enterprise-audit-sanctions-compliance_vectorize-node-704_embedding-model-name.ts"
       }
     }
@@ -550,7 +549,7 @@ export const nodes = [
         "memoryValue": [
           {
             "role": "user",
-            "content": "Vendor {{ Agentic Doc Extraction: structuredData.0.annotation.vendor_details.vendor_name }} successfully cleared low-risk compliance audit for {{ Agentic Doc Extraction: structuredData.0.annotation.document_metadata.document_title }} on {{ $now }}."
+            "content": "Vendor {{agenticDocExtractionNode_581.output.structuredData.0.annotation.vendor_details.vendor_name}} successfully cleared low-risk compliance audit for {{agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.document_title}} on {{ $now }}."
           }
         ],
         "memoryCollection": "Memory",
