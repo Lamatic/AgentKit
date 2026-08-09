@@ -18,11 +18,21 @@ function HistoryLog({ history, onSelectHistoryItem, onClearHistory }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {history.map((item) => (
             <div 
-              key={`${item.ticker}-${item.time}`}
+              role="button"
+              tabIndex={0}
+              key={item.id || `${item.ticker}-${item.time}`}
               onClick={() => onSelectHistoryItem(item)}
-              style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelectHistoryItem(item);
+                }
+              }}
+              style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s', outline: 'none' }}
               onMouseOver={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
               onMouseOut={(e) => e.currentTarget.style.borderColor = '#30363d'}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#58a6ff'}
+              onBlur={(e) => e.currentTarget.style.borderColor = '#30363d'}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#58a6ff', fontWeight: 'bold', marginBottom: '4px' }}>
                 <span>{item.ticker.split(':')[1] || item.ticker}</span>
