@@ -13,7 +13,8 @@ export const flowConfig = {
   references: {},
   nodes: [
     {
-      id: "llm-generation",
+      id: "llmNode",
+      nodeType: "llm",
       type: "llm",
       name: "LLM Generation",
       params: {
@@ -26,11 +27,11 @@ export const flowConfig = {
   ],
   edges: [
     {
-      source: "trigger",
-      target: "llm-generation"
+      source: "input",
+      target: "llmNode"
     }
   ],
   response: {
-    strategy: "{{nodes.llm-generation.output.value}}"
+    strategy: "{{nodes.llmNode.output}}"
   }
 };
