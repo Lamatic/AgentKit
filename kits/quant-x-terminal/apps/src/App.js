@@ -317,7 +317,7 @@ function App() {
                 </thead>
                 <tbody>
                   {openPositions.map((pos, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #21262d', fontSize: '14px', backgroundColor: idx % 2 === 0 ? '#161b22' : 'transparent' }}>
+                  <tr key={`${pos.ticker}-${pos.timestamp}-${idx}`} style={{ borderBottom: '1px solid #21262d', fontSize: '14px', backgroundColor: idx % 2 === 0 ? '#161b22' : 'transparent' }}>
                       <td style={{ padding: '12px', fontWeight: 'bold', color: '#58a6ff' }}>{pos.ticker}</td>
                       <td style={{ padding: '12px' }}><span style={{ backgroundColor: '#070a0f', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', border: '1px solid #30363d' }}>{pos.type}</span></td>
                       <td style={{ padding: '12px' }}>{pos.qty} Lots</td>
