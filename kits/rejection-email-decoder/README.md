@@ -17,11 +17,13 @@ One flow, one LLM node:
 
 **Input → Generate Text (LLM) → Response**
 
-The LLM is instructed via a system prompt to classify the rejection email against these four dimensions and return a structured, easy-to-read summary — not vague reassurance, not corporate-speak restated.
+The LLM is instructed via a system prompt to classify the rejection email against these four dimensions and return a structured, easy-to-read summary — not vague reassurance, not corporate-speak restated. The email text is treated strictly as data to analyze, never as instructions to follow.
 
 ## Try It
-1. Import this template into your own Lamatic Studio project, or deploy the flow as-is.
-2. Call the flow's API endpoint with:
+1. Import this template into your own Lamatic Studio project (or fork this repo and deploy the flow as-is).
+2. In the **Generate Text** node, connect a credential for **Gemini** (or another supported model provider) under "Select Credential," and choose a model under "Select Model."
+3. Click **Deploy** to make the flow live.
+4. Call the deployed flow's API endpoint with:
 ```json
 { "rejection_email_text": "<the rejection email text to analyze>" }
 ```
