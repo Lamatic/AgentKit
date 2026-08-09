@@ -277,12 +277,12 @@ export const nodes = [
           },
           {
             "label": "Hybrid Search",
-            "value": "agentClassifierNode_252-apiNode_483-112",
+            "value": "agentClassifierNode_252-hybridSearchNode_546-234",
             "description": "Use when the document requires searching internal regulatory knowledge bases, legal policies, or sanctions compliance indices."
           },
           {
             "label": "API",
-            "value": "agentClassifierNode_252-hybridSearchNode_546-234",
+            "value": "agentClassifierNode_252-apiNode_483-112",
             "description": "Use when the document is a vendor onboarding form or compliance checklist requiring immediate external database verification or API submission."
           }
         ],
@@ -347,7 +347,7 @@ export const nodes = [
       "values": {
         "id": "apiNode_483",
         "url": "https://api-sandbox.middesk.com/v1/businesses",
-        "body": "{\n  \"vendor_name\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.vendor_details.vendor_name || '' }}\",\n  \"has_all_signoffs\": {{ ... .has_all_signoffs || false }},\"has_all_signoffs\": {{ ... .has_all_signoffs || false }},,\n  \"document_title\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.document_title || '' }}\",\n  \"compliance_checklist\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.compliance_checklist || [] }}\",\n  \"extracted_text\": \"{{ agenticDocExtractionNode_581.output.extractedText || '' }}\"\n}",
+        "body": "{\n  \"vendor_name\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.vendor_details.vendor_name || '' }}\",\n  \"has_all_signoffs\": {{agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.has_all_signoffs || false}},\n  \"document_title\": \"{{ agenticDocExtractionNode_581.output.structuredData.0.annotation.document_metadata.document_title || '' }}\",\n  \"compliance_checklist\": {{agenticDocExtractionNode_581.output.structuredData.0.annotation.compliance_checklist || [] }},\n  \"extracted_text\": \"{{ agenticDocExtractionNode_581.output.extractedText || '' }}\"\n}",
         "method": "POST",
         "headers": "{\"Content-Type\":\"application/json\"}",
         "retries": "0",
