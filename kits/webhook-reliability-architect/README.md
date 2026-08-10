@@ -43,7 +43,7 @@ Server Action ── DEMO_MODE=true ──► deterministic local report
    └── live mode ──► Lamatic flow ──► structured reliability report
 ```
 
-The Next.js application keeps Lamatic credentials on the server. In live mode it calls the deployed `webhook-reliability-architect` flow through the Lamatic SDK. Demo mode creates a deterministic report from the supplied scenario so reviewers can evaluate the interface without credentials.
+The Next.js application uses Tailwind CSS v4 for styling and React Hook Form with a shared Zod contract for client and server validation. It keeps Lamatic credentials on the server. In live mode it calls the deployed `webhook-reliability-architect` flow through the Lamatic SDK, validates the complete response contract, and renders only supported reports. Demo mode creates a deterministic report from the supplied scenario so reviewers can evaluate the interface without credentials.
 
 ## Inputs
 

@@ -20,6 +20,21 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(Math.max(value, minimum), maximum);
 }
 
+function describesPersistedIdempotency(safeguards: string): boolean {
+  const normalized = safeguards.toLowerCase();
+  const protection = String.raw`(?:idempoten(?:cy|t)|deduplicat(?:e|ion)|dedup)`;
+  const persistence = String.raw`(?:persist(?:ed|ent|ence|ing)?|durable|transactional|inbox|database|redis|unique constraint)`;
+  const explicitlyAbsent = new RegExp(
+    String.raw`\b(?:no|without|missing|lacks?)\b[^.]{0,100}\b${protection}\b`,
+  ).test(normalized);
+
+  if (explicitlyAbsent) return false;
+  return (
+    new RegExp(String.raw`\b${protection}\b[^.]{0,100}\b${persistence}\b`).test(normalized) ||
+    new RegExp(String.raw`\b${persistence}\b[^.]{0,100}\b${protection}\b`).test(normalized)
+  );
+}
+
 function buildSchedule(maxAttempts: number, maxAgeMinutes: number): RetryStep[] {
   const capSeconds = maxAgeMinutes * 60;
   let elapsed = 0;
@@ -120,7 +135,7 @@ function buildTests(scenario: WebhookScenario): FailureTest[] {
 
 export function buildDemoReport(scenario: WebhookScenario): ReliabilityReport {
   const safeguards = scenario.currentSafeguards.toLowerCase();
-  const hasIdempotency = /idempot|dedup|event.?id/.test(safeguards);
+  const hasIdempotency = describesPersistedIdempotency(safeguards);
   const hasDeadLetter = /dead.?letter|dlq|quarantine/.test(safeguards);
   const hasBackoff = /backoff|jitter|retry-after/.test(safeguards);
 
@@ -137,7 +152,9 @@ export function buildDemoReport(scenario: WebhookScenario): ReliabilityReport {
     98,
   );
 
-  const keyBase = scenario.samplePayload.match(/"(?:event_?id|id)"\s*:\s*"([^"]+)"/i)?.[1];
+  const keyBase = scenario.samplePayload.match(
+    /"(?:event_id|eventId|provider_event_id|providerEventId)"\s*:\s*"([^"]+)"/,
+  )?.[1];
   const keyExample = keyBase
     ? `${scenario.eventType}:${keyBase}`
     : `${scenario.eventType}:<provider-event-id>`;
@@ -148,7 +165,9 @@ export function buildDemoReport(scenario: WebhookScenario): ReliabilityReport {
     riskScore: score,
     riskLevel: getRiskLevel(score),
     assumptions: [
-      "The sender can provide a stable event identifier or signed payload hash.",
+      keyBase
+        ? "The sampled payload's explicit event identifier is stable across every redelivery."
+        : "The sample payload has no explicit event identifier; the plan assumes the provider supplies a stable provider event ID.",
       "The receiver can persist a small delivery record in the same trust boundary as the side effect.",
       "Only transient transport and 5xx failures should be retried automatically.",
     ],
