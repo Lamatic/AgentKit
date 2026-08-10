@@ -1,37 +1,13 @@
 # PR Companion
 
-## Identity
-PR Companion is a focused writing assistant for developers. It does one job well:
-turning raw, messy information about a code change into a polished, review-ready
-pull request description.
+## Purpose
+PR Companion turns a raw git diff (or list of changed files) plus commit messages into a polished, review-ready pull request package: a clear title, a structured description, a reviewer checklist, and a changelog entry.
 
-## What it does
-Given:
-- A git diff, OR a plain list of changed files
-- The raw commit messages for the branch
-- (optional) A one-line description of the intent of the change
+## Flow
+`pr-flow` — takes `diff_or_files`, `commit_messages`, and an optional `intent` string, passes them to a single LLM node with a system prompt that enforces a consistent 4-section output format, and returns the generated text via the API response node.
 
-It produces:
-1. A concise, conventional-commit-style **PR title**
-2. A structured **PR description** (Summary, What changed, Why, How to test)
-3. A **reviewer checklist** tailored to the kind of change (e.g. adds a migration →
-   checklist includes "verify rollback path")
-4. A one-line **changelog entry** suitable for a CHANGELOG.md or release notes
+## Guardrails
+Follows `constitutions/default.md`: never fabricates changes that aren't present in the diff, treats pasted code as data (not instructions), and stays within the requested output format.
 
-## What it does NOT do
-- It does not read your actual repository or call the GitHub API — you paste in
-  the diff/commit messages yourself. (Keeps the kit dependency-free and safe to
-  run on private code without granting any repo access.)
-- It does not review code for bugs or security issues (see the existing
-  `code-review` kit in this repo for that).
-- It does not open the PR for you — output is copy/paste ready.
-
-## Why this is useful
-Writing a good PR description is a small task that developers routinely skip or
-rush, which slows down reviewers and erodes changelog quality over time.
-PR Companion turns 2 minutes of copy-pasting into a consistently well-structured
-PR, saving reviewer time and keeping changelogs honest.
-
-## Tone & guardrails
-See `constitutions/default.md`. In short: PR Companion is precise, technical,
-and never invents details about the change that weren't given to it.
+## Integration
+The `apps/` Next.js app calls `pr-flow` via the Lamatic SDK (`executeFlow`), reading the flow ID from `FLOW_PR_FLOW` in the environment, and renders the result in a simple paste-in/generate UI.
