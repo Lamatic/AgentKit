@@ -1,87 +1,18 @@
-export type BusinessEffect =
-  | "read-only"
-  | "reversible-write"
-  | "notification"
-  | "inventory"
-  | "financial";
+import type { z } from "zod";
+import type {
+  businessEffectSchema,
+  deliverySemanticsSchema,
+  reliabilityReportSchema,
+  webhookScenarioSchema,
+} from "./schemas";
 
-export type DeliverySemantics =
-  | "at-least-once"
-  | "at-most-once"
-  | "best-effort"
-  | "unknown";
-
-export interface WebhookScenario {
-  systemName: string;
-  eventType: string;
-  businessEffect: BusinessEffect;
-  deliverySemantics: DeliverySemantics;
-  orderingRequired: boolean;
-  maxAttempts: number;
-  timeoutSeconds: number;
-  maxDeliveryAgeMinutes: number;
-  currentSafeguards: string;
-  samplePayload: string;
-  failureContext: string;
-}
-
-export interface RetryStep {
-  attempt: number;
-  delaySeconds: number;
-  purpose: string;
-}
-
-export interface FailureMode {
-  scenario: string;
-  impact: string;
-  signal: string;
-  mitigation: string;
-}
-
-export interface FailureTest {
-  name: string;
-  setup: string;
-  expected: string;
-}
-
-export interface ReliabilityReport {
-  executiveSummary: string;
-  riskScore: number;
-  riskLevel: "low" | "moderate" | "high" | "critical";
-  assumptions: string[];
-  idempotencyPlan: {
-    keyStrategy: string;
-    keyExample: string;
-    storage: string;
-    ttlHours: number;
-    firstSeenBehavior: string;
-    duplicateBehavior: string;
-    conflictBehavior: string;
-  };
-  retryPlan: {
-    policy: string;
-    maxAttempts: number;
-    maxDeliveryAgeMinutes: number;
-    jitter: string;
-    schedule: RetryStep[];
-    retryableConditions: string[];
-    nonRetryableConditions: string[];
-  };
-  deadLetterPlan: {
-    trigger: string;
-    record: string[];
-    replayChecklist: string[];
-  };
-  observability: {
-    slo: string;
-    metrics: string[];
-    alerts: string[];
-    logFields: string[];
-  };
-  failureModes: FailureMode[];
-  testMatrix: FailureTest[];
-  rolloutSteps: string[];
-}
+export type BusinessEffect = z.infer<typeof businessEffectSchema>;
+export type DeliverySemantics = z.infer<typeof deliverySemanticsSchema>;
+export type WebhookScenario = z.infer<typeof webhookScenarioSchema>;
+export type ReliabilityReport = z.infer<typeof reliabilityReportSchema>;
+export type RetryStep = ReliabilityReport["retryPlan"]["schedule"][number];
+export type FailureMode = ReliabilityReport["failureModes"][number];
+export type FailureTest = ReliabilityReport["testMatrix"][number];
 
 export interface AnalysisResult {
   success: boolean;

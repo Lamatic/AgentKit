@@ -3,41 +3,25 @@
 import lamaticConfig from "../../lamatic.config";
 import { buildDemoReport } from "@/lib/demo";
 import { getLamaticClient } from "@/lib/lamatic-client";
-import type { AnalysisResult, ReliabilityReport, WebhookScenario } from "@/lib/types";
+import { reliabilityReportSchema, webhookScenarioSchema } from "@/lib/schemas";
+import type { AnalysisResult, ReliabilityReport } from "@/lib/types";
 
 const FLOW_ENV_KEY =
   lamaticConfig.steps[0]?.envKey ?? "WEBHOOK_RELIABILITY_ARCHITECT_FLOW_ID";
 
-function validateScenario(scenario: WebhookScenario): string | null {
-  if (!scenario.systemName.trim()) return "System name is required.";
-  if (!scenario.eventType.trim()) return "Event type is required.";
-  if (scenario.maxAttempts < 1 || scenario.maxAttempts > 12) {
-    return "Max attempts must be between 1 and 12.";
-  }
-  if (scenario.timeoutSeconds < 1 || scenario.timeoutSeconds > 300) {
-    return "Timeout must be between 1 and 300 seconds.";
-  }
-  if (scenario.maxDeliveryAgeMinutes < 1 || scenario.maxDeliveryAgeMinutes > 10_080) {
-    return "Delivery age must be between 1 minute and 7 days.";
-  }
-  if (scenario.samplePayload.length > 20_000) return "Sample payload is too large.";
-  if (scenario.currentSafeguards.length > 8_000) return "Safeguard notes are too large.";
-  if (scenario.failureContext.length > 8_000) return "Failure context is too large.";
-  return null;
+function isReliabilityReport(value: unknown): value is ReliabilityReport {
+  return reliabilityReportSchema.safeParse(value).success;
 }
 
-function isReliabilityReport(value: unknown): value is ReliabilityReport {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<ReliabilityReport>;
-  return (
-    typeof candidate.executiveSummary === "string" &&
-    typeof candidate.riskScore === "number" &&
-    typeof candidate.riskLevel === "string" &&
-    Boolean(candidate.idempotencyPlan) &&
-    Boolean(candidate.retryPlan) &&
-    Array.isArray(candidate.failureModes) &&
-    Array.isArray(candidate.testMatrix)
-  );
+function normalizeReportCandidate(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.riskLevel !== "string") return value;
+
+  return {
+    ...candidate,
+    riskLevel: candidate.riskLevel.toLowerCase(),
+  };
 }
 
 function parseReport(response: unknown): ReliabilityReport | null {
@@ -52,11 +36,12 @@ function parseReport(response: unknown): ReliabilityReport | null {
     envelope?.analysis ??
     envelope?.report;
 
-  if (isReliabilityReport(raw)) return raw;
+  const normalizedRaw = normalizeReportCandidate(raw);
+  if (isReliabilityReport(normalizedRaw)) return normalizedRaw;
   if (typeof raw !== "string") return null;
 
   try {
-    const parsed = JSON.parse(raw) as unknown;
+    const parsed = normalizeReportCandidate(JSON.parse(raw) as unknown);
     return isReliabilityReport(parsed) ? parsed : null;
   } catch {
     return null;
@@ -64,13 +49,19 @@ function parseReport(response: unknown): ReliabilityReport | null {
 }
 
 export async function analyzeWebhookScenario(
-  scenario: WebhookScenario,
+  scenario: unknown,
 ): Promise<AnalysisResult> {
-  const validationError = validateScenario(scenario);
-  if (validationError) return { success: false, error: validationError };
+  const parsedScenario = webhookScenarioSchema.safeParse(scenario);
+  if (!parsedScenario.success) {
+    return {
+      success: false,
+      error: parsedScenario.error.issues[0]?.message ?? "Invalid webhook scenario.",
+    };
+  }
+  const validScenario = parsedScenario.data;
 
   if (process.env.DEMO_MODE === "true") {
-    return { success: true, report: buildDemoReport(scenario), mode: "demo" };
+    return { success: true, report: buildDemoReport(validScenario), mode: "demo" };
   }
 
   const flowId = process.env[FLOW_ENV_KEY];
@@ -84,7 +75,7 @@ export async function analyzeWebhookScenario(
   try {
     const client = getLamaticClient();
     const response = await client.executeFlow(flowId, {
-      scenario: JSON.stringify(scenario),
+      scenario: JSON.stringify(validScenario),
     });
     const report = parseReport(response);
     if (!report) {
