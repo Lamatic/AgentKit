@@ -21,7 +21,8 @@ function isSafeUrl(url) {
 // Parse the JSON array of ranked articles
 let articles = [];
 try {
-  articles = JSON.parse(llmOutput414);
+  const parsed = JSON.parse(llmOutput414);
+  articles = Array.isArray(parsed) ? parsed.filter(a => a && typeof a === 'object') : [];
 } catch (e) {
   articles = [];
 }
