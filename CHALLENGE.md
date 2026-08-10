@@ -1,7 +1,6 @@
 # 🚀 Lamatic AgentKit Challenge
 
 [![Challenge](https://img.shields.io/badge/Challenge-Internship%20Submission-blueviolet)](#)
-[![Support](https://img.shields.io/badge/Support-Slack-4A154B)](https://lamatic.ai/docs/slack)
 [![PR Label](https://img.shields.io/badge/PR%20Label-agentkit--challenge-0f766e)](https://github.com/Lamatic/AgentKit/pulls?q=is:open+is:pr+label:agentkit-challenge)
 
 Welcome to the **Lamatic AgentKit Challenge** — a chance to show how you think, build, and communicate through a real contribution ✨
