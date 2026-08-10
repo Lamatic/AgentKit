@@ -136,7 +136,7 @@ export default function Page() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="block space-y-2">
-                    <span className="text-sm font-semibold text-slate-700">Job title</span>
+                    <span className="text-sm font-semibold text-[var(--foreground)]">Job title</span>
                     <Input
                       placeholder="Senior Backend Engineer"
                       disabled={loading}
@@ -153,7 +153,7 @@ export default function Page() {
                 </div>
                 <div className="space-y-2">
                   <label className="block space-y-2">
-                    <span className="text-sm font-semibold text-slate-700">Level</span>
+                    <span className="text-sm font-semibold text-[var(--foreground)]">Level</span>
                     <Input
                       placeholder="L5"
                       disabled={loading}
@@ -172,7 +172,7 @@ export default function Page() {
 
               <div className="space-y-2">
                 <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                  <span className="text-sm font-semibold text-[var(--foreground)]">
                     Competency rubric
                   </span>
                   <Textarea
@@ -192,7 +192,7 @@ export default function Page() {
 
               <div className="space-y-2">
                 <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                  <span className="text-sm font-semibold text-[var(--foreground)]">
                     Interviewer notes (2+ interviewers, separated by ---)
                   </span>
                   <Textarea
