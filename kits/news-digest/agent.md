@@ -18,8 +18,9 @@ This agent is a scheduled news curator. It has no chat interface and takes no di
 2. **Variable Node** — holds the two pieces of runtime config: `topic` and `top_n`. This is the flow's only "settings panel."
 3. **Firecrawl (Sync Batch Scrape)** — scrapes all configured source URLs in a single batched call
 4. **Generate Text (extraction/dedup)** — reads raw scraped markdown, filters to genuine articles matching `topic`, strips page noise (nav, ads, sponsored content, cookie banners, etc.), and removes duplicate coverage of the same story across sources. Outputs a clean JSON array.
-5. **Generate Text (ranking/formatting)** — takes the JSON array, selects and ranks the top `top_n` stories by significance, writes a 2-sentence summary for each, and outputs the final digest as HTML.
-6. **Gmail** — sends the HTML digest to the configured recipient.
+5. **Generate Text (ranking/summarization)** — takes the JSON array, selects and ranks the top `top_n` stories by significance, and writes a 2-sentence summary for each. Outputs structured JSON (title, summary, url) — no HTML at this stage.
+6. **Code Node (sanitization)** — parses the ranked JSON and deterministically builds the final HTML digest: every title and summary is HTML-escaped, and every URL is checked against an `http(s)://` allowlist before being inserted as a link. This step exists because article data originates from scraped, untrusted web content, and an LLM instructed to "output HTML" can't be relied on to consistently escape or validate that content — deterministic code can.
+7. **Gmail** — sends the sanitized HTML digest to the configured recipient.
 
 ## Why two Generate Text nodes instead of one
 
@@ -35,3 +36,4 @@ See `constitutions/default.md` for the base identity and safety rules this agent
 
 - The extraction step is instructed to return only genuine articles and explicitly excludes ad/navigation/sponsored content — this is both a content-quality measure and a basic safety measure against summarizing or amplifying promotional content as if it were news.
 - The ranking step is explicitly instructed not to invent facts and to preserve original source URLs, so every claim in the digest is traceable back to its source.
+- The Code Node sanitization step (see Flow, step 6) is a deliberate guardrail against untrusted scraped content reaching the outbound email unescaped. HTML construction is intentionally kept out of the LLM's hands — the model returns data, not markup, and the Code Node is what turns that data into HTML, consistently escaping and validating it every run.

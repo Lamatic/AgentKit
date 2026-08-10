@@ -66,6 +66,9 @@ export const references = {
   "modelConfigs": {
     "news_digest_llmnode_683_generative_model_name": "@model-configs/news-digest_llmnode-683_generative-model-name.ts",
     "news_digest_llmnode_414_generative_model_name": "@model-configs/news-digest_llmnode-414_generative-model-name.ts"
+  },
+  "scripts": {
+    "news_digest_code_node_509_code": "@scripts/news-digest_code-node-509_code.ts"
   }
 };
 
@@ -100,7 +103,7 @@ export const nodes = [
       "nodeId": "variablesNode",
       "values": {
         "id": "variablesNode_218",
-        "mapping": "{\n  \"topic\": {\n    \"type\": \"string\",\n    \"value\": \"AI/ML , Tech companies\"\n  },\n  \"top_n\": {\n    \"type\": \"number\",\n    \"value\": \"10\"\n  }\n}",
+        "mapping": "{\n  \"topic\": {\n    \"type\": \"string\",\n    \"value\": \"AI/ML\"\n  },\n  \"top_n\": {\n    \"type\": \"number\",\n    \"value\": \"10\"\n  }\n}",
         "nodeName": "Variables"
       }
     }
@@ -231,6 +234,21 @@ export const nodes = [
     }
   },
   {
+    "id": "codeNode_509",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/news-digest_code-node-509_code.ts",
+        "nodeName": "Code"
+      }
+    }
+  },
+  {
     "id": "gmailNode_230",
     "type": "dynamicNode",
     "position": {
@@ -243,12 +261,12 @@ export const nodes = [
         "cc": "",
         "id": "gmailNode_230",
         "bcc": "",
-        "body": "{{LLMNode_414.output.generatedResponse}}",
+        "body": "{{codeNode_509.output.html}}",
         "query": "",
         "action": "GMAIL_SEND_EMAIL",
         "format": "full",
         "is_html": true,
-        "subject": "News",
+        "subject": "Daily {{variablesNode_218.output.topic}} Digest",
         "to_user": "",
         "nodeName": "Gmail",
         "reply_cc": "",
@@ -263,7 +281,7 @@ export const nodes = [
         "reply_is_html": false,
         "attachment_url": "",
         "attachment_name": "",
-        "recipient_email": "your-email@gmail.com",
+        "recipient_email": "tvedanthrao@gmail.com",
         "reply_thread_id": "",
         "remove_label_ids": "",
         "list_threads_query": "",
@@ -313,14 +331,6 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "LLMNode_414-gmailNode_230-921",
-    "source": "LLMNode_414",
-    "target": "gmailNode_230",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
     "id": "gmailNode_230-plus-node-addNode_484358-199",
     "source": "gmailNode_230",
     "target": "plus-node-addNode_484358",
@@ -340,6 +350,22 @@ export const edges = [
     "id": "variablesNode_218-firecrawlNode_969",
     "source": "variablesNode_218",
     "target": "firecrawlNode_969",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "LLMNode_414-codeNode_509",
+    "source": "LLMNode_414",
+    "target": "codeNode_509",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_509-gmailNode_230",
+    "source": "codeNode_509",
+    "target": "gmailNode_230",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"

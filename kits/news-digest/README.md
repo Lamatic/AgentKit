@@ -36,15 +36,23 @@ Generate Text #1 — extraction & dedup
    outputs a clean JSON array of candidate articles)
         │
         ▼
-Generate Text #2 — ranking & formatting
+Generate Text #2 — ranking & summarization
   (selects and ranks the top N stories, writes 2-sentence
-   summaries, outputs ready-to-send HTML)
+   summaries, outputs a JSON array — no HTML at this stage)
         │
         ▼
-Gmail (sends the formatted digest)
+Code Node — deterministic HTML sanitization
+  (HTML-escapes every title/summary field, validates URLs
+   allow only http/https schemes, builds the final HTML
+   digest in code — not via the LLM)
+        │
+        ▼
+Gmail (sends the sanitized HTML digest)
 ```
 
 The extraction and ranking steps are deliberately split into two LLM calls rather than one. Extraction/dedup and summarization/formatting are different jobs with different success criteria — combining them into a single prompt tends to produce worse results at both.
+
+HTML construction is deliberately kept out of the LLM's hands entirely. The second LLM call returns structured JSON (title, summary, url) rather than formatted HTML, and a Code Node builds the final HTML deterministically — escaping text content and validating URL schemes before anything reaches the email. Since article data originates from scraped, untrusted web content, relying on an LLM to "format this as safe HTML" isn't reliable; a scraped source could otherwise embed markup or a malicious link that gets faithfully reproduced. The Code Node guarantees the same sanitization runs every time, regardless of what the LLM returns.
 
 ## News sources (default)
 
@@ -95,6 +103,7 @@ To change the topic or story count, edit these values in the Variable Node and r
 
 - **Single-recipient by design.** This flow is scoped for one user/inbox, not a multi-tenant subscription service. Multi-user support (per-user topics, a signup flow, persistent storage per user) was deliberately left out to keep the flow focused and easy to review — see `agent.md` for more on this decision.
 - **Dedup happens before ranking, not after.** The first LLM call removes duplicate coverage of the same story across sources, so the ranking step never has to reason about near-identical entries competing for the same slot.
+- **HTML sanitization happens in code, not in the prompt.** The ranking LLM call outputs plain structured data (JSON), and a dedicated Code Node is responsible for escaping text and validating URLs before building the HTML. This keeps sanitization deterministic and independent of what the LLM happens to return on any given run.
 - **Config lives in one node.** Rather than scattering the topic string across multiple prompts, it's centralized in the Variable Node and referenced everywhere via `{{variablesNode_218.output.topic}}`.
 
 ## Known limitations
