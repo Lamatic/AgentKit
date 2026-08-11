@@ -24,20 +24,33 @@ export async function generatePRDescription(
   }
   const { diffOrFiles, commitMessages, intent } = parsed.data;
 
+  try {
   const flowId = getFlowId();
+
   const payload = {
     diff_or_files: diffOrFiles,
     commit_messages: commitMessages,
     intent: intent ?? "",
   };
 
-  try {
-    const response = await lamatic.executeFlow(flowId, payload);
-    if (response.status === "error") {
-      return { ok: false, error: response.message ?? "Flow returned an error." };
-    }
-    return { ok: true, output: String(response.result ?? "") };
-  } catch (err: any) {
-    return { ok: false, error: err?.message ?? "Something went wrong calling the flow." };
+  const response = await lamatic.executeFlow(flowId, payload);
+  // console.log("LAMATIC RESPONSE:", JSON.stringify(response, null, 2));
+
+  if (response.status === "error") {
+    return {
+      ok: false,
+      error: response.message ?? "Flow returned an error.",
+    };
   }
-}
+
+  return {
+    ok: true,
+    output: String(
+    (response.result as { output?: string })?.output ?? ""
+  )};
+} catch (err: any) {
+  return {
+    ok: false,
+    error: err?.message ?? "Something went wrong calling the flow.",
+  };
+}}

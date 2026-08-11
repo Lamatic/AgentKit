@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "./pr-companion.css";
 
 export const metadata: Metadata = {
   title: "PR Companion",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>
+      <body>
         {children}
       </body>
     </html>
