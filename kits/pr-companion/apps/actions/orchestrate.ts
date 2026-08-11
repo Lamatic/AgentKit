@@ -45,7 +45,7 @@ export type PRCompanionResult = {
 };
 
 /**
- * Validates the submitted diff/commits/intent against the shared schema,
+ * Validates the submitted diff/commits/intent,
  * redacts credential-like values, then calls the deployed pr-flow Lamatic
  * flow to generate a PR description.
  */
@@ -65,6 +65,9 @@ export async function generatePRDescription(
 
   const { diffOrFiles, commitMessages, intent } = parsed.data;
 
+  // Keep this outside try so the credential signal survives failures.
+  let credentialDetected = false;
+
   try {
     const flowId = getFlowId();
 
@@ -72,7 +75,7 @@ export async function generatePRDescription(
     const commitResult = redactCredentials(commitMessages);
     const intentResult = redactCredentials(intent ?? "");
 
-    const credentialDetected =
+    credentialDetected =
       diffResult.detected ||
       commitResult.detected ||
       intentResult.detected;
@@ -109,6 +112,7 @@ export async function generatePRDescription(
       error:
         err?.message ??
         "Something went wrong calling the flow.",
+      credentialDetected,
     };
   }
 }

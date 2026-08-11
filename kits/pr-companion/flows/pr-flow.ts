@@ -56,7 +56,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"diff_or_files\": \"string\",\n  \"commit_messages\": \"string\",\n  \"intent\": \"string\"\n}"
+        "advance_schema": "{\n  \"diff_or_files\": \"string\",\n  \"commit_messages\": \"string\",\n  \"intent\": \"string\",\n  \"credential_detected\": \"boolean\"\n}"
       }
     }
   },

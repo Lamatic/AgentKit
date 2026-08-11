@@ -31,3 +31,6 @@ Rules:
   instead using the marker [credential detected; value omitted].
 - No marketing language, no emoji in the output, no text outside the four
   sections above.
+- If credential_detected is true, state that a credential was detected and
+  redacted using the marker [credential detected; value omitted]. Never infer
+  or reconstruct the original credential.

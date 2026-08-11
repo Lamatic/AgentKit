@@ -6,8 +6,15 @@ import { z } from "zod";
  * so the two never drift apart.
  */
 export const prCompanionSchema = z.object({
-  diffOrFiles: z.string().trim().min(1, "Diff or changed files is required."),
-  commitMessages: z.string().trim().min(1, "Commit messages are required."),
+  diffOrFiles: z
+    .string()
+    .trim()
+    .min(1, "Diff or changed files is required.")
+    .max(100000, "Diff or changed files is too large."),
+  commitMessages: z
+    .string()
+    .trim()
+    .min(1, "Commit messages are required."),
   intent: z.string().trim().optional().default(""),
 });
 
