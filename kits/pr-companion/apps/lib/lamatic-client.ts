@@ -1,15 +1,16 @@
 import { Lamatic } from "lamatic";
 
+/** Configured Lamatic SDK client, using credentials from environment variables. */
 export const lamatic = new Lamatic({
   apiKey: process.env.LAMATIC_API_KEY!,
   projectId: process.env.LAMATIC_PROJECT_ID!,
   endpoint: process.env.LAMATIC_API_URL!,
 });
 
-// This matches the "envKey" for the "pr-flow" step in lamatic.config.ts,
-// which matches what Lamatic Studio put in flows/pr-flow's step definition
-// when you exported it. If you rename the flow in Studio and re-export,
-// double check this still matches.
+/**
+ * Returns the deployed flow ID for `pr-flow`, read from the `FLOW_PR_FLOW`
+ * environment variable. Throws a clear error if it hasn't been set.
+ */
 export function getFlowId(): string {
   const flowId = process.env.FLOW_PR_FLOW;
   if (!flowId) {

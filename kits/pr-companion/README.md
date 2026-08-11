@@ -35,7 +35,7 @@ turns it into something a reviewer can actually use, in seconds.
 ## Run it locally
 
 ```bash
-cd kits/pr-companion/apps/app
+cd kits/pr-companion/apps
 cp .env.example .env.local   
 npm install
 npm run dev

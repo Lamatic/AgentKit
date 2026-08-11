@@ -19,6 +19,6 @@ export default {
   links: {
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/pr-companion",
     deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits/pr-companion/apps",
+      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fpr-companion%2Fapps&env=FLOW_PR_FLOW,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY",
   },
 };
