@@ -1,0 +1,19 @@
+2025-01-15T10:00:01Z Run docker build -t my-app .
+2025-01-15T10:00:02Z #1 [internal] load build context
+2025-01-15T10:00:05Z #2 CACHED [1/5] FROM node:20-alpine
+2025-01-15T10:00:06Z #3 [2/5] COPY package*.json ./
+2025-01-15T10:00:07Z #4 [3/5] RUN npm ci
+2025-01-15T10:00:45Z #5 [4/5] COPY . .
+2025-01-15T10:01:10Z #6 [5/5] RUN npm run build
+2025-01-15T10:01:11Z
+2025-01-15T10:01:11Z > my-app@1.0.0 build
+2025-01-15T10:01:11Z > next build
+2025-01-15T10:01:15Z   ▲ Next.js 14.0.0
+2025-01-15T10:01:18Z    Creating an optimized production build...
+2025-01-15T10:02:30Z
+2025-01-15T10:02:30Z FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+2025-01-15T10:02:30Z  1: 0xb7c6e0 node::Abort() [node]
+2025-01-15T10:02:30Z  2: 0xa8ebe5 node::FatalError(char const*, char const*) [node]
+2025-01-15T10:02:30Z  3: 0xd9a61e v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [node]
+2025-01-15T10:02:30Z Killed
+2025-01-15T10:02:31Z Error: Process completed with exit code 137.

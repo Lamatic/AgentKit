@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0f16;
+  --panel: #121826;
+  --panel-2: #171f30;
+  --border: #253048;
+  --text: #e8edf7;
+  --muted: #94a3b8;
+  --link: #7cc4ff;
+
+  /* Accent ramp. --focus is the semantic token every focus ring uses, so the
+     indicator moves with the accent rather than drifting from it. */
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --accent-ink: #020617;
+  --focus: var(--accent);
+
+  /* Severity ramp. Defined once because the verdict counts and the change-list
+     group headings colour the same four buckets — two literals would drift. */
+  --severity-breaking: #f87171;
+  --severity-maybe: #fbbf24;
+  --severity-additive: #34d399;
+  --severity-unknown: #cbd5e1;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-edge: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-link: var(--link);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
+  --color-severity-breaking: var(--severity-breaking);
+  --color-severity-maybe: var(--severity-maybe);
+  --color-severity-additive: var(--severity-additive);
+  --color-severity-unknown: var(--severity-unknown);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+textarea,
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+/* Markdown rendered from the flow's migration notes / changelog. */
+.md h1,
+.md h2,
+.md h3 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.25em 0 0.5em;
+}
+.md h1 { font-size: 1.25rem; }
+.md h2 { font-size: 1.1rem; }
+.md h3 { font-size: 1rem; }
+.md h1:first-child,
+.md h2:first-child,
+.md h3:first-child { margin-top: 0; }
+.md p { margin: 0.75em 0; }
+.md ul,
+.md ol { margin: 0.75em 0; padding-left: 1.4em; }
+.md ul { list-style: disc; }
+.md ol { list-style: decimal; }
+.md li { margin: 0.3em 0; }
+.md code {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+}
+.md pre {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9em;
+  overflow-x: auto;
+  margin: 0.9em 0;
+}
+.md pre code { background: none; border: none; padding: 0; }
+.md a { color: var(--link); text-decoration: underline; }
+.md hr { border-color: var(--border); margin: 1.25em 0; }
+.md blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 0.9em;
+  color: var(--muted);
+  margin: 0.9em 0;
+}
