@@ -1,0 +1,7 @@
+# Local environment files
+.env
+
+# Build and logs
+dist/
+coverage/
+*.log
