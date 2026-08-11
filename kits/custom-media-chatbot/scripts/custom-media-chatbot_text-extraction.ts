@@ -1,1 +1,0 @@
-output = {{extractFromFileNode_126.output.files}}[0]["data"][0]

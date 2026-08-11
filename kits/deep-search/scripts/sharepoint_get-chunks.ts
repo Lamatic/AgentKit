@@ -1,8 +1,0 @@
-// Code: Get Chunks
-// Flow: sharepoint
-
-let docs =  {{chunkNode_318.output.chunks}}
-
-let outputDocs = docs.map(doc => doc.pageContent);
-console.log(outputDocs)
-output = outputDocs;
