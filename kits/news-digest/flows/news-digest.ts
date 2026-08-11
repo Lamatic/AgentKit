@@ -281,7 +281,7 @@ export const nodes = [
         "reply_is_html": false,
         "attachment_url": "",
         "attachment_name": "",
-        "recipient_email": "tvedanthrao@gmail.com",
+        "recipient_email": "youremail@example.com",
         "reply_thread_id": "",
         "remove_label_ids": "",
         "list_threads_query": "",
