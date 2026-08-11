@@ -1,6 +1,9 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { prCompanionSchema, type PRCompanionFormInput } from "../lib/schema";
 import { generatePRDescription } from "../actions/orchestrate";
 
 const inputStyle: React.CSSProperties = {
@@ -20,29 +23,33 @@ const labelStyle: React.CSSProperties = {
   display: "block",
 };
 
+/** Main PR Companion page: a form that submits to the pr-flow Lamatic flow. */
 export default function Page() {
-  const [diffOrFiles, setDiffOrFiles] = useState("");
-  const [commitMessages, setCommitMessages] = useState("");
-  const [intent, setIntent] = useState("");
-  const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<PRCompanionFormInput>({ resolver: zodResolver(prCompanionSchema) });
 
-  async function handleGenerate() {
-    setLoading(true);
-    setError(null);
+  /** Submits validated form data to the server action and shows the result or an error. */
+  async function onSubmit(data: PRCompanionFormInput) {
+    setServerError(null);
     setOutput(null);
-
-    const result = await generatePRDescription({ diffOrFiles, commitMessages, intent });
-
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error ?? "Unknown error");
-      return;
+    try {
+      const result = await generatePRDescription(data);
+      if (!result.ok) {
+        setServerError(result.error ?? "Unknown error");
+        return;
+      }
+      setOutput(result.output ?? "");
+    } catch (err: any) {
+      setServerError(err?.message ?? "Request failed.");
     }
-    setOutput(result.output ?? "");
   }
 
+  /** Copies the generated output to the clipboard. */
   async function copyOutput() {
     if (output) await navigator.clipboard.writeText(output);
   }
@@ -55,56 +62,68 @@ export default function Page() {
         PR title, description, checklist, and changelog entry.
       </p>
 
-      <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Diff or changed files</label>
-        <textarea
-          style={inputStyle}
-          rows={8}
-          placeholder={`e.g.\nM  src/webhooks/dispatcher.ts\nA  src/webhooks/retry.ts\n\nor paste a full git diff`}
-          value={diffOrFiles}
-          onChange={(e) => setDiffOrFiles(e.target.value)}
-        />
-      </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div style={{ marginBottom: 20 }}>
+          <label htmlFor="diffOrFiles" style={labelStyle}>Diff or changed files</label>
+          <textarea
+            id="diffOrFiles"
+            style={inputStyle}
+            rows={8}
+            placeholder={`e.g.\nM  src/webhooks/dispatcher.ts\nA  src/webhooks/retry.ts\n\nor paste a full git diff`}
+            {...register("diffOrFiles")}
+          />
+          {errors.diffOrFiles && (
+            <p style={{ color: "#dc2626", fontSize: 12, marginTop: 4 }}>
+              {errors.diffOrFiles.message}
+            </p>
+          )}
+        </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Commit messages</label>
-        <textarea
-          style={inputStyle}
-          rows={4}
-          placeholder={"add retry logic to webhook dispatcher\nfix flaky retry test"}
-          value={commitMessages}
-          onChange={(e) => setCommitMessages(e.target.value)}
-        />
-      </div>
+        <div style={{ marginBottom: 20 }}>
+          <label htmlFor="commitMessages" style={labelStyle}>Commit messages</label>
+          <textarea
+            id="commitMessages"
+            style={inputStyle}
+            rows={4}
+            placeholder={"add retry logic to webhook dispatcher\nfix flaky retry test"}
+            {...register("commitMessages")}
+          />
+          {errors.commitMessages && (
+            <p style={{ color: "#dc2626", fontSize: 12, marginTop: 4 }}>
+              {errors.commitMessages.message}
+            </p>
+          )}
+        </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <label style={labelStyle}>Intent (optional)</label>
-        <input
-          style={inputStyle}
-          placeholder="One line on why you made this change, if not obvious from commits"
-          value={intent}
-          onChange={(e) => setIntent(e.target.value)}
-        />
-      </div>
+        <div style={{ marginBottom: 24 }}>
+          <label htmlFor="intent" style={labelStyle}>Intent (optional)</label>
+          <input
+            id="intent"
+            style={inputStyle}
+            placeholder="One line on why you made this change, if not obvious from commits"
+            {...register("intent")}
+          />
+        </div>
 
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        style={{
-          padding: "10px 20px",
-          borderRadius: 8,
-          border: "none",
-          background: loading ? "#9ca3af" : "#111827",
-          color: "white",
-          fontWeight: 600,
-          cursor: loading ? "not-allowed" : "pointer",
-        }}
-      >
-        {loading ? "Generating…" : "Generate PR description"}
-      </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{
+            padding: "10px 20px",
+            borderRadius: 8,
+            border: "none",
+            background: isSubmitting ? "#9ca3af" : "#111827",
+            color: "white",
+            fontWeight: 600,
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+          }}
+        >
+          {isSubmitting ? "Generating…" : "Generate PR description"}
+        </button>
+      </form>
 
-      {error && (
-        <p style={{ color: "#dc2626", marginTop: 16 }}>{error}</p>
+      {serverError && (
+        <p role="alert" style={{ color: "#dc2626", marginTop: 16 }}>{serverError}</p>
       )}
 
       {output && (
