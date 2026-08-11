@@ -1,20 +1,27 @@
-// Data Extraction
+// Data Extraction (Lamatic Studio template bindings)
 const rawV1 = {{triggerNode_1.output.v1_schema}};
 const rawV2 = {{triggerNode_1.output.v2_schema}};
 
-// Schema Parser
+// Schema Parser (CodeRabbit Fix: Throws error on invalid schema)
 function parseSchema(val) {
-  if (!val) return {};
-  if (typeof val === 'object' && val !== null) return val;
-  try {
-    let parsed = JSON.parse(val);
-    if (typeof parsed === 'string') {
-      parsed = JSON.parse(parsed);
-    }
-    return (typeof parsed === 'object' && parsed !== null) ? parsed : {};
-  } catch (e) {
-    return {};
+  if (!val) {
+    throw new Error("Invalid schema: Input is missing or empty.");
   }
+  let parsed = val;
+  if (typeof val === 'string') {
+    try {
+      parsed = JSON.parse(val);
+      if (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+    } catch (e) {
+      throw new Error("Invalid JSON schema: Failed to parse string.");
+    }
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Invalid schema: Schema must be a valid object.");
+  }
+  return parsed;
 }
 
 // Schema Normalization
@@ -48,8 +55,9 @@ const v1Keys = Object.keys(v1Body);
 const v2Keys = Object.keys(v2Body);
 
 // Breaking Changes Check (Removed Fields & Type Changes)
+// CodeRabbit Fix: Uses Object.hasOwn for sandbox safety
 for (const key of v1Keys) {
-  if (!(key in v2Body)) {
+  if (!Object.hasOwn(v2Body, key)) {
     diffs.push({
       type: 'FIELD_REMOVED',
       severity: 'BREAKING',
@@ -71,7 +79,7 @@ for (const key of v1Keys) {
 
 // Non-Breaking Changes Check (Added Fields)
 for (const key of v2Keys) {
-  if (!(key in v1Body)) {
+  if (!Object.hasOwn(v1Body, key)) {
     diffs.push({
       type: 'FIELD_ADDED',
       severity: 'NON_BREAKING',
@@ -94,5 +102,5 @@ const finalOutput = {
   v2_summary: v2
 };
 
+// CodeRabbit Fix: No top-level return
 output = finalOutput;
-return finalOutput;
