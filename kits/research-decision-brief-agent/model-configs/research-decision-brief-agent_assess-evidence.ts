@@ -2,11 +2,11 @@
 // Flow: research-decision-brief-agent
 
 export default {
-  generativeModelName: [
+  "generativeModelName": [
     {
-      configName: "configA",
-      type: "generator/text",
-      model_name: "gpt-4o-mini"
+      "configName": "configA",
+      "type": "generator/text",
+      "model_name": "gpt-4o-mini"
     }
   ]
 };
