@@ -47,7 +47,8 @@ export const nodes = [
       values: {
         nodeName: "API Request",
         responeType: "realtime",
-        advance_schema: ""
+        advance_schema:
+          "{\n  \"objective\": \"string\",\n  \"constraints\": \"string\",\n  \"timeline\": \"string\",\n  \"audience\": \"string\",\n  \"evidence\": \"string\"\n}"
       }
     }
   },
@@ -72,8 +73,8 @@ export const nodes = [
             content: "@prompts/research-decision-brief-agent_assess-evidence_user.md"
           }
         ],
-        memories: "@model-configs/research-decision-brief-agent_assess-evidence.ts",
-        messages: "@model-configs/research-decision-brief-agent_assess-evidence.ts",
+        memories: "[]",
+        messages: "[]",
         generativeModelName:
           "@model-configs/research-decision-brief-agent_assess-evidence.ts"
       }
