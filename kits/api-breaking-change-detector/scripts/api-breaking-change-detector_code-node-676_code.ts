@@ -1,18 +1,18 @@
-// Data Extraction (Lamatic Studio template bindings)
+// Data Extraction 
 const rawV1 = {{triggerNode_1.output.v1_schema}};
 const rawV2 = {{triggerNode_1.output.v2_schema}};
 
-// Schema Parser with full schema shape validation
-function parseSchema(val: any) {
+// Schema Parser 
+function parseSchema(val) {
   if (!val) {
     throw new Error("Invalid schema: Input is missing or empty.");
   }
 
   let parsed = val;
-  if (typeof val === "string") {
+  if (typeof val === 'string') {
     try {
       parsed = JSON.parse(val);
-      if (typeof parsed === "string") {
+      if (typeof parsed === 'string') {
         parsed = JSON.parse(parsed);
       }
     } catch (e) {
@@ -20,22 +20,34 @@ function parseSchema(val: any) {
     }
   }
 
-  // Validate root object
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new Error("Invalid schema: Root schema must be a valid non-null object.");
+  // 1. Root object check
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Invalid schema: Schema must be a valid non-null object.");
   }
 
-  // Validate request_body/properties shape if present
+  // 2. Reject empty root objects {}
+  if (Object.keys(parsed).length === 0) {
+    throw new Error("Invalid schema: Schema object cannot be empty.");
+  }
+
+  // 3. Validate nested body/properties shapes consumed by the diff
   const body = parsed.request_body || parsed.body || parsed.properties;
   if (body !== undefined) {
-    if (typeof body !== "object" || body === null || Array.isArray(body)) {
-      throw new Error("Invalid schema shape: 'request_body' must be a valid object.");
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      throw new Error("Invalid schema shape: 'request_body' / 'properties' must be a valid non-null object.");
     }
 
-    // Validate property definitions are not null or undefined
+    // 4. Validate individual property definitions
     for (const key of Object.keys(body)) {
-      if (body[key] === null || body[key] === undefined) {
+      const prop = body[key];
+      if (prop === null || prop === undefined) {
         throw new Error(`Invalid schema shape: Property '${key}' cannot be null or undefined.`);
+      }
+
+      if (typeof prop === 'object' && prop.properties !== undefined) {
+        if (typeof prop.properties !== 'object' || prop.properties === null || Array.isArray(prop.properties)) {
+          throw new Error(`Invalid schema shape: Nested properties for '${key}' must be a valid object.`);
+        }
       }
     }
   }
@@ -47,14 +59,7 @@ function parseSchema(val: any) {
 const v1 = parseSchema(rawV1);
 const v2 = parseSchema(rawV2);
 
-const diffs: Array<{
-  type: string;
-  severity: string;
-  field?: string;
-  old_type?: any;
-  new_type?: any;
-  details: string;
-}> = [];
+const diffs = [];
 
 // Endpoint & Method Checks
 if (v1.endpoint && v2.endpoint && v1.endpoint !== v2.endpoint) {
