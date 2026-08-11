@@ -16,16 +16,14 @@ For every breaking change:
   it is provided by the input.
 
 Risk classification:
-- HIGH: one or more breaking changes are present.
+- HIGH: one or more breaking changes are present (or facts indicate IsBreaking: true / CRITICAL severity).
 - LOW: no breaking changes are present.
-- MEDIUM and CRITICAL should only be used when the supplied facts justify
-  that severity.
 
 Return ONLY valid JSON using exactly this structure:
 
 {
   "executiveSummary": {
-    "deploymentRisk": "LOW | MEDIUM | HIGH | CRITICAL",
+    "deploymentRisk": "LOW | HIGH",
     "breakingChangesCount": 0,
     "recommendation": "..."
   },
@@ -38,7 +36,7 @@ Return ONLY valid JSON using exactly this structure:
 }
 
 Rules:
-1. breakingChangesCount must equal the number of breaking changes supplied.
+1. breakingChangesCount must equal the number of breaking changes supplied (facts with IsBreaking: true or CRITICAL severity).
 2. If there are zero breaking changes, detailedImpact and migrationGuide
    must both be empty arrays.
 3. Every impact statement must correspond to a supplied deterministic fact.

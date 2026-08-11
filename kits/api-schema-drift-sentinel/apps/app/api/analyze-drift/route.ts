@@ -13,6 +13,27 @@ export async function POST(req: Request) {
       );
     }
 
+    const typeA = typeof specA;
+    const typeB = typeof specB;
+
+    if ((typeA !== 'string' && typeA !== 'object') || (typeB !== 'string' && typeB !== 'object')) {
+      return NextResponse.json(
+        { success: false, error: 'specA and specB must be string or JSON object.' },
+        { status: 400 }
+      );
+    }
+
+    const strA = typeA === 'string' ? specA : JSON.stringify(specA);
+    const strB = typeB === 'string' ? specB : JSON.stringify(specB);
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB limit
+
+    if (strA.length > MAX_SIZE || strB.length > MAX_SIZE) {
+      return NextResponse.json(
+        { success: false, error: 'Spec payload exceeds 2 MB size limit.' },
+        { status: 400 }
+      );
+    }
+
     // 1. Run local AST diff
     const rawDiff = await runOpenApiDiff(specA, specB);
     console.dir({ 'STAGE 1: RAW_DIFF': rawDiff }, { depth: null });
@@ -23,7 +44,7 @@ export async function POST(req: Request) {
 
     // 3. Format lines for AI context
     const factLines = facts.allChanges.map(
-      (c) => `Endpoint: ${c.endpoint} | Field: ${c.field} | Action: ${c.action} | Severity: ${c.severity} | Before: ${c.before} | After: ${c.after}`
+      (c) => `Endpoint: ${c.endpoint} | Field: ${c.field} | Action: ${c.action} | Severity: ${c.severity} | IsBreaking: ${c.isBreaking} | Before: ${c.before} | After: ${c.after}`
     );
 
     const sampleInput = `DETERMINISTIC API SCHEMA FACTS:\n${factLines.join('\n')}`;

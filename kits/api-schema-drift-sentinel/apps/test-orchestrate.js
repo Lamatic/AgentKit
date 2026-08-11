@@ -65,6 +65,8 @@ const v2Breaking = JSON.stringify({
 });
 
 
+const axiosClient = axios.create({ timeout: 15000 });
+
 async function triggerWorkflowAndPoll(compactPayload) {
   const executeQuery = `
     query ExecuteWorkflow($workflowId: String!, $sampleInput: String) {
@@ -86,7 +88,7 @@ async function triggerWorkflowAndPoll(compactPayload) {
       }
     `;
 
-  const response = await axios({
+  const response = await axiosClient({
     method: 'POST',
     url: process.env.LAMATIC_API_URL,
     headers: {
@@ -118,7 +120,7 @@ async function triggerWorkflowAndPoll(compactPayload) {
     attempts++;
     await new Promise(res => setTimeout(res, 3000));
 
-    const statusResponse = await axios({
+    const statusResponse = await axiosClient({
       method: 'POST',
       url: process.env.LAMATIC_API_URL,
       headers: {
@@ -204,6 +206,14 @@ async function runMatrixTests() {
     changes: factsAdditive.allChanges
   };
   console.log("Additive Normalized Payload:", JSON.stringify(payloadAdditive, null, 2));
+
+  if (factsAdditive.totalBreaking !== 0) {
+    throw new Error(`Test Case A assertion failed: expected 0 breaking changes, got ${factsAdditive.totalBreaking}`);
+  }
+  if (factsAdditive.totalNonBreaking < 1) {
+    throw new Error(`Test Case A assertion failed: expected at least 1 non-breaking change, got ${factsAdditive.totalNonBreaking}`);
+  }
+
   console.log("Triggering Lamatic Workflow for Additive Test Case...");
   const resultAdditive = await triggerWorkflowAndPoll(payloadAdditive);
   console.log("Additive Test Result Output:", JSON.stringify(resultAdditive, null, 2));
@@ -226,9 +236,19 @@ async function runMatrixTests() {
     changes: factsBreaking.allChanges
   };
   console.log("Breaking Normalized Payload:", JSON.stringify(payloadBreaking, null, 2));
+
+  if (factsBreaking.totalBreaking !== 3) {
+    throw new Error(`Test Case B assertion failed: expected 3 breaking changes, got ${factsBreaking.totalBreaking}`);
+  }
+  if (factsBreaking.calculatedRisk !== 'HIGH') {
+    throw new Error(`Test Case B assertion failed: expected HIGH risk, got ${factsBreaking.calculatedRisk}`);
+  }
+
   console.log("Triggering Lamatic Workflow for Breaking Test Case...");
   const resultBreaking = await triggerWorkflowAndPoll(payloadBreaking);
   console.log("Breaking Test Result Output:", JSON.stringify(resultBreaking, null, 2));
+
+  console.log("\n✅ ALL MATRIX TEST ASSERTIONS PASSED CLEANLY!");
 }
 
 runMatrixTests();

@@ -11,8 +11,7 @@ export async function analyzeSchemaDrift(
 ) {
   try {
     const rawDiff = await runOpenApiDiff(oldSpecContent, newSpecContent);
-    const normalizedChanges = normalizeDiff(rawDiff);
-
+    const normalizedChanges = normalizeDiff(rawDiff, oldSpecContent, newSpecContent);
     const payload = {
       apiName,
       oldVersion,
@@ -26,4 +25,4 @@ export async function analyzeSchemaDrift(
   } catch (error: any) {
     return { success: false, error: error.message };
   }
-}
+}
