@@ -1,0 +1,19 @@
+2025-01-15T09:00:01Z Run npm ci
+2025-01-15T09:00:01Z npm warn config
+2025-01-15T09:00:02Z npm ERR! code ERESOLVE
+2025-01-15T09:00:02Z npm ERR! ERESOLVE unable to resolve dependency tree
+2025-01-15T09:00:02Z npm ERR!
+2025-01-15T09:00:02Z npm ERR! While resolving: my-app@1.0.0
+2025-01-15T09:00:02Z npm ERR! Found: react@17.0.2
+2025-01-15T09:00:02Z npm ERR! node_modules/react
+2025-01-15T09:00:02Z npm ERR!   react@"^17.0.0" from the root project
+2025-01-15T09:00:02Z npm ERR!
+2025-01-15T09:00:02Z npm ERR! Could not resolve dependency:
+2025-01-15T09:00:02Z npm ERR! peer react@"^18.0.0" from @testing-library/react@14.0.0
+2025-01-15T09:00:02Z npm ERR! node_modules/@testing-library/react
+2025-01-15T09:00:02Z npm ERR!   @testing-library/react@"^14.0.0" from the root project
+2025-01-15T09:00:02Z npm ERR!
+2025-01-15T09:00:02Z npm ERR! Fix the upstream dependency conflict, or retry
+2025-01-15T09:00:02Z npm ERR! this command with --force or --legacy-peer-deps
+2025-01-15T09:00:02Z npm ERR! to accept an incorrect (and potentially broken) dependency resolution.
+2025-01-15T09:00:03Z Error: Process completed with exit code 1.
