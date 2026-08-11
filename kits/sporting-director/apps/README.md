@@ -2,6 +2,17 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Setup
+
+Copy `.env.example` to `.env.local` and fill in every Lamatic environment variable consumed by `lib/lamatic-client.ts`:
+
+- `LAMATIC_API_KEY`
+- `LAMATIC_PROJECT_ID`
+- `LAMATIC_ENDPOINT`
+- `LAMATIC_FLOW_ID`
+
+See the [kit README](../README.md) for where to get these values.
+
 ## Getting Started
 
 First, run the development server:
