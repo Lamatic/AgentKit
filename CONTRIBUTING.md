@@ -4,6 +4,18 @@ Thank you for your interest in improving AgentKit! This guide walks you through 
 
 ---
 
+## 💬 Questions or stuck on something?
+
+Please use [GitHub Discussions](https://github.com/Lamatic/AgentKit/discussions) 
+instead of Slack for contribution questions — it's searchable, so your question
+might already be answered, and it helps future contributors too.
+
+- 🐛 Found a bug? [Open an issue](https://github.com/Lamatic/AgentKit/issues)
+- ❓ Have a question? [Ask in Discussions](https://github.com/Lamatic/AgentKit/discussions/new?category=q-a)
+- 💡 Have an idea? [Share it in Discussions](https://github.com/Lamatic/AgentKit/discussions/new?category=ideas)
+
+---
+
 ## Table of Contents
 
 - [Quick Start (TL;DR)](#quick-start-tldr)

@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "properties": {
+    "executive_risk_summary": { "type": "string" },
+    "ranked_threats": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "threat_id": { "type": "string" },
+          "title": { "type": "string" },
+          "priority": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+          "damage": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "reproducibility": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "exploitability": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "affected_users": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "discoverability": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "total": { "type": "integer", "minimum": 5, "maximum": 50 },
+          "rationale": { "type": "string" },
+          "assumptions": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": [
+          "threat_id",
+          "title",
+          "priority",
+          "damage",
+          "reproducibility",
+          "exploitability",
+          "affected_users",
+          "discoverability",
+          "total",
+          "rationale",
+          "assumptions"
+        ]
+      }
+    },
+    "scoring_assumptions": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["executive_risk_summary", "ranked_threats", "scoring_assumptions"]
+}
