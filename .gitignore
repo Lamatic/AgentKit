@@ -3,7 +3,5 @@
 .env
 .claude
 REFACTOR_PLAN.md
-scripts
+/scripts
 node_modules/
-.DS_Store
-.DS_Store
