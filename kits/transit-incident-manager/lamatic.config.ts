@@ -1,18 +1,13 @@
 export default {
   name: "Transit Incident Response",
-
   description:
     "An AI-powered transit incident management dashboard that generates alternative routes and passenger alerts for bus service disruptions.",
-
   version: "1.0.0",
-
   type: "kit" as const,
-
   author: {
     name: "Devika sajeev",
     email: "devikadiya1010@gmail.com",
   },
-
   tags: [
     "transit",
     "transportation",
@@ -20,7 +15,6 @@ export default {
     "ai",
     "routing",
   ],
-
   steps: [
     {
       id: "transit-incident-response",
@@ -28,11 +22,10 @@ export default {
       envKey: "TRANSIT_INCIDENT_RESPONSE_FLOW_ID",
     },
   ],
-
   links: {
-    demo: "",
+    demo: "https://transit-incident-manager.vercel.app/",
     github:
-      "https://github.com/Lamatic/AgentKit/tree/main/kits/transit-incident-manager",
+      "https://github.com/Devika-sajeev1010/AgentKit/tree/feat/transit-incident-manager/kits/transit-incident-manager",
     deploy: "",
   },
 };
