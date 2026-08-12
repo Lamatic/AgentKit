@@ -11,7 +11,7 @@ export default {
   tags: ["observability", "optimization", "traces", "developer-tools"],
   steps: [
     {
-      id: "traceshift-advisor",
+      id: "trace-shift-advisor",
       type: "mandatory" as const,
       envKey: "TRACESHIFT_ADVISOR_FLOW_ID",
     },

@@ -8,7 +8,7 @@ TraceShift is an evidence-grounded production optimization agent for Lamatic wor
 
 TraceShift exists to bridge the gap between “the flow is working” and “we know which improvement is worth testing next.” It aggregates many requests instead of narrating one log entry, prioritizes successful behavior instead of diagnosing only failures, and makes uncertainty and safety gates part of every recommendation.
 
-## Flow: `traceshift-advisor`
+## Flow: `trace-shift-advisor`
 
 ### Trigger
 
@@ -70,7 +70,7 @@ No third-party runtime integrations are required beyond Lamatic. CSV analysis us
 
 ## Quickstart
 
-1. Import or recreate `traceshift-advisor` in Lamatic Studio.
+1. Import or recreate `trace-shift-advisor` in Lamatic Studio.
 2. Configure an Instructor-compatible model credential and deploy the flow.
 3. Copy `apps/.env.example` to `apps/.env.local` and fill the four variables.
 4. Run `npm install && npm run dev` in `apps/`.
