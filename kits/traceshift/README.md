@@ -45,7 +45,7 @@ flowchart LR
 4. **Fingerprint payloads.** Raw node inputs and outputs are replaced with local equality fingerprints and structural shapes.
 5. **Measure recurrence and impact.** Path share, p50/p95 latency, tokens, cost, exact-input repetition, and output repetition are computed deterministically.
 6. **Rank candidates.** Every candidate includes observed evidence, a scenario estimate, assumptions, known risk, and validation gates.
-7. **Ask Lamatic.** Only the selected aggregate evidence pack is sent to `traceshift-advisor`, an Instructor LLM flow that returns a structured implementation brief. It never receives the CSV or raw payloads.
+7. **Ask Lamatic.** Only the selected aggregate evidence pack is sent to `trace-shift-advisor`, an Instructor LLM flow that returns a structured implementation brief. It never receives the CSV or raw payloads.
 
 ## Deterministic analysis vs. AI judgment
 
@@ -108,9 +108,9 @@ To enable the Lamatic proposal reviewer, configure:
 | `LAMATIC_API_KEY` | Lamatic Studio → Settings → API Keys |
 | `LAMATIC_PROJECT_ID` | Lamatic Studio → Settings → Project |
 | `LAMATIC_API_URL` | Lamatic Studio → API Docs → Endpoint |
-| `TRACESHIFT_ADVISOR_FLOW_ID` | Deployed `traceshift-advisor` flow details |
+| `TRACESHIFT_ADVISOR_FLOW_ID` | Deployed `trace-shift-advisor` flow details |
 
-Then import/configure `flows/traceshift-advisor.ts` in Studio, select a model credential for its Instructor LLM node, and deploy it.
+Then import/configure `flows/trace-shift-advisor.ts` in Studio, select a model credential for its Instructor LLM node, and deploy it.
 
 ## Validation
 

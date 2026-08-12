@@ -8,7 +8,7 @@ const requireEnv = (name: string): string => {
 };
 
 export function getTraceShiftClient() {
-  const flowEnvKey = config.steps.find((step) => step.id === "traceshift-advisor")?.envKey;
+  const flowEnvKey = config.steps.find((step) => step.id === "trace-shift-advisor")?.envKey;
   if (!flowEnvKey) throw new Error("TraceShift advisor flow is not declared in lamatic.config.ts.");
   return {
     flowId: requireEnv(flowEnvKey),
