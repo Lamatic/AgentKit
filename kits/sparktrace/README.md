@@ -100,6 +100,8 @@ npm run dev
 
 Open `http://localhost:3000`. Choose **demo** mode to run the sample scenario with zero configuration, or **live** mode once you've filled in the Lamatic and AWS variables below.
 
+Live mode is off by default — set `SPARKTRACE_ALLOW_LIVE="true"` in `.env.local` to enable it, otherwise the API returns 403 for `mode: "live"`.
+
 For live mode, first deploy the five flows in Lamatic Studio (Studio → "+ New Flow" → Templates → "SparkTrace"), configure each flow's model per the tier table above, then copy the resulting Flow IDs into `.env.local`.
 
 ---
@@ -111,6 +113,7 @@ All variables live in [`apps/.env.example`](apps/.env.example). **None are requi
 | Variable | Purpose | Required for |
 |---|---|---|
 | `RUN_MODE` | `"demo"` or `"live"` — selects which backend implementation is injected. Defaults to `demo` if unset | both |
+| `SPARKTRACE_ALLOW_LIVE` | Opt-in switch for live mode. The kit ships without auth, so `POST /api/investigate` rejects `mode: "live"` with **403** unless this is exactly `"true"`. Demo mode always works, unset | live |
 | `LAMATIC_API_URL` | Base URL for the Lamatic API | live |
 | `LAMATIC_PROJECT_ID` | Lamatic project identifier | live |
 | `LAMATIC_API_KEY` | Lamatic API key with permission to invoke deployed flows | live |

@@ -128,12 +128,20 @@ export interface QueryExecutionResult {
 
 export interface ColumnStat {
   name: string;
+  /** value-type label only: "number" | "string" | "boolean" | "null" | "mixed" */
   type: string;
   min?: number | string;
   max?: number | string;
   avg?: number;
   nulls?: number;
   distinct?: number;
+  /**
+   * True when the distinct-value scan hit its row cap, so `distinct` is a
+   * LOWER BOUND on the true distinct count rather than an exact value.
+   * Kept as its own flag so `type` stays a machine-readable value-type
+   * label — callers must not encode caveats into `type`.
+   */
+  distinctCapped?: boolean;
 }
 
 export interface ResultStats {
@@ -161,6 +169,14 @@ export interface CompactResult {
 
 /** Default cap on rows shown to a model. */
 export const MAX_SAMPLE_ROWS = 10;
+
+/**
+ * Hard cap on rows an executor returns to the caller, regardless of how
+ * many the query produced. Lives here (not in the Athena client) so the
+ * demo executor can share the exact same cap without importing the AWS
+ * module graph — demo mode must stay service-free.
+ */
+export const MAX_ROWS = 1000;
 
 // ─────────────────────────────────────────────────────────────
 // Analyst verdict

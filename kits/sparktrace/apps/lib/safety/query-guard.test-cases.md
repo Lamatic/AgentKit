@@ -14,6 +14,14 @@ import { guardQuery, GUARD_TEST_CASES } from "./query-guard";
 for (const tc of GUARD_TEST_CASES) {
   const result = guardQuery({ id: "t", hypothesisId: "h", engine: "athena", sql: tc.input, purpose: "test" });
   assert(result.ok === tc.expectOk, `${tc.name}: expected ok=${tc.expectOk}, got ${result.ok} (${result.violations.join("; ")})`);
+
+  // A vector may also pin the guard's *repair* contract (rule 8), not just its verdict.
+  if (tc.expectRewritten !== undefined) {
+    assert(result.rewritten === tc.expectRewritten, `${tc.name}: expected rewritten=${tc.expectRewritten}, got ${result.rewritten}`);
+  }
+  if (tc.expectNormalizedSql !== undefined) {
+    assert(result.normalizedSql === tc.expectNormalizedSql, `${tc.name}: expected normalizedSql=${JSON.stringify(tc.expectNormalizedSql)}, got ${JSON.stringify(result.normalizedSql)}`);
+  }
 }
 ```
 

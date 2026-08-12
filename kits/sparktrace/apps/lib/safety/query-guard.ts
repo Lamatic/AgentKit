@@ -410,6 +410,15 @@ export interface GuardTestCase {
   name: string;
   input: string;
   expectOk: boolean;
+  /**
+   * Expected `rewritten` flag. Asserted only when present — pins whether
+   * the guard DID or DID NOT rewrite, so a silently-broken LIMIT injection
+   * can't pass just because `ok` is still true (rule 8 requires the caller
+   * to execute `normalizedSql`).
+   */
+  expectRewritten?: boolean;
+  /** Exact expected `normalizedSql` (whitespace-collapsed, LIMIT injected). */
+  expectNormalizedSql?: string;
 }
 
 export const GUARD_TEST_CASES: GuardTestCase[] = [
@@ -437,6 +446,17 @@ export const GUARD_TEST_CASES: GuardTestCase[] = [
     name: "missing LIMIT is auto-injected",
     input: "SELECT order_id, amount FROM sales.orders WHERE amount > 100",
     expectOk: true,
+    expectRewritten: true,
+    expectNormalizedSql:
+      "SELECT order_id, amount FROM sales.orders WHERE amount > 100 LIMIT 1000",
+  },
+  {
+    name: "explicit LIMIT is left untouched (no second LIMIT injected)",
+    input: "SELECT order_id, amount FROM sales.orders WHERE amount > 100 LIMIT 50",
+    expectOk: true,
+    expectRewritten: false,
+    expectNormalizedSql:
+      "SELECT order_id, amount FROM sales.orders WHERE amount > 100 LIMIT 50",
   },
   {
     name: "comment-smuggled write is rejected",
@@ -478,5 +498,17 @@ export const GUARD_TEST_CASES: GuardTestCase[] = [
     name: "describe table is ok",
     input: "DESCRIBE sales.orders",
     expectOk: true,
+  },
+  {
+    name: "EXPLAIN ANALYZE is rejected (it actually executes and scans data)",
+    input: "EXPLAIN ANALYZE SELECT order_date, COUNT(*) FROM sales.orders GROUP BY order_date",
+    expectOk: false,
+  },
+  {
+    name: "plain EXPLAIN is ok and gets no injected LIMIT (returns a plan, not rows)",
+    input: "EXPLAIN SELECT * FROM sales.orders",
+    expectOk: true,
+    expectRewritten: false,
+    expectNormalizedSql: "EXPLAIN SELECT * FROM sales.orders",
   },
 ];

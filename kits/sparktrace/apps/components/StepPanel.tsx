@@ -57,7 +57,7 @@ export function StepPanel({ step, index, className }: StepPanelProps) {
             <code>{guard.normalizedSql ?? query.sql}</code>
           </pre>
           {guard.ok && guard.rewritten && (
-            <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <div className="flex items-center gap-1.5 text-xs text-warning">
               <ShieldCheck className="size-3.5 shrink-0" />
               LIMIT injected by the query guard before execution
             </div>
@@ -65,7 +65,7 @@ export function StepPanel({ step, index, className }: StepPanelProps) {
         </div>
 
         {blocked ? (
-          <div className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+          <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             <ShieldAlert className="mt-0.5 size-4 shrink-0" />
             <div>
               <p className="font-medium">Blocked by read-only/cost guard</p>
@@ -89,7 +89,7 @@ export function StepPanel({ step, index, className }: StepPanelProps) {
                   </span>
                 </div>
                 {compact.error ? (
-                  <p className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+                  <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                     {compact.error}
                   </p>
                 ) : (
@@ -106,7 +106,7 @@ export function StepPanel({ step, index, className }: StepPanelProps) {
             )}
 
             {!compact && execution?.error && (
-              <p className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 {execution.error}
               </p>
             )}

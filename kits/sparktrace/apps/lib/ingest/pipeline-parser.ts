@@ -41,10 +41,16 @@ const RE_SAVE_AS_TABLE = /\.saveAsTable\(\s*["']([\w.]+)["']\s*\)/gi;
 const RE_INSERT_INTO_CALL = /\.insertInto\(\s*["']([\w.]+)["']\s*\)/gi;
 /** `.write...parquet/csv/json/orc("path")` — write to a path, not necessarily a catalog table. */
 const RE_WRITE_PATH = /\.write(?:\.format\(\s*["'][\w.\-]+["']\s*\))?(?:\.mode\([^)]*\))?(?:\.option\([^)]*\))*\.(parquet|csv|json|orc)\(\s*["']([^"']+)["']\s*\)/gi;
-/** Generic `.write` presence, for role classification even without a captured target. */
-const RE_WRITE_CALL = /\.write\b/gi;
-/** Generic `spark.read` presence, for role classification even without a captured target. */
-const RE_READ_CALL = /spark\.read\b/gi;
+/**
+ * Generic `.write` / `spark.read` presence, for role classification even
+ * without a captured target. Intentionally NOT global: these two are the
+ * only heuristics used with `.test()`, and a `g` regex's `test()` resumes
+ * from — and mutates — the shared `lastIndex`, which would make results
+ * depend on which file was scanned before. `classifyFile` makes its own
+ * global copy when it needs to count occurrences.
+ */
+const RE_WRITE_CALL = /\.write\b/i;
+const RE_READ_CALL = /spark\.read\b/i;
 
 /** SQL: `INSERT INTO [TABLE] db.tbl`. */
 const RE_SQL_INSERT_INTO = /INSERT\s+INTO\s+(?:TABLE\s+)?[`"[]?([\w.]+)[`"\]]?/gi;
@@ -198,13 +204,19 @@ export function classifyFile(file: PipelineFile): FileRole {
   const content = file.content;
   const lowerPath = file.path.toLowerCase();
 
+  // RE_READ_CALL / RE_WRITE_CALL are deliberately non-global (see their
+  // declaration), so counting needs a throwaway global copy rather than
+  // `String.match`, which returns only the first match without `g`.
+  const countOf = (re: RegExp): number =>
+    [...content.matchAll(new RegExp(re.source, `${re.flags}g`))].length;
+
   const readSignals =
     (content.match(RE_SPARK_TABLE) || []).length +
     (content.match(RE_TABLE_CALL) || []).length +
     (content.match(RE_SPARK_READ_PATH) || []).length +
     (content.match(RE_SQL_FROM) || []).length +
     (content.match(RE_SQL_JOIN) || []).length +
-    (content.match(RE_READ_CALL) || []).length;
+    countOf(RE_READ_CALL);
 
   const writeSignals =
     (content.match(RE_SAVE_AS_TABLE) || []).length +
@@ -212,7 +224,7 @@ export function classifyFile(file: PipelineFile): FileRole {
     (content.match(RE_WRITE_PATH) || []).length +
     (content.match(RE_SQL_CREATE_TABLE) || []).length +
     (content.match(RE_SQL_INSERT_INTO) || []).length +
-    (content.match(RE_WRITE_CALL) || []).length;
+    countOf(RE_WRITE_CALL);
 
   const nameHintsSink = /(sink|writer|load|export)/.test(lowerPath);
   const nameHintsSource = /(source|extract|ingest|reader)/.test(lowerPath);

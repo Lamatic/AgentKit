@@ -60,7 +60,7 @@
  * - Configured text generation model via `generativeModelName` on the `Generate JSON` node
  *   (Opus tier — see `@model-configs/sparktrace-planner_generate-json.ts`).
  * ### Environment Variables
- * - `SPARKTRACE_PLANNER` — deployed flow id used by `apps/lib/lamatic-client.ts`.
+ * - `SPARKTRACE_PLANNER_FLOW_ID` — deployed flow id used by `apps/lib/lamatic-client.ts`.
  * - `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` — Lamatic client credentials.
  *
  * ## Node Walkthrough

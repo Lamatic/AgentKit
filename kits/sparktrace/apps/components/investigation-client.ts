@@ -38,6 +38,10 @@ export async function* streamInvestigation(
       signal: opts.signal,
     });
   } catch (err) {
+    // A caller-initiated abort is not a failure: cancellation is already
+    // represented in the UI state ("cancelled"), so yielding an error here
+    // would overwrite it. End the stream silently instead.
+    if (opts.signal?.aborted) return;
     yield {
       type: "error",
       message: err instanceof Error ? `Failed to reach ${endpoint}: ${err.message}` : `Failed to reach ${endpoint}`,
@@ -63,7 +67,16 @@ export async function* streamInvestigation(
 
   try {
     while (true) {
-      const { value, done } = await reader.read();
+      let chunk: ReadableStreamReadResult<Uint8Array>;
+      try {
+        chunk = await reader.read();
+      } catch (err) {
+        // Same rule as the fetch above: an abort mid-stream ends the
+        // generator quietly; anything else is a real transport failure.
+        if (opts.signal?.aborted) return;
+        throw err;
+      }
+      const { value, done } = chunk;
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 

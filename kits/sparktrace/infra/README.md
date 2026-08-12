@@ -24,7 +24,7 @@ one command down.
 
 ## Prerequisites
 
-- AWS CLI v2 (already installed here) + deployer credentials.
+- AWS CLI v2 (verify with `aws --version`) + deployer credentials.
 - Deployer creds need: CloudFormation, S3, Glue, Athena, and — if
   `CREATE_APP_USER=true` (default) — IAM user/policy/access-key permissions. If
   your creds can't do IAM, set `CREATE_APP_USER=false` and the app reuses your

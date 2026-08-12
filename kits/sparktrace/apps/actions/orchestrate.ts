@@ -172,6 +172,14 @@ export async function* runInvestigation(
     const evidence: PlannerEvidence[] = [];
     const hypothesesTried: Hypothesis[] = [];
 
+    // Schema grounding is derived purely from `investigation.pipeline`,
+    // which is fixed once ingestion completes — so resolve it lazily on
+    // the first gen_query turn and reuse it for every later one instead
+    // of re-running listTables()/describeTable() per query generation.
+    // `null` (not `[]`) means "not resolved yet", so a genuinely empty
+    // catalog result is cached too rather than retried every turn.
+    let resolvedTables: TableRef[] | null = null;
+
     for (let turn = 0; turn < stepBudget; turn++) {
       const decision: PlannerDecision = await deps.reasoner.plan({
         symptom: investigation.symptom,
@@ -220,11 +228,13 @@ export async function* runInvestigation(
         investigation.hypotheses.push(hypothesis);
       }
 
-      const tables = await gatherTables(investigation, deps);
+      if (resolvedTables === null) {
+        resolvedTables = await gatherTables(investigation, deps);
+      }
       const query = await deps.reasoner.generateQuery({
         symptom: investigation.symptom,
         hypothesis,
-        tables,
+        tables: resolvedTables,
         engine,
       });
 

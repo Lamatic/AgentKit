@@ -10,8 +10,7 @@ export interface ConfidenceMeterProps {
 /** Small horizontal meter for a 0..1 confidence score (planner priors, report confidence). */
 export function ConfidenceMeter({ value, label = "Confidence", className }: ConfidenceMeterProps) {
   const pct = Math.round(Math.max(0, Math.min(1, value)) * 100);
-  const tone =
-    pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500";
+  const tone = pct >= 70 ? "bg-success" : pct >= 40 ? "bg-warning" : "bg-destructive";
 
   return (
     <div className={cn("w-full", className)}>
