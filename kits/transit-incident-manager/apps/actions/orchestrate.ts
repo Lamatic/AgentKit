@@ -2,6 +2,16 @@
 
 import { lamaticClient } from "../lib/lamatic-client";
 
+type AIResult = {
+  priorityLevel?: string;
+  recommendedAction?: string;
+  estimatedRecoveryTime?: string;
+  operationalRecommendation?: string;
+  driverInstructions?: string;
+  passengerNotification?: string;
+  incidentSummary?: string;
+};
+
 export async function generateIncidentResponse(
   busNumber: string,
   currentRoute: string,
@@ -32,23 +42,32 @@ export async function generateIncidentResponse(
 
     console.log("Lamatic SDK response:", response);
 
-    const result = response as any;
+    const result = response as {
+      result?: {
+        generatedResponse?: AIResult;
+        answer?: AIResult;
+      };
+      generatedResponse?: AIResult;
+    };
 
     const generatedResponse =
       result?.result?.generatedResponse ??
       result?.result?.answer ??
-      result?.generatedResponse ??
-      result;
+      result?.generatedResponse;
+
+    if (!generatedResponse) {
+      throw new Error("Invalid response from Lamatic flow.");
+    }
 
     return {
-      success: true,
+      success: true as const,
       data: generatedResponse,
     };
   } catch (error) {
     console.error("Transit incident error:", error);
 
     return {
-      success: false,
+      success: false as const,
       error:
         error instanceof Error
           ? error.message
