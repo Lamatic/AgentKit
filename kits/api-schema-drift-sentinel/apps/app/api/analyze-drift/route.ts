@@ -16,7 +16,13 @@ export async function POST(req: Request) {
     const typeA = typeof specA;
     const typeB = typeof specB;
 
-    if ((typeA !== 'string' && typeA !== 'object') || (typeB !== 'string' && typeB !== 'object')) {
+    const isJsonObject = (value: unknown) =>
+      typeof value === 'object' && value !== null && !Array.isArray(value);
+
+    if (
+      (typeA !== 'string' && !isJsonObject(specA)) ||
+      (typeB !== 'string' && !isJsonObject(specB))
+    ) {
       return NextResponse.json(
         { success: false, error: 'specA and specB must be string or JSON object.' },
         { status: 400 }
@@ -27,7 +33,12 @@ export async function POST(req: Request) {
     const strB = typeB === 'string' ? specB : JSON.stringify(specB);
     const MAX_SIZE = 2 * 1024 * 1024; // 2 MB limit
 
-    if (strA.length > MAX_SIZE || strB.length > MAX_SIZE) {
+    const encoder = new TextEncoder();
+
+    if (
+      encoder.encode(strA).byteLength > MAX_SIZE ||
+      encoder.encode(strB).byteLength > MAX_SIZE
+    ) {
       return NextResponse.json(
         { success: false, error: 'Spec payload exceeds 2 MB size limit.' },
         { status: 400 }
