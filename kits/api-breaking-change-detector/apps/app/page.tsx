@@ -1,139 +1,229 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Loader2, Sparkles, FileJson, AlertTriangle } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import type React from "react"
 
-export default function ApiBreakingChangeDetector() {
-  const [oldSchema, setOldSchema] = useState("");
-  const [newSchema, setNewSchema] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Card } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Loader2, Sparkles, FileText, Copy, Check, Home } from "lucide-react"
+import { generateContent } from "@/actions/orchestrate"
+import ReactMarkdown from "react-markdown"
+import { Header } from "@/components/header"
 
-  const handleAnalyze = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setResult(null);
+type InputType = "text" | "image" | "json"
+
+export default function GenerationPage() {
+  const [inputType, setInputType] = useState<InputType>("text")
+  const [instructions, setInstructions] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [result, setResult] = useState<any>(null)
+  const [error, setError] = useState("")
+  const [copied, setCopied] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!instructions.trim()) {
+      setError("Please provide instructions")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+    setResult(null)
+    setCopied(false)
 
     try {
-      // 🚀 LAMATIC AI INTEGRATION POINT
-      // Once your backend is ready, you will replace the setTimeout block below 
-      // with your actual Lamatic orchestration action call, like this:
-      // const response = await generateContent({ oldSchema, newSchema });
-      // setResult(response);
+      const response = await generateContent(inputType, instructions)
 
-      // Simulated AI response for UI testing purposes:
-      setTimeout(() => {
-        setResult(`
-### 🚨 High Severity Breaking Changes Detected
-
-**1. Field Removal: \`user_id\`**
-* **Impact**: Breaks downstream authentication mapping.
-* **Migration**: Update client apps to request \`account_id\` instead.
-
-**2. Type Mutation: \`price\`**
-* **Impact**: Changed from \`Integer\` to \`String\`. Math operations will fail.
-* **Migration**: Explicitly parse \`price\` as a float on the client side.
-
----
-### 💡 Recommended Developer Action
-Release this as a **v2 endpoint** and set a 90-day deprecation warning for the v1 endpoint.
-        `);
-        setLoading(false);
-      }, 1500);
-
-    } catch (error) {
-      console.error("Error analyzing schemas:", error);
-      setResult("An error occurred while analyzing the schemas. Please check your API keys.");
-      setLoading(false);
+      if (response.success) {
+        setResult(response.data)
+      } else {
+        setError(response.error || "Generation failed")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
+
+  const handleReset = () => {
+    setResult(null)
+    setInstructions("")
+    setError("")
+    setCopied(false)
+  }
+
+  const handleCopy = async () => {
+    const textToCopy = typeof result === "object" ? JSON.stringify(result, null, 2) : String(result)
+
+    try {
+      await navigator.clipboard.writeText(textToCopy)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy:", err)
+    }
+  }
+
+  const isImageUrl = (value: any): boolean => {
+    if (typeof value !== "string") return false
+    return (
+      /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(value) ||
+      (/^https?:\/\/.+/.test(value) && (value.includes("image") || value.includes("img")))
+    )
+  }
+
+  const renderResult = () => {
+    if (!result) return null
+
+    // Check if it's an image URL
+    if (isImageUrl(result)) {
+      return (
+        <div className="space-y-4">
+          <img src={result || "/placeholder.svg"} alt="Generated content" className="w-full rounded-lg shadow-md" />
+          <p className="text-xs text-muted-foreground break-all">{result}</p>
+        </div>
+      )
+    }
+
+    // Check if it's an object/JSON
+    if (typeof result === "object" && result !== null) {
+      return <pre className="text-sm whitespace-pre-wrap break-words font-mono">{JSON.stringify(result, null, 2)}</pre>
+    }
+
+    // If input type is text, render as markdown
+    if (inputType === "text" && typeof result === "string") {
+      return (
+        <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-primary prose-code:text-primary">
+          <ReactMarkdown>{result}</ReactMarkdown>
+        </div>
+      )
+    }
+
+    // Otherwise, it's plain text
+    return <p className="text-sm whitespace-pre-wrap break-words">{result}</p>
+  }
 
   return (
-    <main className="min-h-screen bg-[#0F172A] text-slate-100 p-8 flex flex-col items-center font-sans">
-      <div className="max-w-5xl w-full space-y-8">
-        {/* Header */}
-        <header className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-full mb-2">
-            <AlertTriangle className="w-8 h-8 text-blue-400" />
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            API Breaking Change Detector
-          </h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Paste your existing and updated API schemas below. Our AI agent will instantly analyze the structures, flag breaking changes, and generate a developer migration guide.
-          </p>
-        </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 text-foreground">
+      <Header />
 
-        {/* Input Form */}
-        <form onSubmit={handleAnalyze} className="space-y-6 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Old Schema */}
-            <div className="space-y-3">
-              <label className="flex items-center space-x-2 text-sm font-semibold text-slate-300">
-                <FileJson className="w-4 h-4 text-slate-400" />
-                <span>Old API Schema (v1)</span>
-              </label>
-              <textarea
-                value={oldSchema}
-                onChange={(e) => setOldSchema(e.target.value)}
-                placeholder='{\n  "user_id": 123,\n  "price": 99.99\n}'
-                className="w-full h-72 p-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-                required
-              />
+      <div className="px-6 py-8 max-w-4xl mx-auto">
+        {!result && (
+          <div className="flex items-start justify-center pt-12">
+            <div className="max-w-2xl w-full">
+              <div className="text-center mb-12">
+                <h1 className="text-5xl font-normal mb-4 text-balance">Generate Content</h1>
+                <p className="text-xl text-muted-foreground">
+                  Select input type and provide instructions for content generation
+                </p>
+              </div>
+
+              <Card className="p-8 backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border-white/20 shadow-xl">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label htmlFor="inputType" className="text-sm font-medium">
+                      Input Type
+                    </label>
+                    <Select value={inputType} onValueChange={(value) => setInputType(value as InputType)}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select input type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="image">Image</SelectItem>
+                        <SelectItem value="json">JSON</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="instructions" className="text-sm font-medium">
+                      Instructions
+                    </label>
+                    <Textarea
+                      id="instructions"
+                      placeholder="Enter your instructions here..."
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value)}
+                      className="min-h-[200px] resize-none"
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                      <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    disabled={!instructions.trim() || isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Card>
             </div>
-
-            {/* New Schema */}
-            <div className="space-y-3">
-              <label className="flex items-center space-x-2 text-sm font-semibold text-slate-300">
-                <FileJson className="w-4 h-4 text-slate-400" />
-                <span>New API Schema (v2)</span>
-              </label>
-              <textarea
-                value={newSchema}
-                onChange={(e) => setNewSchema(e.target.value)}
-                placeholder='{\n  "account_id": 123,\n  "price": "99.99"\n}'
-                className="w-full h-72 p-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-                required
-              />
-            </div>
           </div>
+        )}
 
-          {/* Submit Button */}
-          <div className="flex justify-center pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center space-x-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed hover:-translate-y-0.5"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Analyzing Schemas...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  <span>Detect Breaking Changes</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-
-        {/* Results Section */}
         {result && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-800/80 p-8 rounded-2xl border border-slate-700 shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center space-x-2 border-b border-slate-700 pb-4">
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
-              <span>Analysis Breakdown</span>
-            </h2>
-            <div className="prose prose-invert prose-blue max-w-none">
-              <ReactMarkdown>{result}</ReactMarkdown>
+          <div className="flex items-start justify-center pt-12">
+            <div className="max-w-3xl w-full">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-normal mb-2 text-balance">Generated Result</h1>
+                <p className="text-lg text-muted-foreground">Your content has been generated successfully</p>
+              </div>
+
+              <Card className="p-8 backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border-white/20 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    <h2 className="text-xl font-semibold">Output</h2>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2 bg-transparent">
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="p-6 bg-muted/50 rounded-lg overflow-auto max-h-[600px] mb-6">{renderResult()}</div>
+
+                <Button onClick={handleReset} variant="outline" className="w-full h-12 gap-2 bg-transparent">
+                  <Home className="w-4 h-4" />
+                  Generate New Content
+                </Button>
+              </Card>
             </div>
           </div>
         )}
       </div>
-    </main>
-  );
+    </div>
+  )
 }

@@ -1,6 +1,6 @@
 {
-  "name": "api-breaking-change-detector",
-  "author": "Porus",
+  "name": "agent-kit-generation",
+  "author": "Lamatic AI",
   "repository": {
     "type": "git",
     "url": "https://github.com/Lamatic/AgentKit"

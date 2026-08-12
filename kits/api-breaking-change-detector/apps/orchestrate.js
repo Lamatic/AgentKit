@@ -1,23 +1,18 @@
 export const config = {
   type: "atomic",
   flows: {
-    "api-breaking-change-detector": {
-      name: "API Breaking Change Detector",
+    generation: {
+      name: "Generation",
       type: "graphQL",
-      workflowId: process.env.API_BREAKING_CHANGE_DETECTOR,
-      description:
-        "Compare old and new API schemas to detect breaking changes and generate migration guides",
+      workflowId: process.env.AGENTIC_GENERATE_CONTENT,
+      description: "Generate the output based on the user input type and instructions",
       expectedOutput: ["answer"],
       inputSchema: {
-        old_schema: "string",
-        new_schema: "string",
+        type: "string",
         instructions: "string",
       },
       outputSchema: {
         answer: "string",
-        severity: "string",
-        breaking_changes: "array",
-        migration_steps: "array",
       },
       mode: "sync",
       polling: "false",

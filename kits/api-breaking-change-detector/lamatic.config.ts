@@ -1,23 +1,21 @@
 export default {
-  name: "API Breaking Change Detector",
-  description:
-    "Paste your existing and updated API schemas to instantly analyze breaking changes and generate developer migration guides.",
+  name: "Generative AI",
+  description: "It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.",
   version: "1.0.0",
   type: "kit" as const,
-  author: { name: "Porus", email: "porus@example.com" },
-  tags: ["api", "breaking-changes", "migration", "schema-analysis"],
+  author: {"name":"Lamatic AI","email":"info@lamatic.ai"},
+  tags: ["agentic","generative"],
   steps: [
     {
-      id: "api-breaking-change-detector",
-      type: "mandatory",
-      envKey: "API_BREAKING_CHANGE_DETECTOR",
-    },
-  ],
+        "id": "agentic-generate-content",
+        "type": "mandatory",
+        "envKey": "AGENTIC_GENERATE_CONTENT"
+    }
+],
   links: {
-    github:
-      "https://github.com/Lamatic/AgentKit/tree/main/kits/api-breaking-change-detector",
-    deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fapi-breaking-change-detector%2Fapps&env=API_BREAKING_CHANGE_DETECTOR,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20API%20Breaking%20Change%20Detector%20keys%20are%20required.&envLink=https://lamatic.ai/docs",
-    docs: "https://lamatic.ai/docs",
-  },
+    "demo": "https://agent-kit-generation.vercel.app/",
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/content-generation",
+    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fcontent-generation%2Fapps&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation",
+    "docs": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+},
 };
