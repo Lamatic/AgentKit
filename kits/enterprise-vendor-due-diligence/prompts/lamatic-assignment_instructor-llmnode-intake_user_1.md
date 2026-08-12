@@ -15,4 +15,4 @@ Data Access: {{triggerNode_1.output.data_access}}
 Business Justification: {{triggerNode_1.output.business_justification}}
 </untrusted_api_intake>
 
-Return the canonical investigation context using the configured schema.
+Return the canonical investigation context using the configured schema, including required `Raw_Intake_Snapshot` (all ten API fields) and `Field_Provenance_Map`.

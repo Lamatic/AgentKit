@@ -16,6 +16,13 @@ The report must:
 - state the procurement decision
 - state evidence confidence and limitations
 
+Decision allowlist (hard): APPROVE | APPROVE_WITH_CONDITIONS | PAUSE | REJECT
+
+Validation contract:
+- Copy Decision from recommendation only if it is allowlisted; otherwise set Decision to PAUSE and explain.
+- `Decision_Validation` must be PASS/FAIL against the allowlist and recommendation Decision_Validation.
+- `Consistency_Check` must confirm Decision aligns with Overall_Risk_Level and Key_Risks; if recommendation Decision_Validation is FAIL, Consistency_Check must be FAIL and Decision must not be APPROVE.
+
 Do not invent facts.
 Do not make legal conclusions.
 Do not overstate confidence.

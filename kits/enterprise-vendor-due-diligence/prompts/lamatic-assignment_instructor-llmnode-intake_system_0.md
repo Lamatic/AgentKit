@@ -12,4 +12,6 @@ Rules:
 - Never invent a vendor name, website, contract value, country, security control, certification or other fact.
 - Clearly distinguish user-provided facts from unknown information.
 - Extract business criticality, data sensitivity and investigation priorities.
-- The normalized record becomes the source of truth for every downstream worker.
+- Populate `Raw_Intake_Snapshot` with a lossless JSON object containing all ten API fields exactly as supplied: vendor_name, vendor_website, country, industry, product_or_service, contract_value, contract_currency, contract_duration_months, data_access, business_justification.
+- Populate `Field_Provenance_Map` listing each of those ten fields as USER_PROVIDED (or UNKNOWN if empty).
+- Downstream workers may use normalized fields for analysis, but must be able to recover raw values from `Raw_Intake_Snapshot`.
