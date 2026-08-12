@@ -104,7 +104,7 @@ Each agent receives the JSON produced by the previous stage and appends its own 
 - Separation of Concerns: schema analysis, runtime behavior assessment, deployment planning, and release approval are isolated from one another.
 - Immutable JSON enrichment: each stage appends new information rather than rewriting prior stage output.
 - Sequential pipeline architecture: later decisions depend on earlier findings in a fixed order.
-- Deterministic outputs: the same input should produce the same structured progression of analysis.
+- Consistent structured outputs: each stage follows the same defined JSON contract and processing sequence.
 - Modular extensibility: individual agents can be improved or replaced without redesigning the full pipeline.
 
 ## Current Scope
