@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Behavior Analysis Agent Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operations",
+    "target_table",
+    "target_columns",
+    "is_destructive",
+    "data_loss_potential",
+    "explanation",
+    "behavior_analysis"
+  ],
+  "properties": {
+    "operations": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "target_table": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "target_columns": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "is_destructive": {
+      "type": "boolean"
+    },
+    "data_loss_potential": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "behavior_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lock_type",
+        "table_rewrite",
+        "blocking_risk",
+        "production_risk",
+        "reasoning"
+      ],
+      "properties": {
+        "lock_type": {
+            "type": "string",
+            "enum": [
+                "ACCESS EXCLUSIVE",
+                "ROW EXCLUSIVE",
+                "SHARE UPDATE EXCLUSIVE",
+                "SHARE",
+                "ROW SHARE",
+                "SHARE ROW EXCLUSIVE",
+                "EXCLUSIVE",
+                "UNKNOWN"
+            ]
+        },
+        "table_rewrite": {
+            "oneOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "UNKNOWN"
+                    ]
+                }
+            ]
+        },
+        "blocking_risk": {
+            "type": "string",
+            "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "UNKNOWN"
+            ]
+        },
+        "production_risk": {
+            "type": "string",
+            "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "UNKNOWN"
+            ]
+        },
+        "reasoning": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

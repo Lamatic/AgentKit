@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Migration Understanding Agent Output",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "operations",
+    "target_table",
+    "target_columns",
+    "is_destructive",
+    "data_loss_potential",
+    "explanation"
+  ],
+
+  "properties": {
+    "operations": {
+      "description": "Migration operations extracted from the SQL migration.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+
+    "target_table": {
+      "description": "Primary table affected by each migration operation.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+
+    "target_columns": {
+      "description": "Columns directly affected by each operation.",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+
+    "is_destructive": {
+      "description": "Indicates whether the migration permanently removes schema or data.",
+      "type": "boolean"
+    },
+
+    "data_loss_potential": {
+      "description": "Estimated potential for permanent data loss.",
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+
+    "explanation": {
+      "description": "Natural language summary of what the migration does.",
+      "type": "string"
+    }
+  }
+}
