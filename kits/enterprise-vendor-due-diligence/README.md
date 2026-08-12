@@ -65,29 +65,32 @@ API Request
     ▼
 Intake Normalizer
     │
-    ├──────────────┬────────────────┐
-    ▼              ▼                ▼
-Company         Security         Commercial
-Intelligence    & Data Risk      & Operational
-(+ web research)(+ web research)
-    │              │                │
-    └──────────────┴────────────────┘
-                   │
-                   ▼
-           Evidence Validator
-                   │
-                   ▼
-            Risk Assessment
-                   │
-                   ▼
-             Recommendation
-                   │
-                   ▼
-        Executive Vendor Assessment
-                   │
-                   ▼
-             API Response
+    ▼
+Company Intelligence  (+ web research)
+    │
+    ├──────────────────┐
+    ▼                  ▼
+Security & Data      Commercial &
+Risk (+ research)    Operational Risk
+    │                  │
+    └────────┬─────────┘
+             ▼
+     Evidence Validator
+             │
+             ▼
+      Risk Assessment
+             │
+             ▼
+       Recommendation
+             │
+             ▼
+  Executive Vendor Assessment
+             │
+             ▼
+       API Response
 ```
+
+Company runs after Intake; Security and Commercial both consume Company output (plus Intake), then fan into Evidence → Risk → Recommendation → Final.
 
 | Worker | Responsibility |
 |---|---|
