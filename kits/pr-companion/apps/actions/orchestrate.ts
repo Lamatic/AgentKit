@@ -69,8 +69,6 @@ export async function generatePRDescription(
   let credentialDetected = false;
 
   try {
-    const flowId = getFlowId();
-
     const diffResult = redactCredentials(diffOrFiles);
     const commitResult = redactCredentials(commitMessages);
     const intentResult = redactCredentials(intent ?? "");
@@ -79,6 +77,8 @@ export async function generatePRDescription(
       diffResult.detected ||
       commitResult.detected ||
       intentResult.detected;
+
+    const flowId = getFlowId();
 
     const payload = {
       diff_or_files: diffResult.text,
