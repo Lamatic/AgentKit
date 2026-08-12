@@ -25,7 +25,8 @@ export default {
   links: {
     demo: "https://transit-incident-manager.vercel.app/",
     github:
-      "https://github.com/Devika-sajeev1010/AgentKit/tree/feat/transit-incident-manager/kits/transit-incident-manager",
-    deploy: "",
+      "https://github.com/Lamatic/AgentKit/tree/main/kits/transit-incident-manager",
+    deploy:
+      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Ftransit-incident-manager%2Fapps",
   },
 };
