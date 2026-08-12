@@ -17,7 +17,9 @@ The reporter is handed the whole `Investigation` (which retains each step's raw
   rows plus the last `floor(n/2)` rows. This matters because diagnostic queries are often
   `ORDER BY order_date`, and the anomaly (e.g. the late-arriving-dimension gap) clusters
   at one end of the result — a plain head-only sample could miss it entirely.
-- `truncated: true` whenever `rowCount` exceeds the sample actually returned.
+- `truncated: true` when the executor already truncated the result (both the Athena and
+  demo executors cap rows at `MAX_ROWS` before `compact()` runs and set `truncated`
+  themselves) **or** when `rowCount` exceeds the sample actually returned.
 
 ## Stats (`ResultStats`)
 
@@ -29,7 +31,9 @@ Computed once over the **full** row set (not just the sample), per column:
 - String columns with no numeric values: a lexical `min`/`max` (useful for date-like or
   id-like columns even when not recognized as an ISO date span).
 - `distinct`: distinct-value count, scanning at most `DISTINCT_SCAN_CAP` (5000) rows to
-  keep compaction itself bounded-cost.
+  keep compaction itself bounded-cost. When that cap is hit, `distinctCapped: true` is set
+  and `distinct` is a lower bound, not an exact count. (The caveat lives on its own field
+  — `type` stays a plain value-type label.)
 - `dateSpan`: set on the overall `ResultStats` (not per-column) — the first column whose
   non-null values all match ISO-8601 date/timestamp shape gets its min/max reported as
   `{ column, min, max }`.

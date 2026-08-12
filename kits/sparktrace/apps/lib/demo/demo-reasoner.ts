@@ -33,11 +33,11 @@ import type {
   PlannerEvidence,
   QueryEngine,
   RepoInsight,
-  ResultStats,
   RootCauseReport,
   StepAnalysis,
   TableRef,
 } from "../contracts";
+import { MAX_SAMPLE_ROWS } from "../contracts";
 
 function uid(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -326,7 +326,7 @@ class DemoReasoner implements LamaticReasoner {
       return {
         verdict: "inconclusive",
         reasoning:
-          "The per-day volume query returned rows, but no usable numeric \"order_count\" series was available to compare the recent days against the earlier run rate.",
+          "The per-day volume query returned rows, but not a usable multi-day numeric \"order_count\" series — there is nothing to compare the recent days against the earlier run rate with.",
         hint: "refine-query",
       };
     }
@@ -399,31 +399,48 @@ class DemoReasoner implements LamaticReasoner {
  * the proportional drop (0..1) of the tail average vs. the head average,
  * or undefined if there isn't enough data to compare.
  *
- * Prefers the actual sample rows (exact) when the result wasn't
- * truncated; falls back to a stats-based approximation (avg vs. min)
- * when the full row set didn't fit in the compacted sample.
+ * IMPORTANT: `result.sampleRows` is NOT a contiguous slice of the result —
+ * the compactor builds it as a head+tail composite (first ceil(k/2) rows
+ * plus the last floor(k/2) rows, k = MAX_SAMPLE_ROWS). That is exactly the
+ * right shape for this test — the earliest and the most recent days — but
+ * only if we split it at the same seam the compactor used. Splitting it by
+ * some other ratio mixes tail-window rows into the "head" baseline.
+ *
+ * We deliberately do NOT gate on `result.truncated`: the compactor sets it
+ * whenever rowCount exceeds the sample size, so any series longer than
+ * MAX_SAMPLE_ROWS days would skip the comparison entirely. The head+tail
+ * sample is a valid basis for the comparison whether or not the middle of
+ * the series was dropped.
  */
+/** How many of the most recent sampled days count as "the tail" for a drop test. */
+const TAIL_WINDOW_DAYS = 3;
+
 function detectTailVolumeDrop(result: CompactResult): number | undefined {
-  if (!result.truncated && result.sampleRows.length >= 2) {
-    const sorted = [...result.sampleRows].sort((a, b) =>
-      String(a.order_date).localeCompare(String(b.order_date))
-    );
-    const n = sorted.length;
-    const tailCount = Math.max(1, Math.min(3, Math.floor(n / 3)));
-    const tail = sorted.slice(n - tailCount);
-    const head = sorted.slice(0, n - tailCount);
-    if (head.length === 0) return undefined;
+  const sorted = [...result.sampleRows].sort((a, b) =>
+    String(a.order_date).localeCompare(String(b.order_date))
+  );
+  const n = sorted.length;
+  if (n < 2) return undefined;
 
-    const headAvg = averageOf(head, "order_count");
-    const tailAvg = averageOf(tail, "order_count");
-    if (headAvg === undefined || tailAvg === undefined || headAvg === 0) return undefined;
-    return Math.max(0, (headAvg - tailAvg) / headAvg);
-  }
+  // Mirror the compactor's seam: it takes ceil(k/2) head rows, so for a
+  // full sample the first half is the earliest days and the second half
+  // the most recent ones. The head half is the baseline.
+  const headCount = Math.ceil(Math.min(n, MAX_SAMPLE_ROWS) / 2);
+  const head = sorted.slice(0, headCount);
+  const recent = sorted.slice(headCount);
+  if (head.length === 0 || recent.length === 0) return undefined;
 
-  // Fallback for a truncated/large result: approximate using stats —
-  // compare the column minimum against its overall average as a proxy
-  // for "does the tail dip well below the run rate".
-  return approximateDropFromStats(result.stats, "order_count");
+  // Bound the tail window rather than averaging the whole second half. A
+  // real outage is usually confined to the last day or two, and the sample's
+  // tail half spans five days — averaging all of them dilutes a sharp drop
+  // below the caller's threshold (3 days at -42% reads as -25% once two
+  // healthy days are folded in, and the drop goes undetected).
+  const tail = recent.slice(-Math.min(TAIL_WINDOW_DAYS, recent.length));
+
+  const headAvg = averageOf(head, "order_count");
+  const tailAvg = averageOf(tail, "order_count");
+  if (headAvg === undefined || tailAvg === undefined || headAvg === 0) return undefined;
+  return Math.max(0, (headAvg - tailAvg) / headAvg);
 }
 
 function averageOf(rows: Array<Record<string, unknown>>, column: string): number | undefined {
@@ -432,12 +449,6 @@ function averageOf(rows: Array<Record<string, unknown>>, column: string): number
     .filter((v): v is number => typeof v === "number");
   if (values.length === 0) return undefined;
   return values.reduce((a, b) => a + b, 0) / values.length;
-}
-
-function approximateDropFromStats(stats: ResultStats, column: string): number | undefined {
-  const col = stats.columns.find((c) => c.name === column);
-  if (!col || col.avg === undefined || typeof col.min !== "number" || col.avg === 0) return undefined;
-  return Math.max(0, (col.avg - col.min) / col.avg);
 }
 
 export function makeDemoReasoner(): LamaticReasoner {

@@ -21,7 +21,7 @@ SparkTrace's reasoning layer is five flows, each running one **model tier** chos
 | Flow | Role | Model | Why this tier |
 |---|---|---|---|
 | **`sparktrace-planner`** ⭐ | Decides the next action (`gen_query` / `read_repo` / `conclude`) from `{symptom, pipeline, evidence[]}` | **Claude Opus 4.8** (`claude-opus-4-8`) | The only genuinely hard, stateful reasoning step — the sole Opus node in the kit |
-| **`sparktrace-repo-reader`** | Pipeline repo → `PipelineContext` (DAG, tables, join semantics, suspects); deep-dives a `focus` area when the planner asks for one | **Claude Sonnet 5** (`claude-sonnet-5`) | Reads substantial amounts of code, needs solid comprehension but not top-tier reasoning |
+| **`sparktrace-repo-reader`** | Deep-dives a `focus` area of the pipeline's code/DAG when the planner asks for one → `RepoInsight` | **Claude Sonnet 5** (`claude-sonnet-5`) | Reads substantial amounts of code, needs solid comprehension but not top-tier reasoning |
 | **`sparktrace-query-gen`** | Hypothesis + schema → one read-only, cost-safe `DiagnosticQuery` | **Claude Sonnet 5**, drops to **Claude Haiku 4.5** (`claude-haiku-4-5`) on simple cases | Well-scoped generation task; straightforward hypotheses (e.g. a single row-count check) don't need Sonnet |
 | **`sparktrace-analyst`** | `CompactResult` (≤10 sample rows + stats) → verdict (`confirmed`/`refuted`/`inconclusive`) | **Claude Haiku 4.5** (`claude-haiku-4-5`) | Tiny payload by design (the compactor guarantees this) — the cheapest tier fits comfortably |
 | **`sparktrace-reporter`** | Confirmed evidence across the whole investigation → final `RootCauseReport` | **Claude Sonnet 5** (`claude-sonnet-5`) | User-facing synthesis quality matters; runs once per investigation so the cost is bounded |
@@ -30,7 +30,7 @@ SparkTrace's reasoning layer is five flows, each running one **model tier** chos
 
 ```text
 ingest symptom + repo pointer
-  → repo-reader → PipelineContext
+  → PipelineIngestor (ingestion layer) → PipelineContext
   → loop (≤ stepBudget, default 6):
        planner (Opus) decides nextAction from {symptom, pipeline, evidence[]}:
          "gen_query"  → query-gen → DiagnosticQuery
@@ -58,11 +58,11 @@ Unlike a fixed "plan once, execute the plan" pipeline, the planner re-evaluates 
 
 ### `sparktrace-repo-reader` (SparkTrace — Repo Reader)
 
-- **Trigger**: invoked once at ingestion to build the initial `PipelineContext`, and again whenever the planner returns `action: "read_repo"`.
-- **Input**: `{ symptom, pipeline, focus? }` — `focus` is set on deep-dive calls.
-- **Processing**: a Generate JSON LLM node (Sonnet) reads pipeline source (PySpark/SQL/config), extracts the DAG, table references, join semantics, and — on a focused call — a targeted `RepoInsight`.
-- **When to use**: once at ingestion; thereafter only when the planner explicitly asks for more repo context.
-- **Output**: `PipelineContext` on the initial call, `RepoInsight` (`{ focus, insight }`) on deep-dive calls.
+- **Trigger**: invoked via `graphqlNode` whenever the planner returns `action: "read_repo"`. The initial `PipelineContext` is built by the ingestion layer (`PipelineIngestor`), not by this flow.
+- **Input**: `{ symptom, pipeline: PipelineContext, focus }` — all three are required; `focus` is the area the planner asked to inspect.
+- **Processing**: a Generate JSON LLM node (Sonnet) reads the supplied pipeline source (PySpark/SQL/config) and DAG for that `focus` area and returns one targeted, code-grounded finding (join semantics, load cadence, overwrite behavior, dedup logic, filters, schema assumptions).
+- **When to use**: only when the planner explicitly asks for more repo context, once per `read_repo` decision.
+- **Output**: `RepoInsight` — `{ focus, insight }`.
 - **Dependencies**: `SPARKTRACE_REPO_READER_FLOW_ID`, `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`.
 
 ### `sparktrace-query-gen` (SparkTrace — Query Generator)

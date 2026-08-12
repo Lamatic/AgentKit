@@ -53,7 +53,7 @@
  * - Configured text generation model via `generativeModelName` on the `Generate JSON` node
  *   (Sonnet tier — see `@model-configs/sparktrace-repo-reader_generate-json.ts`).
  * ### Environment Variables
- * - `SPARKTRACE_REPO_READER` — deployed flow id used by `apps/lib/lamatic-client.ts`.
+ * - `SPARKTRACE_REPO_READER_FLOW_ID` — deployed flow id used by `apps/lib/lamatic-client.ts`.
  * - `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` — Lamatic client credentials.
  *
  * ## Node Walkthrough

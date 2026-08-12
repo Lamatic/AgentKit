@@ -40,9 +40,30 @@ function parseInput(body: unknown): RunInvestigationInput | { error: string } {
     scenarioId: typeof rawSource.scenarioId === "string" ? rawSource.scenarioId : undefined,
   };
 
-  // In live mode a repo URL is expected; demo mode ignores it and uses
-  // the bundled scenario, so we don't hard-require it here.
+  // Mode/source consistency is an invariant of the API, not just of the
+  // page form — a direct caller must not be able to pass `demo` + a
+  // repoUrl (which would silently investigate the bundled scenario while
+  // the caller believes it read their repo), or `live` with no repoUrl
+  // (which selects the AWS/Lamatic deps against an unusable source).
+  if (mode === "demo" && source.repoUrl) {
+    return { error: "`source.repoUrl` is not accepted in demo mode — demo mode always runs the bundled scenario." };
+  }
+  if (mode === "live" && !source.repoUrl) {
+    return { error: "`source.repoUrl` is required in live mode." };
+  }
+
   return { symptom, mode, source };
+}
+
+/**
+ * Live mode spends real money (Lamatic flow invocations, Athena scans,
+ * repo ingestion) and reads whatever the deployment's AWS role can see.
+ * This kit ships without auth, so live mode is opt-in per deployment:
+ * it stays off unless the operator explicitly sets SPARKTRACE_ALLOW_LIVE
+ * to "true". Demo mode is unaffected and needs no configuration.
+ */
+function isLiveModeEnabled(): boolean {
+  return process.env.SPARKTRACE_ALLOW_LIVE === "true";
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -58,6 +79,16 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ message: parsed.error }, { status: 400 });
   }
   const input = parsed;
+
+  // Refuse before buildDeps("live") so no Lamatic/Athena/Glue/ingest work
+  // is ever started by an unauthenticated caller on a deployment that
+  // hasn't opted in.
+  if (input.mode === "live" && !isLiveModeEnabled()) {
+    return Response.json(
+      { message: "Live mode is disabled on this deployment. Set SPARKTRACE_ALLOW_LIVE=\"true\" to enable it." },
+      { status: 403 }
+    );
+  }
 
   const encoder = new TextEncoder();
 

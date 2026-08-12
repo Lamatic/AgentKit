@@ -29,9 +29,8 @@ import type {
   QueryExecutionResult,
   QueryExecutor,
 } from "../contracts";
+import { MAX_ROWS } from "../contracts";
 import { loadScenario, type ScenarioTable } from "./scenario-paths";
-
-import { MAX_ROWS } from "../aws/athena-client";
 
 /** Minimal, quote-aware CSV parser. The sample data is small and clean;
  * this handles double-quoted fields and embedded commas without pulling

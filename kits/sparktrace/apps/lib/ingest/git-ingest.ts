@@ -95,10 +95,16 @@ function isPrivateOrReservedHost(hostname: string): boolean {
  * positional argument). Local filesystem paths are not accepted for
  * request-supplied input — only `git clone` of an approved remote host is
  * permitted. Throws with a descriptive message on rejection.
+ *
+ * Rejection messages never echo the raw input: the API route forwards them
+ * verbatim to the client and to server logs, so interpolating a URL that
+ * carried `user:token@` would reproduce that credential in both places.
+ * Post-parse messages quote only the offending component (the protocol or
+ * the hostname), which is credential-free by construction.
  */
 function validateRemoteRepoUrl(repoUrl: string): void {
   if (repoUrl.startsWith("-")) {
-    throw new Error(`repoUrl "${repoUrl}" looks like a command-line option, not a URL — rejected.`);
+    throw new Error("repoUrl looks like a command-line option, not a URL — rejected.");
   }
 
   let parsed: URL;
@@ -106,9 +112,17 @@ function validateRemoteRepoUrl(repoUrl: string): void {
     parsed = new URL(repoUrl);
   } catch {
     throw new Error(
-      `repoUrl "${repoUrl}" is not a valid absolute URL. Only HTTPS URLs on an approved git host ` +
+      `repoUrl is not a valid absolute URL. Only HTTPS URLs on an approved git host ` +
         `(${[...ALLOWED_GIT_HOSTS].join(", ")}) are accepted.`
     );
+  }
+
+  // Embedded credentials (`https://user:token@github.com/...`) would sail
+  // through the host allowlist and then be handed straight to `git clone`,
+  // which authenticates with them. Reject before host validation so such a
+  // URL is never treated as an approved-host request at all.
+  if (parsed.username !== "" || parsed.password !== "") {
+    throw new Error("repoUrl must not embed credentials (user:password@host) — rejected.");
   }
 
   if (parsed.protocol !== "https:") {
@@ -127,6 +141,27 @@ function validateRemoteRepoUrl(repoUrl: string): void {
   }
 }
 
+/**
+ * Credential-free label for an untrusted `repoUrl`, for use in messages
+ * that reach the client and the server log. Falls back to a constant
+ * rather than echoing input that failed to parse.
+ */
+function safeUrlLabel(repoUrl: string): string {
+  try {
+    const { origin, pathname } = new URL(repoUrl);
+    return `${origin}${pathname}`;
+  } catch {
+    return "the requested repository";
+  }
+}
+
+/**
+ * Wall-clock cap on `git clone`. The API route holds the SSE stream open
+ * for the whole ingest, so an unresponsive remote would otherwise pin a
+ * request indefinitely.
+ */
+const CLONE_TIMEOUT_MS = 60_000;
+
 /** Shallow-clones `repoUrl` into a fresh temp dir and returns its path. */
 async function shallowClone(repoUrl: string): Promise<string> {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sparktrace-ingest-"));
@@ -134,12 +169,37 @@ async function shallowClone(repoUrl: string): Promise<string> {
     // `--` terminates option parsing so a (still-rejected-by-validation,
     // but defense-in-depth) value beginning with `-` can never be parsed
     // as a git option instead of the repository argument.
-    await execFileAsync("git", ["clone", "--depth", "1", "--quiet", "--", repoUrl, dir]);
+    await execFileAsync("git", ["clone", "--depth", "1", "--quiet", "--", repoUrl, dir], {
+      // SIGKILL rather than the default SIGTERM: git spawns helper
+      // processes that can ignore a polite terminate and keep the handle.
+      timeout: CLONE_TIMEOUT_MS,
+      killSignal: "SIGKILL",
+      // Without these, a private/nonexistent repo makes git block forever
+      // on an interactive credential prompt reading a stdin that never
+      // answers — turning an auth failure into a hung request.
+      env: {
+        ...process.env,
+        GIT_TERMINAL_PROMPT: "0",
+        GIT_ASKPASS: "echo",
+        GCM_INTERACTIVE: "never",
+      },
+    });
   } catch (err) {
     await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
-    throw new Error(
-      `Failed to clone ${repoUrl}: ${err instanceof Error ? err.message : String(err)}`
-    );
+    // Identify the repo by origin only — this message reaches the client
+    // and the server log, and the raw URL is untrusted request input.
+    const safeTarget = safeUrlLabel(repoUrl);
+    const timedOut =
+      typeof err === "object" && err !== null && (err as { killed?: boolean }).killed === true;
+    if (timedOut) {
+      throw new Error(
+        `Timed out cloning ${safeTarget} after ${CLONE_TIMEOUT_MS / 1000}s — the remote was unreachable or too slow.`
+      );
+    }
+    // git echoes the full command line (and therefore the raw URL) in its
+    // failure message, so redact it there too before it is surfaced.
+    const detail = (err instanceof Error ? err.message : String(err)).split(repoUrl).join(safeTarget);
+    throw new Error(`Failed to clone ${safeTarget}: ${detail}`);
   }
   return dir;
 }

@@ -51,7 +51,7 @@ export function RootCauseReport({ report, className }: RootCauseReportProps) {
             <Wrench className="size-3.5" />
             Suggested fix
           </div>
-          <p className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm leading-relaxed">
+          <p className="rounded-md border border-success/30 bg-success/10 p-3 text-sm leading-relaxed">
             {report.suggestedFix}
           </p>
         </div>

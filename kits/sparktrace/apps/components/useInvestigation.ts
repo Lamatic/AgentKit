@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Investigation, InvestigationEvent, RunInvestigationInput } from "../lib/contracts";
 import { streamInvestigation } from "./investigation-client";
 
@@ -92,15 +92,26 @@ export function useInvestigation(): UseInvestigationResult {
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Ownership token for the run that is allowed to write state. Aborting a
+  // fetch does not synchronously stop an in-flight `consume()` — its loop
+  // can still resolve one more event, or fall into its finally block, AFTER
+  // a newer run started. Bumping this invalidates the older run so it can
+  // never clobber fresh results or clear `isRunning` for the new one.
+  const runIdRef = useRef(0);
 
   const reset = useCallback(() => {
+    runIdRef.current++;
     abortRef.current?.abort();
+    abortRef.current = null;
     setInvestigation(null);
     setIsRunning(false);
     setError(null);
   }, []);
 
   const consume = useCallback(async (events: AsyncIterable<InvestigationEvent>, input: RunInvestigationInput) => {
+    const runId = ++runIdRef.current;
+    const isActive = () => runIdRef.current === runId;
+
     setIsRunning(true);
     setError(null);
     let current = emptyInvestigation(input);
@@ -108,22 +119,29 @@ export function useInvestigation(): UseInvestigationResult {
 
     try {
       for await (const event of events) {
+        // Returning here still runs the finally block, which is itself
+        // token-guarded — so a superseded run exits touching nothing.
+        if (!isActive()) return;
         if (event.type === "error") setError(event.message);
         current = applyEvent(current, event);
         setInvestigation(current);
       }
     } catch (err) {
+      if (!isActive()) return;
       const message = err instanceof Error ? err.message : "Investigation stream failed";
       setError(message);
       current = { ...current, status: "error", error: message };
       setInvestigation(current);
     } finally {
-      setIsRunning(false);
+      if (isActive()) setIsRunning(false);
     }
   }, []);
 
   const start = useCallback(
     async (input: RunInvestigationInput) => {
+      // Invalidate before aborting: the previous run must be disowned even
+      // if its abort surfaces asynchronously.
+      runIdRef.current++;
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -133,9 +151,21 @@ export function useInvestigation(): UseInvestigationResult {
   );
 
   const cancel = useCallback(() => {
+    runIdRef.current++;
     abortRef.current?.abort();
+    abortRef.current = null;
     setIsRunning(false);
     setInvestigation((inv) => (inv ? { ...inv, status: "cancelled" } : inv));
+  }, []);
+
+  // Unmount: drop the in-flight request so the server stops streaming and
+  // the superseded run can't attempt a state update on a dead component.
+  useEffect(() => {
+    return () => {
+      runIdRef.current++;
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
   }, []);
 
   return { investigation, isRunning, error, consume, start, cancel, reset };

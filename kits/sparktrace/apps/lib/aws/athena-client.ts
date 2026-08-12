@@ -29,9 +29,12 @@ import {
 } from "@aws-sdk/client-athena";
 
 import type { DiagnosticQuery, QueryExecutionResult, QueryExecutor } from "../contracts";
+import { MAX_ROWS } from "../contracts";
 
-/** Hard cap on rows returned to the caller, regardless of how many the query produced. */
-export const MAX_ROWS = 1000;
+// The row cap is defined in contracts.ts so the demo executor can share it
+// without dragging the AWS SDK into the demo import graph; re-exported here
+// so existing `from "../aws/athena-client"` import paths keep working.
+export { MAX_ROWS };
 
 /** Max time to wait for a query to finish before giving up. */
 const POLL_TIMEOUT_MS = 60_000;

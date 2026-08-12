@@ -24,8 +24,10 @@
  *   3. Date span: if a column's values look like ISO-8601 dates
  *      (`YYYY-MM-DD` or a full timestamp), compute its min/max as a
  *      `dateSpan` on the result.
- *   4. `truncated` is true whenever `rowCount` exceeds the sample size
- *      actually returned.
+ *   4. `truncated` is true when the executor ALREADY truncated the result
+ *      (both the Athena and demo executors cap rows at MAX_ROWS before
+ *      `compact()` ever sees them, and set `truncated` when they do) OR
+ *      when `rowCount` exceeds the sample size actually returned.
  *   5. `.error` passes through untouched (compaction of a failed
  *      execution is a no-op besides carrying the error and query id).
  */
@@ -168,11 +170,12 @@ function computeColumnStats(columns: string[], rows: Array<Record<string, unknow
 
     if (nulls > 0) stat.nulls = nulls;
     // When the scan was capped, `distinct.size` is a lower bound on the
-    // true distinct count, not an exact one — annotate `type` so callers
-    // (and models) can tell the two cases apart.
+    // true distinct count, not an exact one — flag it on its own field so
+    // callers (and models) can tell the two cases apart WITHOUT `type`
+    // ceasing to be a plain value-type label.
     stat.distinct = distinct.size;
     if (distinctCapped) {
-      stat.type = `${stat.type} (distinct counted over first ${DISTINCT_SCAN_CAP} rows)`;
+      stat.distinctCapped = true;
     }
 
     return stat;
