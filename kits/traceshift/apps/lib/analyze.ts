@@ -8,6 +8,7 @@ import type {
   PathAggregate,
   TraceNode,
 } from "./types";
+import { backtestExactCache, scoreConfidence } from "./backtest";
 
 const MAX_ROWS = 100_000;
 const EMPTY_FINGERPRINT = "none";
@@ -148,7 +149,13 @@ const executionStatus = (rows: CsvRow[]): "success" | "failed" => {
 const toNode = (row: CsvRow, requestId: string, index: number): TraceNode => {
   const input = parseJson(field(row, "input", "body"));
   const output = parseJson(field(row, "output", "results"));
-  const rawTimestamp = Date.parse(field(row, "timestamp"));
+  const inputText = field(row, "input", "body");
+  const outputText = field(row, "output", "results");
+  const durationText = field(row, "timeTakenSeconds", "time_taken_seconds");
+  const tokenText = field(row, "model_usage", "modelUsage");
+  const costText = field(row, "model_cost", "modelCost");
+  const timestampText = field(row, "timestamp");
+  const rawTimestamp = Date.parse(timestampText);
   return {
     requestId,
     name: field(row, "nodeName", "node_name") || field(row, "nodeSlug", "node_slug") || "Unnamed node",
@@ -161,6 +168,12 @@ const toNode = (row: CsvRow, requestId: string, index: number): TraceNode => {
     inputFingerprint: fingerprint(input),
     inputShape: fingerprint(shape(input)),
     outputFingerprint: fingerprint(output),
+    hasInput: Boolean(inputText),
+    hasOutput: Boolean(outputText),
+    hasTimestamp: Number.isFinite(rawTimestamp),
+    hasDuration: Boolean(durationText) && Number.isFinite(Number(durationText)),
+    hasTokenUsage: Boolean(tokenText),
+    hasCost: Boolean(costText),
   };
 };
 
@@ -253,16 +266,11 @@ const aggregateNodes = (successful: Execution[]): NodeAggregate[] => {
     .sort((a, b) => b.totalSeconds - a.totalSeconds);
 };
 
-const confidenceFor = (evidenceCount: number, totalRuns: number): "high" | "medium" | "low" => {
-  if (evidenceCount >= 8 && totalRuns >= 20) return "high";
-  if (evidenceCount >= 4 && totalRuns >= 10) return "medium";
-  return "low";
-};
-
 const buildCandidates = (
   successful: Execution[],
   nodes: NodeAggregate[],
   paths: PathAggregate[],
+  dataQuality: import("./types").DataQuality,
 ): OptimizationCandidate[] => {
   const candidates: OptimizationCandidate[] = [];
   const totalRuns = successful.length;
@@ -290,6 +298,16 @@ const buildCandidates = (
     if (redundantCalls >= 3 && conditionalStability >= 0.98) {
       const redundantLatency = aggregate.averageSeconds * redundantCalls;
       const redundantCost = aggregate.calls ? (aggregate.cost / aggregate.calls) * redundantCalls : 0;
+      const backtest = backtestExactCache({ executions: successful }, aggregate.name);
+      const confidenceDetail = scoreConfidence({
+        sampleSize: stableCalls,
+        recurringObservations: new Set(stableRepeatedGroups.flat().map((call) => call.requestId)).size,
+        totalRuns,
+        stableObservations: stableCalls,
+        stabilityTotal: repeatedGroups.reduce((sum, group) => sum + group.length, 0),
+        dataQuality,
+        blockers: backtest.passed ? [] : backtest.gates,
+      });
       candidates.push({
         id: `cache-${fingerprint(aggregate.name)}`,
         type: "exact-cache",
@@ -297,7 +315,8 @@ const buildCandidates = (
         target: aggregate.name,
         summary:
           "Add a cache keyed only by the normalized exact node input. The observed repeated inputs produced identical output fingerprints.",
-        confidence: confidenceFor(redundantCalls, totalRuns),
+        confidence: confidenceDetail.level,
+        confidenceDetail,
         score: rounded(
           Math.min(100, 36 + redundantCalls * 2 + aggregate.latencyShare * 35 + aggregate.costShare * 25),
           0,
@@ -325,6 +344,7 @@ const buildCandidates = (
           "Enable a kill switch and roll back on the first output mismatch.",
         ],
         risk: "A missing cache-key dependency could serve stale or contextually wrong output.",
+        backtest,
       });
     }
 
@@ -335,6 +355,14 @@ const buildCandidates = (
       aggregate.uniqueInputs >= 4 &&
       aggregate.outputStability >= 0.7
     ) {
+      const confidenceDetail = scoreConfidence({
+        sampleSize: aggregate.calls,
+        recurringObservations: aggregate.runs,
+        totalRuns,
+        stableObservations: Math.max(0, aggregate.calls - aggregate.uniqueOutputs + 1),
+        stabilityTotal: aggregate.calls,
+        dataQuality,
+      });
       candidates.push({
         id: `code-${fingerprint(aggregate.name)}`,
         type: "deterministic-code",
@@ -342,7 +370,8 @@ const buildCandidates = (
         target: aggregate.name,
         summary:
           "The model node maps varied inputs into a small repeated output set. Prototype explicit rules in a Code Node, with the current model kept as fallback.",
-        confidence: confidenceFor(aggregate.calls, totalRuns),
+        confidence: confidenceDetail.level,
+        confidenceDetail,
         score: rounded(
           Math.min(100, 24 + aggregate.outputStability * 32 + aggregate.latencyShare * 25 + aggregate.costShare * 25),
           0,
@@ -374,6 +403,17 @@ const buildCandidates = (
     }
 
     if (looksLikeLlm && aggregate.calls >= 5 && (aggregate.costShare >= 0.25 || aggregate.latencyShare >= 0.25)) {
+      const confidenceDetail = scoreConfidence({
+        sampleSize: aggregate.calls,
+        recurringObservations: aggregate.runs,
+        totalRuns,
+        stableObservations: null,
+        stabilityTotal: null,
+        dataQuality,
+        blockers: dataQuality.costCoverage < 0.5 && aggregate.costShare >= 0.25
+          ? ["Cost coverage is below 50%; rely on latency until more cost data is available."]
+          : [],
+      });
       candidates.push({
         id: `model-${fingerprint(aggregate.name)}`,
         type: "model-rightsize",
@@ -381,7 +421,8 @@ const buildCandidates = (
         target: aggregate.name,
         summary:
           "This node dominates observed latency or model cost. Run an offline quality comparison against a cheaper/faster model before changing production.",
-        confidence: confidenceFor(aggregate.calls, totalRuns),
+        confidence: confidenceDetail.level,
+        confidenceDetail,
         score: rounded(Math.min(100, 18 + aggregate.latencyShare * 35 + aggregate.costShare * 30), 0),
         affectedRuns: aggregate.runs,
         recurrenceRate: totalRuns ? aggregate.runs / totalRuns : 0,
@@ -412,6 +453,14 @@ const buildCandidates = (
   for (const path of paths) {
     const internalNodes = path.nodes.filter((name) => !/api request|api response/i.test(name));
     if (path.successRuns >= 5 && internalNodes.length >= 3 && path.shareOfSuccessfulRuns >= 0.25) {
+      const confidenceDetail = scoreConfidence({
+        sampleSize: path.successRuns,
+        recurringObservations: path.successRuns,
+        totalRuns,
+        stableObservations: null,
+        stabilityTotal: null,
+        dataQuality,
+      });
       candidates.push({
         id: `subflow-${fingerprint(path.signature)}`,
         type: "reusable-subflow",
@@ -419,7 +468,8 @@ const buildCandidates = (
         target: internalNodes.join(" → "),
         summary:
           "The same multi-node sequence dominates successful production runs. Extracting it can make the contract, ownership, and future optimization boundary explicit.",
-        confidence: confidenceFor(path.successRuns, totalRuns),
+        confidence: confidenceDetail.level,
+        confidenceDetail,
         score: rounded(Math.min(100, 22 + path.shareOfSuccessfulRuns * 45 + internalNodes.length * 3), 0),
         affectedRuns: path.successRuns,
         recurrenceRate: path.shareOfSuccessfulRuns,
@@ -468,18 +518,52 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
     throw new Error("Missing event_message column. This does not look like a Lamatic trace export.");
   }
 
-  const rows = parsed.data.filter((row) => Object.values(row).some((value) => String(value).trim()));
+  const nonEmptyRows = parsed.data.filter((row) =>
+    Object.values(row).some((value) => String(value).trim()),
+  );
+  const seenRowIds = new Set<string>();
+  let duplicateRows = 0;
+  const rows = nonEmptyRows.filter((row) => {
+    const rowId = field(row, "id");
+    if (!rowId) return true;
+    if (seenRowIds.has(rowId)) {
+      duplicateRows += 1;
+      return false;
+    }
+    seenRowIds.add(rowId);
+    return true;
+  });
   const executions = buildExecutions(rows);
   const successful = executions.filter((run) => run.status === "success");
   const failed = executions.filter((run) => run.status === "failed");
   const paths = aggregatePaths(executions);
   const nodes = aggregateNodes(successful);
+  const allNodes = executions.flatMap((execution) => execution.nodes);
+  const timestampValues = allNodes.filter((node) => node.hasTimestamp).map((node) => node.timestamp);
+  const coverage = (predicate: (node: TraceNode) => boolean) =>
+    allNodes.length ? allNodes.filter(predicate).length / allNodes.length : 0;
+  const windowStartMs = timestampValues.length ? Math.min(...timestampValues) : null;
+  const windowEndMs = timestampValues.length ? Math.max(...timestampValues) : null;
+  const dataQuality = {
+    windowStart: windowStartMs === null ? null : new Date(windowStartMs).toISOString(),
+    windowEnd: windowEndMs === null ? null : new Date(windowEndMs).toISOString(),
+    windowHours:
+      windowStartMs === null || windowEndMs === null
+        ? 0
+        : rounded((windowEndMs - windowStartMs) / 3_600_000),
+    inputCoverage: coverage((node) => node.hasInput),
+    outputCoverage: coverage((node) => node.hasOutput),
+    durationCoverage: coverage((node) => node.hasDuration),
+    tokenCoverage: coverage((node) => node.hasTokenUsage),
+    costCoverage: coverage((node) => node.hasCost),
+  };
   const totalTokens = successful.reduce((sum, run) => sum + run.tokens, 0);
   const totalCost = successful.reduce((sum, run) => sum + run.cost, 0);
   const warnings: string[] = [];
   if (!totalTokens) warnings.push("No model token usage was recorded in this export.");
   if (!totalCost) warnings.push("No model cost was recorded; cost-based estimates are unavailable.");
   if (failed.length) warnings.push(`${failed.length} failed request(s) were excluded from optimization mining.`);
+  if (duplicateRows) warnings.push(`${duplicateRows} duplicate trace row(s) were ignored by row ID.`);
   if (parsed.errors.length) warnings.push(`${parsed.errors.length} malformed CSV row(s) were ignored or repaired by the parser.`);
   if (successful.length < 10) warnings.push("Fewer than 10 successful runs: treat every proposal as preliminary.");
 
@@ -489,6 +573,7 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
       requests: executions.length,
       workflowNames: [...new Set(executions.map((run) => run.workflowName))],
       invalidRows: parsed.errors.length,
+      duplicateRows,
     },
     metrics: {
       successfulRuns: successful.length,
@@ -502,7 +587,8 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
     executions,
     paths,
     nodes,
-    candidates: buildCandidates(successful, nodes, paths),
+    candidates: buildCandidates(successful, nodes, paths, dataQuality),
+    dataQuality,
     warnings,
   };
 }
