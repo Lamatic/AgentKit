@@ -33,6 +33,8 @@ export async function requestAdvisorProposal(
       recurrenceRate: Number(candidate.recurrenceRate.toFixed(4)),
       outputStability:
         candidate.outputStability === null ? null : Number(candidate.outputStability.toFixed(4)),
+      statisticalConfidence: candidate.confidenceDetail,
+      historicalBacktest: candidate.backtest ?? null,
       measuredLatencySeconds: candidate.measuredLatencySeconds,
       measuredCost: candidate.measuredCost,
       scenarioEstimate: {

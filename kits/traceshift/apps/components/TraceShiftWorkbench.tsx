@@ -27,8 +27,9 @@ import {
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { requestAdvisorProposal } from "@/actions/orchestrate";
+import CompilerLab from "@/components/CompilerLab";
 import { analyzeTraceCsv } from "@/lib/analyze";
-import { generateDemoCsv } from "@/lib/demo-data";
+import { generateDriftedDemoCsv } from "@/lib/demo-data";
 import type {
   AdvisorProposal,
   AnalysisReport,
@@ -106,9 +107,9 @@ function download(name: string, content: string, type: string) {
 }
 
 export default function TraceShiftWorkbench() {
-  const [report, setReport] = useState<AnalysisReport>(() => analyzeTraceCsv(generateDemoCsv()));
+  const [report, setReport] = useState<AnalysisReport>(() => analyzeTraceCsv(generateDriftedDemoCsv()));
   const [selectedId, setSelectedId] = useState<string>(() => report.candidates[0]?.id ?? "");
-  const [sourceName, setSourceName] = useState("Synthetic proof set · 32 requests");
+  const [sourceName, setSourceName] = useState("Synthetic current window · 32 requests");
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [goal, setGoal] = useState("Reduce latency and model cost without changing output behavior");
@@ -145,10 +146,10 @@ export default function TraceShiftWorkbench() {
   };
 
   const loadDemo = () => {
-    const demo = analyzeTraceCsv(generateDemoCsv());
+    const demo = analyzeTraceCsv(generateDriftedDemoCsv());
     setReport(demo);
     setSelectedId(demo.candidates[0]?.id ?? "");
-    setSourceName("Synthetic proof set · 32 requests");
+    setSourceName("Synthetic current window · 32 requests");
     setError("");
     setAdvisor(null);
     setAdvisorError("");
@@ -356,9 +357,11 @@ export default function TraceShiftWorkbench() {
           )}
         </section>
 
+        <CompilerLab report={report} selected={selected} />
+
         <section className="section-block advisor-section">
           <div className="section-heading">
-            <div><span>02</span><h2>Lamatic proposal reviewer</h2></div>
+            <div><span>04</span><h2>Lamatic proposal reviewer</h2></div>
             <p>Aggregate evidence in · structured implementation brief out</p>
           </div>
           <div className="advisor-grid">
@@ -401,7 +404,7 @@ export default function TraceShiftWorkbench() {
 
         <section className="section-block">
           <div className="section-heading">
-            <div><span>03</span><h2>Path and node evidence</h2></div>
+            <div><span>05</span><h2>Path and node evidence</h2></div>
             <p>Successful production behavior, grouped—not guessed</p>
           </div>
           <div className="evidence-grid">

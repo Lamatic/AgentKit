@@ -1,94 +1,111 @@
 # TraceShift
 
-TraceShift is a production trace-to-flow optimization kit for Lamatic. It analyzes successful workflow executions, discovers repeated node paths, quantifies where latency and model cost accumulate, and turns the strongest finding into a human-reviewable optimization proposal.
+TraceShift is a trace-to-flow optimization compiler for Lamatic. It joins a Lamatic trace export to the actual Studio flow graph, identifies repeated successful behavior, backtests the safest optimization, and produces a review-only change package tied to a real node ID.
 
-It answers a question most observability tools stop short of answering:
+It answers a question that dashboards usually leave to an engineer:
 
-> “This flow works—but what repeated production behavior can we safely simplify?”
+> “This flow works. Which change is supported by production evidence, and how can we test it safely?”
 
-## The problem
+## What it does
 
-Teams can inspect logs and individual traces, but improving a working agent still means manually comparing many requests, finding repeated paths, adding up durations and cost, and guessing which change is worth testing. A single trace explains one run. It does not prove that a pattern is frequent enough, stable enough, or expensive enough to optimize.
+TraceShift turns two ordinary Lamatic exports into an engineering decision:
 
-TraceShift converts a window of production evidence into ranked, reviewable candidates:
+```mermaid
+flowchart TD
+  A[Trace CSV window] --> C[Local trace compiler]
+  B[Studio flow export] --> C
+  C --> D[Ranked candidates and graph heatmap]
+  D --> E[Replay, drift, and benchmark evidence]
+  E --> F[Review-only manifest, diff, and code artifact]
+  D --> G[Lamatic Advisor flow]
+  G --> H[Structured implementation brief]
+```
 
-- exact-input cache boundaries;
-- probabilistic nodes worth prototyping as deterministic Code Nodes;
-- expensive model nodes worth benchmarking against a smaller model; and
-- dominant multi-node paths worth extracting as reusable subflows.
+- Reconstructs executions by `requestId`, even when rows arrive out of order.
+- Excludes failed runs from optimization mining while keeping them in reliability metrics.
+- Deduplicates exported rows by Lamatic row ID.
+- Replaces raw inputs and outputs with equality and shape fingerprints.
+- Maps trace node names to node IDs from a Studio TypeScript flow export.
+- Draws a latency, cost, or traffic heatmap over the real flow topology.
+- Ranks exact-cache, deterministic Code Node, model-rightsizing, and reusable-subflow candidates.
+- Scores confidence from sample size, Wilson lower bounds, output stability, data coverage, and explicit blockers.
+- Replays exact-input caching chronologically against historical calls and rejects output mismatches.
+- Compares baseline and current trace windows for latency, cost, path, and node drift.
+- Generates a versioned optimization manifest, readable proposed diff, and cache-boundary TypeScript artifact.
+- Sends only one aggregate evidence pack to a deployed Lamatic Instructor LLM for a structured review.
 
 ## Why this is different
 
-TraceShift is intentionally scoped between testing, monitoring, and debugging:
+TraceShift is not a log summarizer and it is not another failure explainer. Its unit of work is a proposed flow change backed by cross-run evidence.
 
 | Existing AgentKit capability | Primary question | TraceShift difference |
 |---|---|---|
-| FlowBench | “Did my candidate flow regress before deployment?” | TraceShift mines already-successful production behavior for the next optimization. |
-| Agent Failure Investigator | “Why did this failed trace fail?” | TraceShift aggregates many successful and failed requests, then mines only the successful set for repeated behavior. |
-| Flow Launch Auditor | “Is the described/exported flow ready to launch?” | TraceShift measures runtime paths, latency, tokens, and cost from exported traces. |
+| FlowBench | “Did my candidate flow regress before deployment?” | TraceShift discovers the candidate from already-running behavior and compiles the evidence for it. |
+| Agent Failure Investigator | “Why did this failed trace fail?” | TraceShift aggregates a window, separates failures, and mines successful paths for optimization. |
+| Flow Launch Auditor | “Is this flow ready to launch?” | TraceShift joins runtime measurements to the exported Studio graph and targets a concrete node ID. |
 
-The differentiator is not generic log summarization. It is **cross-run, success-path mining that produces an evidence pack for a specific flow change**.
+The main differentiator is the closed evidence loop:
 
-## How it works
+**observed trace pattern → mapped Studio node → historical replay → confidence gates → reviewable patch package**
 
-```mermaid
-flowchart LR
-  A[Lamatic trace CSV] --> B[Local deterministic analyzer]
-  B --> C[Ranked evidence packs]
-  C --> D[Lamatic Advisor flow]
-  D --> E[Reviewable proposal]
-```
+## Proof included in the kit
 
-1. **Parse locally.** The browser parses the Lamatic CSV; the raw file is not uploaded by this app.
-2. **Group by `requestId`.** Lamatic exports multiple rows per execution. `trace_id` can differ between rows, so TraceShift deliberately uses the shared request ID.
-3. **Separate outcomes.** Failed requests remain visible in run counts but are excluded from optimization mining.
-4. **Fingerprint payloads.** Raw node inputs and outputs are replaced with local equality fingerprints and structural shapes.
-5. **Measure recurrence and impact.** Path share, p50/p95 latency, tokens, cost, exact-input repetition, and output repetition are computed deterministically.
-6. **Rank candidates.** Every candidate includes observed evidence, a scenario estimate, assumptions, known risk, and validation gates.
-7. **Ask Lamatic.** Only the selected aggregate evidence pack is sent to `trace-shift-advisor`, an Instructor LLM flow that returns a structured implementation brief. It never receives the CSV or raw payloads.
+The dashboard opens with a synthetic, Lamatic-shaped two-window dataset and a matching Studio-shaped flow export. No account or key is needed to inspect the deterministic compiler.
 
-## Deterministic analysis vs. AI judgment
-
-TraceShift follows a strict division of labor:
-
-| Deterministic TypeScript | Lamatic Instructor LLM |
+| Evidence | Built-in result |
 |---|---|
-| CSV parsing and schema validation | Concise recommendation wording |
-| Request grouping and status classification | Risk framing |
-| Path, latency, token, and cost aggregation | Engineer-readable rationale |
-| Input/output equality fingerprinting | Validation-plan refinement |
-| Candidate scoring and savings scenarios | Structured proposal output |
+| Trace window | 154 rows, 32 requests, 29 successful and 3 failed |
+| Dominant successful path | 24 runs |
+| Exact-cache target | `Catalog Lookup` |
+| Historical calls / exact keys | 24 / 4 |
+| Cache replay | 20 hits, 4 misses, 0 output mismatches |
+| Historical node time | 42.0s before, 7.1s replayed |
+| Measured replay saving | 34.9s in the selected historical window |
+| Current-window drift | Synthetic `Draft Answer` latency and cost regression for comparison |
 
-The model cannot change measured numbers, create candidates, or mutate a deployed flow.
+The 34.9-second result is a chronological historical simulation using a declared 5ms cache lookup cost. It is not presented as a production deployment result. The separate CPU benchmark executes the same deterministic workload before and after exact-input caching and verifies 100% output agreement; its timings are measured on the reviewer’s machine.
 
-## Built-in proof set
+## Deterministic compiler vs. Lamatic judgment
 
-The dashboard opens with a synthetic, Lamatic-shaped export so the complete experience is reviewable without credentials. It contains 154 span rows across 32 requests:
+| Local deterministic TypeScript | Lamatic Instructor LLM |
+|---|---|
+| CSV parsing, validation, deduplication, grouping | Concise recommendation wording |
+| Graph-export parsing and trace-to-node mapping | Risk framing from supplied evidence |
+| Path, latency, token, cost, and drift calculations | Engineer-readable rationale |
+| Statistical confidence and cache replay gates | Validation-plan refinement |
+| Manifest, proposed diff, and code artifact generation | Structured implementation brief |
 
-- 29 successful and 3 failed runs;
-- a dominant path used by 24 successful requests;
-- four repeating exact inputs at `Catalog Lookup` with stable output fingerprints;
-- a low-output-diversity `Intent Router` suitable for a Code Node shadow test; and
-- a model-heavy `Draft Answer` node suitable for a model-rightsizing benchmark.
+The model cannot create measurements, select hidden raw data, mutate a flow, import a patch, or deploy anything.
 
-With this proof set, the highest-confidence recommendation is an exact-input cache at `Catalog Lookup`: 24 calls in stable repeat groups, 20 redundant calls, and 35 measured redundant seconds. The displayed 31.5-second savings is explicitly a scenario based on a 90% latency reduction for cache hits—not a claimed post-change measurement.
+## Use it
 
-## Required CSV fields
+1. In Lamatic Studio, export a trace window from **Logs → Traces → Export CSV**.
+2. Export the matching flow as TypeScript from Studio.
+3. Open TraceShift and upload the trace CSV. Parsing stays in the browser.
+4. Upload the flow export to map observed behavior to the topology and real node IDs.
+5. Select a ranked candidate and inspect its confidence reasons and blockers.
+6. For an exact-cache candidate, inspect the chronological replay gates and measured result.
+7. Optionally upload an earlier CSV as the baseline window to see drift.
+8. Download the manifest, proposed diff, and code artifact for engineering review.
+9. Ask the Lamatic Advisor for the structured recommendation and rollback plan.
 
-Use **Lamatic Studio → Logs → Traces → Export CSV**. TraceShift recognizes the current camelCase fields and common snake_case aliases.
+## Input support
+
+TraceShift recognizes current camelCase Lamatic fields and common snake_case aliases.
 
 | Field | Use |
 |---|---|
+| `id` | Optional row deduplication key |
 | `requestId` | Required execution grouping key |
-| `execution_type`, `event_message` | Canonical span classification with descriptive-message fallback (`StartedExecution`, `NodeExecution`, `FinishedExecution`) |
-| `timestamp` | Orders node spans within each request |
-| `status`, `severity_text` | Separates failed requests |
-| `workflowName`, `nodeName`, `nodeId`, `nodeSlug` | Builds paths and node aggregates |
+| `execution_type`, `event_message` | Span classification with descriptive-message fallback |
+| `timestamp` | Orders node spans within each execution |
+| `status`, `severity_text` | Outcome classification |
+| `workflowName`, `nodeName`, `nodeId`, `nodeSlug` | Flow, path, and node aggregation |
 | `timeTakenSeconds` | Latency evidence |
 | `model_usage`, `model_cost` | Token and cost evidence when available |
-| `input`, `output` | Local equality/shape fingerprints; raw values are not retained in the report |
+| `input`, `output` | Local equality and shape fingerprints; raw values are not retained |
 
-The app accepts files up to 5 MB and 100,000 rows per analysis window.
+Trace CSV uploads are limited to 5 MB and 100,000 rows. Studio flow exports are limited to 2 MB and parsed as JSON-compatible exported arrays without `eval` or dynamic module execution.
 
 ## Run locally
 
@@ -99,9 +116,9 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. The deterministic dashboard works immediately with the proof set or an uploaded CSV.
+Open `http://localhost:3000`. The compiler, replay, drift analysis, artifacts, and benchmark work with the built-in proof set without Lamatic credentials.
 
-To enable the Lamatic proposal reviewer, configure:
+To enable the proposal reviewer, configure:
 
 | Variable | Source |
 |---|---|
@@ -110,37 +127,49 @@ To enable the Lamatic proposal reviewer, configure:
 | `LAMATIC_API_URL` | Lamatic Studio → API Docs → Endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Deployed `trace-shift-advisor` flow details |
 
-Then import/configure `flows/trace-shift-advisor.ts` in Studio, select a model credential for its Instructor LLM node, and deploy it.
+Import or recreate `flows/trace-shift-advisor.ts`, choose the model credential for the Instructor LLM node, and deploy it.
 
-## Validation
+## Reproduce the evidence
 
 ```bash
 cd kits/traceshift/apps
 npm test
+npm run benchmark
 npm run lint
 npm run build
 ```
 
-Tests cover request grouping, failure exclusion, candidate generation, raw-payload removal, schema rejection, current `execution_type` exports, and older snake_case exports.
+The test suite covers analysis, cache replay, confidence math, drift, graph parsing and mapping, artifact generation, the real workload benchmark, duplicate rows, out-of-order spans, multi-flow windows, malformed inputs, and untrusted content.
+
+## Generated change package
+
+The compiler downloads three complementary artifacts:
+
+- `traceshift-optimization-manifest.json`: versioned evidence, target flow fingerprint, target node ID, gates, and approval state;
+- `traceshift-proposed-flow.diff`: a readable review summary of the proposed operation and replay evidence; and
+- `traceshift-cache-boundary.ts`: a portable exact-input cache boundary with canonical keys and fallback to the original node.
+
+These artifacts are deliberately marked `importReady: false` and `approvalRequired: true`. They are inputs to implementation and review, not a hidden deployment mechanism.
 
 ## Safety and privacy
 
-- Raw CSV parsing happens in the browser.
-- The in-memory report stores fingerprints and aggregates instead of raw node input/output values.
-- The advisor receives only the selected candidate’s aggregate evidence, assumptions, and risks.
-- Trace content is treated as untrusted data in both the app and the Lamatic constitution.
-- Downloads are generated locally as JSON or Markdown.
-- Every savings number is labeled as either observed evidence or a scenario estimate.
-- Every proposal requires shadow testing, a correctness gate, a rollback condition, and human approval.
+- Raw CSV and flow parsing happen in the browser.
+- Reports retain fingerprints and aggregates, not raw node payloads.
+- Trace text is treated as untrusted data, never as instructions.
+- Only the selected aggregate evidence pack reaches the Advisor flow.
+- Cache proposals fail closed on historical output mismatches.
+- Scenario estimates, replay measurements, and live benchmark measurements have separate labels.
+- Generated patches require equivalence testing, rollback conditions, and human approval.
+- TraceShift never edits, imports, deploys, or rolls back a production flow.
 
 ## Deliberate limits
 
-- TraceShift does not connect directly to a live Logs API; it analyzes a user-selected CSV window.
-- Fingerprints establish observed equality, not semantic equivalence.
-- A repeated output does not by itself prove that deterministic rules are safe.
-- Model-rightsizing estimates are hypotheses until an evaluation and canary are run.
-- Subflow extraction claims maintainability value only; it does not claim automatic latency savings.
-- TraceShift never edits, deploys, or rolls back a production flow.
+- TraceShift analyzes selected CSV windows rather than connecting directly to the live Logs API.
+- Fingerprint equality proves observed byte-level structure after normalization, not semantic equivalence.
+- Historical replay is evidence for a shadow test, not authorization to cache in production.
+- Model-rightsizing remains a hypothesis until an evaluation and canary are run.
+- Subflow extraction claims maintainability value only; it does not claim automatic performance savings.
+- Generated code still needs adaptation to the target flow’s storage, TTL, invalidation, and tenant boundaries.
 
 ## Author
 

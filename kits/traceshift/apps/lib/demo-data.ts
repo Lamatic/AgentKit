@@ -147,3 +147,23 @@ export function generateDemoCsv(): string {
     ],
   });
 }
+
+export function generateDriftedDemoCsv(): string {
+  const parsed = Papa.parse<DemoRow>(generateDemoCsv(), {
+    header: true,
+    skipEmptyLines: true,
+  });
+  const rows = parsed.data.map((row) => {
+    const next = { ...row };
+    if (next.nodeName === "Draft Answer") {
+      next.timeTakenSeconds = String(Number(next.timeTakenSeconds) * 1.55);
+      const cost = JSON.parse(String(next.model_cost || "{}")) as { total_cost?: number };
+      next.model_cost = JSON.stringify({ total_cost: (cost.total_cost ?? 0) * 1.35 });
+    }
+    if (next.event_message === "FinishedExecution" && Number(next.status) < 400) {
+      next.timeTakenSeconds = String(Number(next.timeTakenSeconds) * 1.32);
+    }
+    return next;
+  });
+  return Papa.unparse(rows);
+}
