@@ -30,6 +30,7 @@ import { requestAdvisorProposal } from "@/actions/orchestrate";
 import CompilerLab from "@/components/CompilerLab";
 import { analyzeTraceCsv } from "@/lib/analyze";
 import { generateDriftedDemoCsv } from "@/lib/demo-data";
+import { downloadTextFile } from "@/lib/download";
 import type {
   AdvisorProposal,
   AnalysisReport,
@@ -97,15 +98,6 @@ function buildMarkdown(report: AnalysisReport): string {
   return lines.join("\n");
 }
 
-function download(name: string, content: string, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = name;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function TraceShiftWorkbench() {
   const [report, setReport] = useState<AnalysisReport>(() => analyzeTraceCsv(generateDriftedDemoCsv()));
   const [selectedId, setSelectedId] = useState<string>(() => report.candidates[0]?.id ?? "");
@@ -113,6 +105,7 @@ export default function TraceShiftWorkbench() {
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [goal, setGoal] = useState("Reduce latency and model cost without changing output behavior");
+  const [advisorAccessToken, setAdvisorAccessToken] = useState("");
   const [advisor, setAdvisor] = useState<AdvisorProposal | null>(null);
   const [advisorError, setAdvisorError] = useState("");
   const [advisorLoading, setAdvisorLoading] = useState(false);
@@ -165,7 +158,7 @@ export default function TraceShiftWorkbench() {
     if (!selected) return;
     setAdvisorLoading(true);
     setAdvisorError("");
-    const result = await requestAdvisorProposal(selected, goal);
+    const result = await requestAdvisorProposal(selected, goal, advisorAccessToken);
     if (result.ok) setAdvisor(result.proposal);
     else setAdvisorError(result.error);
     setAdvisorLoading(false);
@@ -239,10 +232,10 @@ export default function TraceShiftWorkbench() {
             <strong>{sourceName}</strong>
           </div>
           <div className="source-actions">
-            <button className="button ghost" onClick={() => download("traceshift-report.json", JSON.stringify(report, null, 2), "application/json")}>
+            <button className="button ghost" onClick={() => downloadTextFile("traceshift-report.json", JSON.stringify(report, null, 2), "application/json")}>
               <ArrowDownToLine size={15} /> JSON
             </button>
-            <button className="button ghost" onClick={() => download("traceshift-report.md", buildMarkdown(report), "text/markdown")}>
+            <button className="button ghost" onClick={() => downloadTextFile("traceshift-report.md", buildMarkdown(report), "text/markdown")}>
               <ArrowDownToLine size={15} /> Markdown
             </button>
           </div>
@@ -369,6 +362,15 @@ export default function TraceShiftWorkbench() {
               <div className="advisor-title"><span><Bot size={20} /></span><div><strong>TraceShift Advisor</strong><small>Instructor LLM · grounded mode</small></div></div>
               <label htmlFor="goal">Optimization goal</label>
               <textarea id="goal" value={goal} onChange={(event) => setGoal(event.target.value)} maxLength={240} />
+              <label htmlFor="advisor-token">Advisor access token</label>
+              <input
+                id="advisor-token"
+                type="password"
+                autoComplete="current-password"
+                value={advisorAccessToken}
+                onChange={(event) => setAdvisorAccessToken(event.target.value)}
+                placeholder="Configured by the app owner"
+              />
               <button className="button primary wide" onClick={() => void askAdvisor()} disabled={!selected || advisorLoading}>
                 {advisorLoading ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />}
                 {advisorLoading ? "Reviewing evidence…" : "Generate reviewable proposal"}
@@ -429,13 +431,13 @@ export default function TraceShiftWorkbench() {
             <article className="data-card node-card">
               <div className="data-card-title"><div><Gauge size={17} /><strong>Node hotspots</strong></div><small>successful runs only</small></div>
               <div className="node-table" role="table" aria-label="Node hotspots">
-                <div className="node-table-head" role="row"><span>Node</span><span>Calls</span><span>Time</span><span>Cost</span></div>
+                <div className="node-table-head" role="row"><span role="columnheader">Node</span><span role="columnheader">Calls</span><span role="columnheader">Time</span><span role="columnheader">Cost</span></div>
                 {report.nodes.slice(0, 7).map((node) => (
                   <div className="node-table-row" role="row" key={node.name}>
-                    <div><strong>{node.name}</strong><span className="mini-bar"><i style={{ width: `${(node.totalSeconds / maxNodeSeconds) * 100}%` }} /></span></div>
-                    <span>{node.calls}</span>
-                    <span>{formatSeconds(node.totalSeconds)}</span>
-                    <span>{formatMoney(node.cost)}</span>
+                    <div role="cell"><strong>{node.name}</strong><span className="mini-bar"><i style={{ width: `${(node.totalSeconds / maxNodeSeconds) * 100}%` }} /></span></div>
+                    <span role="cell">{node.calls}</span>
+                    <span role="cell">{formatSeconds(node.totalSeconds)}</span>
+                    <span role="cell">{formatMoney(node.cost)}</span>
                   </div>
                 ))}
               </div>

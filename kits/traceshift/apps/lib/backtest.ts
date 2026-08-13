@@ -91,19 +91,24 @@ export function scoreConfidence(input: ConfidenceInput): ConfidenceDetail {
 }
 
 export function backtestExactCache(
-  report: Pick<AnalysisReport, "executions">,
+  source: Pick<AnalysisReport, "executions"> | readonly TraceNode[],
   target: string,
   lookupLatencySeconds = 0.005,
 ): CacheBacktest {
-  const calls = report.executions
-    .filter((execution) => execution.status === "success")
-    .flatMap((execution) => execution.nodes)
+  const sourceCalls = "executions" in source
+    ? source.executions
+      .filter((execution) => execution.status === "success")
+      .flatMap((execution) => execution.nodes)
+    : source;
+  const calls = [...sourceCalls]
     .filter((node) => node.name === target)
     .sort((a, b) => a.timestamp - b.timestamp);
   const groups = new Map<string, TraceNode[]>();
   for (const call of calls) {
     if (call.inputFingerprint === EMPTY_FINGERPRINT) continue;
-    groups.set(call.inputFingerprint, [...(groups.get(call.inputFingerprint) ?? []), call]);
+    const group = groups.get(call.inputFingerprint);
+    if (group) group.push(call);
+    else groups.set(call.inputFingerprint, [call]);
   }
 
   const repeated = [...groups.values()].filter((group) => group.length >= 2);

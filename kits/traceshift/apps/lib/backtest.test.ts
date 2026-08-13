@@ -13,6 +13,14 @@ test("chronologically replays exact-input cache hits", () => {
   assert.equal(replay.outputMismatches, 0);
 });
 
+test("accepts a pre-indexed target call list", () => {
+  const report = analyzeTraceCsv(generateDemoCsv());
+  const calls = report.executions.flatMap((execution) => execution.nodes)
+    .filter((node) => node.name === "Catalog Lookup");
+  const replay = backtestExactCache(calls, "Catalog Lookup");
+  assert.equal(replay.cacheHits, 20);
+});
+
 test("measures replay savings instead of applying a percentage scenario", () => {
   const replay = backtestExactCache(analyzeTraceCsv(generateDemoCsv()), "Catalog Lookup");
   assert.equal(replay.baselineLatencySeconds, 42);

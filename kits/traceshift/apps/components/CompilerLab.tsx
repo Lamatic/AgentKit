@@ -23,9 +23,11 @@ import { runDeterministicCacheBenchmark } from "@/lib/benchmark";
 import { demoFlowExport } from "@/lib/demo-flow";
 import { generateDemoCsv } from "@/lib/demo-data";
 import { compareTraceWindows } from "@/lib/drift";
+import { downloadTextFile } from "@/lib/download";
 import { mapFlowToReport, parseLamaticFlow } from "@/lib/flow-parser";
 import type {
   AnalysisReport,
+  FlowGraph,
   FlowMapping,
   MappedFlowNode,
   OptimizationCandidate,
@@ -37,15 +39,6 @@ type HeatMode = "latency" | "cost" | "traffic";
 const formatSeconds = (value: number) => `${value.toFixed(value >= 10 ? 1 : 2)}s`;
 const formatMoney = (value: number) => `$${value.toFixed(value < 0.01 ? 4 : 2)}`;
 const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
-
-function download(name: string, content: string, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = name;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 const graphPosition = (node: MappedFlowNode) => ({
   x: 72 + (node.position.x / 880) * 850,
@@ -129,9 +122,7 @@ export default function CompilerLab({
   report: AnalysisReport;
   selected?: OptimizationCandidate;
 }) {
-  const [mapping, setMapping] = useState<FlowMapping>(() =>
-    mapFlowToReport(parseLamaticFlow(demoFlowExport), report),
-  );
+  const [graph, setGraph] = useState<FlowGraph>(() => parseLamaticFlow(demoFlowExport));
   const [flowName, setFlowName] = useState("Synthetic Commerce Support flow export");
   const [flowError, setFlowError] = useState("");
   const [heatMode, setHeatMode] = useState<HeatMode>("latency");
@@ -143,8 +134,8 @@ export default function CompilerLab({
   const baselineInput = useRef<HTMLInputElement>(null);
 
   const refreshedMapping = useMemo(
-    () => mapFlowToReport(mapping.graph, report),
-    [mapping.graph, report],
+    () => mapFlowToReport(graph, report),
+    [graph, report],
   );
   const drift = useMemo(() => compareTraceWindows(baseline, report), [baseline, report]);
   const manifest = useMemo(
@@ -165,8 +156,7 @@ export default function CompilerLab({
       return;
     }
     try {
-      const next = mapFlowToReport(parseLamaticFlow(await file.text()), report);
-      setMapping(next);
+      setGraph(parseLamaticFlow(await file.text()));
       setFlowName(file.name);
     } catch (error) {
       setFlowError(error instanceof Error ? error.message : "The flow export could not be parsed.");
@@ -175,6 +165,14 @@ export default function CompilerLab({
 
   const loadBaseline = async (file: File) => {
     setBaselineError("");
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      setBaselineError("Choose a CSV exported from Lamatic Traces.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setBaselineError("This file is over 5 MB. Export a smaller baseline window.");
+      return;
+    }
     try {
       setBaseline(analyzeTraceCsv(await file.text()));
       setBaselineName(file.name);
@@ -235,9 +233,9 @@ export default function CompilerLab({
               <p>Targeted to <code>{manifest.candidate.targetNodeId ?? "unmapped node"}</code>. The package describes a proposed change but cannot import, deploy, or overwrite the source flow.</p>
             </div>
             <div className="artifact-actions">
-              <button className="button ghost" onClick={() => download("traceshift-optimization-manifest.json", JSON.stringify(manifest, null, 2), "application/json")}><ArrowDownToLine size={14} /> Manifest</button>
-              <button className="button ghost" onClick={() => download("traceshift-proposed-flow.diff", patch, "text/plain")}><ArrowDownToLine size={14} /> Flow diff</button>
-              {cacheScript && <button className="button ghost" onClick={() => download("traceshift-cache-boundary.ts", cacheScript, "text/typescript")}><ArrowDownToLine size={14} /> Code artifact</button>}
+              <button className="button ghost" onClick={() => downloadTextFile("traceshift-optimization-manifest.json", JSON.stringify(manifest, null, 2), "application/json")}><ArrowDownToLine size={14} /> Manifest</button>
+              <button className="button ghost" onClick={() => downloadTextFile("traceshift-proposed-flow.diff", patch, "text/plain")}><ArrowDownToLine size={14} /> Flow diff</button>
+              {cacheScript && <button className="button ghost" onClick={() => downloadTextFile("traceshift-cache-boundary.ts", cacheScript, "text/typescript")}><ArrowDownToLine size={14} /> Code artifact</button>}
             </div>
           </article>
         )}

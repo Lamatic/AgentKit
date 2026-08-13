@@ -12,7 +12,8 @@ import { mapFlowToReport, parseLamaticFlow } from "./flow-parser";
 
 const fixture = () => {
   const report = analyzeTraceCsv(generateDemoCsv());
-  const candidate = report.candidates.find((item) => item.type === "exact-cache")!;
+  const candidate = report.candidates.find((item) => item.type === "exact-cache");
+  assert.ok(candidate, "the proof set should produce an exact-cache candidate");
   const mapping = mapFlowToReport(parseLamaticFlow(demoFlowExport), report);
   return { report, candidate, mapping };
 };
@@ -45,12 +46,25 @@ test("generates a portable cache-boundary code artifact", () => {
   const script = buildCacheBoundaryScript(buildOptimizationManifest(report, candidate, mapping));
   assert.match(script!, /reviewOnlyCacheBoundary/);
   assert.match(script!, /invokeOriginal/);
+  assert.match(script!, /__undefined__/);
   assert.equal(script!.includes("sku-A"), false);
 });
 
 test("does not generate a cache script for non-cache candidates", () => {
   const report = analyzeTraceCsv(generateDemoCsv());
-  const candidate = report.candidates.find((item) => item.type === "model-rightsize")!;
+  const candidate = report.candidates.find((item) => item.type === "model-rightsize");
+  assert.ok(candidate, "the proof set should produce a model-rightsize candidate");
   const manifest = buildOptimizationManifest(report, candidate, null);
   assert.equal(buildCacheBoundaryScript(manifest), null);
+});
+
+test("uses type-specific rollback conditions", () => {
+  const { report, candidate, mapping } = fixture();
+  const cacheManifest = buildOptimizationManifest(report, candidate, mapping);
+  assert.match(cacheManifest.rollbackCondition, /Disable the cache/);
+
+  const modelCandidate = report.candidates.find((item) => item.type === "model-rightsize");
+  assert.ok(modelCandidate, "the proof set should produce a model-rightsize candidate");
+  const modelManifest = buildOptimizationManifest(report, modelCandidate, mapping);
+  assert.match(modelManifest.rollbackCondition, /Restore the original graph/);
 });

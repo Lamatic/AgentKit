@@ -35,7 +35,7 @@ test("does not retain raw node payload values in the analysis report", () => {
 
   assert.equal(reportText.includes("Question 1"), false);
   assert.equal(reportText.includes("Grounded response"), false);
-  assert.ok(reportText.includes("fp_"));
+  assert.match(reportText, /fp_[0-9a-f]{16}/);
 });
 
 test("rejects files that are not Lamatic trace exports", () => {
@@ -56,6 +56,29 @@ test("supports snake_case aliases from older exports", () => {
   assert.equal(report.source.requests, 1);
   assert.equal(report.executions[0].pathSignature, "Router");
   assert.equal(report.metrics.p50Seconds, 0.5);
+});
+
+test("falls through blank aliases and recognizes snake-case node fields", () => {
+  const csv = [
+    "requestId,event_message,workflowName,nodeName,node_name,node_slug,nodeId,status,timeTakenSeconds,timestamp,input,output",
+    'req-1,Span emitted,Demo,,Router,router,codeNode,200,0.4,2026-08-01T00:00:00Z,"{}","{}"',
+    "req-1,FinishedExecution,Demo,,,,,200,0.5,2026-08-01T00:00:01Z,,",
+  ].join("\n");
+
+  assert.equal(analyzeTraceCsv(csv).executions[0].pathSignature, "Router");
+});
+
+test("preserves quoted multiline CSV values while streaming rows", () => {
+  const csv = [
+    "requestId,event_message,workflowName,nodeName,nodeId,status,timeTakenSeconds,timestamp,input,output",
+    'req-1,NodeExecution,Demo,Router,codeNode,200,0.4,2026-08-01T00:00:00Z,"line',
+    'break","{}"',
+    "req-1,FinishedExecution,Demo,,,200,0.5,2026-08-01T00:00:01Z,,",
+  ].join("\n");
+
+  const report = analyzeTraceCsv(csv);
+  assert.equal(report.source.rows, 2);
+  assert.equal(report.executions[0].pathSignature, "Router");
 });
 
 test("uses execution_type when current Lamatic event_message contains descriptive text", () => {
@@ -120,4 +143,14 @@ test("does not leak prompt-injection strings into reports", () => {
 
 test("rejects empty exports", () => {
   assert.throws(() => analyzeTraceCsv("  \n"), /empty/);
+});
+
+test("stops parsing after the configured row limit", () => {
+  const rows = Array.from(
+    { length: 100_001 },
+    (_, index) => `request-${index},FinishedExecution`,
+  );
+  const csv = ["requestId,event_message", ...rows].join("\n");
+
+  assert.throws(() => analyzeTraceCsv(csv), /more than 100,000 rows/);
 });

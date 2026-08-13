@@ -1,5 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
+import { isAdvisorCandidate, isAdvisorProposal } from "@/lib/advisor-contract";
+import {
+  advisorQuotaSubject,
+  consumeAdvisorQuota,
+  verifyAdvisorAccess,
+} from "@/lib/advisor-security";
 import { getTraceShiftClient } from "@/lib/lamatic-client";
 import type { AdvisorProposal, OptimizationCandidate } from "@/lib/types";
 
@@ -7,22 +14,23 @@ export type AdvisorResult =
   | { ok: true; proposal: AdvisorProposal }
   | { ok: false; error: string };
 
-const isProposal = (value: unknown): value is AdvisorProposal => {
-  if (!value || typeof value !== "object") return false;
-  const proposal = value as Record<string, unknown>;
-  return (
-    typeof proposal.title === "string" &&
-    typeof proposal.recommendation === "string" &&
-    Array.isArray(proposal.evidence) &&
-    Array.isArray(proposal.validationPlan)
-  );
-};
-
 export async function requestAdvisorProposal(
   candidate: OptimizationCandidate,
   optimizationGoal: string,
+  accessToken: string,
 ): Promise<AdvisorResult> {
   try {
+    if (!verifyAdvisorAccess(accessToken)) {
+      return { ok: false, error: "The Advisor access token is missing or invalid." };
+    }
+    const requestHeaders = await headers();
+    const clientAddress = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (!consumeAdvisorQuota(advisorQuotaSubject(accessToken, clientAddress))) {
+      return { ok: false, error: "The Advisor request limit was reached. Try again in one minute." };
+    }
+    if (!isAdvisorCandidate(candidate)) {
+      return { ok: false, error: "The selected evidence pack is incomplete or invalid." };
+    }
     const evidencePack = {
       optimizationGoal:
         optimizationGoal.trim() || "Reduce latency and cost without changing behavior",
@@ -46,6 +54,9 @@ export async function requestAdvisorProposal(
       requiredValidation: candidate.validationPlan,
       productionMutationAllowed: false,
     };
+    if (JSON.stringify(evidencePack).length > 50_000) {
+      return { ok: false, error: "The selected evidence pack is too large for the Advisor." };
+    }
     const { client, flowId } = getTraceShiftClient();
     const response = (await client.executeFlow(flowId, {
       evidencePack: JSON.stringify(evidencePack),
@@ -58,7 +69,7 @@ export async function requestAdvisorProposal(
         return { ok: false, error: "The advisor returned text instead of the configured proposal schema." };
       }
     }
-    if (!isProposal(proposal)) {
+    if (!isAdvisorProposal(proposal)) {
       return { ok: false, error: "The advisor response did not match the configured proposal schema." };
     }
     return { ok: true, proposal };

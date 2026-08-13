@@ -6,7 +6,7 @@ export default {
       "type": "generator/text",
       "params": {},
       "configName": "configA",
-      "model_name": "groq/llama-3.3-70b-versatile",
+      "model_name": "groq/openai/gpt-oss-120b",
       "credentialId": "",
       "provider_name": "groq",
       "credential_name": "groq"

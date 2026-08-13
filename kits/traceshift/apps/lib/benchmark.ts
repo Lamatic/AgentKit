@@ -1,6 +1,7 @@
 import type { WorkloadBenchmark } from "./types";
 
 const canonical = (value: unknown): string => {
+  if (value === undefined) return "__undefined__";
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value && typeof value === "object") {
     return `{${Object.entries(value as Record<string, unknown>)
@@ -25,6 +26,18 @@ export function runDeterministicCacheBenchmark(
   uniqueInputs = 12,
   iterations = 60_000,
 ): WorkloadBenchmark {
+  if (!Number.isSafeInteger(totalRequests) || totalRequests <= 0) {
+    throw new RangeError("totalRequests must be a positive integer.");
+  }
+  if (!Number.isSafeInteger(uniqueInputs) || uniqueInputs <= 0) {
+    throw new RangeError("uniqueInputs must be a positive integer.");
+  }
+  if (uniqueInputs > totalRequests) {
+    throw new RangeError("uniqueInputs cannot exceed totalRequests.");
+  }
+  if (!Number.isSafeInteger(iterations) || iterations <= 0) {
+    throw new RangeError("iterations must be a positive integer.");
+  }
   const workload = Array.from({ length: totalRequests }, (_, index) => ({
     product: `sku-${String(index % uniqueInputs).padStart(2, "0")}`,
   }));

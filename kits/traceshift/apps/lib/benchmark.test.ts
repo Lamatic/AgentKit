@@ -15,3 +15,10 @@ test("measures benchmark duration rather than using a configured savings factor"
   assert.ok(result.baselineMilliseconds > result.optimizedMilliseconds);
   assert.ok(result.speedup > 1);
 });
+
+test("rejects invalid benchmark workloads", () => {
+  assert.throws(() => runDeterministicCacheBenchmark(0, 1, 1), /totalRequests/);
+  assert.throws(() => runDeterministicCacheBenchmark(10, 0, 1), /uniqueInputs/);
+  assert.throws(() => runDeterministicCacheBenchmark(10, 11, 1), /cannot exceed/);
+  assert.throws(() => runDeterministicCacheBenchmark(10, 2, 1.5), /iterations/);
+});

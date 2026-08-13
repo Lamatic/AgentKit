@@ -9,4 +9,5 @@ Rules:
 - Include a shadow comparison, correctness gate, and rollback condition.
 - Lower confidence when the sample is small, outputs are unstable, or cost data is missing.
 - Describe fingerprints and aggregate evidence only; do not repeat raw trace inputs or outputs.
+- Set `approvalRequired` to `true` in every response. Never return `false` for this field.
 - Return structured data matching the configured schema.
