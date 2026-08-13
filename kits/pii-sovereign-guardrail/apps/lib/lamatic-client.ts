@@ -2,17 +2,24 @@ import { Lamatic } from "lamatic";
 import config from "../../lamatic.config";
 
 if (!process.env.LAMATIC_API_KEY || !process.env.LAMATIC_PROJECT_ID) {
-  // Don't throw at import time — Next.js may import this during build
-  // before env vars are available. orchestrate.ts checks again at call time.
   console.warn(
     "[pii-sovereign-guardrail] LAMATIC_API_KEY / LAMATIC_PROJECT_ID not set yet."
   );
 }
 
-// Lazily construct the client — only called once we actually have a
-// deployed flow to hit. This avoids the Lamatic SDK's own validation
-// (e.g. "Endpoint URL is required") firing during local demo mode,
-// when no endpoint is configured yet.
+export const guardrailStep = config.steps.find(
+  (s) => s.id === "pii-sovereign-guardrail"
+);
+
+export const guardrailFlowId = guardrailStep?.envKey
+  ? process.env[guardrailStep.envKey]
+  : undefined;
+
+/**
+ * @deprecated Superseded by callLamaticFlow, which calls Lamatic's
+ * GraphQL API directly. Kept only if a future need for the raw SDK
+ * client arises.
+ */
 export function createLamaticClient() {
   return new Lamatic({
     apiKey: process.env.LAMATIC_API_KEY ?? "",
@@ -21,10 +28,60 @@ export function createLamaticClient() {
   });
 }
 
-export const guardrailStep = config.steps.find(
-  (s) => s.id === "pii-guardrail"
-);
+const EXECUTE_WORKFLOW_QUERY = `
+  query ExecuteWorkflow(
+    $workflowId: String!
+    $rawUserPrompt: String
+    $targetModel: String
+  ) {
+    executeWorkflow(
+      workflowId: $workflowId
+      payload: {
+        rawUserPrompt: $rawUserPrompt
+        targetModel: $targetModel
+      }
+    ) {
+      status
+      result
+    }
+  }
+`;
 
-export const guardrailFlowId = guardrailStep?.envKey
-  ? process.env[guardrailStep.envKey]
-  : undefined;
+/**
+ * Executes the deployed pii-sovereign-guardrail flow via Lamatic's
+ * GraphQL API directly (bypassing the lamatic npm SDK, which does not
+ * reliably construct this platform's expected request shape).
+ *
+ * @param rawUserPrompt - The raw, unmasked user prompt.
+ * @param targetModel - The Groq model identifier to use for this run.
+ * @returns The flow's { status, result } response.
+ * @throws If the API returns a GraphQL-level error.
+ */
+export async function callLamaticFlow(rawUserPrompt: string, targetModel: string) {
+  const apiKey = process.env.LAMATIC_API_KEY ?? "";
+  const projectId = process.env.LAMATIC_PROJECT_ID ?? "";
+  const apiUrl = process.env.LAMATIC_API_URL ?? "";
+
+  const res = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "x-project-id": projectId
+    },
+    body: JSON.stringify({
+      query: EXECUTE_WORKFLOW_QUERY,
+      variables: {
+        workflowId: guardrailFlowId,
+        rawUserPrompt,
+        targetModel
+      }
+    })
+  });
+
+  const json = await res.json();
+  if (json.errors) {
+    throw new Error(`Lamatic API error: ${JSON.stringify(json.errors)}`);
+  }
+  return json.data.executeWorkflow;
+}

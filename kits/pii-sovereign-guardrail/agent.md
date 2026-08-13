@@ -2,12 +2,15 @@
 
 ## What this agent does
 
-The PII Sovereign Guardrail sits between your application and any external LLM
-provider (OpenAI, Anthropic, etc.). It intercepts outbound prompts, masks
-personally identifiable information (PII) before the prompt ever leaves your
-infrastructure, sends the sanitized prompt to the target model, and then
-rehydrates the original values back into the response before it's returned
-to the caller.
+The PII Sovereign Guardrail sits between your application and the target LLM
+you're protecting against (OpenAI, Anthropic, etc.). It masks personally
+identifiable information (PII) using two layers before that target model
+ever sees the prompt, then rehydrates the original values back into the
+response. Layer 2 (LLM-based NER) is itself an external LLM call used to
+detect unstructured PII — it does see residual names/addresses that Layer 1
+didn't catch, in order to find and mask them. The guarantee this kit makes
+is specifically about the target model call, not every intermediate
+processing step — see "What this agent is NOT" below for the full boundary.
 
 The goal isn't "detect 100% of PII" — no system honestly can, and any kit
 that claims otherwise is overselling. The goal is to give engineering and

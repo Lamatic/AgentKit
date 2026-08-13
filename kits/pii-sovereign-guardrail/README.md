@@ -1,9 +1,12 @@
 # PII Sovereign Guardrail
 
-Enterprise middleware that masks personally identifiable information (PII)
-before it reaches an external LLM provider (OpenAI, Anthropic, etc.), and
-rehydrates it in the response — so raw personal data never leaves your
-infrastructure in identifiable form.
+Enterprise middleware that masks personally identifiable information (PII) 
+before it reaches the target LLM you're protecting against — a two-layer 
+masking pipeline (regex + LLM-based NER) runs first, and only the masked 
+prompt reaches that final model. Real values are restored in the response 
+before it reaches the caller. Note: the Layer 2 (NER) detection step itself 
+is an LLM call, so it does see residual unstructured PII (names, addresses) 
+in order to find it — see agent.md for the full boundary.
 
 ## The problem
 
@@ -36,21 +39,24 @@ of what this does and does not cover, and
 guardrails the flow must never violate (e.g. fail closed, never persist
 the token map).
 
-## Demo ![PII Guardrail demo](./docs/demo.png) *Left: what leaves your infrastructure (masked). Right: what the caller actually receives (rehydrated).*
+## Demo
+
+![PII Guardrail demo](./docs/demo.png)
+
+*Left: what leaves your infrastructure (masked). Right: what the caller actually receives (rehydrated).*
 
 ## Structure
 
-```
+```text
 pii-sovereign-guardrail/
-- lamatic.config.ts (kit metadata)
-- agent.md (capability doc, read this first)
-- constitutions/default.md (hard guardrails)
-- flows/pii-sovereign-guardrail.ts (flow graph, real Lamatic Studio export)
-- scripts/ (masking/rehydration logic, real, working
-- prompts/ (Layer 2 NER prompts)
-- model-configs/ (LLM configs per node)
-- apps/ (Next.js demo, live masking visualization)
-
+├── lamatic.config.ts              # kit metadata
+├── agent.md                       # capability doc (read this first)
+├── constitutions/default.md       # hard guardrails
+├── flows/pii-sovereign-guardrail.ts  # flow graph — real Lamatic Studio export
+├── scripts/                       # masking/rehydration logic (real, working)
+├── prompts/                       # Layer 2 NER prompts
+├── model-configs/                 # LLM configs per node
+└── apps/                          # Next.js demo — live masking visualization
 ```
 
 This flow is built, deployed, and tested end-to-end in Lamatic Studio.

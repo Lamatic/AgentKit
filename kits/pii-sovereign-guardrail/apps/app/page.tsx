@@ -6,15 +6,16 @@ import { runGuardrail, type GuardrailResult } from "../actions/orchestrate";
 const EXAMPLE_PROMPT =
   "Hi, this is John Whitfield. My email is john.whitfield@acme-corp.com and my number is (415) 555-0192. Can you draft a reply to my landlord about the lease at 42 Elm Street, Austin?";
 
-const MODELS = ["gpt-4o-mini", "gpt-4o", "claude-sonnet-4-6"];
+const MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
 
+/**
+ * Renders masked text, highlighting each [REDACTED_TYPE_n] placeholder
+ * as a styled redaction bar with the entity type shown as a tooltip.
+ */
 function RedactedText({ text }: { text: string }) {
-  // Splits on [REDACTED_TYPE_n] placeholders and renders them as literal
-  // redaction bars — the signature visual for this kit. Nothing under a
-  // bar left the building in its real form.
   const parts = text.split(/(\[REDACTED_[A-Z_]+_\d+\])/g);
   return (
-    <span style={{ lineHeight: 1.7 }}>
+    <span className="leading-relaxed">
       {parts.map((part, i) => {
         const match = part.match(/^\[REDACTED_([A-Z_]+)_\d+\]$/);
         if (!match) return <span key={i}>{part}</span>;
@@ -22,19 +23,7 @@ function RedactedText({ text }: { text: string }) {
           <span
             key={i}
             title={match[1].replace(/_/g, " ")}
-            style={{
-              display: "inline-block",
-              background: "var(--redact-bar)",
-              color: "var(--redact)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.72em",
-              letterSpacing: "0.04em",
-              padding: "1px 6px",
-              margin: "0 2px",
-              borderRadius: 2,
-              border: "1px solid #2a1712",
-              verticalAlign: "1px"
-            }}
+            className="inline-block bg-redact-bar text-redact font-mono text-[0.72em] tracking-[0.04em] py-px px-1.5 mx-0.5 rounded-sm border border-redact-border align-[1px]"
           >
             {match[1]}
           </span>
@@ -44,6 +33,13 @@ function RedactedText({ text }: { text: string }) {
   );
 }
 
+/**
+ * The PII Sovereign Guardrail demo page. Lets a reviewer type a prompt,
+ * run it through the masking pipeline (real deployed flow, or local
+ * Layer-1-only demo mode if none is deployed), and see both the masked
+ * payload that would leave the infrastructure and the rehydrated
+ * response returned to the caller.
+ */
 export default function Page() {
   const [rawPrompt, setRawPrompt] = useState(EXAMPLE_PROMPT);
   const [targetModel, setTargetModel] = useState(MODELS[0]);
@@ -65,113 +61,42 @@ export default function Page() {
   }
 
   return (
-    <main
-      style={{
-        maxWidth: 1080,
-        margin: "0 auto",
-        padding: "56px 24px 96px"
-      }}
-    >
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 12,
-          letterSpacing: "0.12em",
-          color: "var(--accent)",
-          marginBottom: 10
-        }}
-      >
+    <main className="max-w-[1080px] mx-auto px-6 pt-14 pb-24">
+      <div className="font-mono text-xs tracking-[0.12em] text-accent mb-2.5">
         LAMATIC AGENTKIT · SECURITY LAYER
       </div>
-      <h1
-        style={{
-          fontSize: 40,
-          lineHeight: 1.15,
-          margin: "0 0 12px",
-          fontWeight: 650,
-          letterSpacing: "-0.01em"
-        }}
-      >
+      <h1 className="text-[40px] leading-[1.15] mb-3 font-[650] tracking-[-0.01em]">
         PII Sovereign Guardrail
       </h1>
-      <p
-        style={{
-          color: "var(--text-dim)",
-          fontSize: 16,
-          maxWidth: 620,
-          margin: "0 0 40px"
-        }}
-      >
-        Raw personal data never leaves your infrastructure. Everything
-        under a bar below is masked before it reaches an external model,
-        and restored only in the final response.
+      <p className="text-text-dim text-base max-w-[620px] mb-10">
+        PII is masked in two layers before it reaches the target model
+        you're protecting against. Everything under a bar below is what
+        actually reached that model — restored only in the final response.
       </p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20
-        }}
-      >
+      <div className="grid grid-cols-2 gap-5">
         {/* Input panel */}
-        <div
-          style={{
-            background: "var(--panel)",
-            border: "1px solid var(--border)",
-            borderRadius: 8,
-            padding: 20
-          }}
-        >
+        <div className="bg-panel border border-border rounded-lg p-5">
           <label
-            style={{
-              display: "block",
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              color: "var(--text-dim)",
-              marginBottom: 8
-            }}
+            htmlFor="raw-prompt"
+            className="block font-mono text-[11px] tracking-[0.08em] text-text-dim mb-2"
           >
             RAW PROMPT — STAYS LOCAL
           </label>
           <textarea
+            id="raw-prompt"
             value={rawPrompt}
             onChange={(e) => setRawPrompt(e.target.value)}
             rows={7}
-            style={{
-              width: "100%",
-              background: "var(--panel-raised)",
-              border: "1px solid var(--border)",
-              borderRadius: 6,
-              color: "var(--text)",
-              fontFamily: "var(--font-mono)",
-              fontSize: 13.5,
-              padding: 12,
-              resize: "vertical"
-            }}
+            className="w-full bg-panel-raised border border-border rounded-md text-text font-mono text-[13.5px] p-3 resize-y"
           />
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 14
-            }}
-          >
+          <div className="flex justify-between items-center mt-3.5">
             <select
               value={targetModel}
               onChange={(e) => setTargetModel(e.target.value)}
-              style={{
-                background: "var(--panel-raised)",
-                border: "1px solid var(--border)",
-                color: "var(--text)",
-                borderRadius: 6,
-                padding: "8px 10px",
-                fontFamily: "var(--font-mono)",
-                fontSize: 12.5
-              }}
+              aria-label="Select target model"
+              className="bg-panel-raised border border-border text-text rounded-md py-2 px-2.5 font-mono text-[12.5px]"
             >
               {MODELS.map((m) => (
                 <option key={m} value={m}>
@@ -183,17 +108,9 @@ export default function Page() {
             <button
               onClick={handleRun}
               disabled={loading || !rawPrompt.trim()}
-              style={{
-                background: "var(--accent)",
-                color: "#04150f",
-                border: "none",
-                borderRadius: 6,
-                padding: "10px 18px",
-                fontWeight: 600,
-                fontSize: 13.5,
-                cursor: loading ? "default" : "pointer",
-                opacity: loading ? 0.6 : 1
-              }}
+              className={`bg-accent text-accent-fg border-none rounded-md py-2.5 px-[18px] font-semibold text-[13.5px] ${
+                loading ? "cursor-default opacity-60" : "cursor-pointer opacity-100"
+              }`}
             >
               {loading ? "Masking…" : "Run guardrail"}
             </button>
@@ -201,37 +118,14 @@ export default function Page() {
         </div>
 
         {/* Output panel */}
-        <div
-          style={{
-            background: "var(--panel)",
-            border: "1px solid var(--border)",
-            borderRadius: 8,
-            padding: 20
-          }}
-        >
-          <label
-            style={{
-              display: "block",
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              color: "var(--text-dim)",
-              marginBottom: 8
-            }}
-          >
+        <div className="bg-panel border border-border rounded-lg p-5">
+          <label className="block font-mono text-[11px] tracking-[0.08em] text-text-dim mb-2">
             WHAT ACTUALLY LEFT YOUR INFRASTRUCTURE
           </label>
           <div
-            style={{
-              background: "var(--panel-raised)",
-              border: "1px solid var(--border)",
-              borderRadius: 6,
-              padding: 12,
-              fontFamily: "var(--font-mono)",
-              fontSize: 13.5,
-              minHeight: 140,
-              color: result ? "var(--text)" : "var(--text-dim)"
-            }}
+            className={`bg-panel-raised border border-border rounded-md p-3 font-mono text-[13.5px] min-h-[140px] ${
+              result ? "text-text" : "text-text-dim"
+            }`}
           >
             {result ? (
               <RedactedText text={result.maskedPromptSent} />
@@ -242,68 +136,27 @@ export default function Page() {
 
           {result && (
             <>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 16,
-                  margin: "16px 0",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 12,
-                  color: "var(--text-dim)"
-                }}
-              >
+              <div className="flex gap-4 my-4 font-mono text-xs text-text-dim">
                 <span>
-                  total masked:{" "}
-                  <b style={{ color: "var(--accent)" }}>
-                    {result.tokensRedacted.total}
-                  </b>
+                  total masked: <b className="text-accent">{result.tokensRedacted.total}</b>
                 </span>
-                <span>
-                  deterministic: {result.tokensRedacted.deterministic}
-                </span>
-                <span>
-                  probabilistic: {result.tokensRedacted.probabilistic}
-                </span>
+                <span>deterministic: {result.tokensRedacted.deterministic}</span>
+                <span>probabilistic: {result.tokensRedacted.probabilistic}</span>
                 {result.demoMode && (
-                  <span style={{ color: "var(--redact)" }}>
-                    demo mode — no flow deployed yet
-                  </span>
+                  <span className="text-redact">demo mode — no flow deployed yet</span>
                 )}
               </div>
 
-              <label
-                style={{
-                  display: "block",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  letterSpacing: "0.08em",
-                  color: "var(--text-dim)",
-                  marginBottom: 8
-                }}
-              >
+              <label className="block font-mono text-[11px] tracking-[0.08em] text-text-dim mb-2">
                 REHYDRATED RESPONSE — RETURNED TO CALLER
               </label>
-              <div
-                style={{
-                  background: "var(--panel-raised)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 6,
-                  padding: 12,
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 13.5,
-                  whiteSpace: "pre-wrap"
-                }}
-              >
+              <div className="bg-panel-raised border border-border rounded-md p-3 font-mono text-[13.5px] whitespace-pre-wrap">
                 {result.secureResponse}
               </div>
             </>
           )}
 
-          {error && (
-            <div style={{ color: "var(--redact)", marginTop: 12 }}>
-              {error}
-            </div>
-          )}
+          {error && <div className="text-redact mt-3">{error}</div>}
         </div>
       </div>
     </main>
