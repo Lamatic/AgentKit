@@ -1,5 +1,8 @@
 import { Lamatic } from "lamatic";
-import config from "../../lamatic.config";
+
+type KitFlowConfig = {
+  steps: readonly { id: string; envKey: string }[];
+};
 
 const requireEnv = (name: string): string => {
   const value = process.env[name]?.trim();
@@ -7,7 +10,7 @@ const requireEnv = (name: string): string => {
   return value;
 };
 
-export function getTraceShiftClient() {
+export function getTraceShiftClient(config: KitFlowConfig) {
   const flowEnvKey = config.steps.find((step) => step.id === "trace-shift-advisor")?.envKey;
   if (!flowEnvKey) throw new Error("TraceShift advisor flow is not declared in lamatic.config.ts.");
   return {

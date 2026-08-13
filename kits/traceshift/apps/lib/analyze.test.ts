@@ -117,7 +117,7 @@ test("orders out-of-order node rows by timestamp", () => {
   assert.equal(analyzeTraceCsv(csv).executions[0].pathSignature, "First → Second");
 });
 
-test("keeps workflow names separate when one window contains multiple flows", () => {
+test("rejects mixed-workflow windows before aggregating nodes or paths", () => {
   const csv = [
     "id,requestId,event_message,workflowName,nodeName,nodeId,status,timeTakenSeconds,timestamp,input,output",
     '1,req-a,NodeExecution,Flow A,Router,codeNode,200,0.2,2026-08-01T00:00:01Z,"{}","{}"',
@@ -125,9 +125,29 @@ test("keeps workflow names separate when one window contains multiple flows", ()
     '3,req-b,NodeExecution,Flow B,Router,codeNode,200,0.2,2026-08-01T00:01:01Z,"{}","{}"',
     "4,req-b,FinishedExecution,Flow B,,,200,0.2,2026-08-01T00:01:02Z,,",
   ].join("\n");
-  const report = analyzeTraceCsv(csv);
+  assert.throws(() => analyzeTraceCsv(csv), /multiple workflows.*Flow A, Flow B/i);
+});
 
-  assert.deepEqual(report.source.workflowNames.sort(), ["Flow A", "Flow B"]);
+test("does not propose exact caching when repeated calls have no output evidence", () => {
+  const rows = [
+    "id,requestId,event_message,workflowName,nodeName,nodeId,status,timeTakenSeconds,timestamp,input,output",
+  ];
+  for (let index = 0; index < 4; index += 1) {
+    const request = `req-${index + 1}`;
+    const minute = String(index).padStart(2, "0");
+    rows.push(
+      `${request}-node,${request},NodeExecution,Demo,Catalog Lookup,ToolNode,200,1.0,2026-08-01T00:${minute}:00Z,"{""sku"":""A""}",`,
+      `${request}-finish,${request},FinishedExecution,Demo,,,200,1.0,2026-08-01T00:${minute}:01Z,,`,
+    );
+  }
+
+  const report = analyzeTraceCsv(rows.join("\n"));
+  assert.equal(
+    report.candidates.some(
+      (candidate) => candidate.type === "exact-cache" && candidate.target === "Catalog Lookup",
+    ),
+    false,
+  );
 });
 
 test("does not leak prompt-injection strings into reports", () => {

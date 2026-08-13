@@ -18,10 +18,10 @@ test("requires the configured Advisor access token", () => {
   }
 });
 
-test("enforces a server-side request quota per caller", () => {
+test("enforces a server-side request quota per validated access token", () => {
   const previous = process.env.TRACESHIFT_ADVISOR_RATE_LIMIT;
   process.env.TRACESHIFT_ADVISOR_RATE_LIMIT = "2";
-  const subject = advisorQuotaSubject(`token-${Math.random()}`, "127.0.0.1");
+  const subject = advisorQuotaSubject(`token-${Math.random()}`);
   try {
     assert.equal(consumeAdvisorQuota(subject, 1_000), true);
     assert.equal(consumeAdvisorQuota(subject, 1_001), true);
@@ -31,4 +31,13 @@ test("enforces a server-side request quota per caller", () => {
     if (previous === undefined) delete process.env.TRACESHIFT_ADVISOR_RATE_LIMIT;
     else process.env.TRACESHIFT_ADVISOR_RATE_LIMIT = previous;
   }
+});
+
+test("bounds active quota subjects and admits new subjects after expiry", () => {
+  const startedAt = 10_000_000;
+  for (let index = 0; index < 1_000; index += 1) {
+    assert.equal(consumeAdvisorQuota(`bounded-subject-${index}`, startedAt), true);
+  }
+  assert.equal(consumeAdvisorQuota("bounded-subject-overflow", startedAt), false);
+  assert.equal(consumeAdvisorQuota("bounded-subject-overflow", startedAt + 60_000), true);
 });
