@@ -4,10 +4,48 @@ import lamaticConfig from "../../lamatic.config";
 import { buildDemoReport } from "@/lib/demo";
 import { getLamaticClient } from "@/lib/lamatic-client";
 import { reliabilityReportSchema, webhookScenarioSchema } from "@/lib/schemas";
-import type { AnalysisResult, ReliabilityReport } from "@/lib/types";
+import type {
+  AnalysisResult,
+  ReliabilityReport,
+  WebhookScenario,
+} from "@/lib/types";
 
 const FLOW_ENV_KEY =
   lamaticConfig.steps[0]?.envKey ?? "WEBHOOK_RELIABILITY_ARCHITECT_FLOW_ID";
+
+const secretAssignmentPattern =
+  /\b(api[_ -]?key|secret|password|passwd|access[_ -]?token|auth(?:orization)?|cookie|private[_ -]?key)\b\s*["']?\s*[:=]\s*["']?[A-Za-z0-9_./+~=-]{8,}/i;
+const bearerTokenPattern = /\bbearer\s+[A-Za-z0-9._~+/=-]{8,}/i;
+const privateKeyPattern = /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i;
+const personalDataPattern =
+  /["']?(?:email|e-mail|phone|mobile|address|full[_ -]?name|first[_ -]?name|last[_ -]?name|customer[_ -]?name|ssn|aadhaar|pan|card[_ -]?number)["']?\s*[:=]\s*["']?[^\s,"'}]{3,}/i;
+
+function containsSensitiveData(value: string): boolean {
+  return (
+    secretAssignmentPattern.test(value) ||
+    bearerTokenPattern.test(value) ||
+    privateKeyPattern.test(value) ||
+    personalDataPattern.test(value)
+  );
+}
+
+function scenarioContainsSensitiveData(scenario: WebhookScenario): boolean {
+  return containsSensitiveData(JSON.stringify(scenario));
+}
+
+function respectsScenarioBounds(
+  report: ReliabilityReport,
+  scenario: WebhookScenario,
+): boolean {
+  return (
+    report.retryPlan.maxAttempts <= scenario.maxAttempts &&
+    report.retryPlan.maxDeliveryAgeMinutes <= scenario.maxDeliveryAgeMinutes &&
+    report.retryPlan.schedule.length <= scenario.maxAttempts &&
+    report.retryPlan.schedule.every(
+      (step) => step.attempt <= scenario.maxAttempts,
+    )
+  );
+}
 
 function isReliabilityReport(value: unknown): value is ReliabilityReport {
   return reliabilityReportSchema.safeParse(value).success;
@@ -60,6 +98,14 @@ export async function analyzeWebhookScenario(
   }
   const validScenario = parsedScenario.data;
 
+  if (scenarioContainsSensitiveData(validScenario)) {
+    return {
+      success: false,
+      error:
+        "Remove credentials, secrets, and personal data from the scenario before analysis.",
+    };
+  }
+
   if (process.env.DEMO_MODE === "true") {
     return { success: true, report: buildDemoReport(validScenario), mode: "demo" };
   }
@@ -82,6 +128,12 @@ export async function analyzeWebhookScenario(
       return {
         success: false,
         error: "Lamatic returned an unexpected response shape. Verify the deployed flow output schema.",
+      };
+    }
+    if (!respectsScenarioBounds(report, validScenario)) {
+      return {
+        success: false,
+        error: "Lamatic returned a report outside the requested delivery bounds.",
       };
     }
     return { success: true, report, mode: "live" };
