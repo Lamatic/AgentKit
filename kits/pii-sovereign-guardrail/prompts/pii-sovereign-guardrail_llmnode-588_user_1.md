@@ -1,1 +1,2 @@
-Text to analyze{{codeNode_163.output.maskedText}}
+Text to analyze:
+{{codeNode_163.output.maskedText}}

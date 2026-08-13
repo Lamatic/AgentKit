@@ -224,6 +224,14 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
+    "id": "codeNode_163-codeNode_591",
+    "source": "codeNode_163",
+    "target": "codeNode_591",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
     "id": "LLMNode_588-codeNode_591",
     "source": "LLMNode_588",
     "target": "codeNode_591",
@@ -248,6 +256,14 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
+    "id": "codeNode_591-codeNode_527",
+    "source": "codeNode_591",
+    "target": "codeNode_527",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
     "id": "codeNode_527-responseNode_triggerNode_1",
     "source": "codeNode_527",
     "target": "responseNode_triggerNode_1",
@@ -256,7 +272,7 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "response-trigger_triggerNode_1",
+    "id": "response-responseNode_triggerNode_1",
     "source": "triggerNode_1",
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "to-response",
