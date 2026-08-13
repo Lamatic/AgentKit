@@ -36,7 +36,7 @@ Identify:
 
 \- Permissions explicitly present in CURRENT ACCESS but absent from INTENDED POLICY.
 
-\- Permissions explicitly required by INTENDED POLICY and explicitly contradicted or absent from CURRENT ACCESS, but only classify them as MISSING when the supplied current-access data is clearly complete enough to establish that absence.
+\- Permissions explicitly required by INTENDED POLICY and explicitly established as absent, denied, revoked, or otherwise unavailable in CURRENT ACCESS.
 
 \- Role-to-permission differences.
 
