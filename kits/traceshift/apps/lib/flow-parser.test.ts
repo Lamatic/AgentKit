@@ -37,6 +37,11 @@ test("rejects incomplete flow exports", () => {
   assert.throws(() => parseLamaticFlow("export const nodes = [];"), /missing export const edges/);
 });
 
+test("does not borrow the next export's opening bracket", () => {
+  const source = "export const nodes = loadNodes();\nexport const edges = [];";
+  assert.throws(() => parseLamaticFlow(source), /nodes export is not an array/);
+});
+
 test("rejects graph edges that point to absent nodes", () => {
   const broken = demoFlowExport.replace('"target": "responseNode_1"', '"target": "missing"');
   assert.throws(() => parseLamaticFlow(broken), /points to a node that is not present/);
@@ -52,4 +57,34 @@ test("does not execute TypeScript embedded in an export", () => {
 
   assert.equal(graph.nodes.length, 6);
   assert.equal((globalThis as unknown as { compromised?: boolean }).compromised, undefined);
+});
+
+test("leaves ambiguous normalized node names unmapped", () => {
+  const report = analyzeTraceCsv(generateDemoCsv());
+  const original = report.nodes.find((node) => node.name === "Catalog Lookup");
+  assert.ok(original);
+  report.nodes.push({ ...original, name: "Catalog-Lookup" });
+
+  const graph = parseLamaticFlow(demoFlowExport);
+  const catalog = graph.nodes.find((node) => node.name === "Catalog Lookup");
+  assert.ok(catalog);
+  catalog.name = "catalog_lookup";
+
+  const mapping = mapFlowToReport(graph, report);
+  assert.equal(mapping.nodes.find((node) => node.id === catalog.id)?.match, "unmapped");
+});
+
+test("does not map two fuzzy flow names to one trace aggregate", () => {
+  const report = analyzeTraceCsv(generateDemoCsv());
+  const graph = parseLamaticFlow(demoFlowExport);
+  const catalog = graph.nodes.find((node) => node.name === "Catalog Lookup");
+  assert.ok(catalog);
+  graph.nodes.push({ ...catalog, id: "toolNode_catalog_alias", name: "catalog_lookup" });
+
+  const mapping = mapFlowToReport(graph, report);
+  assert.equal(mapping.nodes.find((node) => node.id === catalog.id)?.match, "exact-name");
+  assert.equal(
+    mapping.nodes.find((node) => node.id === "toolNode_catalog_alias")?.match,
+    "unmapped",
+  );
 });

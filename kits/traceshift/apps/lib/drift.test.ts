@@ -45,3 +45,21 @@ test("preserves path comparison even when paths do not change", () => {
   assert.equal(drift.removedPaths.length, 0);
   assert.ok(drift.pathShareChanges.length > 0);
 });
+
+test("reports paths that disappear from the current window", () => {
+  const baseline = analyzeTraceCsv(generateDemoCsv());
+  const current = analyzeTraceCsv(generateDemoCsv());
+  const removed = current.paths[0].signature;
+  current.paths = current.paths.slice(1);
+
+  assert.ok(compareTraceWindows(baseline, current).removedPaths.includes(removed));
+});
+
+test("signals a material loss of cost evidence coverage", () => {
+  const baseline = analyzeTraceCsv(generateDemoCsv());
+  const current = analyzeTraceCsv(generateDemoCsv());
+  current.dataQuality = { ...current.dataQuality, costCoverage: 0 };
+
+  const drift = compareTraceWindows(baseline, current);
+  assert.ok(drift.signals.some((signal) => signal.id === "coverage-cost"));
+});

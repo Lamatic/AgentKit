@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --import tsx --test lib/**/*.test.ts",
+    "test": "node lib/run-tests.mjs",
     "benchmark": "node --import tsx benchmarks/cache-replay.ts"
   },
   "dependencies": {

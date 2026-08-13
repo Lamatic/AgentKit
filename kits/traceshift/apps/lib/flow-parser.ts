@@ -21,8 +21,13 @@ const extractArray = (source: string, exportName: "nodes" | "edges"): unknown[] 
   const marker = new RegExp(`export\\s+const\\s+${exportName}\\s*=`, "m");
   const match = marker.exec(source);
   if (!match) throw new Error(`The flow export is missing export const ${exportName}.`);
-  const start = source.indexOf("[", match.index + match[0].length);
-  if (start < 0) throw new Error(`The ${exportName} export is not an array.`);
+  const assignmentEnd = match.index + match[0].length;
+  const nextExportOffset = source.slice(assignmentEnd).search(/\bexport\s+const\b/m);
+  const searchEnd = nextExportOffset < 0 ? source.length : assignmentEnd + nextExportOffset;
+  const start = source.indexOf("[", assignmentEnd);
+  if (start < 0 || start >= searchEnd) {
+    throw new Error(`The ${exportName} export is not an array.`);
+  }
 
   let depth = 0;
   let quote: '"' | "'" | "`" | null = null;
@@ -142,13 +147,31 @@ export function parseLamaticFlow(source: string): FlowGraph {
 }
 
 export function mapFlowToReport(graph: FlowGraph, report: AnalysisReport): FlowMapping {
-  const aggregates = new Map(report.nodes.map((node) => [normalize(node.name), node]));
+  const aggregates = new Map<string, AnalysisReport["nodes"][number]>();
+  const ambiguousNames = new Set<string>();
+  for (const aggregate of report.nodes) {
+    const key = normalize(aggregate.name);
+    if (aggregates.has(key)) {
+      aggregates.delete(key);
+      ambiguousNames.add(key);
+    } else if (!ambiguousNames.has(key)) {
+      aggregates.set(key, aggregate);
+    }
+  }
+  const flowNameCounts = new Map<string, number>();
+  for (const node of graph.nodes) {
+    const key = normalize(node.name);
+    flowNameCounts.set(key, (flowNameCounts.get(key) ?? 0) + 1);
+  }
   const usedTraceNodes = new Set<string>();
   const successfulRuns = report.executions.filter((execution) => execution.status === "success");
 
   const nodes = graph.nodes.map((node) => {
     const exact = report.nodes.find((aggregate) => aggregate.name === node.name);
-    const aggregate = exact ?? aggregates.get(normalize(node.name));
+    const normalizedName = normalize(node.name);
+    const aggregate = exact ?? (
+      flowNameCounts.get(normalizedName) === 1 ? aggregates.get(normalizedName) : undefined
+    );
     if (aggregate) usedTraceNodes.add(aggregate.name);
     return {
       ...node,

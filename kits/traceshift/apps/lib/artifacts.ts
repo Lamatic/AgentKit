@@ -143,6 +143,7 @@ export function buildCacheBoundaryScript(manifest: OptimizationManifest): string
 const cache = new Map<string, CacheEntry<unknown>>();
 
 const canonical = (value: unknown): string => {
+  if (value === undefined) return "__undefined__";
   if (Array.isArray(value)) return \`[\${value.map(canonical).join(",")}]\`;
   if (value && typeof value === "object") {
     return \`{\${Object.entries(value as Record<string, unknown>)

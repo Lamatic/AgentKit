@@ -126,8 +126,14 @@ To enable the proposal reviewer, configure:
 | `LAMATIC_PROJECT_ID` | Lamatic Studio → Settings → Project |
 | `LAMATIC_API_URL` | Lamatic Studio → API Docs → Endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Deployed `trace-shift-advisor` flow details |
+| `TRACESHIFT_ADVISOR_ACCESS_TOKEN` | A random secret of at least 20 characters; reviewers enter it before calling the paid Advisor |
+| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Optional per-instance requests per caller per minute; defaults to `6` |
 
-Import or recreate `flows/trace-shift-advisor.ts`, choose the model credential for the Instructor LLM node, and deploy it.
+Import or recreate `flows/trace-shift-advisor.ts`, choose the Groq `openai/gpt-oss-120b` credential for the Instructor LLM node, and deploy it. The deterministic dashboard remains public, while the credentialed Advisor action requires the access token and enforces a server-side request quota.
+
+### Vercel note
+
+Set the Vercel project Root Directory to `kits/traceshift/apps`. Because the required `lamatic.config.ts` is one directory above the app, also enable **Include source files outside of the Root Directory** in the project’s Build Step settings. Vercel exposes that option in the dashboard rather than `vercel.json`; `apps/next.config.mjs` already gives Turbopack the matching parent root.
 
 ## Reproduce the evidence
 
@@ -157,6 +163,7 @@ These artifacts are deliberately marked `importReady: false` and `approvalRequir
 - Reports retain fingerprints and aggregates, not raw node payloads.
 - Trace text is treated as untrusted data, never as instructions.
 - Only the selected aggregate evidence pack reaches the Advisor flow.
+- The paid Advisor endpoint requires an app-owner access token and applies a server-side request quota.
 - Cache proposals fail closed on historical output mismatches.
 - Scenario estimates, replay measurements, and live benchmark measurements have separate labels.
 - Generated patches require equivalence testing, rollback conditions, and human approval.

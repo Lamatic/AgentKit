@@ -206,8 +206,9 @@ details[open] summary svg { transform: rotate(90deg); }
 .advisor-title strong { font-size: 13px; }
 .advisor-title small { color: #686874; font: 500 8px/1.6 var(--font-mono), ui-monospace, monospace; text-transform: uppercase; letter-spacing: .07em; }
 .advisor-control label { color: #858490; font-size: 9px; text-transform: uppercase; letter-spacing: .09em; font-weight: 700; }
-.advisor-control textarea { width: 100%; resize: vertical; min-height: 84px; color: #d8d7df; background: #0d0d11; border: 1px solid #292931; border-radius: 8px; padding: 11px; margin: 7px 0 12px; outline: none; font-size: 11px; line-height: 1.55; }
-.advisor-control textarea:focus { border-color: rgba(155,135,245,.55); box-shadow: 0 0 0 3px rgba(155,135,245,.07); }
+.advisor-control textarea, .advisor-control input { width: 100%; color: #d8d7df; background: #0d0d11; border: 1px solid #292931; border-radius: 8px; padding: 11px; margin: 7px 0 12px; outline: none; font-size: 11px; line-height: 1.55; }
+.advisor-control textarea { resize: vertical; min-height: 84px; }
+.advisor-control textarea:focus, .advisor-control input:focus { border-color: rgba(155,135,245,.55); box-shadow: 0 0 0 3px rgba(155,135,245,.07); }
 .control-note { display: flex; gap: 6px; color: #5e5e69; font-size: 9px; line-height: 1.45; margin: 11px 0 0; }
 .control-note svg { flex: 0 0 auto; }
 .advisor-error { margin-top: 13px; padding: 10px; align-items: flex-start; font-size: 10px; line-height: 1.4; }

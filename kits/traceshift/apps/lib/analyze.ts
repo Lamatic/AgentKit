@@ -1,7 +1,9 @@
 import Papa from "papaparse";
+import type { ParseError } from "papaparse";
 import type {
   AnalysisReport,
   CsvRow,
+  DataQuality,
   Execution,
   NodeAggregate,
   OptimizationCandidate,
@@ -12,16 +14,31 @@ import { backtestExactCache, scoreConfidence } from "./backtest";
 
 const MAX_ROWS = 100_000;
 const EMPTY_FINGERPRINT = "none";
+const rowLookups = new WeakMap<CsvRow, Map<string, string>>();
 
-const field = (row: CsvRow, ...names: string[]): string => {
+const lookupFor = (row: CsvRow): Map<string, string> => {
+  const cached = rowLookups.get(row);
+  if (cached) return cached;
   const lookup = new Map(
     Object.entries(row).map(([key, value]) => [key.trim().toLowerCase(), value ?? ""]),
   );
+  rowLookups.set(row, lookup);
+  return lookup;
+};
+
+const field = (row: CsvRow, ...names: string[]): string => {
+  const lookup = lookupFor(row);
   for (const name of names) {
-    const value = lookup.get(name.toLowerCase());
-    if (value !== undefined) return String(value).trim();
+    const value = lookup.get(name.trim().toLowerCase());
+    if (value !== undefined && String(value).trim()) return String(value).trim();
   }
   return "";
+};
+
+const appendToGroup = <Key, Value>(map: Map<Key, Value[]>, key: Key, value: Value): void => {
+  const group = map.get(key);
+  if (group) group.push(value);
+  else map.set(key, [value]);
 };
 
 const numberFrom = (value: string): number => {
@@ -55,12 +72,15 @@ const stableString = (value: unknown): string => JSON.stringify(stableValue(valu
 const fingerprint = (value: unknown): string => {
   if (value === null || value === undefined || value === "") return EMPTY_FINGERPRINT;
   const text = stableString(value);
-  let hash = 0x811c9dc5;
+  let first = 0x811c9dc5;
+  let second = 0x811c9dc5 ^ 0x9e3779b9;
   for (let index = 0; index < text.length; index += 1) {
-    hash ^= text.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
+    first ^= text.charCodeAt(index);
+    first = Math.imul(first, 0x01000193);
+    second ^= text.charCodeAt(text.length - index - 1);
+    second = Math.imul(second, 0x01000193);
   }
-  return `fp_${(hash >>> 0).toString(16).padStart(8, "0")}`;
+  return `fp_${(first >>> 0).toString(16).padStart(8, "0")}${(second >>> 0).toString(16).padStart(8, "0")}`;
 };
 
 const shape = (value: unknown): unknown => {
@@ -181,13 +201,15 @@ const buildExecutions = (rows: CsvRow[]): Execution[] => {
   const grouped = new Map<string, CsvRow[]>();
   rows.forEach((row, index) => {
     const requestId = field(row, "requestId", "request_id") || `missing-${index}`;
-    grouped.set(requestId, [...(grouped.get(requestId) ?? []), row]);
+    appendToGroup(grouped, requestId, row);
   });
 
   return [...grouped.entries()].map(([requestId, requestRows]) => {
     const nodeRows = requestRows.filter((row) => {
       const event = eventType(row);
-      return event === "node" || (event === "unknown" && Boolean(field(row, "nodeName", "nodeSlug")));
+      return event === "node" || (event === "unknown" && Boolean(
+        field(row, "nodeName", "node_name", "nodeSlug", "node_slug"),
+      ));
     });
     const nodes = nodeRows
       .map((row, index) => toNode(row, requestId, index))
@@ -214,7 +236,7 @@ const buildExecutions = (rows: CsvRow[]): Execution[] => {
 const aggregatePaths = (executions: Execution[]): PathAggregate[] => {
   const successfulRuns = executions.filter((run) => run.status === "success").length;
   const grouped = new Map<string, Execution[]>();
-  executions.forEach((run) => grouped.set(run.pathSignature, [...(grouped.get(run.pathSignature) ?? []), run]));
+  executions.forEach((run) => appendToGroup(grouped, run.pathSignature, run));
   return [...grouped.entries()]
     .map(([signature, runs]) => {
       const successful = runs.filter((run) => run.status === "success");
@@ -238,7 +260,7 @@ const aggregateNodes = (successful: Execution[]): NodeAggregate[] => {
   const totalSeconds = allNodes.reduce((sum, node) => sum + node.durationSeconds, 0);
   const totalCost = allNodes.reduce((sum, node) => sum + node.cost, 0);
   const grouped = new Map<string, TraceNode[]>();
-  allNodes.forEach((node) => grouped.set(node.name, [...(grouped.get(node.name) ?? []), node]));
+  allNodes.forEach((node) => appendToGroup(grouped, node.name, node));
 
   return [...grouped.entries()]
     .map(([name, nodes]) => {
@@ -270,19 +292,21 @@ const buildCandidates = (
   successful: Execution[],
   nodes: NodeAggregate[],
   paths: PathAggregate[],
-  dataQuality: import("./types").DataQuality,
+  dataQuality: DataQuality,
 ): OptimizationCandidate[] => {
   const candidates: OptimizationCandidate[] = [];
   const totalRuns = successful.length;
   const nodeCalls = successful.flatMap((run) => run.nodes);
+  const callsByName = new Map<string, TraceNode[]>();
+  nodeCalls.forEach((call) => appendToGroup(callsByName, call.name, call));
 
   for (const aggregate of nodes) {
     if (/graphql|response/i.test(aggregate.nodeType) || /api request|api response/i.test(aggregate.name)) continue;
-    const calls = nodeCalls.filter((node) => node.name === aggregate.name);
+    const calls = callsByName.get(aggregate.name) ?? [];
     const byInput = new Map<string, TraceNode[]>();
     calls.forEach((call) => {
       if (call.inputFingerprint !== EMPTY_FINGERPRINT) {
-        byInput.set(call.inputFingerprint, [...(byInput.get(call.inputFingerprint) ?? []), call]);
+        appendToGroup(byInput, call.inputFingerprint, call);
       }
     });
     const repeatedGroups = [...byInput.values()].filter((group) => group.length >= 2);
@@ -298,7 +322,7 @@ const buildCandidates = (
     if (redundantCalls >= 3 && conditionalStability >= 0.98) {
       const redundantLatency = aggregate.averageSeconds * redundantCalls;
       const redundantCost = aggregate.calls ? (aggregate.cost / aggregate.calls) * redundantCalls : 0;
-      const backtest = backtestExactCache({ executions: successful }, aggregate.name);
+      const backtest = backtestExactCache(calls, aggregate.name);
       const confidenceDetail = scoreConfidence({
         sampleSize: stableCalls,
         recurringObservations: new Set(stableRepeatedGroups.flat().map((call) => call.requestId)).size,
@@ -502,15 +526,33 @@ const buildCandidates = (
 
 export function analyzeTraceCsv(csv: string): AnalysisReport {
   if (!csv.trim()) throw new Error("The trace export is empty.");
-  const parsed = Papa.parse<CsvRow>(csv, {
+  const parsedRows: CsvRow[] = [];
+  const parseErrors: ParseError[] = [];
+  let parsedFields: string[] = [];
+  let exceededRowLimit = false;
+
+  Papa.parse<CsvRow>(csv, {
     header: true,
     skipEmptyLines: "greedy",
     transformHeader: (header) => header.trim(),
+    step: (result, parser) => {
+      if (!parsedFields.length) parsedFields = result.meta.fields ?? [];
+      parseErrors.push(...result.errors);
+      if (parsedRows.length >= MAX_ROWS) {
+        exceededRowLimit = true;
+        parser.abort();
+        return;
+      }
+      parsedRows.push(result.data);
+    },
+    complete: (result) => {
+      if (!parsedFields.length) parsedFields = result.meta.fields ?? [];
+    },
   });
-  if (parsed.data.length > MAX_ROWS) {
+  if (exceededRowLimit) {
     throw new Error(`This export has more than ${MAX_ROWS.toLocaleString()} rows. Split it into a smaller window.`);
   }
-  const fields = new Set((parsed.meta.fields ?? []).map((name) => name.toLowerCase()));
+  const fields = new Set(parsedFields.map((name) => name.toLowerCase()));
   if (!fields.has("requestid") && !fields.has("request_id")) {
     throw new Error("Missing requestId column. Export traces from Lamatic Logs → Traces → Export CSV.");
   }
@@ -518,12 +560,9 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
     throw new Error("Missing event_message column. This does not look like a Lamatic trace export.");
   }
 
-  const nonEmptyRows = parsed.data.filter((row) =>
-    Object.values(row).some((value) => String(value).trim()),
-  );
   const seenRowIds = new Set<string>();
   let duplicateRows = 0;
-  const rows = nonEmptyRows.filter((row) => {
+  const rows = parsedRows.filter((row) => {
     const rowId = field(row, "id");
     if (!rowId) return true;
     if (seenRowIds.has(rowId)) {
@@ -564,7 +603,7 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
   if (!totalCost) warnings.push("No model cost was recorded; cost-based estimates are unavailable.");
   if (failed.length) warnings.push(`${failed.length} failed request(s) were excluded from optimization mining.`);
   if (duplicateRows) warnings.push(`${duplicateRows} duplicate trace row(s) were ignored by row ID.`);
-  if (parsed.errors.length) warnings.push(`${parsed.errors.length} malformed CSV row(s) were ignored or repaired by the parser.`);
+  if (parseErrors.length) warnings.push(`${parseErrors.length} malformed CSV row(s) were ignored or repaired by the parser.`);
   if (successful.length < 10) warnings.push("Fewer than 10 successful runs: treat every proposal as preliminary.");
 
   return {
@@ -572,7 +611,7 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
       rows: rows.length,
       requests: executions.length,
       workflowNames: [...new Set(executions.map((run) => run.workflowName))],
-      invalidRows: parsed.errors.length,
+      invalidRows: parseErrors.length,
       duplicateRows,
     },
     metrics: {

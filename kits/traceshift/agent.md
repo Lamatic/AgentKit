@@ -82,12 +82,14 @@ The Next.js app calls Lamatic through `apps/actions/orchestrate.ts`. `TRACESHIFT
 | `LAMATIC_PROJECT_ID` | Selects the Lamatic project |
 | `LAMATIC_API_URL` | Selects the project API endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Selects the deployed Advisor flow |
+| `TRACESHIFT_ADVISOR_ACCESS_TOKEN` | Authenticates callers of the credentialed Advisor action |
+| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Caps Advisor requests per caller per minute; defaults to 6 |
 
 ## Quickstart
 
 1. Import or recreate `flows/trace-shift-advisor.ts` in Lamatic Studio.
 2. Configure an Instructor-compatible model credential and deploy the flow.
-3. Copy `apps/.env.example` to `apps/.env.local` and fill the four variables.
+3. Copy `apps/.env.example` to `apps/.env.local` and fill the required variables.
 4. Run `npm install && npm run dev` inside `apps/`.
 5. Use the proof set or upload current and baseline Lamatic trace CSVs.
 6. Upload the matching Studio TypeScript flow export.
@@ -103,5 +105,5 @@ The Next.js app calls Lamatic through `apps/actions/orchestrate.ts`. `TRACESHIFT
 | Weak confidence | Too few runs or poor field coverage | Analyze a larger, representative window |
 | Unmapped graph node | Trace name differs from the Studio node name | Align node names or review the unmapped list |
 | Cache replay blocked | An exact input produced different outputs | Do not cache until the missing key dependency is understood |
-| Advisor credentials error | Environment is missing or incomplete | Configure the four variables and restart the app |
+| Advisor credentials error | Environment is missing or incomplete | Configure the Lamatic values and Advisor access token, then restart the app |
 | Advisor schema error | Deployed flow is stale | Redeploy the included Instructor LLM flow and schema |
