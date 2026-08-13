@@ -62,26 +62,34 @@ export async function callLamaticFlow(rawUserPrompt: string, targetModel: string
   const projectId = process.env.LAMATIC_PROJECT_ID ?? "";
   const apiUrl = process.env.LAMATIC_API_URL ?? "";
 
-  const res = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "x-project-id": projectId
-    },
-    body: JSON.stringify({
-      query: EXECUTE_WORKFLOW_QUERY,
-      variables: {
-        workflowId: guardrailFlowId,
-        rawUserPrompt,
-        targetModel
-      }
-    })
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
 
-  const json = await res.json();
-  if (json.errors) {
-    throw new Error(`Lamatic API error: ${JSON.stringify(json.errors)}`);
+  try {
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "x-project-id": projectId
+      },
+      body: JSON.stringify({
+        query: EXECUTE_WORKFLOW_QUERY,
+        variables: {
+          workflowId: guardrailFlowId,
+          rawUserPrompt,
+          targetModel
+        }
+      }),
+      signal: controller.signal
+    });
+
+    const json = await res.json();
+    if (json.errors) {
+      throw new Error(`Lamatic API error: ${JSON.stringify(json.errors)}`);
+    }
+    return json.data.executeWorkflow;
+  } finally {
+    clearTimeout(timeout);
   }
-  return json.data.executeWorkflow;
 }

@@ -1,12 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { runGuardrail, type GuardrailResult } from "../actions/orchestrate";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "../components/ui/form";
+import { Textarea } from "../components/ui/textarea";
+import { Button } from "../components/ui/button";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../components/ui/select";
 
 const EXAMPLE_PROMPT =
   "Hi, this is John Whitfield. My email is john.whitfield@acme-corp.com and my number is (415) 555-0192. Can you draft a reply to my landlord about the lease at 42 Elm Street, Austin?";
 
-const MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+const MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"] as const;
+
+const formSchema = z.object({
+  rawPrompt: z.string().min(1, "Prompt is required").max(4000, "Prompt exceeds 4000 characters"),
+  targetModel: z.enum(MODELS)
+});
+type FormValues = z.infer<typeof formSchema>;
 
 /**
  * Renders masked text, highlighting each [REDACTED_TYPE_n] placeholder
@@ -41,17 +54,20 @@ function RedactedText({ text }: { text: string }) {
  * response returned to the caller.
  */
 export default function Page() {
-  const [rawPrompt, setRawPrompt] = useState(EXAMPLE_PROMPT);
-  const [targetModel, setTargetModel] = useState(MODELS[0]);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { rawPrompt: EXAMPLE_PROMPT, targetModel: MODELS[0] }
+  });
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GuardrailResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleRun() {
+  async function onSubmit(values: FormValues) {
     setLoading(true);
     setError(null);
     try {
-      const res = await runGuardrail(rawPrompt, targetModel);
+      const res = await runGuardrail(values.rawPrompt, values.targetModel);
       setResult(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -75,49 +91,51 @@ export default function Page() {
       </p>
 
       <div className="grid grid-cols-2 gap-5">
-        {/* Input panel */}
         <div className="bg-panel border border-border rounded-lg p-5">
-          <label
-            htmlFor="raw-prompt"
-            className="block font-mono text-[11px] tracking-[0.08em] text-text-dim mb-2"
-          >
-            RAW PROMPT — STAYS LOCAL
-          </label>
-          <textarea
-            id="raw-prompt"
-            value={rawPrompt}
-            onChange={(e) => setRawPrompt(e.target.value)}
-            rows={7}
-            className="w-full bg-panel-raised border border-border rounded-md text-text font-mono text-[13.5px] p-3 resize-y"
-          />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="rawPrompt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="raw-prompt">RAW PROMPT — STAYS LOCAL</FormLabel>
+                    <FormControl>
+                      <Textarea id="raw-prompt" rows={7} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="flex justify-between items-center mt-3.5">
-            <select
-              value={targetModel}
-              onChange={(e) => setTargetModel(e.target.value)}
-              aria-label="Select target model"
-              className="bg-panel-raised border border-border text-text rounded-md py-2 px-2.5 font-mono text-[12.5px]"
-            >
-              {MODELS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+              <div className="flex justify-between items-center mt-3.5">
+                <FormField
+                  control={form.control}
+                  name="targetModel"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger aria-label="Select target model" className="w-auto">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MODELS.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
 
-            <button
-              onClick={handleRun}
-              disabled={loading || !rawPrompt.trim()}
-              className={`bg-accent text-accent-fg border-none rounded-md py-2.5 px-[18px] font-semibold text-[13.5px] ${
-                loading ? "cursor-default opacity-60" : "cursor-pointer opacity-100"
-              }`}
-            >
-              {loading ? "Masking…" : "Run guardrail"}
-            </button>
-          </div>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Masking…" : "Run guardrail"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </div>
 
-        {/* Output panel */}
         <div className="bg-panel border border-border rounded-lg p-5">
           <label className="block font-mono text-[11px] tracking-[0.08em] text-text-dim mb-2">
             WHAT ACTUALLY LEFT YOUR INFRASTRUCTURE
@@ -127,11 +145,7 @@ export default function Page() {
               result ? "text-text" : "text-text-dim"
             }`}
           >
-            {result ? (
-              <RedactedText text={result.maskedPromptSent} />
-            ) : (
-              "Run the guardrail to see the masked payload."
-            )}
+            {result ? <RedactedText text={result.maskedPromptSent} /> : "Run the guardrail to see the masked payload."}
           </div>
 
           {result && (
@@ -142,9 +156,7 @@ export default function Page() {
                 </span>
                 <span>deterministic: {result.tokensRedacted.deterministic}</span>
                 <span>probabilistic: {result.tokensRedacted.probabilistic}</span>
-                {result.demoMode && (
-                  <span className="text-redact">demo mode — no flow deployed yet</span>
-                )}
+                {result.demoMode && <span className="text-redact">demo mode — no flow deployed yet</span>}
               </div>
 
               <label className="block font-mono text-[11px] tracking-[0.08em] text-text-dim mb-2">
