@@ -83,7 +83,7 @@ The Next.js app calls Lamatic through `apps/actions/orchestrate.ts`. `TRACESHIFT
 | `LAMATIC_API_URL` | Selects the project API endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Selects the deployed Advisor flow |
 | `TRACESHIFT_ADVISOR_ACCESS_TOKEN` | Authenticates callers of the credentialed Advisor action |
-| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Caps Advisor requests per validated access token per minute; defaults to 6 |
+| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Demo-only, per-instance cap per validated access token; defaults to 6. Public multi-instance deployments require a shared-store or platform-edge limiter. |
 
 ## Quickstart
 

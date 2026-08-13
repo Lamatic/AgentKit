@@ -127,7 +127,7 @@ To enable the proposal reviewer, configure:
 | `LAMATIC_API_URL` | Lamatic Studio → API Docs → Endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Deployed `trace-shift-advisor` flow details |
 | `TRACESHIFT_ADVISOR_ACCESS_TOKEN` | A random secret of at least 20 characters; reviewers enter it before calling the paid Advisor |
-| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Optional per-instance requests per validated access token per minute; defaults to `6` |
+| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Demo-only, per-instance requests per validated access token per minute; defaults to `6`. Public multi-instance deployments need a shared-store or platform-edge limiter. |
 
 Import or recreate `flows/trace-shift-advisor.ts`, choose the Groq `openai/gpt-oss-120b` credential for the Instructor LLM node, and deploy it. The deterministic dashboard remains public, while the credentialed Advisor action requires the access token and enforces a server-side request quota.
 
