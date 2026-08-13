@@ -7,6 +7,7 @@ const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   // The required Lamatic kit config lives one directory above the Next app.
+  // On Vercel, enable parent-source access in the Root Directory dashboard setting.
   turbopack: {
     root: path.resolve(currentDirectory, ".."),
   },
