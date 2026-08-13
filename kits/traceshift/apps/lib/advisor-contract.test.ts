@@ -22,5 +22,6 @@ test("rejects unsafe or incomplete Advisor proposals", () => {
   assert.equal(isAdvisorProposal({ ...proposal, approvalRequired: false }), false);
   assert.equal(isAdvisorProposal({ ...proposal, rollbackCondition: "" }), false);
   assert.equal(isAdvisorProposal({ ...proposal, risks: [42] }), false);
+  assert.equal(isAdvisorProposal({ ...proposal, validationPlan: [] }), false);
   assert.equal(isAdvisorProposal({ ...proposal, confidence: "certain" }), false);
 });

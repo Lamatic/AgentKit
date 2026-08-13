@@ -83,7 +83,7 @@ The Next.js app calls Lamatic through `apps/actions/orchestrate.ts`. `TRACESHIFT
 | `LAMATIC_API_URL` | Selects the project API endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Selects the deployed Advisor flow |
 | `TRACESHIFT_ADVISOR_ACCESS_TOKEN` | Authenticates callers of the credentialed Advisor action |
-| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Caps Advisor requests per caller per minute; defaults to 6 |
+| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Caps Advisor requests per validated access token per minute; defaults to 6 |
 
 ## Quickstart
 
@@ -101,6 +101,7 @@ The Next.js app calls Lamatic through `apps/actions/orchestrate.ts`. `TRACESHIFT
 | Symptom | Cause | Fix |
 |---|---|---|
 | Missing `requestId` | File is not a Lamatic trace export | Export from Logs → Traces |
+| Multiple workflows | One CSV contains unrelated flow evidence | Export and analyze one workflow at a time |
 | No cost evidence | `model_cost` is empty in the window | Use latency evidence or export traces with model cost enabled |
 | Weak confidence | Too few runs or poor field coverage | Analyze a larger, representative window |
 | Unmapped graph node | Trace name differs from the Studio node name | Align node names or review the unmapped list |

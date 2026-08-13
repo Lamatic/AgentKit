@@ -6,6 +6,9 @@ const isText = (value: unknown): value is string =>
 const isTextList = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every(isText);
 
+const isNonEmptyTextList = (value: unknown): value is string[] =>
+  isTextList(value) && value.length > 0;
+
 export function isAdvisorProposal(value: unknown): value is AdvisorProposal {
   if (!value || typeof value !== "object") return false;
   const proposal = value as Record<string, unknown>;
@@ -15,7 +18,7 @@ export function isAdvisorProposal(value: unknown): value is AdvisorProposal {
     isText(proposal.rationale) &&
     isTextList(proposal.evidence) &&
     isTextList(proposal.risks) &&
-    isTextList(proposal.validationPlan) &&
+    isNonEmptyTextList(proposal.validationPlan) &&
     isText(proposal.rollbackCondition) &&
     ["low", "medium", "high"].includes(String(proposal.confidence)) &&
     proposal.approvalRequired === true

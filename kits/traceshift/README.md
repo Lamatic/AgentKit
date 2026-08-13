@@ -105,7 +105,7 @@ TraceShift recognizes current camelCase Lamatic fields and common snake_case ali
 | `model_usage`, `model_cost` | Token and cost evidence when available |
 | `input`, `output` | Local equality and shape fingerprints; raw values are not retained |
 
-Trace CSV uploads are limited to 5 MB and 100,000 rows. Studio flow exports are limited to 2 MB and parsed as JSON-compatible exported arrays without `eval` or dynamic module execution.
+Trace CSV uploads are limited to 5 MB and 100,000 rows. Each CSV must contain one workflow; mixed-workflow exports are rejected before aggregation so evidence cannot be mapped to the wrong Studio flow. Studio flow exports are limited to 2 MB and parsed as JSON-compatible exported arrays without `eval` or dynamic module execution.
 
 ## Run locally
 
@@ -127,7 +127,7 @@ To enable the proposal reviewer, configure:
 | `LAMATIC_API_URL` | Lamatic Studio → API Docs → Endpoint |
 | `TRACESHIFT_ADVISOR_FLOW_ID` | Deployed `trace-shift-advisor` flow details |
 | `TRACESHIFT_ADVISOR_ACCESS_TOKEN` | A random secret of at least 20 characters; reviewers enter it before calling the paid Advisor |
-| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Optional per-instance requests per caller per minute; defaults to `6` |
+| `TRACESHIFT_ADVISOR_RATE_LIMIT` | Optional per-instance requests per validated access token per minute; defaults to `6` |
 
 Import or recreate `flows/trace-shift-advisor.ts`, choose the Groq `openai/gpt-oss-120b` credential for the Instructor LLM node, and deploy it. The deterministic dashboard remains public, while the credentialed Advisor action requires the access token and enforces a server-side request quota.
 
@@ -145,7 +145,7 @@ npm run lint
 npm run build
 ```
 
-The test suite covers analysis, cache replay, confidence math, drift, graph parsing and mapping, artifact generation, the real workload benchmark, duplicate rows, out-of-order spans, multi-flow windows, malformed inputs, and untrusted content.
+The test suite covers analysis, cache replay, confidence math, drift, graph parsing and mapping, artifact generation, the real workload benchmark, duplicate rows, out-of-order spans, mixed-workflow rejection, missing output evidence, malformed inputs, and untrusted content.
 
 ## Generated change package
 
@@ -172,6 +172,7 @@ These artifacts are deliberately marked `importReady: false` and `approvalRequir
 ## Deliberate limits
 
 - TraceShift analyzes selected CSV windows rather than connecting directly to the live Logs API.
+- Each analysis accepts one workflow so node and path evidence cannot be merged across unrelated flows.
 - Fingerprint equality proves observed byte-level structure after normalization, not semantic equivalence.
 - Historical replay is evidence for a shadow test, not authorization to cache in production.
 - Model-rightsizing remains a hypothesis until an evaluation and canary are run.

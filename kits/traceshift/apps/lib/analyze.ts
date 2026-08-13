@@ -311,7 +311,10 @@ const buildCandidates = (
     });
     const repeatedGroups = [...byInput.values()].filter((group) => group.length >= 2);
     const stableRepeatedGroups = repeatedGroups.filter(
-      (group) => new Set(group.map((call) => call.outputFingerprint)).size === 1,
+      (group) =>
+        group.every(
+          (call) => call.hasOutput && call.outputFingerprint !== EMPTY_FINGERPRINT,
+        ) && new Set(group.map((call) => call.outputFingerprint)).size === 1,
     );
     const stableCalls = stableRepeatedGroups.reduce((sum, group) => sum + group.length, 0);
     const redundantCalls = stableRepeatedGroups.reduce((sum, group) => sum + group.length - 1, 0);
@@ -573,6 +576,12 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
     return true;
   });
   const executions = buildExecutions(rows);
+  const workflowNames = [...new Set(executions.map((run) => run.workflowName))];
+  if (workflowNames.length > 1) {
+    throw new Error(
+      `This export contains multiple workflows (${workflowNames.join(", ")}). Export one workflow per TraceShift analysis so node and path evidence stays isolated.`,
+    );
+  }
   const successful = executions.filter((run) => run.status === "success");
   const failed = executions.filter((run) => run.status === "failed");
   const paths = aggregatePaths(executions);
@@ -610,7 +619,7 @@ export function analyzeTraceCsv(csv: string): AnalysisReport {
     source: {
       rows: rows.length,
       requests: executions.length,
-      workflowNames: [...new Set(executions.map((run) => run.workflowName))],
+      workflowNames,
       invalidRows: parseErrors.length,
       duplicateRows,
     },

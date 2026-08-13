@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import config from "../../lamatic.config";
 import { isAdvisorCandidate, isAdvisorProposal } from "@/lib/advisor-contract";
 import {
   advisorQuotaSubject,
@@ -23,9 +23,7 @@ export async function requestAdvisorProposal(
     if (!verifyAdvisorAccess(accessToken)) {
       return { ok: false, error: "The Advisor access token is missing or invalid." };
     }
-    const requestHeaders = await headers();
-    const clientAddress = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (!consumeAdvisorQuota(advisorQuotaSubject(accessToken, clientAddress))) {
+    if (!consumeAdvisorQuota(advisorQuotaSubject(accessToken))) {
       return { ok: false, error: "The Advisor request limit was reached. Try again in one minute." };
     }
     if (!isAdvisorCandidate(candidate)) {
@@ -57,7 +55,7 @@ export async function requestAdvisorProposal(
     if (JSON.stringify(evidencePack).length > 50_000) {
       return { ok: false, error: "The selected evidence pack is too large for the Advisor." };
     }
-    const { client, flowId } = getTraceShiftClient();
+    const { client, flowId } = getTraceShiftClient(config);
     const response = (await client.executeFlow(flowId, {
       evidencePack: JSON.stringify(evidencePack),
     })) as { result?: { proposal?: unknown } };
