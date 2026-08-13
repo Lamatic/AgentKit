@@ -1,0 +1,38 @@
+{
+  "name": "Analyst receives broader resource scope than intended",
+  "description": "Detects access granted at a broader scope than the intended policy.",
+  "intended_policy": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "scope": "department:finance",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "current_access": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "scope": "organization",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "expected_result": {
+    "status": "DRIFT DETECTED",
+    "category": "SCOPE_DRIFT",
+    "risk": "HIGH",
+    "difference": "READ access is granted at organization scope instead of the intended finance-department scope."
+  }
+}
