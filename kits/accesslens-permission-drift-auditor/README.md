@@ -31,3 +31,64 @@ Finance Analyst → Finance Reports → WRITE PROHIBITED
 CURRENT
 
 Finance Analyst → Finance Reports → READ, WRITE
+```
+
+## Setup
+
+### Prerequisites
+
+- A Lamatic account.
+- Access to the AccessLens kit in Lamatic AgentKit.
+- A configured generative model supported by your Lamatic environment.
+
+### Model Configuration
+
+Configure the generative model used by the Audit Permissions LLM node. The model configuration is defined in `model-configs/accesslens_audit_generative-model-name.ts`. Set the `generativeModelName` input to the model you want to use for the audit.
+
+### Input Format
+
+AccessLens expects two inputs: `intended_policy`, containing the intended access policy, and `current_access`, containing the currently observed access state. Both inputs should provide enough explicit information to compare permissions, roles, resources, and scopes.
+
+Example:
+
+```json
+{
+  "intended_policy": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ"],
+            "prohibited_permissions": ["WRITE"]
+          }
+        ]
+      }
+    ]
+  },
+  "current_access": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ", "WRITE"]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The auditor only makes findings supported by explicit evidence. Missing information is not automatically treated as missing access.
+
+### Running the Kit
+
+Run the AccessLens flow through the Lamatic environment after configuring the model. The flow accepts the intended policy and current access through the API request trigger and returns the generated permission drift audit through the API response.
+
+### Deployment
+
+Deploy the kit through your Lamatic environment after configuring the required generative model. The flow can then be invoked through its API endpoint using the expected `intended_policy` and `current_access` inputs.
