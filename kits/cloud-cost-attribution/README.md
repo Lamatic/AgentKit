@@ -121,18 +121,24 @@ The flow's `ChangeEvent` shape is deliberately small — this one-liner is
 enough to get a real repo's deploy history into the expected shape:
 
 ```bash
-git log --since="60 days ago" --pretty=format:'%H%x1f%aI%x1f%s%x1f%an' | \
+git log -z --since="60 days ago" --pretty=format:'%H%x1f%aI%x1f%s%x1f%an' | \
   jq -R -s '
-    split("\n") | map(select(length > 0)) | map(split("\u001f")) |
+    split("\u0000") | map(select(length > 0)) | map(split("\u001f")) |
     map({id: .[0], timestamp: .[1], type: "deploy", title: .[2], diffSummary: .[2], filesTouched: [], author: .[3], refs: []})
   ' > change-events.json
 ```
 
-`%s` (the commit subject) can contain quotes, backslashes, or other
-JSON-sensitive characters — piping raw `--pretty=format` output straight into
-a hand-built JSON string breaks on those. Routing each field through `jq -R`
-(raw string input) escapes it properly. Fill `filesTouched` from `git show
---stat` per commit if you want the extra evidence signal — the attribute
+`git log -z` NUL-terminates each commit record instead of the default blank
+line, and `%x1f` separates fields within a record — both are non-printable
+control bytes that cannot appear in a commit hash, an ISO timestamp, or (in
+practice) a commit subject or author name, so a subject containing a literal
+`\x1f` won't corrupt the split (unlike a printable delimiter such as `,` or
+`|`, which a commit message could plausibly contain). `%s` (the commit
+subject) can also contain quotes and backslashes — piping raw
+`--pretty=format` output straight into a hand-built JSON string breaks on
+those; routing each field through `jq -R` (raw string input) escapes it
+properly. Fill `filesTouched` from `git show --stat` per commit if you want
+the extra evidence signal — the attribute
 prompt uses it when present.
 
 ## Layout
@@ -176,8 +182,11 @@ never flagged as anomalies.
 
 ## Fixtures: real substrate, synthetic anomalies
 
-`assets/fixtures/source/focus_sample.csv` is the real [FOCUS-Sample-Data](https://github.com/FinOps-Open-Cost-and-Usage-Spec/FOCUS-Sample-Data)
-project (FinOps Foundation / Linux Foundation), **CC BY 4.0**, kept here as a
+`assets/fixtures/source/focus_sample.csv` is unchanged and matches
+`samples/focus-1.0/aws/focus_1_0_aws.csv` from the upstream
+[FOCUS-Sample-Data](https://github.com/FinOps-Open-Cost-and-Usage-Spec/FOCUS-Sample-Data)
+project (FinOps Foundation / Linux Foundation), licensed
+[**CC BY 4.0**](https://creativecommons.org/licenses/by/4.0/), kept here as a
 provenance reference. `generate.ts` does not read that file — it is a fully
 synthetic, seeded generator (hand-written `PROFILES` table + a seeded PRNG)
 that builds a 28-day hourly baseline using `ServiceName` / `RegionId` /
@@ -251,5 +260,5 @@ off-list `causeEventId` is structurally impossible to return, per S3) but
 - **Rate limiting is per-instance, not global.** `apps/lib/rate-limit.ts` keeps
   its counters in memory, scoped to one serverless instance — the effective
   limit scales with how many warm instances the deployment has. Fine for this
-  kit's demo scope; back it with a shared store (Upstash Redis, Vercel KV) if
-  you need a real global cap in production.
+  kit's demo scope; back it with a shared store (Upstash Redis, available
+  through the Vercel Marketplace) if you need a real global cap in production.

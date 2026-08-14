@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { parseBillingCsv } from "./parse-billing";
 import { detectAnomalies, selectCandidateEvents } from "./detect-anomalies";
 import { getLamaticClient, flowIdFor } from "./lamatic-client";
+import { coerceCauseEventId } from "./attribution-coerce";
 import type { AnomalyEpisode, ChangeEvent, Report } from "./types";
 
 const FIXTURES_DIR = join(__dirname, "..", "..", "assets", "fixtures");
@@ -39,18 +40,34 @@ type FlowAttribution = { valid: true; causeEventId: string | null } | { valid: f
 
 async function attributeViaFlow(anomaly: AnomalyEpisode, changeEvents: ChangeEvent[]): Promise<FlowAttribution> {
   const client = getLamaticClient();
-  const raw = await client.executeFlow(flowIdFor("step1"), {
-    anomalies: [JSON.stringify(anomaly)],
-    changeEvents: changeEvents.map((e) => JSON.stringify(e)),
-    periodLabel: "eval",
-    currency: "USD",
-  });
+  let raw: any;
+  try {
+    raw = await client.executeFlow(flowIdFor("step1"), {
+      anomalies: [JSON.stringify(anomaly)],
+      changeEvents: changeEvents.map((e) => JSON.stringify(e)),
+      periodLabel: "eval",
+      currency: "USD",
+    });
+  } catch {
+    return { valid: false };
+  }
+
   const payload = (raw?.result ?? raw) as Report;
-  const match = payload.anomalies?.find((a) => a.groupKey === anomaly.groupKey);
+  if (!payload || !Array.isArray(payload.anomalies)) {
+    return { valid: false };
+  }
+  const match = payload.anomalies.find((a) => a.groupKey === anomaly.groupKey);
   if (!match || !match.attribution || match.attribution.causeEventId === undefined) {
     return { valid: false };
   }
-  return { valid: true, causeEventId: match.attribution.causeEventId };
+
+  const candidateIds = selectCandidateEvents(anomaly, changeEvents).map((c) => c.id);
+  const { causeEventId, flagged } = coerceCauseEventId(match.attribution.causeEventId, candidateIds);
+  if (flagged) {
+    // flow returned an id outside the candidate window — not a valid attribution
+    return { valid: false };
+  }
+  return { valid: true, causeEventId };
 }
 
 async function main(): Promise<void> {
