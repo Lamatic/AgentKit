@@ -14,11 +14,7 @@ export default function Home() {
   const [errorNotice, setErrorNotice] = useState<string | undefined>(undefined);
   const [isFallback, setIsFallback] = useState<boolean>(false);
 
-  // Auto-generate initial preview ADR on first load
-  useEffect(() => {
-    handleFormSubmit(PRESETS[0].instructions, PRESETS[0].constraints);
-  }, []);
-
+  // Removed auto-generation on first load based on user request
   const handleFormSubmit = async (instructions: string, constraints: string) => {
     setIsLoading(true);
     setErrorNotice(undefined);
@@ -63,8 +59,8 @@ export default function Home() {
         </div>
 
         {/* Workspace Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-5 space-y-6">
+        <div className="flex flex-col space-y-12 items-stretch max-w-5xl mx-auto w-full">
+          <div className="space-y-6">
             <ADRForm onSubmit={handleFormSubmit} isLoading={isLoading} />
 
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 space-y-2">
@@ -78,11 +74,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="w-full">
             {data ? (
               <ADRDisplay data={data} isFallback={isFallback} errorNotice={errorNotice} />
             ) : (
-              <div className="h-96 rounded-2xl border border-dashed border-slate-800 flex items-center justify-center text-slate-500 text-sm">
+              <div className="h-64 rounded-2xl border border-dashed border-slate-800 flex items-center justify-center text-slate-500 text-sm">
                 Submit proposal notes to view generated ADR document...
               </div>
             )}
