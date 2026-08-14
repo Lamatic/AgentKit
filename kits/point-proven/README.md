@@ -114,8 +114,12 @@ This contribution is a **kit**: two Lamatic flows plus a **Next.js app** under `
 
 ```bash
 cd kits/point-proven/
+<<<<<<< HEAD
 cp .env.example ./apps/.env.local   # fill flow IDs + Lamatic API credentials
 cd apps
+=======
+cp .env.example .env.local; mv .env.local ./apps/   # fill flow IDs + Lamatic API credentials
+>>>>>>> 0e90e0943541b8906170d07c92fdc3f7eae23f68
 npm install
 npm run dev
 ```
