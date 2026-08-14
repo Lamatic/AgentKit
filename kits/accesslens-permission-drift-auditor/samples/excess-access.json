@@ -1,6 +1,6 @@
 {
   "name": "Excess write access granted to finance analyst",
-  "description": "Detects a permission that exists in the current access state but is not part of the intended policy.",
+  "description": "Detects a permission that exists in the current access state but is explicitly prohibited by the intended policy.",
   "intended_policy": {
     "roles": [
       {
@@ -8,7 +8,8 @@
         "resources": [
           {
             "resource": "Finance Reports",
-            "permissions": ["READ"]
+            "permissions": ["READ"],
+            "prohibited_permissions": ["WRITE"]
           }
         ]
       }
@@ -31,6 +32,6 @@
     "status": "DRIFT DETECTED",
     "category": "EXCESS_ACCESS",
     "risk": "HIGH",
-    "difference": "WRITE permission exists in current access but is not present in the intended policy."
+    "difference": "WRITE permission is explicitly prohibited for Finance Analysts but exists in the current access state."
   }
 }
