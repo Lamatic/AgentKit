@@ -6,12 +6,12 @@ export const meta = {
   "description": "Compare intended permissions against current access and identify permission drift.",
   "tags": ["security", "access-control", "permission-drift", "audit"],
   "testInput": null,
-  "githubUrl": "",
+  "githubUrl": "https://github.com/sagniksenguptaa/AgentKit/tree/main/kits/accesslens-permission-drift-auditor",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Sagnik Sengupta",
+    "email": "sagniksenguptaa@gmail.com"
   }
 };
 
