@@ -63,22 +63,38 @@ export async function generateADR(
 
     const res = await client.executeFlow(currentFlowId, payload);
     const resData = res as any;
-    const answer = resData?.result?.answer?.data || resData?.result?.answer || resData?.data || resData?.result;
+    let answer = resData?.result?.answer?.data || resData?.result?.answer || resData?.data || resData?.result;
 
     if (!answer) {
       throw new Error("No architectural data returned from Lamatic flow.");
     }
 
+    if (typeof answer === "string") {
+      let trimmed = answer.trim();
+      if (trimmed.startsWith("<!") || trimmed.startsWith("<html") || trimmed.startsWith("<")) {
+        throw new Error("Received HTML error page from Lamatic API endpoint. Please verify your LAMATIC_API_URL and check that your Flow is deployed and published in Lamatic Studio.");
+      }
+      if (trimmed.startsWith("```")) {
+        trimmed = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+      }
+      try {
+        answer = JSON.parse(trimmed);
+      } catch (parseErr) {
+        console.error("JSON parse error on answer payload:", parseErr);
+        throw new Error("Invalid JSON returned from Lamatic flow. Showing simulated ADR structure.");
+      }
+    }
+
     return {
       success: true,
-      data: typeof answer === "string" ? JSON.parse(answer) : answer,
+      data: answer,
     };
   } catch (err: any) {
     console.error("ADR Generation error:", err);
     return {
       success: true,
       isFallback: true,
-      error: err.message ? `Live API Notice: ${err.message}. Showing simulated ADR structure.` : undefined,
+      error: err.message ? `Live API Notice: ${err.message}` : undefined,
       data: generateFallbackADR(instructions, constraints),
     };
   }
