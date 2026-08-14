@@ -134,7 +134,7 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
             {/* Title & Context */}
             <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
               <h3 className="text-base font-bold text-white">{data.title}</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">{data.context}</p>
+              <p className="text-xs text-slate-300 leading-relaxed">{typeof data.context === 'object' ? JSON.stringify(data.context) : data.context}</p>
             </div>
 
             {/* Decision Drivers */}
@@ -145,7 +145,7 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
                   {data.decisionDrivers.map((driver, idx) => (
                     <div key={idx} className="p-2.5 bg-slate-950/40 border border-slate-800/80 rounded-lg text-xs text-slate-200 flex items-center gap-2">
                       <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0"></span>
-                      <span>{driver}</span>
+                      <span>{typeof driver === 'object' ? JSON.stringify(driver) : driver}</span>
                     </div>
                   ))}
                 </div>
@@ -160,26 +160,26 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
                   {data.consideredOptions.map((opt, idx) => (
                     <div key={idx} className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
                       <div className="font-semibold text-sm text-cyan-300 border-b border-slate-800 pb-2">
-                        {opt.name}
+                        {typeof opt.name === 'object' ? JSON.stringify(opt.name) : opt.name}
                       </div>
-                      <p className="text-xs text-slate-400">{opt.description}</p>
+                      <p className="text-xs text-slate-400">{typeof opt.description === 'object' ? JSON.stringify(opt.description) : opt.description}</p>
                       
                       <div className="space-y-1.5 pt-1">
                         <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Pros</div>
-                        {opt.pros.map((p, i) => (
+                        {opt.pros && opt.pros.map((p, i) => (
                           <div key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
                             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                            <span>{p}</span>
+                            <span>{typeof p === 'object' ? JSON.stringify(p) : p}</span>
                           </div>
                         ))}
                       </div>
 
                       <div className="space-y-1.5 pt-1">
                         <div className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Cons</div>
-                        {opt.cons.map((c, i) => (
+                        {opt.cons && opt.cons.map((c, i) => (
                           <div key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
                             <XCircle className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
-                            <span>{c}</span>
+                            <span>{typeof c === 'object' ? JSON.stringify(c) : c}</span>
                           </div>
                         ))}
                       </div>
@@ -193,7 +193,7 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
             {data.chosenOption && (
               <div className="p-4 bg-gradient-to-r from-cyan-950/40 to-indigo-950/40 border border-cyan-500/30 rounded-xl space-y-2">
                 <div className="text-xs font-bold uppercase text-cyan-400">Decision Outcome</div>
-                <div className="text-sm font-semibold text-white">{data.chosenOption}</div>
+                <div className="text-sm font-semibold text-white">{typeof data.chosenOption === 'object' ? JSON.stringify(data.chosenOption) : data.chosenOption}</div>
               </div>
             )}
           </div>
