@@ -25,7 +25,7 @@ Not a "symptom → query" generator. It's an investigator: plan → hypothesize 
 
 ```text
 ingest symptom + repo pointer
-  → repo-reader → PipelineContext
+  → PipelineIngestor (ingestion layer, no LLM) → PipelineContext
   → loop (≤ stepBudget, default 6):
        planner (Opus) decides nextAction from {symptom, pipeline, evidence[]}:
          "gen_query"  → query-gen → DiagnosticQuery
@@ -82,7 +82,7 @@ Demo mode is not a canned transcript — the generated SQL genuinely executes ag
 
 The bundled demo scenario is a small daily revenue-aggregation pipeline with a **planted bug**: an inner join silently drops late-arriving `dim_customer` rows, undercounting revenue for the affected day. Running SparkTrace against it with the symptom *"yesterday's revenue total looks about 15% too low"* walks through:
 
-1. **Ingestion** — the repo-reader (Sonnet) reads the sample PySpark/SQL repo and summarizes its tables and DAG (source events, `dim_customer`, the join, the sink aggregate).
+1. **Ingestion** — the `PipelineIngestor` parses the sample PySpark/SQL repo into a `PipelineContext` — files, roles, tables, and a rough DAG (source events, `dim_customer`, the join, the sink aggregate). This is deterministic: no LLM runs here. The repo-reader (Sonnet) only enters later, if the planner asks for a focused deep-dive.
 2. **Planning** — the planner (Opus) opens with `read_repo` or goes straight to `gen_query` against a `late-arriving` hypothesis, prioritized from the pipeline's inner-join shape.
 3. **Investigating** — query-gen (Sonnet/Haiku) writes a read-only query comparing row counts/join keys between `fact_events` and the sink around the affected partition; the guard passes it (read-only, has a `LIMIT`, real join predicate); it executes against the alasql fixtures; the compactor reduces the result to ≤10 rows + stats; the analyst (Haiku) confirms the hypothesis from the compacted evidence (fewer joined rows than source rows for late-arriving keys); the planner reads the evidence digest and decides `conclude`.
 4. **Reporting** — the reporter (Sonnet) names the inner join as the cause, states confidence, lists the evidence queries, and suggests switching to a left join plus a late-arrival watermark — matching the scenario's ground truth in `assets/sample-scenario/scenario.json`.
