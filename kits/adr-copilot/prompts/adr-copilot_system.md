@@ -14,7 +14,7 @@ Output MUST be a single valid JSON string containing:
    - `cons`: Array of drawbacks or risks
 7. `chosenOption`: The selected option name and brief rationale
 8. `consequences`: Object with `positive` (array of benefits) and `negative` (array of trade-offs/costs)
-9. `mermaidDiagram`: A valid Mermaid.js diagram definition string illustrating the decision architecture
+9. `mermaidDiagram`: A complex, highly detailed Mermaid.js architecture diagram (e.g. graph TD or architecture diagram) illustrating the **final chosen system architecture in production**. DO NOT draw a decision tree of the options. Draw the actual infrastructure components (APIs, Databases, Message Queues, Clients, Workers) and their connections based on the chosen option.
 10. `markdownContent`: Full formatted MADR 3.0 Markdown document combining all sections cleanly.
 
 Always follow technical best practices, ensure valid JSON syntax without markdown wrapper blocks (or return clean JSON that can be parsed), and uphold the agent constitution.
