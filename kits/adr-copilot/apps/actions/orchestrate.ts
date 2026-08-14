@@ -91,10 +91,18 @@ export async function generateADR(
     };
   } catch (err: any) {
     console.error("ADR Generation error:", err);
+    let userFriendlyMsg = err?.message || "Failed to communicate with Lamatic API.";
+    if (
+      userFriendlyMsg.includes("Unexpected token") ||
+      userFriendlyMsg.includes("<!doctype") ||
+      userFriendlyMsg.includes("is not valid JSON")
+    ) {
+      userFriendlyMsg = "The Lamatic API endpoint returned an HTML error page (404/500) instead of JSON. Please verify your LAMATIC_API_URL, LAMATIC_PROJECT_ID, and LAMATIC_FLOW_ID in .env.local, and ensure the flow is published in Lamatic Studio.";
+    }
     return {
       success: true,
       isFallback: true,
-      error: err.message ? `Live API Notice: ${err.message}` : undefined,
+      error: `Live API Notice: ${userFriendlyMsg}`,
       data: generateFallbackADR(instructions, constraints),
     };
   }

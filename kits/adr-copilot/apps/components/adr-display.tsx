@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Copy, Download, Check, FileText, Layers, GitFork, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { ADRResult } from "../actions/orchestrate";
+import { MermaidViewer } from "./mermaid-viewer";
 
 interface ADRDisplayProps {
   data: ADRResult;
@@ -37,6 +38,12 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const defaultDiagram = `graph TD
+  Client[Client / Web Browser] --> Gateway[API Gateway / Ingress]
+  Gateway --> Service[Core Service / Worker]
+  Service --> PrimaryDB[(Primary Database)]
+  Service --> Cache[(Cache / Storage)]`;
 
   return (
     <div className="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-md overflow-hidden flex flex-col h-full">
@@ -193,12 +200,7 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
         )}
 
         {activeTab === "diagram" && (
-          <div className="space-y-4">
-            <div className="text-xs text-slate-400">Mermaid.js Component Flow Definition</div>
-            <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-cyan-300 overflow-x-auto">
-              {data.mermaidDiagram || "graph TD\n  Client --> Gateway\n  Gateway --> API\n  API --> Database"}
-            </pre>
-          </div>
+          <MermaidViewer chart={data.mermaidDiagram || defaultDiagram} />
         )}
       </div>
     </div>
