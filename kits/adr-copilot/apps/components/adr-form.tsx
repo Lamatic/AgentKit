@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { z } from "zod";
 import { Sparkles, FileText, Settings2, Loader2, ArrowRight } from "lucide-react";
 import { PresetPicker, PRESETS, Preset } from "./preset-picker";
+
+const adrSchema = z.object({
+  instructions: z.string().trim().min(5, "Please provide at least 5 characters describing the architectural decision."),
+  constraints: z.string().optional(),
+});
 
 interface ADRFormProps {
   onSubmit: (instructions: string, constraints: string) => Promise<void>;
@@ -12,16 +18,23 @@ interface ADRFormProps {
 export function ADRForm({ onSubmit, isLoading }: ADRFormProps) {
   const [instructions, setInstructions] = useState(PRESETS[0].instructions);
   const [constraints, setConstraints] = useState(PRESETS[0].constraints);
+  const [touched, setTouched] = useState(false);
 
   const handlePresetSelect = (preset: Preset) => {
     setInstructions(preset.instructions);
     setConstraints(preset.constraints);
+    setTouched(false);
   };
 
-  const isValid = instructions.trim().length >= 5;
+  const parsed = adrSchema.safeParse({ instructions, constraints });
+  const isValid = parsed.success;
+  const instructionError = !isValid && touched
+    ? parsed.error.issues.find(i => i.path[0] === "instructions")?.message
+    : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched(true);
     if (isValid) {
       onSubmit(instructions, constraints);
     }
@@ -44,11 +57,19 @@ export function ADRForm({ onSubmit, isLoading }: ADRFormProps) {
             id="instructions"
             rows={8}
             value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
+            onChange={(e) => { setInstructions(e.target.value); setTouched(true); }}
+            onBlur={() => setTouched(true)}
             placeholder="Describe the architectural decision, options being evaluated, current infrastructure, and technical context..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all font-mono resize-y"
+            className={`w-full bg-slate-950 border rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 transition-all font-mono resize-y ${
+              instructionError
+                ? "border-rose-500 focus:ring-rose-500/50"
+                : "border-slate-800 focus:ring-cyan-500/50 focus:border-cyan-500"
+            }`}
             required
           />
+          {instructionError && (
+            <p className="mt-1.5 text-xs" style={{ color: "hsl(var(--color-danger-fg))" }}>{instructionError}</p>
+          )}
         </div>
 
         <div>
