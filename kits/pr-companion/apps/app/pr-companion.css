@@ -1,0 +1,126 @@
+:root {
+  --pr-bg-page: #ffffff;
+  --pr-text: #111827;
+  --pr-text-muted: #6b7280;
+  --pr-border: #d1d5db;
+  --pr-border-light: #e5e7eb;
+  --pr-bg-panel: #f9fafb;
+  --pr-error: #dc2626;
+  --pr-btn-bg: #111827;
+  --pr-btn-bg-disabled: #9ca3af;
+  --pr-btn-text: #ffffff;
+  --pr-radius: 8px;
+  --pr-radius-sm: 6px;
+  --pr-font-mono: ui-monospace, monospace;
+  --pr-font-sans: ui-sans-serif, system-ui, sans-serif;
+  --pr-space-sm: 4px;
+  --pr-space-md: 16px;
+  --pr-space-lg: 24px;
+  --pr-space-xl: 32px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--pr-font-sans);
+  background: var(--pr-bg-page);
+  color: var(--pr-text);
+}
+
+.pr-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.pr-title {
+  font-size: 28px;
+  margin-bottom: var(--pr-space-sm);
+  color: var(--pr-text);
+}
+
+.pr-description {
+  font-weight: 400;
+  color: var(--pr-text-muted);
+  margin-bottom: var(--pr-space-xl);
+}
+
+.pr-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--pr-radius);
+  border: 1px solid var(--pr-border);
+  font-family: var(--pr-font-mono);
+  font-size: 13px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.pr-label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.pr-field {
+  margin-bottom: 20px;
+}
+
+.pr-field-last {
+  margin-bottom: var(--pr-space-lg);
+}
+
+.pr-error-text {
+  color: var(--pr-error);
+  font-size: 12px;
+  margin-top: var(--pr-space-sm);
+}
+
+.pr-button {
+  padding: 10px 20px;
+  border-radius: var(--pr-radius);
+  border: none;
+  background: var(--pr-btn-bg);
+  color: var(--pr-btn-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pr-button:disabled {
+  background: var(--pr-btn-bg-disabled);
+  cursor: not-allowed;
+}
+
+.pr-result-error {
+  color: var(--pr-error);
+  margin-top: var(--pr-space-md);
+}
+
+.pr-result-block {
+  margin-top: var(--pr-space-xl);
+}
+
+.pr-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pr-copy-button {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: var(--pr-radius-sm);
+  border: 1px solid var(--pr-border);
+  background: var(--pr-bg-page);
+  cursor: pointer;
+}
+
+.pr-output {
+  white-space: pre-wrap;
+  background: var(--pr-bg-panel);
+  border: 1px solid var(--pr-border-light);
+  border-radius: var(--pr-radius);
+  padding: var(--pr-space-md);
+  font-size: 13px;
+  line-height: 1.5;
+}
