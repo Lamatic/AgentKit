@@ -35,7 +35,9 @@ function nearestInTimeBaseline(anomaly: AnomalyEpisode, changeEvents: ChangeEven
   return best.id;
 }
 
-async function attributeViaFlow(anomaly: AnomalyEpisode, changeEvents: ChangeEvent[]): Promise<string | null> {
+type FlowAttribution = { valid: true; causeEventId: string | null } | { valid: false };
+
+async function attributeViaFlow(anomaly: AnomalyEpisode, changeEvents: ChangeEvent[]): Promise<FlowAttribution> {
   const client = getLamaticClient();
   const raw = await client.executeFlow(flowIdFor("step1"), {
     anomalies: [JSON.stringify(anomaly)],
@@ -45,7 +47,10 @@ async function attributeViaFlow(anomaly: AnomalyEpisode, changeEvents: ChangeEve
   });
   const payload = (raw?.result ?? raw) as Report;
   const match = payload.anomalies?.find((a) => a.groupKey === anomaly.groupKey);
-  return match?.attribution.causeEventId ?? null;
+  if (!match || !match.attribution || match.attribution.causeEventId === undefined) {
+    return { valid: false };
+  }
+  return { valid: true, causeEventId: match.attribution.causeEventId };
 }
 
 async function main(): Promise<void> {
@@ -54,7 +59,9 @@ async function main(): Promise<void> {
 
   let baselineCorrect = 0;
   let flowCorrect = 0;
+  let casesRun = 0;
   const rows: any[] = [];
+  const failures: string[] = [];
 
   for (const name of cases) {
     const rows_ = loadCase(name);
@@ -63,23 +70,27 @@ async function main(): Promise<void> {
     const anomaly = anomalies.find((a) => a.groupKey === expected.groupKey);
     if (!anomaly) {
       rows.push({ case: name, error: "detector did not find the expected anomaly — see npm run eval" });
+      failures.push(`case-${name}: detector missed the expected anomaly`);
       continue;
     }
+    casesRun++;
 
     const baselineGuess = nearestInTimeBaseline(anomaly, changeEvents);
     const baselineOk = baselineGuess === expected.causeEventId;
     if (baselineOk) baselineCorrect++;
 
-    const flowGuess = await attributeViaFlow(anomaly, changeEvents);
-    const flowOk = flowGuess === expected.causeEventId;
+    const flowResult = await attributeViaFlow(anomaly, changeEvents);
+    const flowGuess = flowResult.valid ? flowResult.causeEventId : undefined;
+    const flowOk = flowResult.valid && flowGuess === expected.causeEventId;
     if (flowOk) flowCorrect++;
+    if (!flowResult.valid) failures.push(`case-${name}: flow returned no valid attribution result`);
 
     rows.push({
       case: name,
       expectedCauseEventId: expected.causeEventId,
       baselineGuess,
       baselineCorrect: baselineOk,
-      flowGuess,
+      flowGuess: flowResult.valid ? flowGuess : "<invalid flow output>",
       flowCorrect: flowOk,
     });
   }
@@ -91,18 +102,25 @@ async function main(): Promise<void> {
       remediate: "claude-sonnet-5",
     },
     suite: "S1",
-    casesRun: cases.length,
-    baselineAccuracy: baselineCorrect / cases.length,
-    flowAccuracy: flowCorrect / cases.length,
+    casesRun,
+    baselineAccuracy: casesRun === 0 ? 0 : baselineCorrect / casesRun,
+    flowAccuracy: casesRun === 0 ? 0 : flowCorrect / casesRun,
     beatsBaseline: flowCorrect > baselineCorrect,
+    failures,
     rows,
   };
 
   writeFileSync(join(__dirname, "..", "eval-results.json"), JSON.stringify(result, null, 2) + "\n");
 
-  console.log(`S1: baseline ${baselineCorrect}/${cases.length}, flow ${flowCorrect}/${cases.length}`);
+  console.log(`S1: baseline ${baselineCorrect}/${casesRun}, flow ${flowCorrect}/${casesRun}`);
   console.log(result.beatsBaseline ? "flow beats nearest-in-time baseline" : "flow did NOT beat baseline — report honestly in README");
   console.log("wrote apps/eval-results.json");
+
+  if (failures.length > 0) {
+    console.error(`\n${failures.length} case failure(s):`);
+    for (const f of failures) console.error(`  - ${f}`);
+    process.exit(1);
+  }
 }
 
 main().catch((e) => {

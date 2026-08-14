@@ -14,8 +14,10 @@ const DAY_MS = 24 * HOUR_MS;
 
 type GroupKey = string;
 
+// service|region|chargeDescription|subAccount — keeps two sub-accounts running the
+// same charge type from being aggregated (and attributed) as a single anomaly.
 function groupKeyOf(row: FocusRow): GroupKey {
-  return `${row.ServiceName}|${row.RegionId}|${row.ChargeDescription}`;
+  return `${row.ServiceName}|${row.RegionId}|${row.ChargeDescription}|${row.SubAccountId}`;
 }
 
 function hourBucketStart(iso: string): number {
@@ -231,7 +233,9 @@ function findEpisode(
   let runStart = -1;
   for (let i = 0; i < flags.length; i++) {
     if (flags[i].flagged) {
-      if (runStart === -1) runStart = i;
+      const prevHourStart = i > 0 ? flags[i - 1].h.hourStart : null;
+      const isContiguous = prevHourStart !== null && flags[i].h.hourStart - prevHourStart === HOUR_MS;
+      if (runStart === -1 || !isContiguous) runStart = i;
       const runLen = i - runStart + 1;
       if (runLen >= MIN_EPISODE_HOURS) {
         const run = flags.slice(runStart, i + 1);

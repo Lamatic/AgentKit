@@ -64,6 +64,12 @@ function suiteDetectionSanity(): void {
       match.firstInflectionAt === expected.firstInflectionAt,
       `got ${match.firstInflectionAt}`,
     );
+    check(
+      "sanity",
+      `case-${name} driver == ${expected.driver}`,
+      match.driver === expected.driver,
+      `got ${match.driver}`,
+    );
 
     const changeEvents = loadChangeEvents();
     const candidates = selectCandidateEvents(match, changeEvents);

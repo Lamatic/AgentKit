@@ -34,7 +34,7 @@ export type HourlyPoint = { ts: string; cost: number; qty: number };
 
 export type AnomalyEpisode = {
   id: string;
-  groupKey: string; // service|region|chargeDescription
+  groupKey: string; // service|region|chargeDescription|subAccount
   service: string;
   region: string;
   subAccount: string;
