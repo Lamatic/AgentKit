@@ -1,0 +1,11 @@
+{
+  "groupKey": "Amazon Relational Database Service|us-west-2|USD 0.10 per hour per vCPU running RDS Extended Support for MySQL 5.7 in Year 1, Year 2|46124420288",
+  "method": "drift",
+  "driver": "usage",
+  "firstInflectionAt": "2024-09-21T23:00:00.000Z",
+  "causeEventId": "evt-true-drift",
+  "decoys": [
+    "evt-d1d-temporal",
+    "evt-d3d-wrongsvc"
+  ]
+}

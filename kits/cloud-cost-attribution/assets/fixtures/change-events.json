@@ -1,0 +1,109 @@
+[
+  {
+    "id": "evt-true-dp",
+    "timestamp": "2024-09-25T08:00:00.000Z",
+    "type": "deploy",
+    "title": "migrate image pulls to public registry",
+    "diffSummary": "Switched image pull path in prod-us-east-1 from authenticated ECR pull-through cache to direct public registry pulls; removed local layer cache warmup step.",
+    "filesTouched": [
+      "infra/ecr/pull-through-cache.tf",
+      "deploy/prod/image-source.yaml"
+    ],
+    "author": "j.chen",
+    "refs": [
+      "PR-4821"
+    ]
+  },
+  {
+    "id": "evt-d1-temporal",
+    "timestamp": "2024-09-25T11:15:00.000Z",
+    "type": "scale",
+    "title": "scale checkout-service replicas 4 to 8",
+    "diffSummary": "Increased checkout-service HPA max replicas due to traffic forecast; no change to storage or registry config.",
+    "filesTouched": [
+      "k8s/checkout/hpa.yaml"
+    ],
+    "author": "ops-bot"
+  },
+  {
+    "id": "evt-d2-direction",
+    "timestamp": "2024-09-25T06:00:00.000Z",
+    "type": "config",
+    "title": "add CloudFront cache headers to static asset responses",
+    "diffSummary": "Set Cache-Control: max-age=86400 on /assets/* responses to reduce origin GET volume.",
+    "filesTouched": [
+      "cdn/cloudfront-behaviors.tf"
+    ],
+    "author": "j.chen"
+  },
+  {
+    "id": "evt-d3-wrongsvc",
+    "timestamp": "2024-09-25T09:30:00.000Z",
+    "type": "infra",
+    "title": "migrate DynamoDB nightly backups to public S3 bucket",
+    "diffSummary": "Moved dynamodb-backups export target from a private bucket to a publicly-readable bucket for the analytics team.",
+    "filesTouched": [
+      "infra/backup/dynamodb-export.tf"
+    ],
+    "author": "s.patel"
+  },
+  {
+    "id": "evt-true-drift",
+    "timestamp": "2024-09-21T22:00:00.000Z",
+    "type": "deploy",
+    "title": "ship recommendation widget querying full table scan on orders",
+    "diffSummary": "New 'related purchases' widget issues an unindexed scan-heavy query against the orders read replica on every product page view.",
+    "filesTouched": [
+      "services/reco/widget.go",
+      "services/reco/query.sql"
+    ],
+    "author": "s.patel",
+    "refs": [
+      "PR-4790"
+    ]
+  },
+  {
+    "id": "evt-d1d-temporal",
+    "timestamp": "2024-09-21T23:40:00.000Z",
+    "type": "config",
+    "title": "rotate RDS parameter group log_statement to all",
+    "diffSummary": "Enabled verbose statement logging for a debugging session; reverted after 2 hours.",
+    "filesTouched": [
+      "infra/rds/parameter-group.tf"
+    ],
+    "author": "ops-bot"
+  },
+  {
+    "id": "evt-d3d-wrongsvc",
+    "timestamp": "2024-09-21T20:00:00.000Z",
+    "type": "infra",
+    "title": "migrate read-replica backups to public S3 bucket",
+    "diffSummary": "Backup export target changed for the read replica; unrelated to query load.",
+    "filesTouched": [
+      "infra/backup/rds-export.tf"
+    ],
+    "author": "j.chen"
+  },
+  {
+    "id": "evt-d4-abstain-a",
+    "timestamp": "2024-09-26T07:30:00.000Z",
+    "type": "config",
+    "title": "bump DynamoDB table read capacity autoscaling target",
+    "diffSummary": "Adjusted target utilization for autoscaling on orders-table from 70% to 60%; no measured change in read volume.",
+    "filesTouched": [
+      "infra/dynamodb/autoscaling.tf"
+    ],
+    "author": "ops-bot"
+  },
+  {
+    "id": "evt-d4-abstain-b",
+    "timestamp": "2024-09-26T09:45:00.000Z",
+    "type": "deploy",
+    "title": "roll out client-side pagination for order history",
+    "diffSummary": "Reduced page size client-side; expected to lower read units, opposite of the observed spike.",
+    "filesTouched": [
+      "apps/web/order-history.tsx"
+    ],
+    "author": "s.patel"
+  }
+]
