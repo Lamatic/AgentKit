@@ -16,7 +16,7 @@ function round2(n) {
 }
 
 function rehydrate(placeholderMap, token) {
-  if (token && token in placeholderMap) {
+  if (token && Object.hasOwn(placeholderMap, token)) {
     return placeholderMap[token];
   }
   return token;
@@ -63,7 +63,7 @@ const anomalies = (redacted.redactedAnomalies || []).map((a) => {
   const risk = rawRemediation ? rawRemediation.risk : "medium";
   const prerequisites = rawRemediation ? rawRemediation.prerequisites : [];
 
-  if (!(savingsKey in SAVINGS_MULTIPLIER)) {
+  if (!Object.hasOwn(SAVINGS_MULTIPLIER, savingsKey)) {
     savingsKey = "unknown";
     flags.push("unknown-savings-key");
   }
@@ -127,11 +127,13 @@ const totalDeltaPct = totalBaseline === 0 ? 0 : round2((totalDeltaAbs / totalBas
 const totalEstimatedSavings = round2(sorted.reduce((sum, a) => sum + a.estimatedMonthlySavings, 0));
 
 const attributedCount = sorted.length - unattributedCount;
+const currencyCode = redacted.currency || "USD";
+const direction = totalDeltaAbs >= 0 ? "up" : "down";
 const execSummary =
-  "Spend up $" + totalDeltaAbs.toFixed(2) + " (" + (totalDeltaPct >= 0 ? "+" : "") + totalDeltaPct.toFixed(1) + "%) vs prior period across " +
+  "Spend " + direction + " " + currencyCode + " " + Math.abs(totalDeltaAbs).toFixed(2) + " (" + (totalDeltaPct >= 0 ? "+" : "") + totalDeltaPct.toFixed(1) + "%) vs prior period across " +
   sorted.length + " flagged anomal" + (sorted.length === 1 ? "y" : "ies") + ". " +
   attributedCount + " attributed to a specific change, " + unattributedCount + " unresolved. " +
-  "Estimated recoverable spend: $" + totalEstimatedSavings.toFixed(2) + "/mo.";
+  "Estimated recoverable spend: " + currencyCode + " " + totalEstimatedSavings.toFixed(2) + "/mo.";
 
 output = {
   periodLabel: redacted.periodLabel,

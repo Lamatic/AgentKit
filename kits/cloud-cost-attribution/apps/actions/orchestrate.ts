@@ -55,6 +55,7 @@ export async function analyze(input: {
     }
 
     validateUploadSize(Buffer.byteLength(input.billingCsv, "utf8"));
+    validateUploadSize(Buffer.byteLength(input.changeEventsJson, "utf8"));
 
     const rows = parseBillingCsv(input.billingCsv);
     validateRowCount(rows.length);
@@ -68,6 +69,7 @@ export async function analyze(input: {
     if (!Array.isArray(changeEvents)) {
       throw new Error("Change events file must be a JSON array.");
     }
+    validateRowCount(changeEvents.length);
 
     const anomalies = detectAnomalies(rows);
     if (anomalies.length === 0) {

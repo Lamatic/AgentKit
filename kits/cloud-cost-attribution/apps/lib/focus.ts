@@ -43,12 +43,24 @@ export function normalizeFocusRecord(raw: Record<string, string>): FocusRow {
     throw new FocusValidationError(missing);
   }
 
+  const effectiveCost = Number(rec.EffectiveCost);
+  const billedCost = Number(rec.BilledCost);
+  const pricingQuantity = Number(rec.PricingQuantity);
+  if (!Number.isFinite(effectiveCost) || !Number.isFinite(billedCost) || !Number.isFinite(pricingQuantity)) {
+    throw new FocusValidationError(
+      ["EffectiveCost", "BilledCost", "PricingQuantity"].filter((c) => {
+        const v = Number(rec[c]);
+        return !Number.isFinite(v);
+      }),
+    );
+  }
+
   return {
     ChargePeriodStart: rec.ChargePeriodStart,
     ChargePeriodEnd: rec.ChargePeriodEnd,
     BillingCurrency: rec.BillingCurrency,
-    EffectiveCost: Number(rec.EffectiveCost),
-    BilledCost: Number(rec.BilledCost),
+    EffectiveCost: effectiveCost,
+    BilledCost: billedCost,
     ChargeCategory: rec.ChargeCategory,
     ChargeDescription: rec.ChargeDescription,
     ServiceName: rec.ServiceName,
@@ -58,7 +70,7 @@ export function normalizeFocusRecord(raw: Record<string, string>): FocusRow {
     ResourceId: rec.ResourceId || undefined,
     ResourceType: rec.ResourceType || undefined,
     SkuId: rec.SkuId || undefined,
-    PricingQuantity: Number(rec.PricingQuantity),
+    PricingQuantity: pricingQuantity,
     PricingUnit: rec.PricingUnit,
     Tags: rec.Tags || undefined,
   };

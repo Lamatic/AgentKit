@@ -12,7 +12,8 @@ For each anomaly, return exactly one remediation result, keyed by `anomalyId`:
   just the symptom.
 - `effort`: "low" (config/flag flip), "medium" (a focused code or infra
   change), or "high" (a migration or architectural change).
-- `risk`: risk of the fix itself causing an incident, independent of effort.
+- `risk`: risk of the fix itself causing an incident, independent of effort —
+  "low", "medium", or "high".
 - `prerequisites`: anything that must be true or done first (e.g. "confirm no
   other service depends on the public registry path").
 - `savingsKey`: how much of the anomaly's delta this fix recovers, from this

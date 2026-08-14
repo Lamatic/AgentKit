@@ -75,18 +75,47 @@ function DropField({
 export function UploadPanel({ onAnalyze, loading, error }: UploadPanelProps) {
   const [billingCsv, setBillingCsv] = useState<string | null>(null);
   const [changeEventsJson, setChangeEventsJson] = useState<string | null>(null);
+  const [changeEventsCount, setChangeEventsCount] = useState<number | null>(null);
   const [periodLabel, setPeriodLabel] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const billingInput = useRef<HTMLInputElement>(null);
   const changesInput = useRef<HTMLInputElement>(null);
 
   async function loadExample() {
-    const [csv, events] = await Promise.all([
-      fetch("/samples/case-dataplane.csv").then((r) => r.text()),
-      fetch("/samples/change-events.json").then((r) => r.text()),
-    ]);
-    setBillingCsv(csv);
-    setChangeEventsJson(events);
-    setPeriodLabel("2024-09-01 to 2024-09-28");
+    setUploadError(null);
+    try {
+      const [csvRes, eventsRes] = await Promise.all([
+        fetch("/samples/case-dataplane.csv"),
+        fetch("/samples/change-events.json"),
+      ]);
+      if (!csvRes.ok || !eventsRes.ok) {
+        throw new Error("Failed to load sample data.");
+      }
+      const [csv, events] = await Promise.all([csvRes.text(), eventsRes.text()]);
+      const parsed = JSON.parse(events);
+      if (!Array.isArray(parsed)) throw new Error("Sample change events file is not a JSON array.");
+      setBillingCsv(csv);
+      setChangeEventsJson(events);
+      setChangeEventsCount(parsed.length);
+      setPeriodLabel("2024-09-01 to 2024-09-28");
+    } catch {
+      setUploadError("Could not load sample data. Check your network connection and try again.");
+    }
+  }
+
+  function handleChangeEventsFile(text: string) {
+    try {
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) {
+        setUploadError("Change events file must be a JSON array.");
+        return;
+      }
+      setUploadError(null);
+      setChangeEventsJson(text);
+      setChangeEventsCount(parsed.length);
+    } catch {
+      setUploadError("Change events file is not valid JSON.");
+    }
   }
 
   const canAnalyze = !!billingCsv && !!changeEventsJson && !loading;
@@ -126,10 +155,8 @@ export function UploadPanel({ onAnalyze, loading, error }: UploadPanelProps) {
             icon={<FileJson className="h-4 w-4" strokeWidth={2} />}
             accept=".json"
             inputRef={changesInput}
-            loadedHint={
-              changeEventsJson ? `${(JSON.parse(changeEventsJson) as unknown[]).length} events loaded` : null
-            }
-            onFile={async (file) => setChangeEventsJson(await readFile(file))}
+            loadedHint={changeEventsCount !== null ? `${changeEventsCount} events loaded` : null}
+            onFile={async (file) => handleChangeEventsFile(await readFile(file))}
           />
         </div>
 
@@ -169,10 +196,10 @@ export function UploadPanel({ onAnalyze, loading, error }: UploadPanelProps) {
           </button>
         </div>
 
-        {error && (
+        {(error || uploadError) && (
           <div className="flex items-start gap-2 rounded-sm border border-confidence-low/30 bg-confidence-low-soft px-3 py-2.5 text-sm text-confidence-low">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>{error}</p>
+            <p>{error || uploadError}</p>
           </div>
         )}
       </div>

@@ -121,12 +121,19 @@ The flow's `ChangeEvent` shape is deliberately small — this one-liner is
 enough to get a real repo's deploy history into the expected shape:
 
 ```bash
-git log --since="60 days ago" --pretty=format:'{"id":"%H","timestamp":"%aI","type":"deploy","title":"%s","diffSummary":"%s","filesTouched":[],"author":"%an","refs":[]}' > change-events.ndjson
+git log --since="60 days ago" --pretty=format:'%H%x1f%aI%x1f%s%x1f%an' | \
+  jq -R -s '
+    split("\n") | map(select(length > 0)) | map(split("\u001f")) |
+    map({id: .[0], timestamp: .[1], type: "deploy", title: .[2], diffSummary: .[2], filesTouched: [], author: .[3], refs: []})
+  ' > change-events.json
 ```
 
-(Wrap the lines into a JSON array, and fill `filesTouched` from `git show
+`%s` (the commit subject) can contain quotes, backslashes, or other
+JSON-sensitive characters — piping raw `--pretty=format` output straight into
+a hand-built JSON string breaks on those. Routing each field through `jq -R`
+(raw string input) escapes it properly. Fill `filesTouched` from `git show
 --stat` per commit if you want the extra evidence signal — the attribute
-prompt uses it when present.)
+prompt uses it when present.
 
 ## Layout
 
@@ -170,15 +177,17 @@ never flagged as anomalies.
 ## Fixtures: real substrate, synthetic anomalies
 
 `assets/fixtures/source/focus_sample.csv` is the real [FOCUS-Sample-Data](https://github.com/FinOps-Open-Cost-and-Usage-Spec/FOCUS-Sample-Data)
-project (FinOps Foundation / Linux Foundation), **CC BY 4.0**. `generate.ts`
-is a seeded generator that builds a 28-day hourly baseline using real
-`ServiceName` / `RegionId` / `ChargeDescription` / `SkuId` / `SubAccountId`
-values copied from that source (e.g. `Amazon Simple Storage Service`,
-`$0.004 per 10,000 GET and all other requests`, `us-east-1`), re-scaled from
-the source's near-zero anonymized sample costs to demo-legible hourly
-spend. `npm run fixtures` regenerates the whole set byte-identically from the
-seed. Every injected anomaly is a synthetic fabrication for eval purposes —
-none reflect a real incident. Full provenance: `assets/fixtures/source/README.md`.
+project (FinOps Foundation / Linux Foundation), **CC BY 4.0**, kept here as a
+provenance reference. `generate.ts` does not read that file — it is a fully
+synthetic, seeded generator (hand-written `PROFILES` table + a seeded PRNG)
+that builds a 28-day hourly baseline using `ServiceName` / `RegionId` /
+`ChargeDescription` / `SkuId` / `SubAccountId` values shaped like that
+source's real entries (e.g. `Amazon Simple Storage Service`,
+`$0.004 per 10,000 GET and all other requests`, `us-east-1`), at hand-picked
+hourly cost levels chosen to be demo-legible. `npm run fixtures` regenerates
+the whole set byte-identically from the seed. Every injected anomaly is a
+synthetic fabrication for eval purposes — none reflect a real incident. Full
+provenance: `assets/fixtures/source/README.md`.
 
 ### Decoy taxonomy
 
@@ -239,3 +248,8 @@ off-list `causeEventId` is structurally impossible to return, per S3) but
   merged, Studio-exported reference kit, not exported from Studio itself
   (see the file's header comment). Import it, verify every node, and
   re-export before relying on it as canonical.
+- **Rate limiting is per-instance, not global.** `apps/lib/rate-limit.ts` keeps
+  its counters in memory, scoped to one serverless instance — the effective
+  limit scales with how many warm instances the deployment has. Fine for this
+  kit's demo scope; back it with a shared store (Upstash Redis, Vercel KV) if
+  you need a real global cap in production.

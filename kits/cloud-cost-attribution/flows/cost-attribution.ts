@@ -70,6 +70,7 @@ export const nodes = [
     data: {
       nodeId: "codeNode",
       values: {
+        id: "codeNode_redact",
         code: "@scripts/cost-attribution_redact.ts",
         nodeName: "Redact",
       },
@@ -82,7 +83,7 @@ export const nodes = [
     data: {
       nodeId: "InstructorLLMNode",
       values: {
-        tools: [],
+        id: "InstructorLLMNode_attribute",
         schema: `{
           "type": "object",
           "properties": {
@@ -124,9 +125,7 @@ export const nodes = [
           { id: "cost-attribution-attribute-user", role: "user", content: "@prompts/cost-attribution_attribute_user.md" },
         ],
         memories: "[]",
-        messages: "[]",
         nodeName: "Attribute",
-        attachments: "",
         generativeModelName: "@model-configs/cost-attribution_attribute_generative-model-name.ts",
       },
     },
@@ -138,7 +137,7 @@ export const nodes = [
     data: {
       nodeId: "InstructorLLMNode",
       values: {
-        tools: [],
+        id: "InstructorLLMNode_remediate",
         schema: `{
           "type": "object",
           "properties": {
@@ -183,10 +182,7 @@ export const nodes = [
           { id: "cost-attribution-remediate-system", role: "system", content: "@prompts/cost-attribution_remediate_system.md" },
           { id: "cost-attribution-remediate-user", role: "user", content: "@prompts/cost-attribution_remediate_user.md" },
         ],
-        memories: "[]",
-        messages: "[]",
         nodeName: "Remediate",
-        attachments: "",
         generativeModelName: "@model-configs/cost-attribution_remediate_generative-model-name.ts",
       },
     },
@@ -198,6 +194,7 @@ export const nodes = [
     data: {
       nodeId: "codeNode",
       values: {
+        id: "codeNode_assemble",
         code: "@scripts/cost-attribution_assemble.ts",
         nodeName: "Assemble",
       },
@@ -211,11 +208,7 @@ export const nodes = [
       nodeId: "graphqlResponseNode",
       values: {
         id: "responseNode_triggerNode_1",
-        headers: '{"content-type":"application/json"}',
-        retries: "0",
-        nodeName: "API Response",
-        webhookUrl: "",
-        retry_delay: "0",
+        nodeName: "",
         outputMapping: `{
           "periodLabel": "{{codeNode_assemble.output.periodLabel}}",
           "currency": "{{codeNode_assemble.output.currency}}",
@@ -275,7 +268,7 @@ export const edges = [
     type: "defaultEdge",
   },
   {
-    id: "response-trigger_triggerNode_1",
+    id: "response-responseNode_triggerNode_1",
     source: "triggerNode_1",
     target: "responseNode_triggerNode_1",
     sourceHandle: "to-response",

@@ -4,35 +4,78 @@ import { sanitizeCsvCell } from "./validate-upload";
 
 export class BillingParseError extends Error {}
 
-/** Minimal RFC4180 CSV line splitter — handles quoted fields and escaped quotes. */
-function splitCsvLine(line: string): string[] {
-  const out: string[] = [];
+// Numeric columns must stay parseable by Number(...) — CSV-injection sanitization
+// (which prefixes a leading apostrophe) only applies to string/display fields.
+const NUMERIC_COLUMNS = new Set(["EffectiveCost", "BilledCost", "PricingQuantity"]);
+
+/**
+ * RFC4180-aware CSV tokenizer over the *whole file*, not line-by-line — a quoted
+ * field may legally contain a raw newline (e.g. a multiline Tags or
+ * ChargeDescription value), and splitting on \r\n|\n first would break that
+ * field across two "lines". Returns one array of fields per record.
+ */
+function parseCsvRecords(csvText: string): string[][] {
+  const records: string[][] = [];
   let field = "";
+  let record: string[] = [];
   let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
+
+  const endField = () => {
+    record.push(field);
+    field = "";
+  };
+  const endRecord = () => {
+    endField();
+    records.push(record);
+    record = [];
+  };
+
+  let i = 0;
+  while (i < csvText.length) {
+    const ch = csvText[i];
     if (inQuotes) {
       if (ch === '"') {
-        if (line[i + 1] === '"') {
+        if (csvText[i + 1] === '"') {
           field += '"';
-          i++;
-        } else {
-          inQuotes = false;
+          i += 2;
+          continue;
         }
-      } else {
-        field += ch;
+        inQuotes = false;
+        i++;
+        continue;
       }
-    } else if (ch === '"') {
+      field += ch;
+      i++;
+      continue;
+    }
+
+    if (ch === '"') {
       inQuotes = true;
+      i++;
     } else if (ch === ",") {
-      out.push(field);
-      field = "";
+      endField();
+      i++;
+    } else if (ch === "\r" && csvText[i + 1] === "\n") {
+      endRecord();
+      i += 2;
+    } else if (ch === "\n") {
+      endRecord();
+      i++;
     } else {
       field += ch;
+      i++;
     }
   }
-  out.push(field);
-  return out;
+
+  if (inQuotes) {
+    throw new BillingParseError("unterminated quoted field in CSV");
+  }
+  if (field !== "" || record.length > 0) {
+    endRecord();
+  }
+
+  // drop blank lines (a record with a single empty field, e.g. a trailing newline)
+  return records.filter((r) => !(r.length === 1 && r[0] === ""));
 }
 
 function toUtcIso(ts: string): string {
@@ -45,18 +88,19 @@ function toUtcIso(ts: string): string {
 
 /** Parses a FOCUS CSV (1.0 or 1.4 column names) into normalized, UTC-timestamped FocusRow[]. */
 export function parseBillingCsv(csvText: string): FocusRow[] {
-  const lines = csvText.split(/\r\n|\n/).filter((l) => l.length > 0);
-  if (lines.length === 0) throw new BillingParseError("empty file");
+  const records = parseCsvRecords(csvText);
+  if (records.length === 0) throw new BillingParseError("empty file");
 
-  const headers = splitCsvLine(lines[0]).map((h) => h.trim());
+  const headers = records[0].map((h) => h.trim());
   const rows: FocusRow[] = [];
   let currency: string | null = null;
 
-  for (let i = 1; i < lines.length; i++) {
-    const cells = splitCsvLine(lines[i]).map(sanitizeCsvCell);
+  for (let i = 1; i < records.length; i++) {
+    const cells = records[i];
     const raw: Record<string, string> = {};
     headers.forEach((h, idx) => {
-      raw[h] = (cells[idx] ?? "").trim();
+      const cell = (cells[idx] ?? "").trim();
+      raw[h] = NUMERIC_COLUMNS.has(h) ? cell : sanitizeCsvCell(cell);
     });
 
     const row = normalizeFocusRecord(raw);
