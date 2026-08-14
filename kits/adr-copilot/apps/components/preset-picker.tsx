@@ -14,60 +14,44 @@ export interface Preset {
 
 export const PRESETS: Preset[] = [
   {
-    id: "vector-db",
-    title: "PostgreSQL pgvector vs Dedicated Qdrant",
-    category: "Data & Storage",
+    id: "ai-doc-platform",
+    title: "AI Document Intelligence Platform",
+    category: "Architecture",
     icon: Database,
-    instructions: "We need to select a vector storage architecture for our high-throughput AI search engine indexing 10 million vector embeddings. Should we extend our existing PostgreSQL cluster using pgvector HNSW indexing, or provision a dedicated managed Qdrant vector database cluster?",
-    constraints: "Sub-50ms query latency required, budget under $500/mo, team is proficient in SQL & PostgreSQL administration."
+    instructions: "We need to design a platform processing 500M documents and billions of chunks. Documents enter through APIs, S3, email, and batch imports, then pass through OCR, classification, chunking, PII detection, embeddings, entity extraction, and indexing. Should we build around PostgreSQL, Redis, object storage, and pgvector, or use Kafka, Elasticsearch/Qdrant, workflow orchestration, and isolated processing services?",
+    constraints: "A 5-person infrastructure team must maintain 99.99% availability, RPO of 5 minutes, and RTO of 30 minutes. Processing must support retries, checkpoints, backpressure, idempotency, dead-letter queues, versioning, and zero-downtime deployments. The system must survive downstream failures without stopping ingestion and support 5× growth while staying below $25,000/month initially."
   },
   {
-    id: "event-bus",
-    title: "Apache Kafka vs AWS SQS/SNS Event Pipeline",
-    category: "Messaging",
+    id: "global-payments",
+    title: "Global Payment Processing Platform",
+    category: "Architecture",
     icon: Network,
-    instructions: "Evaluating event streaming for order processing and inventory auditing. Option 1: Managed Apache Kafka (Confluent Cloud) for event log replay. Option 2: AWS SQS/SNS for serverless simplicity.",
-    constraints: "High throughput (5,000 msgs/sec peak), event replay ability needed for auditing, 99.99% availability SLA."
+    instructions: "We need to process 100,000 payment transactions per second across multiple countries, currencies, and payment providers. Transactions require fraud detection, authorization, ledger updates, notifications, and reconciliation. Should we build around PostgreSQL and Kafka, or use a distributed database with event sourcing and regional processing clusters?",
+    constraints: "The system requires 99.999% availability, strict financial consistency, idempotent transactions, automatic provider failover, replayable events, and complete auditability. Regional outages must not cause duplicate charges or lost transactions. RPO must be near-zero and RTO below 15 minutes. The platform must handle 10× traffic spikes during major sales events."
   },
   {
-    id: "auth-strategy",
-    title: "Managed Auth0 vs Self-Hosted Supabase Auth",
-    category: "Security",
-    icon: Lock,
-    instructions: "Selecting user identity & authentication provider for enterprise SaaS client app. Comparing Auth0 Enterprise SSO against Supabase Auth (self-hosted PostgreSQL auth).",
-    constraints: "Must support SAML 2.0 / OIDC enterprise single-sign-on, SOC2 compliance target in Q3, max budget $1,200/mo."
+    id: "realtime-logistics",
+    title: "Real-Time Logistics Platform",
+    category: "Architecture",
+    icon: Zap,
+    instructions: "We need to track 20 million vehicles and delivery devices sending location and telemetry events every few seconds. The platform must calculate ETAs, detect route deviations, trigger alerts, and provide real-time dashboards. Should we use Kafka, PostgreSQL, Redis, and TimescaleDB, or adopt a fully distributed streaming architecture using Kafka, Flink, and specialized time-series storage?",
+    constraints: "The system must process bursts without losing events, tolerate regional failures, support out-of-order events, and maintain accurate vehicle state. Operations are handled by a 4-person team. We require 99.99% availability, replayable event streams, automated scaling, disaster recovery, and less than 60 seconds of telemetry lag."
   },
   {
-    id: "monolith-microservice",
-    title: "Modular Monolith vs Microservices Migration",
+    id: "ai-chat-platform",
+    title: "Global AI Chat Platform",
     category: "Architecture",
     icon: Server,
-    instructions: "Our core API monolith is slowing down PR reviews. Deciding whether to split billing & notifications into independent Next.js/Node microservices or refactor into a strictly-bounded Modular Monolith with Nx workspace boundaries.",
-    constraints: "Team size: 6 engineers. Cannot afford dedicated DevOps engineer. Must deploy to Vercel + Railway."
+    instructions: "We need to support 50 million AI conversations and 100,000 concurrent users across multiple regions. Requests require authentication, conversation history, retrieval, model routing, tool execution, streaming responses, moderation, and usage accounting. Should we use a centralized architecture with PostgreSQL and Redis, or deploy regional inference gateways with distributed databases and event streaming?",
+    constraints: "The system must survive model-provider outages, regional failures, traffic spikes, and slow downstream tools. Streaming responses cannot block other requests. Usage accounting must remain accurate despite retries. We require 99.99% availability, multi-region failover, rate limiting, token budgets, observability, and the ability to deploy new models without downtime."
   },
   {
-    id: "active-active-mesh",
-    title: "Multi-Region Active-Active Mesh vs Active-Passive Failover",
-    category: "Global Infrastructure",
-    icon: Network,
-    instructions: "Designing a high-frequency trading matching engine API. Need to decide between a fully Active-Active Multi-Region Kubernetes Service Mesh using Istio multi-cluster and CockroachDB for distributed consensus, OR an Active-Passive Regional Failover model with AWS Aurora Global Databases and Route53 latency-based routing.",
-    constraints: "RTO < 5 seconds, RPO = 0, p99 latency < 20ms globally, strict compliance with SEC data sovereignty rules, $50,000/mo infrastructure budget."
-  },
-  {
-    id: "event-driven-cqrs",
-    title: "Serverless CQRS vs Stateful Actor Model",
-    category: "System Patterns",
-    icon: Zap,
-    instructions: "Building a massively multiplayer online (MMO) game state synchronizer. Evaluating a Serverless Event-Driven CQRS architecture (AWS API Gateway WebSocket -> Lambda -> EventBridge -> DynamoDB stream -> read models) versus a Stateful Actor Model deployed on AWS EKS using Akka.NET/Orleans.",
-    constraints: "Must handle 500,000 concurrent websocket connections. State mutation conflict resolution must be deterministic. Max payload 1KB, update frequency 10Hz per client."
-  },
-  {
-    id: "realtime-lakehouse",
-    title: "Streaming Lakehouse vs Kappa Architecture",
-    category: "Data Engineering",
+    id: "video-processing",
+    title: "Video Processing Platform",
+    category: "Architecture",
     icon: Database,
-    instructions: "Re-architecting our real-time telemetry analytics platform processing IoT sensor data from 2 million devices. Choosing between a Streaming Lakehouse approach (Apache Flink -> Apache Iceberg -> Trino) vs a pure Kappa Architecture using Kafka Streams directly materializing views in Apache Pinot.",
-    constraints: "Ingestion rate of 2M events/sec. Query latency on dashboards must be < 500ms over 30-day sliding windows. Need ACID guarantees on late-arriving IoT data up to 72 hours delayed."
+    instructions: "We need to process 10 million uploaded videos per day. Each video requires transcoding into multiple resolutions, thumbnail generation, audio extraction, speech-to-text, content moderation, metadata extraction, and CDN publishing. Should we build a queue-based architecture around object storage and Kubernetes workers, or use a managed workflow and serverless processing architecture?",
+    constraints: "Videos range from seconds to several hours, creating unpredictable workloads. Processing must survive worker failures, support resumable jobs, avoid duplicate processing, and prioritize premium customers. The platform must absorb 5× traffic spikes, maintain processing status in real time, support regional failover, and keep infrastructure costs predictable while minimizing operational work for a small engineering team."
   }
 ];
 
