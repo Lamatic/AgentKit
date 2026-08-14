@@ -44,6 +44,30 @@ export const PRESETS: Preset[] = [
     icon: Server,
     instructions: "Our core API monolith is slowing down PR reviews. Deciding whether to split billing & notifications into independent Next.js/Node microservices or refactor into a strictly-bounded Modular Monolith with Nx workspace boundaries.",
     constraints: "Team size: 6 engineers. Cannot afford dedicated DevOps engineer. Must deploy to Vercel + Railway."
+  },
+  {
+    id: "active-active-mesh",
+    title: "Multi-Region Active-Active Mesh vs Active-Passive Failover",
+    category: "Global Infrastructure",
+    icon: Network,
+    instructions: "Designing a high-frequency trading matching engine API. Need to decide between a fully Active-Active Multi-Region Kubernetes Service Mesh using Istio multi-cluster and CockroachDB for distributed consensus, OR an Active-Passive Regional Failover model with AWS Aurora Global Databases and Route53 latency-based routing.",
+    constraints: "RTO < 5 seconds, RPO = 0, p99 latency < 20ms globally, strict compliance with SEC data sovereignty rules, $50,000/mo infrastructure budget."
+  },
+  {
+    id: "event-driven-cqrs",
+    title: "Serverless CQRS vs Stateful Actor Model",
+    category: "System Patterns",
+    icon: Zap,
+    instructions: "Building a massively multiplayer online (MMO) game state synchronizer. Evaluating a Serverless Event-Driven CQRS architecture (AWS API Gateway WebSocket -> Lambda -> EventBridge -> DynamoDB stream -> read models) versus a Stateful Actor Model deployed on AWS EKS using Akka.NET/Orleans.",
+    constraints: "Must handle 500,000 concurrent websocket connections. State mutation conflict resolution must be deterministic. Max payload 1KB, update frequency 10Hz per client."
+  },
+  {
+    id: "realtime-lakehouse",
+    title: "Streaming Lakehouse vs Kappa Architecture",
+    category: "Data Engineering",
+    icon: Database,
+    instructions: "Re-architecting our real-time telemetry analytics platform processing IoT sensor data from 2 million devices. Choosing between a Streaming Lakehouse approach (Apache Flink -> Apache Iceberg -> Trino) vs a pure Kappa Architecture using Kafka Streams directly materializing views in Apache Pinot.",
+    constraints: "Ingestion rate of 2M events/sec. Query latency on dashboards must be < 500ms over 30-day sliding windows. Need ACID guarantees on late-arriving IoT data up to 72 hours delayed."
   }
 ];
 

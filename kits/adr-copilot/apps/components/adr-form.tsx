@@ -40,11 +40,11 @@ export function ADRForm({ onSubmit, isLoading }: ADRFormProps) {
           </label>
           <textarea
             id="instructions"
-            rows={5}
+            rows={8}
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             placeholder="Describe the architectural decision, options being evaluated, current infrastructure, and technical context..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all font-mono"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all font-mono resize-y"
             required
           />
         </div>
@@ -54,13 +54,13 @@ export function ADRForm({ onSubmit, isLoading }: ADRFormProps) {
             <Settings2 className="h-4 w-4 text-purple-400" />
             <span>Operational Constraints & Decision Drivers (Optional)</span>
           </label>
-          <input
+          <textarea
             id="constraints"
-            type="text"
+            rows={3}
             value={constraints}
             onChange={(e) => setConstraints(e.target.value)}
             placeholder="e.g., Sub-50ms latency budget, team size 4, $500/mo cloud ceiling, SOC2 compliance"
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-mono resize-y"
           />
         </div>
 
