@@ -11,13 +11,23 @@ export default function UploadDropzone({
 }) {
   const [drag, setDrag] = useState(false);
   const [sampleBusy, setSampleBusy] = useState(false);
+  // FileReader is async: without this, a second drop/selection can start while the
+  // first read is still in flight, racing two analyses against each other.
+  const [fileBusy, setFileBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const busy = loading || sampleBusy; // in-flight guard: analysis running OR a sample fetch pending
+  const busy = loading || sampleBusy || fileBusy;
 
   function readFile(f: File) {
+    setFileBusy(true);
     const r = new FileReader();
-    r.onload = () => onCsv(String(r.result || ""));
-    r.onerror = () => onCsv(""); // surfaces a parse/validation error rather than failing silently
+    r.onload = () => {
+      setFileBusy(false);
+      onCsv(String(r.result || ""));
+    };
+    r.onerror = () => {
+      setFileBusy(false);
+      onCsv(""); // surfaces a parse/validation error rather than failing silently
+    };
     r.readAsText(f);
   }
 
@@ -72,8 +82,9 @@ export default function UploadDropzone({
         accept=".csv,text/csv"
         hidden
         onChange={(e) => {
-          if (busy) return;
           const f = e.target.files?.[0];
+          e.target.value = ""; // allow re-selecting the same file after a reset
+          if (busy) return;
           if (f) readFile(f);
         }}
       />

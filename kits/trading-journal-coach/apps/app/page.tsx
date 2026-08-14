@@ -14,10 +14,12 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Parse warnings are kept separate from `error`: a partially-valid file still runs,
+  // and the user must keep seeing which rows were dropped once results render.
+  const [warning, setWarning] = useState<string | null>(null);
 
   async function run(trades: Trade[]) {
     setLoading(true);
-    setError(null);
     const res = await analyzeJournal(trades);
     setLoading(false);
     if (!res.ok || !res.analysis) {
@@ -29,10 +31,18 @@ export default function Home() {
 
   async function handleCsv(text: string) {
     setError(null);
-    const { trades, errors } = parseTradesCsv(text);
+    setWarning(null);
+    const { trades, errors, rowCount } = parseTradesCsv(text);
     if (errors.length) {
-      setError(errors.slice(0, 6).join("   •   "));
-      if (!trades.length) return;
+      const detail = errors.slice(0, 6).join("   •   ");
+      // Nothing usable — this is a hard failure, not a warning.
+      if (!trades.length) {
+        setError(detail);
+        return;
+      }
+      setWarning(
+        `Partial import: ${trades.length} of ${rowCount} rows used. Coaching below excludes the rest.   •   ${detail}`,
+      );
     }
     await run(trades);
   }
@@ -40,6 +50,7 @@ export default function Home() {
   function reset() {
     setAnalysis(null);
     setError(null);
+    setWarning(null);
   }
 
   return (
@@ -60,6 +71,7 @@ export default function Home() {
       </p>
 
       {error && <div className="banner error">{error}</div>}
+      {warning && <div className="banner">{warning}</div>}
 
       {!analysis && <UploadDropzone onCsv={handleCsv} loading={loading} />}
 
@@ -76,7 +88,7 @@ export default function Home() {
           {analysis.status === "insufficient_data" ? (
             <div className="panel">
               <h3>Not enough data yet</h3>
-              <p className="sub" style={{ margin: 0 }}>{analysis.message}</p>
+              <p className="sub">{analysis.message}</p>
             </div>
           ) : (
             <>

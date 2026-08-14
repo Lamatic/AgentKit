@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "lamatic": "latest",
+    "lamatic": "0.3.2",
     "next": "14.2.5",
     "papaparse": "^5.4.1",
     "react": "^18",

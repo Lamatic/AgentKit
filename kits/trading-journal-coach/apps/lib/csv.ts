@@ -2,6 +2,7 @@ import Papa from "papaparse";
 import type { Trade } from "./metrics";
 
 const REQUIRED = ["date", "symbol", "side", "qty", "entry", "exit", "pnl"];
+const MAX_REPORTED_ERRORS = 12;
 
 export interface ParseResult {
   trades: Trade[];
@@ -31,6 +32,19 @@ export function parseTradesCsv(text: string): ParseResult {
     transformHeader: (h) => h.trim().toLowerCase(),
   });
 
+  // Papa reports structural problems (mismatched field counts, unclosed quotes) in its own
+  // `errors` array, separately from our field validation. Without this, a malformed row can
+  // silently shift values across columns and still look like a valid trade.
+  const malformedRows = new Set<number>();
+  for (const e of parsed.errors || []) {
+    if (typeof e.row === "number") malformedRows.add(e.row);
+    if (errors.length < MAX_REPORTED_ERRORS) {
+      errors.push(
+        typeof e.row === "number" ? `Row ${e.row + 2}: ${e.message}` : `File: ${e.message}`,
+      );
+    }
+  }
+
   const headers = parsed.meta.fields || [];
   const missing = REQUIRED.filter((r) => !headers.includes(r));
   if (missing.length) {
@@ -41,6 +55,8 @@ export function parseTradesCsv(text: string): ParseResult {
   const trades: Trade[] = [];
   parsed.data.forEach((row, i) => {
     const line = i + 2; // account for header row + 1-based
+    // Already reported above as structurally malformed — don't trust its field alignment.
+    if (malformedRows.has(i)) return;
     const side = normSide(row.side);
     const qty = num(row.qty), entry = num(row.entry), exit = num(row.exit), pnl = num(row.pnl);
     const rowErr: string[] = [];
@@ -52,7 +68,7 @@ export function parseTradesCsv(text: string): ParseResult {
     if (isNaN(exit)) rowErr.push("invalid exit");
     if (isNaN(pnl)) rowErr.push("invalid pnl");
     if (rowErr.length) {
-      if (errors.length < 12) errors.push(`Row ${line}: ${rowErr.join(", ")}`);
+      if (errors.length < MAX_REPORTED_ERRORS) errors.push(`Row ${line}: ${rowErr.join(", ")}`);
       return;
     }
     trades.push({
