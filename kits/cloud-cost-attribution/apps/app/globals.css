@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0e15;
+  --bg-elevated: #0d1220;
+  --panel: #10151f;
+  --panel-2: #151b28;
+  --border: #212a3d;
+  --border-strong: #2c3852;
+  --text: #eef2fa;
+  --muted: #8a94a8;
+  --muted-2: #5f6b82;
+
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --accent-soft: #38bdf81a;
+  --accent-ink: #01080f;
+  --focus: var(--accent);
+
+  --confidence-high: #34d399;
+  --confidence-high-soft: #34d3991a;
+  --confidence-medium: #fbbf24;
+  --confidence-medium-soft: #fbbf241a;
+  --confidence-low: #f87171;
+  --confidence-low-soft: #f871711a;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-edge: var(--border);
+  --color-edge-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
+  --color-confidence-high: var(--confidence-high);
+  --color-confidence-high-soft: var(--confidence-high-soft);
+  --color-confidence-medium: var(--confidence-medium);
+  --color-confidence-medium-soft: var(--confidence-medium-soft);
+  --color-confidence-low: var(--confidence-low);
+  --color-confidence-low-soft: var(--confidence-low-soft);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(1100px 600px at 12% -10%, rgba(56, 189, 248, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(52, 211, 153, 0.06), transparent 55%);
+  background-attachment: fixed;
+}
+
+textarea,
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Scrollbar, kept subtle and dark-native */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 1.1s linear infinite;
+}
