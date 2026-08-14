@@ -77,6 +77,13 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
         </div>
       </div>
 
+      {isFallback && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-5 py-2.5 text-xs flex items-center gap-2" style={{ color: "hsl(var(--color-danger-fg))" }}>
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>This ADR was generated from a fallback parse — some structured fields may be incomplete. Review the MADR Document tab for the full output.</span>
+        </div>
+      )}
+
       {errorNotice && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 px-5 py-2.5 text-xs text-amber-300 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 shrink-0" />
@@ -133,8 +140,8 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
           <div className="space-y-6">
             {/* Title & Context */}
             <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
-              <h3 className="text-base font-bold text-white">{data.title}</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">{typeof data.context === 'object' ? JSON.stringify(data.context) : data.context}</p>
+              <h3 className="text-base font-bold" style={{ color: "hsl(var(--foreground))" }}>{data.title}</h3>
+              <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--color-body))" }}>{typeof data.context === 'object' ? JSON.stringify(data.context) : data.context}</p>
             </div>
 
             {/* Decision Drivers */}
@@ -153,32 +160,32 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
             )}
 
             {/* Considered Options */}
-            {data.consideredOptions && (
+            {Array.isArray(data.consideredOptions) && data.consideredOptions.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Considered Alternatives</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--color-subtle))" }}>Considered Alternatives</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {data.consideredOptions.map((opt, idx) => (
                     <div key={idx} className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
-                      <div className="font-semibold text-sm text-cyan-300 border-b border-slate-800 pb-2">
+                      <div className="font-semibold text-sm border-b border-slate-800 pb-2" style={{ color: "hsl(var(--color-accent-fg))" }}>
                         {typeof opt.name === 'object' ? JSON.stringify(opt.name) : opt.name}
                       </div>
-                      <p className="text-xs text-slate-400">{typeof opt.description === 'object' ? JSON.stringify(opt.description) : opt.description}</p>
-                      
+                      <p className="text-xs" style={{ color: "hsl(var(--color-subtle))" }}>{typeof opt.description === 'object' ? JSON.stringify(opt.description) : opt.description}</p>
+
                       <div className="space-y-1.5 pt-1">
-                        <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Pros</div>
-                        {opt.pros && opt.pros.map((p, i) => (
-                          <div key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--color-success-fg))" }}>Pros</div>
+                        {Array.isArray(opt.pros) && opt.pros.map((p, i) => (
+                          <div key={i} className="text-xs flex items-start gap-1.5" style={{ color: "hsl(var(--color-body))" }}>
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: "hsl(var(--color-success-fg))" }} />
                             <span>{typeof p === 'object' ? JSON.stringify(p) : p}</span>
                           </div>
                         ))}
                       </div>
 
                       <div className="space-y-1.5 pt-1">
-                        <div className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Cons</div>
-                        {opt.cons && opt.cons.map((c, i) => (
-                          <div key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                            <XCircle className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                        <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--color-danger-fg))" }}>Cons</div>
+                        {Array.isArray(opt.cons) && opt.cons.map((c, i) => (
+                          <div key={i} className="text-xs flex items-start gap-1.5" style={{ color: "hsl(var(--color-body))" }}>
+                            <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: "hsl(var(--color-danger-fg))" }} />
                             <span>{typeof c === 'object' ? JSON.stringify(c) : c}</span>
                           </div>
                         ))}
@@ -192,8 +199,38 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
             {/* Chosen Outcome & Consequences */}
             {data.chosenOption && (
               <div className="p-4 bg-gradient-to-r from-cyan-950/40 to-indigo-950/40 border border-cyan-500/30 rounded-xl space-y-2">
-                <div className="text-xs font-bold uppercase text-cyan-400">Decision Outcome</div>
-                <div className="text-sm font-semibold text-white">{typeof data.chosenOption === 'object' ? JSON.stringify(data.chosenOption) : data.chosenOption}</div>
+                <div className="text-xs font-bold uppercase" style={{ color: "hsl(var(--color-accent-fg))" }}>Decision Outcome</div>
+                <div className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>{typeof data.chosenOption === 'object' ? JSON.stringify(data.chosenOption) : data.chosenOption}</div>
+              </div>
+            )}
+            {/* Consequences */}
+            {data.consequences && (
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--color-subtle))" }}>Consequences</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Array.isArray(data.consequences.positive) && data.consequences.positive.length > 0 && (
+                    <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                      <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--color-success-fg))" }}>Positive</div>
+                      {data.consequences.positive.map((item, i) => (
+                        <div key={i} className="text-xs flex items-start gap-1.5" style={{ color: "hsl(var(--color-body))" }}>
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: "hsl(var(--color-success-fg))" }} />
+                          <span>{typeof item === 'object' ? JSON.stringify(item) : item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {Array.isArray(data.consequences.negative) && data.consequences.negative.length > 0 && (
+                    <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                      <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--color-danger-fg))" }}>Negative</div>
+                      {data.consequences.negative.map((item, i) => (
+                        <div key={i} className="text-xs flex items-start gap-1.5" style={{ color: "hsl(var(--color-body))" }}>
+                          <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: "hsl(var(--color-danger-fg))" }} />
+                          <span>{typeof item === 'object' ? JSON.stringify(item) : item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

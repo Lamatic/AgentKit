@@ -18,9 +18,11 @@ export function ADRForm({ onSubmit, isLoading }: ADRFormProps) {
     setConstraints(preset.constraints);
   };
 
+  const isValid = instructions.trim().length >= 5;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (instructions.trim()) {
+    if (isValid) {
       onSubmit(instructions, constraints);
     }
   };
@@ -66,7 +68,7 @@ export function ADRForm({ onSubmit, isLoading }: ADRFormProps) {
 
         <button
           type="submit"
-          disabled={isLoading || !instructions.trim()}
+          disabled={isLoading || !isValid}
           className="w-full py-3 px-5 bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold text-sm rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all duration-200"
         >
           {isLoading ? (

@@ -14,6 +14,16 @@
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
   --border: 217.2 32.6% 17.5%;
+
+  /* Semantic accent colors */
+  --color-success: 160 84% 39%;       /* emerald-400 equivalent */
+  --color-success-fg: 160 84% 60%;    /* emerald-400 text */
+  --color-danger: 350 89% 60%;        /* rose-400 equivalent */
+  --color-danger-fg: 350 89% 65%;     /* rose-400 text */
+  --color-accent: 189 94% 43%;        /* cyan-400 equivalent */
+  --color-accent-fg: 189 94% 60%;     /* cyan-400 text */
+  --color-subtle: 215 16% 65%;        /* slate-400 equivalent */
+  --color-body: 215 20% 80%;          /* slate-300 equivalent */
 }
 
 body {

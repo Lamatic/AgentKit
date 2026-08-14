@@ -1,7 +1,7 @@
 # Agent: ADR Copilot (Architecture Decision Record Agent)
 
 ## Overview
-ADR Copilot is an AI engineering agent built on Lamatic.ai. It converts raw technical design proposals, RFC drafts, slack discussions, or feature specs into standardized Markdown Architecture Decision Records (MADR 3.0). It evaluates architectural alternatives, analyzes pros and cons, extracts decision drivers, models system component interactions with Mermaid diagrams, and surfaces operational risks.
+ADR Copilot is an AI engineering agent built on Lamatic.ai. It converts raw technical design proposals, RFC drafts, Slack discussions, or feature specs into standardized Markdown Architecture Decision Records (MADR 3.0). It evaluates architectural alternatives, analyzes pros and cons, extracts decision drivers, models system component interactions with Mermaid diagrams, and surfaces operational risks.
 
 ## Purpose
 Documenting software architecture decisions is vital for long-term project health, onboarding, and technical alignment. However, developers frequently skip creating ADRs due to time constraints or documentation friction. ADR Copilot eliminates this friction by providing instant, high-quality, standardized MADR decision documents from unstructured design notes.

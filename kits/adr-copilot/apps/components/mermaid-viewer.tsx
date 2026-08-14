@@ -30,7 +30,7 @@ export function MermaidViewer({ chart }: MermaidViewerProps) {
         mermaid.initialize({
           startOnLoad: false,
           theme: "dark",
-          securityLevel: "loose",
+          securityLevel: "strict",
           fontFamily: "ui-sans-serif, system-ui, sans-serif",
         });
 

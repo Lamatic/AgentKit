@@ -104,7 +104,7 @@ export async function generateADR(
       try {
         answer = JSON.parse(trimmed);
       } catch (parseErr) {
-        throw new Error("Invalid JSON returned from Lamatic flow. Showing simulated ADR structure.");
+        throw new Error("The flow returned a response that could not be parsed as JSON. Please check that the LLM node prompt instructs the model to return valid JSON.");
       }
     }
 

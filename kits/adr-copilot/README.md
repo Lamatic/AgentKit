@@ -84,6 +84,27 @@ Open `http://localhost:3000` to launch ADR Copilot! 🚀
 
 ---
 
+## ⚖️ Tradeoffs & Assumptions
+
+### Design Decisions
+| Decision | Chosen Approach | Alternative | Reason |
+|---|---|---|---|
+| Output format | MADR 3.0 (Markdown) | Custom schema / PDF | MADR is an industry standard; Markdown is VCS-friendly |
+| Diagram rendering | Mermaid.js (client-side) | Static image generation | No server round-trip; interactive "code" view toggle is useful |
+| JSON parsing | Script-based post-processing | Structured LLM output mode | More portable across different LLM providers |
+| Flow runtime | Lamatic SDK `executeFlow` | Direct REST calls | SDK abstracts auth and retries cleanly |
+
+### Known Assumptions
+- The LLM must return valid JSON matching the ADR schema. The `parse-json.ts` script applies a best-effort cleanup but cannot recover from completely malformed output.
+- Mermaid diagram quality depends on LLM reasoning. Complex microservice topologies may produce less accurate diagrams.
+- The kit assumes a single deployed `adr-copilot` flow per project instance.
+
+### Known Limitations
+- No streaming — generation is a single synchronous call. Large proposals may hit timeout limits.
+- No persistence — generated ADRs exist only in the browser session until exported.
+
+---
+
 ## 🛡️ License
 
 MIT License. Free to use and contribute!
