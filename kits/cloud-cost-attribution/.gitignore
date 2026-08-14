@@ -1,0 +1,10 @@
+apps/node_modules/
+apps/.next/
+apps/.env
+apps/.env.local
+apps/eval-results.json
+apps/next-env.d.ts
+apps/tsconfig.tsbuildinfo
+apps/lib/_check*.ts
+*.log
+!scripts
