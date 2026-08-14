@@ -40,7 +40,6 @@ export async function generateADR(
       };
     }
 
-    // Check if API key, Project ID, or Flow ID is set
     const apiKey = process.env.LAMATIC_API_KEY;
     const projectId = process.env.LAMATIC_PROJECT_ID;
     const currentFlowId = process.env.LAMATIC_FLOW_ID || flowId;
@@ -59,14 +58,10 @@ export async function generateADR(
       constraints,
     };
 
-    console.log("[ADR Copilot] Executing Lamatic Flow with payload:", payload);
 
     const res = await client.executeFlow(currentFlowId, payload);
     const flowResult = res as any;
 
-    // Response received
-
-    // Check if Lamatic returned an explicit error
     if (flowResult?.status === "error" || flowResult?.statusCode >= 400) {
       const msg = flowResult?.message || "Workflow execution failed";
       throw new Error(`Lamatic flow error: ${msg}. Please check your flow configuration in Lamatic Studio — ensure the LLM node has valid model credentials and the flow is published.`);
@@ -101,7 +96,6 @@ export async function generateADR(
         trimmed = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
       }
       
-      // Fallback: forcefully extract JSON block if it exists
       const firstBrace = trimmed.indexOf("{");
       const lastBrace = trimmed.lastIndexOf("}");
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -110,7 +104,6 @@ export async function generateADR(
       try {
         answer = JSON.parse(trimmed);
       } catch (parseErr) {
-        console.error("JSON parse error on answer payload:", parseErr);
         throw new Error("Invalid JSON returned from Lamatic flow. Showing simulated ADR structure.");
       }
     }
@@ -120,7 +113,6 @@ export async function generateADR(
       data: answer,
     };
   } catch (err: any) {
-    console.error("ADR Generation error:", err);
     let userFriendlyMsg = err?.message || "Failed to communicate with Lamatic API.";
     if (
       userFriendlyMsg.includes("Unexpected token") ||
