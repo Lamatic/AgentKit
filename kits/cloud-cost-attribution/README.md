@@ -118,7 +118,18 @@ All four are server-side only, read exclusively in
 ### Turning a git log into a change-event log
 
 The flow's `ChangeEvent` shape is deliberately small — this one-liner is
-enough to get a real repo's deploy history into the expected shape:
+enough to get a real repo's deploy history into the expected shape.
+
+**This is a commit-based approximation, not a deploy log.** Not every commit
+reaches production, so labeling every commit `type: "deploy"` (as the
+one-liner below does for simplicity) can attribute a cost anomaly to a
+commit that never shipped. Prefer a real deployment record if you have one
+(CI/CD deploy events, release tags) — feed those through the same
+`ChangeEvent` shape instead. If you're using raw `git log` as a stand-in,
+narrow it to something closer to "actually deployed": `--merges` if you
+squash-merge to `main`, `--since=<last-deploy-tag>` off your release tags,
+or filter to a specific branch/path your deploy pipeline actually builds
+from.
 
 ```bash
 git log -z --since="60 days ago" --pretty=format:'%H%x1f%aI%x1f%s%x1f%an' | \
