@@ -6,7 +6,7 @@ import { ADRForm } from "../components/adr-form";
 import { ADRDisplay } from "../components/adr-display";
 import { generateADR, ADRResult } from "../actions/orchestrate";
 import { PRESETS } from "../components/preset-picker";
-import { Cpu, Terminal, ShieldCheck, Zap } from "lucide-react";
+import { Cpu, Terminal, ShieldCheck, Zap, AlertCircle } from "lucide-react";
 
 export default function Home() {
   const [data, setData] = useState<ADRResult | null>(null);
@@ -39,23 +39,23 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div className="min-h-screen bg-semantic-bg flex flex-col font-sans selection:bg-semantic-accent/30 selection:text-semantic-accent-fg">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-3 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-semantic-accent/10 border border-semantic-accent/20 text-semantic-accent-fg text-xs font-semibold">
             <Zap className="h-3.5 w-3.5" />
             <span>Agentic Architecture Decision Intelligence</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Turn Technical Proposals into <br />
-            <span className="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-semantic-gradient-1 via-semantic-gradient-2 to-semantic-gradient-3 bg-clip-text text-transparent">
               MADR 3.0 Standard Records
             </span>
           </h2>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-semantic-subtle leading-relaxed">
             Eliminate documentation friction. Evaluate technical alternatives, calculate latency & cost trade-offs, and generate visual Mermaid diagrams automatically with Lamatic AgentKit.
           </p>
         </div>
@@ -65,13 +65,13 @@ export default function Home() {
           <div className="space-y-6">
             <ADRForm onSubmit={handleFormSubmit} isLoading={isLoading} />
 
-            <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 space-y-2">
-              <div className="font-semibold text-slate-200 flex items-center gap-2">
-                <Terminal className="h-4 w-4 text-cyan-400" />
+            <div className="p-4 rounded-xl bg-semantic-card border border-semantic-border text-xs text-semantic-subtle space-y-2">
+              <div className="font-semibold text-semantic-body flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-semantic-accent-fg" />
                 <span>Lamatic Studio Integration</span>
               </div>
               <p>
-                This kit invokes the <code className="text-cyan-300 font-mono">adr-copilot</code> flow via the Lamatic TypeScript SDK. You can customize prompts in <code className="text-purple-300 font-mono">kits/adr-copilot/prompts/</code>.
+                This kit invokes the <code className="text-semantic-accent-fg font-mono">adr-copilot</code> flow via the Lamatic TypeScript SDK. You can customize prompts in <code className="text-semantic-gradient-3 font-mono">kits/adr-copilot/prompts/</code>.
               </p>
             </div>
           </div>
@@ -80,8 +80,16 @@ export default function Home() {
             {data ? (
               <ADRDisplay data={data} isFallback={isFallback} errorNotice={errorNotice} />
             ) : (
-              <div className="h-64 rounded-2xl border border-dashed border-slate-800 flex items-center justify-center text-slate-500 text-sm">
-                Submit proposal notes to view generated ADR document...
+              <div className="space-y-4">
+                {errorNotice && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 px-5 py-4 rounded-xl text-sm text-amber-300 flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <span>{errorNotice}</span>
+                  </div>
+                )}
+                <div className="h-64 rounded-2xl border border-dashed border-semantic-border flex items-center justify-center text-semantic-subtle text-sm">
+                  Submit proposal notes to view generated ADR document...
+                </div>
               </div>
             )}
           </div>

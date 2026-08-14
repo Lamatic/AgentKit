@@ -19,7 +19,7 @@
 
 ## 📁 Kit Structure
 
-```
+```text
 kits/adr-copilot/
 ├── lamatic.config.ts         # Project metadata & flow mapping
 ├── agent.md                  # Agent capability & identity documentation
@@ -67,6 +67,7 @@ cp .env.example .env.local
 ```
 
 Fill in `.env.local`:
+
 ```env
 LAMATIC_API_KEY=your_lamatic_api_key
 LAMATIC_PROJECT_ID=your_lamatic_project_id
@@ -75,6 +76,7 @@ LAMATIC_FLOW_ID=your_deployed_flow_id
 ```
 
 Install dependencies and run:
+
 ```bash
 npm install
 npm run dev
