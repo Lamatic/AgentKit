@@ -47,43 +47,20 @@ Configure the generative model used by the Audit Permissions LLM node. The model
 
 ### Input Format
 
-AccessLens expects two inputs: `intended_policy`, containing the intended access policy, and `current_access`, containing the currently observed access state. Both inputs should provide enough explicit information to compare permissions, roles, resources, and scopes.
+AccessLens expects two API inputs: `intended_policy` and `current_access`. Both fields are accepted as strings by the API trigger.
+
+When providing structured policy or access data, serialize each JSON object as a JSON string before sending the request.
 
 Example:
 
 ```json
 {
-  "intended_policy": {
-    "roles": [
-      {
-        "role": "Finance Analyst",
-        "resources": [
-          {
-            "resource": "Finance Reports",
-            "permissions": ["READ"],
-            "prohibited_permissions": ["WRITE"]
-          }
-        ]
-      }
-    ]
-  },
-  "current_access": {
-    "roles": [
-      {
-        "role": "Finance Analyst",
-        "resources": [
-          {
-            "resource": "Finance Reports",
-            "permissions": ["READ", "WRITE"]
-          }
-        ]
-      }
-    ]
-  }
+  "intended_policy": "{\"roles\":[{\"role\":\"Finance Analyst\",\"resources\":[{\"resource\":\"Finance Reports\",\"permissions\":[\"READ\"],\"prohibited_permissions\":[\"WRITE\"]}]}]}",
+  "current_access": "{\"roles\":[{\"role\":\"Finance Analyst\",\"resources\":[{\"resource\":\"Finance Reports\",\"permissions\":[\"READ\",\"WRITE\"]}]}]}"
 }
 ```
 
-The auditor only makes findings supported by explicit evidence. Missing information is not automatically treated as missing access.
+
 
 ### Running the Kit
 
