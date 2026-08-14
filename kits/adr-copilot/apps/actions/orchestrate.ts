@@ -59,36 +59,37 @@ export async function generateADR(
       constraints,
     };
 
+    console.log("[ADR Copilot] Executing Lamatic Flow with payload:", payload);
+
     const res = await client.executeFlow(currentFlowId, payload);
-    const resData = res as any;
+    const flowResult = res as any;
 
     // Response received
 
     // Check if Lamatic returned an explicit error
-    if (resData?.status === "error" || resData?.statusCode >= 400) {
-      const msg = resData?.message || "Workflow execution failed";
+    if (flowResult?.status === "error" || flowResult?.statusCode >= 400) {
+      const msg = flowResult?.message || "Workflow execution failed";
       throw new Error(`Lamatic flow error: ${msg}. Please check your flow configuration in Lamatic Studio — ensure the LLM node has valid model credentials and the flow is published.`);
     }
 
     let answer =
-      resData?.result?.answer?.output?.generatedResponse ||
-      resData?.result?.answer?.generatedResponse ||
-      resData?.result?.answer?.data ||
-      resData?.result?.answer ||
-      resData?.result?.output?.generatedResponse ||
-      resData?.result?.output ||
-      resData?.result?.generatedResponse ||
-      resData?.result?.response ||
-      resData?.result?.content ||
-      resData?.data?.answer ||
-      resData?.data ||
-      resData?.result ||
-      resData?.output?.generatedResponse ||
-      resData?.output ||
-      resData?.answer;
+      flowResult?.result?.answer?.output?.generatedResponse ||
+      flowResult?.result?.answer?.generatedResponse ||
+      flowResult?.result?.answer?.data ||
+      flowResult?.result?.answer ||
+      flowResult?.result?.output?.generatedResponse ||
+      flowResult?.result?.output ||
+      flowResult?.result?.generatedResponse ||
+      flowResult?.result?.response ||
+      flowResult?.result?.content ||
+      flowResult?.data?.answer ||
+      flowResult?.data ||
+      flowResult?.result ||
+      flowResult?.output?.generatedResponse ||
+      flowResult?.output;
 
     if (!answer || (typeof answer === "object" && Object.keys(answer).length === 0)) {
-      throw new Error("No architectural data returned from Lamatic flow. Raw response: " + JSON.stringify(resData).substring(0, 300));
+      throw new Error("No architectural data returned from Lamatic flow. Raw response: " + JSON.stringify(flowResult).substring(0, 300));
     }
 
     if (typeof answer === "string") {
