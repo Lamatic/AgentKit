@@ -1,4 +1,6 @@
-// Model config: remediate (InstructorLLMNode) — bounded-choice classification, cheaper model.
+// Model config: remediate (InstructorLLMNode) — bounded-choice classification.
+// gemini-3.5-flash-lite is appropriately cheap for this step; it's also,
+// currently, the only model_name confirmed to actually resolve against this.
 export default {
   generativeModelName: [
     {

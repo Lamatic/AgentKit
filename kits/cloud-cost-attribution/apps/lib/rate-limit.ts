@@ -1,7 +1,7 @@
 // In-memory, per-serverless-instance store — the effective limit scales with
 // the number of warm instances behind the deployment. Fine for this kit's demo
 // scope; a real deployment needing a global limit should back this with a
-// shared store (Upstash Redis, Vercel KV) instead.
+// shared store (Upstash Redis, available through the Vercel Marketplace) instead.
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 5;
 const MAX_TRACKED_CLIENTS = 10_000;

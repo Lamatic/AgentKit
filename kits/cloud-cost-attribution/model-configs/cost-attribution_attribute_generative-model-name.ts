@@ -1,4 +1,7 @@
-// Model config: attribute (InstructorLLMNode) — reasoning-critical, gets the frontier model.
+// Model config: attribute (InstructorLLMNode). Reasoning-critical step — a
+// higher-capability model is preferable here, but this uses the same
+// gemini-3.5-flash-lite as remediate.
+// Swap to a stronger model once one is verified working in your Studio project.
 export default {
   generativeModelName: [
     {

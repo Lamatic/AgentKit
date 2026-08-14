@@ -107,6 +107,8 @@ export function UploadPanel({ onAnalyze, loading, error }: UploadPanelProps) {
     try {
       const parsed = JSON.parse(text);
       if (!Array.isArray(parsed)) {
+        setChangeEventsJson(null);
+        setChangeEventsCount(null);
         setUploadError("Change events file must be a JSON array.");
         return;
       }
@@ -114,6 +116,8 @@ export function UploadPanel({ onAnalyze, loading, error }: UploadPanelProps) {
       setChangeEventsJson(text);
       setChangeEventsCount(parsed.length);
     } catch {
+      setChangeEventsJson(null);
+      setChangeEventsCount(null);
       setUploadError("Change events file is not valid JSON.");
     }
   }
