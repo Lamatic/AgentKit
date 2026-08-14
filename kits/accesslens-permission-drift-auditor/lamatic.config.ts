@@ -24,6 +24,6 @@ export default {
   ],
   links: {
     github:
-      "https://github.com/sagniksenguptaa/AgentKit/tree/main/kits/accesslens-permission-drift-auditor"
+      "https://github.com/Lamatic/AgentKit/tree/main/kits/accesslens-permission-drift-auditor"
   }
 };
