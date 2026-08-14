@@ -145,7 +145,7 @@ export function ADRDisplay({ data, isFallback, errorNotice }: ADRDisplayProps) {
             </div>
 
             {/* Decision Drivers */}
-            {data.decisionDrivers && data.decisionDrivers.length > 0 && (
+            {Array.isArray(data.decisionDrivers) && data.decisionDrivers.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Decision Drivers & Forces</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -23,6 +23,8 @@ export interface ADRResult {
   markdownContent: string;
 }
 
+import config from "../../lamatic.config";
+
 export async function generateADR(
   instructions: string,
   constraints: string = ""
@@ -42,7 +44,10 @@ export async function generateADR(
 
     const apiKey = process.env.LAMATIC_API_KEY;
     const projectId = process.env.LAMATIC_PROJECT_ID;
-    const currentFlowId = process.env.LAMATIC_FLOW_ID || flowId;
+    
+    const adrStep = config.steps.find(s => s.id === "adr-copilot");
+    const envKey = adrStep?.envKey || "LAMATIC_FLOW_ID";
+    const currentFlowId = process.env[envKey] || flowId;
 
     const client = getLamaticClient();
 
@@ -105,6 +110,12 @@ export async function generateADR(
         answer = JSON.parse(trimmed);
       } catch (parseErr) {
         throw new Error("The flow returned a response that could not be parsed as JSON. Please check that the LLM node prompt instructs the model to return valid JSON.");
+      }
+    }
+
+    if (answer && 'decisionDrivers' in answer) {
+      if (!Array.isArray(answer.decisionDrivers)) {
+        answer.decisionDrivers = typeof answer.decisionDrivers === 'string' && answer.decisionDrivers.trim() !== '' ? [answer.decisionDrivers] : [];
       }
     }
 
