@@ -18,6 +18,8 @@ export default function Home() {
   const handleFormSubmit = async (instructions: string, constraints: string) => {
     setIsLoading(true);
     setErrorNotice(undefined);
+    setData(null);
+    setIsFallback(false);
     try {
       const res = await generateADR(instructions, constraints);
       if (res.success && res.data) {
