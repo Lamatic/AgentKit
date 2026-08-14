@@ -1,11 +1,12 @@
 export default {
   name: "AccessLens - Permission Drift Auditor",
-  description: "Audits authorization drift by comparing intended access policies against current permissions and identifying evidence-based differences.",
+  description:
+    "Audits authorization drift by comparing intended access policies against current permissions and identifying evidence-based differences.",
   version: "1.0.0",
   type: "template" as const,
   author: {
     name: "Sagnik Sengupta",
-    email: ""
+    email: "sagniksenguptaa@gmail.com"
   },
   tags: [
     "security",
@@ -22,6 +23,7 @@ export default {
     }
   ],
   links: {
-    github: ""
+    github:
+      "https://github.com/sagniksenguptaa/AgentKit/tree/main/kits/accesslens-permission-drift-auditor"
   }
 };
