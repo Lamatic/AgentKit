@@ -1,6 +1,6 @@
 "use server";
 
-import { lamaticClient, flowId } from "@/lib/lamatic-client";
+import { getLamaticClient, flowId } from "@/lib/lamatic-client";
 
 export interface ADRResult {
   adrNumber?: string;
@@ -40,12 +40,15 @@ export async function generateADR(
       };
     }
 
-    // Check if API key or Flow ID is set
+    // Check if API key, Project ID, or Flow ID is set
     const apiKey = process.env.LAMATIC_API_KEY;
+    const projectId = process.env.LAMATIC_PROJECT_ID;
     const currentFlowId = process.env.LAMATIC_FLOW_ID || flowId;
 
-    if (!apiKey || !currentFlowId) {
-      console.warn("Lamatic API Key or Flow ID missing. Returning interactive simulation ADR payload.");
+    const client = getLamaticClient();
+
+    if (!apiKey || !projectId || !currentFlowId || !client) {
+      console.warn("Lamatic API Key, Project ID, or Flow ID missing. Returning interactive simulation ADR payload.");
       return {
         success: true,
         isFallback: true,
@@ -58,7 +61,7 @@ export async function generateADR(
       constraints,
     };
 
-    const res = await lamaticClient.executeFlow(currentFlowId, payload);
+    const res = await client.executeFlow(currentFlowId, payload);
     const resData = res as any;
     const answer = resData?.result?.answer?.data || resData?.result?.answer || resData?.data || resData?.result;
 
