@@ -12,6 +12,13 @@ test("browser-callable flow action cannot invoke protected context delivery", ()
   assert.doesNotMatch(source, /deliverExecutionContext/);
 });
 
+test("runtime bounds server actions without fake SDK cancellation", () => {
+  const layout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  const execution = readFileSync(new URL("../lib/execute-flow.ts", import.meta.url), "utf8");
+  assert.match(layout, /export const maxDuration = 60/);
+  assert.doesNotMatch(execution, /Promise\.race|AbortController|AbortSignal/);
+});
+
 test("environment examples remain explicitly trackable", () => {
   const rootIgnore = readFileSync(new URL("../../.gitignore", import.meta.url), "utf8");
   const appIgnore = readFileSync(new URL("../.gitignore", import.meta.url), "utf8");
