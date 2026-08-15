@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #d1d5db;
+  --muted-foreground: #4b5563;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --primary-hover: #1d4ed8;
+  --destructive: #dc2626;
+  --destructive-foreground: #b91c1c;
+  --destructive-bg: #fef2f2;
+  --destructive-border: #fecaca;
+  --link: #2563eb;
+  --user-bubble: #2563eb;
+  --user-bubble-foreground: #ffffff;
+  --assistant-bubble: #ffffff;
+  --assistant-bubble-foreground: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #030712;
+    --foreground: #f3f4f6;
+    --card: #111827;
+    --card-foreground: #f3f4f6;
+    --border: #374151;
+    --muted-foreground: #9ca3af;
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
+    --primary-hover: #1d4ed8;
+    --destructive: #f87171;
+    --destructive-foreground: #f87171;
+    --destructive-bg: rgba(127, 29, 29, 0.2);
+    --destructive-border: #991b1b;
+    --link: #60a5fa;
+    --user-bubble: #2563eb;
+    --user-bubble-foreground: #ffffff;
+    --assistant-bubble: #111827;
+    --assistant-bubble-foreground: #f3f4f6;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-bg: var(--destructive-bg);
+  --color-destructive-border: var(--destructive-border);
+  --color-link: var(--link);
+  --color-user-bubble: var(--user-bubble);
+  --color-user-bubble-foreground: var(--user-bubble-foreground);
+  --color-assistant-bubble: var(--assistant-bubble);
+  --color-assistant-bubble-foreground: var(--assistant-bubble-foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
