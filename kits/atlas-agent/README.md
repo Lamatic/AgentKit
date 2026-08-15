@@ -35,7 +35,9 @@ AI interprets documents, drafts proposals, and explains recommendations. Determi
 
 ## Human approval model
 
-The Next.js app deliberately pauses after proposals and after assignment scoring. Buttons in the demo represent operator decisions; they are not model tools. Assignment approval creates a five-minute HMAC-SHA256 token containing the approved task and its filtered requirement/document context. The server verifies that token before invoking the delivery flow, so the browser cannot supply authoritative execution context at delivery time. Production authorization and durable approval persistence remain the calling application's responsibility.
+The Next.js app deliberately pauses after proposals and after assignment scoring. Buttons in the demo represent operator decisions; they are not model tools. Assignment approval stores the filtered task/context in Upstash Redis and returns a five-minute HMAC-SHA256 token containing only the durable approval locator. Before protected delivery, the server verifies the token and atomically consumes the Redis approval with a Lua operation. A token works once; concurrent or subsequent reuse is rejected.
+
+Consumption happens immediately before Lamatic delivery begins. If Lamatic fails after consumption, the approval is not reactivated: retrying requires a new human approval and token.
 
 ## Assignment scoring
 
@@ -77,6 +79,8 @@ ATLAS_GENERATE_TASK_PROPOSALS_FLOW_ID
 ATLAS_RECOMMEND_ASSIGNMENT_FLOW_ID
 ATLAS_DELIVER_EXECUTION_CONTEXT_FLOW_ID
 ATLAS_APPROVAL_SECRET
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
 ```
 
 Both the kit root and `apps/` contain placeholder-only `.env.example` files.
@@ -87,6 +91,7 @@ Both the kit root and `apps/` contain placeholder-only `.env.example` files.
 - Requirements must retain source evidence.
 - Model output cannot approve proposals or assignments.
 - Execution-context delivery requires a server-verified, short-lived approval token signed with `ATLAS_APPROVAL_SECRET` (minimum 32 characters).
+- Approved context is stored durably in Upstash Redis and consumed atomically once before protected execution.
 - Assignment scoring uses explicit project metadata only.
 - No secrets, uploaded files, databases, or runtime artifacts from Synapse.ai are included.
 
@@ -96,6 +101,7 @@ From `kits/atlas-agent/apps`:
 
 ```bash
 npm install
+npm test
 npm run lint
 npm run build
 ```
@@ -105,6 +111,7 @@ Validate every `@reference` path from the kit root and confirm the PR changes on
 ## Known limitations
 
 - Flow definitions must be imported, configured with a model, and deployed in Lamatic Studio before live invocation.
-- The demo app stores UI review state in the browser and uses a short-lived signed token for the execution boundary; production authorization and durable approval state belong in an authenticated datastore.
+- The browser retains UI state, while approval records are stored durably and consumed once through Upstash Redis. Production deployments still need authenticated authorization around the human approval action.
+- The route segment sets a 60-second Next.js `maxDuration` execution boundary. The Lamatic JavaScript SDK currently offers no request-level cancellation, so this runtime limit does not claim to abort the underlying Lamatic network request.
 - Execution-context delivery returns a payload; integrating Gmail, Slack, or a task tracker remains the caller's explicit side effect.
 - This focused kit omits the full CRM, vector store, OAuth, and persistence layers of the reference product.

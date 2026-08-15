@@ -6,13 +6,17 @@ export type ApprovalContext = {
   documents: Record<string, unknown>[];
 };
 
-type ApprovalPayload = ApprovalContext & {
+export type ApprovalLocator = {
+  nonce: string;
   taskId: string;
-  requirementIds: string[];
-  documentIds: string[];
   issuedAt: number;
   expiresAt: number;
-  nonce: string;
+};
+
+export type ApprovalRecord = ApprovalLocator & ApprovalContext & {
+  requirementIds: string[];
+  documentIds: string[];
+  consumedAt: number | null;
 };
 
 const TOKEN_TTL_MS = 5 * 60 * 1000;
@@ -42,27 +46,34 @@ function sign(encodedPayload: string, secret: string): string {
   return createHmac("sha256", secret).update(encodedPayload).digest("base64url");
 }
 
-export function createApprovalToken(context: ApprovalContext, secret: string | undefined, now = Date.now()): string {
-  const signingSecret = requireSecret(secret);
+export function createApprovalRecord(context: ApprovalContext, now = Date.now()): ApprovalRecord {
   const taskId = context.approvedTask.id;
   if (typeof taskId !== "string" || !taskId.trim()) throw new Error("An approved task ID is required");
-
-  const requirementIds = context.requirements.map((item) => item.id).filter((id): id is string => typeof id === "string");
-  const documentIds = context.documents.map((item) => item.id).filter((id): id is string => typeof id === "string");
-  const payload: ApprovalPayload = {
+  return {
     ...context,
+    nonce: randomUUID(),
     taskId,
-    requirementIds,
-    documentIds,
+    requirementIds: context.requirements.map((item) => item.id).filter((id): id is string => typeof id === "string"),
+    documentIds: context.documents.map((item) => item.id).filter((id): id is string => typeof id === "string"),
     issuedAt: now,
     expiresAt: now + TOKEN_TTL_MS,
-    nonce: randomUUID()
+    consumedAt: null
   };
-  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
+}
+
+export function createApprovalToken(record: ApprovalRecord, secret: string | undefined): string {
+  const signingSecret = requireSecret(secret);
+  const locator: ApprovalLocator = {
+    nonce: record.nonce,
+    taskId: record.taskId,
+    issuedAt: record.issuedAt,
+    expiresAt: record.expiresAt
+  };
+  const encodedPayload = Buffer.from(JSON.stringify(locator)).toString("base64url");
   return `${encodedPayload}.${sign(encodedPayload, signingSecret)}`;
 }
 
-export function verifyApprovalToken(token: string | undefined, secret: string | undefined, now = Date.now()): ApprovalPayload {
+export function verifyApprovalToken(token: string | undefined, secret: string | undefined, now = Date.now()): ApprovalLocator {
   const signingSecret = requireSecret(secret);
   if (!token) throw new Error("Approval token is required");
   const [encodedPayload, suppliedSignature, extra] = token.split(".");
@@ -74,15 +85,15 @@ export function verifyApprovalToken(token: string | undefined, secret: string | 
     throw new Error("Invalid approval token");
   }
 
-  let payload: ApprovalPayload;
+  let locator: ApprovalLocator;
   try {
-    payload = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8")) as ApprovalPayload;
+    locator = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8")) as ApprovalLocator;
   } catch {
     throw new Error("Invalid approval token");
   }
-  if (!payload.taskId || payload.approvedTask?.id !== payload.taskId || !Array.isArray(payload.requirements) || !Array.isArray(payload.documents)) {
+  if (!locator.nonce || !locator.taskId || !Number.isFinite(locator.issuedAt) || !Number.isFinite(locator.expiresAt)) {
     throw new Error("Invalid approval token");
   }
-  if (!Number.isFinite(payload.expiresAt) || now >= payload.expiresAt) throw new Error("Approval token has expired");
-  return payload;
+  if (now >= locator.expiresAt) throw new Error("Approval token has expired");
+  return locator;
 }
