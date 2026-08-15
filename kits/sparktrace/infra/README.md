@@ -63,10 +63,17 @@ Then, in live mode, the app points at `raw.orders`, `raw.dim_customer`, and
   (the secret is returned once, straight into `.env.local`) rather than by a
   CFN `AWS::IAM::AccessKey` resource. `bin/down.sh` deletes outstanding keys
   during teardown.
-- The app runs as a **least-privilege read-only** IAM user: Athena query +
-  Glue read + S3 read on data / write only to the results prefix. It cannot
-  write your data or create billable resources — a hard backstop under
-  SparkTrace's own read-only query guard.
+- With `CREATE_APP_USER=true` (the default) the app runs as a
+  **least-privilege read-only** IAM user: Athena query + Glue read + S3 read on
+  data / write only to the results prefix. It cannot write your data or create
+  billable resources — a hard backstop under SparkTrace's own read-only query
+  guard.
+- With `CREATE_APP_USER=false` the app reuses your **deployer** credentials
+  (see Prerequisites above), which hold CloudFormation/IAM/S3 write access. The
+  least-privilege guarantee does **not** apply in that mode: nothing at the AWS
+  level stops resource creation or data writes, and SparkTrace's query guard is
+  then an application-level control only. Prefer the default unless your
+  credentials genuinely cannot create an IAM user.
 
 ## Files
 
