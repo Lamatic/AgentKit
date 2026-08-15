@@ -1,4 +1,4 @@
-# SpecForge
+﻿# SpecForge
 
 Turn a one-line feature idea into a structured, self-reviewed technical spec.
 
@@ -19,7 +19,7 @@ See [`agent.md`](./agent.md) for full architecture and design rationale.
 **Output:**
 ```json
 {
-  "spec": "## Rate Limiting � Technical Spec\n\n**Problem:** Uncontrolled API usage risks service degradation and abuse.\n\n**Goals:** Enforce per-client request quotas; return 429 with Retry-After on breach; support burst allowance.\n\n**Non-Goals:** Per-endpoint granularity (phase 2); billing integration.\n\n**Design:** Token-bucket algorithm keyed on API key, stored in Redis with TTL equal to the window. Middleware layer intercepts before routing.\n\n**API Surface:** No new endpoints. All existing endpoints gain X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers.\n\n**Edge Cases:** Clock skew across instances; Redis unavailability (fail-open with logging); key rotation mid-window.\n\n**Rollout Plan:** Shadow mode for 1 week (log but don't enforce), then enforce at 1000 req/min per key.",
+  "spec": "## Rate Limiting — Technical Spec\n\n**Problem:** Uncontrolled API usage risks service degradation and abuse.\n\n**Goals:** Enforce per-client request quotas; return 429 with Retry-After on breach; support burst allowance.\n\n**Non-Goals:** Per-endpoint granularity (phase 2); billing integration.\n\n**Design:** Token-bucket algorithm keyed on API key, stored in Redis with TTL equal to the window. Middleware layer intercepts before routing.\n\n**API Surface:** No new endpoints. All existing endpoints gain X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers.\n\n**Edge Cases:** Clock skew across instances; Redis unavailability (fail-open with logging); key rotation mid-window.\n\n**Rollout Plan:** Shadow mode for 1 week (log but don't enforce), then enforce at 1000 req/min per key.",
   "quality_score": 0.91
 }
 ```
@@ -28,4 +28,6 @@ See [`agent.md`](./agent.md) for full architecture and design rationale.
 1. Deploy this flow in [Lamatic Studio](https://studio.lamatic.ai).
 2. Connect a text-generation model credential (built and tested with Groq's `llama-3.3-70b-versatile`).
 3. Call the deployed API endpoint with a `feature_description` string.
+
+
 
