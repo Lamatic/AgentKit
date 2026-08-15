@@ -17,8 +17,13 @@ const nextConfig = {
   // can omit it from server deployments and demo mode breaks at runtime.
   // See lib/demo/scenario-paths.ts.
   outputFileTracingRoot: path.join(__dirname, ".."),
+  // Every route that calls loadScenario() needs the assets traced into
+  // its own bundle — tracing is per-route, so a route missing from this
+  // map works locally (the files are simply on disk) and 500s only once
+  // deployed.
   outputFileTracingIncludes: {
     "/api/investigate": ["../assets/sample-scenario/**"],
+    "/api/scenario": ["../assets/sample-scenario/**"],
   },
 }
 
