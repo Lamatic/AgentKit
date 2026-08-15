@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { executeAtlasFlow } from "@/actions/orchestrate";
+import { approveExecutionContext, deliverApprovedExecutionContext } from "@/actions/approval";
+import { canApproveTasks, canScoreAssignment, clearedDownstreamState } from "@/lib/workflow-state";
 
 const demoDocument = `# Customer Support Portal
 
@@ -38,6 +40,7 @@ export default function AtlasAgentPage() {
   const [executionContext, setExecutionContext] = useState<unknown>(null);
   const [tasksApproved, setTasksApproved] = useState(false);
   const [assignmentApproved, setAssignmentApproved] = useState(false);
+  const [approvalToken, setApprovalToken] = useState<string | null>(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -46,7 +49,16 @@ export default function AtlasAgentPage() {
     return Array.isArray(value) ? value : [];
   }, [proposals]);
 
-  const selectedTask = proposalList[0] ?? { id: "TASK-1", title: "Approved Atlas task", requirementIds: [] };
+  const selectedTask = proposalList[0] as Record<string, unknown> | undefined;
+
+  function clearDownstream() {
+    const cleared = clearedDownstreamState();
+    setTasksApproved(cleared.tasksApproved);
+    setRecommendation(cleared.recommendation);
+    setAssignmentApproved(cleared.assignmentApproved);
+    setApprovalToken(cleared.approvalToken);
+    setExecutionContext(cleared.executionContext);
+  }
 
   async function run(label: string, action: () => Promise<void>) {
     setBusy(label); setError("");
@@ -57,28 +69,37 @@ export default function AtlasAgentPage() {
   const extract = () => run("extract", async () => {
     const result = await executeAtlasFlow("extractRequirements", { documentName: "Customer Support Portal PRD", documentText });
     if (!result.success) throw new Error(result.error);
-    setRequirements(result.data); setProposals(null); setRecommendation(null); setExecutionContext(null); setTasksApproved(false); setAssignmentApproved(false);
+    setRequirements(result.data); setProposals(null); clearDownstream();
   });
 
   const generate = () => run("proposals", async () => {
     const result = await executeAtlasFlow("generateTaskProposals", { requirements: unwrap(requirements, "requirements") });
     if (!result.success) throw new Error(result.error);
-    setProposals(result.data); setTasksApproved(false);
+    setProposals(result.data); clearDownstream();
   });
 
   const recommend = () => run("assignment", async () => {
+    if (!selectedTask || !canScoreAssignment(proposalList, tasksApproved)) throw new Error("Approve at least one real task proposal before scoring");
     const result = await executeAtlasFlow("recommendAssignment", { task: selectedTask, members: demoMembers });
     if (!result.success) throw new Error(result.error);
     setRecommendation(result.data); setAssignmentApproved(false);
   });
 
-  const deliver = () => run("context", async () => {
+  const approveAssignment = () => run("approval", async () => {
+    if (!selectedTask || recommendation === null) throw new Error("A task recommendation is required before approval");
     const reqs = unwrap(requirements, "requirements");
-    const result = await executeAtlasFlow("deliverExecutionContext", {
+    const result = await approveExecutionContext({
       approvedTask: selectedTask,
       requirements: Array.isArray(reqs) ? reqs : [],
       documents: [{ id: "DOC-1", name: "Customer Support Portal PRD", url: "https://example.test/customer-support-prd" }]
     });
+    if (!result.success) throw new Error(result.error);
+    setApprovalToken(result.token);
+    setAssignmentApproved(true);
+  });
+
+  const deliver = () => run("context", async () => {
+    const result = await deliverApprovedExecutionContext(approvalToken ?? undefined);
     if (!result.success) throw new Error(result.error);
     setExecutionContext(result.data);
   });
@@ -114,9 +135,9 @@ export default function AtlasAgentPage() {
 
         <div className={requirements !== null ? "status done" : "status"}><span className="dot"/><div><strong>Requirements extracted</strong><div className="hint">Source-grounded interpretation</div></div></div>
         <div className={proposals !== null ? "status done" : "status"}><span className="dot"/><div><strong>Task proposals generated</strong><div className="hint">Still non-operational</div></div></div>
-        <div className={proposals !== null && !tasksApproved ? "status waiting" : tasksApproved ? "status done" : "status"}><span className="dot"/><div><strong>Human task approval</strong><div className="hint">Required before assignment analysis</div>{proposals !== null && !tasksApproved && <button className="secondary" onClick={() => setTasksApproved(true)}>Approve proposed work</button>}</div></div>
-        <div className={recommendation !== null ? "status done" : "status"}><span className="dot"/><div><strong>Assignment recommendation</strong><div className="hint">Deterministic score + model explanation</div>{tasksApproved && recommendation === null && <button className="secondary" disabled={!!busy} onClick={recommend}>{busy === "assignment" ? "Scoring…" : "Score candidates"}</button>}</div></div>
-        <div className={recommendation !== null && !assignmentApproved ? "status waiting" : assignmentApproved ? "status done" : "status"}><span className="dot"/><div><strong>Human assignment approval</strong><div className="hint">Required before execution context</div>{recommendation !== null && !assignmentApproved && <button className="secondary" onClick={() => setAssignmentApproved(true)}>Approve assignment</button>}</div></div>
+        <div className={canApproveTasks(proposalList) && !tasksApproved ? "status waiting" : tasksApproved ? "status done" : "status"}><span className="dot"/><div><strong>Human task approval</strong><div className="hint">Required before assignment analysis</div>{canApproveTasks(proposalList) && !tasksApproved && <button className="secondary" onClick={() => setTasksApproved(true)}>Approve proposed work</button>}</div></div>
+        <div className={recommendation !== null ? "status done" : "status"}><span className="dot"/><div><strong>Assignment recommendation</strong><div className="hint">Deterministic score + model explanation</div>{canScoreAssignment(proposalList, tasksApproved) && recommendation === null && <button className="secondary" disabled={!!busy} onClick={recommend}>{busy === "assignment" ? "Scoring…" : "Score candidates"}</button>}</div></div>
+        <div className={recommendation !== null && !assignmentApproved ? "status waiting" : assignmentApproved ? "status done" : "status"}><span className="dot"/><div><strong>Human assignment approval</strong><div className="hint">Required before execution context</div>{recommendation !== null && !assignmentApproved && <button className="secondary" disabled={!!busy} onClick={approveAssignment}>{busy === "approval" ? "Approving…" : "Approve assignment"}</button>}</div></div>
         <div className={executionContext !== null ? "status done" : "status"}><span className="dot"/><div><strong>Execution context ready</strong><div className="hint">Only linked requirements and documents</div>{assignmentApproved && executionContext === null && <button className="primary" disabled={!!busy} onClick={deliver}>{busy === "context" ? "Assembling…" : "Assemble context"}</button>}</div></div>
 
         {(proposals !== null || recommendation !== null || executionContext !== null) && <pre>{JSON.stringify(executionContext ?? recommendation ?? proposals, null, 2)}</pre>}
