@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +28,8 @@ import { RepoInsightCard } from "../components/RepoInsightCard";
 import { StepPanel } from "../components/StepPanel";
 import { RootCauseReport } from "../components/RootCauseReport";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { ShowcaseNotice } from "../components/ShowcaseNotice";
+import { ArchitectureVision } from "../components/ArchitectureVision";
 import { useInvestigation } from "../components/useInvestigation";
 
 import type { ExecutionMode, RunInvestigationInput } from "../lib/contracts";
@@ -68,6 +71,7 @@ export default function SparkTracePage() {
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { errors, isValid },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -81,15 +85,48 @@ export default function SparkTracePage() {
 
   const { investigation, isRunning, error, start, reset } = useInvestigation();
 
+  // Which scenario demo mode will run. Served by /api/scenario from the
+  // bundled scenario.json so the id has exactly one source of truth; a
+  // failed fetch just leaves the generic label in place.
+  const [scenario, setScenario] = useState<{ id: string; title: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/scenario")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.id) return;
+        setScenario({ id: data.id, title: data.title });
+
+        // Land-and-click: the bundled scenario ships with the symptom a
+        // data engineer would actually report, so demo mode starts from
+        // it rather than from an empty box the visitor has to invent
+        // something for. Only ever fills a field the user hasn't touched,
+        // and it stays fully editable.
+        if (data.symptom && getValues("useDemoScenario") && !getValues("symptom").trim()) {
+          setValue("symptom", data.symptom, { shouldValidate: true });
+        }
+      })
+      .catch(() => {
+        /* label stays generic */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const canSubmit = isValid && !isRunning;
 
   const onSubmit = async (data: FormValues) => {
     const input: RunInvestigationInput = {
       symptom: data.symptom.trim(),
       mode,
-      source: useDemoScenario
-        ? { scenarioId: "demo" }
-        : { repoUrl: data.repoUrl.trim() },
+      // Demo mode bundles exactly one scenario, and the ingestor selects
+      // it when no id is given. Naming it here would mean the client
+      // hardcoding an id that lives in the bundled scenario.json — which
+      // is how this previously sent "demo" (the mode) as a scenario id
+      // and failed ingestion outright.
+      source: useDemoScenario ? {} : { repoUrl: data.repoUrl.trim() },
     };
 
     await start(input);
@@ -109,6 +146,10 @@ export default function SparkTracePage() {
         </div>
         <ThemeToggle />
       </header>
+
+      {/* Only claim the models are stubbed when they actually are — a
+          local run against a real repo uses the deployed flows. */}
+      {mode === "demo" && <ShowcaseNotice />}
 
       <Card>
         <CardHeader>
@@ -141,7 +182,7 @@ export default function SparkTracePage() {
               <div className="flex-1 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label htmlFor="repoUrl" className="text-sm font-medium">
-                    Pipeline repo URL
+                    {useDemoScenario ? "Demo scenario" : "Pipeline repo URL"}
                   </label>
                   <button
                     type="button"
@@ -159,12 +200,25 @@ export default function SparkTracePage() {
                     Use demo scenario
                   </button>
                 </div>
-                <Input
-                  id="repoUrl"
-                  placeholder="https://github.com/org/pipeline-repo"
-                  disabled={isRunning || useDemoScenario}
-                  {...register("repoUrl")}
-                />
+                {/* In demo mode the source is the bundled scenario, not a
+                    URL. Showing it in a separate read-only field (rather
+                    than writing it into repoUrl) keeps the scenario id out
+                    of form state, so toggling back to a real repo leaves
+                    the input empty instead of pre-filled with garbage. */}
+                {useDemoScenario ? (
+                  <div className="flex h-9 items-center rounded-md border border-border bg-muted/40 px-3">
+                    <span className="truncate font-mono text-sm text-foreground">
+                      {scenario?.id ?? "bundled demo scenario"}
+                    </span>
+                  </div>
+                ) : (
+                  <Input
+                    id="repoUrl"
+                    placeholder="https://github.com/org/pipeline-repo"
+                    disabled={isRunning}
+                    {...register("repoUrl")}
+                  />
+                )}
                 {errors.repoUrl && !useDemoScenario && (
                   <p className="text-xs text-destructive">{errors.repoUrl.message}</p>
                 )}
@@ -266,6 +320,10 @@ export default function SparkTracePage() {
           {investigation.report && <RootCauseReport report={investigation.report} />}
         </section>
       )}
+
+      {/* Below the fold on purpose — someone who came to try it should
+          reach the form first, not an essay. */}
+      <ArchitectureVision />
     </div>
   );
 }

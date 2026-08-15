@@ -2,6 +2,7 @@ import { Brain, FlaskConical, FolderSearch, FlagTriangleRight, type LucideIcon }
 import { Badge } from "./ui/badge";
 import { cn } from "./ui/utils";
 import type { PlannerAction, PlannerDecision } from "../lib/contracts";
+import { PLANNER_TIER, tierForAction } from "../lib/model-tiers";
 
 export interface DecisionCardProps {
   decision: PlannerDecision;
@@ -42,10 +43,25 @@ export function DecisionCard({ decision, index, className }: DecisionCardProps) 
             <span className="text-xs font-medium text-violet">
               {index !== undefined ? `Planner · turn ${index}` : "Planner"}
             </span>
+            {/* Which tier owns this turn in live mode. Stubbed in demo
+                mode — the page-level ShowcaseNotice says so once, rather
+                than repeating a caveat on every card. */}
+            <span
+              className="text-[11px] text-muted-foreground"
+              title={`Live mode: the ${PLANNER_TIER.flow} flow (${PLANNER_TIER.model}) makes this decision`}
+            >
+              {PLANNER_TIER.shortModel}
+            </span>
             <Badge variant="violet" className="gap-1 font-mono">
               <Icon className="size-3" />
               {meta.label}
             </Badge>
+            <span
+              className="text-[11px] text-muted-foreground"
+              title={`Handled by the ${tierForAction(decision.action).flow} flow (${tierForAction(decision.action).model}) in live mode`}
+            >
+              → {tierForAction(decision.action).role} · {tierForAction(decision.action).shortModel}
+            </span>
           </div>
           <p className="text-sm italic leading-relaxed text-foreground">&ldquo;{decision.reasoning}&rdquo;</p>
           {decision.action === "gen_query" && decision.hypothesis && (
