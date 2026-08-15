@@ -1,4 +1,4 @@
-﻿# SpecForge
+# SpecForge
 
 Turn a one-line feature idea into a structured, self-reviewed technical spec.
 

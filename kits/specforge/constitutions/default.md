@@ -1,4 +1,4 @@
-﻿# Default Constitution
+# Default Constitution
 
 ## Identity
 
