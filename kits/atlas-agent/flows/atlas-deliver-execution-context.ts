@@ -14,14 +14,18 @@ export const references = {
   constitutions: { default: "@constitutions/default.md" },
   scripts: { assemble: "@scripts/atlas-deliver-execution-context_assemble.ts" }
 };
-export const nodes = [
+export const config_json = {
+  nodes: [
   { id: "triggerNode_1", type: "triggerNode", position: { x: 0, y: 0 }, data: { nodeId: "graphqlNode", trigger: true, values: { id: "triggerNode_1", nodeName: "API Request", responeType: "realtime", advance_schema: "{\n  \"approvedTask\": \"object\",\n  \"requirements\": \"array\",\n  \"documents\": \"array\"\n}" } } },
   { id: "codeNode_1", type: "dynamicNode", position: { x: 0, y: 150 }, data: { nodeId: "codeNode", values: { id: "codeNode_1", nodeName: "Assemble Linked Execution Context", code: "@scripts/atlas-deliver-execution-context_assemble.ts" } } },
   { id: "responseNode_1", type: "responseNode", position: { x: 0, y: 300 }, data: { nodeId: "graphqlResponseNode", isResponseNode: true, values: { id: "responseNode_1", nodeName: "API Response", headers: "{\"content-type\":\"application/json\"}", retries: "0", retry_delay: "0", needs: ["codeNode_1"], outputMapping: "{\n  \"executionContext\": \"{{codeNode_1.output}}\"\n}" } } }
-];
-export const edges = [
+  ],
+  edges: [
   { id: "trigger-assemble", source: "triggerNode_1", target: "codeNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "assemble-response", source: "codeNode_1", target: "responseNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "response-edge", source: "triggerNode_1", target: "responseNode_1", sourceHandle: "to-response", targetHandle: "from-trigger", type: "responseEdge" }
-];
-export default { meta, inputs, references, nodes, edges };
+  ]
+};
+export const nodes = config_json.nodes;
+export const edges = config_json.edges;
+export default { meta, inputs, references, nodes, edges, config_json };
