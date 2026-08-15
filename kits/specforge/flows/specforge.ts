@@ -135,7 +135,7 @@ export const nodes = [
       "values": {
         "id": "InstructorLLMNode_526",
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"score\": { \"type\": \"number\" },\n    \"issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"score\": { \"type\": \"number\", \"minimum\": 0, \"maximum\": 1 },\n    \"issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"score\", \"issues\"]\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -201,7 +201,7 @@ export const nodes = [
       "values": {
         "id": "InstructorLLMNode_900",
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"score\": { \"type\": \"number\" },\n    \"issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"score\": { \"type\": \"number\", \"minimum\": 0, \"maximum\": 1 },\n    \"issues\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n  },\n  \"required\": [\"score\", \"issues\"]\n}",
         "prompts": [
           {
             "id": "287c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -319,5 +319,6 @@ export const edges = [
 ];
 
 export default { meta, inputs, references, nodes, edges };
+
 
 
