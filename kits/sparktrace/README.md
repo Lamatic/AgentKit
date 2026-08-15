@@ -122,8 +122,8 @@ All variables live in [`apps/.env.example`](apps/.env.example). **None are requi
 | `SPARKTRACE_QUERY_GEN_FLOW_ID` | Flow ID for `sparktrace-query-gen` (Sonnet 5 / Haiku 4.5) | live |
 | `SPARKTRACE_ANALYST_FLOW_ID` | Flow ID for `sparktrace-analyst` (Haiku 4.5) | live |
 | `SPARKTRACE_REPORTER_FLOW_ID` | Flow ID for `sparktrace-reporter` (Sonnet 5) | live |
-| `AWS_ACCESS_KEY_ID` | AWS credential for Athena/Glue/S3 clients | live |
-| `AWS_SECRET_ACCESS_KEY` | AWS credential for Athena/Glue/S3 clients | live |
+| `AWS_ACCESS_KEY_ID` | Static AWS credential for Athena/Glue/S3 clients. Optional — the clients use the default AWS provider chain, so an assumed role (task/instance profile, SSO, shared config) supplies credentials without this | live (optional) |
+| `AWS_SECRET_ACCESS_KEY` | Paired with `AWS_ACCESS_KEY_ID`; same optionality | live (optional) |
 | `AWS_SESSION_TOKEN` | Optional, for temporary/STS credentials | live (optional) |
 | `AWS_REGION` | AWS region for Athena/Glue/S3 | live |
 | `ATHENA_WORKGROUP` | Athena workgroup queries run in — **use a read-only-scoped workgroup with a scan-bytes cutoff** | live |

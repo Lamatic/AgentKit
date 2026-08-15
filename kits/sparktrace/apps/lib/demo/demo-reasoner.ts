@@ -370,6 +370,28 @@ class DemoReasoner implements LamaticReasoner {
       };
     }
 
+    const confidence = Math.min(0.95, Math.max(0.75, confirmedStep.hypothesis.confidence + 0.1));
+
+    // The diagnosis has to follow whichever hypothesis the queries
+    // actually confirmed. `plan()` can refute late-arriving and then
+    // confirm volume-anomaly, and narrating a dropping inner join in
+    // that path would contradict the very evidence listed beneath it.
+    if (confirmedStep.hypothesis.category === "volume-anomaly") {
+      return {
+        rootCause:
+          "Upstream order volume genuinely fell on the affected days. Raw per-day order counts — measured without joining `dim_customer`, so they are immune to join artifacts — drop materially against the earlier run rate. " +
+          "The `daily_revenue` mart is reporting that decline accurately rather than losing rows: this is a business/source-data change, not a pipeline defect.",
+        confidence,
+        evidence,
+        suggestedFix:
+          "Treat this as a data/business investigation rather than a pipeline fix: confirm with the upstream order source whether intake genuinely dropped (outage, checkout regression, seasonality, or a partner/region going quiet), and check the ingestion job for partial or delayed loads on those dates. Only revisit the transform if raw intake turns out to be intact.",
+        caveats: [
+          "Diagnosis is based on a small deterministic fixture dataset in demo mode.",
+          "Confirms that raw volume fell; it does not establish why upstream volume changed.",
+        ],
+      };
+    }
+
     const repoInsight = investigation.repoInsights.find((r) => /join/i.test(r.focus) || /daily_revenue/i.test(r.focus));
 
     const rootCause =
@@ -380,7 +402,7 @@ class DemoReasoner implements LamaticReasoner {
 
     return {
       rootCause,
-      confidence: Math.min(0.95, Math.max(0.75, confirmedStep.hypothesis.confidence + 0.1)),
+      confidence,
       evidence,
       suggestedFix:
         "Change the orders→dim_customer join to a LEFT JOIN so unmatched orders are retained (attribute region as 'unknown' pending dimension load), and/or reprocess prior partitions once the dimension catches up instead of overwriting the mart. Longer term, close the dimension-load lag or add a late-arriving-dimension backfill.",
