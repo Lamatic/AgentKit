@@ -1,0 +1,1 @@
+Write a technical spec for the following feature: {{triggerNode_1.output.feature_description}}
