@@ -24,7 +24,8 @@ export const references = {
   modelConfigs: { extract: "@model-configs/atlas-extract-requirements_extract.ts" }
 };
 
-export const nodes = [
+export const config_json = {
+  nodes: [
   { id: "triggerNode_1", type: "triggerNode", position: { x: 0, y: 0 }, data: { nodeId: "graphqlNode", trigger: true, values: { id: "triggerNode_1", nodeName: "API Request", responeType: "realtime", advance_schema: "{\n  \"documentName\": \"string\",\n  \"documentText\": \"string\"\n}" } } },
   { id: "InstructorLLMNode_1", type: "dynamicNode", position: { x: 0, y: 150 }, data: { nodeId: "InstructorLLMNode", values: {
     id: "InstructorLLMNode_1", nodeName: "Extract Requirements", tools: [],
@@ -33,11 +34,13 @@ export const nodes = [
     memories: "@model-configs/atlas-extract-requirements_extract.ts", messages: "@model-configs/atlas-extract-requirements_extract.ts", attachments: "@model-configs/atlas-extract-requirements_extract.ts", generativeModelName: "@model-configs/atlas-extract-requirements_extract.ts"
   } } },
   { id: "responseNode_1", type: "responseNode", position: { x: 0, y: 300 }, data: { nodeId: "graphqlResponseNode", isResponseNode: true, values: { id: "responseNode_1", nodeName: "API Response", headers: "{\"content-type\":\"application/json\"}", retries: "0", retry_delay: "0", needs: ["InstructorLLMNode_1"], outputMapping: "{\n  \"requirements\": \"{{InstructorLLMNode_1.output.requirements}}\"\n}" } } }
-];
-
-export const edges = [
+  ],
+  edges: [
   { id: "trigger-extract", source: "triggerNode_1", target: "InstructorLLMNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "extract-response", source: "InstructorLLMNode_1", target: "responseNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "response-edge", source: "triggerNode_1", target: "responseNode_1", sourceHandle: "to-response", targetHandle: "from-trigger", type: "responseEdge" }
-];
-export default { meta, inputs, references, nodes, edges };
+  ]
+};
+export const nodes = config_json.nodes;
+export const edges = config_json.edges;
+export default { meta, inputs, references, nodes, edges, config_json };

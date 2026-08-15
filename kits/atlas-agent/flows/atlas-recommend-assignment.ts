@@ -20,7 +20,8 @@ export const references = {
   modelConfigs: { explain: "@model-configs/atlas-recommend-assignment_explain.ts" },
   scripts: { score: "@scripts/atlas-recommend-assignment_score.ts" }
 };
-export const nodes = [
+export const config_json = {
+  nodes: [
   { id: "triggerNode_1", type: "triggerNode", position: { x: 0, y: 0 }, data: { nodeId: "graphqlNode", trigger: true, values: { id: "triggerNode_1", nodeName: "API Request", responeType: "realtime", advance_schema: "{\n  \"task\": \"object\",\n  \"members\": \"array\"\n}" } } },
   { id: "codeNode_1", type: "dynamicNode", position: { x: 0, y: 140 }, data: { nodeId: "codeNode", values: { id: "codeNode_1", nodeName: "Deterministic Candidate Scoring", code: "@scripts/atlas-recommend-assignment_score.ts" } } },
   { id: "LLMNode_1", type: "dynamicNode", position: { x: 0, y: 280 }, data: { nodeId: "LLMNode", values: {
@@ -29,11 +30,14 @@ export const nodes = [
     memories: "@model-configs/atlas-recommend-assignment_explain.ts", messages: "@model-configs/atlas-recommend-assignment_explain.ts", attachments: "@model-configs/atlas-recommend-assignment_explain.ts", generativeModelName: "@model-configs/atlas-recommend-assignment_explain.ts"
   } } },
   { id: "responseNode_1", type: "responseNode", position: { x: 0, y: 420 }, data: { nodeId: "graphqlResponseNode", isResponseNode: true, values: { id: "responseNode_1", nodeName: "API Response", headers: "{\"content-type\":\"application/json\"}", retries: "0", retry_delay: "0", needs: ["LLMNode_1"], outputMapping: "{\n  \"scorecard\": \"{{codeNode_1.output}}\",\n  \"explanation\": \"{{LLMNode_1.output.generatedResponse}}\",\n  \"requiresApproval\": true\n}" } } }
-];
-export const edges = [
+  ],
+  edges: [
   { id: "trigger-score", source: "triggerNode_1", target: "codeNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "score-explain", source: "codeNode_1", target: "LLMNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "explain-response", source: "LLMNode_1", target: "responseNode_1", sourceHandle: "bottom", targetHandle: "top", type: "defaultEdge" },
   { id: "response-edge", source: "triggerNode_1", target: "responseNode_1", sourceHandle: "to-response", targetHandle: "from-trigger", type: "responseEdge" }
-];
-export default { meta, inputs, references, nodes, edges };
+  ]
+};
+export const nodes = config_json.nodes;
+export const edges = config_json.edges;
+export default { meta, inputs, references, nodes, edges, config_json };
