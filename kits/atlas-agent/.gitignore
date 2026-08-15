@@ -1,7 +1,7 @@
-.env
-.env.local
-apps/.env
-apps/.env.local
+.env*
+!.env.example
+apps/.env*
+!apps/.env.example
 apps/node_modules/
 apps/.next/
 apps/out/
