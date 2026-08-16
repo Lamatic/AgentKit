@@ -1,20 +1,127 @@
+// -- Meta --
 export const meta = {
-  "name": "Analyze Schema Drift",
-  "description": "Analyzes breaking API schema changes and outputs grounded migration impact.",
-  "tags": ["drift", "schema", "openapi"]
+  name: "Analyze Schema Drift",
+  description:
+    "Analyzes breaking API schema changes and outputs grounded migration impact.",
+  tags: ["drift", "schema", "openapi"],
+  version: "1.0.0",
+  type: "template" as const,
 };
 
-export const inputs = {};
+// -- Inputs --
+export const inputs = {
+  llmNode: [
+    {
+      name: "generativeModelName",
+      label: "Generative Model Name",
+      type: "model",
+    },
+  ],
+};
+
+// -- References --
 export const references = {
-  "constitutions": {
-    "default": "@constitutions/default.md"
+  constitutions: {
+    default: "@constitutions/default.md",
   },
-  "prompts": {
-    "system": "@prompts/analyze-schema-drift_llm-node_system.md"
-  }
+  prompts: {
+    analyze_schema_drift_llm_node_system:
+      "@prompts/analyze-schema-drift_llm-node_system.md",
+  },
+  modelConfigs: {
+    analyze_schema_drift_llm_node_generative_model_name:
+      "@model-configs/analyze-schema-drift_llm-node_generative-model-name.ts",
+  },
 };
 
-export const nodes = [];
-export const edges = [];
+// -- Nodes & Edges --
+export const nodes = [
+  {
+    id: "triggerNode_1",
+    type: "triggerNode",
+    position: { x: 0, y: 0 },
+    data: {
+      nodeId: "graphqlNode",
+      trigger: true,
+      values: {
+        id: "triggerNode_1",
+        nodeName: "API Request",
+        responeType: "realtime",
+        advance_schema: "{\n  \"schema_facts\": \"string\"\n}",
+      },
+    },
+  },
+  {
+    id: "LLMNode_1",
+    type: "dynamicNode",
+    position: { x: 0, y: 0 },
+    data: {
+      nodeId: "LLMNode",
+      values: {
+        id: "LLMNode_1",
+        tools: [],
+        prompts: [
+          {
+            id: "analyze-schema-drift-system",
+            role: "system",
+            content: "@prompts/analyze-schema-drift_llm-node_system.md",
+          },
+        ],
+        memories: "[]",
+        messages: "[]",
+        nodeName: "Generate Text",
+        attachments: "",
+        credentials: "",
+        generativeModelName:
+          "@model-configs/analyze-schema-drift_llm-node_generative-model-name.ts",
+      },
+    },
+  },
+  {
+    id: "responseNode_1",
+    type: "responseNode",
+    position: { x: 0, y: 0 },
+    data: {
+      nodeId: "graphqlResponseNode",
+      values: {
+        id: "responseNode_1",
+        headers: "{\"content-type\":\"application/json\"}",
+        retries: "0",
+        nodeName: "API Response",
+        webhookUrl: "",
+        retry_delay: "0",
+        outputMapping:
+          "{\n  \"result\": \"{{LLMNode_1.output.generatedResponse}}\"\n}",
+      },
+    },
+  },
+];
+
+export const edges = [
+  {
+    id: "triggerNode_1-LLMNode_1",
+    source: "triggerNode_1",
+    target: "LLMNode_1",
+    sourceHandle: "bottom",
+    targetHandle: "top",
+    type: "defaultEdge",
+  },
+  {
+    id: "LLMNode_1-responseNode_1",
+    source: "LLMNode_1",
+    target: "responseNode_1",
+    sourceHandle: "bottom",
+    targetHandle: "top",
+    type: "defaultEdge",
+  },
+  {
+    id: "response-triggerNode_1",
+    source: "triggerNode_1",
+    target: "responseNode_1",
+    sourceHandle: "to-response",
+    targetHandle: "from-trigger",
+    type: "responseEdge",
+  },
+];
 
 export default { meta, inputs, references, nodes, edges };
