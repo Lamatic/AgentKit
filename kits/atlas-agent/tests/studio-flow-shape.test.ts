@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const flowModules = {
@@ -9,24 +10,27 @@ const flowModules = {
 };
 
 for (const [name, load] of Object.entries(flowModules)) {
-  test(`${name} exposes a connected Studio config_json graph`, async () => {
+  test(`${name} exposes a canonical connected Studio graph`, async () => {
     const flow = await load();
-    const config = flow.config_json;
-    assert.ok(config && typeof config === "object", "config_json must exist");
-    assert.ok(Array.isArray(config.nodes) && config.nodes.length > 0, "config_json.nodes must be non-empty");
-    assert.ok(Array.isArray(config.edges), "config_json.edges must be an array");
+    assert.ok(Array.isArray(flow.nodes) && flow.nodes.length > 0, "nodes must be non-empty");
+    assert.ok(Array.isArray(flow.edges), "edges must be an array");
 
-    const nodeIds = config.nodes.map((node) => node.id);
+    const nodeIds = flow.nodes.map((node) => node.id);
     assert.equal(new Set(nodeIds).size, nodeIds.length, "node IDs must be unique");
-    for (const edge of config.edges) {
+    for (const edge of flow.edges) {
       assert.ok(nodeIds.includes(edge.source), `edge ${edge.id} has an unknown source`);
       assert.ok(nodeIds.includes(edge.target), `edge ${edge.id} has an unknown target`);
     }
 
-    assert.ok(config.nodes.some((node) => node.type === "triggerNode"), "trigger node is required");
-    assert.ok(config.nodes.some((node) => node.type === "responseNode"), "response node is required");
-    assert.equal(flow.nodes, config.nodes, "top-level nodes must alias config_json.nodes");
-    assert.equal(flow.edges, config.edges, "top-level edges must alias config_json.edges");
-    assert.equal(flow.default.config_json, config, "default export must include config_json");
+    assert.ok(flow.nodes.some((node) => node.type === "triggerNode"), "trigger node is required");
+    assert.ok(flow.nodes.some((node) => node.type === "responseNode"), "response node is required");
+    assert.equal(flow.default.nodes, flow.nodes, "default export must include top-level nodes");
+    assert.equal(flow.default.edges, flow.edges, "default export must include top-level edges");
+
+    const source = await readFile(new URL(`../flows/${name}.ts`, import.meta.url), "utf8");
+    assert.match(source, /export const nodes = \[/, "nodes must be a literal top-level export");
+    assert.match(source, /export const edges = \[/, "edges must be a literal top-level export");
+    assert.doesNotMatch(source, /config_json/, "legacy config_json wrapper must not be present");
+    assert.match(source, /\"id\":/, "Studio graph properties must use JSON-compatible quoted keys");
   });
 }
