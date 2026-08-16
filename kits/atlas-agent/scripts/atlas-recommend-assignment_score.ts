@@ -14,12 +14,13 @@ const scored = (Array.isArray(members) ? members : []).map((member) => {
   const seniorRole = role === "TEAM_LEAD" || role === "SENIOR_DEVELOPER";
   const juniorRole = role === "JUNIOR_DEVELOPER" || role === "INTERN";
   const roleFit = complexity === "COMPLEX" ? (seniorRole ? 25 : 8) : complexity === "SIMPLE" ? (juniorRole ? 25 : 18) : (role === "INTERN" ? 12 : 22);
-  const openTasks = Math.max(0, Number(member.currentOpenTasks || 0));
-  const highTasks = Math.max(0, Number(member.currentHighPriorityTasks || 0));
-  const capacity = Math.max(0, Math.min(20, 20 - openTasks * 3 - highTasks * 4));
+  const openTasks = Number(member.currentOpenTasks);
+  const highTasks = Number(member.currentHighPriorityTasks);
+  const invalidWorkload = !Number.isFinite(openTasks) || !Number.isFinite(highTasks) || openTasks < 0 || highTasks < 0;
+  const capacity = invalidWorkload ? 0 : Math.max(0, Math.min(20, 20 - openTasks * 3 - highTasks * 4));
   const dependencyFit = task.dependencyOwnerId && String(task.dependencyOwnerId) === String(member.memberId) ? 10 : 5;
   const priorityFit = priority === "CRITICAL" || priority === "HIGH" ? (seniorRole ? 5 : 2) : 5;
-  const disqualified = highRisk && role === "INTERN";
+  const disqualified = invalidWorkload || (highRisk && role === "INTERN");
   const breakdown = { skillMatch, roleFit, capacity, dependencyFit, priorityFit };
   return {
     memberId: member.memberId,
@@ -27,7 +28,8 @@ const scored = (Array.isArray(members) ? members : []).map((member) => {
     role,
     disqualified,
     score: disqualified ? 0 : Object.values(breakdown).reduce((sum, value) => sum + value, 0),
-    breakdown
+    breakdown,
+    ...(invalidWorkload ? { reason: "Invalid workload data" } : {})
   };
 }).sort((a, b) => b.score - a.score);
 
