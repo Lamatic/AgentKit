@@ -1,38 +1,39 @@
 # Home Maintenance Triage
 
-## Identity
-Home Maintenance Triage is an AI agent that helps people understand how
-serious a home problem is and what to do about it safely — before they call
-(or avoid calling) a professional. It analyzes a photo of the issue together
-with a short description and returns a structured assessment: category,
-severity, urgency, whether a licensed professional is needed, and safe
-immediate next steps.
+## What this agent does
 
-## Capabilities
-Given an image URL and an issue description, the agent returns:
-- **category** — what kind of problem this is (water damage, electrical, structural, mold, pest, cosmetic, other)
-- **severity** — low / moderate / high / emergency
-- **urgency** — a plain-language timeframe for action
+Home Maintenance Triage takes a description of a household problem — a leak, a strange smell, a noise from the AC, a discoloration on the wall — and returns a structured, cautious assessment of how serious it is and what the person should do next.
+
+The output is always honest about what the agent can and cannot determine. When evidence is unclear, it defaults to the more cautious interpretation. It never gives repair instructions for anything electrical, gas-related, or structural.
+
+## What it returns
+
+Given an issue description and an optional photo URL, the agent produces:
+
+- **category** — the type of problem: water damage, electrical, structural, mold, pest, cosmetic, or other
+- **severity** — low, moderate, high, or emergency
+- **urgency** — a single sentence explaining the timeframe for action
 - **professionalNeeded** — whether a licensed professional is required
-- **professionalType** — which kind, if applicable
-- **safeNextSteps** — concrete, safe actions the person can take right now
-- **doNotDo** — things to explicitly avoid doing themselves
-- **reasoning** — why the agent assessed it this way
-- **disclaimer** — a standing note that this is informational, not a professional inspection
+- **professionalType** — which kind, if applicable (plumber, electrician, HVAC technician, structural engineer, etc.)
+- **safeNextSteps** — two to five concrete actions the person can take right now
+- **doNotDo** — things they should explicitly avoid attempting themselves
+- **reasoning** — one or two sentences explaining the assessment
+- **disclaimer** — a fixed note that this is informational, not a professional inspection
 
-## Boundaries
-- This agent never gives confident DIY repair instructions for electrical,
-  gas, or structural issues — these always route to "call a professional."
-- It defaults to the more cautious assessment whenever the photo or
-  description is ambiguous — it never downplays a potential hazard to seem
-  more helpful.
-- It is not a substitute for a licensed inspector, electrician, or plumber,
-  and it says so in every response.
-- It does not handle medical or personal-injury emergencies.
+## What it will not do
 
-## Example
+- Give confident DIY repair instructions for electrical, gas, or structural problems
+- Downplay a potential hazard to seem more helpful or reassuring
+- Fabricate details that are not visible in the image or stated in the description
+- Act as a substitute for a licensed inspector, electrician, plumber, or structural engineer
+
+For fire, smoke, active gas smell, sparking wiring, or any situation involving possible personal injury, the first items in safe next steps are always to leave the area and contact emergency services.
+
+## Example — water damage
+
 **Input:** photo of a brown stain spreading across a ceiling, description: "noticed it a week ago, seems to be growing"
-**Output (abbreviated):**
+
+**Output:**
 ```json
 {
   "category": "water damage",
@@ -41,18 +42,21 @@ Given an image URL and an issue description, the agent returns:
   "professionalNeeded": true,
   "professionalType": "plumber",
   "safeNextSteps": [
-    "Check the room/floor above for a leaking pipe or fixture",
-    "Place a container under the stain if it's actively dripping",
+    "Check the room or floor above for a leaking pipe or fixture",
+    "Place a container under the stain if it is actively dripping",
     "Take photos to track whether the stain grows"
   ],
   "doNotDo": ["Do not cut into the ceiling to inspect it yourself"],
-  "reasoning": "Growing stain suggests an active, ongoing leak rather than a one-time incident.",
+  "reasoning": "A growing stain suggests an active, ongoing leak rather than a one-time incident. The source needs to be found and stopped.",
   "disclaimer": "This is an informational assessment, not a professional inspection. For anything electrical, gas-related, or structural, or if you are unsure, contact a licensed professional."
 }
 ```
 
+## Example — electrical emergency
+
 **Input:** description: "wall outlet is sparking and I can smell something burning"
-**Output (abbreviated):**
+
+**Output:**
 ```json
 {
   "category": "electrical",
@@ -65,8 +69,21 @@ Given an image URL and an issue description, the agent returns:
     "Keep everyone away from the outlet",
     "Call a licensed electrician immediately"
   ],
-  "doNotDo": ["Do not touch the outlet", "Do not attempt to repair this yourself"],
-  "reasoning": "Sparking combined with a burning smell indicates an active electrical hazard and fire risk.",
+  "doNotDo": [
+    "Do not touch the outlet",
+    "Do not attempt to inspect or repair this yourself"
+  ],
+  "reasoning": "Sparking combined with a burning smell indicates an active electrical fault and a fire risk.",
   "disclaimer": "This is an informational assessment, not a professional inspection. For anything electrical, gas-related, or structural, or if you are unsure, contact a licensed professional."
 }
 ```
+
+## How the flow works
+
+The flow has three nodes:
+
+1. **API Request** — trigger node that receives `issueDescription` (required) and `imageUrl` (optional)
+2. **Generate Text** — a vision-capable LLM node that analyzes the input using the system prompt in `prompts/home-maintenance-triage_generate-text_system.md`
+3. **API Response** — returns the generated JSON string as the `output` field
+
+The system prompt encodes the severity logic, safety escalation rules, and output contract directly. The model is instructed to return only valid JSON with no surrounding text.

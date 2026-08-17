@@ -2,8 +2,6 @@
 
 import { useState, useRef } from "react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface TriageResult {
   category?: string;
   severity?: "low" | "moderate" | "high" | "emergency";
@@ -14,40 +12,23 @@ interface TriageResult {
   doNotDo?: string[];
   reasoning?: string;
   disclaimer?: string;
-  raw?: string;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const EXAMPLES = [
-  "My ceiling has a brown water stain that's been slowly growing for a week",
-  "Wall outlet sparked and I can smell something burning",
-  "There's a strong smell of rotten eggs near the stove",
+  "My ceiling has a brown water stain that has been slowly growing for a week",
+  "A wall outlet sparked when I plugged something in and I can smell burning",
+  "There is a strong smell of rotten eggs near the stove",
   "My AC unit is making a loud grinding noise and blowing warm air",
   "I noticed black mold spots in the bathroom corner behind the toilet",
-  "My toilet keeps running and doesn't stop after flushing",
+  "My toilet keeps running and does not stop after flushing",
 ];
 
-const SEVERITY_CONFIG = {
-  emergency: {
-    label: "🚨 Emergency",
-    className: "urgency-emergency",
-  },
-  high: {
-    label: "🔴 Urgent",
-    className: "urgency-high",
-  },
-  moderate: {
-    label: "🟡 Soon",
-    className: "urgency-moderate",
-  },
-  low: {
-    label: "🟢 Low",
-    className: "urgency-low",
-  },
+const SEVERITY_CONFIG: Record<string, { label: string; className: string }> = {
+  emergency: { label: "Emergency", className: "urgency-emergency" },
+  high:      { label: "Urgent",    className: "urgency-high" },
+  moderate:  { label: "Soon",      className: "urgency-moderate" },
+  low:       { label: "Low",       className: "urgency-low" },
 };
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const [issueDescription, setIssueDescription] = useState("");
@@ -85,12 +66,8 @@ export default function HomePage() {
         setError(data.error ?? "Something went wrong. Please try again.");
       } else {
         setResult(data.result);
-        setTimeout(
-          () =>
-            resultRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            }),
+        setTimeout(() =>
+          resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
           100
         );
       }
@@ -107,33 +84,26 @@ export default function HomePage() {
     setError(null);
   }
 
-  const severityCfg = result?.severity
-    ? SEVERITY_CONFIG[result.severity] ?? SEVERITY_CONFIG.low
-    : null;
+  const severityCfg = result?.severity ? SEVERITY_CONFIG[result.severity] : null;
 
   return (
     <div className="page">
-      {/* ── Header ── */}
       <header className="header">
         <div className="header-inner">
-          <span className="header-icon">🏠</span>
           <span className="header-title">Home Maintenance Triage</span>
-          <span className="header-badge">Powered by Lamatic AI</span>
+          <span className="header-badge">Powered by Lamatic</span>
         </div>
       </header>
 
-      {/* ── Main ── */}
       <main className="main">
-        {/* Hero */}
         <section className="hero">
-          <h1>Diagnose Any Home Issue Instantly</h1>
+          <h1>What is going wrong at home?</h1>
           <p>
-            Describe what&apos;s wrong and our AI tells you if it&apos;s an
-            emergency, who to call, and exactly what to do right now.
+            Describe any household issue and get a structured assessment — how serious it is,
+            whether you need a professional, and what to do right now.
           </p>
         </section>
 
-        {/* Example chips */}
         <div className="examples-section">
           <span className="examples-label">Try an example</span>
           <div className="examples-grid">
@@ -143,13 +113,12 @@ export default function HomePage() {
                 className="example-chip"
                 onClick={() => fillExample(ex)}
               >
-                {ex.length > 48 ? ex.slice(0, 48) + "…" : ex}
+                {ex.length > 52 ? ex.slice(0, 52) + "..." : ex}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Input Form */}
         <div className="input-card">
           <form onSubmit={handleSubmit} id="triage-form">
             <div className="form-group">
@@ -159,7 +128,7 @@ export default function HomePage() {
               <textarea
                 id="issueDescription"
                 className="form-input"
-                placeholder="e.g. My bathroom ceiling has a wet brown stain that keeps growing. Started about a week ago and now there's a slight dripping sound..."
+                placeholder="For example: my bathroom ceiling has a wet brown stain that keeps growing. It started about a week ago and now there is a faint dripping sound when it rains..."
                 value={issueDescription}
                 onChange={(e) => setIssueDescription(e.target.value)}
                 required
@@ -169,13 +138,13 @@ export default function HomePage() {
 
             <div className="form-group">
               <label className="form-label" htmlFor="imageUrl">
-                Image URL <span>(optional — link to a photo of the issue)</span>
+                Photo URL <span>(optional — link to a photo of the issue)</span>
               </label>
               <input
                 id="imageUrl"
                 type="url"
                 className="form-input"
-                placeholder="https://example.com/my-issue-photo.jpg"
+                placeholder="https://example.com/photo.jpg"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
               />
@@ -193,7 +162,7 @@ export default function HomePage() {
                   onChange={(e) => setHomeType(e.target.value)}
                   style={{ appearance: "auto" }}
                 >
-                  <option value="">Select…</option>
+                  <option value="">Select...</option>
                   <option value="apartment">Apartment / Flat</option>
                   <option value="house">House</option>
                   <option value="condo">Condo / Townhouse</option>
@@ -210,7 +179,7 @@ export default function HomePage() {
                   id="issueLocation"
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Master bathroom, kitchen"
+                  placeholder="e.g. master bathroom, kitchen"
                   value={issueLocation}
                   onChange={(e) => setIssueLocation(e.target.value)}
                 />
@@ -226,81 +195,51 @@ export default function HomePage() {
               {loading ? (
                 <>
                   <span className="spinner" />
-                  Analyzing your issue…
+                  Analyzing...
                 </>
               ) : (
-                <>🔍 Analyze Issue</>
+                "Assess this issue"
               )}
             </button>
           </form>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="error-box" role="alert">
-            <span>⚠️</span>
             <span>{error}</span>
           </div>
         )}
 
-        {/* Results */}
         {result && (
           <section className="result-section" ref={resultRef} id="triage-result">
-            {/* Result header */}
             <div className="result-header">
-              <h2>Triage Report</h2>
+              <h2>Assessment</h2>
               {severityCfg && (
                 <span className={`urgency-badge ${severityCfg.className}`}>
                   {severityCfg.label}
                 </span>
               )}
               {result.category && (
-                <span
-                  style={{
-                    fontSize: "0.8rem",
-                    color: "var(--text-muted)",
-                    fontWeight: 500,
-                    textTransform: "capitalize",
-                  }}
-                >
+                <span className="category-tag">
                   {result.category}
                 </span>
               )}
             </div>
 
-            {/* Urgency text */}
             {result.urgency && (
-              <p
-                style={{
-                  fontSize: "1.05rem",
-                  color: "var(--text-secondary)",
-                  marginBottom: "1.5rem",
-                  lineHeight: 1.6,
-                }}
-              >
-                {result.urgency}
-              </p>
+              <p className="urgency-text">{result.urgency}</p>
             )}
 
-            {/* Info Grid */}
             <div className="info-grid">
               <div className="info-card">
-                <div className="info-card-icon">🔧</div>
-                <div className="info-card-label">DIY Feasibility</div>
-                <div
-                  className={`info-card-value ${
-                    result.professionalNeeded ? "diy-no" : "diy-yes"
-                  }`}
-                >
-                  {result.professionalNeeded
-                    ? "❌ Needs Professional"
-                    : "✅ DIY Possible"}
+                <div className="info-card-label">Professional needed</div>
+                <div className={`info-card-value ${result.professionalNeeded ? "diy-no" : "diy-yes"}`}>
+                  {result.professionalNeeded ? "Yes" : "No — DIY may be possible"}
                 </div>
               </div>
 
               <div className="info-card">
-                <div className="info-card-icon">👷</div>
-                <div className="info-card-label">Professional Needed</div>
+                <div className="info-card-label">Who to contact</div>
                 <div className="info-card-value">
                   {result.professionalType
                     ? result.professionalType
@@ -312,12 +251,8 @@ export default function HomePage() {
 
               {result.severity && (
                 <div className="info-card">
-                  <div className="info-card-icon">📊</div>
-                  <div className="info-card-label">Severity Level</div>
-                  <div
-                    className="info-card-value"
-                    style={{ textTransform: "capitalize" }}
-                  >
+                  <div className="info-card-label">Severity</div>
+                  <div className="info-card-value" style={{ textTransform: "capitalize" }}>
                     {result.severity}
                   </div>
                 </div>
@@ -325,24 +260,18 @@ export default function HomePage() {
 
               {result.category && (
                 <div className="info-card">
-                  <div className="info-card-icon">🏷️</div>
-                  <div className="info-card-label">Issue Category</div>
-                  <div
-                    className="info-card-value"
-                    style={{ textTransform: "capitalize" }}
-                  >
+                  <div className="info-card-label">Issue type</div>
+                  <div className="info-card-value" style={{ textTransform: "capitalize" }}>
                     {result.category}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Safe Next Steps */}
             {result.safeNextSteps && result.safeNextSteps.length > 0 && (
               <div className="list-card">
                 <div className="list-card-header">
-                  <span className="list-card-icon">✅</span>
-                  <span className="list-card-title">Immediate Action Steps</span>
+                  <span className="list-card-title">What to do right now</span>
                 </div>
                 <ul>
                   {result.safeNextSteps.map((step, i) => (
@@ -352,12 +281,10 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Do Not Do */}
             {result.doNotDo && result.doNotDo.length > 0 && (
               <div className="list-card danger">
                 <div className="list-card-header">
-                  <span className="list-card-icon">🚫</span>
-                  <span className="list-card-title">Do NOT Do These</span>
+                  <span className="list-card-title">Do not do these</span>
                 </div>
                 <ul>
                   {result.doNotDo.map((item, i) => (
@@ -367,28 +294,15 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Reasoning */}
             {result.reasoning && (
               <div className="reasoning-box">
-                <div className="reasoning-label">AI Reasoning</div>
+                <div className="reasoning-label">Why this assessment</div>
                 <div className="reasoning-text">{result.reasoning}</div>
               </div>
             )}
 
-            {/* Raw fallback */}
-            {result.raw && (
-              <div className="reasoning-box">
-                <div className="reasoning-label">Raw Response</div>
-                <div className="reasoning-text" style={{ whiteSpace: "pre-wrap" }}>
-                  {result.raw}
-                </div>
-              </div>
-            )}
-
-            {/* Disclaimer */}
             {result.disclaimer && (
               <div className="disclaimer-box">
-                <span className="disclaimer-icon">ℹ️</span>
                 <p className="disclaimer-text">{result.disclaimer}</p>
               </div>
             )}
@@ -396,26 +310,17 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* ── Footer ── */}
       <footer className="footer">
         <p>
           Built with{" "}
-          <a
-            href="https://lamatic.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://lamatic.ai" target="_blank" rel="noopener noreferrer">
             Lamatic.ai
           </a>{" "}
-          · Part of{" "}
-          <a
-            href="https://github.com/Lamatic/AgentKit"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          as part of{" "}
+          <a href="https://github.com/Lamatic/AgentKit" target="_blank" rel="noopener noreferrer">
             AgentKit
-          </a>{" "}
-          · For informational use only, not a professional inspection
+          </a>
+          . For informational use only — not a substitute for a professional inspection.
         </p>
       </footer>
     </div>
