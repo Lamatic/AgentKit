@@ -12,7 +12,7 @@ export default {
   tags: ["automation", "assistant", "agentic", "generative", "multimodal"],
   steps: [
     {
-      id: "your-flow-id",
+      id: "home-maintenance-triage",
       type: "mandatory" as const,
       envKey: "NEXT_PUBLIC_LAMATIC_FLOW_ID",
       title: "Home Maintenance Triage Flow",

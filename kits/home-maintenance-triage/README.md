@@ -1,91 +1,96 @@
-# Home Maintenance Triage Agent
+# Home Maintenance Triage
 
 ![Built with Lamatic](https://img.shields.io/badge/Built%20with-Lamatic-5B21B6?style=flat-square)
-![agentkit-challenge](https://img.shields.io/badge/challenge-agentkit-F59E0B?style=flat-square)
 ![Type: Kit](https://img.shields.io/badge/type-kit-0EA5E9?style=flat-square)
+![Challenge](https://img.shields.io/badge/challenge-agentkit-F59E0B?style=flat-square)
 
-> Instantly diagnose any home problem with AI — know if it's an emergency, who to call, and what to do right now.
-
----
-
-## 1. The Problem
-
-Homeowners encounter unexpected issues constantly — a water stain, a sparking outlet, a strange smell from the furnace. The uncertainty about severity causes two equally bad outcomes: **ignoring something genuinely dangerous** (a slow gas leak, active flooding) or **panicking over something trivial** (a small nail hole, surface condensation).
-
-There's no fast, intelligent, always-available way to answer the three questions every homeowner immediately asks:
-1. Is this an emergency?
-2. Can I fix it myself?
-3. Who do I call?
+> Describe any household issue and get a structured AI assessment — how serious it is, whether you need a professional, and what to do right now.
 
 ---
 
-## 2. What This Kit Does
+## The Problem
 
-Given a **text description** of a home issue (and an optional photo URL), this agent returns a structured triage report:
+When something breaks at home, most people face the same uncertainty. Is this a small thing I can handle myself, or do I need to call someone today? Is it safe to wait a few days, or is this actually an emergency?
+
+Getting this wrong in either direction has real consequences. Ignoring a slow gas leak or a sparking outlet can be dangerous. Panicking over a nail hole or a dripping faucet wastes time and money.
+
+This kit gives homeowners a fast, structured way to understand what they are dealing with.
+
+---
+
+## What It Does
+
+You describe the issue — a water stain, a strange smell, a noise from the AC — and the agent returns a structured report:
 
 | Field | Description |
 |-------|-------------|
-| **Severity** | `low` / `moderate` / `high` / `emergency` |
-| **Urgency** | Plain-language timeframe ("Act immediately" vs "Address within days") |
-| **DIY Feasible** | Whether the homeowner can safely handle it themselves |
-| **Professional Type** | Exactly which specialist to call (plumber, electrician, HVAC, etc.) |
-| **Safe Next Steps** | 2–5 concrete, safe actions to take right now |
-| **Do NOT Do** | Explicit list of dangerous self-repair attempts to avoid |
-| **Reasoning** | Why the AI assessed it this way |
-| **Disclaimer** | Always included — this is informational, not a professional inspection |
+| Severity | low, moderate, high, or emergency |
+| Urgency | Plain-language timeframe for action |
+| Professional needed | Yes or no, and which type |
+| Safe next steps | Specific actions to take right now |
+| Do not do | Things to avoid attempting yourself |
+| Reasoning | Why the agent assessed it this way |
+| Disclaimer | Always included — this is informational, not an inspection |
 
-### Built-in Safety Rules
-- **Automatic emergency escalation** for: sparking wiring, gas smells, active flooding, visible structural failure, smoke
-- **Never gives DIY instructions** for electrical, gas, or structural — always routes to a licensed professional
-- **Defaults to caution** when the image or description is ambiguous
+### Safety-first design
 
----
+The agent is built around a few hard rules:
 
-## 3. How It Works
-
-```
-User Input (text + optional image URL)
-        ↓
-API Request (GraphQL trigger)
-        ↓
-Vision LLM (analyzes image + description with safety-first system prompt)
-        ↓
-Structured JSON Response
-        ↓
-Next.js UI renders urgency badge + action cards
-```
-
-One flow, one LLM node (vision-capable model), clean JSON output.
+- It always rounds up on severity when the situation is ambiguous
+- For fire, smoke, gas, or sparking wiring, the first instruction is always to leave the area and contact emergency services
+- It never gives DIY instructions for electrical, gas, or structural problems
+- It never claims to replace a licensed inspector or professional
 
 ---
 
-## 4. Setup
+## How It Works
+
+```
+User describes the issue (text + optional photo URL)
+         |
+   API Request node (Lamatic trigger)
+         |
+   Generate Text node (vision LLM)
+   — analyzes description and image with a safety-first system prompt
+         |
+   API Response node
+         |
+   Next.js frontend renders the structured result
+```
+
+One flow, one LLM call, clean JSON output.
+
+---
+
+## Setup
 
 ### Prerequisites
-- [Lamatic.ai](https://lamatic.ai) account (free tier works)
-- A vision-capable LLM model configured in Lamatic Studio (e.g. GPT-4o, Gemini 1.5 Pro, Claude 3.5 Sonnet)
-- Node.js 18+ for the frontend
 
-### Step 1 — Set up the Lamatic Flow
+- A [Lamatic.ai](https://lamatic.ai) account (free tier works)
+- A vision-capable model configured in Lamatic Studio — GPT-4o, Gemini 1.5 Pro, or Claude 3.5 Sonnet work well
+- Node.js 18 or later
+
+### Step 1 — Build the Lamatic Flow
 
 1. Log in to [studio.lamatic.ai](https://studio.lamatic.ai)
 2. Create a new project and a new flow
-3. Build the flow with these nodes:
-   - **API Request** node (trigger, accepts `imageUrl` and `issueDescription`)
-   - **Generate Text** (LLM) node — select a **vision-capable** model, paste the system prompt from `prompts/home-maintenance-triage_generate-text_system.md`
-   - **API Response** node — maps `output` to `{{LLMNode.output.generatedResponse}}`
-4. Deploy the flow and copy the **Flow ID**
+3. Add three nodes:
+   - **API Request** — trigger node, accepts `issueDescription` (string) and `imageUrl` (string, optional)
+   - **Generate Text** — LLM node, select a vision-capable model, paste the system prompt from `prompts/home-maintenance-triage_generate-text_system.md`
+   - **API Response** — maps `output` to `{{LLMNode.output.generatedResponse}}`
+4. Connect them in order: API Request > Generate Text > API Response
+5. Deploy the flow and copy the Flow ID from the details panel
 
-### Step 2 — Configure the Frontend
+### Step 2 — Configure the App
 
 ```bash
 cd apps
 cp .env.example .env.local
 ```
 
-Fill in `.env.local`:
+Open `.env.local` and fill in your four credentials:
 
-```env
+```
 LAMATIC_PROJECT_ENDPOINT=https://your-project.lamatic.ai
 LAMATIC_PROJECT_ID=your-project-id
 LAMATIC_PROJECT_API_KEY=your-api-key
@@ -95,14 +100,13 @@ NEXT_PUBLIC_LAMATIC_FLOW_ID=your-flow-id
 ### Step 3 — Run Locally
 
 ```bash
-cd apps
 npm install
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
-### Step 4 — Deploy to Vercel (optional)
+### Step 4 — Deploy (Optional)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/sage106/AgentKit/tree/main/kits/home-maintenance-triage/apps)
 
@@ -110,12 +114,12 @@ Set the same four environment variables in your Vercel project settings.
 
 ---
 
-## 5. Example
+## Example
 
 **Input:**
 ```json
 {
-  "issueDescription": "There's a wall outlet that sparked when I plugged something in and I can smell something burning near it",
+  "issueDescription": "Wall outlet sparked when I plugged something in. I can smell something burning near it.",
   "imageUrl": "https://example.com/outlet-photo.jpg"
 }
 ```
@@ -131,30 +135,30 @@ Set the same four environment variables in your Vercel project settings.
   "safeNextSteps": [
     "Turn off power to that circuit at the breaker if you can safely reach it",
     "Keep everyone away from the outlet",
-    "Do not plug anything else into nearby outlets",
-    "Call a licensed electrician immediately — do not wait"
+    "Do not plug anything into nearby outlets",
+    "Call a licensed electrician — do not wait"
   ],
   "doNotDo": [
     "Do not touch the outlet",
-    "Do not attempt to open or inspect the outlet yourself",
+    "Do not open or inspect the outlet yourself",
     "Do not ignore the burning smell"
   ],
-  "reasoning": "Sparking combined with a burning smell indicates an active electrical fault and potential fire hazard. This requires immediate professional attention.",
+  "reasoning": "Sparking combined with a burning smell indicates an active electrical fault and a fire risk. This needs immediate professional attention.",
   "disclaimer": "This is an informational assessment, not a professional inspection. For anything electrical, gas-related, or structural, or if you are unsure, contact a licensed professional."
 }
 ```
 
 ---
 
-## 6. Disclaimer
+## Disclaimer
 
-This tool provides **informational triage only**. It is not a substitute for a licensed inspector, electrician, plumber, or structural engineer. Always defer to a professional for any electrical, gas, structural, or emergency situation.
+This tool provides informational triage only. It is not a substitute for a licensed inspector, electrician, plumber, or structural engineer. For any electrical, gas, or structural concern — or if you are unsure — contact a qualified professional.
 
 ---
 
-## 7. Assumptions & Tradeoffs
+## Notes
 
-- **Single flow**: Kept deliberately simple — one flow, one LLM call, clean JSON. No RAG or multi-step pipeline needed for triage.
-- **Vision support**: The LLM node must be a vision-capable model. Text-only models will still work for description-only queries but won't analyze images.
-- **No image storage**: Image URLs are passed directly to the vision model — no file uploads or storage required.
-- **Caution-first defaults**: The system prompt instructs the model to always round up on severity when uncertain, ensuring user safety over false reassurance.
+- The flow uses a single LLM call. No RAG, no multi-step pipeline. For a triage task like this, keeping it simple is the right call.
+- The LLM node must be a vision-capable model. Text-only models will still work when no image is provided but cannot analyze photos.
+- Image URLs are passed directly to the vision model. No file storage is needed.
+- The system prompt instructs the model to round up on severity when uncertain. This is intentional — false reassurance is more dangerous than over-caution.
