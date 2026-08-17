@@ -56,11 +56,13 @@ following `docs/STUDIO-BUILD.md`, then exported to `flows/evidence-fit-index.ts`
 (Section 7), which needs no Lamatic project at all.
 
 ```text
-documentText, cases[], strategy  →  Index flow     →  vector index (both strategies, one collection)
-documentId, cases[], strategy    →  Evaluate flow   →  per-case ranked chunks
-                                                          │
+experimentId, documentId, documentText, strategy  →  Index flow     →  vector index (both strategies, one collection)
+                                                                          │
+experimentId, documentId, documentText, cases[], topK  →  Evaluate flow │ (one call, both strategies)
+                                                                          │
                               same deterministic engine (apps/lib/evidence/core.ts)
-                                                          │
+                              runs INSIDE the flow's own metrics code node
+                                                                          │
                                     spanIntegrityRate · boundarySeveredCount
                                     spanCoverageAtK · completeEvidenceRecallAtK
                                     firstCompleteEvidenceRank · verdict
@@ -70,18 +72,30 @@ documentId, cases[], strategy    →  Evaluate flow   →  per-case ranked chunk
 per strategy:
 
 ```
-request:  { documentId: string; documentText: string; strategy: "fixed-width" | "clause-aware" }
-response: { chunks: string[] }   // ordered chunk texts (pageContent)
+request:  { experimentId: string; documentId: string; documentText: string;
+            strategy: "fixed-width" | "clause-aware" }
+response: { ok: boolean; indexedCount: number; issues?: ValidationIssue[] }
 ```
 
 **Evaluate flow** (`evidence-fit-evaluate`, `LAMATIC_EVIDENCE_FIT_EVALUATE_FLOW_ID`) —
-called once per strategy:
+called **once for the whole experiment**, covering both strategies in a single call:
 
 ```
-request:  { documentId: string; strategy: "fixed-width" | "clause-aware"; topK: number;
-            cases: { id: string; question: string }[] }
-response: { rankings: Record<caseId, string[]> }
+request:  { experimentId: string; documentId: string; documentText: string; topK: number;
+            cases: { id: string; question: string;
+                     evidence: { quote: string; start?: number; end?: number }[];
+                     required?: boolean }[] }
+response: { verdict: "SHIP" | "TUNE" | "BLOCK"; baseline: StrategyResult;
+            candidate: StrategyResult; recommended: "fixed-width" | "clause-aware" | "neither";
+            explanation?: string }
 ```
+
+The Evaluate flow computes metrics and the verdict itself, inside a code node that runs
+the same deterministic engine as local mode (`compareStrategies`). The app never
+recomputes them in deployed mode — it validates the response's shape and renders it as-is.
+An LLM node may add a bounded `explanation`, but it has no graph path to `verdict`: the
+API Response wires `verdict` and every metric field from the metrics code node only (see
+`computeVerdict`'s doc comment in `core.ts`).
 
 Lamatic's `chunkNode` reports chunk text only, with no character offsets, so the Index
 flow recovers verified offsets itself (`alignChunks` — a verbatim substring scan against
