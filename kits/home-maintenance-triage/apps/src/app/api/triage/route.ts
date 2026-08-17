@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Lamatic } from "lamatic";
 
+/**
+ * POST /api/triage
+ *
+ * Accepts a home maintenance issue description (and optional image URL, home type,
+ * and issue location), forwards the payload to the deployed Lamatic flow via the
+ * official SDK, and returns a structured triage assessment containing category,
+ * severity, urgency, professional recommendation, safe next steps, and a disclaimer.
+ *
+ * @param req - Incoming Next.js request with JSON body containing:
+ *   - issueDescription {string} Required. Text description of the home issue.
+ *   - imageUrl {string}         Optional. Public HTTPS URL of an issue photo.
+ *   - homeType {string}         Optional. Type of home (e.g. "apartment", "house").
+ *   - issueLocation {string}    Optional. Location in the home (e.g. "kitchen", "roof").
+ * @returns NextResponse with { result } on success, or { error } with an appropriate HTTP status.
+ */
 export async function POST(req: NextRequest) {
   // 1. Parse and validate request body
   let body: unknown;
@@ -64,73 +80,73 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Check env config
-  const endpoint = process.env.LAMATIC_PROJECT_ENDPOINT;
+  const endpoint = process.env.LAMATIC_PROJECT_ENDPOINT || "https://mohdsorganization618-homemaintenancetriage432.lamatic.dev/graphql";
   const projectId = process.env.LAMATIC_PROJECT_ID;
   const apiKey = process.env.LAMATIC_PROJECT_API_KEY;
   const flowId = process.env.NEXT_PUBLIC_LAMATIC_FLOW_ID;
 
-  if (!endpoint || !projectId || !apiKey || !flowId) {
+  if (!projectId || !apiKey || !flowId) {
     return NextResponse.json(
       { error: "Lamatic credentials are not configured. Check your .env file." },
       { status: 500 }
     );
   }
 
-  const query = `
-    query RunFlow($flowId: String!, $payload: JSON!) {
-      runFlow(flowId: $flowId, payload: $payload) {
-        output
-      }
-    }
-  `;
-
-  const payload: Record<string, string> = { issueDescription: issueDescription.trim() };
+  const payload: Record<string, string> = {
+    issueDescription: issueDescription.trim(),
+  };
   if (imageUrl) payload.imageUrl = imageUrl;
   if (homeType) payload.homeType = homeType as string;
   if (issueLocation) payload.issueLocation = issueLocation as string;
 
-  // 3. Call Lamatic API with timeout
-  let response: Response;
+  // 3. Execute Lamatic Flow via SDK (Official utils.ts pattern)
+  let rawOutput: any;
+
   try {
-    response = await fetch(`${endpoint}/api/flow`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "x-project-id": projectId,
-      },
-      body: JSON.stringify({ query, variables: { flowId, payload } }),
-      signal: AbortSignal.timeout(30000), // 30s timeout
+    const lamaticClient = new Lamatic({
+      endpoint,
+      projectId,
+      apiKey,
     });
+
+    const flowPromise = lamaticClient.executeFlow(flowId, payload);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("TimeoutError")), 30000);
+    });
+
+    const response = (await Promise.race([flowPromise, timeoutPromise])) as any;
+    console.log("[Lamatic SDK raw response]:", JSON.stringify(response));
+
+    if (response?.status === "error") {
+      console.error("[Lamatic SDK flow error]:", response?.message);
+      return NextResponse.json(
+        { error: `Flow returned an error: ${response?.message || "Unknown error"}` },
+        { status: 502 }
+      );
+    }
+
+    // SDK returns { status, result: { output: { ...fields } }, statusCode }
+    // Unwrap: result.output first, then result, then response itself
+    const resultObj = response?.result;
+    const raw = resultObj?.output ?? resultObj ?? response?.output ?? response;
+    rawOutput = typeof raw === "string" ? raw : JSON.stringify(raw);
   } catch (err: unknown) {
-    if (err instanceof Error && err.name === "TimeoutError") {
+    if (err instanceof Error && err.message === "TimeoutError") {
       return NextResponse.json(
         { error: "The AI flow timed out. Please try again." },
         { status: 504 }
       );
     }
-    console.error("Lamatic fetch error:", err);
+    console.error("Lamatic SDK Execution Error:", err);
     return NextResponse.json(
-      { error: "Failed to reach Lamatic API. Check your endpoint and credentials." },
+      { error: "Failed to execute Lamatic flow. Check your credentials and flow deployment." },
       { status: 502 }
     );
   }
-
-  if (!response.ok) {
-    const text = await response.text();
-    console.error("Lamatic API error:", text);
-    return NextResponse.json(
-      { error: "Lamatic API returned an error. Check your credentials and flow ID." },
-      { status: 502 }
-    );
-  }
-
-  const data = await response.json();
-  const rawOutput: string | undefined = data?.data?.runFlow?.output;
 
   if (!rawOutput) {
     return NextResponse.json(
-      { error: "No output returned from the flow. Ensure it is deployed and running." },
+      { error: "No result returned from the flow. Ensure it is deployed in Lamatic Studio." },
       { status: 500 }
     );
   }
@@ -138,7 +154,7 @@ export async function POST(req: NextRequest) {
   // 4. Parse and validate the LLM JSON output
   let parsed: Record<string, unknown>;
   try {
-    const candidate = JSON.parse(rawOutput);
+    const candidate = typeof rawOutput === "object" ? rawOutput : JSON.parse(rawOutput);
     if (typeof candidate !== "object" || candidate === null) {
       throw new Error("Output is not an object");
     }
