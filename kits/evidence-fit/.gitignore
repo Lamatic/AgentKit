@@ -1,0 +1,24 @@
+# The repository-root .gitignore contains a bare `scripts` pattern, which
+# matches this kit's scripts/ directory. Without this negation `git add`
+# silently skips every Lamatic code node, and all @scripts/ references in the
+# exported flows would point at files absent from the pull request.
+!scripts/
+
+.lamatic/
+node_modules/
+.next/
+.DS_Store
+
+# Env secrets anywhere under this kit; keep example templates.
+.env
+.env.*
+!.env.example
+!apps/.env.example
+
+apps/node_modules/
+apps/.next/
+apps/out/
+apps/.vercel
+apps/*.tsbuildinfo
+apps/next-env.d.ts
+apps/coverage/
