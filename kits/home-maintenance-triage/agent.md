@@ -27,7 +27,7 @@ Given an issue description and an optional photo URL, the agent produces:
 - Fabricate details that are not visible in the image or stated in the description
 - Act as a substitute for a licensed inspector, electrician, plumber, or structural engineer
 
-For fire, smoke, active gas smell, sparking wiring, or any situation involving possible personal injury, the first items in safe next steps are always to leave the area and contact emergency services.
+For fire, smoke, active gas smell, or active sparking wiring, safe next steps follow a strict action order: (1) Evacuate or leave the area immediately if active danger is present; (2) Contact emergency services; (3) Isolate power at the breaker only if safe to reach; (4) Contact a licensed electrician.
 
 ## Example — water damage
 
@@ -65,9 +65,10 @@ For fire, smoke, active gas smell, sparking wiring, or any situation involving p
   "professionalNeeded": true,
   "professionalType": "licensed electrician",
   "safeNextSteps": [
-    "Turn off power to that circuit at the breaker if you can safely reach it",
-    "Keep everyone away from the outlet",
-    "Call a licensed electrician immediately"
+    "Evacuate or step back from the immediate area if smoke or burning smell is active",
+    "Call emergency services or an emergency electrician immediately",
+    "Turn off power to that circuit at the breaker only if you can safely reach it",
+    "Do not touch or attempt to plug anything into nearby outlets"
   ],
   "doNotDo": [
     "Do not touch the outlet",

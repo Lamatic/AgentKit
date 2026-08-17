@@ -37,7 +37,7 @@ You describe the issue — a water stain, a strange smell, a noise from the AC �
 The agent is built around a few hard rules:
 
 - It always rounds up on severity when the situation is ambiguous
-- For fire, smoke, gas, or sparking wiring, the first instruction is always to leave the area and contact emergency services
+- For fire, smoke, gas, or active sparking wiring, safe next steps follow a strict order: (1) Evacuate or leave immediate area if active danger is present; (2) Contact emergency services; (3) Isolate breaker power only if safely accessible; (4) Contact a licensed electrician.
 - It never gives DIY instructions for electrical, gas, or structural problems
 - It never claims to replace a licensed inspector or professional
 
@@ -133,14 +133,14 @@ Set the same four environment variables in your Vercel project settings.
   "professionalNeeded": true,
   "professionalType": "licensed electrician",
   "safeNextSteps": [
-    "Turn off power to that circuit at the breaker if you can safely reach it",
-    "Keep everyone away from the outlet",
-    "Do not plug anything into nearby outlets",
-    "Call a licensed electrician — do not wait"
+    "Evacuate or step back from the immediate area if smoke or burning smell is active",
+    "Call emergency services or an emergency electrician immediately",
+    "Turn off power to that circuit at the breaker only if you can safely reach it",
+    "Do not touch or attempt to plug anything into nearby outlets"
   ],
   "doNotDo": [
     "Do not touch the outlet",
-    "Do not open or inspect the outlet yourself",
+    "Do not attempt to inspect or repair this yourself",
     "Do not ignore the burning smell"
   ],
   "reasoning": "Sparking combined with a burning smell indicates an active electrical fault and a fire risk. This needs immediate professional attention.",
