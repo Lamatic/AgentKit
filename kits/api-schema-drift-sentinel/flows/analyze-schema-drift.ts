@@ -10,7 +10,7 @@ export const meta = {
 
 // -- Inputs --
 export const inputs = {
-  llmNode: [
+  LLMNode_1: [
     {
       name: "generativeModelName",
       label: "Generative Model Name",
@@ -39,7 +39,10 @@ export const nodes = [
   {
     id: "triggerNode_1",
     type: "triggerNode",
-    position: { x: 0, y: 0 },
+    position: {
+      x: 0,
+      y: 0,
+    },
     data: {
       nodeId: "graphqlNode",
       trigger: true,
@@ -47,29 +50,71 @@ export const nodes = [
         id: "triggerNode_1",
         nodeName: "API Request",
         responeType: "realtime",
-        advance_schema: "{\n  \"schema_facts\": \"string\"\n}",
+        advance_schema: JSON.stringify({
+          apiName: "string",
+          oldVersion: "string",
+          newVersion: "string",
+          breakingChangesCount: "number",
+          deploymentRisk: "string",
+          schemaFacts: "string",
+        }),
       },
     },
   },
+
   {
     id: "LLMNode_1",
     type: "dynamicNode",
-    position: { x: 0, y: 0 },
+    position: {
+      x: 0,
+      y: 0,
+    },
     data: {
       nodeId: "LLMNode",
       values: {
         id: "LLMNode_1",
         tools: [],
+        schema: JSON.stringify({
+          type: "object",
+          properties: {
+            impactSummary: {
+              type: "string",
+            },
+            affectedClients: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+            migrationGuidance: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+            deploymentRecommendation: {
+              type: "string",
+            },
+          },
+          required: [
+            "impactSummary",
+            "affectedClients",
+            "migrationGuidance",
+            "deploymentRecommendation",
+          ],
+          additionalProperties: false,
+        }),
         prompts: [
           {
             id: "analyze-schema-drift-system",
             role: "system",
-            content: "@prompts/analyze-schema-drift_llm-node_system.md",
+            content:
+              "@prompts/analyze-schema-drift_llm-node_system.md",
           },
         ],
         memories: "[]",
         messages: "[]",
-        nodeName: "Generate Text",
+        nodeName: "Generate JSON",
         attachments: "",
         credentials: "",
         generativeModelName:
@@ -77,21 +122,32 @@ export const nodes = [
       },
     },
   },
+
   {
-    id: "responseNode_1",
+    id: "responseNode_triggerNode_1",
     type: "responseNode",
-    position: { x: 0, y: 0 },
+    position: {
+      x: 0,
+      y: 0,
+    },
     data: {
       nodeId: "graphqlResponseNode",
       values: {
-        id: "responseNode_1",
-        headers: "{\"content-type\":\"application/json\"}",
+        id: "responseNode_triggerNode_1",
+        headers: JSON.stringify({
+          "content-type": "application/json",
+        }),
         retries: "0",
         nodeName: "API Response",
         webhookUrl: "",
         retry_delay: "0",
-        outputMapping:
-          "{\n  \"result\": \"{{LLMNode_1.output.generatedResponse}}\"\n}",
+        outputMapping: JSON.stringify({
+          impactSummary: "{{LLMNode_1.output.impactSummary}}",
+          affectedClients: "{{LLMNode_1.output.affectedClients}}",
+          migrationGuidance: "{{LLMNode_1.output.migrationGuidance}}",
+          deploymentRecommendation:
+            "{{LLMNode_1.output.deploymentRecommendation}}",
+        }),
       },
     },
   },
@@ -107,21 +163,27 @@ export const edges = [
     type: "defaultEdge",
   },
   {
-    id: "LLMNode_1-responseNode_1",
+    id: "LLMNode_1-responseNode_triggerNode_1",
     source: "LLMNode_1",
-    target: "responseNode_1",
+    target: "responseNode_triggerNode_1",
     sourceHandle: "bottom",
     targetHandle: "top",
     type: "defaultEdge",
   },
   {
-    id: "response-triggerNode_1",
+    id: "response-trigger_triggerNode_1",
     source: "triggerNode_1",
-    target: "responseNode_1",
+    target: "responseNode_triggerNode_1",
     sourceHandle: "to-response",
     targetHandle: "from-trigger",
     type: "responseEdge",
   },
 ];
 
-export default { meta, inputs, references, nodes, edges };
+export default {
+  meta,
+  inputs,
+  references,
+  nodes,
+  edges,
+};
