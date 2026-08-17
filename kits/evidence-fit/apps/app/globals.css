@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Gold-evidence highlight used by the boundary inspector. Rendered via <mark>,
+   never dangerouslySetInnerHTML, since document text is untrusted input. */
+mark {
+  background-color: #fde68a;
+  color: #451a03;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  mark {
+    background-color: #92400e;
+    color: #fef3c7;
+  }
+}
