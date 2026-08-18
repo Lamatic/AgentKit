@@ -72,7 +72,11 @@ export async function generatePrepBrief(
       }
     }
 
-    const resObj = resData?.result || (resData as any)?.data?.output?.result || resData?.result?.output;
+    // Prefer result.output (wrapper case) before result (flat case)
+    const resObj =
+      resData?.result?.output ||
+      resData?.result ||
+      (resData as any)?.data?.output?.result;
     
     if (!resObj) {
       throw new Error("No result found in response payload.");
@@ -83,6 +87,20 @@ export async function generatePrepBrief(
     const architecture = safeParse<ArchitectureAnalysis>(resObj.architecture, "architecture");
     const grill_me = safeParse<{ questions: GrillQuestion[] }>(resObj.grill_me, "grill_me");
     const production = safeParse<ProductionReadiness>(resObj.production, "production");
+
+    // Lightweight field-presence validation — catch completely empty/wrong shapes early
+    if (!prep_brief.project_summary || !Array.isArray(prep_brief.tech_stack)) {
+      throw new Error("prep_brief is missing required fields (project_summary or tech_stack). Check the LLM prompt or model.");
+    }
+    if (!Array.isArray(architecture.tradeoffs)) {
+      throw new Error("architecture.tradeoffs is not an array. Check the architecture LLM node output.");
+    }
+    if (!Array.isArray(grill_me.questions)) {
+      throw new Error("grill_me.questions is not an array. Check the grill LLM node output.");
+    }
+    if (typeof production.is_production_ready !== "boolean" || !Array.isArray(production.critical_missing_features)) {
+      throw new Error("production section has invalid shape. Check the production LLM node output.");
+    }
 
     return { 
       success: true, 
