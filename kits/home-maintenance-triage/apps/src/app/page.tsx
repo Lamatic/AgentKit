@@ -43,6 +43,7 @@ export default function HomePage() {
   const [result, setResult] = useState<TriageResult | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileReadGenRef = useRef(0);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,17 +61,21 @@ export default function HomePage() {
       return;
     }
 
+    const currentGen = ++fileReadGenRef.current;
     setImageFile(file);
     setError(null);
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setImagePreview(ev.target?.result as string);
+      if (currentGen === fileReadGenRef.current) {
+        setImagePreview(ev.target?.result as string);
+      }
     };
     reader.readAsDataURL(file);
   }, []);
 
   function clearImage() {
+    fileReadGenRef.current++;
     setImageFile(null);
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";

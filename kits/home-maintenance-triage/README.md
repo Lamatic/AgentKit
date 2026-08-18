@@ -46,7 +46,7 @@ The agent is built around a few hard rules:
 ## How It Works
 
 ```
-User describes the issue (text + optional photo URL)
+User describes the issue (text + optional photo URL or uploaded image)
          |
    API Request node (Lamatic trigger)
          |
@@ -58,7 +58,7 @@ User describes the issue (text + optional photo URL)
    Next.js frontend renders the structured result
 ```
 
-One flow, one LLM call, clean JSON output.
+One flow, one LLM call, clean JSON output. Public HTTPS photo URLs and base64 image data URIs (`data:image/...`) are supported directly.
 
 ---
 
@@ -68,7 +68,7 @@ One flow, one LLM call, clean JSON output.
 
 - A [Lamatic.ai](https://lamatic.ai) account (free tier works)
 - A vision-capable model configured in Lamatic Studio — GPT-4o, Gemini 1.5 Pro, or Claude 3.5 Sonnet work well
-- Node.js 18 or later
+- Node.js 20.9.0 or later
 
 ### Step 1 — Build the Lamatic Flow
 
@@ -77,7 +77,7 @@ One flow, one LLM call, clean JSON output.
 3. Add three nodes:
    - **API Request** — trigger node, accepts `issueDescription` (string) and `imageUrl` (string, optional)
    - **Generate Text** — LLM node, select a vision-capable model, paste the system prompt from `prompts/home-maintenance-triage_generate-text_system.md`
-   - **API Response** — maps `output` to `{{LLMNode.output.generatedResponse}}`
+   - **API Response** — maps `output` to `{{LLMNode_501.output.generatedResponse}}` (or your Studio-assigned LLM node output)
 4. Connect them in order: API Request > Generate Text > API Response
 5. Deploy the flow and copy the Flow ID from the details panel
 
