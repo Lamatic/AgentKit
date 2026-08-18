@@ -1,0 +1,30 @@
+{
+  "name": "atlas-agent-kit",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Pradeep Nagarajan",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "tsx --test tests/*.test.ts ../tests/*.test.ts"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.35.6",
+    "lamatic": "0.3.2",
+    "lucide-react": "^0.454.0",
+    "next": "16.3.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5"
+  }
+}
