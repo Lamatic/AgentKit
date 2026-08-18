@@ -1,0 +1,55 @@
+{
+  "name": "sparktrace-app",
+  "author": "Pratyaksh Mundra",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lamatic/AgentKit"
+  },
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "node tools/copy-scenario-assets.mjs && next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@aws-sdk/client-athena": "^3.699.0",
+    "@aws-sdk/client-glue": "^3.699.0",
+    "@aws-sdk/client-s3": "^3.699.0",
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-dialog": "1.1.4",
+    "@radix-ui/react-label": "2.1.1",
+    "@radix-ui/react-progress": "1.1.1",
+    "@radix-ui/react-select": "2.1.4",
+    "@radix-ui/react-slot": "1.1.1",
+    "@radix-ui/react-tabs": "1.1.2",
+    "@radix-ui/react-toast": "1.2.4",
+    "@radix-ui/react-tooltip": "1.1.6",
+    "@vercel/analytics": "2.0.1",
+    "alasql": "^4.17.3",
+    "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lamatic": "^0.3.2",
+    "lucide-react": "^0.454.0",
+    "next": "^15.2.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.60.0",
+    "react-markdown": "10.1.0",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "3.25.67"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.9",
+    "@types/node": "^22",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
+    "typescript": "^5"
+  }
+}
