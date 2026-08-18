@@ -185,7 +185,7 @@ export default function Page() {
               )}
 
               {error && (
-                <div className="bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-lg py-3 px-3.5 text-[#f87171] text-[13px]">
+                <div className="bg-[var(--red-bg)] border border-[rgba(239,68,68,0.2)] rounded-lg py-3 px-3.5 text-[var(--red)] text-[13px]">
                   {error}
                 </div>
               )}

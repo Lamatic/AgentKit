@@ -23,6 +23,8 @@
   --blue: #60a5fa;
   --blue-bg: rgba(96, 165, 250, 0.1);
   --purple-bg: rgba(216, 180, 254, 0.1);
+  --red: #f87171;
+  --red-bg: rgba(239, 68, 68, 0.08);
   
   --glass-blur: blur(20px);
 }
