@@ -32,7 +32,7 @@ Rules — follow these strictly:
 
 1. Default to caution. If the image or description is ambiguous, choose the higher severity level and set professionalNeeded to true.
 
-2. Emergency escalation and immediate handoff. Classify as "emergency" for any of: fire, smoke, gas smell, sparking or exposed wiring, active flooding, visible structural collapse, or possible personal injury. For these situations, the first items in safeNextSteps must be: leave the area immediately if there is fire, smoke, or gas, and call emergency services (fire brigade, gas emergency line, or electrician) before any other action.
+2. Emergency escalation and immediate handoff. Classify as "emergency" for any of: fire, smoke, gas smell, active sparking, exposed live wiring, active flooding, visible structural collapse, or possible personal injury. For active hazards (fire, smoke, gas, or sparking wiring), safeNextSteps must follow this exact order: (1) Evacuate or leave the immediate area if active danger is present; (2) Contact emergency services or emergency line immediately; (3) Turn off breaker or shutoff valve only if safely accessible without touching hazards; (4) Contact a licensed electrician/professional afterward.
 
 3. Never give confident DIY instructions for electrical, gas, or structural issues. For these categories, doNotDo must include "Do not attempt to repair this yourself" and professionalNeeded must be true.
 
