@@ -3,6 +3,71 @@
 import { lamaticClient } from "@/lib/lamatic-client";
 import { config } from "../orchestrate";
 import type { PrepBrief, ArchitectureAnalysis, GrillQuestion, ProductionReadiness, RepoAnalysis } from "@/lib/types";
+import { z } from "zod";
+
+// Helper to coerce LLM arrays-of-objects back into arrays-of-strings
+const robustStringArray = z.preprocess((val: any) => {
+  if (Array.isArray(val)) {
+    return val.map((item: any) => {
+      if (typeof item === "string") return item;
+      if (typeof item === "object" && item !== null) {
+        const vals = Object.values(item);
+        if (vals.length > 0 && typeof vals[0] === "string") return vals[0];
+        return JSON.stringify(item);
+      }
+      return String(item);
+    });
+  }
+  return val;
+}, z.array(z.string()));
+
+const RepoAnalysisSchema = z.object({
+  prep_brief: z.object({
+    project_summary: z.string(),
+    tech_stack: robustStringArray,
+    complexity_level: z.enum(["junior", "mid", "senior"]).catch("mid"),
+    pitch: z.string(),
+    follow_up_questions: z.array(
+      z.object({
+        question: z.string(),
+        why_they_ask: z.string(),
+        suggested_answer: z.string()
+      })
+    ),
+    concepts_to_review: z.array(
+      z.object({
+        concept: z.string(),
+        why_relevant: z.string(),
+        depth_needed: z.enum(["surface", "moderate", "deep"]).catch("moderate")
+      })
+    ),
+    red_flags: z.array(
+      z.object({
+        observation: z.string(),
+        how_to_address: z.string()
+      })
+    ).optional().default([]),
+    strengths_to_highlight: robustStringArray
+  }),
+  architecture: z.object({
+    mermaid_diagram: z.string(),
+    flow_summary: z.string(),
+    tradeoffs: robustStringArray
+  }),
+  grill_me: z.object({
+    questions: z.array(
+      z.object({
+        question: z.string(),
+        defensive_strategy: z.string()
+      })
+    )
+  }),
+  production: z.object({
+    is_production_ready: z.boolean(),
+    critical_missing_features: robustStringArray,
+    quick_wins: robustStringArray
+  })
+});
 
 import { jsonrepair } from "jsonrepair";
 
@@ -82,34 +147,33 @@ export async function generatePrepBrief(
       throw new Error("No result found in response payload.");
     }
 
-    // Parse all 4 sections
-    const prep_brief = safeParse<PrepBrief>(resObj.prep_brief, "prep_brief");
-    const architecture = safeParse<ArchitectureAnalysis>(resObj.architecture, "architecture");
-    const grill_me = safeParse<{ questions: GrillQuestion[] }>(resObj.grill_me, "grill_me");
-    const production = safeParse<ProductionReadiness>(resObj.production, "production");
+    // Helper to unwrap if the LLM nested the response (e.g. {"architecture": { ... }})
+    function unwrap(obj: any, key: string) {
+      if (obj && typeof obj === "object" && obj[key] && Object.keys(obj).length === 1) {
+        return obj[key];
+      }
+      return obj;
+    }
 
-    // Lightweight field-presence validation — catch completely empty/wrong shapes early
-    if (!prep_brief.project_summary || !Array.isArray(prep_brief.tech_stack)) {
-      throw new Error("prep_brief is missing required fields (project_summary or tech_stack). Check the LLM prompt or model.");
-    }
-    if (!Array.isArray(architecture.tradeoffs)) {
-      throw new Error("architecture.tradeoffs is not an array. Check the architecture LLM node output.");
-    }
-    if (!Array.isArray(grill_me.questions)) {
-      throw new Error("grill_me.questions is not an array. Check the grill LLM node output.");
-    }
-    if (typeof production.is_production_ready !== "boolean" || !Array.isArray(production.critical_missing_features)) {
-      throw new Error("production section has invalid shape. Check the production LLM node output.");
-    }
+    // Parse all 4 sections
+    const prep_brief = unwrap(safeParse<any>(resObj.prep_brief, "prep_brief"), "prep_brief");
+    const architecture = unwrap(safeParse<any>(resObj.architecture, "architecture"), "architecture");
+    const grill_me = unwrap(safeParse<any>(resObj.grill_me, "grill_me"), "grill_me");
+    const production = unwrap(safeParse<any>(resObj.production, "production"), "production");
+
+    console.log("[repo-interview-prep] Parsed architecture shape:", JSON.stringify(architecture).substring(0, 200));
+
+    // Complete schema validation before returning success
+    const parsedData = RepoAnalysisSchema.parse({
+      prep_brief,
+      architecture,
+      grill_me,
+      production
+    });
 
     return { 
       success: true, 
-      data: {
-        prep_brief,
-        architecture,
-        grill_me,
-        production
-      }
+      data: parsedData as RepoAnalysis
     };
   } catch (error) {
     console.error("[repo-interview-prep] Error:", error);

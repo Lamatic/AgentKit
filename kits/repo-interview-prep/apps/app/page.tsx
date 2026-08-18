@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { generatePrepBrief } from "@/actions/orchestrate";
 import type { PrepBrief, RepoAnalysis } from "@/lib/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const InputSchema = z.object({
+  repoUrl: z.string().min(1, "Repository URL is required"),
+  role: z.string().optional(),
+  jd: z.string().optional()
+});
+type InputForm = z.infer<typeof InputSchema>;
 
 type Step = "input" | "loading" | "results";
 
@@ -30,9 +40,6 @@ const depthClass: Record<string, string> = {
 
 export default function Page() {
   const [step, setStep] = useState<Step>("input");
-  const [repoUrl, setRepoUrl] = useState("");
-  const [role, setRole] = useState("");
-  const [jd, setJd] = useState("");
   const [showJd, setShowJd] = useState(false);
   const [loadStep, setLoadStep] = useState(0);
   const [analysis, setAnalysis] = useState<RepoAnalysis | null>(null);
@@ -41,12 +48,19 @@ export default function Page() {
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<InputForm>({
+    resolver: zodResolver(InputSchema),
+    defaultValues: { repoUrl: "", role: "", jd: "" }
+  });
+
+  const repoUrlVal = watch("repoUrl");
+  const repoName = repoUrlVal ? repoUrlVal.replace("https://github.com/", "").replace(/\/$/, "") : "";
+
   const brief = analysis?.prep_brief;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(data: InputForm) {
     // Normalize: accept both "owner/repo" and full "https://github.com/owner/repo"
-    const raw = repoUrl.trim();
+    const raw = data.repoUrl.trim();
     const normalizedUrl = raw.startsWith("https://github.com/")
       ? raw
       : `https://github.com/${raw.replace(/^\//, "")}`;
@@ -60,7 +74,7 @@ export default function Page() {
       setLoadStep((p) => (p < LOAD_STEPS.length - 1 ? p + 1 : p));
     }, 4500); // Slower because 4 sequential LLMs take ~30-40s
 
-    const result = await generatePrepBrief(normalizedUrl, role, jd);
+    const result = await generatePrepBrief(normalizedUrl, data.role || "", data.jd || "");
     clearInterval(interval);
 
     if (result.success && result.data) {
@@ -81,24 +95,19 @@ export default function Page() {
     }
   }
 
-  const repoName = repoUrl.replace("https://github.com/", "").replace(/\/$/, "");
 
   const NAV = [
     { id: "summary", label: "Overview" },
     { id: "architecture", label: "Architecture" },
-    { id: "pitch", label: "Your Pitch" },
     { id: "grill", label: `Grill Me (${analysis?.grill_me?.questions?.length ?? 0})` },
     { id: "questions", label: `Q&A (${brief?.follow_up_questions?.length ?? 0})` },
-    { id: "concepts", label: "Concepts" },
     { id: "production", label: "Prod Readiness" },
-    { id: "redflags", label: `Red Flags (${brief?.red_flags?.length ?? 0})` },
-    { id: "strengths", label: "Strengths" },
   ];
 
   // ─── INPUT ─────────────────────────────────────────────────────
   if (step === "input") {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", background: "var(--bg)" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
         <div style={{ maxWidth: 520, width: "100%" }}>
           {/* Brand */}
           <div style={{ textAlign: "center", marginBottom: 40 }}>
@@ -115,7 +124,7 @@ export default function Page() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               {/* URL input */}
               <div>
@@ -128,12 +137,11 @@ export default function Page() {
                     id="github-url"
                     type="text"
                     placeholder="owner/repo"
-                    value={repoUrl.replace("https://github.com/", "")}
-                    onChange={(e) => setRepoUrl(e.target.value)}
+                    {...register("repoUrl")}
                     style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 12px 11px 4px", color: "var(--text)", fontSize: 14 }}
-                    required
                   />
                 </div>
+                {errors.repoUrl && <p style={{ color: "var(--amber)", fontSize: 12, marginTop: 4 }}>{errors.repoUrl.message}</p>}
               </div>
 
               {/* Target role */}
@@ -146,8 +154,7 @@ export default function Page() {
                     id="target-role"
                     type="text"
                     placeholder="e.g. SWE Intern, Backend Engineer, ML Engineer"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
+                    {...register("role")}
                     style={{ width: "100%", background: "transparent", border: "none", outline: "none", padding: "11px 12px", color: "var(--text)", fontSize: 14 }}
                   />
                 </div>
@@ -168,8 +175,7 @@ export default function Page() {
                     <textarea
                       id="jd-text"
                       placeholder="Paste the job description here..."
-                      value={jd}
-                      onChange={(e) => setJd(e.target.value)}
+                      {...register("jd")}
                       rows={4}
                       style={{ width: "100%", background: "transparent", border: "none", outline: "none", padding: "11px 12px", color: "var(--text)", fontSize: 14, resize: "vertical", fontFamily: "inherit" }}
                     />
@@ -264,36 +270,83 @@ export default function Page() {
             ))}
           </div>
         </div>
+        <div className="card" style={{ padding: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Your 2-Minute Pitch</h3>
+            <button onClick={copyPitch} style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 12px", fontSize: 12, color: "var(--text-muted)", cursor: "pointer" }}>
+              {copied ? "✓ Copied" : "Copy pitch"}
+            </button>
+          </div>
+          <p style={{ color: "var(--text)", fontSize: 15, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{brief?.pitch || "Pitch not available."}</p>
+          <div style={{ marginTop: 16, padding: "12px 14px", background: "var(--accent-glow)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 8, fontSize: 13, color: "var(--accent-light)" }}>
+            💡 Record yourself delivering this pitch. Aim for 90–120 seconds.
+          </div>
+        </div>
+        <div className="card" style={{ padding: 24 }}>
+          <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12 }}>Strengths to Highlight</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {(brief?.strengths_to_highlight || []).map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px", borderLeft: "3px solid var(--green)", background: "var(--green-bg)", borderRadius: "0 6px 6px 0" }}>
+                <span style={{ color: "var(--green)", flexShrink: 0 }}>✓</span>
+                <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.6 }}>{s}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     ),
 
-    architecture: (
-      <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {analysis?.architecture?.mermaid_diagram && (
-          <div className="card" style={{ padding: 24, textAlign: "center" }}>
-            <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 16 }}>Architecture Diagram</h3>
-            <img 
-              src={`https://mermaid.ink/img/${btoa(String.fromCharCode(...new TextEncoder().encode(analysis.architecture.mermaid_diagram.trim())))}`}
-              alt="Architecture Diagram" 
-              style={{ maxWidth: "100%", borderRadius: 8 }} 
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
+    architecture: (() => {
+      const diagram = analysis?.architecture?.mermaid_diagram;
+      const hasDiagram = diagram && diagram !== "NOT_AVAILABLE" && diagram.trim().length > 0;
+      return (
+        <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {hasDiagram ? (
+            <div className="card" style={{ padding: 24, textAlign: "center" }}>
+              <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 16 }}>Architecture Diagram</h3>
+              <img
+                src={`https://mermaid.ink/img/${btoa(Array.from(new TextEncoder().encode(diagram!.trim()), byte => String.fromCharCode(byte)).join(''))}`}
+                alt="Architecture Diagram"
+                style={{ maxWidth: "100%", borderRadius: 8 }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 20, display: "flex", alignItems: "center", gap: 12, borderLeft: "3px solid var(--border)" }}>
+              <span style={{ fontSize: 20 }}>📐</span>
+              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Architecture diagram could not be determined from the repository content. The README may not describe the system architecture in enough detail.</p>
+            </div>
+          )}
+          <div className="card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12 }}>Data Flow Summary</h3>
+            <p style={{ color: "var(--text)", fontSize: 15, lineHeight: 1.7 }}>{analysis?.architecture?.flow_summary || "Data flow summary not available."}</p>
           </div>
-        )}
-        <div className="card" style={{ padding: 24 }}>
-          <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12 }}>Data Flow Summary</h3>
-          <p style={{ color: "var(--text)", fontSize: 15, lineHeight: 1.7 }}>{analysis?.architecture?.flow_summary || "Data flow summary not available."}</p>
+          <div className="card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12 }}>Design Trade-offs</h3>
+            <ul style={{ margin: 0, paddingLeft: 20, color: "var(--text)", fontSize: 14, lineHeight: 1.7 }}>
+              {(analysis?.architecture?.tradeoffs || []).map((t, i) => (
+                <li key={i} style={{ marginBottom: 8 }}>{t}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12 }}>⚠ Red Flags</h3>
+            {!(brief?.red_flags?.length) ? (
+              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No significant red flags detected 🎉</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {brief.red_flags.map((r, i) => (
+                  <div key={i} style={{ padding: "12px 16px", borderLeft: "3px solid var(--amber)", background: "rgba(245,158,11,0.05)", borderRadius: "0 6px 6px 0" }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--amber)", marginBottom: 4 }}>{r?.observation}</p>
+                    <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}><strong>How to address: </strong>{r?.how_to_address}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="card" style={{ padding: 24 }}>
-          <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12 }}>Design Trade-offs</h3>
-          <ul style={{ margin: 0, paddingLeft: 20, color: "var(--text)", fontSize: 14, lineHeight: 1.7 }}>
-            {(analysis?.architecture?.tradeoffs || []).map((t, i) => (
-              <li key={i} style={{ marginBottom: 8 }}>{t}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    ),
+      );
+    })(),
 
     pitch: (
       <div className="fade-in">
@@ -315,7 +368,7 @@ export default function Page() {
     grill: (
       <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ marginBottom: 10, padding: "12px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, fontSize: 13, color: "#f87171" }}>
-          🔥 <strong>The Grill Me Simulation:</strong> These are highly aggressive, technical questions designed to stress-test your architecture decisions.
+          🔥 <strong>The Grill Me Simulation:</strong> Highly aggressive technical questions targeting real weaknesses in your code.
         </div>
         {(analysis?.grill_me?.questions || []).map((q, i) => (
           <div key={i} className="card" style={{ overflow: "hidden" }}>
@@ -337,6 +390,20 @@ export default function Page() {
             )}
           </div>
         ))}
+        {(brief?.concepts_to_review?.length ?? 0) > 0 && (
+          <>
+            <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 12, marginBottom: 4 }}>📚 Concepts to Study</h3>
+            {(brief?.concepts_to_review || []).map((c, i) => (
+              <div key={i} className="card" style={{ padding: 16, display: "flex", alignItems: "flex-start", gap: 14 }}>
+                <span className={`badge ${depthClass[c?.depth_needed || "surface"]}`}>{c?.depth_needed}</span>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{c?.concept}</p>
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{c?.why_relevant}</p>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     ),
 
@@ -364,22 +431,6 @@ export default function Page() {
                 </div>
               </div>
             )}
-          </div>
-        ))}
-      </div>
-    ),
-
-    concepts: (
-      <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {(brief?.concepts_to_review || []).map((c, i) => (
-          <div key={i} className="card" style={{ padding: 18, display: "flex", alignItems: "flex-start", gap: 14 }}>
-            <div style={{ flexShrink: 0, paddingTop: 2 }}>
-              <span className={`badge ${depthClass[c?.depth_needed || "surface"]}`}>{c?.depth_needed}</span>
-            </div>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{c?.concept}</p>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{c?.why_relevant}</p>
-            </div>
           </div>
         ))}
       </div>
@@ -419,39 +470,12 @@ export default function Page() {
       </div>
     ),
 
-    redflags: (
-      <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {!(brief?.red_flags?.length) ? (
-          <div className="card" style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
-            No significant red flags detected 🎉
-          </div>
-        ) : (
-          brief.red_flags.map((r, i) => (
-            <div key={i} className="card" style={{ padding: 18, borderLeft: "3px solid var(--amber)" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--amber)", marginBottom: 6 }}>⚠ {r?.observation}</p>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}><span style={{ fontWeight: 600, color: "var(--text-muted)" }}>How to address: </span>{r?.how_to_address}</p>
-            </div>
-          ))
-        )}
-      </div>
-    ),
-
-    strengths: (
-      <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {(brief?.strengths_to_highlight || []).map((s, i) => (
-          <div key={i} className="card" style={{ padding: 16, display: "flex", alignItems: "flex-start", gap: 12, borderLeft: "3px solid var(--green)" }}>
-            <span style={{ color: "var(--green)", flexShrink: 0, marginTop: 1 }}>✓</span>
-            <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.6 }}>{s}</p>
-          </div>
-        ))}
-      </div>
-    ),
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+    <div style={{ minHeight: "100vh" }}>
       {/* Top bar */}
-      <div style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(13,17,23,0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(10, 10, 15, 0.4)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", gap: 16 }}>
           <button onClick={() => { setStep("input"); setAnalysis(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 13, display: "flex", alignItems: "center", gap: 6, padding: "6px 0", flexShrink: 0 }}>
             ← New Analysis

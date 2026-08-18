@@ -38,11 +38,13 @@ Most candidates struggle to talk about their own projects under pressure. They b
 ## Setup
 
 ### 1. Lamatic Flow
+
 1. **Add Firecrawl credential** in Lamatic Studio → Credentials → Firecrawl
 2. **Select your LLM** in all four `Generate Text` nodes — configure model and credential
 3. **Deploy the flow**
 
 ### 2. Next.js Dashboard (optional local UI)
+
 ```bash
 cd apps
 cp .env.example .env.local
@@ -50,6 +52,7 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000).
 
 ---
@@ -85,10 +88,29 @@ Send a POST request to the deployed flow endpoint:
     "tech_stack": ["Python", "FastAPI", "React", "Vite", "Docker", "Redis"],
     "complexity_level": "mid",
     "pitch": "For my project ATLAS, I built a distributed AI orchestration platform...",
-    "follow_up_questions": [...],
-    "concepts_to_review": [...],
-    "red_flags": [...],
-    "strengths_to_highlight": [...]
+    "follow_up_questions": [
+      {
+        "question": "How did you handle race conditions in the distributed queue?",
+        "why_they_ask": "Testing your understanding of concurrent state management.",
+        "suggested_answer": "I used Redis transactions (MULTI/EXEC) to ensure atomicity."
+      }
+    ],
+    "concepts_to_review": [
+      {
+        "concept": "Distributed Locks",
+        "why_relevant": "Critical for the queue worker implementation.",
+        "depth_needed": "moderate"
+      }
+    ],
+    "red_flags": [
+      {
+        "observation": "API lacks rate limiting.",
+        "how_to_address": "Acknowledge it was out of scope for MVP, but suggest Redis sliding window."
+      }
+    ],
+    "strengths_to_highlight": [
+      "Clean separation of concerns between API and worker processes."
+    ]
   },
   "architecture": {
     "mermaid_diagram": "graph TD\n  A[API] --> B[Worker]",
