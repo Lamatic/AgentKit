@@ -46,7 +46,12 @@ export const meta = {
   "tags": [
     "✨ Generative"
   ],
-  "testInput": null,
+  "testInput": {
+    "issueDescription": "A ceiling has a brown water stain that has been slowly growing for a week",
+    "imageUrl": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a",
+    "homeType": "house",
+    "issueLocation": "master bathroom ceiling"
+  },
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": "https://studio.lamatic.ai/template/home-maintenance-triage",
@@ -84,7 +89,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"issueDescription\": {\n      \"type\": \"string\",\n      \"description\": \"Description of the home maintenance issue\"\n    },\n    \"imageUrl\": {\n      \"type\": \"string\",\n      \"description\": \"Optional public HTTPS URL or base64 data URI of a photo of the issue\"\n    },\n    \"homeType\": {\n      \"type\": \"string\",\n      \"description\": \"Optional type of home (house, apartment, condo, etc.)\"\n    },\n    \"issueLocation\": {\n      \"type\": \"string\",\n      \"description\": \"Optional location of the issue within the home\"\n    }\n  },\n  \"required\": [\n    \"issueDescription\"\n  ]\n}"
       }
     }
   },
