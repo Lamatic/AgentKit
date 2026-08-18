@@ -6,6 +6,7 @@ import type { PrepBrief, RepoAnalysis } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Search, Code2, ChevronRight, ChevronDown } from "lucide-react";
 
 const InputSchema = z.object({
   repoUrl: z.string().min(1, "Repository URL is required"),
@@ -107,94 +108,94 @@ export default function Page() {
   // ─── INPUT ─────────────────────────────────────────────────────
   if (step === "input") {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-        <div style={{ maxWidth: 520, width: "100%" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="max-w-[520px] w-full">
           {/* Brand */}
-          <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="var(--accent-light)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>Repo<span className="gradient-text">Prep</span></span>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2.5 mb-4">
+              <Code2 className="w-7 h-7 text-[var(--accent-light)]" strokeWidth={2} />
+              <span className="text-[22px] font-bold text-[var(--text)]">Repo<span className="gradient-text">Prep</span></span>
             </div>
-            <h1 style={{ fontSize: 32, fontWeight: 800, lineHeight: 1.2, color: "var(--text)", marginBottom: 10 }}>
+            <h1 className="text-[32px] font-extrabold leading-tight text-[var(--text)] mb-2.5">
               Turn your projects into<br /><span className="gradient-text">interview gold</span>
             </h1>
-            <p style={{ color: "var(--text-muted)", fontSize: 15 }}>
+            <p className="text-[var(--text-muted)] text-[15px]">
               Paste a GitHub repo URL. Get a complete, code-specific prep brief in seconds.
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="card p-6 flex flex-col gap-4">
               {/* URL input */}
               <div>
-                <label htmlFor="github-url" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <label htmlFor="github-url" className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-[0.5px]">
                   GitHub Repository URL *
                 </label>
-                <div className="glow-border" style={{ borderRadius: 8, display: "flex", alignItems: "center", background: "var(--surface-2)" }}>
-                  <span style={{ paddingLeft: 12, color: "var(--text-subtle)", flexShrink: 0, fontSize: 13 }}>github.com/</span>
+                <div className="glow-border rounded-lg flex items-center bg-[var(--surface-2)]">
+                  <span className="pl-3 text-[var(--text-subtle)] shrink-0 text-[13px]">github.com/</span>
                   <input
                     id="github-url"
                     type="text"
                     placeholder="owner/repo"
                     {...register("repoUrl")}
-                    style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 12px 11px 4px", color: "var(--text)", fontSize: 14 }}
+                    className="flex-1 bg-transparent border-none outline-none py-[11px] pr-3 pl-1 text-[var(--text)] text-[14px]"
                   />
                 </div>
-                {errors.repoUrl && <p style={{ color: "var(--amber)", fontSize: 12, marginTop: 4 }}>{errors.repoUrl.message}</p>}
+                {errors.repoUrl && <p className="text-[var(--amber)] text-xs mt-1">{errors.repoUrl.message}</p>}
               </div>
 
               {/* Target role */}
               <div>
-                <label htmlFor="target-role" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                  Target Role <span style={{ fontWeight: 400, color: "var(--text-subtle)" }}>(optional)</span>
+                <label htmlFor="target-role" className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-[0.5px]">
+                  Target Role <span className="font-normal text-[var(--text-subtle)]">(optional)</span>
                 </label>
-                <div className="glow-border" style={{ borderRadius: 8, background: "var(--surface-2)" }}>
+                <div className="glow-border rounded-lg bg-[var(--surface-2)]">
                   <input
                     id="target-role"
                     type="text"
                     placeholder="e.g. SWE Intern, Backend Engineer, ML Engineer"
                     {...register("role")}
-                    style={{ width: "100%", background: "transparent", border: "none", outline: "none", padding: "11px 12px", color: "var(--text)", fontSize: 14 }}
+                    className="w-full bg-transparent border-none outline-none py-[11px] px-3 text-[var(--text)] text-[14px]"
                   />
                 </div>
               </div>
 
               {/* JD toggle */}
-              <button type="button" onClick={() => setShowJd(!showJd)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 13, display: "flex", alignItems: "center", gap: 6, padding: 0, width: "fit-content" }}>
-                <span style={{ transform: showJd ? "rotate(90deg)" : "none", transition: "transform 0.2s", display: "inline-block" }}>▶</span>
+              <button type="button" onClick={() => setShowJd(!showJd)} className="bg-transparent border-none cursor-pointer text-[var(--text-muted)] text-[13px] flex items-center gap-1.5 p-0 w-fit">
+                {showJd ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 {showJd ? "Hide" : "Add"} job description for tailored questions
               </button>
 
               {showJd && (
                 <div className="fade-in">
-                  <label htmlFor="jd-text" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <label htmlFor="jd-text" className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-[0.5px]">
                     Job Description
                   </label>
-                  <div className="glow-border" style={{ borderRadius: 8, background: "var(--surface-2)" }}>
+                  <div className="glow-border rounded-lg bg-[var(--surface-2)]">
                     <textarea
                       id="jd-text"
                       placeholder="Paste the job description here..."
                       {...register("jd")}
                       rows={4}
-                      style={{ width: "100%", background: "transparent", border: "none", outline: "none", padding: "11px 12px", color: "var(--text)", fontSize: 14, resize: "vertical", fontFamily: "inherit" }}
+                      className="w-full bg-transparent border-none outline-none py-[11px] px-3 text-[var(--text)] text-[14px] resize-y [font-family:inherit]"
                     />
                   </div>
                 </div>
               )}
 
               {error && (
-                <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "12px 14px", color: "#f87171", fontSize: 13 }}>
+                <div className="bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] rounded-lg py-3 px-3.5 text-[#f87171] text-[13px]">
                   {error}
                 </div>
               )}
 
-              <button id="analyze-btn" type="submit" className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "14px 24px", fontSize: 15 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <button id="analyze-btn" type="submit" className="btn-primary w-full justify-center py-3.5 px-6 text-[15px]">
+                <Search className="w-[18px] h-[18px]" strokeWidth={2} />
                 Analyze Repository
               </button>
 
-              <p style={{ textAlign: "center", color: "var(--text-subtle)", fontSize: 12 }}>
+              <p className="text-center text-[var(--text-subtle)] text-xs">
                 Works with any public GitHub repository
               </p>
             </div>
