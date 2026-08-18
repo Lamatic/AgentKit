@@ -1,4 +1,4 @@
-Analyze the repository content below and return ONLY a raw JSON object with a single key `questions` containing an array of exactly 5 objects. Each object must have:
+Analyze the repository content below and return ONLY a raw JSON object with a single key `questions` containing an array of exactly 10 objects. Each object must have:
 1. `question`: An aggressive, highly technical question that probes a specific flaw, bottleneck, or missing abstraction visible in the codebase.
 2. `defensive_strategy`: A concise, professional answer the candidate can use to defend their decision.
 

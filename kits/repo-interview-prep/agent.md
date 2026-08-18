@@ -51,9 +51,9 @@ API Trigger → Code Node → Firecrawl Node → LLM #1 (prep_brief) → LLM #2 
 
 ## Guardrails
 
-- All prompts treat scraped repository content as **untrusted external data** and explicitly instruct the model not to follow instructions found inside it, preventing prompt injection attacks from malicious READMEs
+- All prompts treat scraped repository content as **untrusted external data** and explicitly instruct the model not to follow instructions found inside it, reducing prompt-injection risk from malicious READMEs
 - Every LLM node instructs the model to return **raw JSON only** — no markdown fences, no preamble
-- The `jsonrepair` library on the Next.js frontend provides a fallback parse layer for truncated outputs
+- The `jsonrepair` library on the Next.js server action provides a fallback parse layer for truncated outputs
 - The constitution (`@constitutions/default.md`) applies standard safety, PII, and tone guardrails
 
 ---
@@ -64,18 +64,20 @@ API Trigger → Code Node → Firecrawl Node → LLM #1 (prep_brief) → LLM #2 
 |---|---|---|
 | Firecrawl | Scrapes GitHub repository page for README and file listing | Yes — configure Firecrawl credentials in Lamatic |
 | LLM Provider | Generates all four analysis sections | Yes — configure model in all four `Generate Text` nodes |
-| GitHub Token | Increases GitHub API rate limits | No — optional, passed as `github_token` in request payload |
+| GitHub Token | Not currently used (placeholder) | No — optional, passed as `github_token` in request payload |
 
 ---
 
 ## Environment Setup
 
 ### Lamatic Flow
+
 1. **Firecrawl API Key** — sign up at [firecrawl.dev](https://firecrawl.dev) (free tier: 500 pages/month), add credential in Lamatic Studio
 2. **LLM Model** — any capable chat model works; recommended: `gemini-2.0-flash` or `gpt-4o-mini`
 3. Deploy the flow and copy the **Flow ID** and **Project API Key** from Lamatic Studio → Settings → API Docs
 
 ### Next.js Dashboard
+
 ```bash
 cd apps
 cp .env.example .env.local
@@ -93,7 +95,7 @@ npm run dev
 | `github_repo_url` | `string` | Yes | Full GitHub URL, e.g. `https://github.com/username/repo` |
 | `target_role` | `string` | No | Role the candidate is interviewing for, e.g. `SWE Intern` |
 | `jd_text` | `string` | No | Job description text to tailor questions to a specific role |
-| `github_token` | `string` | No | Personal access token for GitHub (increases rate limits) |
+| `github_token` | `string` | No | Personal access token for GitHub (placeholder, not currently used) |
 
 ---
 
