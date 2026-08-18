@@ -45,7 +45,12 @@ export default function Page() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!repoUrl.trim()) return;
+    // Normalize: accept both "owner/repo" and full "https://github.com/owner/repo"
+    const raw = repoUrl.trim();
+    const normalizedUrl = raw.startsWith("https://github.com/")
+      ? raw
+      : `https://github.com/${raw.replace(/^\//, "")}`;
+    if (!normalizedUrl) return;
     setError(null);
     setStep("loading");
     setLoadStep(0);
@@ -55,7 +60,7 @@ export default function Page() {
       setLoadStep((p) => (p < LOAD_STEPS.length - 1 ? p + 1 : p));
     }, 4500); // Slower because 4 sequential LLMs take ~30-40s
 
-    const result = await generatePrepBrief(repoUrl.trim(), role, jd);
+    const result = await generatePrepBrief(normalizedUrl, role, jd);
     clearInterval(interval);
 
     if (result.success && result.data) {
@@ -114,7 +119,7 @@ export default function Page() {
             <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               {/* URL input */}
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <label htmlFor="github-url" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   GitHub Repository URL *
                 </label>
                 <div className="glow-border" style={{ borderRadius: 8, display: "flex", alignItems: "center", background: "var(--surface-2)" }}>
@@ -124,7 +129,7 @@ export default function Page() {
                     type="text"
                     placeholder="owner/repo"
                     value={repoUrl.replace("https://github.com/", "")}
-                    onChange={(e) => setRepoUrl("https://github.com/" + e.target.value)}
+                    onChange={(e) => setRepoUrl(e.target.value)}
                     style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 12px 11px 4px", color: "var(--text)", fontSize: 14 }}
                     required
                   />
@@ -133,7 +138,7 @@ export default function Page() {
 
               {/* Target role */}
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <label htmlFor="target-role" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   Target Role <span style={{ fontWeight: 400, color: "var(--text-subtle)" }}>(optional)</span>
                 </label>
                 <div className="glow-border" style={{ borderRadius: 8, background: "var(--surface-2)" }}>
@@ -156,7 +161,7 @@ export default function Page() {
 
               {showJd && (
                 <div className="fade-in">
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <label htmlFor="jd-text" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     Job Description
                   </label>
                   <div className="glow-border" style={{ borderRadius: 8, background: "var(--surface-2)" }}>
@@ -268,7 +273,7 @@ export default function Page() {
           <div className="card" style={{ padding: 24, textAlign: "center" }}>
             <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 16 }}>Architecture Diagram</h3>
             <img 
-              src={`https://mermaid.ink/img/${btoa(analysis.architecture.mermaid_diagram.trim())}`} 
+              src={`https://mermaid.ink/img/${btoa(String.fromCharCode(...new TextEncoder().encode(analysis.architecture.mermaid_diagram.trim())))}`}
               alt="Architecture Diagram" 
               style={{ maxWidth: "100%", borderRadius: 8 }} 
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}

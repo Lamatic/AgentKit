@@ -49,14 +49,15 @@
  * | `github_token`    | `string` | No       | GitHub PAT — not required for public repos; future-proofing     |
  *
  * ## Outputs
- * | Field        | Type     | Description                                                              |
+ * | Field          | Type     | Description                                                                        |
  * |---|---|---|
- * | `prep_brief` | `string` | Raw JSON string containing the full interview preparation brief object   |
+ * | `prep_brief`   | `string` | JSON string — full interview brief (pitch, questions, concepts, red flags)         |
+ * | `architecture` | `string` | JSON string — Mermaid diagram, data flow summary, and design trade-offs            |
+ * | `grill_me`     | `string` | JSON string — 5 aggressive technical questions with defensive strategies           |
+ * | `production`   | `string` | JSON string — production-readiness verdict, critical gaps, and quick-win fixes     |
  *
- * The `prep_brief` JSON contains: `project_summary`, `tech_stack`, `complexity_level`, `pitch`,
- * `follow_up_questions` (array of 15), `concepts_to_review` (min 5), `red_flags` (all found),
- * and `strengths_to_highlight`. Each `follow_up_question` includes the question text, the
- * interviewer signal being tested, and a suggested answer the candidate can personalize.
+ * Each field is a raw JSON string that must be parsed by the caller. The Next.js frontend
+ * uses `jsonrepair` as a fallback to handle truncated or slightly malformed LLM output.
  *
  * ## Dependencies
  * ### Upstream Flows
