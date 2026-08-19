@@ -8,15 +8,31 @@ const deadline = {{InstructorLLMNode_481.output.appealDeadline}};
 let daysRemaining = null;
 let urgencyLevel = "unknown";
 
+// Reduces a value to midnight on its own calendar day. A date-only string like
+// "2026-08-19" is parsed as UTC midnight, so comparing it against a wall-clock "now"
+// made a deadline falling today read as expired at -1 days. Both sides are normalised
+// to a calendar day so the result is a pure day difference.
+function startOfDay(value) {
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
+  if (dateOnly) {
+    return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3])).getTime();
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()).getTime();
+}
+
 if (deadline) {
-  const deadlineDate = new Date(deadline);
-  // An unparseable date yields NaN, and every comparison below would be false —
-  // falling through to "low" and reporting false reassurance on a real deadline.
-  // Leave daysRemaining null / urgencyLevel "unknown" instead.
-  if (!Number.isNaN(deadlineDate.getTime())) {
-    const today = new Date();
+  const deadlineMs = startOfDay(deadline);
+  // An unparseable date yields null here; leaving daysRemaining null and urgencyLevel
+  // "unknown" avoids the previous fall-through to "low", which reported false
+  // reassurance on a real deadline.
+  if (deadlineMs !== null) {
+    const todayMs = startOfDay(new Date());
     const msPerDay = 1000 * 60 * 60 * 24;
-    daysRemaining = Math.ceil((deadlineDate.getTime() - today.getTime()) / msPerDay);
+    // Rounded, not ceiled: a DST transition makes the span between two local midnights
+    // 23 or 25 hours, which would otherwise shift the count by a whole day.
+    daysRemaining = Math.round((deadlineMs - todayMs) / msPerDay);
 
     if (daysRemaining < 0) urgencyLevel = "expired";
     else if (daysRemaining <= 7) urgencyLevel = "critical";

@@ -18,7 +18,15 @@ export interface ExampleScenario {
 function daysFromNow(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  // Formatted from local calendar components, not toISOString(): setDate() applies the
+  // offset in local time, so converting to UTC afterwards shifts the result onto the
+  // next day for anyone east of the date line at that moment (e.g. 8pm EDT would emit
+  // tomorrow's date). computeDeadlineUrgency reads these back as local dates.
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 /** Builds the example scenarios with deadlines relative to today. */

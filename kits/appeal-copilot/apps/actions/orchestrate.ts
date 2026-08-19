@@ -19,6 +19,7 @@ const TIMEOUT_MS = 280000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 10;
 const recentRequests = new Map<string, number[]>();
+let lastPruneAt = 0;
 
 async function isOverRequestBudget(): Promise<boolean> {
   const forwardedFor = (await headers()).get("x-forwarded-for");
@@ -29,8 +30,12 @@ async function isOverRequestBudget(): Promise<boolean> {
   hits.push(now);
   recentRequests.set(client, hits);
 
-  // Opportunistic sweep so the map can't grow without bound on a long-lived instance.
-  if (recentRequests.size > 1000) {
+  // Sweep on a fixed interval rather than when the map grows past a size threshold: the
+  // entries are IP-derived, so a size-gated sweep would retain identifiers of inactive
+  // clients indefinitely on an instance that never crosses the threshold. Nothing older
+  // than the current window is kept.
+  if (now - lastPruneAt >= RATE_LIMIT_WINDOW_MS) {
+    lastPruneAt = now;
     for (const [key, times] of recentRequests) {
       if (times.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) recentRequests.delete(key);
     }
