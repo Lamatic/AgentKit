@@ -53,7 +53,7 @@ API Trigger → Code Node → Firecrawl Node → LLM #1 (prep_brief) → LLM #2 
 
 - All prompts treat scraped repository content as **untrusted external data** and explicitly instruct the model not to follow instructions found inside it, reducing prompt-injection risk from malicious READMEs
 - Every LLM node instructs the model to return **raw JSON only** — no markdown fences, no preamble
-- The `jsonrepair` library on the Next.js server action provides a fallback parse layer for truncated outputs
+- The `jsonrepair` library on the Next.js server action provides a fallback parse layer for truncated or slightly malformed LLM outputs
 - The constitution (`@constitutions/default.md`) applies standard safety, PII, and tone guardrails
 
 ---
@@ -64,7 +64,7 @@ API Trigger → Code Node → Firecrawl Node → LLM #1 (prep_brief) → LLM #2 
 |---|---|---|
 | Firecrawl | Scrapes GitHub repository page for README and file listing | Yes — configure Firecrawl credentials in Lamatic |
 | LLM Provider | Generates all four analysis sections | Yes — configure model in all four `Generate Text` nodes |
-| GitHub Token | Not currently used (placeholder) | No — optional, passed as `github_token` in request payload |
+| GitHub Token | Not currently used; `firecrawlNode_808` does not pass it to any API call | No — optional, passed as `github_token` in request payload |
 
 ---
 
