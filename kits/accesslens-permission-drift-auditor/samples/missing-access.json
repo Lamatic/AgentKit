@@ -1,0 +1,36 @@
+{
+  "name": "Missing read access for finance analyst",
+  "description": "Detects intended access that is absent from the current access state.",
+  "intended_policy": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "current_access": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": []
+          }
+        ]
+      }
+    ]
+  },
+  "expected_result": {
+    "status": "DRIFT DETECTED",
+    "category": "MISSING_ACCESS",
+    "risk": "MEDIUM",
+    "difference": "READ permission is present in the intended policy but missing from current access."
+  }
+}
