@@ -85,8 +85,20 @@ export async function executeAndAnalyze(
 
     const resData = await lamaticClient.executeFlow(RESULT_ANALYZER_ID, inputs);
 
-    const summary = resData?.result?.summary;
-    const findings = resData?.result?.findings;
+    let parsedResult = resData?.result;
+
+    // If the LLM returned a raw string, we need to safely parse it
+    if (typeof parsedResult === "string") {
+      try {
+        const cleanStr = parsedResult.replace(/```(?:json)?/g, "").trim();
+        parsedResult = JSON.parse(cleanStr);
+      } catch (e) {
+        console.error("Failed to parse analyzer string output:", parsedResult);
+      }
+    }
+
+    const summary = parsedResult?.summary;
+    const findings = parsedResult?.findings;
 
     if (!summary || !findings) {
       throw new Error("Failed to extract summary/findings from analyzer. Response: " + JSON.stringify(resData));
