@@ -52,7 +52,10 @@ export async function analyzeDenial(denialText: string, additionalContext: strin
       "The AI provider is taking longer than usual to respond. This usually means their service is overloaded. Please try again in a few minutes."
     );
 
-    const result = resData?.result;
+    // The Lamatic SDK wraps the flow's own output under a "result" key, and this flow's
+    // outputMapping also names its top-level field "result" — so the actual structured
+    // object is nested two levels deep: resData.result.result.
+    const result = resData?.result?.result;
     if (!result) {
       throw new Error("Flow execution failed or returned no result.");
     }
