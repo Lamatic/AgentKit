@@ -71,3 +71,29 @@ test("a full timestamp is reduced to its local calendar day", () => {
   const result = computeDeadlineUrgency("2026-08-24T13:45:00", new Date(2026, 7, 19, 22));
   assert.equal(result.daysRemaining, 5);
 });
+
+// Regression: the Date constructor rolls overflow components forward rather than
+// rejecting them, so "2026-02-30" became 2026-03-02 — reporting two more days of runway
+// than the stated deadline actually allows.
+test("an impossible calendar date is unknown, not rolled forward", () => {
+  for (const bad of [
+    "2026-02-30", // February never has 30 days
+    "2026-02-29", // 2026 is not a leap year
+    "2026-04-31", // April has 30
+    "2026-13-01", // month out of range
+    "2026-00-10", // month zero
+    "2026-06-00", // day zero
+    "2026-06-32", // day out of range
+  ]) {
+    const result = computeDeadlineUrgency(bad, REF);
+    assert.equal(result.urgencyLevel, "unknown", bad);
+    assert.equal(result.daysRemaining, null, bad);
+  }
+});
+
+test("real calendar dates near the overflow boundaries still parse", () => {
+  assert.equal(computeDeadlineUrgency("2026-02-28", new Date(2026, 1, 26)).daysRemaining, 2);
+  assert.equal(computeDeadlineUrgency("2024-02-29", new Date(2024, 1, 27)).daysRemaining, 2); // leap year
+  assert.equal(computeDeadlineUrgency("2026-12-31", new Date(2026, 11, 30)).daysRemaining, 1);
+  assert.equal(computeDeadlineUrgency("2026-01-01", new Date(2025, 11, 31)).daysRemaining, 1);
+});
