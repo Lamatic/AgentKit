@@ -185,7 +185,7 @@ export default function Page() {
               )}
 
               {error && (
-                <div className="bg-[var(--red-bg)] border border-[rgba(239,68,68,0.2)] rounded-lg py-3 px-3.5 text-[var(--red)] text-[13px]">
+                <div className="bg-[var(--red-bg)] border border-[var(--red-border)] rounded-lg py-3 px-3.5 text-[var(--red)] text-[13px]">
                   {error}
                 </div>
               )}
@@ -201,13 +201,13 @@ export default function Page() {
             </div>
           </form>
 
-          <p style={{ textAlign: "center", color: "var(--text-subtle)", fontSize: 12, marginTop: 20 }}>
+          <p className="text-center text-[var(--text-subtle)] text-[12px] mt-5">
             Powered by{" "}
-            <a href="https://lamatic.ai" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-light)", textDecoration: "none" }}>
+            <a href="https://lamatic.ai" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-light)] no-underline hover:underline">
               Lamatic.ai
             </a>
             {" · "}
-            <a href="https://github.com/Lamatic/AgentKit/tree/main/kits/repo-interview-prep" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-light)", textDecoration: "none" }}>
+            <a href="https://github.com/Lamatic/AgentKit/tree/main/kits/repo-interview-prep" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-light)] no-underline hover:underline">
               View on GitHub
             </a>
           </p>

@@ -25,6 +25,7 @@
   --purple-bg: rgba(216, 180, 254, 0.1);
   --red: #f87171;
   --red-bg: rgba(239, 68, 68, 0.08);
+  --red-border: rgba(239, 68, 68, 0.2);
   
   --glass-blur: blur(20px);
 }
