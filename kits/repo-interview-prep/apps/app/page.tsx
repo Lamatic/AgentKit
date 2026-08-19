@@ -306,7 +306,15 @@ export default function Page() {
             <div className="card" style={{ padding: 24, textAlign: "center" }}>
               <h3 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 16 }}>Architecture Diagram</h3>
               <img
-                src={`https://mermaid.ink/img/${btoa(Array.from(new TextEncoder().encode(diagram!.trim()), byte => String.fromCharCode(byte)).join(''))}`}
+                src={(() => {
+                  const bytes = new TextEncoder().encode(diagram!.trim());
+                  let binary = "";
+                  const chunkSize = 8192;
+                  for (let i = 0; i < bytes.length; i += chunkSize) {
+                    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+                  }
+                  return `https://mermaid.ink/img/${btoa(binary)}`;
+                })()}
                 alt="Architecture Diagram"
                 style={{ maxWidth: "100%", borderRadius: 8 }}
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
