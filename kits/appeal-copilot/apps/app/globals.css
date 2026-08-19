@@ -8,6 +8,18 @@
   --muted: #6b6a63;
   --accent: #1c5cab;
   --accent-ink: #ffffff;
+
+  /* Status palette (validated: dataviz skill) — deliberately the same hex in light and
+     dark, and always paired with an icon + text label, since warning/serious fall below
+     3:1 contrast on the light surface. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --status-neutral: #898781;
+  /* Tinted derivatives of --status-critical, for the error panel's border and surface. */
+  --status-critical-border: rgba(208, 59, 59, 0.2);
+  --status-critical-surface: rgba(208, 59, 59, 0.05);
 }
 
 @theme inline {

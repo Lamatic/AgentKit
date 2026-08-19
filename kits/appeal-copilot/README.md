@@ -65,7 +65,8 @@ To run it live: build the flow in Lamatic Studio following the node-by-node spec
 ## Setup Instructions
 
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js 22.6+ and npm — the app itself runs on Node 20.9+, but `npm test` uses
+  `--experimental-strip-types` to run the TypeScript tests directly, which needs 22.6+
 - A Lamatic account (only required for live mode — demo mode needs neither)
 
 ### 1. Build the flow in Lamatic Studio (for live mode)
