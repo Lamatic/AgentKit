@@ -151,13 +151,24 @@ export default function SentinelDashboard() {
     setError('');
   };
 
-  const risk = analysis?.riskLevel ?? analysis?.executiveSummary?.deploymentRisk ?? 'LOW';
-  const recommendation = analysis?.executiveSummary?.recommendation ?? analysis?.summary ?? '';
-  const breakingCount = analysis?.breakingCount ?? 0;
-  const nonBreakingCount = analysis?.nonBreakingCount ?? 0;
-  const changes: any[] = analysis?.changes ?? [];
-  const detailedImpact: string[] = analysis?.detailedImpact ?? [];
-  const migrationGuide: string[] = analysis?.migrationGuide ?? [];
+  const toStringList = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+  const summary = analysis?.executiveSummary;
+
+  const risk = analysis?.riskLevel ?? (typeof summary?.deploymentRisk === 'string' ? summary.deploymentRisk : 'LOW');
+  const recommendation =
+    typeof summary === 'string'
+      ? summary
+      : typeof summary?.recommendation === 'string'
+        ? summary.recommendation
+        : typeof analysis?.summary === 'string'
+          ? analysis.summary
+          : '';
+  const breakingCount = typeof analysis?.breakingCount === 'number' ? analysis.breakingCount : 0;
+  const nonBreakingCount = typeof analysis?.nonBreakingCount === 'number' ? analysis.nonBreakingCount : 0;
+  const changes: any[] = Array.isArray(analysis?.changes) ? analysis.changes : [];
+  const detailedImpact: string[] = toStringList(analysis?.detailedImpact);
+  const migrationGuide: string[] = toStringList(analysis?.migrationGuide);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -166,7 +177,6 @@ export default function SentinelDashboard() {
       <header className="sticky top-0 z-10 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Hex icon */}
             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
                 <path d="M7.5 1L13.5 4.5V11.5L7.5 14L1.5 11.5V4.5L7.5 1Z" stroke="#818cf8" strokeWidth="1.4" strokeLinejoin="round"/>
@@ -210,8 +220,7 @@ export default function SentinelDashboard() {
               id="load-example-btn"
               type="button"
               onClick={loadExample}
-              suppressHydrationWarning
-              className="text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/40 rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap"
+              className="text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/40 rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap cursor-pointer"
             >
               Load breaking example
             </button>
@@ -229,12 +238,12 @@ export default function SentinelDashboard() {
               </div>
               <textarea
                 id="spec-a-input"
+                aria-label="Base OpenAPI specification"
                 value={specA}
                 onChange={(e) => setSpecA(e.target.value)}
                 placeholder={'{\n  "openapi": "3.0.0",\n  "info": { "title": "...", "version": "1.0.0" },\n  "paths": {}\n}'}
                 className="w-full h-52 bg-slate-950/50 px-4 py-3 text-xs font-mono text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none"
                 spellCheck={false}
-                suppressHydrationWarning
               />
             </div>
 
@@ -249,12 +258,12 @@ export default function SentinelDashboard() {
               </div>
               <textarea
                 id="spec-b-input"
+                aria-label="Target OpenAPI specification"
                 value={specB}
                 onChange={(e) => setSpecB(e.target.value)}
                 placeholder={'{\n  "openapi": "3.0.0",\n  "info": { "title": "...", "version": "2.0.0" },\n  "paths": {}\n}'}
                 className="w-full h-52 bg-slate-950/50 px-4 py-3 text-xs font-mono text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none"
                 spellCheck={false}
-                suppressHydrationWarning
               />
             </div>
           </div>
@@ -268,7 +277,7 @@ export default function SentinelDashboard() {
               type="button"
               onClick={handleAnalyze}
               disabled={loading}
-              suppressHydrationWarning
+              aria-busy={loading}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -291,7 +300,7 @@ export default function SentinelDashboard() {
 
         {/* ── Error state ───────────────────────────────────────────────── */}
         {error && (
-          <div id="error-panel" className="flex items-start gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
+          <div id="error-panel" role="alert" className="flex items-start gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
             <svg width="15" height="15" fill="none" viewBox="0 0 15 15" className="text-red-400 shrink-0 mt-0.5">
               <path d="M7.5 1.5L13.5 12.5H1.5L7.5 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
               <path d="M7.5 6V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
@@ -317,7 +326,7 @@ export default function SentinelDashboard() {
               <p className="text-xs text-slate-600 mt-1.5 max-w-xs">
                 Paste two OpenAPI specs above and click{' '}
                 <span className="text-indigo-400 font-medium">Analyze Drift</span>, or use the{' '}
-                <button type="button" onClick={loadExample} suppressHydrationWarning className="text-indigo-400 font-medium hover:underline">breaking example</button>{' '}
+                <button type="button" onClick={loadExample} className="text-indigo-400 font-medium hover:underline cursor-pointer">breaking example</button>{' '}
                 to see a live result.
               </p>
             </div>
