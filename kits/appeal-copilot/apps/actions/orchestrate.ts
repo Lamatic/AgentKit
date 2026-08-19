@@ -75,14 +75,10 @@ export async function analyzeDenial(denialText: string, additionalContext: strin
     return { success: false, error: "Paste the denial letter or EOB text before analyzing." };
   }
 
-  if (!isLamaticConfigured()) {
-    const data = getDemoResult(guessDemoScenario(trimmedDenialText));
-    return { success: true, data, demoMode: true };
-  }
-
-  // Past this point every request spends real model capacity, so bound the work before
-  // starting the flow. The client enforces the same limits from lib/limits.ts, but a
-  // server action is a public endpoint and cannot rely on that.
+  // Bounds are enforced ahead of the demo-mode branch so the request contract is identical
+  // whether or not Lamatic is configured — otherwise an unbounded string would still reach
+  // the scenario matching below. The client applies the same limits from lib/limits.ts, but
+  // a Server Action is a public endpoint and cannot rely on that.
   if (trimmedDenialText.length > MAX_DENIAL_TEXT_CHARS) {
     return {
       success: false,
@@ -98,6 +94,13 @@ export async function analyzeDenial(denialText: string, additionalContext: strin
     };
   }
 
+  if (!isLamaticConfigured()) {
+    const data = getDemoResult(guessDemoScenario(trimmedDenialText));
+    return { success: true, data, demoMode: true };
+  }
+
+  // The request budget stays live-mode only: it guards paid model spend, and throttling
+  // the zero-config demo would only degrade it.
   if (await isOverRequestBudget()) {
     return {
       success: false,
