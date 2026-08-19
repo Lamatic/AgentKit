@@ -15,7 +15,17 @@ let urgencyLevel = "unknown";
 function startOfDay(value) {
   const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
   if (dateOnly) {
-    return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3])).getTime();
+    const year = Number(dateOnly[1]);
+    const month = Number(dateOnly[2]);
+    const day = Number(dateOnly[3]);
+    const built = new Date(year, month - 1, day);
+    // The Date constructor rolls overflow values forward instead of rejecting them, so an
+    // extracted "2026-02-30" would silently become 2026-03-02 — two extra days of apparent
+    // runway on a legal deadline. Round-trip the components and reject any drift.
+    if (built.getFullYear() !== year || built.getMonth() !== month - 1 || built.getDate() !== day) {
+      return null;
+    }
+    return built.getTime();
   }
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;

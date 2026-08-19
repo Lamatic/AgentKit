@@ -23,8 +23,21 @@ function startOfLocalDay(value: string | Date): number | null {
 
   const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (dateOnly) {
-    const [, year, month, day] = dateOnly;
-    return new Date(Number(year), Number(month) - 1, Number(day)).getTime();
+    const year = Number(dateOnly[1]);
+    const month = Number(dateOnly[2]);
+    const day = Number(dateOnly[3]);
+    const built = new Date(year, month - 1, day);
+    // The Date constructor rolls overflow values forward rather than rejecting them, so
+    // "2026-02-30" would silently become 2026-03-02 — two extra days of apparent runway
+    // on a legal deadline. Round-trip the components and treat any drift as unparseable.
+    if (
+      built.getFullYear() !== year ||
+      built.getMonth() !== month - 1 ||
+      built.getDate() !== day
+    ) {
+      return null;
+    }
+    return built.getTime();
   }
 
   // Anything else (e.g. a full timestamp from the extraction model) goes through the

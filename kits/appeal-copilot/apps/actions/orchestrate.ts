@@ -27,7 +27,13 @@ async function isOverRequestBudget(): Promise<boolean> {
 
   const now = Date.now();
   const hits = (recentRequests.get(client) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  hits.push(now);
+  const overBudget = hits.length >= RATE_LIMIT_MAX_REQUESTS;
+
+  // Only admitted requests are recorded. Counting rejected attempts too would let a
+  // client's own retries keep refilling the window, so anything polling faster than the
+  // window never recovers — a lockout rather than the documented 10-per-60s. It also
+  // bounds the array at RATE_LIMIT_MAX_REQUESTS instead of growing with attack volume.
+  if (!overBudget) hits.push(now);
   recentRequests.set(client, hits);
 
   // Sweep on a fixed interval rather than when the map grows past a size threshold: the
@@ -41,7 +47,7 @@ async function isOverRequestBudget(): Promise<boolean> {
     }
   }
 
-  return hits.length > RATE_LIMIT_MAX_REQUESTS;
+  return overBudget;
 }
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
