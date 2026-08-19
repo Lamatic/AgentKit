@@ -97,3 +97,43 @@ test("real calendar dates near the overflow boundaries still parse", () => {
   assert.equal(computeDeadlineUrgency("2026-12-31", new Date(2026, 11, 30)).daysRemaining, 1);
   assert.equal(computeDeadlineUrgency("2026-01-01", new Date(2025, 11, 31)).daysRemaining, 1);
 });
+
+// Regression: overflow validation originally guarded only the date-only branch, so a
+// timestamped deadline bypassed it — "2026-02-30T10:00:00" still resolved to 2026-03-02.
+test("an impossible date is unknown even with a time component", () => {
+  for (const bad of [
+    "2026-02-30T10:00:00",
+    "2026-02-30T10:00:00Z",
+    "2026-02-30 10:00:00",
+    "2026-02-29T00:00:00", // 2026 is not a leap year
+    "2026-04-31T23:59:59",
+    "2026-06-32T10:00:00",
+    "2026-13-01T10:00:00",
+  ]) {
+    const result = computeDeadlineUrgency(bad, REF);
+    assert.equal(result.urgencyLevel, "unknown", bad);
+    assert.equal(result.daysRemaining, null, bad);
+  }
+});
+
+test("valid timestamped deadlines still resolve to their calendar day", () => {
+  for (const good of [
+    "2026-08-24T00:00:00",
+    "2026-08-24T13:45:00",
+    "2026-08-24T23:59:59Z",
+    "2026-08-24 13:45:00",
+  ]) {
+    assert.equal(computeDeadlineUrgency(good, REF).daysRemaining, 5, good);
+  }
+});
+
+// A format whose components cannot be recovered for validation is treated as unknown
+// rather than trusted: the lenient parser rolls these forward too ("2026/02/30" and
+// "February 30, 2026" both yield 2026-03-02), which would overstate the time remaining.
+test("non-ISO date formats are unknown rather than leniently parsed", () => {
+  for (const odd of ["2026/02/30", "February 30, 2026", "August 24, 2026", "24-08-2026", "N/A"]) {
+    const result = computeDeadlineUrgency(odd, REF);
+    assert.equal(result.urgencyLevel, "unknown", odd);
+    assert.equal(result.daysRemaining, null, odd);
+  }
+});
