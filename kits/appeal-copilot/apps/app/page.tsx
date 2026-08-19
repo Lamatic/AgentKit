@@ -10,15 +10,20 @@ import {
   Sparkles,
   Loader2,
   AlertTriangle,
-  RefreshCw,
   Copy,
   Check,
   Download,
   ShieldAlert,
   ShieldCheck,
   Clock,
-  ClipboardList,
+  ChevronDown,
   Info,
+  ArrowLeft,
+  Stethoscope,
+  FileClock,
+  Building2,
+  RefreshCw,
+  Pencil,
 } from "lucide-react";
 
 // Status palette (validated: dataviz skill) — same hex in light and dark, always paired
@@ -39,38 +44,86 @@ const CATEGORY_LABEL: Record<DenialCategory, string> = {
 };
 
 const URGENCY_CONFIG: Record<UrgencyLevel, { label: string; color: string; icon: typeof Clock }> = {
-  critical: { label: "Deadline in 7 days or less", color: STATUS.critical, icon: ShieldAlert },
-  moderate: { label: "Deadline within 30 days", color: STATUS.warning, icon: Clock },
-  low: { label: "Deadline more than 30 days out", color: STATUS.good, icon: ShieldCheck },
-  expired: { label: "Appeal deadline may have passed", color: STATUS.critical, icon: ShieldAlert },
-  unknown: { label: "Deadline not stated in the letter", color: STATUS.muted, icon: Clock },
+  critical: { label: "7 days or less", color: STATUS.critical, icon: ShieldAlert },
+  moderate: { label: "Within 30 days", color: STATUS.warning, icon: Clock },
+  low: { label: "More than 30 days out", color: STATUS.good, icon: ShieldCheck },
+  expired: { label: "May have already passed", color: STATUS.critical, icon: ShieldAlert },
+  unknown: { label: "Not stated in the letter", color: STATUS.muted, icon: Clock },
 };
 
 function strengthBand(score: number): { label: string; color: string } {
-  if (score >= 7) return { label: "Strong", color: STATUS.good };
+  if (score >= 7) return { label: "Strong appeal", color: STATUS.good };
   if (score >= 4) return { label: "Needs more evidence", color: STATUS.warning };
-  return { label: "Weak", color: STATUS.critical };
+  return { label: "Weak — significant gaps", color: STATUS.critical };
 }
 
 const LOADING_STEPS = [
-  "Classifying the denial reason...",
-  "Checking the appeal deadline...",
-  "Drafting a category-specific appeal letter...",
-  "Scoring appeal strength and evidence gaps...",
+  "Classifying the denial reason",
+  "Checking the appeal deadline",
+  "Drafting a category-specific appeal letter",
+  "Scoring appeal strength and evidence gaps",
 ];
+
+const EXAMPLE_META: Record<string, { icon: typeof Stethoscope; blurb: string }> = {
+  "medical-necessity": {
+    icon: Stethoscope,
+    blurb: "Insurer says the treatment wasn't medically necessary — strategy: request a peer-to-peer review.",
+  },
+  administrative: {
+    icon: FileClock,
+    blurb: "Missing prior authorization for an urgent visit — strategy: request retroactive authorization.",
+  },
+  coverage: {
+    icon: Building2,
+    blurb: "Out-of-network denial with no in-network option nearby — strategy: request a network exception.",
+  },
+};
+
+function StrengthGauge({ score, color }: { score: number; color: string }) {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.max(0, Math.min(10, score)) / 10;
+  return (
+    <div className="relative h-28 w-28 shrink-0">
+      <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
+        <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="9" className="stroke-black/[0.07] dark:stroke-white/[0.09]" />
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - progress)}
+          style={{ transition: "stroke-dashoffset 700ms ease-out" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-bold tabular-nums" style={{ color }}>
+          {score}
+        </span>
+        <span className="text-[11px] text-muted -mt-0.5">out of 10</span>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [denialText, setDenialText] = useState("");
   const [additionalContext, setAdditionalContext] = useState("");
+  const [showContext, setShowContext] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AppealResult | null>(null);
   const [demoMode, setDemoMode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editedLetter, setEditedLetter] = useState("");
+  const [isEditingLetter, setIsEditingLetter] = useState(false);
 
-  const runAnalysis = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performAnalysis = async () => {
     if (!denialText.trim()) {
       setError("Paste the denial letter or EOB text before analyzing.");
       return;
@@ -92,6 +145,8 @@ export default function Home() {
         throw new Error(response.error || "Analysis failed.");
       }
       setResult(response.data);
+      setEditedLetter(response.data.appealLetter);
+      setIsEditingLetter(false);
       setDemoMode(Boolean(response.demoMode));
     } catch (err) {
       clearInterval(interval);
@@ -101,344 +156,343 @@ export default function Home() {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    performAnalysis();
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      performAnalysis();
+    }
+  };
+
   const loadExample = (id: string) => {
     const scenario = EXAMPLE_SCENARIOS.find((s) => s.id === id);
     if (!scenario) return;
     setDenialText(scenario.denialText);
     setAdditionalContext(scenario.additionalContext);
+    setShowContext(true);
     setError(null);
     setResult(null);
   };
 
+  const startOver = () => {
+    setResult(null);
+    setError(null);
+  };
+
+  const isValidationError = error === "Paste the denial letter or EOB text before analyzing.";
+
   const copyLetter = () => {
     if (!result) return;
-    navigator.clipboard.writeText(result.appealLetter);
+    navigator.clipboard.writeText(editedLetter || result.appealLetter);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const downloadLetter = () => {
     if (!result) return;
-    const blob = new Blob([result.appealLetter], { type: "text/plain" });
+    const blob = new Blob([editedLetter || result.appealLetter], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `appeal-letter-${result.claimNumber ?? "draft"}.txt`;
+    a.download = `appeal-letter-${result.claimNumber || "draft"}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b border-black/10 dark:border-white/10 sticky top-0 z-10 bg-[var(--background)]/90 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-            <FileWarning className="h-5 w-5 text-white" aria-hidden="true" />
+      <header className="border-b border-card-border">
+        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-md bg-accent flex items-center justify-center shrink-0">
+            <FileWarning className="h-4 w-4 text-accent-ink" aria-hidden="true" />
           </div>
-          <div>
-            <h1 className="font-bold text-lg leading-tight">Appeal Copilot</h1>
-            <p className="text-xs text-black/60 dark:text-white/60">Insurance claim denial → scored appeal package</p>
-          </div>
+          <span className="font-semibold text-sm tracking-tight">Appeal Copilot</span>
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: input form */}
-        <section className="lg:col-span-5 flex flex-col gap-4">
-          <div className="rounded-2xl border border-black/10 dark:border-white/10 p-6 flex flex-col gap-5">
-            <div>
-              <h2 className="text-base font-semibold">Paste your denial letter</h2>
-              <p className="text-sm text-black/60 dark:text-white/60 mt-1">
-                We classify the denial reason, check the appeal deadline, and draft a first-level appeal letter with a
-                strength score and missing-evidence checklist.
+      <main className="flex-1 max-w-3xl w-full mx-auto px-6 py-12">
+        {!result && !isLoading && (
+          <>
+            <div className="mb-10">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.15]">
+                Turn a denial letter into a scored appeal.
+              </h1>
+              <p className="text-muted mt-3 text-[15px] leading-relaxed max-w-xl">
+                For patients, caregivers, and clinic billing staff. Paste what your insurer sent you — get back the
+                denial reason, the appeal deadline, a drafted first-level appeal letter, and exactly what evidence
+                would make it stronger.
               </p>
             </div>
 
-            <form onSubmit={runAnalysis} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="denial-text" className="text-sm font-medium">
-                  Denial letter / EOB text
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <div>
+                <label htmlFor="denial-text" className="sr-only">
+                  Denial letter or Explanation of Benefits text
                 </label>
                 <textarea
                   id="denial-text"
-                  required
-                  rows={8}
-                  placeholder="Paste the denial letter or Explanation of Benefits text here..."
+                  rows={9}
+                  placeholder="Paste the denial letter or Explanation of Benefits (EOB) text here…"
                   value={denialText}
                   onChange={(e) => setDenialText(e.target.value)}
-                  className="w-full rounded-xl border border-black/15 dark:border-white/15 bg-transparent px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                  onKeyDown={handleTextareaKeyDown}
+                  className="w-full rounded-2xl border border-card-border bg-card px-4 py-3.5 text-[15px] leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/60 resize-y shadow-sm"
                 />
+                <div className="flex items-center justify-between mt-1.5 px-0.5">
+                  <span className="text-xs text-muted">
+                    {denialText.length.toLocaleString()} character{denialText.length === 1 ? "" : "s"}
+                  </span>
+                  <span className="text-xs text-muted hidden sm:inline">⌘ + Enter to analyze</span>
+                </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="context" className="text-sm font-medium">
-                  Additional context <span className="text-black/40 dark:text-white/40 font-normal">(optional)</span>
-                </label>
+              {showContext ? (
                 <textarea
-                  id="context"
                   rows={3}
-                  placeholder="Anything relevant not in the letter itself, e.g. medical history, urgency, prior communication..."
+                  placeholder="Anything relevant not in the letter — medical history, urgency, prior calls with the insurer…"
                   value={additionalContext}
                   onChange={(e) => setAdditionalContext(e.target.value)}
-                  className="w-full rounded-xl border border-black/15 dark:border-white/15 bg-transparent px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                  className="w-full rounded-2xl border border-card-border bg-card px-4 py-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/60 resize-y"
                 />
-              </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowContext(true)}
+                  className="self-start text-sm text-muted hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                  Add context (optional)
+                </button>
+              )}
+
+              {error && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-3 rounded-xl border px-4 py-3 mt-1"
+                  style={{ borderColor: `${STATUS.critical}33`, background: `${STATUS.critical}0d` }}
+                >
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: STATUS.critical }} aria-hidden="true" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium" style={{ color: STATUS.critical }}>
+                      {isValidationError ? "Add the denial letter" : "Analysis couldn't be completed"}
+                    </p>
+                    <p className="text-sm text-muted mt-0.5 leading-relaxed">
+                      {isValidationError ? error : "We couldn't process this denial right now. " + error}
+                    </p>
+                  </div>
+                  {!isValidationError && (
+                    <button
+                      type="submit"
+                      className="shrink-0 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-card-border hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                    >
+                      Try again
+                    </button>
+                  )}
+                </div>
+              )}
 
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-black/20 dark:disabled:bg-white/20 text-white font-semibold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                className="self-start bg-accent hover:opacity-90 text-accent-ink font-medium text-sm py-2.5 px-5 rounded-xl transition-opacity flex items-center gap-2 cursor-pointer mt-1"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" aria-hidden="true" />
-                    Analyze denial
-                  </>
-                )}
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                Analyze denial
               </button>
             </form>
-          </div>
 
-          <div className="rounded-2xl border border-black/10 dark:border-white/10 p-6">
-            <h3 className="text-sm font-semibold mb-1">Try an example</h3>
-            <p className="text-xs text-black/60 dark:text-white/60 mb-3">
-              Three realistic denial scenarios, one per category the flow handles differently.
-            </p>
-            <div className="flex flex-col gap-2">
-              {EXAMPLE_SCENARIOS.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => loadExample(s.id)}
-                  className="text-left text-sm px-3 py-2.5 rounded-lg border border-black/10 dark:border-white/10 hover:border-blue-500 hover:bg-blue-500/5 transition-colors cursor-pointer"
+            <div className="mt-14">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted mb-1">Example cases</h2>
+              <div className="border-t border-card-border">
+                {EXAMPLE_SCENARIOS.map((s) => {
+                  const meta = EXAMPLE_META[s.id];
+                  const Icon = meta?.icon ?? Stethoscope;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => loadExample(s.id)}
+                      className="w-full text-left flex items-start gap-3 py-3.5 px-1 -mx-1 rounded-md border-b border-card-border hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
+                      <Icon className="h-4 w-4 text-accent mt-0.5 shrink-0" aria-hidden="true" />
+                      <span className="min-w-0">
+                        <span className="text-sm font-medium block">{s.label}</span>
+                        <span className="text-xs text-muted leading-relaxed">{meta?.blurb}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center text-center py-24">
+            <Loader2 className="h-7 w-7 animate-spin text-accent mb-8" aria-hidden="true" />
+            <div className="flex flex-col gap-2.5 max-w-xs w-full">
+              {LOADING_STEPS.map((msg, i) => (
+                <div
+                  key={msg}
+                  className={`flex items-center gap-2.5 text-sm text-left transition-colors ${
+                    i === loadingStep ? "text-foreground font-medium" : i < loadingStep ? "text-muted" : "text-muted/40"
+                  }`}
                 >
-                  {s.label}
-                </button>
+                  {i < loadingStep ? (
+                    <Check className="h-4 w-4 shrink-0" style={{ color: STATUS.good }} aria-hidden="true" />
+                  ) : i === loadingStep ? (
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent" aria-hidden="true" />
+                  ) : (
+                    <span className="h-1.5 w-1.5 rounded-full bg-current ml-1.5 mr-1" />
+                  )}
+                  <span>{msg}</span>
+                </div>
               ))}
             </div>
           </div>
-        </section>
+        )}
 
-        {/* Right: results */}
-        <section className="lg:col-span-7 flex flex-col">
-          <div className="rounded-2xl border border-black/10 dark:border-white/10 p-6 flex-1 min-h-[480px] flex flex-col">
-            {/* Idle */}
-            {!isLoading && !result && !error && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-                <div className="h-14 w-14 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center mb-4">
-                  <ClipboardList className="h-6 w-6 text-black/40 dark:text-white/40" aria-hidden="true" />
-                </div>
-                <h3 className="font-semibold">Your appeal package will appear here</h3>
-                <p className="text-sm text-black/60 dark:text-white/60 max-w-sm mt-2">
-                  Denial category, deadline urgency, a drafted appeal letter, and a strength score with a missing-evidence
-                  checklist — usually in under a minute.
-                </p>
+        {result && !isLoading && (
+          <div className="flex flex-col gap-6">
+            <button
+              type="button"
+              onClick={startOver}
+              className="self-start text-sm text-muted hover:text-foreground flex items-center gap-1.5 cursor-pointer transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+              New analysis
+            </button>
+
+            {demoMode && (
+              <div className="flex items-start gap-2 text-xs rounded-xl border border-accent/25 bg-accent/[0.06] px-3.5 py-2.5 text-accent">
+                <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
+                <span>
+                  Demo mode — no Lamatic credentials configured, so this is representative mocked output. Add the four
+                  env vars in <code>.env.local</code> to run the real flow.
+                </span>
               </div>
             )}
 
-            {/* Loading */}
-            {isLoading && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-6" aria-hidden="true" />
-                <div className="flex flex-col gap-2 max-w-sm w-full">
-                  {LOADING_STEPS.map((msg, i) => (
-                    <div
-                      key={msg}
-                      className={`flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg text-left transition-colors ${
-                        i === loadingStep
-                          ? "bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium"
-                          : i < loadingStep
-                          ? "text-black/40 dark:text-white/40"
-                          : "text-black/25 dark:text-white/25"
-                      }`}
-                    >
-                      {i < loadingStep ? (
-                        <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                      ) : i === loadingStep ? (
-                        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />
-                      ) : (
-                        <span className="h-3.5 w-3.5 shrink-0" />
-                      )}
-                      <span>{msg}</span>
-                    </div>
-                  ))}
+            {/* Verdict header */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+              <span className="text-lg font-semibold">{CATEGORY_LABEL[result.denialCategory]} denial</span>
+              {result.claimNumber && <span className="text-sm text-muted">· Claim #{result.claimNumber}</span>}
+            </div>
+
+            {/* Gauge + deadline + rationale row */}
+            <div className="rounded-2xl border border-card-border bg-card p-5 flex flex-col sm:flex-row gap-5 items-start">
+              <StrengthGauge score={result.strengthScore} color={strengthBand(result.strengthScore).color} />
+              <div className="flex-1 flex flex-col gap-3 min-w-0">
+                <div>
+                  <span className="text-sm font-semibold" style={{ color: strengthBand(result.strengthScore).color }}>
+                    {strengthBand(result.strengthScore).label}
+                  </span>
+                  <p className="text-sm text-muted mt-1 leading-relaxed">{result.rationale}</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm pt-1 border-t border-card-border">
+                  {(() => {
+                    const cfg = URGENCY_CONFIG[result.urgencyLevel] ?? URGENCY_CONFIG.unknown;
+                    const Icon = cfg.icon;
+                    return (
+                      <>
+                        <Icon className="h-4 w-4 shrink-0 mt-2" style={{ color: cfg.color }} aria-hidden="true" />
+                        <span className="mt-2">
+                          <strong className="font-medium">Deadline: </strong>
+                          {result.daysRemaining !== null
+                            ? result.daysRemaining >= 0
+                              ? `${result.daysRemaining} days left`
+                              : `${Math.abs(result.daysRemaining)} days overdue`
+                            : "Unknown"}
+                          <span className="text-muted"> — {cfg.label}</span>
+                        </span>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Error */}
-            {error && !isLoading && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-                <div className="h-14 w-14 rounded-full bg-[#d03b3b]/10 flex items-center justify-center mb-4">
-                  <AlertTriangle className="h-6 w-6" style={{ color: STATUS.critical }} aria-hidden="true" />
-                </div>
-                <h3 className="font-semibold" style={{ color: STATUS.critical }}>
-                  Analysis failed
+            {/* Missing evidence */}
+            {result.missingEvidence?.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted mb-2.5">
+                  What would strengthen this appeal
                 </h3>
-                <p className="text-sm text-black/60 dark:text-white/60 max-w-sm mt-2">{error}</p>
-                <button
-                  onClick={runAnalysis}
-                  className="mt-5 px-4 py-2 rounded-lg border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 text-sm font-medium flex items-center gap-1.5 cursor-pointer"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-                  Try again
-                </button>
+                <ul className="flex flex-col gap-2">
+                  {result.missingEvidence.map((item) => (
+                    <li key={item} className="text-sm flex items-start gap-2.5">
+                      <span
+                        className="h-4 w-4 rounded-full border-2 shrink-0 mt-0.5"
+                        style={{ borderColor: STATUS.warning }}
+                        aria-hidden="true"
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
-            {/* Result */}
-            {result && !isLoading && (
-              <div className="flex flex-col gap-5">
-                {demoMode && (
-                  <div className="flex items-start gap-2 text-xs rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-2.5 text-blue-700 dark:text-blue-300">
-                    <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
-                    <span>
-                      Demo mode: no Lamatic credentials configured, so this is representative mocked output. Add
-                      `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`, and `APPEAL_ANALYSIS_FLOW_ID` to run
-                      the real flow.
-                    </span>
-                  </div>
-                )}
-
-                {/* Top row: category, urgency, strength */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="rounded-xl border border-black/10 dark:border-white/10 p-3.5">
-                    <p className="text-[11px] uppercase tracking-wide text-black/50 dark:text-white/50 font-medium mb-1.5">
-                      Denial category
-                    </p>
-                    <p className="text-sm font-semibold">{CATEGORY_LABEL[result.denialCategory]}</p>
-                    {result.claimNumber && (
-                      <p className="text-xs text-black/50 dark:text-white/50 mt-0.5">Claim #{result.claimNumber}</p>
-                    )}
-                  </div>
-
-                  <div className="rounded-xl border border-black/10 dark:border-white/10 p-3.5">
-                    <p className="text-[11px] uppercase tracking-wide text-black/50 dark:text-white/50 font-medium mb-1.5">
-                      Deadline
-                    </p>
-                    {(() => {
-                      const cfg = URGENCY_CONFIG[result.urgencyLevel];
-                      const Icon = cfg.icon;
-                      return (
-                        <div className="flex items-center gap-1.5">
-                          <Icon className="h-4 w-4 shrink-0" style={{ color: cfg.color }} aria-hidden="true" />
-                          <p className="text-sm font-semibold">
-                            {result.daysRemaining !== null
-                              ? result.daysRemaining >= 0
-                                ? `${result.daysRemaining}d left`
-                                : `${Math.abs(result.daysRemaining)}d overdue`
-                              : "Unknown"}
-                          </p>
-                        </div>
-                      );
-                    })()}
-                    <p className="text-xs text-black/50 dark:text-white/50 mt-0.5">{URGENCY_CONFIG[result.urgencyLevel].label}</p>
-                  </div>
-
-                  <div className="rounded-xl border border-black/10 dark:border-white/10 p-3.5">
-                    <p className="text-[11px] uppercase tracking-wide text-black/50 dark:text-white/50 font-medium mb-1.5">
-                      Appeal strength
-                    </p>
-                    {(() => {
-                      const band = strengthBand(result.strengthScore);
-                      return (
-                        <>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-lg font-bold" style={{ color: band.color }}>
-                              {result.strengthScore}
-                            </span>
-                            <span className="text-xs text-black/50 dark:text-white/50">/10</span>
-                          </div>
-                          <div
-                            className="h-1.5 rounded-full bg-black/10 dark:bg-white/10 mt-1.5 overflow-hidden"
-                            role="meter"
-                            aria-valuenow={result.strengthScore}
-                            aria-valuemin={1}
-                            aria-valuemax={10}
-                            aria-label="Appeal strength score"
-                          >
-                            <div
-                              className="h-full rounded-full"
-                              style={{ width: `${(result.strengthScore / 10) * 100}%`, backgroundColor: band.color }}
-                            />
-                          </div>
-                          <p className="text-xs mt-1" style={{ color: band.color }}>
-                            {band.label}
-                          </p>
-                        </>
-                      );
-                    })()}
-                  </div>
+            {/* The letter, as a document */}
+            <div className="rounded-2xl border border-card-border bg-card overflow-hidden shadow-sm">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-5 py-3 border-b border-card-border bg-black/[0.015] dark:bg-white/[0.02]">
+                <h3 className="text-sm font-semibold">Draft appeal letter</h3>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    onClick={copyLetter}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-card-border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    {copied ? <Check className="h-3 w-3" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                  <button
+                    onClick={downloadLetter}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-card-border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Download className="h-3 w-3" aria-hidden="true" />
+                    Download
+                  </button>
+                  <button
+                    onClick={() => performAnalysis()}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-card-border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <RefreshCw className="h-3 w-3" aria-hidden="true" />
+                    Regenerate
+                  </button>
+                  <button
+                    onClick={() => setIsEditingLetter((v) => !v)}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-card-border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    {isEditingLetter ? <Check className="h-3 w-3" aria-hidden="true" /> : <Pencil className="h-3 w-3" aria-hidden="true" />}
+                    {isEditingLetter ? "Done" : "Edit"}
+                  </button>
                 </div>
-
-                {/* Rationale */}
-                <p className="text-sm text-black/70 dark:text-white/70">{result.rationale}</p>
-
-                {/* Missing evidence */}
-                {result.missingEvidence.length > 0 && (
-                  <div className="rounded-xl border border-black/10 dark:border-white/10 p-4">
-                    <h4 className="text-sm font-semibold mb-2.5 flex items-center gap-1.5">
-                      <ClipboardList className="h-4 w-4 text-black/50 dark:text-white/50" aria-hidden="true" />
-                      What would strengthen this appeal
-                    </h4>
-                    <ul className="flex flex-col gap-2">
-                      {result.missingEvidence.map((item) => (
-                        <li key={item} className="text-sm flex items-start gap-2">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0"
-                            style={{ backgroundColor: STATUS.warning }}
-                            aria-hidden="true"
-                          />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Letter */}
-                <div className="rounded-xl border border-black/10 dark:border-white/10 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/10 dark:border-white/10">
-                    <h4 className="text-sm font-semibold">Draft appeal letter</h4>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={copyLetter}
-                        className="text-xs px-2.5 py-1.5 rounded-md border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer"
-                      >
-                        {copied ? <Check className="h-3 w-3" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
-                        {copied ? "Copied" : "Copy"}
-                      </button>
-                      <button
-                        onClick={downloadLetter}
-                        className="text-xs px-2.5 py-1.5 rounded-md border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer"
-                      >
-                        <Download className="h-3 w-3" aria-hidden="true" />
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                  <pre className="whitespace-pre-wrap text-sm p-4 font-sans max-h-96 overflow-y-auto">{result.appealLetter}</pre>
-                </div>
-
-                {/* Disclaimer */}
-                <p className="text-xs text-black/50 dark:text-white/50 flex items-start gap-1.5">
-                  <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
-                  This is not medical or legal advice. Review the draft with your provider or a patient advocate before
-                  submitting, and verify all placeholder fields.
-                </p>
               </div>
-            )}
+              {isEditingLetter ? (
+                <textarea
+                  value={editedLetter}
+                  onChange={(e) => setEditedLetter(e.target.value)}
+                  aria-label="Edit draft appeal letter"
+                  className="w-full whitespace-pre-wrap text-[15px] leading-[1.75] p-6 sm:p-8 font-serif resize-y focus:outline-none min-h-[24rem]"
+                />
+              ) : (
+                <pre className="whitespace-pre-wrap text-[15px] leading-[1.75] p-6 sm:p-8 font-serif">{editedLetter || result.appealLetter}</pre>
+              )}
+            </div>
+
+            <p className="text-xs text-muted flex items-start gap-1.5 px-1">
+              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
+              This is not medical or legal advice. Review the draft with your provider or a patient advocate before
+              submitting, and fill in every placeholder field.
+            </p>
           </div>
-        </section>
+        )}
       </main>
 
-      <footer className="border-t border-black/10 dark:border-white/10 py-6 text-center text-xs text-black/50 dark:text-white/50">
+      <footer className="border-t border-card-border py-6 text-center text-xs text-muted">
         Built on Lamatic.ai — Appeal Copilot is an AgentKit contribution.
       </footer>
     </div>
