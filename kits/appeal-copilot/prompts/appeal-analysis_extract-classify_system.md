@@ -9,14 +9,14 @@ Classify the denial into exactly one `category`:
 Output this exact JSON shape:
 {
   "category": "medical-necessity" | "administrative" | "coverage" | "other",
-  "claimNumber": string or null,
-  "proceduresText": string or null,
+  "claimNumber": string,
+  "proceduresText": string,
   "denialReasonText": string,
-  "appealDeadline": string in YYYY-MM-DD format, or null if no deadline is stated or computable,
-  "planType": string or null
+  "appealDeadline": string in YYYY-MM-DD format, or "" if no deadline is stated or computable,
+  "planType": string
 }
 
 Rules:
 - `denialReasonText` must be a faithful summary of the insurer's stated reason, in your own words, under 40 words.
-- If the letter states a deadline as a relative period (e.g. "within 180 days of this notice") without an explicit notice date, return null for `appealDeadline` rather than guessing an absolute date.
-- If information is not present in the input, use null. Do not invent claim numbers, procedure codes, or dates.
+- If the letter states a deadline as a relative period (e.g. "within 180 days of this notice") without an explicit notice date, return "" for `appealDeadline` rather than guessing an absolute date.
+- If information is not present in the input, use an empty string "" — never the literal word "null", and never a placeholder like "N/A" or "unknown". Do not invent claim numbers, procedure codes, or dates.

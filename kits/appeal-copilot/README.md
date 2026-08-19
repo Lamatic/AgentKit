@@ -45,12 +45,11 @@ Next.js UI (apps/)
 
 ```
 API Trigger (denialText, additionalContext)
-  → LLM: Extract & Classify        → structured JSON (category, claim #, deadline, ...)
-  → Code: Parse Extraction
-  → Code: Deadline Urgency         → daysRemaining, urgencyLevel
-  → Condition: Category Branch     → routes on denialCategory
-      → LLM: Draft (medical-necessity | administrative | coverage | default)
-  → LLM: Assess Strength           → strengthScore, missingEvidence[], rationale
+  → AI (schema-validated JSON): Extract & Classify → category, claim #, deadline, ...
+  → Code: Deadline Urgency                         → daysRemaining, urgencyLevel
+  → Condition: Category Branch                     → routes on denialCategory
+      → AI: Draft (medical-necessity | administrative | coverage | default)
+  → AI (schema-validated JSON): Assess Strength     → strengthScore, missingEvidence[], rationale
   → Code: Assemble Output
   → API Response { result: { ...structured fields } }
 ```
@@ -59,9 +58,9 @@ See [`agent.md`](./agent.md) for the full node-by-node breakdown, guardrails, an
 
 ## A note on how this flow was built
 
-Lamatic flows are normally built visually in Lamatic Studio, then exported into a repo like this one. **This flow was hand-authored** to match the exact export schema (verified against several real exported kits in this repository) rather than exported from Studio directly, because building it requires a Studio account. The Next.js app ships with a full working demo mode so the product is testable end-to-end without one.
+This flow was built and tested end-to-end directly in Lamatic Studio — every node individually and the full pipeline, all passing. `Extract & Classify` and `Assess Strength` use Studio's schema-validated JSON node type (`InstructorLLMNode`), which returns typed fields directly rather than a raw string that needs re-parsing, so there's no separate "parse JSON" step in the graph. The four draft nodes and the two JSON nodes were tested with OpenAI `gpt-4o-mini` — swap the model/provider per node in Studio to use your own.
 
-**Before deploying this to production:** import the flow definition into Lamatic Studio, verify the node graph and conditions in the visual editor, select real model providers for the six `LLMNode`s (the model configs ship as placeholders — see `model-configs/`), deploy, and copy the resulting Flow ID into your `.env.local`.
+To run it live: build the flow in Lamatic Studio following the node-by-node spec in [`agent.md`](./agent.md) (or import `flows/appeal-analysis.ts` if your Studio setup supports it), deploy, and copy the resulting Flow ID into `apps/.env.local`.
 
 ## Setup Instructions
 
@@ -115,7 +114,6 @@ apps/                      # The Next.js app
 ```
 
 ## Limitations
-- The flow was hand-authored, not Studio-exported — verify the node graph in Studio before production use (see above).
 - Denial-category strategies cover the three most common reason types plus a general fallback; highly unusual denial reasons will get the general strategy.
 - Deadline extraction only works when the letter states or implies an absolute date; relative deadlines without a stated notice date return `null` rather than a guess.
 - Not a substitute for legal or medical advice — always reviewed before submission.
