@@ -25,7 +25,7 @@ Most people who receive a claim denial never appeal it — not because they're w
 5. `Draft * (LLMNode)` — drafts a category-specific first-level appeal letter using a strategy prompt tailored to that denial reason (peer-to-peer review request for medical necessity, retroactive authorization for missing prior-auth, network-adequacy exception for out-of-network, etc.).
 6. `Assess Strength (InstructorLLMNode)` — conservatively scores the drafted appeal 1-10 and lists concrete missing evidence, given only the facts actually present in the input, as schema-validated structured output.
 7. `Assemble Output (codeNode)` — merges classification, deadline urgency, the drafted letter, and the strength assessment into one response object.
-9. `API Response` — returns the assembled object under `result`.
+8. `API Response` — returns the assembled object under `result`.
 
 #### When to use this flow
 Use it whenever a caller has denial letter text and wants a classified, scored appeal package back. Do not use it as a source of legal or medical advice — the constitution and the application UI both attach a disclaimer to every response.

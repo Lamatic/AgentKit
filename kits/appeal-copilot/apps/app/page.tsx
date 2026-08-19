@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { analyzeDenial } from "../actions/orchestrate";
-import { EXAMPLE_SCENARIOS } from "../lib/demo-data";
+import { getExampleScenarios } from "../lib/demo-data";
+import { MAX_ADDITIONAL_CONTEXT_CHARS, MAX_DENIAL_TEXT_CHARS } from "../lib/limits";
 import type { AppealResult, DenialCategory } from "../lib/types";
 import type { UrgencyLevel } from "../lib/deadline-urgency";
 import {
@@ -26,14 +27,14 @@ import {
   Pencil,
 } from "lucide-react";
 
-// Status palette (validated: dataviz skill) — same hex in light and dark, always paired
-// with an icon + text label since warning/serious fall below 3:1 on the light surface.
+// Status palette — the values live in app/globals.css so they stay themeable; see the
+// contrast note there on why these are icon+label paired rather than colour alone.
 const STATUS = {
-  good: "#0ca30c",
-  warning: "#fab219",
-  serious: "#ec835a",
-  critical: "#d03b3b",
-  muted: "#898781",
+  good: "var(--status-good)",
+  warning: "var(--status-warning)",
+  serious: "var(--status-serious)",
+  critical: "var(--status-critical)",
+  muted: "var(--status-neutral)",
 } as const;
 
 const CATEGORY_LABEL: Record<DenialCategory, string> = {
@@ -51,7 +52,8 @@ const URGENCY_CONFIG: Record<UrgencyLevel, { label: string; color: string; icon:
   unknown: { label: "Not stated in the letter", color: STATUS.muted, icon: Clock },
 };
 
-function strengthBand(score: number): { label: string; color: string } {
+function strengthBand(score: number | null): { label: string; color: string } {
+  if (score === null) return { label: "Not scored", color: STATUS.muted };
   if (score >= 7) return { label: "Strong appeal", color: STATUS.good };
   if (score >= 4) return { label: "Needs more evidence", color: STATUS.warning };
   return { label: "Weak — significant gaps", color: STATUS.critical };
@@ -79,10 +81,10 @@ const EXAMPLE_META: Record<string, { icon: typeof Stethoscope; blurb: string }> 
   },
 };
 
-function StrengthGauge({ score, color }: { score: number; color: string }) {
+function StrengthGauge({ score, color }: { score: number | null; color: string }) {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.max(0, Math.min(10, score)) / 10;
+  const progress = score === null ? 0 : Math.max(0, Math.min(10, score)) / 10;
   return (
     <div className="relative h-28 w-28 shrink-0">
       <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
@@ -92,17 +94,18 @@ function StrengthGauge({ score, color }: { score: number; color: string }) {
           cy="50"
           r={radius}
           fill="none"
-          stroke={color}
           strokeWidth="9"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - progress)}
-          style={{ transition: "stroke-dashoffset 700ms ease-out" }}
+          // stroke goes through style, not the presentation attribute: var() does not
+          // resolve in SVG presentation attributes.
+          style={{ stroke: color, transition: "stroke-dashoffset 700ms ease-out" }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold tabular-nums" style={{ color }}>
-          {score}
+          {score ?? "—"}
         </span>
         <span className="text-[11px] text-muted -mt-0.5">out of 10</span>
       </div>
@@ -122,6 +125,9 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [editedLetter, setEditedLetter] = useState("");
   const [isEditingLetter, setIsEditingLetter] = useState(false);
+
+  // Resolved once per page load so the example deadlines stay relative to today.
+  const exampleScenarios = useMemo(() => getExampleScenarios(), []);
 
   const performAnalysis = async () => {
     if (!denialText.trim()) {
@@ -169,7 +175,7 @@ export default function Home() {
   };
 
   const loadExample = (id: string) => {
-    const scenario = EXAMPLE_SCENARIOS.find((s) => s.id === id);
+    const scenario = exampleScenarios.find((s) => s.id === id);
     if (!scenario) return;
     setDenialText(scenario.denialText);
     setAdditionalContext(scenario.additionalContext);
@@ -236,6 +242,7 @@ export default function Home() {
                 <textarea
                   id="denial-text"
                   rows={9}
+                  maxLength={MAX_DENIAL_TEXT_CHARS}
                   placeholder="Paste the denial letter or Explanation of Benefits (EOB) text here…"
                   value={denialText}
                   onChange={(e) => setDenialText(e.target.value)}
@@ -245,6 +252,9 @@ export default function Home() {
                 <div className="flex items-center justify-between mt-1.5 px-0.5">
                   <span className="text-xs text-muted">
                     {denialText.length.toLocaleString()} character{denialText.length === 1 ? "" : "s"}
+                    {denialText.length > MAX_DENIAL_TEXT_CHARS * 0.9 && (
+                      <> of {MAX_DENIAL_TEXT_CHARS.toLocaleString()} max</>
+                    )}
                   </span>
                   <span className="text-xs text-muted hidden sm:inline">⌘ + Enter to analyze</span>
                 </div>
@@ -253,6 +263,8 @@ export default function Home() {
               {showContext ? (
                 <textarea
                   rows={3}
+                  maxLength={MAX_ADDITIONAL_CONTEXT_CHARS}
+                  aria-label="Additional context (optional)"
                   placeholder="Anything relevant not in the letter — medical history, urgency, prior calls with the insurer…"
                   value={additionalContext}
                   onChange={(e) => setAdditionalContext(e.target.value)}
@@ -273,7 +285,10 @@ export default function Home() {
                 <div
                   role="alert"
                   className="flex items-start gap-3 rounded-xl border px-4 py-3 mt-1"
-                  style={{ borderColor: `${STATUS.critical}33`, background: `${STATUS.critical}0d` }}
+                  style={{
+                    borderColor: "var(--status-critical-border)",
+                    background: "var(--status-critical-surface)",
+                  }}
                 >
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: STATUS.critical }} aria-hidden="true" />
                   <div className="flex-1 min-w-0">
@@ -307,7 +322,7 @@ export default function Home() {
             <div className="mt-14">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-muted mb-1">Example cases</h2>
               <div className="border-t border-card-border">
-                {EXAMPLE_SCENARIOS.map((s) => {
+                {exampleScenarios.map((s) => {
                   const meta = EXAMPLE_META[s.id];
                   const Icon = meta?.icon ?? Stethoscope;
                   return (

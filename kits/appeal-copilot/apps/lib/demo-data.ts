@@ -8,43 +8,57 @@ export interface ExampleScenario {
   additionalContext: string;
 }
 
-/** Deadlines are computed relative to "today" at module load so the demo always looks live. */
+/**
+ * Renders a date `days` away from now as `YYYY-MM-DD`.
+ *
+ * Called per request rather than once at module load: a warm serverless instance can
+ * live for hours or days, and baking the dates in at import time would drift the demo's
+ * notice dates and deadlines out of date (eventually showing an example as long expired).
+ */
 function daysFromNow(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
 }
 
-export const EXAMPLE_SCENARIOS: ExampleScenario[] = [
-  {
-    id: "medical-necessity",
-    label: "Medical necessity — inpatient rehab",
-    denialText: `Claim #A88213: Denied. Reason: The requested inpatient rehabilitation stay following hip replacement surgery was determined not medically necessary based on plan clinical guidelines. You may appeal this decision in writing within 180 days of the date of this notice (notice date: ${daysFromNow(-5)}).`,
-    additionalContext:
-      "Patient's orthopedic surgeon recommended inpatient rehab due to mobility limitations, fall risk at home, and living alone with stairs as the only access to the bathroom.",
-  },
-  {
-    id: "administrative",
-    label: "Administrative — missing prior authorization",
-    denialText: `Claim #B41209: Denied. Reason: Prior authorization was not obtained before the MRI (CPT 73721) was performed. Per plan policy, appeals must be submitted within 60 days of this notice (notice date: ${daysFromNow(-50)}).`,
-    additionalContext:
-      "The MRI was ordered and performed the same day during an urgent care visit for sudden-onset severe knee pain after a fall; the ordering physician's office states prior-auth was not feasible given the urgency.",
-  },
-  {
-    id: "coverage",
-    label: "Coverage — out-of-network provider",
-    denialText: `Claim #C77002: Denied. Reason: Service was rendered by an out-of-network provider and is not covered under the plan's out-of-network benefit. Appeal deadline: ${daysFromNow(20)}.`,
-    additionalContext:
-      "No in-network specialist for this condition was available within 75 miles or within 6 weeks; patient's PCP referred them to the nearest available specialist, who was out-of-network.",
-  },
-];
+/** Builds the example scenarios with deadlines relative to today. */
+export function getExampleScenarios(): ExampleScenario[] {
+  return [
+    {
+      id: "medical-necessity",
+      label: "Medical necessity — inpatient rehab",
+      denialText: `Claim #A88213: Denied. Reason: The requested inpatient rehabilitation stay following hip replacement surgery was determined not medically necessary based on plan clinical guidelines. You may appeal this decision in writing within 180 days of the date of this notice (notice date: ${daysFromNow(-5)}).`,
+      additionalContext:
+        "Patient's orthopedic surgeon recommended inpatient rehab due to mobility limitations, fall risk at home, and living alone with stairs as the only access to the bathroom.",
+    },
+    {
+      id: "administrative",
+      label: "Administrative — missing prior authorization",
+      denialText: `Claim #B41209: Denied. Reason: Prior authorization was not obtained before the MRI (CPT 73721) was performed. Per plan policy, appeals must be submitted within 60 days of this notice (notice date: ${daysFromNow(-50)}).`,
+      additionalContext:
+        "The MRI was ordered and performed the same day during an urgent care visit for sudden-onset severe knee pain after a fall; the ordering physician's office states prior-auth was not feasible given the urgency.",
+    },
+    {
+      id: "coverage",
+      label: "Coverage — out-of-network provider",
+      denialText: `Claim #C77002: Denied. Reason: Service was rendered by an out-of-network provider and is not covered under the plan's out-of-network benefit. Appeal deadline: ${daysFromNow(20)}.`,
+      additionalContext:
+        "No in-network specialist for this condition was available within 75 miles or within 6 weeks; patient's PCP referred them to the nearest available specialist, who was out-of-network.",
+    },
+  ];
+}
 
-const DEMO_RESULTS: Record<string, Omit<AppealResult, "daysRemaining" | "urgencyLevel">> = {
+/** Deadlines are stored as day offsets and resolved per request — see `daysFromNow`. */
+type DemoResult = Omit<AppealResult, "daysRemaining" | "urgencyLevel" | "appealDeadline"> & {
+  appealDeadlineOffsetDays: number;
+};
+
+const DEMO_RESULTS: Record<string, DemoResult> = {
   "medical-necessity": {
     denialCategory: "medical-necessity",
     claimNumber: "A88213",
     denialReasonText: "Inpatient rehabilitation stay was determined not medically necessary per plan clinical guidelines.",
-    appealDeadline: daysFromNow(175),
+    appealDeadlineOffsetDays: 175,
     appealLetter: `[Date]
 
 Re: Formal Appeal of Denied Claim #A88213 — Inpatient Rehabilitation Services
@@ -74,7 +88,7 @@ Sincerely,
     denialCategory: "administrative",
     claimNumber: "B41209",
     denialReasonText: "Prior authorization was not obtained before the MRI (CPT 73721) was performed.",
-    appealDeadline: daysFromNow(10),
+    appealDeadlineOffsetDays: 10,
     appealLetter: `[Date]
 
 Re: Formal Appeal of Denied Claim #B41209 — MRI, CPT 73721
@@ -102,7 +116,7 @@ Sincerely,
     denialCategory: "coverage",
     claimNumber: "C77002",
     denialReasonText: "Service was rendered by an out-of-network provider and is not covered under the out-of-network benefit.",
-    appealDeadline: daysFromNow(20),
+    appealDeadlineOffsetDays: 20,
     appealLetter: `[Date]
 
 Re: Formal Appeal of Denied Claim #C77002 — Out-of-Network Coverage Exception Request
@@ -128,8 +142,10 @@ Sincerely,
   },
 };
 
+/** Builds a demo result with its deadline resolved relative to today. */
 export function getDemoResult(scenarioId: string): AppealResult {
-  const base = DEMO_RESULTS[scenarioId] ?? DEMO_RESULTS["medical-necessity"];
-  const urgency = computeDeadlineUrgency(base.appealDeadline);
-  return { ...base, ...urgency };
+  const { appealDeadlineOffsetDays, ...base } =
+    DEMO_RESULTS[scenarioId] ?? DEMO_RESULTS["medical-necessity"];
+  const appealDeadline = daysFromNow(appealDeadlineOffsetDays);
+  return { ...base, appealDeadline, ...computeDeadlineUrgency(appealDeadline) };
 }

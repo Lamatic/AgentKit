@@ -1,10 +1,43 @@
 "use server";
 
+import { headers } from "next/headers";
 import { getLamaticClient, isLamaticConfigured } from "../lib/lamatic-client";
-import { getDemoResult, EXAMPLE_SCENARIOS } from "../lib/demo-data";
+import { getDemoResult, getExampleScenarios } from "../lib/demo-data";
+import { MAX_ADDITIONAL_CONTEXT_CHARS, MAX_DENIAL_TEXT_CHARS } from "../lib/limits";
 import type { AnalyzeDenialResponse, AppealResult } from "../lib/types";
 
-const TIMEOUT_MS = 300000; // 5 minutes (matching Vercel Hobby maxDuration)
+// Kept below the 300s `maxDuration` exported from app/layout.tsx so the controlled
+// timeout error below wins the race against the platform killing the function — which
+// would otherwise surface to the user as an opaque 504.
+const TIMEOUT_MS = 280000;
+
+// Best-effort spend guard on the paid Lamatic flow. This is per-instance in-memory
+// state: on serverless it resets on cold start and is not shared across instances, so
+// it blunts a single client hammering a warm instance rather than acting as a real
+// distributed rate limiter. Front the deployment with a shared store (Vercel KV,
+// Upstash) or your platform's rate limiting if you expose this publicly.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const recentRequests = new Map<string, number[]>();
+
+async function isOverRequestBudget(): Promise<boolean> {
+  const forwardedFor = (await headers()).get("x-forwarded-for");
+  const client = forwardedFor?.split(",")[0]?.trim() || "unknown";
+
+  const now = Date.now();
+  const hits = (recentRequests.get(client) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  hits.push(now);
+  recentRequests.set(client, hits);
+
+  // Opportunistic sweep so the map can't grow without bound on a long-lived instance.
+  if (recentRequests.size > 1000) {
+    for (const [key, times] of recentRequests) {
+      if (times.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) recentRequests.delete(key);
+    }
+  }
+
+  return hits.length > RATE_LIMIT_MAX_REQUESTS;
+}
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -21,8 +54,14 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessa
 
 /** Picks the closest demo scenario for arbitrary pasted text when running without Lamatic credentials. */
 function guessDemoScenario(denialText: string): string {
-  const exactMatch = EXAMPLE_SCENARIOS.find((s) => s.denialText === denialText);
-  if (exactMatch) return exactMatch.id;
+  // Match on the claim number rather than the whole string: the scenarios embed dates
+  // generated per request, so an exact text comparison would break if the client loaded
+  // the example just before a date rolled over.
+  const claimNumber = denialText.match(/Claim #(\w+)/)?.[1];
+  const scenarioMatch = claimNumber
+    ? getExampleScenarios().find((s) => s.denialText.includes(`Claim #${claimNumber}`))
+    : undefined;
+  if (scenarioMatch) return scenarioMatch.id;
 
   const text = denialText.toLowerCase();
   if (text.includes("prior auth") || text.includes("coding") || text.includes("duplicate")) return "administrative";
@@ -41,12 +80,37 @@ export async function analyzeDenial(denialText: string, additionalContext: strin
     return { success: true, data, demoMode: true };
   }
 
+  // Past this point every request spends real model capacity, so bound the work before
+  // starting the flow. The client enforces the same limits from lib/limits.ts, but a
+  // server action is a public endpoint and cannot rely on that.
+  if (trimmedDenialText.length > MAX_DENIAL_TEXT_CHARS) {
+    return {
+      success: false,
+      error: `That denial letter is ${trimmedDenialText.length.toLocaleString()} characters. Please trim it to ${MAX_DENIAL_TEXT_CHARS.toLocaleString()} or paste only the relevant claim.`,
+    };
+  }
+
+  const trimmedContext = additionalContext.trim();
+  if (trimmedContext.length > MAX_ADDITIONAL_CONTEXT_CHARS) {
+    return {
+      success: false,
+      error: `Additional context is limited to ${MAX_ADDITIONAL_CONTEXT_CHARS.toLocaleString()} characters.`,
+    };
+  }
+
+  if (await isOverRequestBudget()) {
+    return {
+      success: false,
+      error: "Too many analyses in a short time. Please wait a minute and try again.",
+    };
+  }
+
   try {
     const flowId = process.env.APPEAL_ANALYSIS_FLOW_ID as string;
     const resData = await withTimeout(
       getLamaticClient().executeFlow(flowId, {
         denialText: trimmedDenialText,
-        additionalContext: additionalContext.trim(),
+        additionalContext: trimmedContext,
       }),
       TIMEOUT_MS,
       "The AI provider is taking longer than usual to respond. This usually means their service is overloaded. Please try again in a few minutes."

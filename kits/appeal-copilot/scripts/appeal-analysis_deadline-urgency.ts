@@ -10,14 +10,19 @@ let urgencyLevel = "unknown";
 
 if (deadline) {
   const deadlineDate = new Date(deadline);
-  const today = new Date();
-  const msPerDay = 1000 * 60 * 60 * 24;
-  daysRemaining = Math.ceil((deadlineDate.getTime() - today.getTime()) / msPerDay);
+  // An unparseable date yields NaN, and every comparison below would be false —
+  // falling through to "low" and reporting false reassurance on a real deadline.
+  // Leave daysRemaining null / urgencyLevel "unknown" instead.
+  if (!Number.isNaN(deadlineDate.getTime())) {
+    const today = new Date();
+    const msPerDay = 1000 * 60 * 60 * 24;
+    daysRemaining = Math.ceil((deadlineDate.getTime() - today.getTime()) / msPerDay);
 
-  if (daysRemaining < 0) urgencyLevel = "expired";
-  else if (daysRemaining <= 7) urgencyLevel = "critical";
-  else if (daysRemaining <= 30) urgencyLevel = "moderate";
-  else urgencyLevel = "low";
+    if (daysRemaining < 0) urgencyLevel = "expired";
+    else if (daysRemaining <= 7) urgencyLevel = "critical";
+    else if (daysRemaining <= 30) urgencyLevel = "moderate";
+    else urgencyLevel = "low";
+  }
 }
 
 output = { daysRemaining, urgencyLevel };

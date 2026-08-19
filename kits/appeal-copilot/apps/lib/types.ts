@@ -10,7 +10,8 @@ export interface AppealResult {
   daysRemaining: number | null;
   urgencyLevel: UrgencyLevel;
   appealLetter: string;
-  strengthScore: number;
+  /** Integer 1-10, or null when the model returned nothing usable. */
+  strengthScore: number | null;
   missingEvidence: string[];
   rationale: string;
 }

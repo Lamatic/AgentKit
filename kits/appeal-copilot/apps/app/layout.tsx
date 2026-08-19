@@ -17,6 +17,15 @@ const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
 });
 
+/**
+ * Server Actions inherit `maxDuration` from the enclosing page or layout, and the
+ * analysis flow makes six sequential model calls. Declared here rather than in
+ * app/page.tsx because route segment config cannot be exported from a Client Component.
+ * 300s is the Vercel Hobby ceiling; the action's own timeout sits below it so a slow
+ * provider surfaces a readable error instead of a platform 504.
+ */
+export const maxDuration = 300;
+
 export const metadata: Metadata = {
   title: "Appeal Copilot | Insurance Denial Appeal Assistant",
   description:
