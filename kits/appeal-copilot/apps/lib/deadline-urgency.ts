@@ -21,30 +21,30 @@ function startOfLocalDay(value: string | Date): number | null {
     return new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
   }
 
-  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-  if (dateOnly) {
-    const year = Number(dateOnly[1]);
-    const month = Number(dateOnly[2]);
-    const day = Number(dateOnly[3]);
-    const built = new Date(year, month - 1, day);
-    // The Date constructor rolls overflow values forward rather than rejecting them, so
-    // "2026-02-30" would silently become 2026-03-02 — two extra days of apparent runway
-    // on a legal deadline. Round-trip the components and treat any drift as unparseable.
-    if (
-      built.getFullYear() !== year ||
-      built.getMonth() !== month - 1 ||
-      built.getDate() !== day
-    ) {
-      return null;
-    }
-    return built.getTime();
+  // Matches an ISO 8601 calendar date, with or without a trailing time/zone part. The
+  // extraction node's contract is `YYYY-MM-DD` or "" (see
+  // prompts/appeal-analysis_extract-classify_system.md), and a full timestamp is accepted
+  // in case the model appends one.
+  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[T ].*)?$/.exec(value.trim());
+  if (!iso) {
+    // Deliberately not falling back to `new Date(value)`: its lenient parsing rolls
+    // overflow forward for non-ISO forms too ("2026/02/30" and "February 30, 2026" both
+    // yield 2026-03-02), and those components can't be recovered to validate. On a legal
+    // deadline an unusable value must read as unknown rather than as extra runway.
+    return null;
   }
 
-  // Anything else (e.g. a full timestamp from the extraction model) goes through the
-  // normal parser, then gets reduced to its local calendar day the same way.
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()).getTime();
+  const year = Number(iso[1]);
+  const month = Number(iso[2]);
+  const day = Number(iso[3]);
+  const built = new Date(year, month - 1, day);
+  // The Date constructor rolls overflow values forward rather than rejecting them, so
+  // "2026-02-30" (and "2026-02-30T10:00:00") would silently become 2026-03-02 — two extra
+  // days of apparent runway. Round-trip the components and treat any drift as unparseable.
+  if (built.getFullYear() !== year || built.getMonth() !== month - 1 || built.getDate() !== day) {
+    return null;
+  }
+  return built.getTime();
 }
 
 /**
