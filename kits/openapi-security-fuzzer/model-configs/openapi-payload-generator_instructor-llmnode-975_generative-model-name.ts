@@ -6,10 +6,10 @@ export default {
       "type": "generator/text",
       "params": {},
       "configName": "configA",
-      "model_name": "groq/openai/gpt-oss-20b",
-      "credentialId": "1013bce7-4882-4fa8-92a7-43795f3a086f",
-      "provider_name": "groq",
-      "credential_name": "Lamatic OpenAPI Fuzzer"
+      "model_name": "gemini-3.6-flash",
+      "credentialId": "f5c4fbf4-4991-4bca-8638-c989015d0c6a",
+      "provider_name": "gemini",
+      "credential_name": "OpenAPI Fuzzer"
     }
   ]
 };

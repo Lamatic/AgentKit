@@ -108,7 +108,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"summary\": \"{{InstructorLLMNode_795.output.summary}}\",\n  \"findings\": \"{{InstructorLLMNode_795.output.findings}}\"\n}"
+        "outputMapping": "{{InstructorLLMNode_795.output}}"
       }
     }
   }

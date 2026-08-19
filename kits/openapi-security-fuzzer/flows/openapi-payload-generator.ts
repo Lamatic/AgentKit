@@ -388,12 +388,13 @@ export const nodes = [
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
+        "id": "responseNode_triggerNode_1",
         "headers": "{\"content-type\":\"application/json\"}",
         "retries": "0",
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{}"
+        "outputMapping": "{\n  \"testSuite\": \"{{codeNode_372.output.testSuite}}\"\n}"
       }
     }
   }
@@ -425,97 +426,49 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_919-InstructorLLMNode_193",
-    "source": "codeNode_919",
+    "id": "InstructorLLMNode_975-InstructorLLMNode_193",
+    "source": "InstructorLLMNode_975",
     "target": "InstructorLLMNode_193",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_919-InstructorLLMNode_428",
-    "source": "codeNode_919",
+    "id": "InstructorLLMNode_193-InstructorLLMNode_428",
+    "source": "InstructorLLMNode_193",
     "target": "InstructorLLMNode_428",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_919-InstructorLLMNode_195",
-    "source": "codeNode_919",
+    "id": "InstructorLLMNode_428-InstructorLLMNode_195",
+    "source": "InstructorLLMNode_428",
     "target": "InstructorLLMNode_195",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_919-InstructorLLMNode_990",
-    "source": "codeNode_919",
+    "id": "InstructorLLMNode_195-InstructorLLMNode_990",
+    "source": "InstructorLLMNode_195",
     "target": "InstructorLLMNode_990",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_919-InstructorLLMNode_111",
-    "source": "codeNode_919",
+    "id": "InstructorLLMNode_990-InstructorLLMNode_111",
+    "source": "InstructorLLMNode_990",
     "target": "InstructorLLMNode_111",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
   },
   {
-    "id": "codeNode_919-InstructorLLMNode_857",
-    "source": "codeNode_919",
-    "target": "InstructorLLMNode_857",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_975-codeNode_372",
-    "source": "InstructorLLMNode_975",
-    "target": "codeNode_372",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_193-codeNode_372",
-    "source": "InstructorLLMNode_193",
-    "target": "codeNode_372",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_428-codeNode_372",
-    "source": "InstructorLLMNode_428",
-    "target": "codeNode_372",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_195-codeNode_372",
-    "source": "InstructorLLMNode_195",
-    "target": "codeNode_372",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_990-codeNode_372",
-    "source": "InstructorLLMNode_990",
-    "target": "codeNode_372",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "InstructorLLMNode_111-codeNode_372",
+    "id": "InstructorLLMNode_111-InstructorLLMNode_857",
     "source": "InstructorLLMNode_111",
-    "target": "codeNode_372",
+    "target": "InstructorLLMNode_857",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
