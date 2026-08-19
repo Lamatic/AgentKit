@@ -65,62 +65,70 @@ const v2Breaking = JSON.stringify({
 });
 
 
+// Path-level parameter fixture (V1 integer vs V2 string declared at paths level)
+const v1PathLevel = JSON.stringify({
+  openapi: "3.0.0",
+  info: { title: "User Service API", version: "1.0.0" },
+  paths: {
+    "/users/{id}": {
+      parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+      get: {
+        summary: "Get user details",
+        responses: {
+          "200": {
+            description: "User found",
+            content: { "application/json": { schema: { type: "object", properties: { id: { type: "integer" } } } } }
+          }
+        }
+      }
+    }
+  }
+});
+
+const v2PathLevel = JSON.stringify({
+  openapi: "3.0.0",
+  info: { title: "User Service API", version: "2.0.0" },
+  paths: {
+    "/users/{id}": {
+      parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+      get: {
+        summary: "Get user details",
+        responses: {
+          "200": {
+            description: "User found",
+            content: { "application/json": { schema: { type: "object", properties: { id: { type: "integer" } } } } }
+          }
+        }
+      }
+    }
+  }
+});
+
 const axiosClient = axios.create({ timeout: 15000 });
 
 async function triggerWorkflowAndPoll(compactPayload) {
-  const executeQuery = `
-    query ExecuteWorkflow($workflowId: String!, $sampleInput: String) {
-      executeWorkflow(
-        workflowId: $workflowId
-        payload: {
-          sampleInput: $sampleInput
+  try {
+    const executeQuery = `
+      query ExecuteWorkflow($workflowId: String!, $sampleInput: String) {
+        executeWorkflow(
+          workflowId: $workflowId
+          payload: {
+            sampleInput: $sampleInput
+          }
+        ) {
+          status
+          result
         }
-      ) {
-        status
-        result
-      }
-    }
-  `;
-
-  const statusQuery = `
-      query CheckStatus($requestId: String!) {
-        checkStatus(requestId: $requestId)
       }
     `;
 
-  const response = await axiosClient({
-    method: 'POST',
-    url: process.env.LAMATIC_API_URL,
-    headers: {
-      'Authorization': `Bearer ${process.env.LAMATIC_API_KEY}`,
-      'Content-Type': 'application/json',
-      'x-project-id': process.env.LAMATIC_PROJECT_ID
-    },
-    data: {
-      query: executeQuery,
-      variables: {
-        workflowId: process.env.LAMATIC_DRIFT_FLOW_ID,
-        sampleInput: JSON.stringify(compactPayload)
-      }
-    }
-  });
+    const statusQuery = `
+        query CheckStatus($requestId: String!) {
+          checkStatus(requestId: $requestId)
+        }
+      `;
 
-  const requestId = response.data?.data?.executeWorkflow?.result?.requestId;
-  if (!requestId) {
-    console.error("Execute Workflow Failed. Response:", JSON.stringify(response.data, null, 2));
-    return null;
-  }
-
-  console.log(`Request ID: ${requestId}. Polling for completion...`);
-
-  let completed = false;
-  let attempts = 0;
-
-  while (!completed && attempts < 20) {
-    attempts++;
-    await new Promise(res => setTimeout(res, 3000));
-
-    const statusResponse = await axiosClient({
+    const response = await axiosClient({
       method: 'POST',
       url: process.env.LAMATIC_API_URL,
       headers: {
@@ -129,38 +137,74 @@ async function triggerWorkflowAndPoll(compactPayload) {
         'x-project-id': process.env.LAMATIC_PROJECT_ID
       },
       data: {
-        query: statusQuery,
-        variables: { requestId }
+        query: executeQuery,
+        variables: {
+          workflowId: process.env.LAMATIC_DRIFT_FLOW_ID,
+          sampleInput: JSON.stringify(compactPayload)
+        }
       }
     });
 
-    const rawResult = statusResponse.data?.data?.checkStatus;
-    let parsedData;
+    const requestId = response.data?.data?.executeWorkflow?.result?.requestId;
+    if (!requestId) {
+      console.error("Execute Workflow Failed. Response:", JSON.stringify(response.data, null, 2));
+      return null;
+    }
 
-    if (typeof rawResult === 'string') {
-      try {
-        parsedData = JSON.parse(rawResult);
-      } catch (err) {
-        parsedData = {
-          executiveSummary: rawResult,
-          impactAssessment: 'Narrative delivered in plain text format.',
-          migrationGuide: 'Refer to deterministic table changes.',
-        };
+    console.log(`Request ID: ${requestId}. Polling for completion...`);
+
+    let completed = false;
+    let attempts = 0;
+
+    while (!completed && attempts < 20) {
+      attempts++;
+      await new Promise(res => setTimeout(res, 3000));
+
+      const statusResponse = await axiosClient({
+        method: 'POST',
+        url: process.env.LAMATIC_API_URL,
+        headers: {
+          'Authorization': `Bearer ${process.env.LAMATIC_API_KEY}`,
+          'Content-Type': 'application/json',
+          'x-project-id': process.env.LAMATIC_PROJECT_ID
+        },
+        data: {
+          query: statusQuery,
+          variables: { requestId }
+        }
+      });
+
+      const rawResult = statusResponse.data?.data?.checkStatus;
+      let parsedData;
+
+      if (typeof rawResult === 'string') {
+        try {
+          parsedData = JSON.parse(rawResult);
+        } catch (err) {
+          parsedData = {
+            executiveSummary: rawResult,
+            impactAssessment: 'Narrative delivered in plain text format.',
+            migrationGuide: 'Refer to deterministic table changes.',
+          };
+        }
+      } else {
+        parsedData = rawResult;
       }
-    } else {
-      parsedData = rawResult;
-    }
-    const analysisOutput = parsedData?.data?.output?.result?.analysis;
+      const analysisOutput = parsedData?.data?.output?.result?.analysis;
 
-    if (parsedData?.status === 'success' && analysisOutput) {
-      return analysisOutput;
-    } else if (parsedData?.status === 'in-progress') {
-      console.log(`Job in progress... (Attempt ${attempts}/20)`);
-    } else if (parsedData) {
-      return parsedData;
+      if (parsedData?.status === 'success' && analysisOutput) {
+        return analysisOutput;
+      } else if (parsedData?.status === 'in-progress') {
+        console.log(`Job in progress... (Attempt ${attempts}/20)`);
+      } else if (parsedData) {
+        return parsedData;
+      }
     }
+    return null;
+  } catch (err) {
+    console.error("Workflow trigger failed with error:", err?.message || err);
+    return null;
   }
-  return null;
 }
 
 async function runMatrixTests() {
@@ -190,8 +234,32 @@ async function runMatrixTests() {
   console.log("Verified Mock Breaking Changes Normalization Output:");
   console.log(JSON.stringify(normalizedMock, null, 2));
 
+  if (normalizedMock.totalBreaking !== 2) {
+    throw new Error(`Step 1 Mock assertion failed: expected 2 breaking changes, got ${normalizedMock.totalBreaking}`);
+  }
+  if (normalizedMock.calculatedRisk !== 'HIGH') {
+    throw new Error(`Step 1 Mock assertion failed: expected HIGH risk, got ${normalizedMock.calculatedRisk}`);
+  }
+
   console.log("\n==========================================");
-  console.log("STEP 2: Matrix Execution");
+  console.log("STEP 2: Path-Level Parameter Regression Test");
+  console.log("==========================================");
+
+  const diffPathLevel = await runOpenApiDiff(v1PathLevel, v2PathLevel);
+  const factsPathLevel = normalizeDiff(diffPathLevel, v1PathLevel, v2PathLevel);
+  console.log("Path-Level Parameter Changes Output:", JSON.stringify(factsPathLevel, null, 2));
+
+  if (factsPathLevel.totalBreaking !== 1) {
+    throw new Error(`Path-level assertion failed: expected 1 breaking change, got ${factsPathLevel.totalBreaking}`);
+  }
+  const pathParamChange = factsPathLevel.allChanges.find(c => c.field === 'id' && c.changeType === 'TYPE_CHANGED');
+  if (!pathParamChange || pathParamChange.before !== 'integer' || pathParamChange.after !== 'string') {
+    throw new Error(`Path-level assertion failed: expected id integer -> string TYPE_CHANGED change, got ${JSON.stringify(pathParamChange)}`);
+  }
+  console.log("✅ Path-level parameter detection assertion passed cleanly!");
+
+  console.log("\n==========================================");
+  console.log("STEP 3: Matrix Execution");
   console.log("==========================================");
 
   // Test Case A: Additive (Non-breaking Baseline)
@@ -202,7 +270,7 @@ async function runMatrixTests() {
     apiName: "User Service API",
     oldVersion: "1.0.0",
     newVersion: "2.0.0",
-    changesCount: factsAdditive.totalBreaking,
+    changesCount: factsAdditive.allChanges.length,
     changes: factsAdditive.allChanges
   };
   console.log("Additive Normalized Payload:", JSON.stringify(payloadAdditive, null, 2));
@@ -214,9 +282,16 @@ async function runMatrixTests() {
     throw new Error(`Test Case A assertion failed: expected at least 1 non-breaking change, got ${factsAdditive.totalNonBreaking}`);
   }
 
-  console.log("Triggering Lamatic Workflow for Additive Test Case...");
-  const resultAdditive = await triggerWorkflowAndPoll(payloadAdditive);
-  console.log("Additive Test Result Output:", JSON.stringify(resultAdditive, null, 2));
+  if (process.env.LAMATIC_API_KEY && process.env.LAMATIC_DRIFT_FLOW_ID) {
+    console.log("Triggering Lamatic Workflow for Additive Test Case...");
+    const resultAdditive = await triggerWorkflowAndPoll(payloadAdditive);
+    console.log("Additive Test Result Output:", JSON.stringify(resultAdditive, null, 2));
+    if (!resultAdditive) {
+      throw new Error("Test Case A failed: workflow returned no result");
+    }
+  } else {
+    console.log("Skipping live workflow trigger (no Lamatic credentials configured).");
+  }
 
   // Test Case B: Breaking Removal & Type Change
   console.log("\n--- TEST CASE B: Breaking Removal & Type Change ---");
@@ -244,9 +319,16 @@ async function runMatrixTests() {
     throw new Error(`Test Case B assertion failed: expected HIGH risk, got ${factsBreaking.calculatedRisk}`);
   }
 
-  console.log("Triggering Lamatic Workflow for Breaking Test Case...");
-  const resultBreaking = await triggerWorkflowAndPoll(payloadBreaking);
-  console.log("Breaking Test Result Output:", JSON.stringify(resultBreaking, null, 2));
+  if (process.env.LAMATIC_API_KEY && process.env.LAMATIC_DRIFT_FLOW_ID) {
+    console.log("Triggering Lamatic Workflow for Breaking Test Case...");
+    const resultBreaking = await triggerWorkflowAndPoll(payloadBreaking);
+    console.log("Breaking Test Result Output:", JSON.stringify(resultBreaking, null, 2));
+    if (!resultBreaking) {
+      throw new Error("Test Case B failed: workflow returned no result");
+    }
+  } else {
+    console.log("Skipping live workflow trigger (no Lamatic credentials configured).");
+  }
 
   console.log("\n✅ ALL MATRIX TEST ASSERTIONS PASSED CLEANLY!");
 }

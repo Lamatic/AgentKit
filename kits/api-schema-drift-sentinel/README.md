@@ -185,13 +185,13 @@ node apps/test-orchestrate.js
 
 ### Test A — Additive (non-breaking)
 
-**Input:** Base spec has `GET /users`, target spec adds `POST /users`.
+**Input:** Base spec has `GET /users/{id}` returning `{ id, name, email }`, target spec adds optional response property `full_name: { type: "string" }`.
 
 **Expected result:**
 - `changesCount: 1`
 - `breakingChangesCount: 0`
 - `deploymentRisk: LOW`
-- One non-breaking change: `POST /users` added
+- One non-breaking change: `FIELD_ADDED full_name`
 
 ### Test B — Breaking (field removal + type change)
 

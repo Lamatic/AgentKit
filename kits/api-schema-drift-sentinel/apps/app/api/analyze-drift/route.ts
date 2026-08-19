@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { runOpenApiDiff, normalizeDiff, triggerLamaticWorkflow } from '@/lib/sentinel';
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));

@@ -44,6 +44,23 @@ export async function runOpenApiDiff(specA: any, specB: any) {
   return result;
 }
 
+function getEffectiveParams(pathItem: any, op: any): any[] {
+  const pathParams: any[] = Array.isArray(pathItem?.parameters) ? pathItem.parameters : [];
+  const opParams: any[] = Array.isArray(op?.parameters) ? op.parameters : [];
+  const map = new Map<string, any>();
+  for (const p of pathParams) {
+    if (p && p.name && p.in) {
+      map.set(`${p.in}:${p.name}`, p);
+    }
+  }
+  for (const p of opParams) {
+    if (p && p.name && p.in) {
+      map.set(`${p.in}:${p.name}`, p);
+    }
+  }
+  return Array.from(map.values());
+}
+
 export function detectParameterTypeChanges(specA: any, specB: any): SemanticChange[] {
   const changes: SemanticChange[] = [];
   const parseObj = (s: any) => {
@@ -67,14 +84,14 @@ export function detectParameterTypeChanges(specA: any, specB: any): SemanticChan
     const v2PathItem = v2Paths[pathKey];
     if (!v2PathItem) continue;
 
-    for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
+    for (const method of ['get', 'post', 'put', 'patch', 'delete', 'options', 'head']) {
       const v1Op = v1PathItem[method];
       const v2Op = v2PathItem[method];
       if (!v1Op || !v2Op) continue;
 
       const endpoint = `${method.toUpperCase()} ${pathKey}`;
-      const v1Params = v1Op.parameters || [];
-      const v2Params = v2Op.parameters || [];
+      const v1Params = getEffectiveParams(v1PathItem, v1Op);
+      const v2Params = getEffectiveParams(v2PathItem, v2Op);
 
       for (const v1Param of v1Params) {
         const v2Param = v2Params.find((p: any) => p.name === v1Param.name && p.in === v1Param.in);
@@ -166,12 +183,21 @@ export function normalizeDiff(diffResult: any, specA?: any, specB?: any): Normal
     let changeType = 'SCHEMA_MODIFIED';
     let field = 'unknown';
 
-    if (code === 'response.body.scope.remove' || (code.includes('remove') && !isBreaking)) {
+    if (code === 'response.body.scope.remove') {
       changeType = 'FIELD_ADDED';
       action = 'add';
+    } else if (code === 'request.body.scope.add') {
+      changeType = 'REQUIRED_FIELD_ADDED';
+      action = 'add';
+    } else if (code === 'request.body.scope.remove') {
+      changeType = 'FIELD_REMOVED';
+      action = 'remove';
     } else if (code.includes('type.change') || code.includes('parameter.type')) {
       changeType = 'TYPE_CHANGED';
       action = 'change';
+    } else if (code.includes('remove') && !isBreaking) {
+      changeType = 'FIELD_ADDED';
+      action = 'add';
     } else if (code.includes('remove') || code.includes('scope.add')) {
       changeType = 'FIELD_REMOVED';
       action = 'remove';
@@ -203,11 +229,13 @@ export function normalizeDiff(diffResult: any, specA?: any, specB?: any): Normal
     const before = extractTypeValue(change.sourceSpecEntity);
     const after = extractTypeValue(change.destinationSpecEntity);
 
-    let description = `Change detected under entity: ${change.entity || 'response.body'}`;
+    const isRequest = code.startsWith('request');
+    const targetScope = isRequest ? 'Request' : 'Response';
+    let description = `Change detected under entity: ${change.entity || (isRequest ? 'request.body' : 'response.body')}`;
     if (action === 'remove') {
-      description = `Response field '${field}' was removed from ${endpoint}`;
+      description = `${targetScope} field '${field}' was removed from ${endpoint}`;
     } else if (action === 'add') {
-      description = `Response field '${field}' was added to ${endpoint}`;
+      description = `${targetScope} field '${field}' was added to ${endpoint}`;
     } else if (action === 'change') {
       description = `Field '${field}' changed on ${endpoint}`;
     }
@@ -295,15 +323,18 @@ export async function triggerLamaticWorkflow(payload: any) {
         flow_id: flowId,
         input: payload,
       }),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (res.ok) {
       const responseData = await res.json();
       console.dir({ 'STAGE 5: RAW_LAMATIC_RESPONSE': responseData }, { depth: null });
       return responseData.data || responseData;
+    } else {
+      console.warn(`REST trigger returned status ${res.status}: ${res.statusText}. Falling back to GraphQL.`);
     }
-  } catch (e) {
-    // Fallback to GraphQL
+  } catch (e: any) {
+    console.warn(`REST trigger failed (${e?.message || e}). Falling back to GraphQL.`);
   }
 
   const executeQuery = `
@@ -329,6 +360,7 @@ export async function triggerLamaticWorkflow(payload: any) {
   const response = await axios({
     method: 'POST',
     url: apiUrl,
+    timeout: 15000,
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
@@ -358,6 +390,7 @@ export async function triggerLamaticWorkflow(payload: any) {
     const statusResponse = await axios({
       method: 'POST',
       url: apiUrl,
+      timeout: 15000,
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -370,7 +403,14 @@ export async function triggerLamaticWorkflow(payload: any) {
     });
 
     const rawResult = statusResponse.data?.data?.checkStatus;
-    const parsedData = typeof rawResult === 'string' ? JSON.parse(rawResult) : rawResult;
+    let parsedData: any = rawResult;
+    if (typeof rawResult === 'string') {
+      try {
+        parsedData = JSON.parse(rawResult);
+      } catch {
+        parsedData = rawResult;
+      }
+    }
     console.dir({ 'STAGE 5: RAW_LAMATIC_RESPONSE': parsedData }, { depth: null });
     const analysisOutput = parsedData?.data?.output?.result?.analysis;
 
