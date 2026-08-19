@@ -27,14 +27,24 @@ import {
   Pencil,
 } from "lucide-react";
 
-// Status palette — the values live in app/globals.css so they stay themeable; see the
-// contrast note there on why these are icon+label paired rather than colour alone.
+// Status palette — values live in app/globals.css, split by role. STATUS is for
+// graphical objects (icons, gauge stroke, markers, borders) at a 3:1 floor; STATUS_TEXT
+// is for anything rendered as text and clears 4.5:1. They are not interchangeable: see
+// the contrast note in globals.css.
 const STATUS = {
   good: "var(--status-good)",
   warning: "var(--status-warning)",
   serious: "var(--status-serious)",
   critical: "var(--status-critical)",
   muted: "var(--status-neutral)",
+} as const;
+
+const STATUS_TEXT = {
+  good: "var(--status-good-text)",
+  warning: "var(--status-warning-text)",
+  serious: "var(--status-serious-text)",
+  critical: "var(--status-critical-text)",
+  muted: "var(--status-neutral-text)",
 } as const;
 
 const CATEGORY_LABEL: Record<DenialCategory, string> = {
@@ -52,11 +62,13 @@ const URGENCY_CONFIG: Record<UrgencyLevel, { label: string; color: string; icon:
   unknown: { label: "Not stated in the letter", color: STATUS.muted, icon: Clock },
 };
 
-function strengthBand(score: number | null): { label: string; color: string } {
-  if (score === null) return { label: "Not scored", color: STATUS.muted };
-  if (score >= 7) return { label: "Strong appeal", color: STATUS.good };
-  if (score >= 4) return { label: "Needs more evidence", color: STATUS.warning };
-  return { label: "Weak — significant gaps", color: STATUS.critical };
+/** `color` paints the gauge ring (graphical, 3:1); `textColor` paints the label (4.5:1). */
+function strengthBand(score: number | null): { label: string; color: string; textColor: string } {
+  if (score === null) return { label: "Not scored", color: STATUS.muted, textColor: STATUS_TEXT.muted };
+  if (score >= 7) return { label: "Strong appeal", color: STATUS.good, textColor: STATUS_TEXT.good };
+  if (score >= 4)
+    return { label: "Needs more evidence", color: STATUS.warning, textColor: STATUS_TEXT.warning };
+  return { label: "Weak — significant gaps", color: STATUS.critical, textColor: STATUS_TEXT.critical };
 }
 
 const LOADING_STEPS = [
@@ -81,7 +93,15 @@ const EXAMPLE_META: Record<string, { icon: typeof Stethoscope; blurb: string }> 
   },
 };
 
-function StrengthGauge({ score, color }: { score: number | null; color: string }) {
+function StrengthGauge({
+  score,
+  color,
+  textColor,
+}: {
+  score: number | null;
+  color: string;
+  textColor: string;
+}) {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const progress = score === null ? 0 : Math.max(0, Math.min(10, score)) / 10;
@@ -104,7 +124,9 @@ function StrengthGauge({ score, color }: { score: number | null; color: string }
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold tabular-nums" style={{ color }}>
+        {/* 30px bold clears WCAG's large-text bar, but use the text token anyway so the
+            figure holds up if the type scale ever shrinks. */}
+        <span className="text-3xl font-bold tabular-nums" style={{ color: textColor }}>
           {score ?? "—"}
         </span>
         <span className="text-[11px] text-muted -mt-0.5">out of 10</span>
@@ -292,7 +314,7 @@ export default function Home() {
                 >
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: STATUS.critical }} aria-hidden="true" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium" style={{ color: STATUS.critical }}>
+                    <p className="text-sm font-medium" style={{ color: STATUS_TEXT.critical }}>
                       {isValidationError ? "Add the denial letter" : "Analysis couldn't be completed"}
                     </p>
                     <p className="text-sm text-muted mt-0.5 leading-relaxed">
@@ -399,10 +421,17 @@ export default function Home() {
 
             {/* Gauge + deadline + rationale row */}
             <div className="rounded-2xl border border-card-border bg-card p-5 flex flex-col sm:flex-row gap-5 items-start">
-              <StrengthGauge score={result.strengthScore} color={strengthBand(result.strengthScore).color} />
+              <StrengthGauge
+                score={result.strengthScore}
+                color={strengthBand(result.strengthScore).color}
+                textColor={strengthBand(result.strengthScore).textColor}
+              />
               <div className="flex-1 flex flex-col gap-3 min-w-0">
                 <div>
-                  <span className="text-sm font-semibold" style={{ color: strengthBand(result.strengthScore).color }}>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: strengthBand(result.strengthScore).textColor }}
+                  >
                     {strengthBand(result.strengthScore).label}
                   </span>
                   <p className="text-sm text-muted mt-1 leading-relaxed">{result.rationale}</p>
