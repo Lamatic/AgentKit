@@ -19,13 +19,12 @@ Most people who receive a claim denial never appeal it — not because they're w
 
 #### What it does
 1. `API Request` — receives `denialText` and `additionalContext`.
-2. `Extract & Classify (LLMNode)` — returns structured JSON: denial category, claim number, procedures, denial reason summary, appeal deadline, plan type.
-3. `Parse Extraction (codeNode)` — parses that JSON so downstream nodes read fields directly.
-4. `Deadline Urgency (codeNode)` — computes days remaining and an urgency level (`critical`/`moderate`/`low`/`expired`/`unknown`) from the extracted deadline.
-5. `Category Branch (conditionNode)` — routes to one of four drafting strategies based on `category`: `medical-necessity`, `administrative`, `coverage`, or a default fallback.
-6. `Draft * (LLMNode)` — drafts a category-specific first-level appeal letter using a strategy prompt tailored to that denial reason (peer-to-peer review request for medical necessity, retroactive authorization for missing prior-auth, network-adequacy exception for out-of-network, etc.).
-7. `Assess Strength (LLMNode)` — conservatively scores the drafted appeal 1-10 and lists concrete missing evidence, given only the facts actually present in the input.
-8. `Assemble Output (codeNode)` — merges classification, deadline urgency, the drafted letter, and the strength assessment into one response object.
+2. `Extract & Classify (InstructorLLMNode)` — returns schema-validated structured output directly: denial category, claim number, procedures, denial reason summary, appeal deadline, plan type. No parsing step needed — this node type returns typed fields, not a raw string.
+3. `Deadline Urgency (codeNode)` — computes days remaining and an urgency level (`critical`/`moderate`/`low`/`expired`/`unknown`) from the extracted deadline.
+4. `Category Branch (conditionNode)` — routes to one of four drafting strategies based on `category`: `medical-necessity`, `administrative`, `coverage`, or a default fallback.
+5. `Draft * (LLMNode)` — drafts a category-specific first-level appeal letter using a strategy prompt tailored to that denial reason (peer-to-peer review request for medical necessity, retroactive authorization for missing prior-auth, network-adequacy exception for out-of-network, etc.).
+6. `Assess Strength (InstructorLLMNode)` — conservatively scores the drafted appeal 1-10 and lists concrete missing evidence, given only the facts actually present in the input, as schema-validated structured output.
+7. `Assemble Output (codeNode)` — merges classification, deadline urgency, the drafted letter, and the strength assessment into one response object.
 9. `API Response` — returns the assembled object under `result`.
 
 #### When to use this flow
@@ -89,4 +88,4 @@ This kit contains a single runnable flow. Internally it behaves like a two-stage
 | Analysis times out | Underlying model provider is overloaded | Retry; the app enforces a 5-minute timeout and surfaces a clear error |
 
 ## Notes
-- This flow was hand-authored to match Lamatic Studio's export schema rather than exported from Studio directly, since building it requires a Studio account. See the kit README for what this means for you before deploying.
+- This flow was built and tested end-to-end in Lamatic Studio (every node individually and the full pipeline). `Extract & Classify` and `Assess Strength` use Studio's schema-validated JSON node type (`InstructorLLMNode`), which is why there's no separate "parse JSON" step in this flow — that node type makes one unnecessary.
