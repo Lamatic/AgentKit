@@ -24,13 +24,26 @@ function startOfLocalDay(value: string | Date): number | null {
   // Matches an ISO 8601 calendar date, with or without a trailing time/zone part. The
   // extraction node's contract is `YYYY-MM-DD` or "" (see
   // prompts/appeal-analysis_extract-classify_system.md), and a full timestamp is accepted
-  // in case the model appends one.
-  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[T ].*)?$/.exec(value.trim());
+  // in case the model appends one. The time part is matched in full rather than as `.*`:
+  // a permissive tail let truncated junk like "2026-08-24T" or "2026-08-24T25:99" through
+  // as a valid deadline, which on a legal filing window must read as unknown instead.
+  const iso =
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(?:Z|([+-]\d{2}):?(\d{2}))?)?$/.exec(
+      value.trim()
+    );
   if (!iso) {
     // Deliberately not falling back to `new Date(value)`: its lenient parsing rolls
     // overflow forward for non-ISO forms too ("2026/02/30" and "February 30, 2026" both
     // yield 2026-03-02), and those components can't be recovered to validate. On a legal
     // deadline an unusable value must read as unknown rather than as extra runway.
+    return null;
+  }
+
+  // The time part is discarded (only the calendar day matters), but out-of-range fields
+  // still mean the extracted value is malformed, so reject rather than silently keep the date.
+  const over = (v: string | undefined, max: number) =>
+    v !== undefined && Math.abs(Number(v)) > max;
+  if (over(iso[4], 23) || over(iso[5], 59) || over(iso[6], 59) || over(iso[7], 23) || over(iso[8], 59)) {
     return null;
   }
 

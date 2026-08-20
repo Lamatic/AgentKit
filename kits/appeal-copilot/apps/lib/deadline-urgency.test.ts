@@ -122,8 +122,32 @@ test("valid timestamped deadlines still resolve to their calendar day", () => {
     "2026-08-24T13:45:00",
     "2026-08-24T23:59:59Z",
     "2026-08-24 13:45:00",
+    "2026-08-24T13:45",
+    "2026-08-24T13:45:00.123Z",
+    "2026-08-24T13:45:00+05:30",
+    "2026-08-24T13:45:00-0800",
   ]) {
     assert.equal(computeDeadlineUrgency(good, REF).daysRemaining, 5, good);
+  }
+});
+
+// Regression: the time part was matched as `.*`, so anything after a valid date passed —
+// a truncated or nonsensical timestamp yielded a confident countdown off the date alone.
+test("a malformed time or offset is unknown, not silently dropped", () => {
+  for (const bad of [
+    "2026-08-24T",
+    "2026-08-24T25:99",
+    "2026-08-24Tnot-a-time",
+    "2026-08-24T13",
+    "2026-08-24T13:45:60",
+    "2026-08-24T24:00:00",
+    "2026-08-24T13:45:00+24:00",
+    "2026-08-24T13:45:00+05:99",
+    "2026-08-24T13:45:00 maybe",
+  ]) {
+    const result = computeDeadlineUrgency(bad, REF);
+    assert.equal(result.urgencyLevel, "unknown", bad);
+    assert.equal(result.daysRemaining, null, bad);
   }
 });
 
