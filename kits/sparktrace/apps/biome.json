@@ -1,0 +1,12 @@
+{
+  "$schema": "https://biomejs.dev/schemas/schema.json",
+  "css": {
+    "linter": {
+      "rules": {
+        "suspicious": {
+          "noUnknownAtRule": "off"
+        }
+      }
+    }
+  }
+}

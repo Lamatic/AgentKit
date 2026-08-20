@@ -1,0 +1,37 @@
+{
+  "name": "Incomplete access scope information",
+  "description": "Demonstrates that AccessLens should report uncertainty when the supplied data does not contain enough information to establish whether access is unauthorized.",
+  "intended_policy": {
+    "roles": [
+      {
+        "role": "Support Analyst",
+        "resources": [
+          {
+            "resource": "Customer Records",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "current_access": {
+    "roles": [
+      {
+        "role": "Support Analyst",
+        "resources": [
+          {
+            "resource": "Customer Records",
+            "permissions": ["READ"],
+            "scope": "unknown"
+          }
+        ]
+      }
+    ]
+  },
+  "expected_result": {
+    "status": "DRIFT DETECTED",
+    "category": "UNKNOWN",
+    "risk": "LOW",
+    "difference": "The supplied current access state does not provide enough information to determine whether the observed scope matches the intended scope."
+  }
+}
