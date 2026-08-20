@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f7f5;
+  --foreground: #16160f;
+  --card: #ffffff;
+  --card-border: rgba(11, 11, 11, 0.09);
+  --muted: #6b6a63;
+  --accent: #1c5cab;
+  --accent-ink: #ffffff;
+
+  /* Status palette, split by role because the two uses have different contrast floors:
+     WCAG 1.4.3 requires 4.5:1 for normal text, while 1.4.11 requires only 3:1 for
+     graphical objects. Pairing a swatch with an icon satisfies 1.4.1 (never colour
+     alone) but does NOT exempt text from 4.5:1, so the two families are separate.
+     Every value below is measured against both surfaces of its theme — light against
+     #ffffff and #f7f7f5, dark against #18170f and #100f0c. */
+
+  /* Graphical only — gauge stroke, icons, borders, markers. Floor 3:1. */
+  --status-good: #0ca00c;      /* 3.24 */
+  --status-warning: #b97f04;   /* 3.21 */
+  --status-serious: #e7602c;   /* 3.21 */
+  --status-critical: #d03b3b;  /* 4.48 */
+  --status-neutral: #898781;   /* 3.35 */
+
+  /* Text only. Floor 4.5:1, solved with headroom. */
+  --status-good-text: #097f09;      /* 4.83 */
+  --status-warning-text: #926403;   /* 4.84 */
+  --status-serious-text: #bf4516;   /* 4.80 */
+  --status-critical-text: #c42f2f;  /* 4.83, incl. the tinted error-panel surface */
+  --status-neutral-text: #6f6d68;   /* 4.82 */
+
+  /* Tinted derivatives of --status-critical, for the error panel's border and surface. */
+  --status-critical-border: rgba(208, 59, 59, 0.2);
+  --status-critical-surface: rgba(208, 59, 59, 0.05);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-source-serif);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #100f0c;
+    --foreground: #f3f2ec;
+    --card: #18170f;
+    --card-border: rgba(255, 255, 255, 0.09);
+    --muted: #9a988e;
+    --accent: #5b9cf0;
+    --accent-ink: #0b0b0b;
+
+    /* The vivid hues already clear 3:1 on the dark surfaces, so the graphical family is
+       unchanged here; only the text family needs lightening. Note --status-critical-text
+       cannot simply reuse #d03b3b: that measures 3.74 on the dark card and fails 1.4.3. */
+    --status-good: #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical: #d03b3b;
+    --status-neutral: #898781;
+
+    --status-good-text: #0ca30c;      /* 5.36 */
+    --status-warning-text: #fab219;   /* 9.80 */
+    --status-serious-text: #ec835a;   /* 6.81 */
+    --status-critical-text: #db6868;  /* 4.83, incl. the tinted error-panel surface */
+    --status-neutral-text: #898781;   /* 5.00 */
+
+    --status-critical-border: rgba(219, 104, 104, 0.28);
+    --status-critical-surface: rgba(219, 104, 104, 0.09);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
