@@ -6,3 +6,5 @@ node_modules/
 dist/
 build/
 coverage/
+!scripts/
+!scripts/*
