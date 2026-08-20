@@ -1,0 +1,11 @@
+[
+  {
+    "id": "location_01",
+    "name": "Study Room",
+    "description": "The room where the body was found.",
+    "is_initial_unlocked": true,
+    "metadata": {
+      "floor": 1
+    }
+  }
+]
