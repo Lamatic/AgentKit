@@ -1,0 +1,54 @@
+{
+  "id": "late-arriving-dim-customer",
+  "title": "Daily revenue rollup undercounts the last 3 days",
+  "symptom": "Finance flagged that daily revenue for the last 3 days looks about 30% low compared to the usual run rate, but nothing changed in the dashboard query. The `daily_revenue` mart is produced nightly by the `daily_revenue.py` Spark job.",
+  "pipelineSummary": "Nightly Airflow DAG `finance_daily_rollup` runs daily_revenue.py, which reads the `orders` fact table and the `dim_customer` dimension (loaded separately by dim_customer_loader.py from a CRM export every ~2 days), joins them on customer_id, and writes a per-(order_date, region) revenue rollup to the `daily_revenue` mart, overwriting the full mart on every run.",
+  "tables": [
+    {
+      "database": "raw",
+      "name": "orders",
+      "kind": "source",
+      "columns": [
+        { "name": "order_id", "type": "string" },
+        { "name": "customer_id", "type": "string" },
+        { "name": "order_date", "type": "string" },
+        { "name": "amount", "type": "double" },
+        { "name": "status", "type": "string" }
+      ],
+      "location": "s3://lake/curated/orders/"
+    },
+    {
+      "database": "raw",
+      "name": "dim_customer",
+      "kind": "source",
+      "columns": [
+        { "name": "customer_id", "type": "string" },
+        { "name": "customer_name", "type": "string" },
+        { "name": "region", "type": "string" },
+        { "name": "segment", "type": "string" },
+        { "name": "created_at", "type": "string" }
+      ],
+      "location": "s3://lake/curated/dim_customer/"
+    },
+    {
+      "database": "finance",
+      "name": "daily_revenue",
+      "kind": "sink",
+      "columns": [
+        { "name": "order_date", "type": "string" },
+        { "name": "region", "type": "string" },
+        { "name": "total_revenue", "type": "double" },
+        { "name": "order_count", "type": "bigint" }
+      ],
+      "location": "s3://lake/marts/finance/daily_revenue/"
+    }
+  ],
+  "groundTruthRootCause": "daily_revenue.py joins orders to dim_customer with an INNER JOIN on customer_id (see repo/jobs/daily_revenue.py, compute_daily_revenue). dim_customer is refreshed by dim_customer_loader.py on a ~2-day-lagged cadence tied to the CRM vendor's export schedule (repo/jobs/dim_customer_loader.py). Orders placed by customers who signed up within that lag window reference a customer_id that has not yet landed in dim_customer, so the inner join silently drops those orders instead of attributing them to a region. Because daily_revenue.py overwrites the mart on every run rather than reprocessing prior partitions, those orders never backfill once dim_customer catches up -- the revenue for those days stays permanently understated. In the sample data, customers C021-C025 placed orders on 2024-01-08 through 2024-01-10 but are entirely absent from dim_customer.csv, which reproduces a 25-37% revenue undercount on exactly those three days while days 2024-01-01 through 2024-01-07 (all orders from long-established customers C001-C020) are unaffected.",
+  "expectedHypothesisCategory": "late-arriving",
+  "expectedInvestigationPath": [
+    "Compare total order volume/amount in `orders` per order_date against `daily_revenue` per order_date -- the last 3 days show a gap, earlier days match exactly.",
+    "Anti-join `orders` against `dim_customer` on customer_id to find orders with no matching dimension row -- all unmatched rows cluster on order_date >= 2024-01-08 and belong to customer_ids C021-C025.",
+    "Confirm those customer_ids are absent from `dim_customer` entirely (not just a stale attribute), pointing at a dimension-load lag rather than a bad join key or schema drift.",
+    "Inspect repo/jobs/daily_revenue.py and find the `how=\"inner\"` join plus the adjacent comment explaining the dim_customer_loader lag -- confirms the root cause and explains why the gap is confined to recent days and never self-heals (mart is overwritten, not reprocessed)."
+  ]
+}
