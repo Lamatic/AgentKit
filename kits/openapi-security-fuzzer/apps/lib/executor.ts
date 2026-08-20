@@ -76,9 +76,9 @@ export async function executeTests(
         let responseText = "";
         try {
           responseText = await response.text();
-          // Truncate very large bodies to prevent payload explosion
-          if (responseText.length > 5000) {
-            responseText = responseText.substring(0, 5000) + "... (truncated)";
+          // Truncate very large bodies to prevent context length explosion
+          if (responseText.length > 500) {
+            responseText = responseText.substring(0, 500) + "... (truncated)";
           }
         } catch (e) {
           responseText = "Failed to read response body";

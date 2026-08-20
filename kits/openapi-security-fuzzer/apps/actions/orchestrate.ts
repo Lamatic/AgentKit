@@ -53,11 +53,38 @@ export async function generatePayloads(
   }
 }
 
-export async function executeAndAnalyze(
+export async function executeTestsOnly(
+  baseUrl: string,
+  authHeader: string,
+  testPayloads: TestPayload[]
+): Promise<{
+  success: boolean
+  data?: any
+  error?: string
+}> {
+  try {
+    console.log(`[v0] Starting test execution against ${baseUrl} for ${testPayloads.length} payloads`);
+
+    // 1. Run tests with rate limiting
+    const executionResults = await executeTests(baseUrl, authHeader, testPayloads, 5);
+
+    return {
+      success: true,
+      data: executionResults,
+    }
+  } catch (error: any) {
+    console.error("[v0] Execute error:", error);
+    return {
+      success: false,
+      error: error.message || "Unknown error occurred",
+    }
+  }
+}
+
+export async function analyzeResultsOnly(
   specContent: string,
   testPayloads: TestPayload[],
-  baseUrl: string,
-  authHeader: string
+  executionResults: any
 ): Promise<{
   success: boolean
   data?: any
@@ -68,12 +95,7 @@ export async function executeAndAnalyze(
       throw new Error("OPENAPI_RESULT_ANALYZER environment variable is missing.");
     }
 
-    console.log(`[v0] Starting test execution against ${baseUrl} for ${testPayloads.length} payloads`);
-
-    // 1. Run tests with rate limiting
-    const executionResults = await executeTests(baseUrl, authHeader, testPayloads, 5);
-
-    console.log(`[v0] Execution finished. Calling analyzer...`);
+    console.log(`[v0] Calling analyzer...`);
 
     // 2. Call analyzer
     // The openapi-result-analyzer expects { openapiSpec, testPayloads, executionResults }
@@ -109,7 +131,7 @@ export async function executeAndAnalyze(
       data: { summary, findings },
     }
   } catch (error: any) {
-    console.error("[v0] Execute & Analyze error:", error);
+    console.error("[v0] Analyze error:", error);
     return {
       success: false,
       error: error.message || "Unknown error occurred",

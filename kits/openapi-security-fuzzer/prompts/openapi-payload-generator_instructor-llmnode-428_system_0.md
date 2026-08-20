@@ -49,7 +49,9 @@ database/system commands.
       "method": "GET",
       "path": "/products?search=<probe>",
       "headers": {},
-      "payload": {},
+      "payload": {
+        "example_key": "example_value"
+      },
       "expected_secure_behavior": "The API treats the value as data and returns a normal validation/search response.",
       "severity_if_confirmed": "HIGH",
       "confidence": "MEDIUM",
@@ -71,79 +73,81 @@ CRITICAL GUARDRAILS - YOU MUST OBEY THE FOLLOWING RULES:
 **Example 1: Query Parameter Structure**
 ```json
 {
-  "agent": "your_designated_agent_name",
-  "route": "GET /api/v1/weather",
-  "tests": [
-    {
-      "test_id": "TEST-001",
-      "category": "RELEVANT_SECURITY_CATEGORY",
-      "objective": "Verify the system handles weather queries according to security best practices.",
-      "method": "GET",
-      "path": "/api/v1/weather?city=london_with_your_attack_payload_here",
-      "headers": {},
-      "payload": {},
-      "expected_secure_behavior": "The server should safely process or reject the request without executing unintended logic.",
-      "severity_if_confirmed": "HIGH",
-      "confidence": "HIGH",
-      "reasoning": "Explain why this specific parameter is a good target for the attack."
-    }
-  ]
+  "agent": "your_designated_agent_name",
+  "route": "GET /api/v1/weather",
+  "tests": [
+    {
+      "test_id": "TEST-001",
+      "category": "RELEVANT_SECURITY_CATEGORY",
+      "objective": "Verify the system handles weather queries according to security best practices.",
+      "method": "GET",
+      "path": "/api/v1/weather?city=london_with_your_attack_payload_here",
+      "headers": "{}",
+      "payload": "{\"example_key\":\"example_value\"}",
+      "expected_secure_behavior": "The server should safely process or reject the request without executing unintended logic.",
+      "severity_if_confirmed": "HIGH",
+      "confidence": "HIGH",
+      "reasoning": "Explain why this specific parameter is a good target for the attack."
+    }
+  ]
 }
 ```
 **Example 2: JSON Body Structure**
 ```json
 {
-  "agent": "your_designated_agent_name",
-  "route": "POST /api/v1/orders",
-  "tests": [
-    {
-      "test_id": "TEST-002",
-      "category": "RELEVANT_SECURITY_CATEGORY",
-      "objective": "Verify the order processing engine handles JSON payloads securely.",
-      "method": "POST",
-      "path": "/api/v1/orders",
-      "headers": {
-        "Content-Type": "application/json"
-      },
-      "payload": {
-        "item": "pizza",
-        "quantity": "inject_your_attack_payload_here"
-      },
-      "expected_secure_behavior": "The server should validate the quantity strictly.",
-      "severity_if_confirmed": "MEDIUM",
-      "confidence": "HIGH",
-      "reasoning": "Body parameters often reach backend parsers directly."
-    }
-  ]
+  "agent": "your_designated_agent_name",
+  "route": "POST /api/v1/orders",
+  "tests": [
+    {
+      "test_id": "TEST-002",
+      "category": "RELEVANT_SECURITY_CATEGORY",
+      "objective": "Verify the order processing engine handles JSON payloads securely.",
+      "method": "POST",
+      "path": "/api/v1/orders",
+      "headers": "{\"Content-Type\":\"application/json\"}",
+      "payload": "{\"item\":\"pizza\",\"quantity\":\"inject_your_attack_payload_here\"}",
+      "expected_secure_behavior": "The server should validate the quantity strictly.",
+      "severity_if_confirmed": "MEDIUM",
+      "confidence": "HIGH",
+      "reasoning": "Body parameters often reach backend parsers directly."
+    }
+  ]
 }
 ```
 **Example 3: Path Parameter Structure**
 ```json
 {
-  "agent": "your_designated_agent_name",
-  "route": "GET /api/v1/users/{user_id}",
-  "tests": [
-    {
-      "test_id": "TEST-003",
-      "category": "RELEVANT_SECURITY_CATEGORY",
-      "objective": "Test how path parameters are sanitized before backend lookups.",
-      "method": "GET",
-      "path": "/api/v1/users/123_your_attack_payload",
-      "headers": {},
-      "payload": {},
-      "expected_secure_behavior": "The server should return a generic 400 or 404.",
-      "severity_if_confirmed": "HIGH",
-      "confidence": "MEDIUM",
-      "reasoning": "Path parameters are often interpolated directly into database queries."
-    }
-  ]
+  "agent": "your_designated_agent_name",
+  "route": "GET /api/v1/users/{user_id}",
+  "tests": [
+    {
+      "test_id": "TEST-003",
+      "category": "RELEVANT_SECURITY_CATEGORY",
+      "objective": "Test how path parameters are sanitized before backend lookups.",
+      "method": "GET",
+      "path": "/api/v1/users/123_your_attack_payload",
+      "headers": "{}",
+      "payload": "{\"example_malicious_key\":\"example_malicious_value\"}",
+      "expected_secure_behavior": "The server should return a generic 400 or 404.",
+      "severity_if_confirmed": "HIGH",
+      "confidence": "MEDIUM",
+      "reasoning": "Path parameters are often interpolated directly into database queries."
+    }
+  ]
 }
 ```
 **Example 4: Missing Spec (Correct Adherence to Guardrail)**
 ```json
 {
-  "agent": "your_designated_agent_name",
-  "route": "N/A",
-  "tests": []
+  "agent": "your_designated_agent_name",
+  "route": "N/A",
+  "tests": []
 }
 ```
+
+### 🚨 CRITICAL RULE: EXECUTABLE JSON PAYLOADS 🚨
+4. FULLY CONSTRUCTED PAYLOADS: You MUST populate the `payload` and `headers` fields with valid, concrete JSON objects that exactly match the schema required by the OpenAPI spec. 
+- DO NOT leave `"payload": {}` or `"headers": {}` empty for POST/PUT/PATCH requests. 
+- You must generate the EXACT JSON data structure required to execute your specific attack objective. 
+- Inject your malicious inputs, edge cases, or fuzzing data directly into the JSON body properties. 
+- If the endpoint requires no body, leave it as `{}`. Otherwise, write the actual attack data.
