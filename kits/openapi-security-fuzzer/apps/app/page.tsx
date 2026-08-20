@@ -439,25 +439,23 @@ export default function SecurityFuzzerPage() {
                 </div>
               </div>
 
-              {!executionResults && (
-                <Button
-                  type="submit"
-                  disabled={!baseUrl.trim() || isExecuting}
-                  className="w-full h-14 rounded-xl bg-gradient-to-r from-red-500/80 to-rose-600/80 hover:from-red-500 hover:to-rose-600 text-white font-semibold text-lg border-0 shadow-[0_0_20px_rgba(225,29,72,0.15)]"
-                >
-                  {isExecuting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      EXECUTING PAYLOADS...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-5 h-5 mr-2 fill-current" />
-                      LAUNCH ATTACK SEQUENCE
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                type="submit"
+                disabled={!baseUrl.trim() || isExecuting}
+                className="w-full h-14 rounded-xl bg-gradient-to-r from-red-500/80 to-rose-600/80 hover:from-red-500 hover:to-rose-600 text-white font-semibold text-lg border-0 shadow-[0_0_20px_rgba(225,29,72,0.15)]"
+              >
+                {isExecuting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    EXECUTING PAYLOADS...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 mr-2 fill-current" />
+                    {executionResults ? "RE-EXECUTE ATTACK SEQUENCE" : "LAUNCH ATTACK SEQUENCE"}
+                  </>
+                )}
+              </Button>
             </form>
 
             {/* Display Execution Results */}
