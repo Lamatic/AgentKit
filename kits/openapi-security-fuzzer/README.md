@@ -13,8 +13,11 @@
 The system is built around a modern Next.js frontend and two core Lamatic.ai intelligent flows:
 
 1. **`openapi-payload-generator`**: An orchestration flow that parses your OpenAPI schema and utilizes multiple specialized AI sub-agents (e.g., Auth Hacker, IDOR Hacker, Injection Hacker) to generate a diverse suite of adversarial payloads.
-2. **`openapi-result-analyzer`**: A supervisor flow that evaluates the HTTP execution results, eliminates false positives, and generates a structured, actionable security report.
+  2. **`openapi-result-analyzer`**: A supervisor flow that evaluates the HTTP execution results, eliminates false positives, and generates a structured, actionable security report.
 3. **Frontend Dashboard**: A Next.js-powered user interface built with Shadcn UI and Tailwind CSS to initiate scans and review the resulting security findings.
+
+> [!NOTE]
+> **Architectural Note on JSON Payloads:** To bypass strict schema validation limitations present in models like GPT-4o and Claude Sonnet (which frequently reject `additionalProperties: true`), the Lamatic flows are designed to output `payload` and `headers` as **Stringified JSON**. The Next.js frontend automatically intercepts and parses these strings back into valid JSON objects before downloading them as Postman collections or raw JSON.
 
 ---
 

@@ -73,7 +73,9 @@ CRITICAL GUARDRAILS - YOU MUST OBEY THE FOLLOWING RULES:
       "method": "GET",
       "path": "/api/v1/user/profile",
       "headers": {},
-      "payload": {},
+      "payload": {
+        "example_key": "example_value"
+      },
       "expected_secure_behavior": "The server must reject the request with a 401 Unauthorized status.",
       "severity_if_confirmed": "CRITICAL",
       "confidence": "HIGH",
@@ -145,7 +147,9 @@ CRITICAL GUARDRAILS - YOU MUST OBEY THE FOLLOWING RULES:
       "headers": {
         "Cookie": "session_id=expired_or_invalid_session_string_999"
       },
-      "payload": {},
+      "payload": {
+        "example_malicious_key": "example_malicious_value"
+      },
       "expected_secure_behavior": "The server should return a 401 or process the logout idempotently without throwing a 500 Internal Server Error.",
       "severity_if_confirmed": "LOW",
       "confidence": "MEDIUM",
@@ -173,7 +177,9 @@ CRITICAL GUARDRAILS - YOU MUST OBEY THE FOLLOWING RULES:
       "headers": {
         "Authorization": "Basic YWRtaW46aW52YWxpZHBhc3N3b3JkMTIz"
       },
-      "payload": {},
+      "payload": {
+        "example_key": "example_value"
+      },
       "expected_secure_behavior": "The server should return 401 Unauthorized initially, and potentially 429 Too Many Requests after multiple attempts.",
       "severity_if_confirmed": "MEDIUM",
       "confidence": "MEDIUM",
@@ -219,7 +225,9 @@ CRITICAL GUARDRAILS - YOU MUST OBEY THE FOLLOWING RULES:
       "headers": {
         "X-API-Key": ""
       },
-      "payload": {},
+      "payload": {
+        "example_malicious_key": "example_malicious_value"
+      },
       "expected_secure_behavior": "The server must reject the empty API key with a 401 Unauthorized status.",
       "severity_if_confirmed": "HIGH",
       "confidence": "HIGH",
@@ -228,3 +236,10 @@ CRITICAL GUARDRAILS - YOU MUST OBEY THE FOLLOWING RULES:
   ]
 }
 ```
+
+### 🚨 CRITICAL RULE: EXECUTABLE JSON PAYLOADS 🚨
+4. FULLY CONSTRUCTED PAYLOADS: You MUST populate the `payload` and `headers` fields with valid, concrete JSON objects that exactly match the schema required by the OpenAPI spec. 
+- DO NOT leave `"payload": {}` or `"headers": {}` empty for POST/PUT/PATCH requests. 
+- You must generate the EXACT JSON data structure required to execute your specific attack objective. 
+- Inject your malicious inputs, edge cases, or fuzzing data directly into the JSON body properties. 
+- If the endpoint requires no body, leave it as `{}`. Otherwise, write the actual attack data.
