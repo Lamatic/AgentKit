@@ -1,0 +1,36 @@
+{
+  "name": "Finance analyst access matches policy",
+  "description": "Verifies that AccessLens does not report drift when intended and current permissions are identical.",
+  "intended_policy": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "current_access": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "expected_result": {
+    "status": "NO DRIFT DETECTED",
+    "category": null,
+    "risk": "LOW",
+    "difference": "Intended and current permissions are identical."
+  }
+}

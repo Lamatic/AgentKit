@@ -1,0 +1,40 @@
+{
+  "name": "Finance role permission mapping drift",
+  "description": "Detects a difference between the intended role permission mapping and the current role permission mapping.",
+  "intended_policy": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "current_access": {
+    "roles": [
+      {
+        "role": "Finance Analyst",
+        "resources": [
+          {
+            "resource": "Finance Reports",
+            "permissions": ["READ"]
+          },
+          {
+            "resource": "Payroll Reports",
+            "permissions": ["READ"]
+          }
+        ]
+      }
+    ]
+  },
+  "expected_result": {
+    "status": "DRIFT DETECTED",
+    "category": "ROLE_DRIFT",
+    "risk": "HIGH",
+    "difference": "The Finance Analyst role has access to Payroll Reports in the current state, but that resource is not included in the intended role definition."
+  }
+}
