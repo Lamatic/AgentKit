@@ -1,0 +1,275 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  SparkTrace live-mode backend (minimal). Provisions ONLY pay-per-use /
+  no-standing-cost resources: one S3 bucket (a few KB of sample data +
+  Athena results), the Glue Data Catalog databases/tables for the bundled
+  "broken pipeline" scenario, a dedicated read-only Athena workgroup with a
+  hard per-query bytes-scanned cap, and (optionally) a least-privilege
+  read-only IAM user for the app. NOTHING here bills by the hour.
+  Tear the whole thing down with `bin/down.sh` (delete-stack).
+
+# ---------------------------------------------------------------------------
+# Parameters
+# ---------------------------------------------------------------------------
+Parameters:
+  ProjectPrefix:
+    Type: String
+    Default: sparktrace
+    Description: Prefix for resource names (bucket, workgroup, IAM user).
+    AllowedPattern: "[a-z0-9-]+"
+
+  # 10 MB (10485760) is the AWS-enforced minimum and the single most important
+  # cost guardrail: any query scanning more than this is killed by the workgroup.
+  BytesScannedCutoffBytes:
+    Type: Number
+    Default: 10485760
+    MinValue: 10485760
+    Description: Hard per-query Athena bytes-scanned cap (workgroup-enforced). Leave as-is.
+
+  CreateAppUser:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >
+      Create a dedicated least-privilege READ-ONLY IAM user + access key for
+      the app (free; enforces read-only at the IAM layer). Set "false" if your
+      deploy credentials can't create IAM users — the app then uses your own
+      credentials instead.
+
+Conditions:
+  MakeAppUser: !Equals [!Ref CreateAppUser, "true"]
+
+Resources:
+  # -------------------------------------------------------------------------
+  # S3 — sample data + Athena query results (only storage/request charges;
+  # results auto-expire after 7 days so nothing accumulates).
+  # -------------------------------------------------------------------------
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefix}-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-athena-results
+            Status: Enabled
+            Prefix: athena-results/
+            ExpirationInDays: 7
+
+  # -------------------------------------------------------------------------
+  # Glue Data Catalog — two databases (raw, finance) matching the scenario's
+  # schema-qualified table names (raw.orders, raw.dim_customer,
+  # finance.daily_revenue). Catalog storage is free at this scale.
+  # -------------------------------------------------------------------------
+  RawDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: raw
+        Description: SparkTrace raw source tables (orders, dim_customer).
+
+  FinanceDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: finance
+        Description: SparkTrace finance mart (daily_revenue).
+
+  OrdersTable:
+    Type: AWS::Glue::Table
+    DependsOn: RawDatabase
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: raw
+      TableInput:
+        Name: orders
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: csv
+          "skip.header.line.count": "1"
+        StorageDescriptor:
+          Location: !Sub "s3://${DataBucket}/data/raw/orders/"
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+            Parameters:
+              "field.delim": ","
+              "serialization.format": ","
+          Columns:
+            - { Name: order_id, Type: string }
+            - { Name: customer_id, Type: string }
+            - { Name: order_date, Type: string }
+            - { Name: amount, Type: double }
+            - { Name: status, Type: string }
+
+  DimCustomerTable:
+    Type: AWS::Glue::Table
+    DependsOn: RawDatabase
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: raw
+      TableInput:
+        Name: dim_customer
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: csv
+          "skip.header.line.count": "1"
+        StorageDescriptor:
+          Location: !Sub "s3://${DataBucket}/data/raw/dim_customer/"
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+            Parameters:
+              "field.delim": ","
+              "serialization.format": ","
+          Columns:
+            - { Name: customer_id, Type: string }
+            - { Name: customer_name, Type: string }
+            - { Name: region, Type: string }
+            - { Name: segment, Type: string }
+            - { Name: created_at, Type: string }
+
+  DailyRevenueTable:
+    Type: AWS::Glue::Table
+    DependsOn: FinanceDatabase
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: finance
+      TableInput:
+        Name: daily_revenue
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          classification: csv
+          "skip.header.line.count": "1"
+        StorageDescriptor:
+          Location: !Sub "s3://${DataBucket}/data/finance/daily_revenue/"
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+            Parameters:
+              "field.delim": ","
+              "serialization.format": ","
+          Columns:
+            - { Name: order_date, Type: string }
+            - { Name: region, Type: string }
+            - { Name: total_revenue, Type: double }
+            - { Name: order_count, Type: bigint }
+
+  # -------------------------------------------------------------------------
+  # Athena workgroup — dedicated (not "primary"), read-only-oriented, with a
+  # HARD per-query bytes-scanned cutoff. No standing cost; per-query only.
+  # -------------------------------------------------------------------------
+  WorkGroup:
+    Type: AWS::Athena::WorkGroup
+    Properties:
+      Name: !Sub "${ProjectPrefix}-readonly"
+      State: ENABLED
+      RecursiveDeleteOption: true
+      WorkGroupConfiguration:
+        EnforceWorkGroupConfiguration: true
+        PublishCloudWatchMetricsEnabled: false
+        BytesScannedCutoffPerQuery: !Ref BytesScannedCutoffBytes
+        ResultConfiguration:
+          OutputLocation: !Sub "s3://${DataBucket}/athena-results/"
+
+  # -------------------------------------------------------------------------
+  # Optional least-privilege read-only app user (free). Read-only at the IAM
+  # layer is a second belt-and-suspenders guard on top of SparkTrace's own
+  # query guard: the app literally cannot write or create billable resources.
+  # -------------------------------------------------------------------------
+  AppUser:
+    Type: AWS::IAM::User
+    Condition: MakeAppUser
+    Properties:
+      UserName: !Sub "${ProjectPrefix}-app-readonly"
+      Policies:
+        - PolicyName: sparktrace-readonly
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: AthenaReadOnly
+                Effect: Allow
+                Action:
+                  - athena:StartQueryExecution
+                  - athena:StopQueryExecution
+                  - athena:GetQueryExecution
+                  - athena:GetQueryResults
+                  - athena:GetWorkGroup
+                Resource: !Sub "arn:aws:athena:${AWS::Region}:${AWS::AccountId}:workgroup/${ProjectPrefix}-readonly"
+              - Sid: GlueReadOnly
+                Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:GetPartition
+                  - glue:GetPartitions
+                Resource:
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/raw"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/finance"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/raw/*"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/finance/*"
+              - Sid: S3ReadData
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt DataBucket.Arn
+                  - !Sub "${DataBucket.Arn}/data/*"
+                  - !Sub "${DataBucket.Arn}/athena-results/*"
+              - Sid: S3WriteResultsOnly
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/athena-results/*"
+
+  # NOTE: no AWS::IAM::AccessKey here on purpose. A CloudFormation-created key
+  # can only be handed to the caller through Outputs, and stack outputs are
+  # readable by any principal with cloudformation:DescribeStacks — publishing a
+  # live secret access key (CWE-200). Instead `bin/write-env.sh` mints the key
+  # with `aws iam create-access-key` at deploy time, where the secret is
+  # returned exactly once and goes straight into the gitignored .env.local.
+  # `bin/down.sh` deletes any outstanding keys before the stack is torn down.
+
+# ---------------------------------------------------------------------------
+# Outputs — consumed by bin/write-env.sh to generate the app .env.local.
+# ---------------------------------------------------------------------------
+Outputs:
+  BucketName:
+    Description: S3 bucket holding sample data + Athena results.
+    Value: !Ref DataBucket
+  WorkGroupName:
+    Description: Dedicated read-only Athena workgroup.
+    Value: !Sub "${ProjectPrefix}-readonly"
+  AthenaOutputLocation:
+    Description: ATHENA_OUTPUT_LOCATION for the app.
+    Value: !Sub "s3://${DataBucket}/athena-results/"
+  GlueDatabase:
+    Description: Default Glue database the app enumerates (GLUE_DATABASE).
+    Value: raw
+  AwsRegion:
+    Description: Region the stack was deployed to.
+    Value: !Ref AWS::Region
+  AppUserName:
+    Condition: MakeAppUser
+    Description: >
+      Read-only IAM user the app authenticates as. bin/write-env.sh mints its
+      access key at deploy time; no credential is published in these outputs.
+    Value: !Ref AppUser
