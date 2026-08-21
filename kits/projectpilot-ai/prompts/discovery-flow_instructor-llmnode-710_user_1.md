@@ -1,0 +1,1 @@
+Suggest 5-8 final year project ideas for a {{triggerNode_1.branch}} student interested in {{triggerNode_1.interest}}, skill level {{triggerNode_1.skillLevel}}, with {{triggerNode_1.duration}} to complete, working {{triggerNode_1.teamType}}. For each, give a title, difficulty, industry relevance, and an innovation score out of 10.
