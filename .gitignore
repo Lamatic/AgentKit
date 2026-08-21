@@ -1,6 +1,4 @@
-**/.DS_Store
-
+venv/
 .env
-.claude
-REFACTOR_PLAN.md
-scripts
+__pycache__/
+*.pyc

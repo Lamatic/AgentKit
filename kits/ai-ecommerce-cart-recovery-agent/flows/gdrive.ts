@@ -1,0 +1,427 @@
+/*
+ * # GDrive
+ * A Google Drive indexation flow that ingests documents from a selected Drive folder, chunks and vectorizes their content, and writes the results into the shared vector store used by the AI E-Commerce Cart Recovery Agent.
+ *
+ * ## Purpose
+ * This flow is responsible for turning files stored in Google Drive into retrieval-ready vector records. It solves the ingestion side of the problem for teams whose source of truth lives in Drive folders: authenticate to Google Drive, read document content, split it into manageable chunks, create embeddings for those chunks, attach normalized metadata, and index the resulting records into a vector database.
+ *
+ * The outcome is a searchable knowledge base segment derived from one chosen Google Drive folder. That matters because the downstream chatbot flow can only retrieve grounded context from content that has already been indexed. Without this flow, Google Drive content remains unavailable to retrieval and cannot contribute to answer generation.
+ *
+ * Within the broader AI E-Commerce Cart Recovery Agent bundle, this is an entry-point indexation flow in the ingestion stage of the pipeline. It sits before retrieval and synthesis: first this flow prepares the source material for semantic search, then the separate chatbot flow queries the vector index at runtime, retrieves the most relevant chunks, and uses them to synthesize answers. It is one of several sibling indexation flows, so it should be selected specifically when Google Drive is the source system.
+ *
+ * ## When To Use
+ * - Use when the knowledge source you want to ingest is stored in a Google Drive folder.
+ * - Use when you need to build or refresh vector index entries from Google Drive documents for the Cart Recovery Agent..
+ * - Use when a scheduled or operator-triggered ingestion job should pull Drive content incrementally rather than requiring a manual export.
+ * - Use when you already have valid Google Drive credentials configured in Lamatic and a target vector database selected.
+ * - Use when the chatbot must answer questions grounded in internal documents maintained in Drive.
+ *
+ * ## When Not To Use
+ * - Do not use when the source content lives in another system such as OneDrive, SharePoint, S3, Postgres, Google Sheets, or web pages; use the matching sibling indexation flow instead.
+ * - Do not use when no Google Drive credentials have been configured or the selected account cannot access the target folder.
+ * - Do not use when you do not yet know which vector database should receive the indexed records.
+ * - Do not use when the input is an arbitrary file upload or raw text payload rather than a Google Drive folder reference.
+ * - Do not use when you need live question answering; this flow prepares the index only and does not perform retrieval or answer generation.
+ * - Do not use when the folder is empty and there is nothing to index.
+ *
+ * ## Inputs
+ * | Field | Type | Required | Description |
+ * |---|---|---|---|
+ * | `credentials` | `select` | Yes | Google Drive credentials used by the trigger to authenticate against the Google Drive API. |
+ * | `folderUrl` | `resourceLocator` | Yes | The Google Drive folder to ingest. It can be selected from a list or supplied as a URL, depending on the configured mode. |
+ * | `mapping.source` | `string` | Yes | Source value provided through the `Variables` node mapping. In this flow it represents the source URL attached to output metadata. |
+ * | `vectorDB` | `select` | Yes | Target vector database where generated embeddings and metadata are indexed. |
+ * | `embeddingModelName` | `model` | Yes | Embedding model used to convert extracted chunk text into vectors. |
+ *
+ 
+ * ## Outputs
+ * | Field | Type | Description |
+ * |---|---|---|
+ * | `status` | `string` | High-level indexing outcome returned by the terminal indexing operation, typically indicating success or failure. |
+ * | `indexedCount` | `number` | Number of vector records or chunks written to the selected vector database, if exposed by the index node response. |
+ * | `metadata` | `array<object>` | Metadata objects derived from the transformed records that were sent for indexing. |
+ * | `vectors` | `array` | Embedding vectors produced for the chunked text and forwarded to the indexer. |
+ * | `chunk_id` | `string` |Stable unique identifier generated for each indexed chunk. It is used as the configured primary key by the Index node. Records with the same `chunk_id` are overwritten instead of duplicated.|
+ * | `source` | `string` | Source URL associated with the indexed records, supplied through the variables mapping. |
+ *
+ * Below the table, the practical output shape is a structured object centered on the final `Index to DB` operation. The exact response contract is not fully declared in the flow source, so fields such as `status` and `indexedCount` reflect the expected indexing result rather than a guaranteed public schema. Internally, the flow definitely produces chunk text, vectors, and metadata arrays before indexing, but the canonical external response is whatever the index node emits after writing to the vector store. Consumers should therefore treat the indexing result as authoritative and not assume raw chunk-level artifacts are always returned unless they explicitly expose them.
+ *
+ * ## Dependencies
+ * ### Upstream Flows
+ * - None. This is a standalone entry-point ingestion flow for the AI E-Commerce Cart Recovery Agent  bundle.
+ * - It does not require another Lamatic flow to run before it, but it does require that the selected Google Drive folder already contain accessible documents and that the target vector database be available.
+ * - In the broader bundle lifecycle, operators typically run this flow before using the separate chatbot flow, because the chatbot depends on the vector index populated here.
+ *
+ * ### Downstream Flows
+ * - `Cart Recovery flow` — consumes the vector index populated by this flow during retrieval. It does not usually ingest a direct API payload from this flow; instead it relies on the indexed chunk vectors and metadata now present in the shared vector database.
+ * - Any orchestration or operational workflow that monitors ingestion jobs may also consume the final indexing status returned by this flow.
+ *
+ * ### External Services
+ * - Google Drive — source content system used to list and read files from the selected folder — requires configured Google Drive `credentials` on `triggerNode_1`.
+ * - Embedding model provider — converts extracted chunk text into vector representations — requires the selected `embeddingModelName` on `vectorizeNode_623`.
+ * - Vector database — stores vectors and metadata for later semantic retrieval — requires the selected `vectorDB` on `IndexNode_343`.
+ * - Webhook endpoint — a configured URL present on the indexing node, likely for callback or operational integration during indexing — used by `IndexNode_343`.
+ *
+ * ### Environment Variables
+ * - No explicit environment variables are declared in the exported flow source.
+ * - If the selected embedding model or vector database connector requires provider-level secrets, those are managed through Lamatic model, credential, or database configuration rather than as flow-defined environment variables.
+ *
+ * ## Node Walkthrough
+ * 1. `Google Drive` (`triggerNode`) starts the flow by authenticating with the selected Google Drive account and reading content from the specified Drive folder. It is configured as the trigger node, uses `incremental_append` sync mode, and includes a weekly cron expression. For each retrieved document, it exposes at least `content` and `document_key`, which the downstream nodes use.
+ *
+ * 2. `chunking` (`chunkNode`) splits `{{triggerNode_1.output.content}}` into smaller retrieval-friendly segments. It uses recursive character splitting with a target chunk size of `500` characters, `50` characters of overlap, and separators of paragraph break, line break, and space. The goal is to preserve semantic continuity while keeping chunks short enough for embedding and retrieval.
+ *
+ * 3. `Extract Chunked Text` (`codeNode`) runs the referenced script `@scripts/gdrive_extract-chunked-text.ts`. Based on its placement and input/output wiring, this step reshapes the chunker output into the exact text array or text payload expected by the embedding node. It effectively extracts the clean chunk text from the richer chunk structure.
+ *
+ * 4. `Get Vectors` (`vectorizeNode`) sends the extracted chunk text from `{{codeNode_539.output}}` to the selected embedding model. This node produces vector embeddings for each text chunk so the content can be searched semantically later.
+ *
+ * 5. `Transform Metadata` (`codeNode`) runs `@scripts/gdrive_transform-metadata.ts`. This step combines the vectorization output with the earlier variables such as `title` and `source`, then packages the results into two fields expected by the indexer: `vectors` and `metadata`. It is the normalization step that ensures the final records match the vector database schema.
+ *
+ *6. `Index to DB` (`IndexNode`) writes the transformed `vectors` and `metadata` into the chosen vector database. It uses `chunk_id` as the configured primary key and is set to `overwrite` on duplicates, meaning records with the same `chunk_id` are updated instead of creating duplicate entries.
+ *
+ * 7. `addNode` (`addNode`) is only a trailing placeholder from the studio canvas and does not contribute functional runtime behavior.
+ *
+ * ## Error Scenarios
+ * | Symptom | Likely Cause | Recommended Fix |
+ * |---|---|---|
+ * | Google Drive trigger fails before any records are processed | Missing, invalid, or expired `credentials` for Google Drive | Reconfigure the Google Drive credential in Lamatic, ensure OAuth scopes are valid, and verify the selected account can access the folder. |
+ * | Flow starts but no documents are indexed | The selected `folderUrl` points to an empty folder, an inaccessible folder, or a folder containing unsupported file types | Confirm the folder URL or selected folder is correct, verify sharing permissions, and test with known text-bearing files. |
+ * | Trigger cannot resolve the folder | `folderUrl` is malformed or supplied in the wrong mode | Use the list selector where possible, or provide a valid Google Drive folder URL in URL mode. |
+ * | Chunking produces little or no usable text | `triggerNode_1.output.content` is empty because source files could not be extracted | Check file formats in Drive, verify the connector supports them, and inspect the trigger output for missing `content`. |
+ * | Embedding step fails | `embeddingModelName` is not configured, unavailable, or lacks provider access | Select a valid embedding model in Lamatic and verify the underlying provider credentials and quotas. |
+ * | Indexing step fails to write records | `vectorDB` is not configured, unreachable, or schema expectations do not match transformed payloads | Select a valid vector database, verify connectivity, and inspect the metadata transformation script assumptions around fields like `title`, `vectors`, and `metadata`. |
+ * |Existing records are unexpectedly replaced | Duplicate handling is configured as overwrite and title is reused as the primary key |
+ * |Source metadata is incorrect for all indexed records | The `Variables` node initializes `source` as an empty string unless a value is provided through the configured mapping. | Update the `mapping.source` value or metadata transformation logic to provide the desired per-document source when required. |
+ * | Downstream chatbot returns no relevant answers after this flow ran | The chatbot flow was run against a different vector database or the indexing job produced no usable chunks | Ensure this flow and the chatbot share the same vector store, confirm records were indexed successfully, and validate chunk/vector counts. |
+ * | Automation expects a rich response but only sees indexing status | The flow’s public response comes from the final index node rather than exposing intermediate chunk or vector payloads | Update the flow contract or downstream automation to consume the index result, or add an explicit response-shaping node if richer output is required. |
+ *
+ * ## Notes
+ * - The trigger node is configured with `incremental_append`, which suggests repeated runs are intended to add new or updated content rather than rebuild the index from scratch.
+ * - The configured cron expression indicates a scheduled execution pattern, nominally weekly. Operators should validate the exact schedule semantics in their Lamatic runtime and timezone handling.
+ * - - The indexing node uses `chunk_id` as the sole primary key. Records with the same `chunk_id` are overwritten, so each chunk should have a stable and unique identifier.
+ * - Two important transformation steps are implemented in external scripts: `@scripts/gdrive_extract-chunked-text.ts` and `@scripts/gdrive_transform-metadata.ts`. Their behavior determines the final chunk text payload and metadata schema, so changes there can materially alter indexing outcomes even if the flow graph remains unchanged.
+ * - The flow metadata name is `GDrive` and should be referenced consistently across documentation and automation.
+ * -The `Index to DB` node contains a webhook URL in its configuration. If this is active in your environment, review whether it is a placeholder, audit endpoint, or production callback before deployment.
+ */
+
+// Flow: gdrive
+// When @lamatic/sdk ships: import { defineFlow } from '@lamatic/sdk'
+
+// ── Meta ──────────────────────────────────────────────
+export const meta = {
+  "name": "GDrive",
+  "description": "Google Drive Indexation",
+  "tags": [],
+  "testInput": null,
+  "githubUrl": "",
+  "documentationUrl": "",
+  "deployUrl": "",
+  "author": {
+    "name": "Naitik Kapadia",
+    "email": "naitikk@lamatic.ai"
+  }
+};
+
+// ── Inputs ────────────────────────────────────────────
+export const inputs = {
+  "IndexNode_343": [
+    {
+      "isDB": true,
+      "name": "vectorDB",
+      "type": "select",
+      "label": "Vector DB",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database where the vectors will be indexed.",
+      "defaultValue": ""
+    }
+  ],
+  "triggerNode_1": [
+    {
+      "name": "credentials",
+      "type": "select",
+      "label": "Credentials",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Google Drive authentication. Required to access the Google Drive API.",
+      "defaultValue": "",
+      "isCredential": true
+    },
+    {
+      "name": "folderUrl",
+      "type": "resourceLocator",
+      "label": "Folder",
+      "modes": [
+        {
+          "name": "list",
+          "type": "select",
+          "label": "From List",
+          "required": true,
+          "defaultValue": ""
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "label": "By URL",
+          "required": true,
+          "defaultValue": ""
+        }
+      ],
+      "required": true,
+      "isPrivate": true,
+      "typeOptions": {
+        "loadOptionsMethod": "getFolders"
+      },
+      "airbyteInputName": "source/configuration.folder_url",
+      "defaultModeValue": {
+        "mode": "list",
+        "value": ""
+      }
+    }
+  ],
+  "variablesNode_272": [
+    {
+      "keys": [
+        "source"
+      ],
+      "name": "mapping",
+      "type": "variablesInput",
+      "label": "Mapping",
+      "required": true,
+      "description": "Map the variables with the values",
+      "defaultValue": "",
+      "useCaseInput": true
+    }
+  ],
+  "vectorizeNode_623": [
+    {
+      "mode": "embedding",
+      "name": "embeddingModelName",
+      "type": "model",
+      "label": "Embedding Model Name",
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "Select the model to convert the texts into vector representations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
+    }
+  ]
+};
+
+// ── References ────────────────────────────────────────
+export const references = {
+  "constitutions": {
+    "default": "@constitutions/default.md"
+  },
+  "scripts": {
+    "gdrive_extract_chunked_text": "@scripts/gdrive_extract-chunked-text.ts",
+    "gdrive_transform_metadata": "@scripts/gdrive_transform-metadata.ts"
+  }
+};
+
+// ── Nodes & Edges (exact Lamatic Studio export) ───────
+export const nodes = [
+  {
+    "id": "triggerNode_1",
+    "type": "triggerNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "googleDriveNode",
+      "modes": {
+        "folderUrl": "list"
+      },
+      "trigger": true,
+      "values": {
+        "nodeName": "Google Drive",
+        "syncMode": "incremental_append",
+        "cronExpression": "0 0 00 ? * 1 * UTC"
+      }
+    }
+  },
+  {
+    "id": "chunkNode_934",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "chunkNode",
+      "values": {
+        "nodeName": "chunking",
+        "chunkField": "{{triggerNode_1.output.content}}",
+        "numOfChars": 500,
+        "separators": [
+          "\\n\\n",
+          "\\n",
+          " "
+        ],
+        "chunkingType": "recursiveCharacterTextSplitter",
+        "overlapChars": 50
+      }
+    }
+  },
+  {
+    "id": "codeNode_539",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "nodeName": "Extract Chunked Text",
+        "code": "@scripts/gdrive_extract-chunked-text.ts"
+      }
+    }
+  },
+  {
+    "id": "vectorizeNode_623",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "vectorizeNode",
+      "values": {
+        "nodeName": "Get Vectors",
+        "inputText": "{{codeNode_539.output}}",
+        "embeddingModelName": {}
+      }
+    }
+  },
+  {
+    "id": "codeNode_560",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "nodeName": "Transform Metadata",
+        "code": "@scripts/gdrive_transform-metadata.ts"
+      }
+    }
+  },
+{
+  "id": "IndexNode_343",
+  "type": "dynamicNode",
+  "position": {
+    "x": 0,
+    "y": 0
+  },
+  "data": {
+    "nodeId": "IndexNode",
+    "values": {
+      "nodeName": "Index to DB",
+      "primaryKeys": [
+        "chunk_id"
+      ],
+      "vectorsField": "{{codeNode_560.output.vectors}}",
+      "metadataField": "{{codeNode_560.output.metadata}}",
+      "duplicateOperation": "overwrite"
+    }
+  }
+},
+  {
+    "id": "plus-node-addNode_870476",
+    "type": "addNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "addNode",
+      "values": {
+        "nodeName": ""
+      }
+    }
+  },
+  {
+    "id": "variablesNode_272",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "variablesNode",
+      "modes": {},
+      "values": {
+        "nodeName": "Variables",
+        "mapping": "{\n  \"title\": {\n    \"type\": \"string\",\n    \"value\": \"{{triggerNode_1.output.document_key}}\"\n  },\n  \"source\": {\n    \"type\": \"string\",\n    \"value\": \"\"\n  }\n}"
+      }
+    }
+  }
+];
+
+export const edges = [
+  {
+    "id": "variablesNode_272-chunkNode_934",
+    "source": "variablesNode_272",
+    "target": "chunkNode_934",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "chunkNode_934-codeNode_539",
+    "source": "chunkNode_934",
+    "target": "codeNode_539",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_539-vectorizeNode_623",
+    "source": "codeNode_539",
+    "target": "vectorizeNode_623",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "vectorizeNode_623-codeNode_560",
+    "source": "vectorizeNode_623",
+    "target": "codeNode_560",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_560-IndexNode_343",
+    "source": "codeNode_560",
+    "target": "IndexNode_343",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "IndexNode_343-plus-node-addNode_870476",
+    "source": "IndexNode_343",
+    "target": "plus-node-addNode_870476",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "triggerNode_1-variablesNode_272",
+    "source": "triggerNode_1",
+    "target": "variablesNode_272",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  }
+];
+
+export default { meta, inputs, references, nodes, edges };
