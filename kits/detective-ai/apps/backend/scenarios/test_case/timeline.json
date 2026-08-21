@@ -1,0 +1,15 @@
+[
+  {
+    "id": "timeline_01",
+    "event_order": 1,
+    "description": "Alice entered the study room carrying a small package.",
+    "timestamp_str": "2026-01-01T21:30:00Z",
+    "location_id": "location_01",
+    "suspect_id": "suspect_01",
+    "evidence_id": "evidence_01",
+    "is_secret": true,
+    "details": {
+      "seen_by": "gardener"
+    }
+  }
+]

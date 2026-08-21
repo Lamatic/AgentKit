@@ -1,0 +1,90 @@
+[
+  {
+    "id": "evidence_01",
+    "name": "Broken Access Card",
+    "description": "A snapped RFID keycard registered to Research Assistant Nina Shah, discovered wedged near the reading room threshold.",
+    "evidence_type": "physical",
+    "location_id": "location_02",
+    "discovery_metadata": {
+      "found_by": "Detective",
+      "condition": "Fractured magnetic strip"
+    }
+  },
+  {
+    "id": "evidence_02",
+    "name": "Security Access Log",
+    "description": "Digital access record showing an unauthorized credential authentication for Project ORION at 23:47 using a temporary admin token.",
+    "evidence_type": "digital",
+    "location_id": "location_01",
+    "discovery_metadata": {
+      "source": "Security Console",
+      "timestamp_flagged": "23:47"
+    }
+  },
+  {
+    "id": "evidence_03",
+    "name": "Corrupted CCTV Video File",
+    "description": "Surveillance video archive for Archive Hallway Cameras 3 and 4 exhibiting severe static corruption between 23:45 and 23:55.",
+    "evidence_type": "digital",
+    "location_id": "location_03",
+    "discovery_metadata": {
+      "file_format": "MP4",
+      "corruption_type": "Packet suppression script"
+    }
+  },
+  {
+    "id": "evidence_04",
+    "name": "Suspicious Utility USB Drive",
+    "description": "A black USB flash drive containing network diagnostics and port-scanning tools, labeled with auditor Daniel Cross's initials.",
+    "evidence_type": "digital",
+    "location_id": "location_03",
+    "discovery_metadata": {
+      "volume_name": "DC_AUDIT",
+      "contents": "Nmap & Wireshark scripts"
+    }
+  },
+  {
+    "id": "evidence_05",
+    "name": "Server Maintenance Record",
+    "description": "System maintenance log showing terminal B3 remote administration was initiated from internal IP 192.168.1.104 rather than the external automated VPN.",
+    "evidence_type": "digital",
+    "location_id": "location_04",
+    "discovery_metadata": {
+      "terminal": "B3-SYS",
+      "ip_address": "192.168.1.104"
+    }
+  },
+  {
+    "id": "evidence_06",
+    "name": "Temporary Admin Access Token",
+    "description": "A physical hardware security token assigned to Marcus Reed, lacking its factory authentication seal and reflashed with custom firmware.",
+    "evidence_type": "physical",
+    "location_id": "location_01",
+    "discovery_metadata": {
+      "assigned_to": "Marcus Reed",
+      "firmware_modified": true
+    }
+  },
+  {
+    "id": "evidence_07",
+    "name": "Corrupted Email Communication",
+    "description": "An unsent draft email from Dr. Adrian Vale dated 23:30 flagging unauthorized system parameter modifications on Project ORION.",
+    "evidence_type": "digital",
+    "location_id": "location_05",
+    "discovery_metadata": {
+      "sender": "Dr. Adrian Vale",
+      "recipient": "Elena Marlow"
+    }
+  },
+  {
+    "id": "evidence_08",
+    "name": "ORION Security Architecture Document",
+    "description": "Encrypted specifications for Project ORION showing recent download activity logged to an internal network bridge at 23:48.",
+    "evidence_type": "digital",
+    "location_id": "location_06",
+    "discovery_metadata": {
+      "file_name": "ORION_SEC_ARCH_v2.pdf",
+      "download_timestamp": "23:48"
+    }
+  }
+]

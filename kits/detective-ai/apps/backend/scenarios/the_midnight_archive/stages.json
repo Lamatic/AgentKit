@@ -1,0 +1,65 @@
+[
+  {
+    "id": "stage_01",
+    "name": "Establish the Scene",
+    "description": "Secure the crime scene, assess Dr. Vale's condition, and inspect the main security desk and archive reading room.",
+    "order": 1,
+    "requirements": {
+      "required_location_ids": ["location_01", "location_02"],
+      "required_evidence_ids": ["evidence_01"]
+    },
+    "status": "available"
+  },
+  {
+    "id": "stage_02",
+    "name": "Investigate Archive Access",
+    "description": "Analyze digital access logs and physical entry credentials used during the 23:47 security event.",
+    "order": 2,
+    "requirements": {
+      "required_evidence_ids": ["evidence_02", "evidence_06"],
+      "required_suspect_ids": ["suspect_02", "suspect_03"]
+    },
+    "status": "locked"
+  },
+  {
+    "id": "stage_03",
+    "name": "Examine Security Systems",
+    "description": "Audit CCTV video feeds and server control lab workstations to identify digital tampering.",
+    "order": 3,
+    "requirements": {
+      "required_location_ids": ["location_03"],
+      "required_evidence_ids": ["evidence_03", "evidence_04"]
+    },
+    "status": "locked"
+  },
+  {
+    "id": "stage_04",
+    "name": "Investigate Suspects",
+    "description": "Interview key engineering and administrative personnel to verify alibis and discover internal system records.",
+    "order": 4,
+    "requirements": {
+      "required_suspect_ids": ["suspect_01", "suspect_04", "suspect_05"],
+      "required_evidence_ids": ["evidence_05"]
+    },
+    "status": "locked"
+  },
+  {
+    "id": "stage_05",
+    "name": "Reconstruct the Timeline",
+    "description": "Synthesize physical evidence, system logs, and security architecture downloads to reconstruct the crime sequence.",
+    "order": 5,
+    "requirements": {
+      "required_location_ids": ["location_06"],
+      "required_evidence_ids": ["evidence_08"]
+    },
+    "status": "locked"
+  },
+  {
+    "id": "stage_06",
+    "name": "Final Resolution",
+    "description": "Formulate the final case hypothesis and submit your conclusion identifying the culprit, motive, and evidence chain.",
+    "order": 6,
+    "requirements": {},
+    "status": "locked"
+  }
+]

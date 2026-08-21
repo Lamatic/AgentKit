@@ -1,0 +1,17 @@
+{
+  "name": "detective-ai-apps",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix frontend && pip install -e ./backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "python -m uvicorn app.main:app --reload --app-dir backend",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "build:frontend": "npm run build --prefix frontend",
+    "test:frontend": "npm run test --prefix frontend",
+    "test:backend": "pytest backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

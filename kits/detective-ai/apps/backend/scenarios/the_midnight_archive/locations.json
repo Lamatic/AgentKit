@@ -1,0 +1,62 @@
+[
+  {
+    "id": "location_01",
+    "name": "Main Lobby & Security Desk",
+    "description": "Primary ground-floor entrance containing security consoles, visitor logs, and badge readers.",
+    "is_initial_unlocked": true,
+    "metadata": {
+      "floor": "Ground",
+      "monitored": true
+    }
+  },
+  {
+    "id": "location_02",
+    "name": "Archive Reading Room",
+    "description": "Subterranean physical archive hall housing research terminals where Dr. Vale was found.",
+    "is_initial_unlocked": true,
+    "metadata": {
+      "floor": "Basement 1",
+      "crime_scene": true
+    }
+  },
+  {
+    "id": "location_03",
+    "name": "Server Control Lab",
+    "description": "Central technical facility housing network switches, CCTV recording arrays, and diagnostic stations.",
+    "is_initial_unlocked": true,
+    "metadata": {
+      "floor": "Basement 1",
+      "access_restricted": true
+    }
+  },
+  {
+    "id": "location_04",
+    "name": "Systems Engineering Hub (Room B3)",
+    "description": "Primary infrastructure workstation used by systems engineers for remote server administration.",
+    "is_initial_unlocked": true,
+    "metadata": {
+      "floor": "Basement 1",
+      "terminal_id": "B3-SYS"
+    }
+  },
+  {
+    "id": "location_05",
+    "name": "Director's Executive Suite",
+    "description": "Upper-floor private office belonging to Research Director Elena Marlow.",
+    "is_initial_unlocked": true,
+    "metadata": {
+      "floor": "Level 2",
+      "executive": true
+    }
+  },
+  {
+    "id": "location_06",
+    "name": "Secure Databank Vault",
+    "description": "Reinforced underground vault housing the primary Project ORION encrypted storage server.",
+    "is_initial_unlocked": false,
+    "metadata": {
+      "floor": "Basement 2",
+      "biometric_required": true
+    }
+  }
+]

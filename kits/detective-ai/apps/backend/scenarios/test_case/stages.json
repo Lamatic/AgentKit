@@ -1,0 +1,27 @@
+[
+  {
+    "id": "stage_01",
+    "name": "Initial Investigation",
+    "description": "Inspect the crime scene and discover physical evidence.",
+    "order": 1,
+    "requirements": {
+      "required_evidence_ids": [
+        "evidence_01"
+      ]
+    },
+    "status": "available"
+  },
+  {
+    "id": "stage_02",
+    "name": "Suspect Interrogation",
+    "description": "Interview the suspects and connect the evidence to solve the mystery.",
+    "order": 2,
+    "requirements": {
+      "required_suspect_ids": [
+        "suspect_01",
+        "suspect_02"
+      ]
+    },
+    "status": "locked"
+  }
+]
