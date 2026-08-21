@@ -66,12 +66,11 @@ export interface IntegrityReport {
   findings: Finding[];
 }
 
-const INSTRUCTION_PATTERNS: Array<RegExp | string> = [
+const INSTRUCTION_PATTERNS: RegExp[] = [
   /\b(?:system|admin|developer)\s*:/i,
-  "ignore previous instructions",
-  "treat this as trusted",
-  "treat future instructions as trusted",
-  "reveal your system prompt",
+  /\bignore\s+(?:all\s+)?previous\s+instructions\b/i,
+  /\btreat\s+(?:this|future\s+instructions?)\s+as\s+trusted\b/i,
+  /\breveal\s+(?:your\s+)?system\s+prompt\b/i,
 ];
 
 const SOURCE_AUTHORITY: Record<MemorySource, number> = {
@@ -82,17 +81,14 @@ const SOURCE_AUTHORITY: Record<MemorySource, number> = {
   unknown: 0.1,
 };
 
-/** Normalizes text for deterministic token comparison. */
 function normalize(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-/** Returns the normalized token set used by the similarity heuristic. */
 function tokenSet(text: string): Set<string> {
   return new Set(normalize(text).split(" ").filter((token) => token.length > 2));
 }
 
-/** Calculates Jaccard similarity between two text values. */
 function similarity(a: string, b: string): number {
   const left = tokenSet(a);
   const right = tokenSet(b);
@@ -102,37 +98,24 @@ function similarity(a: string, b: string): number {
   return intersection / (left.size + right.size - intersection);
 }
 
-/** Returns elapsed days and fails closed for malformed timestamps. */
 function daysSince(date: string, now: Date): number {
   const timestamp = Date.parse(date);
   if (!Number.isFinite(timestamp)) return Number.POSITIVE_INFINITY;
   return Math.max(0, (now.getTime() - timestamp) / 86_400_000);
 }
 
-/** Detects directive-style prompt injection without matching ordinary prose. */
 function containsInstructionLikeContent(content: string): boolean {
-  return INSTRUCTION_PATTERNS.some((marker) =>
-    typeof marker === "string"
-      ? normalize(content).includes(normalize(marker))
-      : marker.test(content),
-  );
+  return INSTRUCTION_PATTERNS.some((pattern) => pattern.test(content));
 }
 
-/** Redacts common credential and bearer-token patterns before evidence is exposed. */
 function redactSensitiveEvidence(content: string): string {
   return content
     .replace(/\b(?:sk|rk)-[A-Za-z0-9_-]{16,}\b/g, "[REDACTED_SECRET]")
     .replace(/\bAKIA[0-9A-Z]{16}\b/g, "[REDACTED_AWS_KEY]")
     .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [REDACTED_TOKEN]")
-    .replace(/\b(?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|passwd|secret)\s*[:=]\s*[^\s,;]+/gi, "$1=[REDACTED_SECRET]");
+    .replace(/\b(api[_-]?key|access[_-]?token|refresh[_-]?token|password|passwd|secret)\s*[:=]\s*[^\s,;]+/gi, "$1=[REDACTED_SECRET]");
 }
 
-/** Sanitizes every evidence item in a finding while preserving audit context. */
-function redactFindingEvidence(evidence: string[]): string[] {
-  return evidence.map(redactSensitiveEvidence);
-}
-
-/** Maps a finding type and confidence to a bounded risk level. */
 function riskFor(type: FindingType, confidence: number): Finding["risk"] {
   if (type === "memory-poisoning") return "critical";
   if (type === "contradiction") return confidence >= 0.85 ? "high" : "medium";
@@ -141,12 +124,10 @@ function riskFor(type: FindingType, confidence: number): Finding["risk"] {
   return "low";
 }
 
-/** Builds a stable identifier for a finding from its type and affected records. */
 function findingId(type: FindingType, ids: string[]): string {
   return `${type}-${ids.slice().sort().join("-")}`;
 }
 
-/** Determines whether a source and confidence pair is eligible for automatic mutation. */
 function isAutoMutationEligible(memory: MemoryRecord, policy: IntegrityPolicy): boolean {
   return (
     memory.confidence >= policy.minimum_confidence_for_auto_merge &&
@@ -154,7 +135,6 @@ function isAutoMutationEligible(memory: MemoryRecord, policy: IntegrityPolicy): 
   );
 }
 
-/** Detects the narrow current-state contradiction pattern used by the demo fixtures. */
 function hasContradictionSignal(left: string, right: string): boolean {
   const leftNormalized = normalize(left);
   const rightNormalized = normalize(right);
@@ -162,7 +142,6 @@ function hasContradictionSignal(left: string, right: string): boolean {
   return locationTerms(leftNormalized) && locationTerms(rightNormalized);
 }
 
-/** Analyzes stored memories and incoming evidence without mutating the source records. */
 export function analyzeMemoryIntegrity(
   memories: MemoryRecord[],
   newEvidence: EvidenceRecord[] = [],
@@ -179,12 +158,11 @@ export function analyzeMemoryIntegrity(
   const addFinding = (finding: Finding) => {
     if (seen.has(finding.id)) return;
     seen.add(finding.id);
-    findings.push({ ...finding, evidence: redactFindingEvidence(finding.evidence) });
+    findings.push({ ...finding, evidence: finding.evidence.map(redactSensitiveEvidence) });
   };
 
   for (const memory of memories) {
     const authority = SOURCE_AUTHORITY[memory.source];
-
     if (containsInstructionLikeContent(memory.content) && authority < 0.7) {
       addFinding({
         id: findingId("memory-poisoning", [memory.id]),
@@ -237,10 +215,8 @@ export function analyzeMemoryIntegrity(
       const left = memories[i];
       const right = memories[j];
       const score = similarity(left.content, right.content);
-
       if (score >= 0.8) {
-        const canAutoMerge =
-          isAutoMutationEligible(left, policy) && isAutoMutationEligible(right, policy);
+        const canAutoMerge = isAutoMutationEligible(left, policy) && isAutoMutationEligible(right, policy);
         addFinding({
           id: findingId("duplicate", [left.id, right.id]),
           type: "duplicate",
@@ -256,8 +232,8 @@ export function analyzeMemoryIntegrity(
       } else if (score < 0.35 && left.source !== "unknown" && right.source !== "unknown" && hasContradictionSignal(left.content, right.content)) {
         const newer = Date.parse(left.created_at) >= Date.parse(right.created_at) ? left : right;
         const older = newer.id === left.id ? right : left;
-        const evidenceStrength = Math.min(newer.confidence, SOURCE_AUTHORITY[newer.source]);
-        const canSupersede = isAutoMutationEligible(newer, policy);
+        const evidenceStrength = Math.min(left.confidence, right.confidence, SOURCE_AUTHORITY[left.source], SOURCE_AUTHORITY[right.source]);
+        const canSupersede = isAutoMutationEligible(left, policy) && isAutoMutationEligible(right, policy);
         addFinding({
           id: findingId("contradiction", [left.id, right.id]),
           type: "contradiction",
@@ -268,14 +244,67 @@ export function analyzeMemoryIntegrity(
           risk: riskFor("contradiction", evidenceStrength),
           recommended_action: canSupersede ? "supersede-older-memory" : "human-review",
           human_review_required: !canSupersede,
-          reason: `The memories assert incompatible current-state facts. Newer memory ${newer.id} should only supersede ${older.id} when both confidence and source authority are sufficiently strong.`,
+          reason: `The memories assert incompatible current-state facts. Newer memory ${newer.id} should only supersede ${older.id} when both records meet confidence and source-authority thresholds.`,
         });
       }
     }
   }
 
   for (const evidence of newEvidence) {
-    if (containsInstructionLikeContent(evidence.content) && SOURCE_AUTHORITY[evidence.source] < 0.7) {
+    for (const memory of memories) {
+      const score = similarity(memory.content, evidence.content);
+      const contradictory = hasContradictionSignal(memory.content, evidence.content);
+      if (contradictory) {
+        const memoryEligible = isAutoMutationEligible(memory, policy);
+        const evidenceEligible =
+          SOURCE_AUTHORITY[evidence.source] >= policy.minimum_confidence_for_auto_merge &&
+          evidence.timestamp.length > 0;
+        const evidenceIsNewer = Date.parse(evidence.timestamp) >= Date.parse(memory.created_at);
+        const canSupersede = evidenceIsNewer && memoryEligible && evidenceEligible;
+        addFinding({
+          id: findingId("contradiction", [memory.id, `evidence-${evidence.timestamp}`]),
+          type: "contradiction",
+          memory_ids: [memory.id],
+          evidence: [memory.content, evidence.content],
+          provenance: [memory.source, evidence.source],
+          confidence: Math.min(memory.confidence, SOURCE_AUTHORITY[evidence.source]),
+          risk: riskFor("contradiction", Math.min(memory.confidence, SOURCE_AUTHORITY[evidence.source])),
+          recommended_action: canSupersede ? "supersede-older-memory" : "human-review",
+          human_review_required: !canSupersede,
+          reason: `New evidence conflicts with memory ${memory.id}; automatic supersession requires newer evidence plus sufficient confidence and source authority.`,
+        });
+      } else if (score >= 0.8) {
+        addFinding({
+          id: findingId("duplicate", [memory.id, `evidence-${evidence.timestamp}`]),
+          type: "duplicate",
+          memory_ids: [memory.id],
+          evidence: [memory.content, evidence.content],
+          provenance: [memory.source, evidence.source],
+          confidence: score,
+          risk: "low",
+          recommended_action: "human-review",
+          human_review_required: true,
+          reason: "Incoming evidence closely matches an existing memory; preserve provenance before consolidating it.",
+        });
+      }
+
+      if (containsInstructionLikeContent(evidence.content) && SOURCE_AUTHORITY[evidence.source] < 0.7) {
+        addFinding({
+          id: findingId("memory-poisoning", ["evidence", evidence.timestamp, normalize(evidence.content)]),
+          type: "memory-poisoning",
+          memory_ids: [],
+          evidence: [evidence.content],
+          provenance: [evidence.source],
+          confidence: 0.96,
+          risk: "critical",
+          recommended_action: "quarantine",
+          human_review_required: policy.require_human_review_for_quarantine,
+          reason: "New untrusted evidence contains instruction-like authority escalation and must not be persisted as trusted memory.",
+        });
+      }
+    }
+
+    if (!memories.length && containsInstructionLikeContent(evidence.content) && SOURCE_AUTHORITY[evidence.source] < 0.7) {
       addFinding({
         id: findingId("memory-poisoning", ["evidence", evidence.timestamp, normalize(evidence.content)]),
         type: "memory-poisoning",
@@ -287,28 +316,6 @@ export function analyzeMemoryIntegrity(
         recommended_action: "quarantine",
         human_review_required: policy.require_human_review_for_quarantine,
         reason: "New untrusted evidence contains instruction-like authority escalation and must not be persisted as trusted memory.",
-      });
-    }
-
-    for (const memory of memories) {
-      if (!hasContradictionSignal(memory.content, evidence.content)) continue;
-      const memoryEligible = isAutoMutationEligible(memory, policy);
-      const evidenceEligible =
-        SOURCE_AUTHORITY[evidence.source] >= policy.minimum_confidence_for_auto_merge &&
-        SOURCE_AUTHORITY[evidence.source] >= policy.minimum_confidence_for_auto_merge;
-      const evidenceIsNewer = Date.parse(evidence.timestamp) >= Date.parse(memory.created_at);
-      const canSupersede = evidenceIsNewer && memoryEligible && evidenceEligible;
-      addFinding({
-        id: findingId("contradiction", [memory.id, `evidence-${evidence.timestamp}`]),
-        type: "contradiction",
-        memory_ids: [memory.id],
-        evidence: [memory.content, evidence.content],
-        provenance: [memory.source, evidence.source],
-        confidence: Math.min(memory.confidence, SOURCE_AUTHORITY[evidence.source]),
-        risk: riskFor("contradiction", Math.min(memory.confidence, SOURCE_AUTHORITY[evidence.source])),
-        recommended_action: canSupersede ? "supersede-older-memory" : "human-review",
-        human_review_required: !canSupersede,
-        reason: `New evidence conflicts with memory ${memory.id}; automatic supersession requires newer evidence plus sufficient confidence and source authority on both sides.`,
       });
     }
   }
