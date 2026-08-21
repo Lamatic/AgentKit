@@ -36,7 +36,7 @@ Canonical memory state
 - **Instruction/data separation:** instruction-like content from untrusted sources must not automatically become persistent agent memory.
 - **Regression visibility:** repairs produce a before/after record.
 
-### MVP findings
+### Findings
 
 1. Contradictory memories
 2. Stale memories
@@ -44,14 +44,26 @@ Canonical memory state
 4. Suspicious instruction-like memories / potential memory poisoning
 5. Low-provenance memories
 
-### Example
+### Setup
 
-**Existing memory:** `User lives in Bangalore.`
+Prerequisites: Node.js 20+, npm, and a Lamatic project only if the optional hosted flow is being executed.
 
-**New evidence:** `I moved to Hyderabad last month.`
+```bash
+cd kits/memorymend/apps
+npm install
+npm run type-check
+npm test
+npm run dev
+```
 
-MemoryMend should not simply keep both statements. It records the conflict, compares source and recency, proposes a canonical state, and preserves the previous memory as historical evidence.
+Open the local Next.js app at the URL printed by `next dev`. The deterministic local analyzer works without Lamatic credentials. To execute the optional Lamatic flow, copy `apps/.env.example` to `apps/.env.local` and fill in the server-only Lamatic values from Lamatic Studio. Never expose these values through `NEXT_PUBLIC_*` variables.
+
+The `/api/analyze` endpoint accepts `memories`, `new_evidence`, and an optional `policy`. Both memories and evidence are limited to 500 records per request. The server redacts common credential patterns before returning audit evidence.
+
+### Lamatic integration boundary
+
+The Lamatic client lives at `apps/lib/lamatic-client.ts` and is imported only by the server-side analyze route. The deterministic integrity engine remains the final local report generator; a configured Lamatic execution is treated as an upstream analysis step and its raw result is not trusted as a report until validated by the application boundary.
 
 ### Status
 
-Early implementation scaffold. Flow definitions and the Next.js demonstration UI will be added after the Lamatic Studio flow is built and exported, following the AgentKit contribution workflow.
+**Implemented kit contribution:** flow definitions, deterministic integrity engine, repair planning, Next.js demonstration UI, API boundary, environment template, tests, fixtures, and documentation are included. A real Lamatic Studio export should replace the repository-side flow scaffold before production deployment so node IDs, model configuration, and credentials are sourced from an actual Studio workspace.
