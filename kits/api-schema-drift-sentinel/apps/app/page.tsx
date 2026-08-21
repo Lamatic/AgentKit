@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Hexagon, GitBranch, ScanSearch, TriangleAlert, Table2, Check, ArrowRight } from 'lucide-react';
 
 // ── Example specs (breaking scenario) for quick reviewer demo ──────────────
 const EXAMPLE_V1 = JSON.stringify({
@@ -171,17 +172,14 @@ export default function SentinelDashboard() {
   const migrationGuide: string[] = toStringList(analysis?.migrationGuide);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-[family-name:var(--font-sans)]">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-10 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                <path d="M7.5 1L13.5 4.5V11.5L7.5 14L1.5 11.5V4.5L7.5 1Z" stroke="#818cf8" strokeWidth="1.4" strokeLinejoin="round"/>
-                <path d="M7.5 6.5L10 5.2M7.5 6.5V10M7.5 6.5L5 5.2" stroke="#818cf8" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
+            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0" aria-hidden="true">
+              <Hexagon width={15} height={15} stroke="#818cf8" strokeWidth={1.4} />
             </div>
             <div>
               <p className="text-[13px] font-semibold text-white leading-none">API Schema Drift Sentinel</p>
@@ -197,9 +195,7 @@ export default function SentinelDashboard() {
               aria-label="GitHub repository"
               className="text-slate-600 hover:text-slate-400 transition-colors"
             >
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-              </svg>
+              <GitBranch width={16} height={16} aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -287,10 +283,7 @@ export default function SentinelDashboard() {
                 </>
               ) : (
                 <>
-                  <svg width="13" height="13" fill="none" viewBox="0 0 13 13">
-                    <path d="M6.5 1.5C3.74 1.5 1.5 3.74 1.5 6.5S3.74 11.5 6.5 11.5 11.5 9.26 11.5 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                    <path d="M9 1L12 4M9 4L12 1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                  </svg>
+                  <ScanSearch width={13} height={13} aria-hidden="true" />
                   Analyze Drift
                 </>
               )}
@@ -301,11 +294,7 @@ export default function SentinelDashboard() {
         {/* ── Error state ───────────────────────────────────────────────── */}
         {error && (
           <div id="error-panel" role="alert" className="flex items-start gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
-            <svg width="15" height="15" fill="none" viewBox="0 0 15 15" className="text-red-400 shrink-0 mt-0.5">
-              <path d="M7.5 1.5L13.5 12.5H1.5L7.5 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
-              <path d="M7.5 6V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-              <circle cx="7.5" cy="11" r="0.6" fill="currentColor"/>
-            </svg>
+            <TriangleAlert width={15} height={15} className="text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-sm font-medium text-red-400">Analysis failed</p>
               <p className="text-xs text-red-400/60 mt-0.5">{error}</p>
@@ -317,9 +306,7 @@ export default function SentinelDashboard() {
         {!analysis && !loading && !error && (
           <div className="border border-slate-800/50 border-dashed rounded-xl py-20 flex flex-col items-center justify-center gap-4 text-center">
             <div className="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center">
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="#334155" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Table2 width={24} height={24} stroke="#334155" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-400">Awaiting comparison</p>
@@ -411,9 +398,7 @@ export default function SentinelDashboard() {
             {/* No breaking changes — clean state */}
             {changes.length === 0 && (
               <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-xl">
-                <svg width="16" height="16" fill="none" viewBox="0 0 16 16" className="text-emerald-400 shrink-0">
-                  <path d="M13.5 4.5L6 12L2.5 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <Check width={16} height={16} className="text-emerald-400 shrink-0" aria-hidden="true" />
                 <p className="text-sm text-emerald-400 font-medium">No breaking changes detected.</p>
                 {nonBreakingCount > 0 && (
                   <p className="text-xs text-emerald-400/60">{nonBreakingCount} additive change{nonBreakingCount !== 1 ? 's' : ''} — safe to deploy.</p>
@@ -446,9 +431,7 @@ export default function SentinelDashboard() {
                     <ul className="space-y-3">
                       {detailedImpact.map((item: string, idx: number) => (
                         <li key={idx} className="flex gap-2.5 text-xs text-slate-300 leading-relaxed">
-                          <svg width="10" height="10" fill="none" viewBox="0 0 10 10" className="shrink-0 mt-1 text-red-500/50">
-                            <path d="M5 1L9 5L5 9M1 5H9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                          <ArrowRight width={10} height={10} className="shrink-0 mt-1 text-red-500/50" aria-hidden="true" />
                           {item}
                         </li>
                       ))}

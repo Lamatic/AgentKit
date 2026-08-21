@@ -382,10 +382,14 @@ export async function triggerLamaticWorkflow(payload: any) {
 
   let completed = false;
   let attempts = 0;
+  const MAX_ATTEMPTS = 10;
+  const BASE_DELAY_MS = 1000;
+  const MAX_DELAY_MS = 8000;
 
-  while (!completed && attempts < 20) {
+  while (!completed && attempts < MAX_ATTEMPTS) {
+    const delay = Math.min(BASE_DELAY_MS * 2 ** attempts, MAX_DELAY_MS);
+    await new Promise(res => setTimeout(res, delay));
     attempts++;
-    await new Promise(res => setTimeout(res, 3000));
 
     const statusResponse = await axios({
       method: 'POST',
