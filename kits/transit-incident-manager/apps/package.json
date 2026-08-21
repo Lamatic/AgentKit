@@ -1,0 +1,35 @@
+{
+  "name": "transit-incident-manager",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
+    "@tailwindcss/postcss": "^4.2.2",
+    "lamatic": "^0.3.2",
+    "lucide-react": "^0.468.0",
+    "next": "^16.2.1",
+    "postcss": "^8.5.8",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.62.0",
+    "tailwindcss": "^4.2.2",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.2.1",
+    "typescript": "^5"
+  }
+}
