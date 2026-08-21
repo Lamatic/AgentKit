@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* Sporting Director Component Palette */
+  --overlay-start: rgb(0 0 0 / 0.4);
+  --overlay-mid: rgb(0 0 0 / 0.5);
+  --overlay-end: rgb(0 0 0 / 0.7);
+  
+  --surface-bg: rgb(255 255 255 / 0.1);
+  --surface-border: rgb(255 255 255 / 0.2);
+  --surface-border-focus: rgb(255 255 255 / 0.5);
+  
+  --text-primary: #ffffff;
+  --text-body: rgb(255 255 255 / 0.9);
+  --text-secondary: rgb(255 255 255 / 0.8);
+  --text-muted: rgb(255 255 255 / 0.6);
+  --text-placeholder: rgb(255 255 255 / 0.4);
+  
+  --btn-bg: #ffffff;
+  --btn-bg-hover: rgb(255 255 255 / 0.9);
+  --btn-text: #111827;
+  
+  --error-bg: rgb(69 10 10 / 0.4);
+  --error-border: rgb(248 113 113 / 0.3);
+  --error-text: rgb(252 165 165);
+  --error-text-alt: rgb(254 202 202);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
