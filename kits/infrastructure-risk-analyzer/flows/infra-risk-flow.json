@@ -1,0 +1,34 @@
+{
+  "id": "789c40ac-e8e0-42f5-9a60-1f03961a0fdb",
+  "name": "infra risk flow",
+  "trigger": {
+    "type": "webhook",
+    "schema": {
+      "project_description": "string",
+      "location": "string"
+    }
+  },
+  "nodes": [
+    {
+      "id": "web_search_node",
+      "type": "tool",
+      "name": "Web Search",
+      "config": {
+        "query": "infrastructure issues and local disruptions in {location}"
+      }
+    },
+    {
+      "id": "llm_analysis_node",
+      "type": "llm",
+      "name": "Risk Analyzer Core",
+      "config": {
+        "model": "llama-3.3-70b",
+        "prompt_reference": "kits/infrastructure-risk-analyzer/prompts/risk_analysis.prompt"
+      }
+    }
+  ],
+  "output": {
+    "status": "string",
+    "result": "object"
+  }
+}
