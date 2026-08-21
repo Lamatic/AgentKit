@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: #12141a;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(216, 166, 87, 0.06), transparent 45%),
+    radial-gradient(circle at 85% 100%, rgba(79, 174, 138, 0.05), transparent 45%);
+  background-attachment: fixed;
+  color: #e4e6eb;
+}
+
+::selection {
+  background: rgba(216, 166, 87, 0.3);
+}
+
+:focus-visible {
+  outline: 2px solid #d8a657;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}

@@ -1,0 +1,28 @@
+{
+  "name": "smc-bias-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Detects Smart Money Concepts structure (order blocks, FVGs, BOS/CHoCH) on a crypto pair and produces a plain-English directional bias.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test:smc": "tsx scripts/test-smc.ts"
+  },
+  "dependencies": {
+    "next": "14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.0",
+    "tsx": "^4.16.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4"
+  }
+}
