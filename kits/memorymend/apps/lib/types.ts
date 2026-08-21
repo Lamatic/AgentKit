@@ -1,7 +1,5 @@
 import type { IntegrityReport } from "../../core/integrity";
 
-export interface MemoryMendResult {
-  status: "complete" | "error";
-  report?: IntegrityReport;
-  error?: string;
-}
+export type MemoryMendResult =
+  | { status: "complete"; report: IntegrityReport; error?: never }
+  | { status: "error"; error: string; report?: never };
