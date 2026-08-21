@@ -8,7 +8,13 @@ export default {
     email: "darshangowdac2005@gmail.com"
   },
   tags: ["agentic", "memory", "security", "provenance", "reliability"],
-  steps: [],
+  steps: [
+    {
+      id: "memorymend",
+      type: "mandatory",
+      envKey: "MEMORYMEND_FLOW_ID"
+    }
+  ],
   links: {
     github: "https://github.com/Darshangowdac2005/AgentKit/tree/feat/memorymend-agent-memory-integrity/kits/memorymend"
   }
