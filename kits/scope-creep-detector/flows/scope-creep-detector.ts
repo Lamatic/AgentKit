@@ -1,0 +1,105 @@
+export default {
+  flowId: "ee3bb1d9-2722-46da-8181-25a3c5d5aae7",
+  name: "Scope Creep Detector",
+  purpose:
+    "Takes an original scope/SOW and a new client message, and classifies each ask in the new message as In Scope, Out of Scope, or Ambiguous with a reason.",
+  inputSchema: {
+    scopeText: "string",
+    newMessage: "string",
+  },
+  outputSchema: {
+    output: "string", // JSON array: [{ ask, classification, reason }]
+  },
+  triggerNode: {
+    nodeId: "triggerNode_1",
+    nodeType: "graphqlNode",
+    nodeName: "API Request",
+    values: {
+      responeType: "realtime",
+      advance_schema: JSON.stringify({
+        scopeText: "string",
+        newMessage: "string",
+      }),
+    },
+    modes: {},
+    schema: {
+      sampleOutput: "string",
+    },
+  },
+  nodes: [
+    {
+      nodeId: "LLMNode_985",
+      nodeType: "LLMNode",
+      nodeName: "Generate Text",
+      values: {
+        tools: [],
+        prompts: [
+          {
+            id: "187c2f4b-c23d-4545-abef-73dc897d6b7b",
+            role: "system",
+            content: "You are an AI Assistant",
+          },
+          {
+            id: "187c2f4b-c23d-4545-abef-73dc897d6b7d",
+            role: "user",
+            content: `You are a scope-compliance assistant.
+
+ORIGINAL SCOPE:
+{{scopeText}}
+
+NEW CLIENT MESSAGE:
+{{newMessage}}
+
+Task: Identify every distinct ask in the new message. For each one, classify it as:
+- "In Scope" — clearly covered by the original scope
+- "Out of Scope" — not covered, should be flagged to the client
+- "Ambiguous" — unclear, worth clarifying
+
+Return a JSON array like:
+[{"ask": "...", "classification": "...", "reason": "..."}]`,
+          },
+        ],
+        memories: "[]",
+        messages: "[]",
+        attachments: "",
+        credentials: "",
+        generativeModelName: [
+          {
+            type: "generator/text",
+            params: {},
+            configName: "configA",
+            model_name: "gemini/gemini-2.5-flash",
+            credentialId: "dd54972e-fdae-40a4-831a-e23889301f6d",
+            provider_name: "gemini",
+            credential_name: "Gemini",
+          },
+        ],
+      },
+      modes: {},
+      needs: ["triggerNode_1"],
+      schema: {
+        generatedResponse: "string",
+        _meta: "object",
+        tool_calls: "object",
+        images: "array",
+      },
+    },
+  ],
+  responseNode: {
+    nodeId: "responseNode_triggerNode_1",
+    nodeType: "graphqlResponseNode",
+    nodeName: "API Response",
+    values: {
+      headers: JSON.stringify({ "content-type": "application/json" }),
+      retries: "0",
+      webhookUrl: "",
+      retry_delay: "0",
+      outputMapping: JSON.stringify({
+        output: "{{LLMNode_985.output.generatedResponse}}",
+      }),
+    },
+    needs: ["LLMNode_985"],
+    modes: {},
+    schema: {},
+  },
+};
