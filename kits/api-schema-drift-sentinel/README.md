@@ -211,9 +211,13 @@ node apps/test-orchestrate.js
 
 ## Lamatic Workflow / Configuration
 
-- **Prompt:** [`prompts/analyze-schema-drift_llm-node_system.md`](./prompts/analyze-schema-drift_llm-node_system.md) — the LLM node system prompt. The model receives a structured fact list (`sampleInput`) and returns a JSON analysis.
-- **Kit config:** [`lamatic.config.ts`](./lamatic.config.ts) — kit metadata, required env key (`LAMATIC_DRIFT_FLOW_ID`), deploy link.
-- **`constitutions/`, `flows/`, `model-configs/`** are intentionally empty. The Lamatic flow is configured externally in Studio. The REST/GraphQL trigger approach (`triggerLamaticWorkflow` in `lib/sentinel.ts`) does not require a local flow export.
+- **Flow:** [`flows/analyze-schema-drift.ts`](./flows/analyze-schema-drift.ts) contains the checked-in Lamatic flow definition (trigger → LLM → response).
+- **Prompt:** [`prompts/analyze-schema-drift_llm-node_system.md`](./prompts/analyze-schema-drift_llm-node_system.md) contains the LLM system prompt.
+- **Model configuration:** [`model-configs/analyze-schema-drift_llm-node_generative-model-name.ts`](./model-configs/analyze-schema-drift_llm-node_generative-model-name.ts) contains the checked-in model configuration used by the kit (`gemini-3-flash-preview`).
+- **Constitution:** [`constitutions/default.md`](./constitutions/default.md) contains the safety and data handling guidelines referenced by the flow.
+- The deployed flow is configured and tested in Lamatic Studio.
+- The workflow receives deterministic schema-drift facts through `sampleInput` and uses the LLM to generate grounded impact analysis and migration guidance.
+- **Kit config:** [`lamatic.config.ts`](./lamatic.config.ts) contains kit metadata and the required `LAMATIC_DRIFT_FLOW_ID`.
 
 ---
 
