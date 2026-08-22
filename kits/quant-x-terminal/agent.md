@@ -1,0 +1,2 @@
+# Quant-X Terminal Agent
+An AI-driven options strategy console and quantitative simulation engine. It helps users analyze strategies like long calls, long puts, and straddles in a virtual sandbox environment.
