@@ -106,6 +106,15 @@ const v2PathLevel = JSON.stringify({
 
 const axiosClient = axios.create({ timeout: 15000 });
 
+function hasLamaticCredentials() {
+  return Boolean(
+    process.env.LAMATIC_API_KEY &&
+    process.env.LAMATIC_DRIFT_FLOW_ID &&
+    process.env.LAMATIC_API_URL &&
+    process.env.LAMATIC_PROJECT_ID
+  );
+}
+
 async function triggerWorkflowAndPoll(compactPayload) {
   try {
     const executeQuery = `
@@ -196,6 +205,9 @@ async function triggerWorkflowAndPoll(compactPayload) {
         return analysisOutput;
       } else if (parsedData?.status === 'in-progress') {
         console.log(`Job in progress... (Attempt ${attempts}/20)`);
+      } else if (['failed', 'error', 'cancelled'].includes(parsedData?.status)) {
+        console.error('Workflow completed unsuccessfully:', parsedData);
+        return null;
       } else if (parsedData) {
         return parsedData;
       }
@@ -282,7 +294,7 @@ async function runMatrixTests() {
     throw new Error(`Test Case A assertion failed: expected at least 1 non-breaking change, got ${factsAdditive.totalNonBreaking}`);
   }
 
-  if (process.env.LAMATIC_API_KEY && process.env.LAMATIC_DRIFT_FLOW_ID) {
+  if (hasLamaticCredentials()) {
     console.log("Triggering Lamatic Workflow for Additive Test Case...");
     const resultAdditive = await triggerWorkflowAndPoll(payloadAdditive);
     console.log("Additive Test Result Output:", JSON.stringify(resultAdditive, null, 2));
@@ -319,7 +331,7 @@ async function runMatrixTests() {
     throw new Error(`Test Case B assertion failed: expected HIGH risk, got ${factsBreaking.calculatedRisk}`);
   }
 
-  if (process.env.LAMATIC_API_KEY && process.env.LAMATIC_DRIFT_FLOW_ID) {
+  if (hasLamaticCredentials()) {
     console.log("Triggering Lamatic Workflow for Breaking Test Case...");
     const resultBreaking = await triggerWorkflowAndPoll(payloadBreaking);
     console.log("Breaking Test Result Output:", JSON.stringify(resultBreaking, null, 2));

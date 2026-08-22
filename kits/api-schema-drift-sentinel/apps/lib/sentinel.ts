@@ -1,5 +1,5 @@
 import openapiDiff from 'openapi-diff';
-import axios from 'axios';
+import { Lamatic } from 'lamatic';
 
 export interface SemanticChange {
   endpoint: string;
@@ -44,16 +44,29 @@ export async function runOpenApiDiff(specA: any, specB: any) {
   return result;
 }
 
-function getEffectiveParams(pathItem: any, op: any): any[] {
+function resolveParamRef(param: any, spec: any): any {
+  if (param && typeof param === 'object' && typeof param.$ref === 'string') {
+    const match = param.$ref.match(/^#\/components\/parameters\/(.+)$/);
+    const resolved = match ? spec?.components?.parameters?.[match[1]] : undefined;
+    return resolved || param;
+  }
+  return param;
+}
+
+function getEffectiveParams(pathItem: any, op: any, spec: any): any[] {
   const pathParams: any[] = Array.isArray(pathItem?.parameters) ? pathItem.parameters : [];
   const opParams: any[] = Array.isArray(op?.parameters) ? op.parameters : [];
   const map = new Map<string, any>();
-  for (const p of pathParams) {
+  for (const raw of pathParams) {
+    const p = resolveParamRef(raw, spec);
     if (p && p.name && p.in) {
       map.set(`${p.in}:${p.name}`, p);
     }
   }
-  for (const p of opParams) {
+  // Operation-level parameters are inserted second so they override
+  // path-level parameters sharing the same name/in key.
+  for (const raw of opParams) {
+    const p = resolveParamRef(raw, spec);
     if (p && p.name && p.in) {
       map.set(`${p.in}:${p.name}`, p);
     }
@@ -84,14 +97,14 @@ export function detectParameterTypeChanges(specA: any, specB: any): SemanticChan
     const v2PathItem = v2Paths[pathKey];
     if (!v2PathItem) continue;
 
-    for (const method of ['get', 'post', 'put', 'patch', 'delete', 'options', 'head']) {
+    for (const method of ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace']) {
       const v1Op = v1PathItem[method];
       const v2Op = v2PathItem[method];
       if (!v1Op || !v2Op) continue;
 
       const endpoint = `${method.toUpperCase()} ${pathKey}`;
-      const v1Params = getEffectiveParams(v1PathItem, v1Op);
-      const v2Params = getEffectiveParams(v2PathItem, v2Op);
+      const v1Params = getEffectiveParams(v1PathItem, v1Op, v1Spec);
+      const v2Params = getEffectiveParams(v2PathItem, v2Op, v2Spec);
 
       for (const v1Param of v1Params) {
         const v2Param = v2Params.find((p: any) => p.name === v1Param.name && p.in === v1Param.in);
@@ -139,7 +152,7 @@ export function normalizeDiff(diffResult: any, specA?: any, specB?: any): Normal
       if (pathsIdx !== -1 && change.entityPath[pathsIdx + 1]) {
         const route = change.entityPath[pathsIdx + 1];
         const rawMethod = change.entityPath[pathsIdx + 2];
-        const validMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
+        const validMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace'];
         if (rawMethod && validMethods.includes(String(rawMethod).toLowerCase())) {
           endpoint = `${String(rawMethod).toUpperCase()} ${route}`;
         } else {
@@ -296,136 +309,58 @@ export function normalizeDiff(diffResult: any, specA?: any, specB?: any): Normal
   };
 }
 
+function getLamaticClient(): Lamatic | null {
+  const apiKey = process.env.LAMATIC_API_KEY;
+  const projectId = process.env.LAMATIC_PROJECT_ID;
+  const endpoint = process.env.LAMATIC_API_URL || 'https://api.lamatic.ai';
+
+  if (!apiKey || !projectId) {
+    return null;
+  }
+
+  return new Lamatic({ endpoint, projectId, apiKey });
+}
+
+const TERMINAL_FAILURE_STATUSES = new Set(['error', 'failed', 'cancelled']);
+
 /**
- * Trigger Lamatic Workflow with environment variable checks
+ * Trigger the Lamatic workflow via the official SDK, which handles
+ * request execution and polling internally.
  */
 export async function triggerLamaticWorkflow(payload: any) {
   console.dir({ 'STAGE 4: OUTGOING_LAMATIC_PAYLOAD': payload }, { depth: null });
 
-  const apiUrl = process.env.LAMATIC_API_URL;
-  const apiKey = process.env.LAMATIC_API_KEY;
   const flowId = process.env.LAMATIC_DRIFT_FLOW_ID;
-  const projectId = process.env.LAMATIC_PROJECT_ID;
+  const client = getLamaticClient();
 
-  if (!apiUrl || !apiKey || !flowId) {
-    throw new Error("Missing Lamatic environment variables in .env.local");
+  if (!flowId || !client) {
+    throw new Error(
+      'Missing Lamatic environment variables (LAMATIC_API_KEY, LAMATIC_PROJECT_ID, LAMATIC_DRIFT_FLOW_ID) in .env.local'
+    );
   }
 
-  try {
-    const res = await fetch(`${apiUrl}/flow/trigger`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        ...(projectId ? { 'x-project-id': projectId } : {})
-      },
-      body: JSON.stringify({
-        flow_id: flowId,
-        input: payload,
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
+  const res = await client.executeFlow(flowId, payload);
+  const flowResult = res as any;
+  console.dir({ 'STAGE 5: RAW_LAMATIC_RESPONSE': flowResult }, { depth: null });
 
-    if (res.ok) {
-      const responseData = await res.json();
-      console.dir({ 'STAGE 5: RAW_LAMATIC_RESPONSE': responseData }, { depth: null });
-      return responseData.data || responseData;
-    } else {
-      console.warn(`REST trigger returned status ${res.status}: ${res.statusText}. Falling back to GraphQL.`);
-    }
-  } catch (e: any) {
-    console.warn(`REST trigger failed (${e?.message || e}). Falling back to GraphQL.`);
+  if (TERMINAL_FAILURE_STATUSES.has(flowResult?.status) || flowResult?.statusCode >= 400) {
+    throw new Error(`Lamatic flow error: ${flowResult?.message || JSON.stringify(flowResult)}`);
   }
 
-  const executeQuery = `
-    query ExecuteWorkflow($workflowId: String!, $sampleInput: String) {
-      executeWorkflow(
-        workflowId: $workflowId
-        payload: {
-          sampleInput: $sampleInput
-        }
-      ) {
-        status
-        result
-      }
-    }
-  `;
+  const analysisOutput =
+    flowResult?.result?.answer?.output?.analysis ||
+    flowResult?.result?.answer?.analysis ||
+    flowResult?.result?.output?.analysis ||
+    flowResult?.data?.output?.result?.analysis ||
+    flowResult?.result?.answer ||
+    flowResult?.result?.output ||
+    flowResult?.output;
 
-  const statusQuery = `
-    query CheckStatus($requestId: String!) {
-      checkStatus(requestId: $requestId)
-    }
-  `;
-
-  const response = await axios({
-    method: 'POST',
-    url: apiUrl,
-    timeout: 15000,
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'x-project-id': projectId || ''
-    },
-    data: {
-      query: executeQuery,
-      variables: {
-        workflowId: flowId,
-        sampleInput: typeof payload === 'string' ? payload : (payload?.sampleInput || JSON.stringify(payload))
-      }
-    }
-  });
-
-  const requestId = response.data?.data?.executeWorkflow?.result?.requestId;
-  if (!requestId) {
-    throw new Error(`Execute workflow failed: ${JSON.stringify(response.data)}`);
+  if (!analysisOutput) {
+    throw new Error(
+      `No analysis returned from Lamatic flow. Raw response: ${JSON.stringify(flowResult).slice(0, 300)}`
+    );
   }
 
-  let completed = false;
-  let attempts = 0;
-  const MAX_ATTEMPTS = 10;
-  const BASE_DELAY_MS = 1000;
-  const MAX_DELAY_MS = 8000;
-
-  while (!completed && attempts < MAX_ATTEMPTS) {
-    const delay = Math.min(BASE_DELAY_MS * 2 ** attempts, MAX_DELAY_MS);
-    await new Promise(res => setTimeout(res, delay));
-    attempts++;
-
-    const statusResponse = await axios({
-      method: 'POST',
-      url: apiUrl,
-      timeout: 15000,
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'x-project-id': projectId || ''
-      },
-      data: {
-        query: statusQuery,
-        variables: { requestId }
-      }
-    });
-
-    const rawResult = statusResponse.data?.data?.checkStatus;
-    let parsedData: any = rawResult;
-    if (typeof rawResult === 'string') {
-      try {
-        parsedData = JSON.parse(rawResult);
-      } catch {
-        parsedData = rawResult;
-      }
-    }
-    console.dir({ 'STAGE 5: RAW_LAMATIC_RESPONSE': parsedData }, { depth: null });
-    const analysisOutput = parsedData?.data?.output?.result?.analysis;
-
-    if (parsedData?.status === 'success' && analysisOutput) {
-      return analysisOutput;
-    } else if (parsedData?.status === 'success' && parsedData?.data?.output) {
-      return parsedData.data.output;
-    } else if (parsedData?.status === 'error') {
-      throw new Error(`Workflow execution error: ${JSON.stringify(parsedData)}`);
-    }
-  }
-
-  throw new Error(`Workflow execution timed out after ${attempts} polling attempts`);
+  return analysisOutput;
 }
