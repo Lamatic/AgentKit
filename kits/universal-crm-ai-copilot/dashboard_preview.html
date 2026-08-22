@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Multi-CRM AI Copilot — Enterprise Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #060913;
+            --bg-card: #0d1322;
+            --bg-input: #080c17;
+            --border-color: #1e293b;
+            --border-active: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2.5rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            max-width: 1280px;
+            margin: 0 auto 2.5rem auto;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            padding: 0.45rem 1.2rem;
+            border-radius: 9999px;
+            color: #a5b4fc;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 0.75rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Flow Visualizer Ribbon */
+        .flow-ribbon {
+            max-width: 1280px;
+            margin: 0 auto 2rem auto;
+            background: rgba(13, 19, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(12px);
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #cbd5e1;
+        }
+
+        .flow-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a5b4fc;
+            font-size: 0.8rem;
+        }
+
+        .flow-arrow {
+            color: #475569;
+            font-size: 1.2rem;
+        }
+
+        .grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #f1f5f9;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 0.85rem;
+            padding: 1.1rem;
+            color: #f8fafc;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            margin-bottom: 1.2rem;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 0.85rem;
+            padding: 1rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 8px 25px -4px rgba(79, 70, 229, 0.6);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -4px rgba(79, 70, 229, 0.8);
+        }
+
+        .preset-btn {
+            background: #161e31;
+            border: 1px solid #283553;
+            color: #94a3b8;
+            border-radius: 0.6rem;
+            padding: 0.55rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-color: var(--accent-primary);
+        }
+
+        /* Analytics Matrix */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .metric-card {
+            background: #080c17;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.85rem;
+            text-align: center;
+        }
+
+        .metric-val {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #38bdf8;
+        }
+
+        .metric-lbl {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+
+        /* Score Box */
+        .score-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .score-num {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--success-color);
+            letter-spacing: -0.03em;
+        }
+
+        .tier-tag {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 0.4rem 0.9rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 95%;
+            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+            border-radius: 9999px;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
+        }
+
+        /* Tabs & Controls */
+        .control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .tab-btn {
+            background: #161e31;
+            color: #94a3b8;
+            border: 1px solid transparent;
+            border-radius: 0.65rem;
+            padding: 0.55rem 0.95rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #161e31;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 0.35rem;
+            cursor: pointer;
+        }
+
+        .mode-btn.active {
+            background: #334155;
+            color: #ffffff;
+        }
+
+        .payload-viewer {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 0.85rem;
+            padding: 1.25rem;
+        }
+
+        .endpoint-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .endpoint-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.4rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .badge-compliant {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.75rem;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.15);
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.4rem;
+            font-weight: 700;
+        }
+
+        .btn-copy {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            border-radius: 0.45rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .outreach-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+            margin-top: 1.25rem;
+        }
+
+        .outreach-card {
+            background: #080c17;
+            border: 1px solid #1e293b;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .outreach-card b { color: #818cf8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="badge">✨ Lamatic.ai AgentKit Enterprise Intelligence Engine</div>
+        <h1 class="title">Universal Multi-CRM AI Copilot</h1>
+        <p class="subtitle">Transform raw prospect communications into validated API payloads for <b>Salesforce SObject</b>, <b>SAP C/4HANA OData</b>, <b>Zoho CRM v2</b>, and <b>MS Dynamics 365 Web API</b>.</p>
+    </div>
+
+    <!-- Live Execution Architecture Ribbon -->
+    <div class="flow-ribbon">
+        <div class="flow-step">
+            <div class="flow-icon">1</div>
+            <div>Unstructured Input<br><span style="color:#64748b; font-weight:500; font-size:0.75rem;">Email / Voice Transcript</span></div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+            <div class="flow-icon">2</div>
+            <div>gpt-4o Intent Scoring<br><span style="color:#64748b; font-weight:500; font-size:0.75rem;">Velocity & Authority (0-100)</span></div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+            <div class="flow-icon">3</div>
+            <div>Schema Normalizer<br><span style="color:#64748b; font-weight:500; font-size:0.75rem;">4 Enterprise Standards</span></div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-step">
+            <div class="flow-icon">4</div>
+            <div>CRM API Payload<br><span style="color:#34d399; font-weight:700; font-size:0.75rem;">✓ Validated REST/OData</span></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Input Panel -->
+        <div class="card">
+            <h2 class="card-title">⚡ Real-time Prospect Intelligence Input</h2>
+            <textarea id="leadInput" rows="10">Ashutosh Joshi, Head of AI Engineering at Swades / Enterprise AI. Email: ashutosh@example.com. Looking to purchase 500 licenses for multi-CRM automation ($50k-$100k budget) in the next 30 days.</textarea>
+            
+            <button class="btn-submit" onclick="processRealtimeLead()">
+                🚀 Normalize & Generate Enterprise Payloads
+            </button>
+
+            <!-- Lead Analysis Matrix -->
+            <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 800; margin-bottom: 0.75rem;">📊 Real-time Entity Analysis Matrix:</div>
+                <div class="analytics-grid">
+                    <div class="metric-card">
+                        <div class="metric-val" id="matAuthority">98%</div>
+                        <div class="metric-lbl">Authority</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-val" id="matBudget">High</div>
+                        <div class="metric-lbl">Budget Tier</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-val" id="matUrgency">30 Days</div>
+                        <div class="metric-lbl">Buying Window</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 800; margin-bottom: 0.6rem;">⚡ Preset Prospect Presets:</div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="preset-btn" onclick="loadSample(1)">Sample 1: Enterprise AI VP</button>
+                    <button class="preset-btn" onclick="loadSample(2)">Sample 2: Voice AI CEO</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="card">
+            <div class="score-box">
+                <div class="score-header">
+                    <div>
+                        <div style="font-size: 0.75rem; color: #34d399; font-weight: 800; text-transform: uppercase;">AI INTENT SCORE</div>
+                        <div class="score-num" id="scoreNum">95 / 100</div>
+                    </div>
+                    <span class="tier-tag" id="tierTag">Tier A (High Velocity)</span>
+                </div>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="meterFill" style="width: 95%;"></div>
+                </div>
+            </div>
+
+            <!-- Controls: Tabs + Mode Toggle -->
+            <div class="control-bar">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchCRM('salesforce', this)">Salesforce</button>
+                    <button class="tab-btn" onclick="switchCRM('sap', this)">SAP C/4HANA</button>
+                    <button class="tab-btn" onclick="switchCRM('zoho', this)">Zoho CRM</button>
+                    <button class="tab-btn" onclick="switchCRM('dynamics365', this)">MS Dynamics 365</button>
+                </div>
+                <div class="mode-toggle">
+                    <button class="mode-btn active" id="btnJsonMode" onclick="setViewerMode('json')">JSON</button>
+                    <button class="mode-btn" id="btnCurlMode" onclick="setViewerMode('curl')">cURL</button>
+                </div>
+            </div>
+
+            <div class="payload-viewer">
+                <div class="endpoint-bar">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span class="endpoint-text" id="endpointText">/services/data/v58.0/sobjects/Lead</span>
+                        <span class="badge-compliant">✓ Schema Compliant</span>
+                    </div>
+                    <div>
+                        <button class="btn-copy" onclick="copyViewer()">📋 Copy Output</button>
+                    </div>
+                </div>
+                <pre id="jsonViewer"></pre>
+            </div>
+
+            <!-- Multi-Channel Outreach Engine -->
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.85rem; font-weight: 700; color: #a5b4fc; margin-bottom: 0.6rem;">📞 AI Multi-Channel Outreach Playbook</div>
+                <div class="outreach-grid">
+                    <div class="outreach-card">
+                        <div><b>Email Subject:</b></div>
+                        <div id="emailSub" style="margin-top: 0.3rem; color:#f1f5f9;"></div>
+                    </div>
+                    <div class="outreach-card">
+                        <div><b>AI Voice Agent Script:</b></div>
+                        <div id="voiceScript" style="margin-top: 0.3rem; color:#f1f5f9;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'salesforce';
+        let viewerMode = 'json'; // 'json' or 'curl'
+
+        function extractLeadInfo(text) {
+            let email = (text.match(/[\w.-]+@[\w.-]+\.\w+/) || ["lead@prospect.com"])[0];
+            let nameMatch = text.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+            let name = nameMatch ? nameMatch[1] : (text.includes("Simeon") ? "Simeon Mark" : "Ashutosh Joshi");
+            let nameParts = name.split(" ");
+            let firstName = nameParts[0] || "Prospect";
+            let lastName = nameParts.slice(1).join(" ") || "Lead";
+
+            let company = "Enterprise Software";
+            if (text.includes("Swades")) company = "Swades / Enterprise AI";
+            else if (text.includes("Telentir")) company = "Telentir AI";
+            else {
+                let compMatch = text.match(/(?:at|of)\s+([A-Z][A-Za-z0-9\s/]+?)(?=\.|\,|\s+Email|$)/);
+                if (compMatch) company = compMatch[1].trim();
+            }
+
+            let title = "Executive";
+            if (text.includes("Head of AI")) title = "Head of AI Engineering";
+            else if (text.includes("CEO")) title = "CEO & Founder";
+
+            let score = 95;
+            let tier = "Tier A (High Velocity)";
+            let authority = "98%";
+            let budget = "$100k+";
+            let urgency = "30 Days";
+
+            if (text.toLowerCase().includes("urgent")) {
+                score = 97;
+                tier = "Tier A (Immediate Buying Intent)";
+                urgency = "Immediate";
+                authority = "99%";
+            }
+
+            return { firstName, lastName, fullName: `${firstName} ${lastName}`, company, title, email, score, tier, authority, budget, urgency };
+        }
+
+        function generateCRMData(info) {
+            return {
+                salesforce: {
+                    endpoint: "/services/data/v58.0/sobjects/Lead",
+                    domain: "https://your-instance.salesforce.com",
+                    payload: {
+                        FirstName: info.firstName,
+                        LastName: info.lastName,
+                        Company: info.company,
+                        Title: info.title,
+                        Email: info.email,
+                        Status: "Open - Contacted",
+                        LeadSource: "Lamatic Multi-CRM AI Copilot",
+                        AnnualRevenue: 100000,
+                        Rating: "Hot"
+                    }
+                },
+                sap: {
+                    endpoint: "/sap/opu/odata/sap/API_BUSINESS_PARTNER/A_BusinessPartner",
+                    domain: "https://your-s4hana.sap.com",
+                    payload: {
+                        BusinessPartnerFullName: info.fullName,
+                        BusinessPartnerCategory: "2",
+                        OrganizationName1: info.company,
+                        Industry: "SOFTWARE",
+                        SearchTerm1: "AI-COPILOT",
+                        Address: {
+                            EMailAddress: info.email,
+                            Country: "US"
+                        }
+                    }
+                },
+                zoho: {
+                    endpoint: "/crm/v2/Leads",
+                    domain: "https://www.zohoapis.com",
+                    payload: {
+                        data: [
+                            {
+                                First_Name: info.firstName,
+                                Last_Name: info.lastName,
+                                Company: info.company,
+                                Designation: info.title,
+                                Email: info.email,
+                                Lead_Source: "Lamatic AI AgentKit",
+                                Lead_Status: "Qualified"
+                            }
+                        ]
+                    }
+                },
+                dynamics365: {
+                    endpoint: "/api/data/v9.2/leads",
+                    domain: "https://your-org.crm.dynamics.com",
+                    payload: {
+                        firstname: info.firstName,
+                        lastname: info.lastName,
+                        companyname: info.company,
+                        jobtitle: info.title,
+                        emailaddress1: info.email,
+                        leadqualitycode: 1,
+                        estimatedamount: 100000
+                    }
+                }
+            };
+        }
+
+        function processRealtimeLead() {
+            const rawText = document.getElementById('leadInput').value;
+            const info = extractLeadInfo(rawText);
+            window.activeData = generateCRMData(info);
+
+            document.getElementById('scoreNum').innerText = `${info.score} / 100`;
+            document.getElementById('tierTag').innerText = info.tier;
+            document.getElementById('meterFill').style.width = `${info.score}%`;
+
+            document.getElementById('matAuthority').innerText = info.authority;
+            document.getElementById('matBudget').innerText = info.budget;
+            document.getElementById('matUrgency').innerText = info.urgency;
+
+            document.getElementById('emailSub').innerText = `Accelerating ${info.company} Operations with Lamatic AI Engine`;
+            document.getElementById('voiceScript').innerText = `Hello ${info.firstName}, this is your AI Sales Assistant following up on your CRM request for ${info.company}.`;
+
+            renderCurrentCRM();
+        }
+
+        function renderCurrentCRM() {
+            if (!window.activeData) return;
+            const crm = window.activeData[currentTab];
+            document.getElementById('endpointText').innerText = crm.endpoint;
+
+            if (viewerMode === 'json') {
+                document.getElementById('jsonViewer').innerText = JSON.stringify(crm.payload, null, 2);
+            } else {
+                const curlCmd = `curl -X POST "${crm.domain}${crm.endpoint}" \\\n  -H "Authorization: Bearer YOUR_CRM_ACCESS_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(crm.payload)}'`;
+                document.getElementById('jsonViewer').innerText = curlCmd;
+            }
+        }
+
+        function setViewerMode(mode) {
+            viewerMode = mode;
+            document.getElementById('btnJsonMode').className = mode === 'json' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btnCurlMode').className = mode === 'curl' ? 'mode-btn active' : 'mode-btn';
+            renderCurrentCRM();
+        }
+
+        function switchCRM(key, el) {
+            currentTab = key;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderCurrentCRM();
+        }
+
+        async function copyViewer() {
+            try {
+                const code = document.getElementById('jsonViewer').innerText;
+                await navigator.clipboard.writeText(code);
+                alert(`✅ Real-time ${viewerMode.toUpperCase()} Output Copied!`);
+            } catch (err) {
+                console.error("Clipboard copy failed", err);
+            }
+        }
+
+        function loadSample(num) {
+            if(num === 1) {
+                document.getElementById('leadInput').value = "Ashutosh Joshi, Head of AI Engineering at Swades / Enterprise AI. Email: ashutosh@example.com. Looking to purchase 500 licenses for multi-CRM automation ($50k-$100k budget) in the next 30 days.";
+            } else {
+                document.getElementById('leadInput').value = "Simeon Mark, CEO of Telentir AI. Email: simeon@telentir.team. Wants AI phone agents integrated with Salesforce & Dynamics 365. Urgent requirement.";
+            }
+            processRealtimeLead();
+        }
+
+        // Initialize on load
+        processRealtimeLead();
+    </script>
+</body>
+</html>
