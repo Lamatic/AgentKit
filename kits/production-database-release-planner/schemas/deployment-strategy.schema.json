@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Deployment Strategy Agent Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operations",
+    "target_table",
+    "target_columns",
+    "is_destructive",
+    "data_loss_potential",
+    "explanation",
+    "behavior_analysis",
+    "deployment_strategy"
+  ],
+  "properties": {
+    "operations": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "target_table": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "target_columns": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "is_destructive": {
+      "type": "boolean"
+    },
+    "data_loss_potential": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "behavior_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lock_type",
+        "table_rewrite",
+        "blocking_risk",
+        "production_risk",
+        "reasoning"
+      ],
+      "properties": {
+        "lock_type": {
+          "type": "string",
+          "enum": [
+            "ACCESS EXCLUSIVE",
+            "ROW EXCLUSIVE",
+            "SHARE UPDATE EXCLUSIVE",
+            "SHARE",
+            "ROW SHARE",
+            "SHARE ROW EXCLUSIVE",
+            "EXCLUSIVE",
+            "UNKNOWN"
+          ]
+        },
+        "table_rewrite": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "UNKNOWN"
+              ]
+            }
+          ]
+        },
+        "blocking_risk": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+        "production_risk": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+        "reasoning": {
+          "type": "string"
+        }
+      }
+    },
+    "deployment_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "maintenance_window_required",
+        "estimated_downtime",
+        "deployment_order",
+        "recommendation"
+      ],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "EXPAND_CONTRACT",
+            "DIRECT_MIGRATION",
+            "ONLINE_MIGRATION",
+            "PHASED_ROLLOUT"
+          ]
+        },
+        "maintenance_window_required": {
+          "type": "boolean"
+        },
+        "estimated_downtime": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "UNKNOWN"
+          ]
+        },
+        "deployment_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommendation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "summary",
+            "why",
+            "best_practice"
+          ],
+          "properties": {
+            "summary": {
+              "type": "string"
+            },
+            "why": {
+              "type": "string"
+            },
+            "best_practice": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

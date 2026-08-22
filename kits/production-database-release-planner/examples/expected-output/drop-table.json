@@ -1,0 +1,8 @@
+{
+  "operations": "DROP TABLE",
+  "target_table": "temp_users",
+  "target_columns": [],
+  "is_destructive": true,
+  "data_loss_potential": "HIGH",
+  "explanation": "Drops the temp_users table."
+}
