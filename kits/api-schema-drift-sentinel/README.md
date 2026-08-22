@@ -213,7 +213,7 @@ node apps/test-orchestrate.js
 
 - **Flow:** [`flows/analyze-schema-drift.ts`](./flows/analyze-schema-drift.ts) contains the checked-in Lamatic flow definition (trigger → LLM → response).
 - **Prompt:** [`prompts/analyze-schema-drift_llm-node_system.md`](./prompts/analyze-schema-drift_llm-node_system.md) contains the LLM system prompt.
-- **Model configuration:** [`model-configs/analyze-schema-drift_llm-node_generative-model-name.ts`](./model-configs/analyze-schema-drift_llm-node_generative-model-name.ts) contains the checked-in model configuration used by the kit (`gemini-3-flash-preview`).
+- **Model configuration:** [`model-configs/analyze-schema-drift_llm-node_generative-model-name.ts`](./model-configs/analyze-schema-drift_llm-node_generative-model-name.ts) contains the checked-in model configuration used by the kit (`gemini-2.5-flash`).
 - **Constitution:** [`constitutions/default.md`](./constitutions/default.md) contains the safety and data handling guidelines referenced by the flow.
 - The deployed flow is configured and tested in Lamatic Studio.
 - The workflow receives deterministic schema-drift facts through `sampleInput` and uses the LLM to generate grounded impact analysis and migration guidance.

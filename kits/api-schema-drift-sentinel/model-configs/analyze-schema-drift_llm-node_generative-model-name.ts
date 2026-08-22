@@ -8,7 +8,7 @@ export default {
         "temperature": 0.2
       },
       "configName": "configA",
-      "model_name": "gemini-3-flash-preview",
+      "model_name": "gemini-2.5-flash",
       "credentialId": "04072ecb-1644-4384-ae44-8396d0bd36f0",
       "provider_name": "gemini",
       "credential_name": "accessfix-gemini"
