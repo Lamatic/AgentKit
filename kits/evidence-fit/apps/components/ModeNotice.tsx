@@ -23,11 +23,14 @@ export function ModeNotice({ mode }: Props) {
 
   return (
     <div className="rounded-md border border-blue-300 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100">
-      <p className="font-medium">Deployed run — ranked by Lamatic flows.</p>
+      <p className="font-medium">Deployed run — computed by Lamatic flows.</p>
       <p className="mt-1">
-        Chunking, span integrity, and the verdict are still computed deterministically in this
-        app. Only the per-question ranking within each strategy came from the deployed vector
-        search flow.
+        Chunking, retrieval, every metric, and the verdict were computed inside the deployed
+        Lamatic flows. The Evaluate flow&apos;s metrics code node runs the same deterministic
+        engine used in local mode, against real vector search results for both strategies, and
+        its output is wired directly to the API Response. This app only validates that response
+        against the documented contract and renders it as-is — it never recomputes any metric or
+        the verdict itself.
       </p>
     </div>
   );

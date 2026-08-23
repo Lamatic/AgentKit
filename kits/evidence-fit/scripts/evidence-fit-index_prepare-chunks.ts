@@ -427,14 +427,27 @@ export type AlignResult =
 
 /**
  * Recovers verified character offsets for chunk texts produced by a chunker
- * that does not report them. Lamatic's chunkNode emits pageContent only, so
- * this is the primary path for the deployed flow, not a fallback.
+ * that does not report them (Lamatic's chunkNode emits pageContent only, with
+ * no offsets and no clause-terminator splitting mode).
+ *
+ * This is NOT on the deployed EvidenceFit path: the Index flow's code node
+ * chunks documentText deterministically in-process via fixedWidthChunks() /
+ * clauseAwareChunks() (see scripts/evidence-fit-index_prepare-chunks.ts), so
+ * offsets are known by construction and there is nothing to recover. This
+ * function is a utility for anyone who wires EvidenceFit's engine to an
+ * externally-produced set of chunk texts — e.g. a Lamatic chunkNode, or any
+ * other chunker that only returns text — and needs verified offsets back.
  *
  * The scan is monotonic: each chunk is located at or after the previous chunk's
  * start + 1. The +1 tolerates configured overlap while guaranteeing forward
  * progress and forbidding reordering. Every match is verified by slicing the
  * document back out and comparing it to the chunk text, so a chunker that
  * trims or normalises whitespace is caught rather than silently mis-aligned.
+ *
+ * If the chunk text occurs more than once at or after searchFrom, its true
+ * placement is genuinely ambiguous — per shared spec §7.2, EvidenceFit does
+ * not guess which occurrence was meant, so this is reported as an explicit
+ * alignment_error rather than silently taking the first match.
  *
  * Failure yields an explicit alignment_error. Offsets are never estimated.
  */
@@ -476,6 +489,24 @@ export function alignChunks(
           {
             code: "alignment_error",
             message: `Chunk ${n} failed slice verification at [${idx}, ${end}).`,
+          },
+        ],
+      };
+    }
+
+    // The chunk text must be unique in the remaining document, or its true
+    // placement is ambiguous and offsets cannot be verified.
+    if (documentText.indexOf(raw, idx + 1) !== -1) {
+      return {
+        ok: false,
+        issues: [
+          {
+            code: "alignment_error",
+            message:
+              `Chunk ${n}'s text is not unique in the document at or after offset ` +
+              `${searchFrom}. It occurs more than once, so its true placement is ambiguous ` +
+              `and offsets cannot be verified. EvidenceFit will not guess which occurrence ` +
+              `you meant.`,
           },
         ],
       };
@@ -730,13 +761,25 @@ export function evaluateStrategy(args: EvaluateArgs): EvaluateResult {
   const integrity = spanIntegrity(resolved.cases, chunks, args.documentId);
   const severedKeys = new Set(integrity.severed.map((s) => `${s.start}:${s.end}`));
 
+  // Presence of `rankedByCaseId` means the deployed path supplied real search
+  // results. A case id missing from that map means retrieval returned nothing
+  // for it, which must yield an empty ranking — never the localRank oracle,
+  // which ranks by gold-character overlap and would silently score a case
+  // that retrieved nothing as perfectly retrieved. localRank is only used
+  // when `rankedByCaseId` is entirely absent (the offline demo path).
   const entries = resolved.cases.map((c) => ({
     c,
-    ranked: args.rankedByCaseId?.[c.id] ?? localRank(c, chunks, args.documentId),
+    ranked: args.rankedByCaseId
+      ? (args.rankedByCaseId[c.id] ?? [])
+      : localRank(c, chunks, args.documentId),
   }));
 
   const caseResults: CaseResult[] = entries.map(({ c, ranked }) => {
-    const topK = ranked.slice(0, args.topK);
+    // Filter by document first, then truncate to k — the same order
+    // spanCoverageAtK and firstCompleteEvidenceRank use internally, so a
+    // foreign-document chunk can never consume a top-k slot for `complete`
+    // while being excluded from coverage.
+    const topK = ranked.filter((ch) => ch.documentId === args.documentId).slice(0, args.topK);
     return {
       caseId: c.id,
       question: c.question,
@@ -789,7 +832,19 @@ export function evaluateStrategy(args: EvaluateArgs): EvaluateResult {
 export type Comparison = {
   baseline: StrategyResult;
   candidate: StrategyResult;
+  /**
+   * The strategy to deploy. Verdict severity is decided first (SHIP beats
+   * TUNE beats BLOCK); completeEvidenceRecallAtK.rate only breaks a tie
+   * between two strategies that share the same verdict. A BLOCK strategy is
+   * never recommended while a non-BLOCK alternative exists. When both
+   * strategies are BLOCK, this is "neither".
+   */
   recommended: StrategyName | "neither";
+  /**
+   * The verdict OF THE RECOMMENDED STRATEGY — so "SHIP" always means "the
+   * recommended configuration ships", never "some other candidate happened to
+   * be safe". When `recommended` is "neither", this is "BLOCK".
+   */
   verdict: Verdict;
 };
 
@@ -831,54 +886,66 @@ export function compareStrategies(args: {
   const b = baseline.result;
   const c = candidate.result;
 
-  // Strategies are compared on complete-evidence recall, never on raw
-  // Precision@k, because the relevant-chunk denominator shifts when chunk
-  // boundaries change and would make the comparison meaningless (§7.3).
-  let recommended: StrategyName | "neither" = "neither";
-  if (b.verdict !== "BLOCK" || c.verdict !== "BLOCK") {
+  // Verdict severity decides `recommended` first — a BLOCK strategy is never
+  // recommended while a non-BLOCK alternative exists, so the banner can never
+  // read SHIP while the recommended candidate is actually unsafe. Only when
+  // both strategies share the same verdict does complete-evidence recall
+  // break the tie; raw Precision@k is never used for this because the
+  // relevant-chunk denominator shifts when chunk boundaries change, which
+  // would make the comparison meaningless (§7.3).
+  let recommended: StrategyName | "neither";
+  if (b.verdict === "BLOCK" && c.verdict === "BLOCK") {
+    recommended = "neither";
+  } else if (b.verdict !== c.verdict) {
+    recommended = VERDICT_ORDER[b.verdict] < VERDICT_ORDER[c.verdict] ? "fixed-width" : "clause-aware";
+  } else {
     const bScore = b.completeEvidenceRecallAtK.rate;
     const cScore = c.completeEvidenceRecallAtK.rate;
-    if (cScore > bScore) recommended = "clause-aware";
-    else if (bScore > cScore) recommended = "fixed-width";
-    else {
-      recommended =
-        VERDICT_ORDER[c.verdict] <= VERDICT_ORDER[b.verdict] ? "clause-aware" : "fixed-width";
-    }
+    recommended = bScore > cScore ? "fixed-width" : "clause-aware";
   }
 
-  const verdict = VERDICT_ORDER[b.verdict] < VERDICT_ORDER[c.verdict] ? b.verdict : c.verdict;
+  // The overall verdict is always the verdict OF THE RECOMMENDED strategy —
+  // never simply the better of the two — so "SHIP" always means "the
+  // recommended configuration ships".
+  const verdict: Verdict =
+    recommended === "neither" ? "BLOCK" : recommended === "fixed-width" ? b.verdict : c.verdict;
 
   return { ok: true, comparison: { baseline: b, candidate: c, recommended, verdict } };
 }
 // ---- END VENDORED ----
 
 // PASTE into the Index flow -> Prepare Chunks (code node placed immediately
-// after Lamatic's built-in chunkNode, before Vectorize/Index).
+// after the flow trigger, before Vectorize/Index). There is no chunk node in
+// this flow: chunks are generated deterministically in this code node itself
+// via the vendored fixedWidthChunks() / clauseAwareChunks(), run directly
+// against documentText — never recovered after the fact from a separate
+// chunker's output.
 //
 // Bind {{triggerNode_1.output}} to the flow trigger — whole node output —
 // carrying experimentId, documentId, documentText and strategy
-// ("fixed-width" | "clause-aware"; the Index flow runs once per strategy,
-// each time with the chunkNode configured to match that strategy's config).
-// Bind {{chunkNode_968.output.chunks}} / {{chunkNode_968.output}} to YOUR
-// chunk node — whole node output via the (x) picker; nested paths render
-// grey in Studio and resolve inconsistently. Replace "chunkNode_968" and
-// "triggerNode_1" with your actual node ids. Never leave {{ }} in comments.
+// ("fixed-width" | "clause-aware"; the Index flow runs once per strategy).
+// Replace "triggerNode_1" with your actual trigger node id. Never leave
+// {{ }} in comments. This node binds ONLY the trigger node — no chunk node.
 //
-// Lamatic's chunkNode reports pageContent only — no character offsets — so
-// this node recovers verified offsets with the vendored alignChunks() before
-// anything is embedded or indexed. Offsets are never estimated: a chunk text
-// that cannot be re-located verbatim in the source document produces an
-// alignment_error and this node stops there rather than guessing. The
-// downstream Vectorize node must be wired to short-circuit (skip) when
+// Because fixedWidthChunks() / clauseAwareChunks() are pure and
+// deterministic, the Evaluate flow's Metrics node (see
+// evidence-fit-evaluate_metrics.ts) regenerates chunks from this same
+// documentText and gets byte-identical chunks by construction: the chunks
+// indexed here and the chunks the metrics are computed against are always
+// the same objects. There is nothing to keep in sync and no approximation
+// to weaken — the mismatch between "what got indexed" and "what got
+// measured" cannot occur structurally.
+//
+// Offsets are never estimated: every chunk emitted below already satisfies
+// documentText.slice(start, end) === text by construction, and that
+// invariant is asserted defensively before anything is embedded or indexed.
+// An unrecognised strategy, missing ids, or missing documentText each
+// produce an actionable issue instead of throwing or silently defaulting.
+// The downstream Vectorize node must be wired to short-circuit (skip) when
 // output.ok is false, the same way a failed validation short-circuits the
 // rest of these flows elsewhere in the kit.
 
 let trigger = {{triggerNode_1.output}};
-let chunkOut = {{chunkNode_968.output.chunks}};
-
-if (chunkOut == null) {
-  chunkOut = {{chunkNode_968.output}};
-}
 
 function asString(v) {
   if (v == null) return "";
@@ -899,77 +966,111 @@ if (!trigger || typeof trigger !== "object") trigger = {};
 const experimentId = asString(trigger.experimentId);
 const documentId = asString(trigger.documentId);
 const documentText = typeof trigger.documentText === "string" ? trigger.documentText : "";
-const strategy = asString(trigger.strategy) === "clause-aware" ? "clause-aware" : "fixed-width";
+const rawStrategy = trigger.strategy;
 
-// Normalise the chunk node's output into a flat string[] of chunk texts,
-// tolerating the same envelope/string/object shapes Lamatic nodes commonly
-// emit (see index-articles_extract-chunks.ts for the same pattern).
-if (typeof chunkOut === "string") {
+const issues = [];
+
+if (!documentText) {
+  issues.push({
+    code: "missing_document_text",
+    message: "Trigger documentText is missing or empty. There is nothing to chunk.",
+  });
+}
+
+if (!documentId) {
+  issues.push({
+    code: "missing_document_id",
+    message:
+      "Trigger documentId is missing or empty. Every chunk and every vector's metadata " +
+      "must carry a documentId.",
+  });
+}
+
+if (!experimentId) {
+  issues.push({
+    code: "missing_experiment_id",
+    message:
+      "Trigger experimentId is missing or empty. Every vector's metadata must carry the " +
+      "experiment it belongs to, or a later per-experiment search filter cannot distinguish it.",
+  });
+}
+
+// An unrecognised strategy is rejected outright rather than defaulted — a
+// silent default here would index chunks under the wrong strategy label.
+let strategy = null;
+if (typeof rawStrategy !== "string") {
+  issues.push({
+    code: "invalid_strategy",
+    message:
+      `Trigger strategy must be a string, either "fixed-width" or "clause-aware". Got ` +
+      `${typeof rawStrategy}.`,
+  });
+} else if (rawStrategy !== "fixed-width" && rawStrategy !== "clause-aware") {
+  issues.push({
+    code: "invalid_strategy",
+    message:
+      `Trigger strategy "${rawStrategy}" is not recognised. Expected "fixed-width" or ` +
+      `"clause-aware" — EvidenceFit never defaults an unrecognised strategy.`,
+  });
+} else {
+  strategy = rawStrategy;
+}
+
+let chunks = [];
+
+if (issues.length === 0) {
   try {
-    let parsed = JSON.parse(chunkOut);
-    chunkOut = parsed;
+    chunks =
+      strategy === "fixed-width"
+        ? fixedWidthChunks(documentText, documentId, FIXED_WIDTH_CONFIG)
+        : clauseAwareChunks(documentText, documentId, CLAUSE_CONFIG);
   } catch (e) {
-    chunkOut = chunkOut.trim() ? [chunkOut] : [];
+    issues.push({
+      code: "chunking_error",
+      message: `Chunk generation threw: ${e && e.message ? e.message : String(e)}`,
+    });
+    chunks = [];
   }
 }
 
-if (chunkOut && typeof chunkOut === "object" && !Array.isArray(chunkOut)) {
-  if (Array.isArray(chunkOut.chunks)) chunkOut = chunkOut.chunks;
-  else if (Array.isArray(chunkOut.documents)) chunkOut = chunkOut.documents;
-  else if (Array.isArray(chunkOut.data)) chunkOut = chunkOut.data;
-  else if (typeof chunkOut.pageContent === "string") chunkOut = [chunkOut.pageContent];
-  else if (typeof chunkOut.markdown === "string") chunkOut = [chunkOut.markdown];
-  else if (typeof chunkOut.text === "string") chunkOut = [chunkOut.text];
-  else chunkOut = [];
-}
-
-if (!Array.isArray(chunkOut)) chunkOut = [];
-
-function toChunkText(doc) {
-  if (doc == null) return "";
-  if (typeof doc === "string") {
-    let s = doc.trim();
-    return s === "[object Object]" ? "" : s;
+// Defensive invariant: every chunk fixedWidthChunks()/clauseAwareChunks()
+// emits already satisfies documentText.slice(start, end) === text by
+// construction. Assert it anyway rather than trusting it silently — a
+// violation here would mean the vendored copy has drifted from core.ts, and
+// indexing must stop rather than index a chunk whose offsets lie.
+if (issues.length === 0) {
+  for (let i = 0; i < chunks.length; i++) {
+    const ch = chunks[i];
+    if (documentText.slice(ch.start, ch.end) !== ch.text) {
+      issues.push({
+        code: "chunk_offset_invariant_violation",
+        message:
+          `Chunk ${i} (${ch.chunkId}) failed the offset invariant: ` +
+          `documentText.slice(${ch.start}, ${ch.end}) does not equal the chunk text.`,
+      });
+      break;
+    }
   }
-  if (typeof doc !== "object") return String(doc);
-
-  let candidates = [doc.pageContent, doc.content, doc.text, doc.markdown, doc.chunk, doc.value];
-  for (let i = 0; i < candidates.length; i++) {
-    let c = candidates[i];
-    if (typeof c === "string" && c.trim() && c !== "[object Object]") return c.trim();
-  }
-  return "";
 }
 
-const chunkTexts = [];
-for (let i = 0; i < chunkOut.length; i++) {
-  const s = toChunkText(chunkOut[i]);
-  if (s) chunkTexts.push(s);
-}
-
-const aligned = alignChunks(documentText, chunkTexts, documentId, strategy);
-
-if (!aligned.ok) {
-  // Do not throw and do not estimate offsets — surface the alignment_error
-  // issues so the flow (and the operator) can see exactly why indexing
-  // stopped, and wire the downstream nodes to skip on output.ok === false.
+if (issues.length > 0) {
   output = {
     ok: false,
-    issues: aligned.issues,
+    issues: issues,
     texts: [],
     metadata: [],
   };
 } else {
-  // Vectorize REQUIRES: string[]. Bind {{codeNode_X.output.texts}} there.
-  const texts = aligned.chunks.map(function (ch) {
+  // Vectorize REQUIRES: string[]. Bind {{codeNode_2.output.texts}} there.
+  const texts = chunks.map(function (ch) {
     return ch.text;
   });
 
   // Parallel metadata array for the Index node, one entry per text above,
-  // carrying verified offsets so the evaluate flow can rebuild real Chunk
-  // objects from vector-search metadata later (see
-  // evidence-fit-evaluate_metrics.ts).
-  const metadata = aligned.chunks.map(function (ch) {
+  // carrying the same offsets the Evaluate flow's Metrics node will derive
+  // by regenerating chunks from the same documentText, so indexed chunks
+  // and measured chunks are identical (see evidence-fit-evaluate_metrics.ts).
+  const metadata = chunks.map(function (ch) {
     return {
       experimentId: experimentId,
       documentId: ch.documentId,

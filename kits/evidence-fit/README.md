@@ -8,6 +8,11 @@ or production RAG quality in general. It answers exactly one question, with plai
 deterministic code, not a model: *given this document and these acceptance cases, does
 this chunking configuration let complete evidence be retrieved intact?*
 
+This document explains what EvidenceFit is and why it exists. For a practical,
+start-to-finish how-to — install, run the sample, bring your own document, read the
+output, wire up the deployed path, troubleshoot — see
+[`USAGE.md`](./USAGE.md).
+
 ---
 
 ## 1. Who this is for, and the workflow
@@ -27,7 +32,7 @@ The workflow:
    candidate — indexes both, retrieves per question, and computes whether each
    required case's complete evidence survives chunking and comes back within the top-k
    results.
-3. Get a deterministic verdict: **SHIP**, **TUNE**, or **BLOCK** (Section 6). Ship the
+3. Get a deterministic verdict: **SHIP**, **TUNE**, or **BLOCK** (Section 5). Ship the
    candidate, tune retrieval, or go fix the chunking before this ever reaches a
    customer.
 
@@ -53,7 +58,7 @@ EvidenceFit is a **kit**: two Lamatic flows plus a Next.js app (`apps/`). The fl
 **not yet exported into this repository** — they must be built by hand in Lamatic Studio
 following `docs/STUDIO-BUILD.md`, then exported to `flows/evidence-fit-index.ts` and
 `flows/evidence-fit-evaluate.ts`. Until then, the app runs entirely in **local mode**
-(Section 7), which needs no Lamatic project at all.
+(Section 10), which needs no Lamatic project at all.
 
 ```text
 experimentId, documentId, documentText, strategy  →  Index flow     →  vector index (both strategies, one collection)
@@ -97,13 +102,20 @@ An LLM node may add a bounded `explanation`, but it has no graph path to `verdic
 API Response wires `verdict` and every metric field from the metrics code node only (see
 `computeVerdict`'s doc comment in `core.ts`).
 
-Lamatic's `chunkNode` reports chunk text only, with no character offsets, so the Index
-flow recovers verified offsets itself (`alignChunks` — a verbatim substring scan against
-the source document; a chunk that cannot be re-located exactly is an `alignment_error`,
-never an estimated offset). Both strategies are indexed into the **same** vector
-collection, distinguished by `metadata.strategy`, so every search is filtered by both
-`experimentId` and `strategy` to prevent cross-experiment contamination. Full detail,
-including the exact node list and API Response `outputMapping` for both flows, is in
+There is no Lamatic `chunkNode` in this flow. The Index flow's own code node chunks
+`documentText` deterministically in-process, via the same `fixedWidthChunks()` /
+`clauseAwareChunks()` functions the Evaluate flow's metrics code node calls — so every
+chunk's offsets are known by construction, never recovered after the fact. Lamatic's
+built-in splitter reports chunk text only, with no character offsets, and has no
+clause-terminator mode, so it cannot produce the offset-exact, clause-respecting chunks
+this kit needs; chunking in the code node instead means the chunks indexed here and the
+chunks the metrics are measured against are always byte-identical, with nothing to keep
+in sync (`alignChunks` in `core.ts` still exists as a utility for recovering offsets from
+externally-produced chunk text, but it is not on this deployed path). Both strategies are
+indexed into the **same** vector collection, distinguished by `metadata.strategy`, so
+every search is filtered by both `experimentId` and `strategy` to prevent
+cross-experiment contamination. Full detail, including the exact node list and API
+Response `outputMapping` for both flows, is in
 [`docs/STUDIO-BUILD.md`](./docs/STUDIO-BUILD.md).
 
 The Next.js app (`apps/`) orchestrates both flows when they're deployed, or falls back to
@@ -123,7 +135,7 @@ numerator and denominator, never a bare float.
   has been cut by a chunk boundary and can never be retrieved intact, no matter how good
   search is. This is the measurement the whole product exists to make.
 - **`boundarySeveredCount`** — the raw count of spans that failed that check. Any
-  positive count on a required case is a hard blocker (Section 6).
+  positive count on a required case is a hard blocker (Section 5).
 - **`spanCoverageAtK`** — the share of a case's unique gold characters covered by the
   union of the top-k retrieved chunks. Overlapping chunks and overlapping gold spans are
   each counted once, so padding the index with redundant chunks can't inflate the score.
@@ -161,6 +173,21 @@ Precedence is strict: `BLOCK > TUNE > SHIP`. An experiment whose own inputs cann
 trusted (an unresolvable quote, a failed offset alignment) is `BLOCK`, never scored as a
 retrieval failure.
 
+Each strategy (baseline and candidate) gets its own verdict from the rules above. A
+comparison additionally reports `recommended` — which strategy to actually deploy — and a
+single top-level `verdict`:
+
+- **`recommended` is chosen by verdict severity first**, `SHIP` beating `TUNE` beating
+  `BLOCK`. A `BLOCK` strategy is **never** `recommended` while a non-`BLOCK` alternative
+  exists — `completeEvidenceRecallAtK` only breaks a tie between two strategies that
+  share the **same** verdict, and raw Precision@k is never used for this (Section 4).
+  When both strategies are `BLOCK`, `recommended` is `"neither"`.
+- **The reported top-level `verdict` is the verdict OF THE RECOMMENDED strategy** — never
+  simply the better of the two considered in isolation. So a comparison's `verdict` of
+  `SHIP` always means "the recommended configuration ships," never "some other candidate
+  happened to be safe." When `recommended` is `"neither"`, the top-level `verdict` is
+  `BLOCK`.
+
 **The LLM has no graph path to the verdict.** In the deployed Evaluate flow, the API
 Response node wires `verdict` — and every metric field — directly from the metrics code
 node's output. The LLM node's output is mapped into a separate `explanation` field only.
@@ -172,29 +199,37 @@ change the accept/reject decision an operator or API caller sees. See
 
 ---
 
-## 6. CUAD demo — verified numbers
+## 6. Sample contract demo — verified numbers
 
-The bundled demo fixture (`apps/lib/fixtures/cuad-sample.ts`) is a 1,581-character
-generic Master Services Agreement, written for this demo in the style of the public CUAD
-corpus (Contract Understanding Atticus Dataset, CC BY 4.0) — no real customer or employer
-material. Running it through the engine produces:
+The bundled demo fixture (`apps/lib/fixtures/sample-contract.ts`) is a 1,581-character
+**synthetic** Master Services Agreement written for this demo — structured in the style
+of the public CUAD corpus (Contract Understanding Atticus Dataset, CC BY 4.0) but
+containing no CUAD text and no real customer or employer material (see the file header
+for how to swap in genuine, attributed CUAD excerpts). It carries **5 acceptance cases**
+covering **6 required evidence spans** (one case, `liability-cap`, has two quotes).
+Running it through the engine produces:
 
-| | boundary-severed | span integrity | verdict |
+| | boundary-severed spans | span integrity (spans) | verdict |
 |---|---|---|---|
 | baseline — fixed-width, 500 chars / 50 overlap | 1 | 5/6 | **BLOCK** |
 | candidate — clause-aware | 0 | 6/6 | **SHIP** |
 
-The severed span is the liability-cap clause, which straddles the seam between the
-baseline's chunk `[450, 950)` and chunk `[900, 1400)`. Under the baseline it needs two
-chunks to reconstruct (`firstCompleteEvidenceRank = 2`); the clause-aware candidate
-recovers it in a single chunk, at rank 1.
+The `5/6` and `6/6` above count **evidence spans**, not acceptance cases — there are 5
+cases and 6 spans, and every case's evidence remains a required case in the sense of
+Section 5 regardless of how many spans it carries.
 
-These numbers describe this one document and this one set of six acceptance cases — see
-Section 10 before treating them as a general claim about either strategy.
+The severed span is (one of) the liability-cap clause's two quotes, which straddles the
+seam between the baseline's chunk `[450, 950)` and chunk `[900, 1400)`. Under the
+baseline it needs two chunks to reconstruct (`firstCompleteEvidenceRank = 2`); the
+clause-aware candidate recovers it in a single chunk, at rank 1.
+
+These numbers describe this one document and this one set of five acceptance cases (six
+evidence spans) — see Section 9 before treating them as a general claim about either
+strategy.
 
 To run it yourself: `cd apps && npm install && npm run dev`, open
-`http://localhost:3000`, click **Load CUAD demo experiment**, then **Compare
-strategies**. No Lamatic project or credentials required — see Section 7.
+`http://localhost:3000`, click **Load sample contract experiment**, then **Compare
+strategies**. No Lamatic project or credentials required — see Section 10.
 
 ---
 
@@ -240,10 +275,10 @@ strategies**. No Lamatic project or credentials required — see Section 7.
 
 ## 9. Limitations — read before trusting a result
 
-- **One document, one case set.** The CUAD demo numbers in Section 6 describe one
-  document and six labelled acceptance cases. This is not a statistically significant
-  benchmark, and no significance is claimed for it or for any other single experiment
-  you run.
+- **One document, one case set.** The sample contract demo numbers in Section 6 describe
+  one document and five labelled acceptance cases (six required evidence spans). This is
+  not a statistically significant benchmark, and no significance is claimed for it or for
+  any other single experiment you run.
 - **The offline local demo's ranking is an upper bound, not a retrieval-quality claim.**
   With no Lamatic project configured, chunks are ranked locally by raw character overlap
   with the gold span (`localRank` in `core.ts`) — a deliberate best case that isolates
@@ -277,7 +312,7 @@ npm run dev
 Open `http://localhost:3000`. With no `LAMATIC_*` variables set (or with `apps/.env.local`
 left as-is), the app runs in **local mode**: everything — chunking, ranking, metrics, the
 verdict — runs in this process via `apps/lib/evidence/core.ts`. No Lamatic project, no
-vector database, no LLM credential is required to try it. Click **Load CUAD demo
+vector database, no LLM credential is required to try it. Click **Load sample contract
 experiment**, then **Compare strategies**, to reproduce Section 6.
 
 ## Lamatic Studio setup
@@ -288,10 +323,15 @@ experiment**, then **Compare strategies**, to reproduce Section 6.
 3. Set `LAMATIC_EVIDENCE_FIT_INDEX_FLOW_ID`, `LAMATIC_EVIDENCE_FIT_EVALUATE_FLOW_ID`,
    `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, and `LAMATIC_API_KEY` in `apps/.env.local`
    (see `apps/.env.example`).
-4. Re-run the CUAD demo — the app switches to **deployed mode** automatically once all
-   five variables are present (`isLamaticConfigured()` in `apps/lib/lamatic-client.ts`),
-   now exercising your real chunker, embedding model, and vector search instead of the
-   local stand-in.
+4. Re-run the sample contract demo. The app attempts **deployed mode** once
+   `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, and `LAMATIC_API_URL` are all set
+   (`isLamaticConfigured()` in `apps/lib/lamatic-client.ts`) — but a run only actually
+   succeeds once the two flow ID variables are set as well, exercising your real
+   chunker, embedding model, and vector search instead of the local stand-in. With the
+   three connection variables set but either flow ID missing, you get an actionable
+   "Deployed flows are not configured" error rather than a silent fall-back to local
+   mode (see `runDeployed` in `apps/actions/orchestrate.ts`). For the troubleshooting
+   table, see [`USAGE.md`](./USAGE.md).
 
 ## Deployment
 
@@ -317,8 +357,8 @@ npm run dev
 ```
 
 1. Open `http://localhost:3000`.
-2. Click **Load CUAD demo experiment** (pre-fills the document and all six acceptance
-   cases).
+2. Click **Load sample contract experiment** (pre-fills the document and all five
+   acceptance cases, six evidence spans).
 3. Click **Compare strategies**.
 4. Confirm: baseline (fixed-width) shows `1` boundary-severed span and verdict
    **BLOCK**; candidate (clause-aware) shows `0` boundary-severed spans and verdict
@@ -336,8 +376,9 @@ re-run — you should see a `quote_not_found` validation issue instead of a verd
 | Path | Role |
 |---|---|
 | `lamatic.config.ts` | Kit metadata and step wiring |
+| `USAGE.md` | Practical how-to guide — install, run the sample, bring your own document, troubleshoot |
 | `docs/STUDIO-BUILD.md` | Manual, node-by-node Lamatic Studio build checklist for both flows |
-| `scripts/evidence-fit-index_prepare-chunks.ts` | Index flow's offset-alignment code node (vendors `core.ts`) |
+| `scripts/evidence-fit-index_prepare-chunks.ts` | Index flow's deterministic chunking code node (vendors `core.ts`) |
 | `scripts/evidence-fit-evaluate_metrics.ts` | Evaluate flow's metrics/verdict code node (vendors `core.ts`) |
 | `prompts/evidence-fit-evaluate_llm-node_system.md` | System prompt for the sole LLM node — explains, never decides |
 | `model-configs/evidence-fit-evaluate_llm-node.ts` | Model selection for that node |

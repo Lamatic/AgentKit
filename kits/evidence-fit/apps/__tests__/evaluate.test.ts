@@ -158,14 +158,16 @@ test("compareStrategies propagates invalid input rather than reporting a verdict
   assert.equal(r.issues[0].code, "quote_not_found");
 });
 
-test("compareStrategies reports the better of the two verdicts", () => {
+test("compareStrategies reports the verdict of the recommended strategy, not the better of the two", () => {
   const r = compareStrategies({ documentId: "doc1", documentText: DOC, cases: CASES, topK: 5 });
   assert.equal(r.ok, true);
   if (!r.ok) return;
-  const order = { SHIP: 0, TUNE: 1, BLOCK: 2 } as const;
-  const best = Math.min(
-    order[r.comparison.baseline.verdict],
-    order[r.comparison.candidate.verdict]
-  );
-  assert.equal(order[r.comparison.verdict], best);
+  const { baseline, candidate, recommended, verdict } = r.comparison;
+  if (recommended === "neither") {
+    assert.equal(verdict, "BLOCK");
+  } else if (recommended === "fixed-width") {
+    assert.equal(verdict, baseline.verdict);
+  } else {
+    assert.equal(verdict, candidate.verdict);
+  }
 });

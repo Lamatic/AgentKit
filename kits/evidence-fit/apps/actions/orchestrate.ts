@@ -24,13 +24,16 @@
  *     request:  { experimentId: string; documentId: string; documentText: string;
  *                 strategy: "fixed-width" | "clause-aware" }
  *     response: { ok: boolean; indexedCount: number; issues?: ValidationIssue[] }
- *       Lamatic's chunkNode reports chunk text only, with no character offsets, so the
- *       flow's own code node recovers verified offsets itself via core.ts `alignChunks` —
- *       a verbatim-substring scan against documentText — before anything is embedded or
- *       indexed. A chunk that cannot be re-located exactly is an alignment_error, never an
- *       estimated offset, and that call's `ok` comes back false with indexing skipped.
- *       This app treats anything other than `ok: true` with `indexedCount > 0` as a
- *       failure and never proceeds to the Evaluate flow for that experiment.
+ *       There is no Lamatic chunkNode in this flow. The flow's own code node chunks
+ *       documentText deterministically in-process via core.ts `fixedWidthChunks` /
+ *       `clauseAwareChunks` (chosen by `strategy`), so every chunk's offsets are known by
+ *       construction — Lamatic's built-in splitter has no clause-terminator mode, and its
+ *       chunkNode only reports chunk text with no offsets, so it cannot produce the
+ *       verified, offset-exact chunks this flow requires. This also guarantees the chunks
+ *       indexed here are byte-identical to the ones the Evaluate flow's metrics code node
+ *       regenerates from the same documentText, with nothing to keep in sync. This app
+ *       treats anything other than `ok: true` with `indexedCount > 0` as a failure and
+ *       never proceeds to the Evaluate flow for that experiment.
  *
  *   Evaluate flow (LAMATIC_EVIDENCE_FIT_EVALUATE_FLOW_ID) — called ONCE for the whole
  *   experiment, covering both strategies together (the flow's metrics code node always
@@ -83,19 +86,68 @@ export type OrchestrateResult =
 
 const STRATEGIES: StrategyName[] = ["fixed-width", "clause-aware"];
 
-export async function runComparison(input: ExperimentInput): Promise<OrchestrateResult> {
-  const validation = validateExperimentInput(input);
+/**
+ * Runtime boundary check for `runComparison`'s argument. A server action is callable over
+ * the network with an arbitrary JSON body (or no body at all), so nothing past this point
+ * may assume `input` is an object — let alone that it has the right fields — before this
+ * has run. This only confirms *shape* (so every field access below, and inside
+ * `validateExperimentInput`, is safe); size/format rules (id length, quote counts, etc.)
+ * remain `validateExperimentInput`'s job so those messages stay unchanged.
+ */
+function checkInputShape(input: unknown): string[] | null {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return ["Request payload must be a JSON object."];
+  }
+
+  const rec = input as Record<string, unknown>;
+  const errors: string[] = [];
+
+  if (rec.experimentId !== undefined && typeof rec.experimentId !== "string") {
+    errors.push("experimentId must be a string.");
+  }
+  if (rec.documentId !== undefined && typeof rec.documentId !== "string") {
+    errors.push("documentId must be a string.");
+  }
+  if (rec.documentText !== undefined && typeof rec.documentText !== "string") {
+    errors.push("documentText must be a string.");
+  }
+  if (rec.cases !== undefined && !Array.isArray(rec.cases)) {
+    errors.push("cases must be an array.");
+  } else if (Array.isArray(rec.cases)) {
+    rec.cases.forEach((c, i) => {
+      if (typeof c !== "object" || c === null || Array.isArray(c)) {
+        errors.push(`Case at position ${i + 1} must be an object.`);
+      }
+    });
+  }
+  if (rec.topK !== undefined && typeof rec.topK !== "number") {
+    errors.push("topK must be a number.");
+  }
+
+  return errors.length > 0 ? errors : null;
+}
+
+export async function runComparison(input: unknown): Promise<OrchestrateResult> {
+  const shapeErrors = checkInputShape(input);
+  if (shapeErrors) {
+    return { ok: false, kind: "validation", errors: shapeErrors };
+  }
+  // Shape is now confirmed safe to access field-by-field. validateExperimentInput still
+  // owns the detailed size/format rules (id length, quote counts, required fields, etc.).
+  const experimentInput = input as ExperimentInput;
+
+  const validation = validateExperimentInput(experimentInput);
   if (!validation.ok) {
     return { ok: false, kind: "validation", errors: validation.errors };
   }
 
-  const topK = input.topK ?? 5;
+  const topK = experimentInput.topK ?? 5;
 
   if (!isLamaticConfigured()) {
     const result = compareStrategies({
-      documentId: input.documentId,
-      documentText: input.documentText,
-      cases: input.cases,
+      documentId: experimentInput.documentId,
+      documentText: experimentInput.documentText,
+      cases: experimentInput.cases,
       topK,
     });
     if (!result.ok) {
@@ -104,7 +156,7 @@ export async function runComparison(input: ExperimentInput): Promise<Orchestrate
     return { ok: true, mode: "local", comparison: result.comparison };
   }
 
-  return runDeployed(input, topK);
+  return runDeployed(experimentInput, topK);
 }
 
 async function runDeployed(input: ExperimentInput, topK: number): Promise<OrchestrateResult> {
@@ -317,31 +369,64 @@ function asFiniteNumber(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
+type UpstreamErrorClass = "timeout" | "connection" | "invalid_shape" | "reported_failure" | "unknown";
+
+function classifyUpstreamError(raw: string): UpstreamErrorClass {
+  if (/EXECUTE_SOFT_TIMEOUT|timed?\s*out|timeout/i.test(raw)) return "timeout";
+  if (/fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|UND_ERR/i.test(raw)) return "connection";
+  if (/did not return a valid comparison shape/i.test(raw)) return "invalid_shape";
+  if (/indexed no chunks|reported ok:false/i.test(raw)) return "reported_failure";
+  return "unknown";
+}
+
+const MAX_LOGGED_ERROR_CHARS = 200;
+
+/**
+ * Bounded, redacted excerpt of an upstream error message safe to write to server logs.
+ * `raw` is transport-layer error text that may echo fragments of the request (the
+ * document under test, case content) or, in the worst case, credentials — so it is never
+ * logged verbatim. Anything resembling an Authorization header, a bearer token, an API
+ * key, or another long opaque token is stripped before the result is hard-capped.
+ */
+function redactForLogging(raw: string): string {
+  const redacted = raw
+    .replace(/authorization\s*:\s*\S+/gi, "authorization: [redacted]")
+    .replace(/bearer\s+[a-z0-9._~+/-]+=*/gi, "bearer [redacted]")
+    .replace(/\b(api[_-]?key|apikey|x-api-key)\b\s*[:=]\s*\S+/gi, "$1=[redacted]")
+    .replace(/\b[a-z0-9._~+/-]{20,}=*\b/gi, "[redacted]");
+  return redacted.length > MAX_LOGGED_ERROR_CHARS
+    ? `${redacted.slice(0, MAX_LOGGED_ERROR_CHARS)}…`
+    : redacted;
+}
+
 /**
  * Turns an upstream failure into an actionable, generic message. The raw error text is
- * only ever used here for classification (and server-side logging) — it is never
- * interpolated into the string returned to the caller, since it may echo request
- * details or credentials from the transport layer.
+ * only ever used here for classification and a bounded, redacted log excerpt — it is
+ * never interpolated verbatim into the string returned to the caller, nor written
+ * verbatim to server logs, since it may echo request details or credentials from the
+ * transport layer.
  */
 function upstreamMessage(label: "Index" | "Evaluate", detail: string, err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
-  console.error(`[evidence-fit] ${label} flow (${detail}) failed:`, raw);
+  const classification = classifyUpstreamError(raw);
+  console.error(
+    `[evidence-fit] ${label} flow (${detail}) failed [${classification}]: ${redactForLogging(raw)}`
+  );
 
-  if (/EXECUTE_SOFT_TIMEOUT|timed?\s*out|timeout/i.test(raw)) {
-    return `${label} flow (${detail}) timed out. Check that it is deployed and responding within the request window, then retry.`;
+  switch (classification) {
+    case "timeout":
+      return `${label} flow (${detail}) timed out. Check that it is deployed and responding within the request window, then retry.`;
+    case "connection":
+      return `${label} flow (${detail}) dropped the connection. Check that it is deployed, then retry.`;
+    case "invalid_shape":
+      return (
+        `${label} flow (${detail}) returned a response that does not match the documented contract. ` +
+        `Check that its API Response outputMapping wires verdict, baseline and candidate straight ` +
+        `from the metrics code node.`
+      );
+    case "reported_failure":
+      return `${label} flow (${detail}) reported a failure. Check that its API Response mapping matches the documented contract and that indexing/alignment succeeded.`;
+    default:
+      return `${label} flow (${detail}) failed. Check that the flow is deployed and its API Response mapping matches the documented contract, then retry.`;
   }
-  if (/fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|UND_ERR/i.test(raw)) {
-    return `${label} flow (${detail}) dropped the connection. Check that it is deployed, then retry.`;
-  }
-  if (/did not return a valid comparison shape/i.test(raw)) {
-    return (
-      `${label} flow (${detail}) returned a response that does not match the documented contract. ` +
-      `Check that its API Response outputMapping wires verdict, baseline and candidate straight ` +
-      `from the metrics code node.`
-    );
-  }
-  if (/indexed no chunks|reported ok:false/i.test(raw)) {
-    return `${label} flow (${detail}) reported a failure. Check that its API Response mapping matches the documented contract and that indexing/alignment succeeded.`;
-  }
-  return `${label} flow (${detail}) failed. Check that the flow is deployed and its API Response mapping matches the documented contract, then retry.`;
 }

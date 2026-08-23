@@ -25,12 +25,16 @@ const VERDICT_COPY: Record<Verdict, { tone: string; description: string }> = {
 };
 
 /**
- * Names WHICH configuration achieves the shown verdict, derived from each strategy's own
- * StrategyResult.verdict — not from `recommended`, which ranks by recall score alone and
- * can in principle point at a configuration whose own verdict is worse (see core.ts:
- * a severed span can still reach complete coverage across multiple retrieved chunks).
- * Comparison.verdict is the better of the two strategies, so it must always be presented
- * alongside the strategy name that actually earned it.
+ * Names WHICH configuration(s) achieve the shown verdict, derived from each strategy's
+ * own StrategyResult.verdict. `Comparison.verdict` is always the verdict OF THE
+ * RECOMMENDED strategy (never simply "the better of the two" in isolation — see
+ * `compareStrategies` in core.ts): `recommended` is chosen by verdict severity first
+ * (SHIP beats TUNE beats BLOCK, and a BLOCK strategy is never recommended while a
+ * non-BLOCK alternative exists), with complete-evidence recall only breaking a tie
+ * between two strategies that already share the same verdict. So whenever both
+ * strategies happen to share `comparison.verdict`, that is because they were tied on
+ * verdict severity, not because this label is guessing — it reports exactly who earned
+ * the shown verdict.
  */
 function achievingLabel(comparison: Comparison): string {
   const { baseline, candidate, verdict } = comparison;
@@ -56,8 +60,7 @@ export function VerdictBanner({ comparison }: { comparison: Comparison }) {
       <p className="mt-1 text-sm">{copy.description}</p>
       {comparison.recommended !== "neither" && (
         <p className="mt-2 text-xs opacity-80">
-          Engine recommendation by complete-evidence recall alone:{" "}
-          {STRATEGY_LABEL[comparison.recommended]}.
+          Recommended configuration: {STRATEGY_LABEL[comparison.recommended]}.
         </p>
       )}
     </div>

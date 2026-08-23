@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { runComparison, type OrchestrateResult } from "../actions/orchestrate.ts";
 import { LIMITS } from "../lib/validation.ts";
-import { CUAD_SAMPLE } from "../lib/fixtures/cuad-sample.ts";
+import { SAMPLE_EXPERIMENT } from "../lib/fixtures/sample-contract.ts";
 import type { Comparison } from "../lib/evidence/core.ts";
 import { CaseEditor, type DraftCase } from "../components/CaseEditor.tsx";
 import { ErrorPanel } from "../components/ErrorPanel.tsx";
@@ -43,6 +43,7 @@ export default function Home() {
   const [upstreamError, setUpstreamError] = useState<string | null>(null);
   const [comparison, setComparison] = useState<Comparison | null>(null);
   const [mode, setMode] = useState<"local" | "deployed" | null>(null);
+  const [inputsChangedSinceRun, setInputsChangedSinceRun] = useState(false);
 
   function resetResults() {
     setValidationErrors([]);
@@ -50,14 +51,28 @@ export default function Home() {
     setUpstreamError(null);
     setComparison(null);
     setMode(null);
+    setInputsChangedSinceRun(false);
+  }
+
+  /**
+   * A run's verdict only describes the inputs it ran against. If the document text or any
+   * acceptance case changes afterwards, the on-screen verdict no longer corresponds to what
+   * is shown above it — so it is cleared immediately rather than left stale, with a short
+   * note explaining why it disappeared.
+   */
+  function invalidateStaleResults() {
+    if (comparison === null && mode === null) return;
+    setComparison(null);
+    setMode(null);
+    setInputsChangedSinceRun(true);
   }
 
   function loadDemo() {
-    setDocumentId(CUAD_SAMPLE.documentId);
-    setDocumentText(CUAD_SAMPLE.documentText);
-    setTopK(CUAD_SAMPLE.topK);
+    setDocumentId(SAMPLE_EXPERIMENT.documentId);
+    setDocumentText(SAMPLE_EXPERIMENT.documentText);
+    setTopK(SAMPLE_EXPERIMENT.topK);
     setCases(
-      CUAD_SAMPLE.cases.map((c) => ({
+      SAMPLE_EXPERIMENT.cases.map((c) => ({
         id: c.id,
         question: c.question,
         required: true,
@@ -135,7 +150,7 @@ export default function Home() {
             onClick={loadDemo}
             className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            Load CUAD demo experiment
+            Load sample contract experiment
           </button>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             One-click sample contract and acceptance cases, sized so the baseline configuration
@@ -189,18 +204,37 @@ export default function Home() {
           <textarea
             id="document-text"
             value={documentText}
-            onChange={(e) => setDocumentText(e.target.value)}
+            onChange={(e) => {
+              setDocumentText(e.target.value);
+              invalidateStaleResults();
+            }}
             rows={10}
             maxLength={LIMITS.maxDocumentChars}
             className={inputClass}
           />
         </div>
 
-        <CaseEditor cases={cases} onChange={setCases} />
+        <CaseEditor
+          cases={cases}
+          onChange={(next) => {
+            setCases(next);
+            invalidateStaleResults();
+          }}
+        />
 
         <ErrorPanel title="Fix these problems before running" messages={validationErrors} />
         <ErrorPanel title={engineErrors.title} messages={engineErrors.messages} />
         <ErrorPanel title="Deployed run failed" messages={upstreamError ? [upstreamError] : []} />
+
+        {inputsChangedSinceRun && (
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-sm font-medium text-amber-700 dark:text-amber-400"
+          >
+            Inputs changed — run the comparison again.
+          </p>
+        )}
 
         <div>
           <button

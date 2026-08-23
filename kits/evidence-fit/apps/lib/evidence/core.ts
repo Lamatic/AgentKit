@@ -426,14 +426,27 @@ export type AlignResult =
 
 /**
  * Recovers verified character offsets for chunk texts produced by a chunker
- * that does not report them. Lamatic's chunkNode emits pageContent only, so
- * this is the primary path for the deployed flow, not a fallback.
+ * that does not report them (Lamatic's chunkNode emits pageContent only, with
+ * no offsets and no clause-terminator splitting mode).
+ *
+ * This is NOT on the deployed EvidenceFit path: the Index flow's code node
+ * chunks documentText deterministically in-process via fixedWidthChunks() /
+ * clauseAwareChunks() (see scripts/evidence-fit-index_prepare-chunks.ts), so
+ * offsets are known by construction and there is nothing to recover. This
+ * function is a utility for anyone who wires EvidenceFit's engine to an
+ * externally-produced set of chunk texts — e.g. a Lamatic chunkNode, or any
+ * other chunker that only returns text — and needs verified offsets back.
  *
  * The scan is monotonic: each chunk is located at or after the previous chunk's
  * start + 1. The +1 tolerates configured overlap while guaranteeing forward
  * progress and forbidding reordering. Every match is verified by slicing the
  * document back out and comparing it to the chunk text, so a chunker that
  * trims or normalises whitespace is caught rather than silently mis-aligned.
+ *
+ * If the chunk text occurs more than once at or after searchFrom, its true
+ * placement is genuinely ambiguous — per shared spec §7.2, EvidenceFit does
+ * not guess which occurrence was meant, so this is reported as an explicit
+ * alignment_error rather than silently taking the first match.
  *
  * Failure yields an explicit alignment_error. Offsets are never estimated.
  */
@@ -475,6 +488,24 @@ export function alignChunks(
           {
             code: "alignment_error",
             message: `Chunk ${n} failed slice verification at [${idx}, ${end}).`,
+          },
+        ],
+      };
+    }
+
+    // The chunk text must be unique in the remaining document, or its true
+    // placement is ambiguous and offsets cannot be verified.
+    if (documentText.indexOf(raw, idx + 1) !== -1) {
+      return {
+        ok: false,
+        issues: [
+          {
+            code: "alignment_error",
+            message:
+              `Chunk ${n}'s text is not unique in the document at or after offset ` +
+              `${searchFrom}. It occurs more than once, so its true placement is ambiguous ` +
+              `and offsets cannot be verified. EvidenceFit will not guess which occurrence ` +
+              `you meant.`,
           },
         ],
       };
@@ -729,13 +760,25 @@ export function evaluateStrategy(args: EvaluateArgs): EvaluateResult {
   const integrity = spanIntegrity(resolved.cases, chunks, args.documentId);
   const severedKeys = new Set(integrity.severed.map((s) => `${s.start}:${s.end}`));
 
+  // Presence of `rankedByCaseId` means the deployed path supplied real search
+  // results. A case id missing from that map means retrieval returned nothing
+  // for it, which must yield an empty ranking — never the localRank oracle,
+  // which ranks by gold-character overlap and would silently score a case
+  // that retrieved nothing as perfectly retrieved. localRank is only used
+  // when `rankedByCaseId` is entirely absent (the offline demo path).
   const entries = resolved.cases.map((c) => ({
     c,
-    ranked: args.rankedByCaseId?.[c.id] ?? localRank(c, chunks, args.documentId),
+    ranked: args.rankedByCaseId
+      ? (args.rankedByCaseId[c.id] ?? [])
+      : localRank(c, chunks, args.documentId),
   }));
 
   const caseResults: CaseResult[] = entries.map(({ c, ranked }) => {
-    const topK = ranked.slice(0, args.topK);
+    // Filter by document first, then truncate to k — the same order
+    // spanCoverageAtK and firstCompleteEvidenceRank use internally, so a
+    // foreign-document chunk can never consume a top-k slot for `complete`
+    // while being excluded from coverage.
+    const topK = ranked.filter((ch) => ch.documentId === args.documentId).slice(0, args.topK);
     return {
       caseId: c.id,
       question: c.question,
@@ -788,7 +831,19 @@ export function evaluateStrategy(args: EvaluateArgs): EvaluateResult {
 export type Comparison = {
   baseline: StrategyResult;
   candidate: StrategyResult;
+  /**
+   * The strategy to deploy. Verdict severity is decided first (SHIP beats
+   * TUNE beats BLOCK); completeEvidenceRecallAtK.rate only breaks a tie
+   * between two strategies that share the same verdict. A BLOCK strategy is
+   * never recommended while a non-BLOCK alternative exists. When both
+   * strategies are BLOCK, this is "neither".
+   */
   recommended: StrategyName | "neither";
+  /**
+   * The verdict OF THE RECOMMENDED STRATEGY — so "SHIP" always means "the
+   * recommended configuration ships", never "some other candidate happened to
+   * be safe". When `recommended` is "neither", this is "BLOCK".
+   */
   verdict: Verdict;
 };
 
@@ -830,22 +885,29 @@ export function compareStrategies(args: {
   const b = baseline.result;
   const c = candidate.result;
 
-  // Strategies are compared on complete-evidence recall, never on raw
-  // Precision@k, because the relevant-chunk denominator shifts when chunk
-  // boundaries change and would make the comparison meaningless (§7.3).
-  let recommended: StrategyName | "neither" = "neither";
-  if (b.verdict !== "BLOCK" || c.verdict !== "BLOCK") {
+  // Verdict severity decides `recommended` first — a BLOCK strategy is never
+  // recommended while a non-BLOCK alternative exists, so the banner can never
+  // read SHIP while the recommended candidate is actually unsafe. Only when
+  // both strategies share the same verdict does complete-evidence recall
+  // break the tie; raw Precision@k is never used for this because the
+  // relevant-chunk denominator shifts when chunk boundaries change, which
+  // would make the comparison meaningless (§7.3).
+  let recommended: StrategyName | "neither";
+  if (b.verdict === "BLOCK" && c.verdict === "BLOCK") {
+    recommended = "neither";
+  } else if (b.verdict !== c.verdict) {
+    recommended = VERDICT_ORDER[b.verdict] < VERDICT_ORDER[c.verdict] ? "fixed-width" : "clause-aware";
+  } else {
     const bScore = b.completeEvidenceRecallAtK.rate;
     const cScore = c.completeEvidenceRecallAtK.rate;
-    if (cScore > bScore) recommended = "clause-aware";
-    else if (bScore > cScore) recommended = "fixed-width";
-    else {
-      recommended =
-        VERDICT_ORDER[c.verdict] <= VERDICT_ORDER[b.verdict] ? "clause-aware" : "fixed-width";
-    }
+    recommended = bScore > cScore ? "fixed-width" : "clause-aware";
   }
 
-  const verdict = VERDICT_ORDER[b.verdict] < VERDICT_ORDER[c.verdict] ? b.verdict : c.verdict;
+  // The overall verdict is always the verdict OF THE RECOMMENDED strategy —
+  // never simply the better of the two — so "SHIP" always means "the
+  // recommended configuration ships".
+  const verdict: Verdict =
+    recommended === "neither" ? "BLOCK" : recommended === "fixed-width" ? b.verdict : c.verdict;
 
   return { ok: true, comparison: { baseline: b, candidate: c, recommended, verdict } };
 }

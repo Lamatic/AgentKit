@@ -93,10 +93,14 @@ test("aligned chunk ids are unique", () => {
   assert.equal(new Set(r.chunks.map((c) => c.chunkId)).size, r.chunks.length);
 });
 
-test("a repeated chunk text resolves to successive occurrences, not the same one", () => {
+test("a chunk text that is not unique in the remaining document returns alignment_error", () => {
+  // "ab" occurs three times in "ab ab ab". Even though a monotonic scan could
+  // resolve the two chunks to successive occurrences, the placement of each
+  // individual chunk is still genuinely ambiguous, so §7.2 requires an
+  // explicit alignment_error rather than a guess.
   const doc = "ab ab ab";
   const r = alignChunks(doc, ["ab", "ab"], "doc1", "fixed-width");
-  assert.equal(r.ok, true);
-  if (!r.ok) return;
-  assert.notEqual(r.chunks[0].start, r.chunks[1].start);
+  assert.equal(r.ok, false);
+  if (r.ok) return;
+  assert.equal(r.issues[0].code, "alignment_error");
 });

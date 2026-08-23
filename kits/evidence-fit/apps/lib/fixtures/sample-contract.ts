@@ -1,19 +1,30 @@
 /**
- * Public CUAD-style demo experiment.
+ * Sample experiment used by the "Load sample contract experiment" button
+ * in the demo app.
  *
- * The text below is generic commercial-contract boilerplate written for this
- * demo in the style of the public CUAD corpus (Contract Understanding Atticus
- * Dataset, CC BY 4.0). It contains no customer, employer or otherwise private
- * material, and none of the clauses are drawn from a real agreement.
+ * This is SYNTHETIC commercial-contract boilerplate written for this demo.
+ * It is structured in the style of the public CUAD corpus (Contract
+ * Understanding Atticus Dataset) — clause numbering, defined terms, the
+ * kinds of questions a reviewer would ask of a Master Services Agreement —
+ * but it contains no CUAD text and is not drawn from any real agreement.
+ * Treat it as a synthetic fixture for exercising the evidence engine, not
+ * as a CUAD excerpt or evaluation result.
  *
  * The document is deliberately sized so that at the default 500-character /
- * 50-character-overlap baseline configuration, at least one required evidence
- * span is cut by a chunk boundary. That severance is the whole point of the
- * demo, and apps/__tests__/fixture.test.ts asserts it still happens — so the
- * demo cannot silently stop demonstrating the problem.
+ * 50-character-overlap baseline configuration, one required evidence span
+ * (the liability-cap case, see below) is cut by a chunk boundary and
+ * severed. That severance is the whole point of the demo: it is what the
+ * "candidate" clause-aware configuration is meant to fix.
+ *
+ * Want real-corpus numbers instead? Swap DOCUMENT below for genuine CUAD
+ * excerpts and rewrite the acceptance cases' `quote` fields to match
+ * verbatim spans in that text (see apps/lib/evidence/core.ts for the
+ * verbatim / unique-occurrence rules quotes must satisfy). CUAD is
+ * licensed CC BY 4.0 — https://www.atticusprojectai.org/cuad — so any
+ * excerpts you embed must carry attribution to the Atticus Project.
  */
 
-export const CUAD_SAMPLE_DOCUMENT = `MASTER SERVICES AGREEMENT
+export const SAMPLE_DOCUMENT = `MASTER SERVICES AGREEMENT
 
 1. Term. This Agreement commences on the Effective Date and continues for an initial period of three (3) years, and shall renew automatically for successive one (1) year periods unless either party gives written notice of non-renewal at least ninety (90) days before the end of the then-current term.
 
@@ -25,10 +36,10 @@ export const CUAD_SAMPLE_DOCUMENT = `MASTER SERVICES AGREEMENT
 
 5. Governing Law. This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.`;
 
-export const CUAD_SAMPLE = {
-  experimentId: "cuad-demo-msa-001",
-  documentId: "cuad-demo-msa",
-  documentText: CUAD_SAMPLE_DOCUMENT,
+export const SAMPLE_EXPERIMENT = {
+  experimentId: "sample-msa-001",
+  documentId: "sample-msa",
+  documentText: SAMPLE_DOCUMENT,
   topK: 5,
   cases: [
     {

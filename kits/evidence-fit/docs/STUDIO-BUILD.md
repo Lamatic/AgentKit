@@ -45,48 +45,47 @@ response: { ok: boolean; indexedCount: number; issues?: ValidationIssue[] }
 
 | # | Node type | Node name | Configuration |
 |---|---|---|---|
-| 1 | API Request (`graphqlNode`) | Trigger | Input schema: `experimentId` (string, required), `documentId` (string, required), `documentText` (string, required), `strategy` (string, required, enum `fixed-width` \| `clause-aware`). `experimentId` is what lets the Index node (step 7) stamp every vector's metadata with the experiment it belongs to — without it, every experiment's vectors would collide under the same blank id and the Evaluate flow's per-experiment search filter (see Flow 2) could never distinguish them. |
-| 2 | Variables (`variablesNode`) | Strategy Chunk Config | Two fields, both expressions on `{{triggerNode_1.output.strategy}}`: `chunkSize` = `500` for either strategy; `chunkOverlap` = `50` when `fixed-width`, `0` when `clause-aware`. See callout below — this is the closest built-in approximation of `CLAUSE_CONFIG`, not an exact match. |
-| 3 | Chunking (`chunkNode`) | Chunk Document | Text input bound to `{{triggerNode_1.output.documentText}}`. Bind **Chunk Size** and **Chunk Overlap** to `{{variablesNode_2.output.chunkSize}}` / `{{variablesNode_2.output.chunkOverlap}}` instead of typing static numbers, so one flow serves both strategies across its two calls. |
-| 4 | Code (`codeNode`) | Prepare Chunks | Paste `@scripts/evidence-fit-index_prepare-chunks.ts` verbatim. Bind `{{triggerNode_1.output}}` (whole node output) and `{{chunkNode_3.output.chunks}}` (whole node output via the `(x)` picker — nested paths render grey and resolve inconsistently in Studio). Update the two `{{triggerNode_1...}}` / `{{chunkNode_968...}}` placeholder ids in the pasted script to your actual node ids, or rename your nodes to match them — either works. Output: `{ ok, issues, texts, metadata }`. |
-| 5 | Condition (`conditionNode`) | Skip Gate | Branch on `{{codeNode_4.output.ok}}`. `false` → route straight to API Response (step 8) with `indexedCount: 0`. `true` → continue to step 6. This is the "downstream nodes must skip when `output.ok === false`" rule from the script's own header comment. |
-| 6 | Vectorize (`vectorizeNode`) | Embed Chunks | Input **requires** `string[]`; bind to `{{codeNode_4.output.texts}}`. |
-| 7 | Index (`vectorNode`) | Index Chunks | Upsert embeddings. Metadata bound to `{{codeNode_4.output.metadata}}` (a parallel array, one entry per text above) carrying `experimentId`, `documentId`, `strategy`, `chunkId`, `start`, `end`, `content` — this is what lets the Evaluate flow rebuild real `Chunk` objects from search-result metadata later. Composite primary key: `documentId` + `strategy` + `chunkId`. `experimentId` is deliberately **not** part of the key: re-running an experiment against the same document and strategy cleanly replaces the prior vectors (same document ⇒ same chunk boundaries ⇒ idempotent upsert) instead of accumulating stale duplicates. |
-| 8 | API Response (`graphqlResponseNode`) | Response | outputMapping (exact JSON below). |
+| 1 | API Request (`graphqlNode`) | Trigger | Input schema: `experimentId` (string, required), `documentId` (string, required), `documentText` (string, required), `strategy` (string, required, enum `fixed-width` \| `clause-aware`). `experimentId` is what lets the Index node (step 5) stamp every vector's metadata with the experiment it belongs to — without it, every experiment's vectors would collide under the same blank id and the Evaluate flow's per-experiment search filter (see Flow 2) could never distinguish them. |
+| 2 | Code (`codeNode`) | Prepare Chunks | Paste `@scripts/evidence-fit-index_prepare-chunks.ts` verbatim. Bind `{{triggerNode_1.output}}` (whole node output) — this node reads ONLY the trigger; there is no chunk node feeding it. Update the `{{triggerNode_1...}}` placeholder id in the pasted script to your actual trigger node id, or rename your node to match it. This node generates chunks itself, deterministically, by selecting `FIXED_WIDTH_CONFIG` / `CLAUSE_CONFIG` from `strategy` (rejecting any unrecognised value rather than defaulting) and calling the matching vendored `fixedWidthChunks()` / `clauseAwareChunks()` directly against `documentText`. Output: `{ ok, issues, texts, metadata }`. |
+| 3 | Condition (`conditionNode`) | Skip Gate | Branch on `{{codeNode_2.output.ok}}`. `false` → route straight to API Response (step 6) with `indexedCount: 0`. `true` → continue to step 4. This is the "downstream nodes must skip when `output.ok === false`" rule from the script's own header comment. |
+| 4 | Vectorize (`vectorizeNode`) | Embed Chunks | Input **requires** `string[]`; bind to `{{codeNode_2.output.texts}}`. |
+| 5 | Index (`vectorNode`) | Index Chunks | Upsert embeddings. Metadata bound to `{{codeNode_2.output.metadata}}` (a parallel array, one entry per text above) carrying `experimentId`, `documentId`, `strategy`, `chunkId`, `start`, `end`, `content` — this is what lets the Evaluate flow rebuild real `Chunk` objects from search-result metadata later. Composite primary key: `documentId` + `strategy` + `chunkId`. `experimentId` is deliberately **not** part of the key: re-running an experiment against the same document and strategy cleanly replaces the prior vectors (same document ⇒ same chunk boundaries ⇒ idempotent upsert) instead of accumulating stale duplicates. |
+| 6 | API Response (`graphqlResponseNode`) | Response | outputMapping (exact JSON below). |
 
 **Index flow API Response `outputMapping`:**
 
 ```json
 {
-  "ok": "{{codeNode_4.output.ok}}",
-  "indexedCount": "{{codeNode_4.output.texts.length}}",
-  "issues": "{{codeNode_4.output.issues}}"
+  "ok": "{{codeNode_2.output.ok}}",
+  "indexedCount": "{{codeNode_2.output.texts.length}}",
+  "issues": "{{codeNode_2.output.issues}}"
 }
 ```
 
 `ok` and `indexedCount` are the fields `orchestrate.ts`'s `runIndexFlow` actually reads —
 it treats anything other than `ok: true` with `indexedCount > 0` as a failure and never
 proceeds to the Evaluate flow for that experiment. `indexedCount` is bound to
-`texts.length` rather than a dedicated field because the Prepare Chunks script
-(`evidence-fit-index_prepare-chunks.ts`) is a shared vendored script and was deliberately
-left unchanged for this contract — `texts` and `metadata` are always the same length
-(one entry per successfully aligned chunk, both empty on failure), so either works
-identically. `issues` is extra and safe — the app ignores unknown fields.
+`texts.length` rather than a dedicated field because `texts` and `metadata` are always
+the same length (one entry per successfully generated chunk, both empty on failure), so
+either works identically. `issues` is extra and safe — the app ignores unknown fields.
 
-**Callout — chunkNode vs. the vendored chunking functions:** `apps/lib/evidence/core.ts`
-computes `spanIntegrityRate` / `boundarySeveredCount` (whether a chunk boundary severs a
-gold span) by running its **own** idealized `fixedWidthChunks()` / `clauseAwareChunks()`
-directly against `documentText` — this happens inside `evaluateStrategy()` regardless of
-deployed vs. local mode, and it does **not** consult Studio's real `chunkNode` output for
-that specific metric. Studio's `chunkNode` output is used only to build the real vector
-index and real per-question rankings (via `alignChunks`). Lamatic's built-in splitter has
-no true clause-terminator mode, so it cannot exactly reproduce `clauseAwareChunks()`.
-Configure step 3 as close to `FIXED_WIDTH_CONFIG` (`500`/`50`) and `CLAUSE_CONFIG`
-(`500`/`0`, sentence- or paragraph-aware splitting if your chunkNode offers it) as
-Studio allows — the closer the real splitter matches the idealized functions, the more
-the theoretical `spanIntegrityRate` reflects what is actually retrievable in production.
-A mismatch here does not break anything computationally; it just weakens how well the
-metric maps to your real index.
+**Note — why this flow does not use `chunkNode`:** The Index code node (step 2) generates
+chunks itself, deterministically, by calling the vendored `fixedWidthChunks()` /
+`clauseAwareChunks()` directly against `documentText` — the exact same pure functions
+`evaluateStrategy()` in `apps/lib/evidence/core.ts` calls when the Evaluate flow's Metrics
+node computes `spanIntegrityRate` and `boundarySeveredCount`. Because both flows
+regenerate chunks from the identical `documentText` through the identical pure function,
+the chunks that get indexed here and the chunks the metrics are computed against are
+byte-identical by construction — there is no separate chunker output to approximate or
+keep in sync, and no drift for the metrics to silently describe a configuration other
+than the one actually deployed to the vector index. A Lamatic `chunkNode` (or any other
+real chunker) would reintroduce exactly that gap: its splitter has no true
+clause-terminator mode, so it cannot reproduce `clauseAwareChunks()` at all, and even for
+the fixed-width strategy its output would only ever approximate `fixedWidthChunks()`'s
+boundaries. `alignChunks()` still lives in `core.ts` — exported and covered by
+`apps/__tests__/` — as the utility for recovering verified offsets when chunk text
+arrives from an external, already-chunked source that reports no offsets of its own; it
+is simply not on this flow's critical path.
 
 ---
 
@@ -116,7 +115,7 @@ anything itself. It never reads `rankings`, because nothing downstream needs raw
 chunk text once the flow computes the full comparison itself.
 
 Both strategies were indexed into the **same** vector collection, distinguished only by
-`metadata.strategy` (Flow 1, step 7). So every search below **must filter on both
+`metadata.strategy` (Flow 1, step 5). So every search below **must filter on both
 `experimentId` and `strategy`** — omitting either lets one experiment's or one strategy's
 chunks leak into another's ranking, which is exactly the cross-experiment contamination
 the metadata schema exists to prevent.

@@ -39,21 +39,24 @@ that verdict.
   - API Request. Expected input: `{ documentId: string; documentText: string; strategy: "fixed-width" | "clause-aware" }`.
   - Called once per strategy by `apps/actions/orchestrate.ts`.
 - What it does
-  - Chunks `documentText` (chunk size/overlap bound to the requested `strategy`).
-  - `Prepare Chunks` (codeNode, `@scripts/evidence-fit-index_prepare-chunks.ts`) recovers
-    verified character offsets for each chunk via a verbatim substring scan
-    (`alignChunks`) — Lamatic's chunker reports text only, no offsets, and this node
-    never estimates one; an unlocatable chunk is a hard `alignment_error`.
-  - Embeds the aligned chunk texts and indexes them with metadata carrying
-    `experimentId`, `documentId`, `strategy`, `chunkId`, `start`, `end`, `content`.
-  - Downstream nodes are skipped when the alignment step reports `ok: false`.
+  - There is no Lamatic chunker in this flow. `Prepare Chunks` (codeNode,
+    `@scripts/evidence-fit-index_prepare-chunks.ts`) chunks `documentText`
+    deterministically in-process, calling the vendored `fixedWidthChunks()` /
+    `clauseAwareChunks()` (chosen by `strategy`) directly against `documentText` — so
+    every chunk's offsets are known by construction, never recovered after the fact.
+    A defensive invariant check confirms `documentText.slice(start, end) === text` for
+    every chunk before anything is embedded; a failure is a hard `chunk_offset_invariant_violation`
+    issue, never a silently estimated offset.
+  - Embeds the chunk texts and indexes them with metadata carrying `experimentId`,
+    `documentId`, `strategy`, `chunkId`, `start`, `end`, `content`.
+  - Downstream nodes are skipped when the code node reports `ok: false`.
 - When to use this flow
   - Run once per strategy before evaluating, for every new document or re-run of an
     existing one.
 - Output
-  - `{ chunks: string[] }` — ordered chunk texts (`pageContent`).
+  - `{ ok: boolean; indexedCount: number; issues?: ValidationIssue[] }`.
 - Dependencies
-  - Lamatic chunking + embedding + vector index nodes, configured in Studio.
+  - Lamatic embedding + vector index nodes, configured in Studio (no chunk node).
   - Full node-by-node build steps: `docs/STUDIO-BUILD.md`.
 
 ### Evaluate (`evidence-fit-evaluate`)
@@ -152,23 +155,25 @@ required to try it (see README, Section 6 and 11).
 ## Quickstart
 
 1. `cd kits/evidence-fit/apps && npm install && npm run dev`.
-2. Open `http://localhost:3000`, click **Load CUAD demo experiment**, then **Compare
+2. Open `http://localhost:3000`, click **Load sample contract experiment**, then **Compare
    strategies** — this exercises the full engine in local mode with no credentials.
 3. To exercise the deployed path: build both flows per `docs/STUDIO-BUILD.md`, deploy
    them, copy their flow IDs plus your project credentials into `apps/.env.local`, and
-   re-run the demo — the app switches to deployed mode automatically once all five
-   variables are present.
+   re-run the demo. The app attempts deployed mode once `LAMATIC_API_KEY`,
+   `LAMATIC_PROJECT_ID`, and `LAMATIC_API_URL` are set; a run only succeeds once both
+   flow ID variables are set too, otherwise you get an actionable "Deployed flows are
+   not configured" error.
 
 ## Common Failure Modes
 
 | Symptom | Likely Cause | Fix |
 |---|---|---|
 | `quote_not_found` / `ambiguous_quote` validation issue | Evidence quote isn't verbatim, or occurs more than once with no offsets given | Copy the quote exactly from the document, or supply explicit `start`/`end` offsets |
-| `alignment_error` from the Index flow | Chunker trimmed, normalized, or reordered chunk text | Configure Studio's chunkNode to emit unmodified `pageContent`; EvidenceFit will not estimate offsets |
-| Every case comes back `BLOCK` on a deployed Evaluate call | Trigger sent without `documentText` / full evidence (today's `orchestrate.ts` gap, see `docs/STUDIO-BUILD.md`) | Harmless for the app (it computes verdict locally); extend the Evaluate flow's trigger to close the gap for direct API callers |
+| `chunk_offset_invariant_violation` from the Index flow | The Prepare Chunks code node's own generated chunk failed its `documentText.slice(start, end) === text` self-check — should not happen with the vendored code unmodified | Confirm `@scripts/evidence-fit-index_prepare-chunks.ts` was pasted verbatim and not hand-edited |
+| Every case comes back `BLOCK` on a deployed Evaluate call | The Evaluate flow's trigger schema doesn't match what `runEvaluateFlow` sends (`experimentId`, `documentId`, `documentText`, `topK`, `cases` with full evidence) | Re-check the trigger's Input schema against `docs/STUDIO-BUILD.md` Flow 2 |
 | Verdict changes when the LLM node's prompt is edited | The API Response is not wiring `verdict` from the Metrics code node | Re-check the `outputMapping` in `docs/STUDIO-BUILD.md` — `verdict` must come only from the Metrics node, `explanation` only from the LLM node |
 | `runComparison` returns `kind: "upstream"` | Deployed flow IDs not set, or the flow itself failed/timed out | Check `apps/.env.local`, confirm both flows are deployed (not draft-only) |
-| Local demo numbers don't match Section 6 of the README | Demo document or acceptance cases edited | Reload via **Load CUAD demo experiment**, which resets to the verified fixture |
+| Local demo numbers don't match Section 6 of the README | Demo document or acceptance cases edited | Reload via **Load sample contract experiment**, which resets to the verified fixture |
 
 ## Notes
 
