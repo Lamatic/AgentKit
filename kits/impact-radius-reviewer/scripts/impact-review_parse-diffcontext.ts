@@ -35,11 +35,13 @@ try {
   let impacted = included.filter((s) => s && s.role === "impacted").map((s) => s.id);
   let dependency = included.filter((s) => s && s.role === "dependency").map((s) => s.id);
 
-  // Tests surfaced in the impact set (path under a tests/testing dir, or id starts with test_).
+  // Surfaced test candidates (path under a tests/testing dir, or id starts with test_).
+  // Path match does NOT prove the test covers the changed symbol — these are
+  // candidates only. Match root-level tests/ (no leading slash) too.
   let includedTests = included
     .filter((s) => {
       let id = String(s.id || "");
-      return /\/(tests|testing)\//.test(id) || /:test_/.test(id) || /:Test/.test(id);
+      return /(?:^|\/)(tests|testing)\//.test(id) || /:test_/.test(id) || /:Test/.test(id);
     })
     .map((s) => s.id);
 
@@ -78,7 +80,7 @@ try {
   if (dependency.length) dependency.forEach((id) => lines.push("  - " + id));
   else lines.push("  - (none)");
   lines.push("");
-  lines.push("COVERING TESTS surfaced in the impact set (" + includedTests.length + "):");
+  lines.push("SURFACED TEST CANDIDATES in the impact set (" + includedTests.length + ", candidates only — not proven coverage):");
   if (includedTests.length) includedTests.forEach((id) => lines.push("- " + id));
   else lines.push("- (no test symbols were included by the retriever)");
   lines.push("");

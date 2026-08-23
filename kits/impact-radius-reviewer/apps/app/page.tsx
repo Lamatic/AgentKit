@@ -108,7 +108,7 @@ export default function Page() {
         <p role="alert" className="ir-result-error">{serverError}</p>
       )}
 
-      {credentialDetected && !serverError && (
+      {credentialDetected && (
         <p className="ir-credential-note">
           A credential was detected in the input and redacted using the marker
           [credential detected; value omitted].

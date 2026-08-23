@@ -14,7 +14,7 @@ function redactCredentials(input: string): {
 
   const patterns = [
     /AKIA[0-9A-Z]{16}/g,
-    /gh[pousr]_[A-Za-z0-9]{36,255}/g,
+    /(?:gh[pousr]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9_]{20,})/g,
     /xox[baprs]-[A-Za-z0-9-]{10,72}/g,
     /Bearer\s+[A-Za-z0-9._~+/=-]{20,}/gi,
     /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,

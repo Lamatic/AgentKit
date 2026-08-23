@@ -37,18 +37,18 @@ One Lamatic flow (`impact-review`) with two nodes after the trigger:
 1. **Code node — Parse DiffContext JSON.** Parses the `diffcontext compile
    --json` payload into a compact impact summary: changed symbol(s), the
    impact set split by role (impacted callers/dependents vs. 2-hop
-   structural), covering tests surfaced, the top dropped symbols by score,
+   structural), surfaced test candidates, the top dropped symbols by score,
    and the static-analysis caveat line diffcontext writes into its own meta
    header. The flow does **no** retrieval of its own — the user already ran
    diffcontext; a serverless flow cannot read the user's filesystem anyway.
-2. **LLM node — Generate Brief.** A single system prompt enforces exactly
+ 2. **LLM node — Generate Brief.** A single system prompt enforces exactly
    three sections, in order, and nothing else:
    - **1. What will break** — concrete break risk for each changed symbol,
      citing the caller's symbol id and why (return-type / parameter / shape
      changes), plus any overriding subclass in the impact set.
-   - **2. Test coverage** — covering tests that surfaced, changed symbols
-     with no covering test, and dropped candidate tests the reviewer should
-     run.
+   - **2. Test coverage** — test candidates that surfaced (path/name match
+     only, not proven coverage), changed symbols with no test candidate
+     surfaced, and dropped candidate tests the reviewer should run.
    - **3. BLIND SPOTS** — (a) symbols dropped for budget, naming the
      highest-risk ones; (b) what static analysis structurally cannot see
      (dynamic dispatch, plugin/entry-point hooks, `getattr`/registries,
@@ -173,7 +173,7 @@ Then, in a Python repo with a change on a branch:
 pip install diffcontext
 diffcontext index . --include testing        # tests/ is excluded by default
 diffcontext compile --ref HEAD --repo . --include testing --cutoff gap --json > impact.json
-git diff HEAD > pr.diff
+git diff <base-ref>...HEAD > pr.diff          # e.g. git diff main...HEAD
 ```
 
 Paste `impact.json` and `pr.diff` into the app.
