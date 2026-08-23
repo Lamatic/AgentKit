@@ -84,7 +84,17 @@ broken build isn't telling you anything meaningful.
 
 ## 3. Part B — the UI walkthrough
 
+> **Clear the build cache first.** Part A just ran `npm run build`, which fills
+> `.next/` with *production* artifacts. Starting the dev server on top of those
+> leaves a mixed production/dev tree, and Next.js fails to resolve its own
+> chunks — you get `ENOENT ... routes-manifest.json` and
+> `Cannot find module './833.js'`, repeating on every request. Reinstalling does
+> not help, because nothing is wrong with `node_modules`.
+>
+> Always delete `.next/` when switching from `build` to `dev`:
+
 ```bash
+rm -rf .next
 npm run dev
 ```
 
