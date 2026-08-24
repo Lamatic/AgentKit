@@ -177,11 +177,15 @@ npm run dev
 
 ## Test Cases and Results
 
-The end-to-end test harness is in [`apps/test-orchestrate.js`](./apps/test-orchestrate.js). It runs two scenarios against the live Lamatic workflow:
+The end-to-end test harness is in [`apps/test-orchestrate.js`](./apps/test-orchestrate.js).
 
 ```bash
 node apps/test-orchestrate.js
 ```
+
+> **Credentials not required for deterministic checks.** Steps 1 and 2 (normalization correctness and path-parameter regression) run entirely locally — no Lamatic credentials are needed and no network calls are made.
+>
+> **Lamatic credentials required only for live integration.** Steps 3 A and B trigger the deployed Lamatic workflow and require all four `LAMATIC_*` environment variables to be set in `.env.local`. When credentials are absent the test harness detects this and skips the live workflow steps automatically, so the deterministic assertions still pass.
 
 ### Test A — Additive (non-breaking)
 
