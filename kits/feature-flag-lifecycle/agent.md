@@ -11,7 +11,7 @@ The system centralizes flag discovery and lifecycle analysis into two deployed L
 ## Flows
 
 ### `flag-scan`
-- **Flow ID / Env key mapping:** `flag-scan`
+- **Flow ID / Env key mapping:** Flow ID → `flag-scan` (env key: `LAMATIC_FLAG_SCAN_FLOW_ID`)
 - **Trigger:** API request via GraphQL trigger node (`graphqlNode`). Receives `repoUrl` (for context) and `codeContent` (the source code to scan).
 - **What it does:**
   1. `API Request` (`triggerNode`) — receives the repository URL and source code content.
@@ -26,7 +26,7 @@ The system centralizes flag discovery and lifecycle analysis into two deployed L
 - **Dependencies:** LLM provider configured via `@model-configs/flag-scan.ts`. The `codeContent` input should contain source code from `.ts`, `.js`, `.py`, `.java`, and other code file types.
 
 ### `flag-cleanup-plan`
-- **Flow ID / Env key mapping:** `flag-cleanup-plan`
+- **Flow ID / Env key mapping:** Flow ID → `flag-cleanup-plan` (env key: `LAMATIC_FLAG_CLEANUP_FLOW_ID`)
 - **Prerequisite:** `flag-scan` (provides the flag inventory)
 - **Trigger:** API request via GraphQL trigger node (`graphqlNode`). Receives `repoUrl`, `flags` (inventory from scan), and optionally `flagStatusMapping`.
 - **What it does:**

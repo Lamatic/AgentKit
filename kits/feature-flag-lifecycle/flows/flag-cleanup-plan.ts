@@ -180,10 +180,9 @@ export const nodes = [
             "content": "@prompts/flag-cleanup-plan_user.md"
           }
         ],
-        "memories": "@model-configs/flag-cleanup-plan.ts",
-        "messages": "@model-configs/flag-cleanup-plan.ts",
-        "attachments": "@model-configs/flag-cleanup-plan.ts",
-        "credentials": "@model-configs/flag-cleanup-plan.ts",
+        "memories": "[]",
+        "messages": "[]",
+        "attachments": "",
         "generativeModelName": "@model-configs/flag-cleanup-plan.ts"
       }
     },
@@ -231,7 +230,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"cleanupPlan\": \"{{codeNode_391.output.cleanupPlan}}\",\n  \"summary\": \"{{codeNode_391.output.summary}}\",\n  \"repoUrl\": \"{{triggerNode_1.output.repoUrl}}\"\n}"
+        "outputMapping": "{\n  \"cleanupPlan\": \"{{codeNode_391.output.cleanupPlan}}\",\n  \"summary\": \"{{codeNode_391.output.summary}}\",\n  \"error\": \"{{codeNode_391.output.error}}\",\n  \"repoUrl\": \"{{triggerNode_1.output.repoUrl}}\"\n}"
       }
     },
     "measured": {

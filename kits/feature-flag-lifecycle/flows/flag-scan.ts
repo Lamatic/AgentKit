@@ -155,10 +155,9 @@ export const nodes = [
             "content": "@prompts/flag-scan_user.md"
           }
         ],
-        "memories": "@model-configs/flag-scan.ts",
-        "messages": "@model-configs/flag-scan.ts",
-        "attachments": "@model-configs/flag-scan.ts",
-        "credentials": "@model-configs/flag-scan.ts",
+        "memories": "[]",
+        "messages": "[]",
+        "attachments": "",
         "generativeModelName": "@model-configs/flag-scan.ts"
       }
     },

@@ -36,7 +36,7 @@ Takes the flag inventory from Flow 1 (and an optional status mapping) and evalua
 
 ## The Result
 
-- **Saves time** — automatizes what would be hours of manual code searching and analysis
+- **Saves time** — automates what would be hours of manual code searching and analysis
 - **Reduces technical debt** — systematically identifies and prioritizes flag cleanup
 - **Improves clarity** — clear risk assessment and step-by-step removal plans
 - **Makes cleanup repeatable** — run the scan + plan flow anytime, integrate into CI or sprints
@@ -107,7 +107,9 @@ curl -X POST "$LAMATIC_API_URL/v1/workflow/$LAMATIC_FLAG_CLEANUP_FLOW_ID" \
   -d '{
     "input": {
       "repoUrl": "https://github.com/your-org/your-repo",
-      "flags": <flags array from step 1>,
+      "flags": [
+        { "flagName": "new-checkout-flow", "type": "launchdarkly", "file": "src/App.js", "lineNumber": 42, "context": "client.variation('new-checkout-flow', user, false)", "isDeclaration": false, "description": "Controls new checkout flow" }
+      ],
       "flagStatusMapping": {
         "new-checkout-flow": "always-on",
         "old-pricing-page": "experiment-completed"

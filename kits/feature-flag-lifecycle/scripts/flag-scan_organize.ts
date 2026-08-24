@@ -11,7 +11,13 @@ try {
   if (!parsed.flags) {
     parsed = { flags: parsed, totalFlags: Array.isArray(parsed) ? parsed.length : 0 };
   }
-  if (parsed.flags && !parsed.totalFlags) {
+
+  // Validate that parsed.flags is an array before returning
+  if (!Array.isArray(parsed.flags)) {
+    throw new Error("LLM output 'flags' is not an array");
+  }
+
+  if (!parsed.totalFlags) {
     parsed.totalFlags = parsed.flags.length;
   }
 
@@ -20,7 +26,6 @@ try {
   output = {
     flags: [],
     totalFlags: 0,
-    error: "Failed to parse LLM output: " + e.message,
-    rawOutput: typeof llamaOutput === 'string' ? llamaOutput.substring(0, 500) : llamaOutput
+    error: "Failed to parse LLM output: " + e.message
   };
 }
