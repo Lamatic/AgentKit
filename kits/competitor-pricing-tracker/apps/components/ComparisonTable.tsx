@@ -38,7 +38,7 @@ export default function ComparisonTable({ results }: { results: TrackResult[] })
                         {p.billingPeriod && (
                           <span className="plan-period">{p.billingPeriod}</span>
                         )}
-                        {p.features.length > 0 && (
+                        {p.features && p.features.length > 0 && (
                           <ul className="feature-list">
                             {p.features.map((f, k) => (
                               <li key={k}>{f}</li>
