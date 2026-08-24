@@ -203,6 +203,12 @@ async function triggerWorkflowAndPoll(compactPayload) {
 
       if (parsedData?.status === 'success' && analysisOutput) {
         return analysisOutput;
+      } else if (parsedData?.status === 'success' && !analysisOutput) {
+        // status is success but the expected analysisOutput is absent — treat as incomplete
+        throw new Error(
+          `Workflow returned status=success but analysisOutput was missing or empty. ` +
+          `Inspect the Lamatic flow output mapping. Raw status: ${parsedData?.status}`
+        );
       } else if (parsedData?.status === 'in-progress') {
         console.log(`Job in progress... (Attempt ${attempts}/20)`);
       } else if (['failed', 'error', 'cancelled'].includes(parsedData?.status)) {

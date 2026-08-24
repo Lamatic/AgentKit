@@ -49,21 +49,38 @@ export async function POST(req: Request) {
 
     // 1. Run local AST diff
     const rawDiff = await runOpenApiDiff(specA, specB);
-    console.dir({ 'STAGE 1: RAW_DIFF': rawDiff }, { depth: null });
 
     // 2. Normalize deterministic facts
     const facts = normalizeDiff(rawDiff, specA, specB);
-    console.dir({ 'STAGE 2: NORMALIZED_FACTS': facts }, { depth: null });
-
-    // 3. Format lines for AI context
-    const factLines = facts.allChanges.map(
-      (c) => `Endpoint: ${c.endpoint} | Field: ${c.field} | Action: ${c.action} | Severity: ${c.severity} | IsBreaking: ${c.isBreaking} | Before: ${c.before} | After: ${c.after}`
+    console.log(
+      `[analyze-drift] normalized changeCount=${facts.allChanges.length} breaking=${facts.totalBreaking} risk=${facts.calculatedRisk}`
     );
 
-    const sampleInput = `DETERMINISTIC API SCHEMA FACTS:\n${factLines.join('\n')}`;
+    // 3. Build the sampleInput payload in the exact shape the LLM node's
+    //    system prompt documents: { apiName, oldVersion, newVersion, changesCount, changes[] }
+    const parseSpecInfo = (raw: any): { title?: string; version?: string } => {
+      try {
+        const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return { title: obj?.info?.title, version: obj?.info?.version };
+      } catch {
+        return {};
+      }
+    };
+    const infoA = parseSpecInfo(specA);
+    const infoB = parseSpecInfo(specB);
 
-    console.log('--- STAGE 3: SAMPLE_INPUT SENT TO LAMATIC ---');
-    console.log(sampleInput);
+    const sampleInput = JSON.stringify({
+      apiName: infoA.title || infoB.title || 'Target API',
+      oldVersion: infoA.version || '1.0.0',
+      newVersion: infoB.version || '2.0.0',
+      changesCount: facts.allChanges.length,
+      changes: facts.allChanges.map((c) => ({
+        endpoint: c.endpoint,
+        changeType: c.changeType,
+        affectedField: c.affectedField,
+        description: c.description,
+      })),
+    });
 
     // 4. Call Lamatic with error isolation
     let aiResult: any = {};

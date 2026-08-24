@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import openapiDiff from 'openapi-diff';
 import { Lamatic } from 'lamatic';
 
@@ -51,6 +52,20 @@ function resolveParamRef(param: any, spec: any): any {
     return resolved || param;
   }
   return param;
+}
+
+/**
+ * Resolve a schema-level $ref against spec.components.schemas.
+ * Returns the resolved schema when a matching component exists, or the
+ * original schema object when there is no resolvable $ref (safe fallback).
+ */
+function resolveSchemaRef(schema: any, spec: any): any {
+  if (schema && typeof schema === 'object' && typeof schema.$ref === 'string') {
+    const match = schema.$ref.match(/^#\/components\/schemas\/(.+)$/);
+    const resolved = match ? spec?.components?.schemas?.[match[1]] : undefined;
+    return resolved || schema;
+  }
+  return schema;
 }
 
 function getEffectiveParams(pathItem: any, op: any, spec: any): any[] {
@@ -110,8 +125,11 @@ export function detectParameterTypeChanges(specA: any, specB: any): SemanticChan
         const v2Param = v2Params.find((p: any) => p.name === v1Param.name && p.in === v1Param.in);
         if (!v2Param) continue;
 
-        const v1Type = v1Param.schema?.type;
-        const v2Type = v2Param.schema?.type;
+        const v1Schema = resolveSchemaRef(v1Param.schema, v1Spec);
+        const v2Schema = resolveSchemaRef(v2Param.schema, v2Spec);
+
+        const v1Type = v1Schema?.type;
+        const v2Type = v2Schema?.type;
 
         if (v1Type && v2Type && v1Type !== v2Type) {
           changes.push({
@@ -328,7 +346,13 @@ const TERMINAL_FAILURE_STATUSES = new Set(['error', 'failed', 'cancelled']);
  * request execution and polling internally.
  */
 export async function triggerLamaticWorkflow(payload: any) {
-  console.dir({ 'STAGE 4: OUTGOING_LAMATIC_PAYLOAD': payload }, { depth: null });
+  const correlationId = crypto.randomUUID();
+  const payloadSize = JSON.stringify(payload).length;
+  const changeCount = Array.isArray(payload?.changes) ? payload.changes.length : undefined;
+  console.log(
+    `[sentinel] STAGE 4: triggering Lamatic flow | correlationId=${correlationId}` +
+    ` payloadBytes=${payloadSize}${changeCount !== undefined ? ` changeCount=${changeCount}` : ''}`
+  );
 
   const flowId = process.env.LAMATIC_DRIFT_FLOW_ID;
   const client = getLamaticClient();
@@ -341,7 +365,19 @@ export async function triggerLamaticWorkflow(payload: any) {
 
   const res = await client.executeFlow(flowId, payload);
   const flowResult = res as any;
-  console.dir({ 'STAGE 5: RAW_LAMATIC_RESPONSE': flowResult }, { depth: null });
+  console.log(
+    `[sentinel] STAGE 5: Lamatic flow responded | correlationId=${correlationId}` +
+    ` status=${flowResult?.status ?? 'unknown'}` +
+    ` hasAnalysisOutput=${Boolean(
+      flowResult?.result?.answer?.output?.analysis ||
+      flowResult?.result?.answer?.analysis ||
+      flowResult?.result?.output?.analysis ||
+      flowResult?.data?.output?.result?.analysis ||
+      flowResult?.result?.answer ||
+      flowResult?.result?.output ||
+      flowResult?.output
+    )}`
+  );
 
   if (TERMINAL_FAILURE_STATUSES.has(flowResult?.status) || flowResult?.statusCode >= 400) {
     throw new Error(`Lamatic flow error: ${flowResult?.message || JSON.stringify(flowResult)}`);
@@ -364,3 +400,4 @@ export async function triggerLamaticWorkflow(payload: any) {
 
   return analysisOutput;
 }
+
