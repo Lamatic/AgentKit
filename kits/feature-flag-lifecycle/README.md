@@ -108,7 +108,7 @@ curl -X POST "$LAMATIC_API_URL/v1/workflow/$LAMATIC_FLAG_CLEANUP_FLOW_ID" \
     "input": {
       "repoUrl": "https://github.com/your-org/your-repo",
       "flags": [
-        { "flagName": "new-checkout-flow", "type": "launchdarkly", "file": "src/App.js", "lineNumber": 42, "context": "client.variation('new-checkout-flow', user, false)", "isDeclaration": false, "description": "Controls new checkout flow" }
+        { "flagName": "new-checkout-flow", "type": "launchdarkly", "file": "src/App.js", "lineNumber": 42, "context": "client.variation(\"new-checkout-flow\", user, false)", "isDeclaration": false, "description": "Controls new checkout flow" }
       ],
       "flagStatusMapping": {
         "new-checkout-flow": "always-on",

@@ -15,15 +15,27 @@ try {
   if (!Array.isArray(parsed.cleanupPlan)) {
     throw new Error("LLM output 'cleanupPlan' is not an array");
   }
+
+  // Validate each cleanup item has required fields with correct types
+  for (const item of parsed.cleanupPlan) {
+    if (!item || typeof item !== 'object') {
+      throw new Error("LLM output contains a malformed cleanup item (not an object)");
+    }
+    if (typeof item.flagName !== 'string') {
+      throw new Error("LLM output cleanup item missing or non-string 'flagName'");
+    }
+  }
+
   if (!parsed.summary || typeof parsed.summary !== 'object') {
     throw new Error("LLM output 'summary' is missing or invalid");
   }
 
-  // Ensure summary has required fields with defaults
+  // Validate and default all summary count fields as non-negative numbers
   parsed.summary = parsed.summary || {};
-  parsed.summary.totalFlags = parsed.summary.totalFlags || 0;
-  parsed.summary.removableFlags = parsed.summary.removableFlags || 0;
-  parsed.summary.activeFlags = parsed.summary.activeFlags || 0;
+  const numField = (val) => typeof val === 'number' && val >= 0 ? val : 0;
+  parsed.summary.totalFlags = numField(parsed.summary.totalFlags);
+  parsed.summary.removableFlags = numField(parsed.summary.removableFlags);
+  parsed.summary.activeFlags = numField(parsed.summary.activeFlags);
   parsed.summary.cleanupSavings = parsed.summary.cleanupSavings || "";
 
   output = parsed;
