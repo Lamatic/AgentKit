@@ -12,7 +12,7 @@ Status hints to consider:
 - "experiment-completed" = A/B test concluded — flag can be removed
 - "archived" = feature was rolled back — flag is dead code, safe to remove
 
-Group the inventory records before creating cleanup items. The same provider flag can appear multiple times in the inventory (as a declaration, as a usage, or in multiple files). Group records by `type` and `flagName`, aggregate all distinct file locations and context snippets into `filesToModify`, and emit **one cleanup item per group** — not one per record.
+Group the inventory records before creating cleanup items. The same provider flag can appear multiple times in the inventory (as a declaration, as a usage, or in multiple files). Group records by `type` and `flagName`, aggregate all distinct file locations into `filesToModify`, and emit **one cleanup item per group** — not one per record.
 
 Only include flags that are candidates for cleanup (not actively used). Sort by priority: high removal risk first, then high effort, then alphabetical.
 

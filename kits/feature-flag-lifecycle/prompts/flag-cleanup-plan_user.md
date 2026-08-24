@@ -6,7 +6,7 @@ Flag inventory (JSON):
 Optional flag status mapping (which flags are active, always-on, experiment-completed, or archived):
 {{triggerNode_1.output.flagStatusMapping}}
 
-Group the inventory records by `type` and `flagName` before planning. The same flag may have multiple records (declaration, usage, and/or multiple files). Emit **one cleanup item per grouped flag**, aggregating all distinct file paths into `filesToModify` and deduplicating context snippets.
+Group the inventory records by `type` and `flagName` before planning. The same flag may have multiple records (declaration, usage, and/or multiple files). Emit **one cleanup item per grouped flag**, aggregating all distinct file paths into `filesToModify`.
 
 For each grouped stale or removable flag, provide:
 - flagName
