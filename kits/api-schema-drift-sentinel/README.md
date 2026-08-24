@@ -61,8 +61,7 @@ apps/app/api/analyze-drift/route.ts
         │        "Endpoint: GET /users/{id} | Field: email | Action: remove | ..."
         │
         ├─ 4. triggerLamaticWorkflow({ sampleInput })
-        │        REST trigger  ─┐
-        │        (fallback)     └─ GraphQL executeWorkflow + polling
+        │        Lamatic.executeFlow(flowId, payload)
         │                              │
         │                         Lamatic Studio
         │                         ┌─────────────────────────────┐
@@ -135,7 +134,7 @@ Both `specA` and `specB` are required. They must be valid OpenAPI 3.0 JSON (as a
 |---|---|---|
 | `LAMATIC_API_KEY` | Lamatic project API key | Studio → API Keys |
 | `LAMATIC_PROJECT_ID` | Lamatic project UUID | Studio → Project Settings |
-| `LAMATIC_API_URL` | Lamatic project GraphQL endpoint | Studio → Settings → API |
+| `LAMATIC_API_URL` | Lamatic project API endpoint | Studio → Settings → API |
 | `LAMATIC_DRIFT_FLOW_ID` | Deployed flow ID for the drift analysis flow | Studio → open flow → copy Flow ID |
 
 ---
@@ -233,8 +232,8 @@ node apps/test-orchestrate.js
 **Why does `detectParameterTypeChanges` exist?**
 `openapi-diff` does not consistently surface path-parameter type changes. `detectParameterTypeChanges()` is now part of the production deterministic normalization layer in [`apps/lib/sentinel.ts`](./apps/lib/sentinel.ts). It supplements `openapi-diff` by directly comparing path parameters between the two specs. This is why the production browser test correctly detects `id: integer → string` on `GET /users/{id}`.
 
-**Why REST trigger with GraphQL fallback?**
-Lamatic supports both a REST trigger endpoint and a GraphQL execution API. The integration attempts the REST trigger first and contains a GraphQL execution fallback if GraphQL-only routing is used. This makes the kit compatible with both deployment configurations.
+**Why `Lamatic.executeFlow(flowId, payload)` via the Lamatic SDK?**
+The integration uses the official `@lamatic/sdk` `executeFlow` API. The SDK manages flow execution, payload transmission, and polling internally, providing a robust, typed execution path directly against the deployed flow ID.
 
 **Why is the LLM output merged with deterministic counts?**
 `breakingCount`, `nonBreakingCount`, and dashboard `riskLevel` are derived deterministically from the change classification, independent of the LLM. This means the dashboard's risk badge and change counters are always correct even if the AI narrative fails or is degraded.

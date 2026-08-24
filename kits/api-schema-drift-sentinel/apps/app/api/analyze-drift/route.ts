@@ -6,6 +6,18 @@ export const maxDuration = 120;
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
+
+    if (
+      typeof body !== 'object' ||
+      body === null ||
+      Array.isArray(body)
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Request body must be a JSON object.' },
+        { status: 400 }
+      );
+    }
+
     const { specA, specB } = body;
 
     if (!specA || !specB) {

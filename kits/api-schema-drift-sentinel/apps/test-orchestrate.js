@@ -1,8 +1,9 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 const axios = require('axios');
-const jiti = require('jiti')(__dirname);
+const jiti = require('jiti')(__dirname, { alias: { '@': __dirname } });
 const { runOpenApiDiff, normalizeDiff } = jiti('./lib/sentinel');
+const { POST } = jiti('./app/api/analyze-drift/route');
 
 // Spec V1: Baseline
 const v1 = JSON.stringify({
@@ -227,6 +228,55 @@ async function triggerWorkflowAndPoll(compactPayload) {
 
 async function runMatrixTests() {
   console.log("==========================================");
+  console.log("STEP 0: Route Input Validation (Null/Array/Empty Body)");
+  console.log("==========================================");
+
+  // Test null body (JSON null)
+  const nullReq = new Request('http://localhost/api/analyze-drift', {
+    method: 'POST',
+    body: 'null',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const nullRes = await POST(nullReq);
+  const nullJson = await nullRes.json();
+  if (nullRes.status !== 400 || nullJson.success !== false) {
+    throw new Error(
+      `Null body test failed: expected 400 with success=false, got ${nullRes.status} ${JSON.stringify(nullJson)}`
+    );
+  }
+  console.log("✅ Null-body rejection test passed (HTTP 400):", JSON.stringify(nullJson));
+
+  // Test array body
+  const arrayReq = new Request('http://localhost/api/analyze-drift', {
+    method: 'POST',
+    body: '[]',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const arrayRes = await POST(arrayReq);
+  const arrayJson = await arrayRes.json();
+  if (arrayRes.status !== 400 || arrayJson.success !== false) {
+    throw new Error(
+      `Array body test failed: expected 400 with success=false, got ${arrayRes.status} ${JSON.stringify(arrayJson)}`
+    );
+  }
+  console.log("✅ Array-body rejection test passed (HTTP 400):", JSON.stringify(arrayJson));
+
+  // Test empty body / missing specs
+  const emptyReq = new Request('http://localhost/api/analyze-drift', {
+    method: 'POST',
+    body: '{}',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const emptyRes = await POST(emptyReq);
+  const emptyJson = await emptyRes.json();
+  if (emptyRes.status !== 400 || emptyJson.success !== false) {
+    throw new Error(
+      `Empty body test failed: expected 400 with success=false, got ${emptyRes.status} ${JSON.stringify(emptyJson)}`
+    );
+  }
+  console.log("✅ Empty-body / missing-specs test passed (HTTP 400):", JSON.stringify(emptyJson));
+
+  console.log("\n==========================================");
   console.log("STEP 1: Verify Production Normalization via sentinel.ts");
   console.log("==========================================");
 
