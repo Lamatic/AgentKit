@@ -1,0 +1,9 @@
+.env*
+!.env.example
+apps/.env*
+!apps/.env.example
+apps/node_modules/
+apps/.next/
+apps/out/
+!scripts/
+!scripts/*.ts

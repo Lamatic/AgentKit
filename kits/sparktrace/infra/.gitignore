@@ -1,0 +1,9 @@
+# NEVER commit real credentials or generated env files.
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+credentials
+aws-creds*
