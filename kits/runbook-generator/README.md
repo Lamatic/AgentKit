@@ -7,7 +7,7 @@ Turns messy operational notes and tribal knowledge into a structured, reusable o
 ## What it does
 
 1. Accepts free-text procedure notes plus optional `service_name` and `environment`.
-2. Runs a schema-constrained **Generate JSON** step.
+2. Runs a schema-constrained **Generate JSON** step (`InstructorLLMNode_481`).
 3. Returns a structured runbook: title, purpose, audience, prechecks, ordered steps (with risk), validation, rollback, assumptions, missing_info, and warnings.
 
 It does **not** draft postmortems, execute commands, or invent unverifiable tooling.
@@ -27,10 +27,10 @@ API Request → Generate JSON → API Response
 ## Setup
 
 1. Open [Lamatic Studio](https://studio.lamatic.ai) and create a project.
-2. Import / recreate this flow from `flows/runbook-generator.ts` (or paste the prompts from `prompts/`).
-3. Attach an LLM credential to the Generate JSON node (OpenAI / Gemini / etc.).
+2. Import this flow (or recreate from `flows/runbook-generator.ts`).
+3. Attach a free LLM credential on Generate JSON — **Groq** or **Google Gemini** works well.
 4. Deploy the flow.
-5. Call the deployed API with the payload below.
+5. Call via the Studio test panel or the deployed API with the payload below.
 
 ## Example request
 
@@ -46,35 +46,30 @@ API Request → Generate JSON → API Response
 
 ```json
 {
-  "title": "Checkout cache poison recovery",
-  "purpose": "Recover checkout when Redis cache appears poisoned without touching the primary database.",
-  "audience": "On-call backend / platform engineer",
-  "service_name": "checkout-api",
-  "environment": "prod",
-  "prechecks": [
-    "Confirm elevated checkout error rate",
-    "Confirm Redis cache shard identity (not primary)"
-  ],
+  "title": "string",
+  "purpose": "string",
+  "audience": "string",
+  "service_name": "string",
+  "environment": "string",
+  "prechecks": ["string"],
   "steps": [
     {
       "order": 1,
-      "action": "Verify Redis cache shard responds",
-      "expected_result": "PING returns PONG",
-      "commands": ["redis-cli ping"],
+      "action": "string",
+      "expected_result": "string",
+      "commands": ["string"],
       "risk": "low"
     }
   ],
-  "validation": ["Checkout error rate returns to baseline on Grafana checkout dashboard"],
-  "rollback": ["If flush worsens impact, stop and escalate to platform"],
-  "assumptions": ["Cache shard name/host is already known to the operator"],
-  "missing_info": ["Exact Redis host / shard identifier", "Grafana dashboard URL"],
-  "warnings": ["Do not run FLUSHDB against primary or shared non-cache instances"]
+  "validation": ["string"],
+  "rollback": ["string"],
+  "assumptions": ["string"],
+  "missing_info": ["string"],
+  "warnings": ["string"]
 }
 ```
 
 ## Smoke-test fixtures
-
-Use these three inputs when validating the flow:
 
 1. **Redis cache flush recovery** — poisoned checkout cache (example above).
 2. **Failed deploy rollback** — “canary 20% bad, roll back to previous image on checkout-api, check /healthz, notify #deploys”.
@@ -97,7 +92,7 @@ Use these three inputs when validating the flow:
 ## Stack
 
 - Lamatic.ai flow orchestration
-- Instructor-style Generate JSON (schema-constrained LLM output)
+- Groq (or any Instructor-compatible text model configured in Studio)
 
 ## Author
 

@@ -1,12 +1,9 @@
 Convert the following operational notes into a structured runbook.
-
 Optional context:
 - Service name: {{triggerNode_1.output.service_name}}
 - Environment: {{triggerNode_1.output.environment}}
-
 Operational notes:
 {{triggerNode_1.output.notes}}
-
 Produce a complete runbook with:
 - a clear title and purpose
 - audience (who should run this)
