@@ -1,7 +1,7 @@
 export default {
   name: "Home Maintenance Triage Agent",
   description:
-    "AI-powered home maintenance triage that instantly analyzes a photo and description of any household issue — assessing urgency, DIY feasibility, safety hazards, professional type needed, and estimated cost range so homeowners know exactly what to do next.",
+    "AI-powered home maintenance triage that analyzes a description (and optional photo) of any household issue — assessing severity, urgency, whether a professional is needed, safe next steps, and what not to attempt, so homeowners know exactly what to do next.",
   version: "1.0.0",
   type: "kit" as const,
   author: {

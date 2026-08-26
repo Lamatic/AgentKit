@@ -41,26 +41,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "issueLocation must be a string." }, { status: 400 });
   }
 
-  // Validate imageUrl — only accept public HTTPS URLs, reject private/loopback destinations
+  // Validate imageUrl — accept base64 data URIs (from device uploads) or public HTTPS URLs.
+  // Reject invalid data URIs, non-HTTPS remote URLs, and private/loopback destinations.
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB server-side cap
   if (imageUrl) {
-    try {
-      const parsed = new URL(imageUrl);
-      if (parsed.protocol !== "https:") {
+    const isDataUri = (imageUrl as string).startsWith("data:");
+    if (isDataUri) {
+      // Validate MIME type header
+      const mimeMatch = /^data:image\/(jpeg|jpg|png|webp|gif|bmp|svg\+xml);base64,/.exec(imageUrl as string);
+      if (!mimeMatch) {
         return NextResponse.json(
-          { error: "imageUrl must use HTTPS." },
+          { error: "imageUrl data URI must be a valid base64-encoded image (jpeg, jpg, png, webp, gif, bmp, or svg)." },
           { status: 400 }
         );
       }
-      const hostname = parsed.hostname.toLowerCase();
-      const blocked = ["localhost", "127.0.0.1", "0.0.0.0", "::1", "169.254."];
-      if (blocked.some((b) => hostname.startsWith(b) || hostname === b)) {
+      // Extract and validate the base64 payload
+      const base64Data = (imageUrl as string).slice((imageUrl as string).indexOf(",") + 1);
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Data)) {
         return NextResponse.json(
-          { error: "imageUrl must point to a public host." },
+          { error: "imageUrl data URI contains invalid base64 content." },
           { status: 400 }
         );
       }
-    } catch {
-      return NextResponse.json({ error: "imageUrl is not a valid URL." }, { status: 400 });
+      // Enforce 5 MB server-side size cap
+      const byteLength = Math.floor(base64Data.length * 0.75);
+      if (byteLength > MAX_IMAGE_BYTES) {
+        return NextResponse.json(
+          { error: "Image exceeds the 5 MB size limit." },
+          { status: 413 }
+        );
+      }
+    } else {
+      // Validate as a public HTTPS URL, reject private/loopback destinations
+      try {
+        const parsed = new URL(imageUrl as string);
+        if (parsed.protocol !== "https:") {
+          return NextResponse.json(
+            { error: "imageUrl must use HTTPS or be a base64 data URI." },
+            { status: 400 }
+          );
+        }
+        const hostname = parsed.hostname.toLowerCase();
+        const blocked = ["localhost", "127.0.0.1", "0.0.0.0", "::1", "169.254."];
+        if (blocked.some((b) => hostname.startsWith(b) || hostname === b)) {
+          return NextResponse.json(
+            { error: "imageUrl must point to a public host." },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json({ error: "imageUrl is not a valid URL or data URI." }, { status: 400 });
+      }
     }
   }
 
