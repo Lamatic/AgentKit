@@ -63,8 +63,9 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      // Enforce 5 MB server-side size cap
-      const byteLength = Math.floor(base64Data.length * 0.75);
+      // Enforce 5 MB server-side size cap — subtract padding bytes for an exact count
+      const paddingBytes = (base64Data.match(/={1,2}$/) ?? [""])[0].length;
+      const byteLength = Math.floor(base64Data.length * 0.75) - paddingBytes;
       if (byteLength > MAX_IMAGE_BYTES) {
         return NextResponse.json(
           { error: "Image exceeds the 5 MB size limit." },
@@ -203,6 +204,26 @@ export async function POST(req: NextRequest) {
       { error: "The AI response was incomplete. Please try again." },
       { status: 500 }
     );
+  }
+
+  // Enforce safety contract: electrical and structural must always require a professional
+  // and must include a doNotDo list — the UI shows "DIY may be possible" otherwise
+  const hazardousCategories = ["electrical", "structural"];
+  if (hazardousCategories.includes(parsed.category)) {
+    if (parsed.professionalNeeded !== true) {
+      console.error("Triage safety contract violation: professionalNeeded must be true for", parsed.category);
+      return NextResponse.json(
+        { error: "The AI response was incomplete. Please try again." },
+        { status: 500 }
+      );
+    }
+    if (!Array.isArray(parsed.doNotDo) || parsed.doNotDo.length === 0) {
+      console.error("Triage safety contract violation: doNotDo required for", parsed.category);
+      return NextResponse.json(
+        { error: "The AI response was incomplete. Please try again." },
+        { status: 500 }
+      );
+    }
   }
 
   // Validate severity is a known enum value

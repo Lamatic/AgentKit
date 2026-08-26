@@ -20,6 +20,7 @@
   --accent: #f59e0b;
   --accent-light: #fbbf24;
   --accent-dim: rgba(245, 158, 11, 0.12);
+  --accent-border: rgba(245, 158, 11, 0.4);
 
   --emergency: #ef4444;
   --emergency-dim: rgba(239, 68, 68, 0.12);
@@ -29,6 +30,11 @@
   --soon-dim: rgba(234, 179, 8, 0.12);
   --low: #22c55e;
   --low-dim: rgba(34, 197, 94, 0.12);
+
+  --danger-text: #fca5a5;
+  --danger-border: rgba(239, 68, 68, 0.3);
+  --danger-bg-hover: rgba(239, 68, 68, 0.1);
+  --danger-border-hover: rgba(239, 68, 68, 0.5);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -558,7 +564,7 @@ textarea.form-input {
 
 .mode-btn.active {
   background: var(--accent-dim);
-  border-color: rgba(245, 158, 11, 0.4);
+  border-color: var(--accent-border);
   color: var(--accent-light);
 }
 
@@ -583,7 +589,7 @@ textarea.form-input {
 }
 
 .file-input:hover {
-  border-color: rgba(245, 158, 11, 0.4);
+  border-color: var(--accent-border);
 }
 
 /* Image preview */
@@ -609,9 +615,9 @@ textarea.form-input {
 .remove-image-btn {
   margin-left: auto;
   background: none;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--danger-border);
   border-radius: var(--radius-sm);
-  color: #fca5a5;
+  color: var(--danger-text);
   font-size: 0.75rem;
   font-weight: 600;
   font-family: inherit;
@@ -621,7 +627,8 @@ textarea.form-input {
 }
 
 .remove-image-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: var(--danger-bg-hover);
+  border-color: var(--danger-border-hover);
 }
+
 
