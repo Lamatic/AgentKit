@@ -22,6 +22,8 @@ export default {
   ],
   links: {
     github:
-      "https://github.com/sage106/AgentKit/tree/main/kits/home-maintenance-triage",
+      "https://github.com/Lamatic/AgentKit/tree/main/kits/home-maintenance-triage",
+    deploy:
+      "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fhome-maintenance-triage%2Fapps&root-directory=kits%2Fhome-maintenance-triage%2Fapps",
   },
 };
