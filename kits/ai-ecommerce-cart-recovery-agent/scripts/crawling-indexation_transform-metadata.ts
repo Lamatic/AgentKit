@@ -1,7 +1,8 @@
-let vectors = {{ vectorizeNode_919.output.vectors }};
-let texts = {{ codeNode_331.output }};
-let title = {{ variablesNode_849.output.title }};
-let source = {{ variablesNode_849.output.source }};
+let vectors = {{ vectorizeNode_314.output.vectors }};
+let texts = {{ codeNode_794.output }};
+let chunkId = {{ variablesNode_658.output.chunk_id }};
+let source = {{ variablesNode_658.output.source }};
+let description = {{ variablesNode_658.output.description }};
 
 if (!Array.isArray(vectors)) {
   throw new Error("Expected vectors to be an array.");
@@ -17,15 +18,19 @@ if (vectors.length !== texts.length) {
   );
 }
 
-if (typeof source !== "string" || source.trim() === "") {
-  throw new Error("Expected each document to have a unique source.");
+if (typeof chunkId !== "string" || chunkId.trim() === "") {
+  throw new Error(
+    "Expected each crawled page to have a stable chunk_id."
+  );
 }
 
+let stableChunkId = chunkId.trim();
+
 let metadataProps = vectors.map((vector, idx) => ({
-  title: title,
-  source: source,
   content: texts[idx],
-  chunk_id: `${source.trim()}-${idx}`
+  source: typeof source === "string" ? source.trim() : source,
+  description: description,
+  chunk_id: `${stableChunkId}-${idx}`
 }));
 
 output = {
