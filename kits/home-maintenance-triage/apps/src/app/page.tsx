@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 
 interface TriageResult {
   category?: string;
@@ -32,9 +32,8 @@ const SEVERITY_CONFIG: Record<string, { label: string; className: string }> = {
 
 export default function HomePage() {
   const [issueDescription, setIssueDescription] = useState("");
-  const [imageMode, setImageMode] = useState<"url" | "upload">("upload");
   const [imageUrl, setImageUrl] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageMode, setImageMode] = useState<"url" | "upload">("url");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [homeType, setHomeType] = useState("");
   const [issueLocation, setIssueLocation] = useState("");
@@ -43,43 +42,6 @@ export default function HomePage() {
   const [result, setResult] = useState<TriageResult | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const fileReadGenRef = useRef(0);
-
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Only accept images
-    if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image file (JPG, PNG, WEBP, etc).");
-      return;
-    }
-
-    // Max 5 MB to keep base64 payload reasonable
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be smaller than 5 MB.");
-      return;
-    }
-
-    const currentGen = ++fileReadGenRef.current;
-    setImageFile(file);
-    setError(null);
-
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      if (currentGen === fileReadGenRef.current) {
-        setImagePreview(ev.target?.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  function clearImage() {
-    fileReadGenRef.current++;
-    setImageFile(null);
-    setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,20 +52,12 @@ export default function HomePage() {
     setResult(null);
 
     try {
-      // Resolve the image value: uploaded file (base64) or typed URL
-      let resolvedImageUrl: string | undefined;
-      if (imageMode === "upload" && imagePreview) {
-        resolvedImageUrl = imagePreview; // base64 data URI
-      } else if (imageMode === "url" && imageUrl.trim()) {
-        resolvedImageUrl = imageUrl.trim();
-      }
-
       const res = await fetch("/api/triage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           issueDescription: issueDescription.trim(),
-          imageUrl: resolvedImageUrl,
+          imageUrl: imageUrl.trim() || undefined,
           homeType: homeType || undefined,
           issueLocation: issueLocation.trim() || undefined,
         }),
@@ -133,11 +87,29 @@ export default function HomePage() {
     setError(null);
   }
 
-  function switchMode(mode: "url" | "upload") {
+  function handleModeSwitch(mode: "url" | "upload") {
     setImageMode(mode);
     setImageUrl("");
-    clearImage();
-    setError(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5 MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUri = reader.result as string;
+      setImageUrl(dataUri);
+      setImagePreview(dataUri);
+      setError(null);
+    };
+    reader.readAsDataURL(file);
   }
 
   const severityCfg = result?.severity ? SEVERITY_CONFIG[result.severity] : null;
@@ -193,56 +165,27 @@ export default function HomePage() {
             </div>
 
             <div className="form-group">
+              <label className="form-label">
+                Photo <span>(optional)</span>
+              </label>
               <div className="image-mode-toggle">
                 <button
                   type="button"
-                  className={`mode-btn${imageMode === "upload" ? " active" : ""}`}
-                  onClick={() => switchMode("upload")}
+                  className={`mode-btn${imageMode === "url" ? " active" : ""}`}
+                  onClick={() => handleModeSwitch("url")}
                 >
-                  Upload from device
+                  Paste URL
                 </button>
                 <button
                   type="button"
-                  className={`mode-btn${imageMode === "url" ? " active" : ""}`}
-                  onClick={() => switchMode("url")}
+                  className={`mode-btn${imageMode === "upload" ? " active" : ""}`}
+                  onClick={() => handleModeSwitch("upload")}
                 >
-                  Paste a link
+                  Upload from device
                 </button>
               </div>
 
-              {imageMode === "upload" ? (
-                <div className="upload-area">
-                  <input
-                    ref={fileInputRef}
-                    id="imageFile"
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={handleFileChange}
-                  />
-                  {imagePreview ? (
-                    <div className="image-preview-wrap">
-                      <img src={imagePreview} alt="Preview" className="image-preview" />
-                      <div className="image-preview-info">
-                        <span>{imageFile?.name}</span>
-                        <button type="button" className="remove-image-btn" onClick={clearImage}>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      className="upload-btn"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <span className="upload-icon">&#128247;</span>
-                      Choose photo from gallery
-                      <span className="upload-hint">JPG, PNG, WEBP — max 5 MB</span>
-                    </button>
-                  )}
-                </div>
-              ) : (
+              {imageMode === "url" ? (
                 <input
                   id="imageUrl"
                   type="url"
@@ -251,6 +194,33 @@ export default function HomePage() {
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
+              ) : (
+                <div className="upload-area">
+                  <input
+                    ref={fileInputRef}
+                    id="imageFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/bmp"
+                    className="file-input"
+                    onChange={handleFileChange}
+                  />
+                  {imagePreview && (
+                    <div className="image-preview">
+                      <img src={imagePreview} alt="Selected photo preview" className="preview-img" />
+                      <button
+                        type="button"
+                        className="remove-image-btn"
+                        onClick={() => {
+                          setImageUrl("");
+                          setImagePreview(null);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
