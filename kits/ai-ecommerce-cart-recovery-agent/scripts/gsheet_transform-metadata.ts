@@ -1,7 +1,7 @@
-let vectors = {{ vectorizeNode_919.output.vectors }};
+let vectors = {{ vectorizeNode_177.output.vectors }};
 let texts = {{ codeNode_331.output }};
-let title = {{ variablesNode_849.output.title }};
-let source = {{ variablesNode_849.output.source }};
+let title = {{ variablesNode_305.output.title }};
+let source = {{ variablesNode_305.output.source }};
 
 let metadataProps = [];
 
@@ -19,11 +19,15 @@ if (vectors.length !== texts.length) {
   );
 }
 
+if (typeof source !== "string" || source.trim() === "") {
+  throw new Error("Expected the Google Sheets source to be available.");
+}
+
 metadataProps = vectors.map((vector, idx) => ({
   title: title,
-  source: source,
+  source: source.trim(),
   content: texts[idx],
-  chunk_id: `${source || title || "gsheet"}-${idx}`
+  chunk_id: `${source.trim()}-${idx}`
 }));
 
 output = {
