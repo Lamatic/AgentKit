@@ -24,20 +24,22 @@ You describe the issue — a water stain, a strange smell, a noise from the AC �
 
 | Field | Description |
 |-------|-------------|
-| Severity | low, moderate, high, or emergency |
-| Urgency | Plain-language timeframe for action |
-| Professional needed | Yes or no, and which type |
-| Safe next steps | Specific actions to take right now |
-| Do not do | Things to avoid attempting yourself |
-| Reasoning | Why the agent assessed it this way |
-| Disclaimer | Always included — this is informational, not an inspection |
+| `category` | water damage, electrical, structural, mold, pest, cosmetic, or other |
+| `severity` | low, moderate, high, or emergency |
+| `urgency` | Plain-language timeframe for action |
+| `professionalNeeded` | Whether a licensed professional is required |
+| `professionalType` | Which type of professional, if applicable |
+| `safeNextSteps` | Specific actions to take right now |
+| `doNotDo` | Things to avoid attempting yourself |
+| `reasoning` | Why the agent assessed it this way |
+| `disclaimer` | Always included — this is informational, not an inspection |
 
 ### Safety-first design
 
 The agent is built around a few hard rules:
 
 - It always rounds up on severity when the situation is ambiguous
-- For emergencies, safe next steps are hazard-specific: **gas smell** — evacuate and call emergency services only (never touch switches or breakers); **fire or smoke** — evacuate and call emergency services; **electrical fault** — evacuate, call emergency services, then isolate the breaker only if safely reachable, then contact a licensed electrician
+- For fire, smoke, gas, or active sparking wiring, safe next steps follow a strict order: (1) Evacuate or leave immediate area if active danger is present; (2) Contact emergency services; (3) Isolate breaker power only if safely accessible; (4) Contact a licensed electrician.
 - It never gives DIY instructions for electrical, gas, or structural problems
 - It never claims to replace a licensed inspector or professional
 
@@ -46,7 +48,7 @@ The agent is built around a few hard rules:
 ## How It Works
 
 ```
-User describes the issue (text + optional photo URL or uploaded image)
+User describes the issue (text + optional photo URL)
          |
    API Request node (Lamatic trigger)
          |
@@ -58,7 +60,7 @@ User describes the issue (text + optional photo URL or uploaded image)
    Next.js frontend renders the structured result
 ```
 
-One flow, one LLM call, clean JSON output. Public HTTPS photo URLs and base64 image data URIs (`data:image/...`) are supported directly.
+One flow, one LLM call, clean JSON output.
 
 ---
 
@@ -68,7 +70,7 @@ One flow, one LLM call, clean JSON output. Public HTTPS photo URLs and base64 im
 
 - A [Lamatic.ai](https://lamatic.ai) account (free tier works)
 - A vision-capable model configured in Lamatic Studio — GPT-4o, Gemini 1.5 Pro, or Claude 3.5 Sonnet work well
-- Node.js 20.9.0 or later
+- Node.js 18 or later
 
 ### Step 1 — Build the Lamatic Flow
 
@@ -77,7 +79,7 @@ One flow, one LLM call, clean JSON output. Public HTTPS photo URLs and base64 im
 3. Add three nodes:
    - **API Request** — trigger node, accepts `issueDescription` (string) and `imageUrl` (string, optional)
    - **Generate Text** — LLM node, select a vision-capable model, paste the system prompt from `prompts/home-maintenance-triage_generate-text_system.md`
-   - **API Response** — maps `output` to `{{LLMNode_501.output.generatedResponse}}` (or your Studio-assigned LLM node output)
+   - **API Response** — maps `output` to `{{LLMNode.output.generatedResponse}}`
 4. Connect them in order: API Request > Generate Text > API Response
 5. Deploy the flow and copy the Flow ID from the details panel
 
@@ -134,9 +136,9 @@ Set the same four environment variables in your Vercel project settings.
   "professionalType": "licensed electrician",
   "safeNextSteps": [
     "Evacuate or step back from the immediate area if smoke or burning smell is active",
-    "Call emergency services immediately",
-    "Turn off power to that circuit at the breaker only if you can safely reach the panel without crossing the hazard",
-    "Contact a licensed electrician once the immediate hazard is addressed"
+    "Call emergency services or an emergency electrician immediately",
+    "Turn off power to that circuit at the breaker only if you can safely reach it",
+    "Do not touch or attempt to plug anything into nearby outlets"
   ],
   "doNotDo": [
     "Do not touch the outlet",

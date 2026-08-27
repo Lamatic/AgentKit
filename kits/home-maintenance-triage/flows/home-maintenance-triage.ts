@@ -24,7 +24,7 @@
  * ## Outputs
  * | Field | Type | Description |
  * |---|---|---|
- * | `output` | `string` | Strict JSON string: { category, severity, urgency, professionalNeeded, safeNextSteps[], warning } |
+ * | `output` | `string` | Strict JSON string: { category, severity, urgency, professionalNeeded, professionalType, safeNextSteps[], doNotDo[], reasoning, disclaimer } |
  *
  * ## Node Walkthrough
  * 1. `API Request` (`graphqlNode`) receives `imageUrl` and `issueDescription` from the caller.
