@@ -2,7 +2,7 @@ export default {
   "name": "FR1",
   "description": "",
   "version": "1.0.0",
-  "type": "kit",
+  "type": "template",
   "author": {
     "name": "Akshat Virmani",
     "email": "akshatv@lamatic.ai"
