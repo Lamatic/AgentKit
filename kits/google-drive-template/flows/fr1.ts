@@ -20,27 +20,72 @@ export const inputs = {
   "triggerNode_1": [
     {
       "name": "credentials",
+      "type": "select",
       "label": "Credentials",
-      "type": "select"
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Google Drive authentication. Required to access the Google Drive API.",
+      "defaultValue": "",
+      "isCredential": true
     },
     {
       "name": "folderUrl",
+      "type": "resourceLocator",
       "label": "Folder",
-      "type": "resourceLocator"
+      "modes": [
+        {
+          "name": "list",
+          "type": "select",
+          "label": "From List",
+          "required": true,
+          "defaultValue": ""
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "label": "By URL",
+          "required": true,
+          "defaultValue": ""
+        }
+      ],
+      "required": true,
+      "isPrivate": true,
+      "typeOptions": {
+        "loadOptionsMethod": "getFolders"
+      },
+      "airbyteInputName": "source/configuration.folder_url",
+      "defaultModeValue": {
+        "mode": "list",
+        "value": ""
+      }
     }
   ],
   "vectorizeNode_839": [
     {
+      "mode": "embedding",
       "name": "embeddingModelName",
+      "type": "model",
       "label": "Embedding Model Name",
-      "type": "model"
+      "required": true,
+      "isPrivate": true,
+      "modelType": "embedder/text",
+      "description": "Select the model to convert the texts into vector representations.",
+      "typeOptions": {
+        "loadOptionsMethod": "listModels"
+      },
+      "defaultValue": ""
     }
   ],
   "vectorNode_951": [
     {
+      "isDB": true,
       "name": "vectorDB",
+      "type": "select",
       "label": "Vector DB",
-      "type": "select"
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the vector database where the vectors will be indexed.",
+      "defaultValue": ""
     }
   ]
 };
