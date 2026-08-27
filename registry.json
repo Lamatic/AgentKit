@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lamatic/AgentKit/main/registry.schema.json",
   "version": "1.0.0",
-  "generated": "2026-08-27T08:47:32.920Z",
+  "generated": "2026-08-27T09:14:00.369Z",
   "repository": "https://github.com/Lamatic/AgentKit",
   "count": 80,
   "typeCounts": {
@@ -1958,16 +1958,31 @@
     },
     {
       "slug": "google-drive-template",
-      "name": "google-drive-template",
-      "description": "",
+      "name": "Google Drive Template",
+      "description": "Syncs files from a Google Drive folder, chunks and embeds their content, and indexes the vectors into a vector database to power a continuously updated RAG knowledge base.",
       "version": "1.0.0",
       "type": "template",
-      "tags": [],
+      "tags": [
+        "google-drive",
+        "rag",
+        "vector-database",
+        "embeddings",
+        "indexing"
+      ],
       "author": {
-        "name": ""
+        "name": "Akshat Virmani",
+        "email": "akshatv@lamatic.ai"
       },
-      "steps": [],
-      "links": {},
+      "steps": [
+        {
+          "id": "fr1",
+          "type": "mandatory"
+        }
+      ],
+      "links": {
+        "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/google-drive-template",
+        "deploy": "https://studio.lamatic.ai/template/google-drive-template"
+      },
       "path": "kits/google-drive-template",
       "flows": {
         "count": 1,
