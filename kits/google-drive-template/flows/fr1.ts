@@ -2,8 +2,8 @@
 
 // -- Meta --
 export const meta = {
-  "name": "FR1",
-  "description": "",
+  "name": "Google Drive Template",
+  "description": "Syncs files from a Google Drive folder, chunks and embeds their content, and indexes the vectors into a vector database to power a continuously updated RAG knowledge base.",
   "tags": [],
   "testInput": null,
   "githubUrl": "",
