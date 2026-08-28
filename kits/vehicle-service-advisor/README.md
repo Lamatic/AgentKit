@@ -104,6 +104,9 @@ Open `http://localhost:3000`. The **Preview sample report** action demonstrates 
 - Unsafe DIY actions are prohibited by the constitution.
 - The form does not request a VIN, registration number, address, or contact information.
 - API credentials remain server-side and must never be committed.
+- The `assessVehicle` server action is rate limited to 5 requests per minute per client
+  address before the Lamatic flow is invoked. The counter is in-memory and per instance,
+  which suits this kit; back it with a shared store or an edge/WAF rule for real traffic.
 
 ## Tradeoffs
 

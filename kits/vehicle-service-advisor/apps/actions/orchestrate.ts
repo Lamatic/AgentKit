@@ -12,6 +12,7 @@ import {
   type FlowReport,
 } from "@/features/assessment/validation/assessment-schema";
 import { createLamaticClient } from "@/lib/lamatic-client";
+import { consumeAssessmentRequest } from "@/lib/request-rate-limit";
 import { reportServerError } from "@/lib/server-logger";
 
 interface LamaticResponse {
@@ -88,9 +89,18 @@ function toSafeErrorMessage(error: unknown): string {
   return "The assessment response was unavailable or invalid. Please try again.";
 }
 
+const RATE_LIMIT_MESSAGE =
+  "Too many assessment requests. Please wait a minute before trying again.";
+
 export async function assessVehicle(input: AssessmentInput): Promise<AssessmentResult> {
   try {
     const validatedInput = assessmentInputSchema.parse(input);
+
+    if (!(await consumeAssessmentRequest())) {
+      reportServerError({ operation: "assess_vehicle", errorName: "RateLimitExceeded" });
+      return { success: false, error: RATE_LIMIT_MESSAGE };
+    }
+
     const response = (await createLamaticClient().executeFlow(
       getFlowId(),
       mapFlowInput(validatedInput),
