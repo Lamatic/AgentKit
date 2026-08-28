@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.48 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.55 0 0);
+  --radius: 0.625rem;
+  --success: oklch(0.42 0.14 155);
+  --warning: oklch(0.45 0.15 75);
+  --slate: oklch(0.5 0.03 255);
+  --violet: oklch(0.55 0.22 295);
+  --info: oklch(0.5 0.15 235);
+}
+
+.dark {
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.96 0 0);
+  --card: oklch(0.19 0 0);
+  --card-foreground: oklch(0.96 0 0);
+  --popover: oklch(0.19 0 0);
+  --popover-foreground: oklch(0.96 0 0);
+  --primary: oklch(0.92 0 0);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.27 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: oklch(0.27 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.27 0 0);
+  --accent-foreground: oklch(0.96 0 0);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.96 0 0);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.3 0 0);
+  --ring: oklch(0.5 0 0);
+  --success: oklch(0.72 0.17 155);
+  --warning: oklch(0.8 0.16 85);
+  --slate: oklch(0.75 0.02 255);
+  --violet: oklch(0.75 0.15 295);
+  --info: oklch(0.75 0.13 235);
+}
+
+/* System-preference fallback for visitors who never toggle the app's theme
+   switch (or before the anti-FOUC script in layout.tsx runs). The explicit
+   .dark class above always wins when present. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.15 0 0);
+    --foreground: oklch(0.96 0 0);
+    --card: oklch(0.19 0 0);
+    --card-foreground: oklch(0.96 0 0);
+    --popover: oklch(0.19 0 0);
+    --popover-foreground: oklch(0.96 0 0);
+    --primary: oklch(0.92 0 0);
+    --primary-foreground: oklch(0.15 0 0);
+    --secondary: oklch(0.27 0 0);
+    --secondary-foreground: oklch(0.96 0 0);
+    --muted: oklch(0.27 0 0);
+    --muted-foreground: oklch(0.68 0 0);
+    --accent: oklch(0.27 0 0);
+    --accent-foreground: oklch(0.96 0 0);
+    --destructive: oklch(0.55 0.22 27);
+    --destructive-foreground: oklch(0.96 0 0);
+    --border: oklch(0.3 0 0);
+    --input: oklch(0.3 0 0);
+    --ring: oklch(0.5 0 0);
+    --success: oklch(0.72 0.17 155);
+    --warning: oklch(0.8 0.16 85);
+    --slate: oklch(0.75 0.02 255);
+    --violet: oklch(0.75 0.15 295);
+    --info: oklch(0.75 0.13 235);
+  }
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-slate: var(--slate);
+  --color-violet: var(--violet);
+  --color-info: var(--info);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+/* Never let wide code/tables blow out the page body — they scroll internally instead. */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}

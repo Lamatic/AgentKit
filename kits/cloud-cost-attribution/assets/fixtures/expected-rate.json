@@ -1,0 +1,11 @@
+{
+  "groupKey": "Amazon DynamoDB|us-west-2|$0.25 per million read request units (Oregon)|69918885631",
+  "method": "spike",
+  "driver": "rate",
+  "firstInflectionAt": "2024-09-26T08:00:00.000Z",
+  "causeEventId": null,
+  "decoys": [
+    "evt-d4-abstain-a",
+    "evt-d4-abstain-b"
+  ]
+}
