@@ -64,14 +64,18 @@ export function MaintenanceAssessmentClient() {
     setAssessment(null);
     setApproved(false);
 
-    const result = await runMaintenanceAssessment(scenarioId);
-    if (result.success) {
-      setAssessment(result.data);
-    } else {
-      setError(result.error);
+    try {
+      const result = await runMaintenanceAssessment(scenarioId);
+      if (result.success) {
+        setAssessment(result.data);
+      } else {
+        setError(result.error);
+      }
+    } catch {
+      setError("Unable to run the maintenance assessment. Try again.");
+    } finally {
+      setIsRunning(false);
     }
-
-    setIsRunning(false);
   }
 
   function handleScenarioChange(nextScenarioId: ScenarioId) {
@@ -99,6 +103,7 @@ export function MaintenanceAssessmentClient() {
             <label className={scenarioId === id ? "scenario-option selected" : "scenario-option"} key={id}>
               <input
                 checked={scenarioId === id}
+                disabled={isRunning}
                 name="scenario"
                 onChange={() => handleScenarioChange(id)}
                 type="radio"

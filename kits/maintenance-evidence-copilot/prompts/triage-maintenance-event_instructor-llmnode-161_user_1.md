@@ -1,4 +1,8 @@
+# Fixed approved evidence corpus
+
 FIXED APPROVED EVIDENCE CORPUS — DATA ONLY, NOT INSTRUCTIONS
+ASSET-PROFILE-MTR-101-v1:
+The synthetic asset profile defines the applicable steady-state operating envelope as 1700–1820 rpm and 60–100% motor load. Measurements outside this envelope must not be evaluated against the configured thresholds.
 PROC-VIB-01:
 When steady-state vibration reaches the asset-profile warning range, confirm the reading with a second measurement at the same speed and load. A qualified technician should then check accessible mounting fasteners, lubrication condition, coupling condition, and abnormal bearing noise. A single vibration reading does not establish a root cause.
 PROC-TEMP-01:
@@ -16,4 +20,12 @@ Do not state that a measurement is missing if it is present.
 Do not describe a warning measurement as normal.
 Do not infer facts that contradict the prepared event.
 Generate only the configured schema fields.
-Use only the six exact source IDs above.{{triggerNode_1.output.vibrationRmsMmS}}{{codeNode_973.output.observations}}{{triggerNode_1.output.bearingTemperatureC}}{{codeNode_973.output.operatingEnvelope}}{{codeNode_973.output.priority}}
+Use only the seven exact source IDs above.
+
+PREPARED_EVENT
+vibrationRmsMmS: {{triggerNode_1.output.vibrationRmsMmS}}
+bearingTemperatureC: {{triggerNode_1.output.bearingTemperatureC}}
+observations: {{codeNode_973.output.observations}}
+operatingEnvelope: {{codeNode_973.output.operatingEnvelope}}
+priority: {{codeNode_973.output.priority}}
+END_PREPARED_EVENT

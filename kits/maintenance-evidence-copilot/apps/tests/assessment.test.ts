@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { userFacingAssessmentError } from "../lib/assessment-action-error";
 import { decodeAssessmentResponse } from "../lib/assessment";
+import { validateLamaticApiUrl } from "../lib/lamatic-client";
 
 const assessment = {
   schemaVersion: "mec.assessment.v1",
@@ -33,4 +35,20 @@ test("decodes assessmentJson when Lamatic returns an object", () => {
   const decoded = decodeAssessmentResponse({ assessmentJson: assessment });
   assert.equal(decoded.asset.assetId, "MTR-101");
   assert.equal(decoded.rootCauseConfirmed, false);
+});
+
+test("classifies decoder-format errors as unexpected deployed-flow output", () => {
+  assert.equal(
+    userFacingAssessmentError(new Error("Lamatic returned an invalid asset.assetId.")),
+    "The deployed flow returned an assessment in an unexpected format."
+  );
+});
+
+test("requires encrypted non-loopback Lamatic endpoints", () => {
+  assert.equal(validateLamaticApiUrl("https://example.lamatic.dev/graphql"), "https://example.lamatic.dev/graphql");
+  assert.equal(validateLamaticApiUrl("http://127.0.0.1:3000/graphql"), "http://127.0.0.1:3000/graphql");
+  assert.throws(
+    () => validateLamaticApiUrl("http://example.lamatic.dev/graphql"),
+    /must use https/
+  );
 });

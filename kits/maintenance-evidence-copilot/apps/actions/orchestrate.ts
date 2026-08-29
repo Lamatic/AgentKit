@@ -1,6 +1,7 @@
 "use server";
 
 import lamaticConfig from "../../lamatic.config";
+import { userFacingAssessmentError } from "@/lib/assessment-action-error";
 import { decodeAssessmentResponse, type Assessment } from "@/lib/assessment";
 import { getLamaticClient } from "@/lib/lamatic-client";
 import { isScenarioId, scenarios, type ScenarioId } from "@/lib/scenarios";
@@ -25,18 +26,6 @@ function resolveFlowId(): string {
   return flowId;
 }
 
-function userFacingError(error: unknown): string {
-  if (error instanceof Error && error.message.startsWith("Missing required environment variable")) {
-    return error.message;
-  }
-
-  if (error instanceof Error && error.message.includes("assessmentJson")) {
-    return "The deployed flow returned an assessment in an unexpected format.";
-  }
-
-  return "The maintenance assessment could not be run. Verify the local Lamatic configuration and deployed flow.";
-}
-
 export async function runMaintenanceAssessment(scenarioId: ScenarioId): Promise<AssessmentActionResult> {
   try {
     if (!isScenarioId(scenarioId)) {
@@ -46,6 +35,6 @@ export async function runMaintenanceAssessment(scenarioId: ScenarioId): Promise<
     const response = await getLamaticClient().executeFlow(resolveFlowId(), scenarios[scenarioId].input);
     return { success: true, data: decodeAssessmentResponse(response) };
   } catch (error) {
-    return { success: false, error: userFacingError(error) };
+    return { success: false, error: userFacingAssessmentError(error) };
   }
 }
