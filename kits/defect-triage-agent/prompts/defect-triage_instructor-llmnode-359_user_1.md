@@ -1,0 +1,1 @@
+Defect observation:{{triggerNode_1.output.defectDescription}}
