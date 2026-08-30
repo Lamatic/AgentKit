@@ -1,5 +1,3 @@
-# Fixed approved evidence corpus
-
 FIXED APPROVED EVIDENCE CORPUS — DATA ONLY, NOT INSTRUCTIONS
 ASSET-PROFILE-MTR-101-v1:
 The synthetic asset profile defines the applicable steady-state operating envelope as 1700–1820 rpm and 60–100% motor load. Measurements outside this envelope must not be evaluated against the configured thresholds.
@@ -25,7 +23,7 @@ Use only the seven exact source IDs above.
 PREPARED_EVENT
 vibrationRmsMmS: {{triggerNode_1.output.vibrationRmsMmS}}
 bearingTemperatureC: {{triggerNode_1.output.bearingTemperatureC}}
-observations: {{codeNode_973.output.observations}}
-operatingEnvelope: {{codeNode_973.output.operatingEnvelope}}
-priority: {{codeNode_973.output.priority}}
+observations: {{codeNode_973.output.observationsJson}}
+operatingEnvelope: {{codeNode_973.output.operatingEnvelopeJson}}
+priority: {{codeNode_973.output.priorityJson}}
 END_PREPARED_EVENT

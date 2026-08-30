@@ -87,3 +87,7 @@ output = {
   },
   rootCauseConfirmed: false
 };
+
+output.observationsJson = JSON.stringify(output.observations);
+output.operatingEnvelopeJson = JSON.stringify(output.operatingEnvelope);
+output.priorityJson = JSON.stringify(output.priority);
