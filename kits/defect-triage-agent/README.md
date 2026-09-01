@@ -6,6 +6,7 @@
 2. Add a Gemini API key as a credential in your Lamatic project, using a key from [Google AI Studio](https://aistudio.google.com/).
 3. Import this flow into Lamatic Studio (or recreate it using the provided flow config).
 4. Deploy the flow — this exposes a GraphQL API endpoint.
+5. Get your Lamatic API Key: go to Settings then API Keys in Lamatic Studio, and click Copy to get your LAMATIC_API_KEY. Set it in your terminal before running the example by typing: export LAMATIC_API_KEY=your_api_key_here
 
 ### Example request (Node.js)
 
