@@ -46,7 +46,10 @@ export const meta = {
   "tags": [
     "generative"
   ],
-  "testInput": null,
+  "testInput": {
+    "issueDescription": "Brown water stain spreading across the bathroom ceiling, wet to the touch.",
+    "imageUrl": ""
+  },
   "githubUrl": "",
   "documentationUrl": "",
   "deployUrl": "https://studio.lamatic.ai/template/home-maintenance-triage",
@@ -84,7 +87,7 @@ export const nodes = [
       "values": {
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\n  \"issueDescription\": \"string\",\n  \"imageUrl\": \"string\"\n}"
       }
     }
   },
