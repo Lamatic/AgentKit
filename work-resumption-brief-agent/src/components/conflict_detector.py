@@ -1,6 +1,8 @@
+from typing import Dict, List
+
 from src.logger import setup_logger
 from src.models import Conflict, NormalizedEvent
-from typing import List, Dict
+
 
 logger = setup_logger("ConflictDetector")
 
@@ -9,21 +11,45 @@ class ConflictDetector:
     """Detect and resolve contradictions between sources."""
 
     SYNONYMS = {
-        "implemented": ["added", "done", "completed", "finished", "ready"],
-        "not_implemented": ["incomplete", "pending", "not done", "todo"],
-        "blocked": ["waiting", "stalled"],
-        "not_blocked": ["unblocked", "moving", "progress"]
+        "implemented": [
+            "implemented",
+            "implement",
+            "added",
+            "done",
+            "completed",
+            "complete",
+            "finished",
+            "ready",
+        ],
+        "not_implemented": [
+            "not implemented",
+            "not done",
+            "incomplete",
+            "pending",
+            "todo",
+        ],
+        "blocked": [
+            "blocked",
+            "waiting",
+            "stalled",
+        ],
+        "not_blocked": [
+            "unblocked",
+            "moving",
+            "progress",
+        ],
     }
 
     def detect_conflicts(
         self,
-        events_by_entity: Dict[str, List[NormalizedEvent]]
+        events_by_entity: Dict[str, List[NormalizedEvent]],
     ) -> List[Conflict]:
         """Detect contradictions within the same entity."""
-        conflicts = []
+
+        conflicts: List[Conflict] = []
 
         for entity, events in events_by_entity.items():
-            if len(events) < 2:
+            if not events:
                 continue
 
             claims = [
@@ -32,14 +58,22 @@ class ConflictDetector:
             ]
 
             for i, (event_a, claim_a) in enumerate(claims):
+                if claim_a == "unknown":
+                    continue
+
                 for event_b, claim_b in claims[i + 1:]:
+                    if claim_b == "unknown":
+                        continue
+
                     if not self._is_contradiction(claim_a, claim_b):
                         continue
 
                     if event_a.timestamp > event_b.timestamp:
-                        newer, older = event_a, event_b
+                        newer = event_a
+                        older = event_b
                     else:
-                        newer, older = event_b, event_a
+                        newer = event_b
+                        older = event_a
 
                     conflict = Conflict(
                         entity=entity,
@@ -52,73 +86,59 @@ class ConflictDetector:
                             "overrides older claim "
                             f"({older.timestamp})"
                         ),
-                        confidence=0.9
+                        confidence=0.9,
                     )
 
                     conflicts.append(conflict)
 
         logger.info(f"Detected {len(conflicts)} conflicts")
+
         return conflicts
 
     def _extract_state(self, text: str) -> str:
         """Extract the state claim from text."""
+
         text_lower = text.lower()
 
-        # Check negative states FIRST so
-        # "not implemented" is not classified as implemented.
+        # Check negative states first.
+        # This prevents "not implemented" from being
+        # incorrectly classified as "implemented".
         if any(
             phrase in text_lower
-            for phrase in [
-                "not implemented",
-                "not done",
-                "incomplete",
-                "pending",
-                "todo"
-            ]
+            for phrase in self.SYNONYMS["not_implemented"]
         ):
             return "not_implemented"
 
         if any(
             phrase in text_lower
-            for phrase in [
-                "implemented",
-                "added",
-                "done",
-                "completed",
-                "finished",
-                "ready"
-            ]
-        ):
-            return "implemented"
-
-        if any(
-            phrase in text_lower
-            for phrase in [
-                "blocked",
-                "waiting",
-                "stalled"
-            ]
+            for phrase in self.SYNONYMS["blocked"]
         ):
             return "blocked"
 
         if any(
             phrase in text_lower
-            for phrase in [
-                "unblocked",
-                "moving",
-                "progress"
-            ]
+            for phrase in self.SYNONYMS["not_blocked"]
         ):
             return "not_blocked"
 
+        if any(
+            phrase in text_lower
+            for phrase in self.SYNONYMS["implemented"]
+        ):
+            return "implemented"
+
         return "unknown"
 
-    def _is_contradiction(self, state_a: str, state_b: str) -> bool:
+    def _is_contradiction(
+        self,
+        state_a: str,
+        state_b: str,
+    ) -> bool:
         """Check whether two states contradict each other."""
 
         contradictions = {
             ("implemented", "not_implemented"),
-            ("blocked", "not_blocked")
+            ("blocked", "not_blocked"),
         }
 
         return (

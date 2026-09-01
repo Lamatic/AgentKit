@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "name": "No Clear Action",
+    "description": "Insufficient info to recommend action",
+    "tests": [
+      "Avoiding false confidence",
+      "Admitting uncertainty"
+    ]
+  },
+  "inputs": {
+    "pr_comments": [
+      {
+        "timestamp": "2024-08-18T10:00:00Z",
+        "text": "Work in progress",
+        "pr_number": 99
+      }
+    ]
+  },
+  "expected_outputs": {
+    "recommended_action": "none or investigation",
+    "confidence_overall_max": 50,
+    "state": "UNCERTAIN"
+  }
+}

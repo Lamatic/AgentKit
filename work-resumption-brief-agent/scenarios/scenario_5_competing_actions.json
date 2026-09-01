@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "name": "Competing Actions",
+    "description": "Multiple valid next actions, must rank correctly",
+    "tests": [
+      "Action generation",
+      "Priority scoring",
+      "Ranking"
+    ]
+  },
+  "inputs": {
+    "issues": [
+      {
+        "timestamp": "2024-08-18T09:00:00Z",
+        "title": "Fix schema",
+        "body": "Blocks 3 tasks",
+        "issue_number": 1
+      },
+      {
+        "timestamp": "2024-08-18T10:00:00Z",
+        "title": "Fix tests",
+        "body": "Blocks 1 task",
+        "issue_number": 2
+      }
+    ],
+    "meeting_notes": [
+      {
+        "timestamp": "2024-08-18T14:00:00Z",
+        "text": "Start feature X"
+      }
+    ],
+    "todos": [
+      {
+        "text": "Improve performance",
+        "file": "main.py",
+        "line": 10
+      }
+    ]
+  },
+  "expected_outputs": {
+    "actions_generated_min": 4,
+    "top_action": "schema",
+    "ranking_correct": true
+  }
+}

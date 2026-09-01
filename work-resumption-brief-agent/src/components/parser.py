@@ -1,202 +1,401 @@
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from src.logger import setup_logger
 from src.models import NormalizedEvent, SourceType
+
 
 logger = setup_logger("Parser")
 
 
 class MultiSourceInputParser:
-    """Normalize all source types into NormalizedEvent."""
+    """Normalize supported source types into NormalizedEvent objects."""
 
     def parse(self, inputs: Dict[str, List[Any]]) -> List[NormalizedEvent]:
-        """Main entry point."""
-        events = []
+        if not isinstance(inputs, dict):
+            logger.error("Parser received invalid input structure")
+            raise ValueError("Parser input must be a dictionary")
 
-        if "commits" in inputs:
-            events.extend(self._parse_commits(inputs["commits"]))
+        events: List[NormalizedEvent] = []
 
-        if "pr_comments" in inputs:
-            events.extend(self._parse_pr_comments(inputs["pr_comments"]))
+        source_parsers = {
+            "commits": self._parse_commits,
+            "pr_comments": self._parse_pr_comments,
+            "issues": self._parse_issues,
+            "todos": self._parse_todos,
+            "meeting_notes": self._parse_meeting_notes,
+        }
 
-        if "issues" in inputs:
-            events.extend(self._parse_issues(inputs["issues"]))
+        for source_type, items in inputs.items():
+            if source_type not in source_parsers:
+                logger.warning(
+                    "Unknown source type skipped: %s",
+                    source_type,
+                )
+                continue
 
-        if "todos" in inputs:
-            events.extend(self._parse_todos(inputs["todos"]))
+            if items is None:
+                logger.warning(
+                    "Source '%s' contains no items",
+                    source_type,
+                )
+                continue
 
-        if "meeting_notes" in inputs:
-            events.extend(self._parse_meeting_notes(inputs["meeting_notes"]))
+            if not isinstance(items, list):
+                logger.error(
+                    "Invalid structure for source '%s'; expected list",
+                    source_type,
+                )
+                continue
 
-        logger.info(f"Parsed {len(events)} events from mixed sources")
+            try:
+                parsed_events = source_parsers[source_type](items)
+                events.extend(parsed_events)
+            except Exception as exc:
+                logger.error(
+                    "Failed to parse source '%s': %s",
+                    source_type,
+                    exc,
+                )
+                continue
+
+        logger.info(
+            "Parsed %d events from mixed sources",
+            len(events),
+        )
+
         return events
 
-    def _parse_commits(self, commits: List[Dict]) -> List[NormalizedEvent]:
-        events = []
+    def _parse_commits(
+        self,
+        commits: List[Dict[str, Any]],
+    ) -> List[NormalizedEvent]:
+        events: List[NormalizedEvent] = []
 
         for commit in commits:
-            ts = self._parse_timestamp(commit.get("timestamp"))
-            content = commit.get("message", "")
+            try:
+                if not isinstance(commit, dict):
+                    raise ValueError("Commit must be a dictionary")
 
-            if not content.strip():
-                raise ValueError("Commit message cannot be empty")
+                timestamp = self._parse_timestamp(
+                    commit.get("timestamp")
+                )
 
-            event = NormalizedEvent(
-                source_type=SourceType.COMMIT,
-                source_id=commit.get("hash", "unknown"),
-                timestamp=ts,
-                author=commit.get("author"),
-                content=content,
-                entity_candidates=self._extract_entities(content),
-                metadata={"hash": commit.get("hash")},
-            )
-            events.append(event)
+                content = commit.get("message", "")
+
+                if not isinstance(content, str) or not content.strip():
+                    raise ValueError("Commit message cannot be empty")
+
+                source_id = commit.get("hash")
+
+                if not isinstance(source_id, str) or not source_id.strip():
+                    raise ValueError("Commit hash cannot be empty")
+
+                event = NormalizedEvent(
+                    source_type=SourceType.COMMIT,
+                    source_id=source_id,
+                    timestamp=timestamp,
+                    author=commit.get("author"),
+                    content=content,
+                    entity_candidates=self._extract_entities(content),
+                    metadata={"hash": source_id},
+                )
+
+                events.append(event)
+
+            except Exception as exc:
+                logger.error(
+                    "Failed to parse commit: %s",
+                    exc,
+                )
+                continue
 
         return events
 
     def _parse_pr_comments(
-        self, pr_comments: List[Dict]
+        self,
+        pr_comments: List[Dict[str, Any]],
     ) -> List[NormalizedEvent]:
-        events = []
+        events: List[NormalizedEvent] = []
 
         for comment in pr_comments:
-            ts = self._parse_timestamp(comment.get("timestamp"))
-            content = comment.get("text", "")
+            try:
+                if not isinstance(comment, dict):
+                    raise ValueError(
+                        "PR comment must be a dictionary"
+                    )
 
-            if not content.strip():
-                raise ValueError("PR comment cannot be empty")
+                timestamp = self._parse_timestamp(
+                    comment.get("timestamp")
+                )
 
-            event = NormalizedEvent(
-                source_type=SourceType.PR_COMMENT,
-                source_id=f"pr_{comment.get('pr_number')}",
-                timestamp=ts,
-                author=comment.get("author"),
-                content=content,
-                entity_candidates=self._extract_entities(content),
-                metadata={"pr_number": comment.get("pr_number")},
-            )
-            events.append(event)
+                content = comment.get("text", "")
+
+                if not isinstance(content, str) or not content.strip():
+                    raise ValueError(
+                        "PR comment cannot be empty"
+                    )
+
+                pr_number = comment.get("pr_number")
+
+                if pr_number is None:
+                    raise ValueError(
+                        "PR number cannot be empty"
+                    )
+
+                event = NormalizedEvent(
+                    source_type=SourceType.PR_COMMENT,
+                    source_id=f"pr_{pr_number}",
+                    timestamp=timestamp,
+                    author=comment.get("author"),
+                    content=content,
+                    entity_candidates=self._extract_entities(content),
+                    metadata={"pr_number": pr_number},
+                )
+
+                events.append(event)
+
+            except Exception as exc:
+                logger.error(
+                    "Failed to parse PR comment: %s",
+                    exc,
+                )
+                continue
 
         return events
 
-    def _parse_issues(self, issues: List[Dict]) -> List[NormalizedEvent]:
-        events = []
+    def _parse_issues(
+        self,
+        issues: List[Dict[str, Any]],
+    ) -> List[NormalizedEvent]:
+        events: List[NormalizedEvent] = []
 
         for issue in issues:
-            ts = self._parse_timestamp(issue.get("timestamp"))
-            content = f"{issue.get('title', '')} {issue.get('body', '')}".strip()
+            try:
+                if not isinstance(issue, dict):
+                    raise ValueError("Issue must be a dictionary")
 
-            if not content:
-                raise ValueError("Issue content cannot be empty")
+                timestamp = self._parse_timestamp(
+                    issue.get("timestamp")
+                )
 
-            event = NormalizedEvent(
-                source_type=SourceType.GITHUB_ISSUE,
-                source_id=f"issue_{issue.get('issue_number')}",
-                timestamp=ts,
-                author=issue.get("author"),
-                content=content,
-                entity_candidates=self._extract_entities(content),
-                metadata={
-                    "issue_number": issue.get("issue_number"),
-                    "state": issue.get("state"),
-                },
-            )
-            events.append(event)
+                title = issue.get("title", "")
+                body = issue.get("body", "")
+
+                if not isinstance(title, str):
+                    title = ""
+
+                if not isinstance(body, str):
+                    body = ""
+
+                content = f"{title} {body}".strip()
+
+                if not content:
+                    raise ValueError(
+                        "Issue content cannot be empty"
+                    )
+
+                issue_number = issue.get("issue_number")
+
+                if issue_number is None:
+                    raise ValueError(
+                        "Issue number cannot be empty"
+                    )
+
+                event = NormalizedEvent(
+                    source_type=SourceType.GITHUB_ISSUE,
+                    source_id=f"issue_{issue_number}",
+                    timestamp=timestamp,
+                    author=issue.get("author"),
+                    content=content,
+                    entity_candidates=self._extract_entities(content),
+                    metadata={
+                        "issue_number": issue_number,
+                        "state": issue.get("state"),
+                    },
+                )
+
+                events.append(event)
+
+            except Exception as exc:
+                logger.error(
+                    "Failed to parse issue: %s",
+                    exc,
+                )
+                continue
 
         return events
 
-    def _parse_todos(self, todos: List[Dict]) -> List[NormalizedEvent]:
-        events = []
+    def _parse_todos(
+        self,
+        todos: List[Dict[str, Any]],
+    ) -> List[NormalizedEvent]:
+        events: List[NormalizedEvent] = []
 
         for todo in todos:
-            if "timestamp" in todo:
-                ts = self._parse_timestamp(todo.get("timestamp"))
-            else:
-                ts = datetime.now(timezone.utc)
+            try:
+                if not isinstance(todo, dict):
+                    raise ValueError("TODO must be a dictionary")
 
-            content = todo.get("text", "")
+                timestamp = todo.get("timestamp")
 
-            if not content.strip():
-                raise ValueError("TODO content cannot be empty")
+                if timestamp:
+                    parsed_timestamp = self._parse_timestamp(timestamp)
+                else:
+                    parsed_timestamp = datetime.now(timezone.utc)
 
-            event = NormalizedEvent(
-                source_type=SourceType.TODO,
-                source_id=f"todo_{todo.get('file')}_{todo.get('line')}",
-                timestamp=ts,
-                author=None,
-                content=content,
-                entity_candidates=self._extract_entities(content),
-                metadata={
-                    "file": todo.get("file"),
-                    "line": todo.get("line"),
-                },
-            )
-            events.append(event)
+                content = todo.get("text", "")
+
+                if not isinstance(content, str) or not content.strip():
+                    raise ValueError(
+                        "TODO content cannot be empty"
+                    )
+
+                file_name = todo.get("file")
+                line_number = todo.get("line")
+
+                source_id = (
+                    f"todo_{file_name}_{line_number}"
+                )
+
+                event = NormalizedEvent(
+                    source_type=SourceType.TODO,
+                    source_id=source_id,
+                    timestamp=parsed_timestamp,
+                    author=None,
+                    content=content,
+                    entity_candidates=self._extract_entities(content),
+                    metadata={
+                        "file": file_name,
+                        "line": line_number,
+                    },
+                )
+
+                events.append(event)
+
+            except Exception as exc:
+                logger.error(
+                    "Failed to parse TODO: %s",
+                    exc,
+                )
+                continue
 
         return events
 
     def _parse_meeting_notes(
-        self, notes: List[Dict]
+        self,
+        notes: List[Dict[str, Any]],
     ) -> List[NormalizedEvent]:
-        events = []
+        events: List[NormalizedEvent] = []
 
         for note in notes:
-            ts = self._parse_timestamp(
-                note.get("timestamp") or note.get("date")
-            )
-            content = note.get("text", "")
+            try:
+                if not isinstance(note, dict):
+                    raise ValueError(
+                        "Meeting note must be a dictionary"
+                    )
 
-            if not content.strip():
-                raise ValueError("Meeting note cannot be empty")
+                timestamp = (
+                    note.get("timestamp")
+                    or note.get("date")
+                )
 
-            event = NormalizedEvent(
-                source_type=SourceType.MEETING_NOTE,
-                source_id=f"meeting_{ts.isoformat()}",
-                timestamp=ts,
-                author=None,
-                content=content,
-                entity_candidates=self._extract_entities(content),
-                metadata={
-                    "participants": note.get("participants", [])
-                },
-            )
-            events.append(event)
+                parsed_timestamp = self._parse_timestamp(
+                    timestamp
+                )
+
+                content = note.get("text", "")
+
+                if not isinstance(content, str) or not content.strip():
+                    raise ValueError(
+                        "Meeting note cannot be empty"
+                    )
+
+                source_id = (
+                    f"meeting_{parsed_timestamp.isoformat()}"
+                )
+
+                event = NormalizedEvent(
+                    source_type=SourceType.MEETING_NOTE,
+                    source_id=source_id,
+                    timestamp=parsed_timestamp,
+                    author=None,
+                    content=content,
+                    entity_candidates=self._extract_entities(content),
+                    metadata={
+                        "participants": note.get(
+                            "participants",
+                            [],
+                        )
+                    },
+                )
+
+                events.append(event)
+
+            except Exception as exc:
+                logger.error(
+                    "Failed to parse meeting note: %s",
+                    exc,
+                )
+                continue
 
         return events
 
-    def _parse_timestamp(self, ts_str: Optional[str]) -> datetime:
-        """Parse timestamp string to UTC datetime."""
+    def _parse_timestamp(
+        self,
+        timestamp: Optional[str],
+    ) -> datetime:
+        if not timestamp:
+            raise ValueError(
+                "Timestamp cannot be empty"
+            )
 
-        if not ts_str:
-            raise ValueError("Timestamp cannot be empty")
+        if not isinstance(timestamp, str):
+            raise ValueError(
+                "Timestamp must be a string"
+            )
 
         try:
-            dt = datetime.fromisoformat(
-                ts_str.replace("Z", "+00:00")
+            parsed = datetime.fromisoformat(
+                timestamp.replace("Z", "+00:00")
             )
-
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-
-            return dt.astimezone(timezone.utc)
-
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError) as exc:
             raise ValueError(
-                f"Invalid timestamp format: {ts_str}"
+                f"Invalid timestamp format: {timestamp}"
+            ) from exc
+
+        if (
+            parsed.tzinfo is None
+            or parsed.utcoffset() is None
+        ):
+            raise ValueError(
+                "Timestamp must be timezone-aware"
             )
 
-    def _extract_entities(self, text: str) -> List[str]:
-        """Extract likely entity names from text."""
+        return parsed.astimezone(timezone.utc)
 
-        words = text.split()
-        entities = []
+    def _extract_entities(
+        self,
+        text: str,
+    ) -> List[str]:
+        if not isinstance(text, str):
+            return []
 
-        for word in words:
-            cleaned = word.strip(".,!?;:()[]{}\"'")
+        entities: List[str] = []
 
-            if cleaned and cleaned[0].isupper():
-                if cleaned not in entities:
-                    entities.append(cleaned)
+        for word in text.split():
+            cleaned = word.strip(
+                ".,!?;:()[]{}\"'"
+            )
+
+            if (
+                cleaned
+                and cleaned[0].isupper()
+                and cleaned not in entities
+            ):
+                entities.append(cleaned)
 
         return entities[:5]
+
+
+Parser = MultiSourceInputParser

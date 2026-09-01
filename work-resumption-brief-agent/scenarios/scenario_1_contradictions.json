@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "name": "Contradictory Sources",
+    "description": "PR says not done, commit says done, meeting confirms done",
+    "tests": [
+      "Conflict detection",
+      "Temporal reasoning",
+      "State resolution"
+    ]
+  },
+  "inputs": {
+    "pr_comments": [
+      {
+        "timestamp": "2024-08-18T09:00:00Z",
+        "text": "Resume parser incomplete",
+        "pr_number": 42,
+        "author": "bob"
+      }
+    ],
+    "commits": [
+      {
+        "timestamp": "2024-08-18T10:00:00Z",
+        "message": "Implement resume parser",
+        "hash": "abc123",
+        "author": "alice"
+      }
+    ],
+    "meeting_notes": [
+      {
+        "timestamp": "2024-08-18T14:00:00Z",
+        "text": "Resume parsing complete",
+        "participants": [
+          "alice",
+          "bob"
+        ]
+      }
+    ]
+  },
+  "expected_outputs": {
+    "conflicts_detected": 1,
+    "state_complete": true,
+    "parser_confidence_min": 80,
+    "first_action": "related to next work"
+  }
+}

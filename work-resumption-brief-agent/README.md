@@ -2,7 +2,12 @@
 
 ## Overview
 
-An AI agent that analyzes work-related information from multiple sources and produces a structured resumption brief.
+An AI agent that analyzes work-related information from multiple sources and
+produces a structured resumption brief.
+
+The agent helps a user understand the current state of work after a period of
+interruption by collecting, normalizing, ordering, analyzing, and summarizing
+information from different work-related sources.
 
 ## Project Goals
 
@@ -23,19 +28,22 @@ The workflow consists of:
 5. Source Extension
 6. API Response
 
-## Project Structure
+### Workflow
 
 ```text
-src/
-├── config.py
-├── logger.py
-├── models.py
-└── components/
-    ├── input_parser/
-    ├── source_normalizer/
-    ├── temporal_ordering/
-    ├── conflict_detection/
-    ├── source_extension/
-    └── api_response/
-
-tests/
+API Request
+    |
+    v
+Normalize Sources
+    |
+    v
+Temporal Ordering
+    |
+    v
+Conflict Detection
+    |
+    v
+Source Extension
+    |
+    v
+API Response
