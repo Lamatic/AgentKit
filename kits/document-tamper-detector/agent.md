@@ -9,7 +9,7 @@ The agent orchestrates four sequential detection signals — metadata inspection
 
 ## Purpose
 After the agent runs, the caller has:
-- A **risk score** from 0–100 indicating overall tamper probability
+- A **risk score** from 0–100 representing a heuristic tamper risk score
 - A **verdict** string categorising the risk level
 - A list of **flags** — each with a specific region, detection signal type, confidence score, and a plain-language explanation that any non-expert can understand
 - A **standard disclaimer** making clear this is not a legal finding
@@ -82,7 +82,7 @@ Step-by-step node walkthrough:
 - Computes a per-signal score (0–100) from flag confidence averages, boosted by flag count
 - Applies weighted combination: metadata 30%, OCR 30%, ELA 25%, VLM 15%
 - If ELA is skipped (PDF), redistributes its weight to metadata (50%), OCR (30%), VLM (20%)
-- Computes `risk_score`, `verdict`, `verdict_color`, and appends the standard disclaimer
+- Computes a heuristic tamper risk score (`risk_score`), `verdict`, `verdict_color`, and appends the standard disclaimer
 - Output: full `TrustReport` object
 
 **7. API Response (`graphqlResponseNode`)**

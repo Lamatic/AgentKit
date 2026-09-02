@@ -47,7 +47,7 @@ The Lamatic flow runs four detection signals sequentially:
 All signals are combined with the weights above. The final trust report includes:
 ```json
 {
-  "risk_score": 62,
+  "risk_score": 42,
   "verdict": "Moderate risk — review flagged regions before trusting this document",
   "verdict_color": "amber",
   "flags": [
@@ -128,9 +128,9 @@ Open [http://localhost:3000](http://localhost:3000) — upload a document and ge
 ### Output (trust report)
 ```json
 {
-  "risk_score": 67,
-  "verdict": "High risk — multiple anomalies detected. Strongly recommend specialist review.",
-  "verdict_color": "orange",
+  "risk_score": 46,
+  "verdict": "Moderate risk — review flagged regions before trusting this document.",
+  "verdict_color": "amber",
   "flags": [
     {
       "region": "Document metadata — software mismatch",
@@ -146,7 +146,7 @@ Open [http://localhost:3000](http://localhost:3000) — upload a document and ge
     }
   ],
   "signal_breakdown": {
-    "metadata": { "flags": 2, "score_contribution": 22 },
+    "metadata": { "flags": 2, "score_contribution": 46 },
     "font_spacing": { "flags": 0, "score_contribution": 0 },
     "ela": { "flags": 0, "score_contribution": 0 },
     "vlm": { "flags": 0, "score_contribution": 0 }
