@@ -50,7 +50,11 @@ export const references = {
   },
   "scripts": {
     "ride_hailing_text_to_sql_code_node_162_code": "@scripts/ride-hailing-text-to-sql_code-node-162_code.ts",
-    "ride_hailing_text_to_sql_code_node_320_code": "@scripts/ride-hailing-text-to-sql_code-node-320_code.ts"
+    "ride_hailing_text_to_sql_code_node_320_code": "@scripts/ride-hailing-text-to-sql_code-node-320_code.ts",
+    "ride_hailing_text_to_sql_code_node_469_code": "@scripts/ride-hailing-text-to-sql_code-node-469_code.ts",
+    "ride_hailing_text_to_sql_code_node_188_code": "@scripts/ride-hailing-text-to-sql_code-node-188_code.ts",
+    "ride_hailing_text_to_sql_code_node_879_code": "@scripts/ride-hailing-text-to-sql_code-node-879_code.ts",
+    "ride_hailing_text_to_sql_code_node_525_code": "@scripts/ride-hailing-text-to-sql_code-node-525_code.ts"
   }
 };
 
@@ -105,7 +109,12 @@ export const nodes = [
           "sql",
           "answer"
         ],
-        "orderBy": "",
+        "orderBy": [
+          {
+            "order": "DESC",
+            "column": "updated_at"
+          }
+        ],
         "nodeName": "Tables",
         "tableName": "memory_table"
       }
@@ -201,15 +210,33 @@ export const nodes = [
     }
   },
   {
-    "id": "plus-node-addNode_135886",
-    "type": "addNode",
+    "id": "codeNode_469",
+    "type": "dynamicNode",
     "position": {
       "x": 0,
       "y": 0
     },
     "data": {
-      "nodeId": "addNode",
-      "values": {}
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/ride-hailing-text-to-sql_code-node-469_code.ts",
+        "nodeName": "Code"
+      }
+    }
+  },
+  {
+    "id": "codeNode_188",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/ride-hailing-text-to-sql_code-node-188_code.ts",
+        "nodeName": "Code"
+      }
     }
   },
   {
@@ -223,8 +250,8 @@ export const nodes = [
       "nodeId": "apiNode",
       "values": {
         "id": "apiNode_117",
-        "url": "https://ride-hailing-analytics-app.vercel.app/api/execute-sql",
-        "body": "{\"sql\": \"{{codeNode_320.output.sql}}\"}",
+        "url": "{{secrets.project.EXECUTE_SQL_URL}}",
+        "body": "{{codeNode_188.output.payload}}",
         "method": "POST",
         "headers": "{\"Content-Type\":\"application/json\",\"x-api-secret\":\"{{secrets.project.EXECUTE_SQL_SECRET}}\"}",
         "retries": "0",
@@ -329,6 +356,21 @@ export const nodes = [
     }
   },
   {
+    "id": "codeNode_879",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/ride-hailing-text-to-sql_code-node-879_code.ts",
+        "nodeName": "Code"
+      }
+    }
+  },
+  {
     "id": "tablesNode_469",
     "type": "dynamicNode",
     "position": {
@@ -339,7 +381,7 @@ export const nodes = [
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_469",
-        "data": "{ \"question\": \"{{triggerNode_1.output.question}}\",  \"sql\": \"{{codeNode_320.output.sql}}\",  \"answer\": \"{{InstructorLLMNode_699.output.answer}}\"}",
+        "data": "{{codeNode_879.output.payload}}",
         "limit": "10",
         "query": "SELECT * FROM your_table WHERE id = ?",
         "where": {
@@ -362,6 +404,21 @@ export const nodes = [
     }
   },
   {
+    "id": "codeNode_525",
+    "type": "dynamicNode",
+    "position": {
+      "x": 0,
+      "y": 0
+    },
+    "data": {
+      "nodeId": "codeNode",
+      "values": {
+        "code": "@scripts/ride-hailing-text-to-sql_code-node-525_code.ts",
+        "nodeName": "Code"
+      }
+    }
+  },
+  {
     "id": "tablesNode_405",
     "type": "dynamicNode",
     "position": {
@@ -372,7 +429,7 @@ export const nodes = [
       "nodeId": "tablesNode",
       "values": {
         "id": "tablesNode_405",
-        "data": "{ \"sessionId\": \"{{triggerNode_1.output.sessionId}}\",  \"question\": \"{{triggerNode_1.output.question}}\",  \"sql\": \"{{codeNode_320.output.sql}}\",  \"answer\": \"{{InstructorLLMNode_699.output.answer}}\"}",
+        "data": "{{codeNode_525.output.payload}}",
         "limit": "10",
         "query": "SELECT * FROM your_table WHERE id = ?",
         "where": "",
@@ -413,7 +470,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"answer\": \"{{InstructorLLMNode_699.output.answer}}\",\n  \"chartType\": \"{{InstructorLLMNode_699.output.chartType}}\",\n  \"sql\": \"{{codeNode_320.output.sql}}\",\n  \"results\": \"{{apiNode_117.output.rows}}\"\n}"
+        "outputMapping": "{\n  \"answer\": \"{{InstructorLLMNode_699.output.answer}}{{codeNode_469.output.answer}}\",\n  \"chartType\": \"{{InstructorLLMNode_699.output.chartType}}\",\n  \"sql\": \"{{codeNode_320.output.sql}}\",\n  \"results\": \"{{apiNode_117.output.rows}}\"\n}"
       }
     }
   }
@@ -445,33 +502,9 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "conditionNode_757-apiNode_117-825",
-    "source": "conditionNode_757",
-    "target": "apiNode_117",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "conditionEdge"
-  },
-  {
     "id": "apiNode_117-InstructorLLMNode_699",
     "source": "apiNode_117",
     "target": "InstructorLLMNode_699",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "defaultEdge"
-  },
-  {
-    "id": "conditionNode_757-plus-node-addNode_135886-145",
-    "source": "conditionNode_757",
-    "target": "plus-node-addNode_135886",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "conditionEdge"
-  },
-  {
-    "id": "plus-node-addNode_135886-responseNode_triggerNode_1-560",
-    "source": "plus-node-addNode_135886",
-    "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
@@ -517,14 +550,6 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "conditionNode_199-tablesNode_405-778",
-    "source": "conditionNode_199",
-    "target": "tablesNode_405",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "conditionEdge"
-  },
-  {
     "id": "tablesNode_405-addNode_271-842",
     "source": "tablesNode_405",
     "target": "addNode_271",
@@ -533,20 +558,76 @@ export const edges = [
     "type": "defaultEdge"
   },
   {
-    "id": "conditionNode_199-tablesNode_469-800",
-    "source": "conditionNode_199",
-    "target": "tablesNode_469",
-    "sourceHandle": "bottom",
-    "targetHandle": "top",
-    "type": "conditionEdge"
-  },
-  {
     "id": "tablesNode_469-addNode_271-625",
     "source": "tablesNode_469",
     "target": "addNode_271",
     "sourceHandle": "bottom",
     "targetHandle": "top",
     "type": "defaultEdge"
+  },
+  {
+    "id": "codeNode_188-apiNode_117-963",
+    "source": "codeNode_188",
+    "target": "apiNode_117",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_199-codeNode_879-540",
+    "source": "conditionNode_199",
+    "target": "codeNode_879",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "codeNode_879-tablesNode_469-843",
+    "source": "codeNode_879",
+    "target": "tablesNode_469",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_199-codeNode_525-926",
+    "source": "conditionNode_199",
+    "target": "codeNode_525",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "codeNode_525-tablesNode_405-715",
+    "source": "codeNode_525",
+    "target": "tablesNode_405",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_757-codeNode_469-229",
+    "source": "conditionNode_757",
+    "target": "codeNode_469",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
+  },
+  {
+    "id": "codeNode_469-responseNode_triggerNode_1-249",
+    "source": "codeNode_469",
+    "target": "responseNode_triggerNode_1",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "defaultEdge"
+  },
+  {
+    "id": "conditionNode_757-codeNode_188-544",
+    "source": "conditionNode_757",
+    "target": "codeNode_188",
+    "sourceHandle": "bottom",
+    "targetHandle": "top",
+    "type": "conditionEdge"
   },
   {
     "id": "response-trigger_triggerNode_1",

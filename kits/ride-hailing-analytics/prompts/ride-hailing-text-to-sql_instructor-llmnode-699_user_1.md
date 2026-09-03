@@ -1,3 +1,1 @@
-Question: {{triggerNode_1.output.question}}
-SQL: {{codeNode_320.output.sql}}
-Results: {{apiNode_117.output.rows}}
+<data> Question: {{triggerNode_1.output.question}} SQL: {{codeNode_320.output.sql}} Results: {{apiNode_117.output.rows}} </data>
