@@ -23,8 +23,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@kit/lamatic.config": ["../lamatic.config"]
+      "@/*": ["./*"]
     }
   },
   "include": [

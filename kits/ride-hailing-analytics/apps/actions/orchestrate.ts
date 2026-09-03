@@ -1,7 +1,6 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import config from "../../lamatic.config"
 
 export type QueryResultRow = Record<string, string | number | null>
 
@@ -19,16 +18,9 @@ export async function askQuestion(
   error?: string
 }> {
   try {
-    const flows = config.flows
-    const firstFlowKey = Object.keys(flows)[0]
+    const workflowId = process.env.LAMATIC_FLOW_ID
 
-    if (!firstFlowKey) {
-      throw new Error("No workflows found in configuration")
-    }
-
-    const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows]
-
-    if (!flow.workflowId) {
+    if (!workflowId) {
       throw new Error("Workflow not found in config.")
     }
 
@@ -37,7 +29,7 @@ export async function askQuestion(
       sessionId,
     }
 
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    const resData = await lamaticClient.executeFlow(workflowId, inputs)
 
     const answer = resData?.result?.answer
     const chartType = resData?.result?.chartType ?? "none"
