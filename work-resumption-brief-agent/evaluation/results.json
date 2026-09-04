@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-09-04T10:51:18.993863",
+  "scenarios": [
+    {
+      "scenario": "Contradictory Sources",
+      "file": "scenario_1_contradictions.json",
+      "status": "PARTIAL",
+      "score": 0.25,
+      "brief_summary": {
+        "states": 2,
+        "conflicts": 1,
+        "blockers": 0,
+        "actions": 3,
+        "confidence": 47.0
+      }
+    },
+    {
+      "scenario": "Outdated Decision",
+      "file": "scenario_2_outdated_decision.json",
+      "status": "PARTIAL",
+      "score": 0.25,
+      "brief_summary": {
+        "states": 6,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 6,
+        "confidence": 48.0
+      }
+    },
+    {
+      "scenario": "Insufficient Evidence",
+      "file": "scenario_3_insufficient_evidence.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 1,
+        "confidence": 48.0
+      }
+    },
+    {
+      "scenario": "Multiple Blockers",
+      "file": "scenario_4_multiple_blockers.json",
+      "status": "PARTIAL",
+      "score": 0.0,
+      "brief_summary": {
+        "states": 5,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 5,
+        "confidence": 48.0
+      }
+    },
+    {
+      "scenario": "Competing Actions",
+      "file": "scenario_5_competing_actions.json",
+      "status": "PARTIAL",
+      "score": 0.6666666666666666,
+      "brief_summary": {
+        "states": 5,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 5,
+        "confidence": 58.4
+      }
+    },
+    {
+      "scenario": "No Clear Action",
+      "file": "scenario_6_no_clear_action.json",
+      "status": "PARTIAL",
+      "score": 0.6666666666666666,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 1,
+        "confidence": 48.0
+      }
+    },
+    {
+      "scenario": "False Conflict Detection",
+      "file": "scenario_7_false_conflict.json",
+      "status": "PARTIAL",
+      "score": 0.6666666666666666,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 1,
+        "confidence": 58.00000000000001
+      }
+    }
+  ],
+  "overall_score": 0.49999999999999994
+}
