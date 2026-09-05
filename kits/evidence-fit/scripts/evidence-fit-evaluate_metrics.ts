@@ -984,6 +984,17 @@ let searchData = toObject(searchOut);
 if (searchData === null) searchData = toArray(searchOut);
 if (searchData === null) searchData = [];
 
+// Lamatic's Loop End node nests its per-iteration captures under `accumulated`,
+// keyed by whatever that node's outputAccumulator template declares. Bind this
+// node to the loop end's WHOLE output ({{forLoopEndNode_N.output}}) rather than a
+// deep path: Studio resolves templates before this code runs, so a deep path whose
+// intermediate key is missing throws "Cannot read properties of undefined" and the
+// defensive parsing below never gets a chance to run.
+if (searchData && typeof searchData === "object" && !Array.isArray(searchData)) {
+  const acc = toObject(searchData.accumulated);
+  if (acc !== null) searchData = acc;
+}
+
 if (!Array.isArray(searchData) && typeof searchData === "object") {
   if (Array.isArray(searchData.results)) searchData = searchData.results;
   else if (Array.isArray(searchData.cases)) searchData = searchData.cases;
@@ -997,6 +1008,12 @@ if (!Array.isArray(searchData) && typeof searchData === "object") {
   }
 }
 if (!Array.isArray(searchData)) searchData = [];
+
+// An outputAccumulator template that wraps each capture in its own array yields
+// [[entry], [entry], ...]. Flatten one level so every element is a per-case entry.
+if (searchData.some(Array.isArray)) {
+  searchData = [].concat.apply([], searchData);
+}
 
 function resultsOf(entry) {
   let r =
@@ -1039,13 +1056,21 @@ function buildChunkFromMetadata(meta) {
   const chunkDocumentId = asString(meta.documentId);
   const strategy = asString(meta.strategy);
   const chunkId = asString(meta.chunkId);
-  const content = typeof meta.content === "string" ? meta.content : asString(meta.content);
   const start = toInt(meta.start);
   const end = toInt(meta.end);
 
-  if (!chunkDocumentId || !chunkId || !content) return null;
+  if (!chunkDocumentId || !chunkId) return null;
   if (strategy !== "fixed-width" && strategy !== "clause-aware") return null;
   if (start === null || end === null || end <= start) return null;
+
+  // Recover chunk text by offset instead of requiring it on every hit. Lossless —
+  // nothing in core.ts reads Chunk.text; every metric works on start/end. This keeps
+  // the node independent of whether the vector store echoes chunk bodies back, and
+  // keeps the loop's accumulated output small enough to stay readable in Studio.
+  // A hit that still carries `content` is used as-is, so full records keep working.
+  const carried = typeof meta.content === "string" ? meta.content : "";
+  const text = carried !== "" ? carried : documentText.slice(start, end);
+  if (!text) return null;
 
   return {
     chunkId: chunkId,
@@ -1053,7 +1078,7 @@ function buildChunkFromMetadata(meta) {
     strategy: strategy,
     start: start,
     end: end,
-    text: content,
+    text: text,
   };
 }
 

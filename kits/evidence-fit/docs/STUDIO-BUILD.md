@@ -167,7 +167,95 @@ Verdict node's picker, and Studio fills the blank fields in for you on export.
 
 ---
 
+### 5. Code nodes are capped at 10,000 characters, and the cap only shows up at run time
+
+[lamatic.ai/docs/limits](https://lamatic.ai/docs/limits), under "Code node":
+
+| Limit | Value |
+|---|---|
+| Processing time | ~2 minutes on Pro, ~5 minutes on Enterprise |
+| Code size | **10,000 characters max** |
+| Restricted APIs | `require`, `eval`, `child_process` are blocked |
+
+Studio saves an over-length body without complaining. The failure appears only when the
+node executes, as:
+
+```
+Error in executing code: 'Code payload too large'
+```
+
+The wording invites a wrong diagnosis. It reads like the *data* flowing into the node is
+too big, so the natural response is to trim the inlined `{{node.output}}` values — which
+changes nothing when the body is already over the cap on its own. Check the character
+count of the code first; it is the cheaper test and the more likely cause.
+
+Two consequences for this kit:
+
+- **The `scripts/*.ts` files cannot be pasted verbatim.** They are TypeScript (code nodes
+  run plain JavaScript) and they each vendor a full copy of `apps/lib/evidence/core.ts`,
+  which puts `evidence-fit-evaluate_metrics.ts` at roughly 39,000 characters. They are the
+  readable, reviewable, test-covered source — not the paste buffer. What goes into Studio
+  is a built body: tree-shaken against what the node's glue actually reaches, transpiled
+  to JS, then minified.
+
+- **Minify inside an IIFE, or minification barely helps.** In a bare script every
+  top-level `function foo()` is a global, and a minifier must preserve those names.
+  Wrapping the body first is what unlocks identifier mangling:
+
+  ```js
+  output=(()=>{let output; /* body */ ; return output})();
+  ```
+
+  Shadowing `output` inside the wrapper means the glue keeps assigning to `output`
+  exactly as it reads in the TypeScript source. On the Metrics node this was the
+  difference between 11,324 characters (over the cap, failing) and 9,819 (passing) —
+  no logic changed, and the behavioural parity checks against `compareStrategies` all
+  still pass.
+
+Whether the cap is measured before or after `{{...}}` substitution is not documented and
+was not determined here. If a body under 10,000 characters still reports the same error,
+that is the answer, and the fix is to split the work across two code nodes rather than to
+shrink further: have the first node reduce the document and cases to offset arithmetic
+(resolved gold spans plus chunk boundaries, a few hundred characters), and let the second
+node compute metrics and the verdict from those offsets without ever seeing
+`documentText`.
+
+---
+
 ## Partial accelerator: seed the graph from the Config tab (YAML)
+
+### Loop-to-body connection: documented YAML, awaiting Studio verification
+
+The builder reproduced this twice: applying `needs: [forLoopNode_2]` on
+`searchNode_3` removed that dependency, while `needs: [searchNode_3]` on
+`searchNode_4` survived. Drawing the first edge on the canvas worked. A green
+"Test Successful" badge did not establish that the search received input.
+
+There is a documented representation beyond `needs`. Lamatic's
+[Loop Node low-code example](https://lamatic.ai/docs/nodes/logic/loop-node#low-code-example)
+declares outgoing `connections` on the Loop, including a `conditionEdge` named
+`Loop Start`. The canvas export in `kits/point-proven/flows/index-articles.ts`
+also represents the Loop-to-body edge as `conditionEdge` with
+`data.condition: "Loop Start"`.
+
+For the builder's existing config, add this alongside `values` and `needs` on
+`forLoopNode_2` (merge with any existing `connections`):
+
+```yaml
+    connections:
+      - condition: Loop Start
+        value: searchNode_3
+        type: conditionEdge
+```
+
+This direct target is adapted from the real canvas export; the docs' YAML example
+routes through an `addNode` placeholder. **This patch has not been applied or
+tested in Studio.** The evidence supports a documented connection mechanism,
+not a conclusion that all Config-tab loop edges are unsupported. Keep the current
+model selections and code. Apply, inspect the edge, then check that the first
+search resolves the current case's question and that Loop End accumulates one
+entry per input case. If the edge still disappears, use the confirmed canvas
+workaround and capture the working Config-tab YAML and raw export for comparison.
 
 **This is not the build path — it is a head start on part of it.** The canonical,
 start-to-finish build path is the visual (canvas) editor, as
@@ -180,9 +268,10 @@ Why the Config tab cannot finish either flow, restated from the two gotchas abov
   #4) — YAML physically cannot author the `credentialId` UUID Studio mints server-side.
   That covers the Vectorize node's embedding model, the VectorDB node, both Vector
   Search nodes, and the Explain Verdict LLM node.
-- The **Condition** node (Flow 1's Skip Gate), the **Loop** node (Flow 2's Cases Loop)
-  and the **Vector Search** node have no Config-tab YAML shape confirmed by any source
-  consulted for this document — and a Condition's `condition` field embeds an
+- The **Condition** node (Flow 1's Skip Gate) and the **Vector Search** node have no
+  Config-tab YAML shape confirmed by the original sources consulted for this
+  document. The Loop's documented `connections` shape is described above, but
+  its adaptation to this flow still needs Studio verification. A Condition's `condition` field embeds an
   auto-generated edge id, while a Loop must be paired to its `forLoopEndNode` by an id
   Studio mints when you draw the connection. Guessing at these silently breaks
   branching, looping or search instead of raising an error.
@@ -246,9 +335,10 @@ concretely in this checklist's tables (`graphqlNode`, `codeNode`, `vectorizeNode
 `vectorNode`, `searchNode`, `LLMNode`, `graphqlResponseNode`) has confirmed `values`
 field names, because they come from real Studio exports already committed in this repo
 — including the Vector Search node's fields, closed out below in Flow 2 from a real
-deployed export. The **Condition node** (Flow 1's Skip Gate) and the **Loop node**
-(Flow 2's Cases Loop) do not have a YAML shape confirmed by any source consulted for
-this document — real exports show these node types' *raw graph JSON* (see e.g.
+deployed export. The **Condition node** (Flow 1's Skip Gate) does not have a YAML
+shape confirmed by the sources consulted for this document. The **Loop node**
+(Flow 2's Cases Loop) now has a documented YAML example; see the connection
+correction above. Real exports also show these node types' *raw graph JSON* (see e.g.
 `conditionNode_942` in `kits/api-change-review/flows/api-review-review.ts`), not their
 Config-tab YAML equivalent. The **Vector Search node** is now in between: its raw
 `values` field names are confirmed (see Flow 2 below), but its Config-tab YAML
@@ -275,7 +365,7 @@ can reference them unambiguously.
 | # | Node type | Node name | Configuration |
 |---|---|---|---|
 | 1 | API Request (`graphqlNode`) | Trigger (`triggerNode_1`) | Fields: `experimentId`, `documentId`, `documentText`, `strategy`. `experimentId` is what lets the Index node (step 5) stamp every vector's metadata with the experiment it belongs to — without it, every experiment's vectors would collide under the same blank id and the Evaluate flow's per-experiment search filter (see Flow 2) could never distinguish them. `strategy` is expected to be `"fixed-width"` or `"clause-aware"`; the schema type system has no enum modifier (see gotcha #2), so that validity check is enforced by the Prepare Chunks code node (step 2) rejecting any unrecognised value, not by the schema. `advance_schema`: `'{"experimentId":"string","documentId":"string","documentText":"string","strategy":"string"}'`. `responeType: realtime` (gotcha #1). |
-| 2 | Code (`codeNode`) | Prepare Chunks (`codeNode_2`) | Paste `@scripts/evidence-fit-index_prepare-chunks.ts` verbatim. Bind `{{triggerNode_1.output}}` (whole node output) — this node reads ONLY the trigger; there is no chunk node feeding it. Update the `{{triggerNode_1...}}` placeholder id in the pasted script to your actual trigger node id, or rename your node to match it. This node generates chunks itself, deterministically, by selecting `FIXED_WIDTH_CONFIG` / `CLAUSE_CONFIG` from `strategy` (rejecting any unrecognised value rather than defaulting) and calling the matching vendored `fixedWidthChunks()` / `clauseAwareChunks()` directly against `documentText`. Output: `{ ok, issues, texts, metadata }`. |
+| 2 | Code (`codeNode`) | Prepare Chunks (`codeNode_2`) | Paste the **built** body for `@scripts/evidence-fit-index_prepare-chunks.ts` — not the `.ts` file itself (gotcha #5); built, it is about 3,800 characters. Bind `{{triggerNode_1.output}}` (whole node output) — this node reads ONLY the trigger; there is no chunk node feeding it. Update the `{{triggerNode_1...}}` placeholder id in the pasted script to your actual trigger node id, or rename your node to match it. This node generates chunks itself, deterministically, by selecting `FIXED_WIDTH_CONFIG` / `CLAUSE_CONFIG` from `strategy` (rejecting any unrecognised value rather than defaulting) and calling the matching vendored `fixedWidthChunks()` / `clauseAwareChunks()` directly against `documentText`. Output: `{ ok, issues, texts, metadata }`. |
 | 3 | Condition (`conditionNode`) | Skip Gate (`conditionNode_3`) | Branch on `{{codeNode_2.output.ok}}`. `false` → route straight to API Response (step 6). `true` → continue to step 4. This is the "downstream nodes must skip when `output.ok === false`" rule from the script's own header comment. On the `false` branch, step 4/5 never run, so `indexedCount` in the response resolves from a node that was skipped — see the note under the outputMapping below for why this still behaves correctly. |
 | 4 | Vectorize (`vectorizeNode`) | Embed Chunks (`vectorizeNode_4`) | Two config fields: **Texts to vectorize** and **Embedding Model Name**. Bind Texts to vectorize to `{{codeNode_2.output.texts}}` (requires `string[]`). Output shape: `{ "vectors": [[...numbers...]] }` — an array of vectors, one per input text, in the same order. |
 | 5 | Index (`vectorNode`) | Index Chunks (`vectorNode_5`) | Index action config fields: **Vector DB**, **Vectors**, **Metadata**, **Primary Keys (JSON)**, **Duplication Records** (`overwrite` or `skip`). Bind Vectors to `{{vectorizeNode_4.output.vectors}}` and Metadata to `{{codeNode_2.output.metadata}}` (a parallel array, one entry per text above) carrying `experimentId`, `documentId`, `strategy`, `chunkId`, `start`, `end`, `content` — this is what lets the Evaluate flow rebuild real `Chunk` objects from search-result metadata later. Primary Keys: `["documentId", "strategy", "chunkId"]`. Duplication Records: `overwrite`. `experimentId` is deliberately **not** part of the key: re-running an experiment against the same document and strategy cleanly replaces the prior vectors (same document ⇒ same chunk boundaries ⇒ idempotent upsert) instead of accumulating stale duplicates. This node's own output fields are **`recordsIndexed`**, `duplicateRecordsDeleted`, and `message` — not `indexedCount`, and there is no field that echoes back the input text count. |
@@ -370,7 +460,7 @@ the metadata schema exists to prevent.
 | 3 | Vector Search (`searchNode`) | Search Fixed-Width | Inside the loop. Confirmed fields — see the callout below the table for the source and full type details. `searchQuery`: current item's `question`. `filters`: scope to this experiment and strategy — the confirmed JSON-encoded-string value (`experimentId` equal to the trigger's `experimentId`, `strategy` equal to the literal `"fixed-width"`) is given below the table, right after the field-type callout. `limit`: a bit more than `topK` (e.g. `10`) so the Metrics node has enough breadth to compute `firstCompleteEvidenceRank` beyond the cutoff. `certainty`: a string, not a number. `embeddingModelName` and `vectorDB`: both model/credential pickers, set in Studio's UI (gotcha #4) — both must match Flow 1's Index step (same embedding model, same Vector DB). |
 | 4 | Vector Search (`searchNode`) | Search Clause-Aware | Same as step 3, but `filters`' second condition matches `strategy` equal to the literal `"clause-aware"` instead — the confirmed value is given below the table. Both searches run on **every** call — this is what lets the Metrics node compute the full baseline-vs-candidate comparison from a single call, matching `compareStrategies`, which always needs both sides. Same field list and caveats as step 3. |
 | 5 | Variables (`variablesNode`) | Combine Case Results | Merge the two search nodes' hits for this loop item into one array (`entry.results`), each hit still carrying its own `metadata.strategy` so downstream code can split them back apart. Loop output: `searchResults: [{ caseId: <item.id>, results: [...] }, ...]`. |
-| 6 | Code (`codeNode`) | Metrics (`codeNode_6`) | Paste `@scripts/evidence-fit-evaluate_metrics.ts` verbatim. Bind `{{triggerNode_1.output}}` and `{{forLoopNode_2.output.searchResults}}` (whole loop output via the `(x)` picker) to the script's `{{triggerNode_1.output}}` / `{{searchNode_1.output}}` placeholders — update those two ids in the pasted script, or rename your nodes to match them. Output: `{ ok, verdict, issues, baseline, candidate, recommended }`. This is the only node in the flow that computes `verdict`, and it needs no per-call `strategy` input — it always evaluates both. |
+| 6 | Code (`codeNode`) | Metrics (`codeNode_6`) | Paste the **built** body for `@scripts/evidence-fit-evaluate_metrics.ts` — not the `.ts` file itself, which is TypeScript and ~39,000 characters against a 10,000-character cap (gotcha #5). Bind `{{triggerNode_1.output}}` and the loop's accumulated results (`{{forLoopEndNode_6.output.accumulated.results}}`, via the `(x)` picker) to the script's `{{triggerNode_1.output}}` / `{{searchNode_1.output}}` placeholders — update those two ids in the pasted body, or rename your nodes to match them. Output: `{ ok, verdict, issues, baseline, candidate, recommended }`. This is the only node in the flow that computes `verdict`, and it needs no per-call `strategy` input — it always evaluates both. |
 | 7 | LLM (`LLMNode`) | Explain Verdict (`llmNode_7`) | System prompt: `@prompts/evidence-fit-evaluate_llm-node_system.md`. User message: bound directly to `{{codeNode_6.output}}` (whole node output) via Studio's inline prompt editor — not externalized, since it is pure data-binding with no static instructional text of its own. Model config: `@model-configs/evidence-fit-evaluate_llm-node.ts`. |
 | 8 | API Response (`graphqlResponseNode`) | Response (`responseNode_triggerNode_1`) | outputMapping (exact JSON below). **Read the callout after the JSON before wiring this node.** |
 

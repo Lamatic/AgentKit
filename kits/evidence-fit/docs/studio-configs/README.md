@@ -18,11 +18,14 @@ Two limits, both explained in
 1. **Pickers can't come from YAML.** Every model, credential and vector-database field
    stores a `credentialId` UUID Studio mints server-side. Applying the YAML leaves those
    fields blank by design (`embeddingModelName: {}`) — set each one in its node panel.
-2. **Loop, Condition and Search YAML shapes are unconfirmed.** No source consulted for
-   this kit shows these node types inside a Config-tab `nodes:` list, only in the raw
-   graph JSON Studio exports. The entries here are a best guess. If Studio rejects them
-   or renders them wrong, delete those nodes and place them on the canvas instead —
-   that is the expected outcome, not a failure.
+2. **Loop connections need more than a `needs` entry.** The builder observed Studio
+   stripping `needs: [forLoopNode_2]` from the first Search node. The Loop docs show
+   an outgoing `connections` list with `condition: Loop Start` and
+   `type: conditionEdge`; see the candidate patch in
+   [`../STUDIO-BUILD.md`](../STUDIO-BUILD.md#loop-to-body-connection-documented-yaml-awaiting-studio-verification).
+   Its direct connection to Search still needs Studio verification. Drawing that
+   edge on the canvas is the confirmed workaround. Condition and Search YAML
+   translations remain incompletely verified; inspect the resulting graph.
 
 Attach credentials and the vector database to the Studio project *before* applying a
 seed, so the pickers have something to offer.
@@ -31,8 +34,10 @@ seed, so the pickers have something to offer.
 
 1. Create a blank flow named `evidence-fit-index`.
 2. Paste `evidence-fit-index.yaml` into the Config tab and apply it.
-3. On the canvas, open **Prepare Chunks** and replace the stub with the complete contents
-   of `../../scripts/evidence-fit-index_prepare-chunks.ts`.
+3. On the canvas, open **Prepare Chunks** and replace the stub with the **built** body for
+   `../../scripts/evidence-fit-index_prepare-chunks.ts` — the `.ts` file is the readable
+   source, not the paste buffer (code nodes run plain JavaScript and cap at 10,000
+   characters; see [`../STUDIO-BUILD.md`](../STUDIO-BUILD.md) gotcha #5).
 4. In **Vectorize**, select an OpenAI embedding model. Record the exact model selected.
 5. In **Index**, select the `EvidenceFit` vector store even if the YAML already displays
    that name.
@@ -51,8 +56,9 @@ seed, so the pickers have something to offer.
    binding, or update the bindings to the ids Studio mints.
 4. In both Search nodes, select the `EvidenceFit` vector store and the exact embedding
    model selected in the Index flow.
-5. Open **Metrics** and replace the stub with the complete contents of
-   `../../scripts/evidence-fit-evaluate_metrics.ts`.
+5. Open **Metrics** and replace the stub with the **built** body for
+   `../../scripts/evidence-fit-evaluate_metrics.ts` (same reason as step 3 — the `.ts`
+   source is ~39,000 characters against a 10,000-character cap).
 6. In that pasted script, replace:
 
    ```ts
