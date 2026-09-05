@@ -276,14 +276,34 @@ LLM "Explain Verdict" → API Response.
   `responeType` set to `realtime` (same misspelled field, same value as Flow 1).
   **Expected result:** the field shows `realtime`.
 
-- [ ] **3.** Set `advance_schema` to the **empty string** `""`, and pass the payload
-  untyped. This flow's `cases` field is an array of objects (`{id, question, evidence[],
-  required?}`), and Studio's schema editor has no object or array-of-object type to
-  describe that — so don't try to type it field by field. There's a working precedent for
-  this exact pattern already in the repo:
-  `kits/point-proven/flows/index-articles.ts` sets `"advance_schema": ""` on its own API
-  Request trigger and successfully passes an array-shaped payload through untyped.
-  **Expected result:** the schema field is empty / shows no typed fields.
+- [ ] **3.** Set `advance_schema` to exactly this:
+
+  ```json
+  {
+    "experimentId": "string",
+    "documentId": "string",
+    "documentText": "string",
+    "topK": "int",
+    "cases": "array"
+  }
+  ```
+
+  Studio **refuses to save the flow with an empty schema** — it raises "Unconfigured
+  GraphQL Schema: You have to configure graphql trigger schema before saving the flow."
+  An earlier version of this document said to leave the schema empty, on the theory that
+  Studio has no type for `cases` (an array of objects: `{id, question, evidence[],
+  required?}`). That was wrong on both counts. `"array"` and `"object"` are real,
+  accepted types — confirmed in merged exports:
+  `kits/atlas-agent/flows/atlas-deliver-execution-context.ts` declares
+  `"approvedTask": "object", "requirements": "array"`, and
+  `kits/sre-command-center/flows/data-ingestion.ts` declares an array of objects as
+  `"metadata": [{}]`.
+
+  `"array"` passes the array straight through, so `apps/actions/orchestrate.ts` needs no
+  change — it already sends `cases` as a raw array and `topK` as a number. Do **not**
+  declare `cases` as `string`; that would require JSON-encoding it in the app.
+  **Expected result:** the flow saves without the Unconfigured GraphQL Schema error, and
+  `{{triggerNode_1.output.cases}}` resolves in the Loop node.
 
 ### 2.2 — The Loop
 

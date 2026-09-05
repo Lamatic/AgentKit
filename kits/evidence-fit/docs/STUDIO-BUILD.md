@@ -77,31 +77,46 @@ it is a string whose *contents* happen to be a small JSON object mapping field n
 type name. The type vocabulary confirmed across every export in this repo is exactly:
 `string`, `int`, `bool`, `float`, `[string]`.
 
-**There is no `[object]` or object type.** `[string]` is the only array form seen
-anywhere. This directly affects the Evaluate flow's trigger, whose `cases` field is an
-array of objects (`{ id, question, evidence: [...], required? }`) — there is no schema
-type that can express that shape. Two workable options:
+Beyond those scalars, **`array` and `object` are also accepted type names**, confirmed in
+merged exports: `kits/atlas-agent/flows/atlas-deliver-execution-context.ts` declares
+`{"approvedTask": "object", "requirements": "array", "documents": "array"}`. An array of
+objects can alternatively be written as a literal — `kits/sre-command-center/flows/data-ingestion.ts`
+uses `{"contents": "[string]", "metadata": [{}]}`.
 
-- **(a)** Declare `cases` as plain `string` and send it JSON-encoded text, parsing it in
-  the Metrics code node.
-- **(b)** Leave `advance_schema: ""` entirely for that trigger. `kits/point-proven/flows/index-articles.ts`
-  does exactly this — its trigger has `"advance_schema": ""` — and successfully passes
-  an array (`urls`) through untyped.
+This is what the Evaluate flow's trigger needs, since its `cases` field is an array of
+objects (`{ id, question, evidence: [...], required? }`):
 
-**Recommended: (b).** It needs no code change anywhere. Option (a) would require a
-matching change in `apps/actions/orchestrate.ts` (JSON-stringifying `input.cases` before
-the flow call, and un-stringifying it in the Metrics node), which this checklist does
-not ask you to make. See Flow 2, step 1 below for the concrete trigger schema this
-implies.
+```json
+{
+  "experimentId": "string",
+  "documentId": "string",
+  "documentText": "string",
+  "topK": "int",
+  "cases": "array"
+}
+```
 
-### 3. No object/array-of-object type at all — keep this in mind everywhere
+`"array"` passes the value straight through, so `apps/actions/orchestrate.ts` needs no
+change — it already sends `cases` as a raw array and `topK` as a number. Do **not**
+declare `cases` as `string`; that would require JSON-stringifying it in the app and
+un-stringifying it in the Metrics node.
 
-This is the same fact as #2, restated as a general rule: whenever a Studio schema field
-(a trigger's `advance_schema`, or any other JSON-typed config value) needs to describe
-something shaped like an object or a list of objects, there is no type for it. Either
-flatten it to scalars, pass it as an untyped/opaque JSON string, or — as with `cases`
-above — leave the schema empty and let the receiving code node parse the raw payload
-itself.
+### 3. The schema cannot be left empty — Studio blocks the save
+
+An earlier version of this document recommended `advance_schema: ""` for the Evaluate
+trigger, citing `kits/point-proven/flows/index-articles.ts`, which does ship an empty
+schema. **Do not follow that.** Studio refuses to save a flow whose GraphQL trigger has
+no schema:
+
+> Unconfigured GraphQL Schema — You have to configure graphql trigger schema before
+> saving the flow
+
+The point-proven export predates that check, and `.gitignore`-style grandfathering
+applies: an already-saved flow keeps working, a new one cannot be saved. Use the typed
+schema in #2 above.
+
+`advance_schema` belongs to the **API Request trigger only**. No other node type —
+Search, Code, Loop, LLM, Response — has a schema field to fill in.
 
 ### 4. Fields of type `model` or marked `isCredential: true` cannot be set from YAML — only Studio's picker can
 
@@ -350,7 +365,7 @@ the metadata schema exists to prevent.
 
 | # | Node type | Node name | Configuration |
 |---|---|---|---|
-| 1 | API Request (`graphqlNode`) | Trigger (`triggerNode_1`) | Fields: `experimentId`, `documentId`, `documentText`, `topK`, `cases` (array of `{ id, question, evidence: [{ quote, start?, end? }], required? }`), `alignmentIssues` (optional array — a direct API caller that ran its own Index step may forward its `issues` here; `orchestrate.ts` never populates it, since it already stops before calling this flow if either Index call fails). `cases` is an array of objects, and there is no schema type for that (gotcha #2/#3) — **recommended: leave `advance_schema: ""` entirely**, the same way `kits/point-proven/flows/index-articles.ts` leaves its trigger untyped to pass an array through. The alternative — declaring `cases` as `string` and JSON-encoding it — would need a matching change in `apps/actions/orchestrate.ts`, which is out of scope here. `responeType: realtime` (gotcha #1). |
+| 1 | API Request (`graphqlNode`) | Trigger (`triggerNode_1`) | Fields: `experimentId`, `documentId`, `documentText`, `topK`, `cases` (array of `{ id, question, evidence: [{ quote, start?, end? }], required? }`), `alignmentIssues` (optional array — a direct API caller that ran its own Index step may forward its `issues` here; `orchestrate.ts` never populates it, since it already stops before calling this flow if either Index call fails). `cases` is an array of objects, which the `array` type covers (gotcha #2) — set `advance_schema` to `{"experimentId":"string","documentId":"string","documentText":"string","topK":"int","cases":"array"}`. Studio blocks the save on an empty schema (gotcha #3). `responeType: realtime` (gotcha #1). |
 | 2 | Loop (`forLoopNode`) | Cases Loop (`forLoopNode_2`) | Iterate `{{triggerNode_1.output.cases}}`. |
 | 3 | Vector Search (`searchNode`) | Search Fixed-Width | Inside the loop. Confirmed fields — see the callout below the table for the source and full type details. `searchQuery`: current item's `question`. `filters`: scope to this experiment and strategy — the confirmed JSON-encoded-string value (`experimentId` equal to the trigger's `experimentId`, `strategy` equal to the literal `"fixed-width"`) is given below the table, right after the field-type callout. `limit`: a bit more than `topK` (e.g. `10`) so the Metrics node has enough breadth to compute `firstCompleteEvidenceRank` beyond the cutoff. `certainty`: a string, not a number. `embeddingModelName` and `vectorDB`: both model/credential pickers, set in Studio's UI (gotcha #4) — both must match Flow 1's Index step (same embedding model, same Vector DB). |
 | 4 | Vector Search (`searchNode`) | Search Clause-Aware | Same as step 3, but `filters`' second condition matches `strategy` equal to the literal `"clause-aware"` instead — the confirmed value is given below the table. Both searches run on **every** call — this is what lets the Metrics node compute the full baseline-vs-candidate comparison from a single call, matching `compareStrategies`, which always needs both sides. Same field list and caveats as step 3. |

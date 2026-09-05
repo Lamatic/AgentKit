@@ -3,7 +3,7 @@ triggerNode:
   nodeType: graphqlNode
   nodeName: API Request
   values:
-    advance_schema: ''
+    advance_schema: '{"experimentId":"string","documentId":"string","documentText":"string","topK":"int","cases":"array"}'
     responeType: realtime
 
 nodes:
