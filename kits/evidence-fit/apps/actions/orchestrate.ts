@@ -365,8 +365,25 @@ function parseComparison(parsed: Record<string, unknown>): Comparison | null {
   return { baseline, candidate, recommended, verdict };
 }
 
+/**
+ * Lamatic's GraphQL API Response maps every field through a quoted template
+ * (`"indexedCount": "{{vectorNode_4.output.recordsIndexed}}"`), so a numeric field
+ * arrives as a string — Studio's own test pane reports the Index flow's `recordsIndexed`
+ * as `string`. `unwrap` in lamatic-client.ts converts "true"/"false" to booleans and
+ * JSON-parses stringified objects, but deliberately leaves other scalars as strings, so
+ * a numeric string reaches here intact. Accept both forms: rejecting "4" would report a
+ * perfectly successful index run as "indexed no chunks".
+ *
+ * Still strict about what a number is — an empty string, whitespace, null, or anything
+ * non-numeric yields null, so a missing or malformed field is never read as 0.
+ */
 function asFiniteNumber(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
 }
 
 type UpstreamErrorClass = "timeout" | "connection" | "invalid_shape" | "reported_failure" | "unknown";
