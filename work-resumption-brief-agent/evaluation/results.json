@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-04T10:51:18.993863",
+  "timestamp": "2026-09-05T22:52:00.007477",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
@@ -44,12 +44,12 @@
       "scenario": "Multiple Blockers",
       "file": "scenario_4_multiple_blockers.json",
       "status": "PARTIAL",
-      "score": 0.0,
+      "score": 0.6666666666666666,
       "brief_summary": {
-        "states": 5,
+        "states": 4,
         "conflicts": 0,
-        "blockers": 0,
-        "actions": 5,
+        "blockers": 3,
+        "actions": 4,
         "confidence": 48.0
       }
     },
@@ -93,5 +93,5 @@
       }
     }
   ],
-  "overall_score": 0.49999999999999994
+  "overall_score": 0.5952380952380951
 }

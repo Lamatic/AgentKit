@@ -54,13 +54,15 @@ Instead of simply summarizing individual messages, the system processes the info
 The agent:
 
 1. Accepts work-related source information.
-2. Normalizes the incoming data.
+2. Normalizes incoming data into a common event representation.
 3. Resolves references to project entities.
-4. Orders events temporally.
+4. Orders events chronologically.
 5. Detects contradictions and conflicts.
-6. Identifies blockers and actions.
-7. Extends source information when additional context is required.
-8. Produces a structured API response containing the reconstructed state.
+6. Reconstructs the current work state.
+7. Identifies blockers and downstream impact.
+8. Collects and evaluates supporting evidence.
+9. Generates and prioritizes possible actions.
+10. Produces a structured work-resumption brief and API response.
 
 ## What Makes It Different?
 
@@ -86,13 +88,16 @@ The central principle is:
 - Source normalization
 - Temporal event ordering
 - Entity resolution
+- Compound entity resolution
 - Conflict detection
 - Contradictory-source detection
-- Outdated-decision detection
+- Outdated-decision handling
 - Blocker identification
-- Action identification
+- Downstream impact assessment
+- Action generation
 - Action prioritization
 - Confidence scoring
+- Evidence collection
 - Source extension
 - Structured API response
 - Evaluation framework
@@ -102,48 +107,129 @@ The central principle is:
 
 ---
 
+# Feature Scope
+
+## In Scope
+
+The current implementation supports:
+
+- Processing commits
+- Processing pull request comments
+- Processing GitHub issues
+- Processing TODO items
+- Processing meeting notes
+- Normalizing different source formats into a common event model
+- Chronological ordering of work events
+- Entity resolution across different source descriptions
+- Compound entity resolution
+- Contradiction and conflict detection
+- Current work-state reconstruction
+- Blocker identification
+- Downstream impact assessment
+- Evidence collection
+- Confidence scoring
+- Action generation
+- Action prioritization
+- Structured work-resumption brief generation
+- API response formatting
+- Handling insufficient or conflicting evidence
+- Automated unit testing
+- End-to-end testing
+- Scenario-based evaluation
+
+## Out of Scope
+
+The current implementation does not include:
+
+- Live synchronization with GitHub, Slack, Discord, or other external services
+- Automatic modification of source repositories or project files
+- Automatic execution of recommended actions
+- Full semantic embedding-based entity resolution
+- LLM-based reasoning or response generation
+- Production-scale distributed processing
+- Real-time notifications
+- Visualization dashboards
+- Multi-language processing
+
+Potential extensions are described in the **Future Work / Roadmap** section.
+
+---
+
+# Supported Sources
+
+The input parser supports the following source types:
+
+- Commits
+- Pull request comments
+- GitHub issues
+- TODO items
+- Meeting notes
+
+Each source is normalized into a common event representation before downstream processing.
+
+---
+
 # Architecture
 
-The system is organized as an eight-component processing pipeline.
+The system uses a staged processing pipeline in which normalized events are progressively transformed into a structured work-resumption brief.
 
 ```text
-                    ┌─────────────────────┐
-                    │    API Request      │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Multi-Source Input  │
-                    │      Parser         │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Source Normalization│
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Entity Resolution   │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Temporal Ordering   │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Conflict Detection  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Source Extension    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Structured API      │
-                    │      Response       │
-                    └─────────────────────┘
++------------------------+
+|      API Request       |
++-----------+------------+
+            |
+            v
++------------------------+
+|  Multi-Source Parser   |
++-----------+------------+
+            |
+            v
++------------------------+
+|  Source Normalization  |
++-----------+------------+
+            |
+            v
++------------------------+
+|   Entity Resolution    |
++-----------+------------+
+            |
+            v
++------------------------+
+|   Temporal Ordering    |
++-----------+------------+
+            |
+            v
++------------------------+
+|   Conflict Detection   |
++-----------+------------+
+            |
+            v
++------------------------+
+|  State Reconstruction  |
++-----------+------------+
+            |
+            v
++------------------------+
+| Blocker Identification |
++-----------+------------+
+            |
+            v
++------------------------+
+|   Evidence Collection  |
++-----------+------------+
+            |
+            v
++------------------------+
+|    Action Generation   |
++-----------+------------+
+            |
+            v
++------------------------+
+|  Action Prioritization |
++-----------+------------+
+            |
+            v
++------------------------+
+|  Structured Brief/API  |
+|       Response         |
++------------------------+

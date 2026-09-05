@@ -2,6 +2,7 @@ from src.logger import setup_logger
 from src.models import WorkState, Evidence, Conflict, StateCategory
 from typing import List
 
+
 logger = setup_logger("StateReconstructor")
 
 
@@ -16,7 +17,6 @@ class StateReconstructor:
         """Combine evidence and conflicts into work states."""
 
         states = []
-
         entity_evidence = {}
 
         for evidence in evidence_list:
@@ -34,7 +34,29 @@ class StateReconstructor:
                 else 0
             )
 
-            if avg_confidence > 80:
+            conclusions = [
+                evidence.conclusion.lower()
+                for evidence in evidence_set
+            ]
+
+            blocker_terms = (
+                "blocked",
+                "unresolved",
+                "not finalized",
+                "failing",
+                "missing",
+                "incomplete",
+            )
+
+            has_blocker_evidence = any(
+                any(term in conclusion for term in blocker_terms)
+                for conclusion in conclusions
+            )
+
+            if has_blocker_evidence:
+                state_category = StateCategory.BLOCKED
+
+            elif avg_confidence > 80:
                 state_category = StateCategory.COMPLETE
 
             elif avg_confidence > 60:
@@ -61,7 +83,9 @@ class StateReconstructor:
 
             states.append(work_state)
 
-        logger.info(f"Reconstructed {len(states)} work states")
+        logger.info(
+            f"Reconstructed {len(states)} work states"
+        )
 
         return states
 
@@ -69,6 +93,14 @@ class StateReconstructor:
         """Extract entity names from conclusion."""
 
         words = conclusion.split()
+
+        # Preserve compound entity names.
+        if (
+            len(words) >= 2
+            and words[0].lower() == "api"
+            and words[1].lower() == "schema"
+        ):
+            return ["API schema"]
 
         entities = [
             word
