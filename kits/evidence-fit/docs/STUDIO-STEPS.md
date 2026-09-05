@@ -29,14 +29,22 @@ wrong `BLOCK` verdict — silently, with no error to tell you why. Two flows mea
 only calls Evaluate after Index has actually returned a success response for both
 strategies (see `apps/actions/orchestrate.ts`).
 
-**2. Build in Studio's visual (canvas) editor — not the Config tab, not hand-written
-YAML.** Several values Studio generates cannot be typed by hand: a Condition node's
+**2. Build in Studio's visual (canvas) editor — YAML alone can never finish either
+flow.** Several values Studio generates cannot be typed by hand: a Condition node's
 `condition` field embeds an auto-generated edge id (a real one looks like
 `"conditionNode_230-addNode_447"`); a Loop node must be paired to a `forLoopEndNode` by an
 id Studio mints when you draw the connection; and every model, credential, and vector
 database field is a picker whose saved value contains a Studio-minted `credentialId`
-UUID. None of that is hand-authorable. The Config tab is useful later, for *inspecting* a
-flow you've already built — it is not the build path here.
+UUID. None of that is hand-authorable, so no amount of YAML finishes either flow.
+
+The Config tab still has two honest uses: *inspecting* a flow you have already built,
+and **seeding the plain nodes** (trigger, code, response) so you place fewer by hand.
+Seeds for both flows live in [`studio-configs/`](./studio-configs/README.md) — applying
+one is optional, and if you do, you still finish every model, credential, vector
+database, Loop, Condition and Search node in the canvas editor exactly as the phases
+below describe. See
+[`STUDIO-BUILD.md`](./STUDIO-BUILD.md#partial-accelerator-seed-the-graph-from-the-config-tab-yaml)
+for why those specific nodes can never come from YAML.
 
 ---
 

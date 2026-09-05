@@ -152,16 +152,32 @@ Verdict node's picker, and Studio fills the blank fields in for you on export.
 
 ---
 
-## Fast path: build from the Config tab (YAML)
+## Partial accelerator: seed the graph from the Config tab (YAML)
 
-The Studio flow editor has a **Config tab** — see the
-[flow config](https://lamatic.ai/docs/flows/flow-config) and
-[flow editor](https://lamatic.ai/docs/flows/editor) docs — offering "a low-code method
-to define flows using a YAML-like syntax, offering flexibility similar to GitHub
-Actions." Pasting YAML here is far faster than placing ~14 nodes by hand one at a time,
-and it is the recommended way to build both EvidenceFit flows. The node-by-node tables
-further down are the reference for what each node's `values` must contain — build the
-YAML by translating each table row into a node entry.
+**This is not the build path — it is a head start on part of it.** The canonical,
+start-to-finish build path is the visual (canvas) editor, as
+[`STUDIO-STEPS.md`](./STUDIO-STEPS.md) sets out. Read that first; come back here for the
+field-level reference.
+
+Why the Config tab cannot finish either flow, restated from the two gotchas above:
+
+- Every `model` / `isCredential` / vector-database field is a **picker only** (gotcha
+  #4) — YAML physically cannot author the `credentialId` UUID Studio mints server-side.
+  That covers the Vectorize node's embedding model, the VectorDB node, both Vector
+  Search nodes, and the Explain Verdict LLM node.
+- The **Condition** node (Flow 1's Skip Gate), the **Loop** node (Flow 2's Cases Loop)
+  and the **Vector Search** node have no Config-tab YAML shape confirmed by any source
+  consulted for this document — and a Condition's `condition` field embeds an
+  auto-generated edge id, while a Loop must be paired to its `forLoopEndNode` by an id
+  Studio mints when you draw the connection. Guessing at these silently breaks
+  branching, looping or search instead of raising an error.
+
+What the Config tab *is* good for here: seeding the plain nodes (trigger, code,
+response) so you place fewer nodes by hand, and **inspecting** a flow you have already
+built. Ready-made seeds for both flows live in
+[`studio-configs/`](./studio-configs/README.md) — apply one, then finish every node
+listed above in the canvas editor. The node-by-node tables further down are the
+reference for what each node's `values` must contain.
 
 The YAML has exactly three top-level sections — `triggerNode`, `nodes`, `responseNode`
 — and each node carries `nodeId`, `nodeType`, `nodeName`, `values`, and a `needs` array
@@ -210,7 +226,7 @@ saving the flow` — and that field can't even be fixed from YAML (gotcha #4 abo
 `generativeModelName` is a `type: "model"` field). Delete the example `LLMNode_187` node
 entirely before adapting this skeleton to either flow's real node table below.
 
-**One caveat before you rely on this for the full graph:** every node type shown
+**Where the confidence behind each node type comes from:** every node type shown
 concretely in this checklist's tables (`graphqlNode`, `codeNode`, `vectorizeNode`,
 `vectorNode`, `searchNode`, `LLMNode`, `graphqlResponseNode`) has confirmed `values`
 field names, because they come from real Studio exports already committed in this repo
@@ -222,10 +238,9 @@ this document — real exports show these node types' *raw graph JSON* (see e.g.
 Config-tab YAML equivalent. The **Vector Search node** is now in between: its raw
 `values` field names are confirmed (see Flow 2 below), but its Config-tab YAML
 translation is not — no source consulted for this document shows a `searchNode` entry
-inside the YAML `nodes:` list, only the raw graph JSON Studio exports. For all three of
-these node types, either place them with the visual node editor, or confirm the exact
-YAML shape live in Studio's Config tab before hand-authoring it — guessing wrong here
-would silently break branching, looping, or search rather than raising an error.
+inside the YAML `nodes:` list, only the raw graph JSON Studio exports. Place all three of
+these node types with the visual node editor — guessing at their YAML would silently
+break branching, looping, or search rather than raising an error.
 
 ---
 

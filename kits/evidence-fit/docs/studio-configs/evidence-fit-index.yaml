@@ -1,0 +1,58 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: graphqlNode
+  nodeName: API Request
+  values:
+    advance_schema: '{"experimentId":"string","documentId":"string","documentText":"string","strategy":"string"}'
+    responeType: realtime
+
+nodes:
+  - nodeId: codeNode_2
+    nodeType: codeNode
+    nodeName: Prepare Chunks
+    values:
+      code: |
+        throw new Error("Replace this stub with kits/evidence-fit/scripts/evidence-fit-index_prepare-chunks.ts before testing.");
+    needs:
+      - triggerNode_1
+
+  - nodeId: vectorizeNode_3
+    nodeType: vectorizeNode
+    nodeName: Vectorize
+    values:
+      inputText: '{{codeNode_2.output.texts}}'
+      embeddingModelName: {}
+    needs:
+      - codeNode_2
+
+  - nodeId: vectorNode_4
+    nodeType: vectorNode
+    nodeName: Index
+    values:
+      action: index
+      vectorDB: EvidenceFit
+      filters: ''
+      limit: 20
+      primaryKeys:
+        - documentId
+        - strategy
+        - chunkId
+      vectorsField: '{{vectorizeNode_3.output.vectors}}'
+      metadataField: '{{codeNode_2.output.metadata}}'
+      duplicateOperation: overwrite
+    needs:
+      - vectorizeNode_3
+
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: graphqlResponseNode
+  nodeName: API Response
+  values:
+    outputMapping: |-
+      {
+        "ok": "{{codeNode_2.output.ok}}",
+        "indexedCount": "{{vectorNode_4.output.recordsIndexed}}",
+        "issues": "{{codeNode_2.output.issues}}"
+      }
+  needs:
+    - vectorNode_4
