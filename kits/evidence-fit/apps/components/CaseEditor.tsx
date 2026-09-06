@@ -94,6 +94,11 @@ export function CaseEditor({ cases, onChange }: Props) {
 
   function addCase() {
     if (cases.length >= LIMITS.maxCases) return;
+    // The counter alone is not enough: a user who renames `case-1` to `case-2` makes the
+    // counter's next candidate a duplicate, and the run is then blocked by the
+    // duplicate-id check with no obvious cause. Skip past ids already in use.
+    const taken = new Set(cases.map((c) => c.id));
+    while (taken.has(`case-${nextCaseNumber.current}`)) nextCaseNumber.current += 1;
     const id = `case-${nextCaseNumber.current}`;
     nextCaseNumber.current += 1;
     onChange([...cases, { id, question: "", required: true, evidence: [{ quote: "" }] }]);

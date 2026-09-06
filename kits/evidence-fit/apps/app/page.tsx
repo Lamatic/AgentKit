@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { runComparison, type OrchestrateResult } from "../actions/orchestrate.ts";
 import { LIMITS } from "../lib/validation.ts";
 import { SAMPLE_EXPERIMENT } from "../lib/fixtures/sample-contract.ts";
@@ -44,6 +44,7 @@ export default function Home() {
   const [comparison, setComparison] = useState<Comparison | null>(null);
   const [mode, setMode] = useState<"local" | "deployed" | null>(null);
   const [inputsChangedSinceRun, setInputsChangedSinceRun] = useState(false);
+  const runRevision = useRef(0);
 
   function resetResults() {
     setValidationErrors([]);
@@ -61,6 +62,14 @@ export default function Home() {
    * note explaining why it disappeared.
    */
   function invalidateStaleResults() {
+    // Bump the revision before anything else. This orphans a run that is still in
+    // flight: its inputs are now out of date, so handleRun must throw the response away
+    // rather than render a verdict against inputs it never ran against. The early
+    // return below cannot do this job — during a run, `comparison` and `mode` are
+    // already null, so it would return before invalidating anything.
+    runRevision.current += 1;
+    setLoading(false);
+
     if (comparison === null && mode === null) return;
     setComparison(null);
     setMode(null);
@@ -68,6 +77,8 @@ export default function Home() {
   }
 
   function loadDemo() {
+    // Replacing every input orphans a run in flight, same as editing one would.
+    runRevision.current += 1;
     setDocumentId(SAMPLE_EXPERIMENT.documentId);
     setDocumentText(SAMPLE_EXPERIMENT.documentText);
     setTopK(SAMPLE_EXPERIMENT.topK);
@@ -83,6 +94,13 @@ export default function Home() {
   }
 
   async function handleRun() {
+    // Every run claims a revision. Anything that changes the inputs bumps it, so a run
+    // that was overtaken can tell on the way out that its answer no longer describes
+    // what is on screen, and drop it.
+    const thisRun = runRevision.current + 1;
+    runRevision.current = thisRun;
+    const isStale = () => runRevision.current !== thisRun;
+
     setLoading(true);
     resetResults();
 
@@ -101,6 +119,8 @@ export default function Home() {
             .map((e) => ({ quote: e.quote })),
         })),
       });
+
+      if (isStale()) return;
 
       if (!result.ok && result.kind === "validation") {
         setValidationErrors(result.errors);
@@ -123,7 +143,7 @@ export default function Home() {
         setMode(result.mode);
       }
     } finally {
-      setLoading(false);
+      if (!isStale()) setLoading(false);
     }
   }
 
@@ -170,7 +190,10 @@ export default function Home() {
               id="document-id"
               type="text"
               value={documentId}
-              onChange={(e) => setDocumentId(e.target.value)}
+              onChange={(e) => {
+                setDocumentId(e.target.value);
+                invalidateStaleResults();
+              }}
               maxLength={LIMITS.maxIdChars}
               className={inputClass}
             />
@@ -188,7 +211,10 @@ export default function Home() {
               min={1}
               max={LIMITS.maxTopK}
               value={topK}
-              onChange={(e) => setTopK(Number(e.target.value))}
+              onChange={(e) => {
+                setTopK(Number(e.target.value));
+                invalidateStaleResults();
+              }}
               className={inputClass}
             />
           </div>

@@ -13,6 +13,13 @@ type Segment = {
   text: string;
   isGold: boolean;
   boundaryBefore: number | null;
+  /**
+   * True only when this boundary falls strictly inside the gold span — the cut that
+   * actually severs the evidence. A boundary in the surrounding context is still worth
+   * showing, but marking it the same red as a severing cut tells the reviewer the wrong
+   * story about why the verdict was BLOCK.
+   */
+  boundarySevers: boolean;
 };
 
 function buildSegments(
@@ -43,6 +50,7 @@ function buildSegments(
       text: documentText.slice(segStart, segEnd),
       isGold: segStart >= span.start && segEnd <= span.end,
       boundaryBefore: boundaries.has(segStart) ? segStart : null,
+      boundarySevers: boundaries.has(segStart) && segStart > span.start && segStart < span.end,
     });
   }
 
@@ -63,8 +71,10 @@ function SpanView({
   return (
     <div className="rounded border border-slate-200 bg-white p-3 text-slate-800 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
       <p className="mb-2 text-[11px] text-slate-500 dark:text-slate-400">
-        Characters {winStart}–{winEnd} of the document. Highlighted text is the required evidence;
-        the red marker is where a chunk boundary cuts through it.
+        Characters {winStart}–{winEnd} of the document. Highlighted text is the required
+        evidence. A <span className="font-semibold text-red-600 dark:text-red-400">red</span> marker
+        is a chunk boundary that cuts through it; a grey marker is a nearby boundary that leaves
+        the evidence intact.
       </p>
       <p className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
         {winStart > 0 && <span aria-hidden="true">…</span>}
@@ -73,11 +83,24 @@ function SpanView({
             {seg.boundaryBefore !== null && (
               <span
                 aria-hidden="true"
-                title={`Chunk boundary at character ${seg.boundaryBefore}`}
-                className="mx-0.5 inline-block h-3 w-[3px] align-middle bg-red-500 dark:bg-red-400"
+                title={
+                  seg.boundarySevers
+                    ? `Chunk boundary at character ${seg.boundaryBefore} — severs this evidence`
+                    : `Chunk boundary at character ${seg.boundaryBefore}`
+                }
+                className={
+                  "mx-0.5 inline-block h-3 w-[3px] align-middle " +
+                  (seg.boundarySevers
+                    ? "bg-red-500 dark:bg-red-400"
+                    : "bg-slate-300 dark:bg-slate-600")
+                }
               />
             )}
-            {seg.boundaryBefore !== null && <span className="sr-only"> chunk boundary </span>}
+            {seg.boundaryBefore !== null && (
+              <span className="sr-only">
+                {seg.boundarySevers ? " chunk boundary severing evidence " : " chunk boundary "}
+              </span>
+            )}
             {seg.isGold ? <mark>{seg.text}</mark> : seg.text}
           </span>
         ))}
