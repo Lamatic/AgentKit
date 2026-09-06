@@ -1,11 +1,9 @@
 # Studio Build Checklist
 
-EvidenceFit's two flows are **not exported into this repository yet**. Per
-`apps/actions/orchestrate.ts`'s header comment, "these flows are built manually in
-Lamatic Studio and are not part of this repository yet." This document is the exact
-checklist Naman follows when building them by hand in Lamatic Studio, so that a genuine
-Studio export — not a hand-authored graph — is what eventually lands at
-`flows/evidence-fit-index.ts` and `flows/evidence-fit-evaluate.ts`.
+Both EvidenceFit flows are now built, deployed, and exported to
+`flows/evidence-fit-index.ts` and `flows/evidence-fit-evaluate.ts` — genuine Studio
+exports, not hand-authored graphs. This document is the checklist they were built from,
+kept as the field-level reference for rebuilding either flow in a fresh Studio project.
 
 Everything below is derived directly from three sources of truth already in this kit,
 and this checklist must stay consistent with them:

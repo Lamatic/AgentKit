@@ -407,11 +407,12 @@ downloads.
 ## 6. Part E — what this document does not cover
 
 Everything above exercises **local mode only**. EvidenceFit's deployed path — real
-Lamatic flows, real vector search — cannot be manually tested yet, because the two flows
-(`evidence-fit-index`, `evidence-fit-evaluate`) are not exported into this repository.
-They have to be built by hand in Lamatic Studio first, following
-[`STUDIO-BUILD.md`](./STUDIO-BUILD.md); until that's done and both flow IDs are set in
-`apps/.env.local`, there is no deployed run to check.
+Lamatic flows, real vector search — needs the two flows
+(`evidence-fit-index`, `evidence-fit-evaluate`) live in a Lamatic project of your own.
+They are exported at [`../flows/`](../flows/); import them, set each model and vector-DB
+picker by hand (see [`STUDIO-BUILD.md`](./STUDIO-BUILD.md) gotcha #4 — `credentialId` is
+minted per project and is blank in the committed configs), deploy, then put both flow IDs
+in `apps/.env.local`. Until those IDs are set, there is no deployed run to check.
 
 One consequence worth being explicit about: local mode's per-question ranking is a
 deliberate **upper bound**, not a retrieval-quality measurement — it ranks chunks by raw

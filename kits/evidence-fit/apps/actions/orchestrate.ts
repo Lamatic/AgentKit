@@ -17,8 +17,8 @@
  * wired to `verdict` in the flow's API Response (see docs/STUDIO-BUILD.md), and this app
  * never substitutes its own computation for that value.
  *
- * Deployed flow contract (these flows are built manually in Lamatic Studio and are not
- * part of this repository yet — see kits/evidence-fit/docs/STUDIO-BUILD.md):
+ * Deployed flow contract (both flows are built in Lamatic Studio and exported to
+ * kits/evidence-fit/flows/ — see kits/evidence-fit/docs/STUDIO-BUILD.md):
  *
  *   Index flow (LAMATIC_EVIDENCE_FIT_INDEX_FLOW_ID) — called once per strategy:
  *     request:  { experimentId: string; documentId: string; documentText: string;
