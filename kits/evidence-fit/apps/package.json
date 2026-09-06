@@ -25,6 +25,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "esbuild": "0.28.2",
     "eslint": "^9",
     "eslint-config-next": "^15.5.22",
     "postcss": "^8.4.0",

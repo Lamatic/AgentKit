@@ -135,7 +135,7 @@ nodes:
     nodeName: Metrics
     values:
       code: |
-        throw new Error("Replace this stub with kits/evidence-fit/scripts/evidence-fit-evaluate_metrics.ts, then bind searchOut to forLoopEndNode_6.output.accumulated.results before testing.");
+        throw new Error("Build scripts/evidence-fit-evaluate_metrics.ts with scripts/build-node-body.cjs, paste the JavaScript body here, and bind searchOut to the whole forLoopEndNode_6.output.");
     needs:
       - forLoopEndNode_6
 

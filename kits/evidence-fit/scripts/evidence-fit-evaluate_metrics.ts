@@ -922,8 +922,8 @@ export function compareStrategies(args: {
 // AcceptanceCaseInput[], already structurally validated on submission),
 // topK, and alignmentIssues (ValidationIssue[] forwarded from the Index
 // flow; empty/absent means indexing succeeded cleanly for both strategies).
-// Bind {{searchNode_1.output}} to YOUR per-case search node — whole node
-// output via the (x) picker. Replace both node ids with your actual ones.
+// Bind the whole Loop End output via the (x) picker. Replace the trigger and
+// loop-end node ids below with the actual ids in your graph.
 // Never leave {{ }} in comments.
 //
 // Both strategies were indexed into the same collection (see
@@ -941,7 +941,7 @@ export function compareStrategies(args: {
 // any LLM explanation node writes to a separate `explanation` field only.
 
 let trigger = {{triggerNode_1.output}};
-let searchOut = {{searchNode_1.output}};
+let searchOut = {{forLoopEndNode_6.output}};
 
 function asString(v) {
   if (v == null) return "";
@@ -984,19 +984,36 @@ let searchData = toObject(searchOut);
 if (searchData === null) searchData = toArray(searchOut);
 if (searchData === null) searchData = [];
 
-// Lamatic's Loop End node nests its per-iteration captures under `accumulated`,
-// keyed by whatever that node's outputAccumulator template declares. Bind this
+// The live Loop End returns {condition, loopOutput}, with each iteration holding
+// node records such as {codeNode_5: {output: {caseId, results}}}. Unwrap the
+// Combine outputs by their contract, so redrawing a node cannot stale an id here.
+// Also accept legacy accumulator envelopes used by imported configurations. Bind this
 // node to the loop end's WHOLE output ({{forLoopEndNode_N.output}}) rather than a
 // deep path: Studio resolves templates before this code runs, so a deep path whose
 // intermediate key is missing throws "Cannot read properties of undefined" and the
 // defensive parsing below never gets a chance to run.
 if (searchData && typeof searchData === "object" && !Array.isArray(searchData)) {
+  const iterations = toArray(searchData.loopOutput);
+  if (iterations !== null) {
+    searchData = iterations.flatMap(function (iteration) {
+      const nodes = toObject(iteration) || {};
+      return Object.values(nodes).map(function (node) {
+        const record = toObject(node);
+        return toObject(record && record.output);
+      }).filter(function (entry) {
+        return entry && asString(entry.caseId) && toArray(entry.results) !== null;
+      });
+    });
+  }
   const acc = toObject(searchData.accumulated);
   if (acc !== null) searchData = acc;
 }
 
 if (!Array.isArray(searchData) && typeof searchData === "object") {
-  if (Array.isArray(searchData.results)) searchData = searchData.results;
+  // toArray, not Array.isArray: an accumulator template that substitutes a value
+  // into a quoted JSON slot hands this back as a JSON string, not an array.
+  const envelope = toArray(searchData.results);
+  if (envelope !== null) searchData = envelope;
   else if (Array.isArray(searchData.cases)) searchData = searchData.cases;
   else if (Array.isArray(searchData.data)) searchData = searchData.data;
   else {
@@ -1008,6 +1025,10 @@ if (!Array.isArray(searchData) && typeof searchData === "object") {
   }
 }
 if (!Array.isArray(searchData)) searchData = [];
+
+// Diagnostic count of parsed entries. Zero can indicate empty, missing, or malformed
+// input; it does not by itself prove a binding or node-id failure.
+const receivedEntryCount = searchData.length;
 
 // An outputAccumulator template that wraps each capture in its own array yields
 // [[entry], [entry], ...]. Flatten one level so every element is a per-case entry.
@@ -1152,3 +1173,6 @@ if (!compareResult.ok) {
     recommended: comparison.recommended,
   };
 }
+
+// Always report the parser's entry count on both branches.
+output._entriesReceived = receivedEntryCount;

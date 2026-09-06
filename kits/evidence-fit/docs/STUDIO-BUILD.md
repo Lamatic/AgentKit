@@ -189,6 +189,30 @@ too big, so the natural response is to trim the inlined `{{node.output}}` values
 changes nothing when the body is already over the cap on its own. Check the character
 count of the code first; it is the cheaper test and the more likely cause.
 
+Build from the kit directory after `npm ci` in `apps`:
+
+```sh
+node scripts/build-node-body.cjs scripts/evidence-fit-evaluate_metrics.ts metrics.js
+node scripts/build-node-body.cjs scripts/evidence-fit-evaluate_combine-search-results.ts combine.js
+node scripts/build-node-body.cjs scripts/evidence-fit-index_prepare-chunks.ts prepare-chunks.js
+```
+
+Paste the generated JavaScript into each node. The builder selects reachable engine
+declarations, transpiles and minifies inside an IIFE, and refuses to write a body over
+10,000 characters or bytes. Built validation messages use the issue code as their short
+label; issue codes, case IDs, quotes and verdict logic stay intact. The app's full error
+messages and byte-identical vendored source stay intact. Metrics currently builds to
+9,517 characters. `apps/__tests__/node-bodies.test.ts` checks the built runtime contract
+and all three bodies' size limits.
+
+The live Loop End output is `{ condition: "Loop End", loopOutput: [...] }`.
+Each iteration contains node records, including the Combine node's
+`{ output: { caseId, results } }`. Bind Metrics to the **whole** Loop End output.
+The parser extracts Combine outputs by their fields, independent of its node ID,
+and accepts JSON text at each boundary. `outputAccumulator` is present in the saved
+configuration but did not produce an `accumulated` field in the verified run.
+`_entriesReceived` reports parsed entries; it is not proof that a binding is missing.
+
 Two consequences for this kit:
 
 - **The `scripts/*.ts` files cannot be pasted verbatim.** They are TypeScript (code nodes
@@ -459,9 +483,9 @@ the metadata schema exists to prevent.
 | 2 | Loop (`forLoopNode`) | Cases Loop (`forLoopNode_2`) | Iterate `{{triggerNode_1.output.cases}}`. |
 | 3 | Vector Search (`searchNode`) | Search Fixed-Width | Inside the loop. Confirmed fields — see the callout below the table for the source and full type details. `searchQuery`: current item's `question`. `filters`: scope to this experiment and strategy — the confirmed JSON-encoded-string value (`experimentId` equal to the trigger's `experimentId`, `strategy` equal to the literal `"fixed-width"`) is given below the table, right after the field-type callout. `limit`: a bit more than `topK` (e.g. `10`) so the Metrics node has enough breadth to compute `firstCompleteEvidenceRank` beyond the cutoff. `certainty`: a string, not a number. `embeddingModelName` and `vectorDB`: both model/credential pickers, set in Studio's UI (gotcha #4) — both must match Flow 1's Index step (same embedding model, same Vector DB). |
 | 4 | Vector Search (`searchNode`) | Search Clause-Aware | Same as step 3, but `filters`' second condition matches `strategy` equal to the literal `"clause-aware"` instead — the confirmed value is given below the table. Both searches run on **every** call — this is what lets the Metrics node compute the full baseline-vs-candidate comparison from a single call, matching `compareStrategies`, which always needs both sides. Same field list and caveats as step 3. |
-| 5 | Variables (`variablesNode`) | Combine Case Results | Merge the two search nodes' hits for this loop item into one array (`entry.results`), each hit still carrying its own `metadata.strategy` so downstream code can split them back apart. Loop output: `searchResults: [{ caseId: <item.id>, results: [...] }, ...]`. |
-| 6 | Code (`codeNode`) | Metrics (`codeNode_6`) | Paste the **built** body for `@scripts/evidence-fit-evaluate_metrics.ts` — not the `.ts` file itself, which is TypeScript and ~39,000 characters against a 10,000-character cap (gotcha #5). Bind `{{triggerNode_1.output}}` and the loop's accumulated results (`{{forLoopEndNode_6.output.accumulated.results}}`, via the `(x)` picker) to the script's `{{triggerNode_1.output}}` / `{{searchNode_1.output}}` placeholders — update those two ids in the pasted body, or rename your nodes to match them. Output: `{ ok, verdict, issues, baseline, candidate, recommended }`. This is the only node in the flow that computes `verdict`, and it needs no per-call `strategy` input — it always evaluates both. |
-| 7 | LLM (`LLMNode`) | Explain Verdict (`llmNode_7`) | System prompt: `@prompts/evidence-fit-evaluate_llm-node_system.md`. User message: bound directly to `{{codeNode_6.output}}` (whole node output) via Studio's inline prompt editor — not externalized, since it is pure data-binding with no static instructional text of its own. Model config: `@model-configs/evidence-fit-evaluate_llm-node.ts`. |
+| 5 | Code (`codeNode`) | Combine Search Results (`codeNode_5`) | Build `scripts/evidence-fit-evaluate_combine-search-results.ts`. Parse the current case and both search outputs, retaining case ID and ranked chunk metadata. Loop End (`forLoopEndNode_6`) follows this node and returns each iteration under `loopOutput`. |
+| 6 | Code (`codeNode`) | Metrics (`codeNode_7`) | Build `scripts/evidence-fit-evaluate_metrics.ts`. Bind `{{triggerNode_1.output}}` and the whole `{{forLoopEndNode_6.output}}` using the picker. The parser reads the Combine record in each `loopOutput` iteration. Output: `{ ok, verdict, issues, baseline, candidate, recommended, _entriesReceived }`. Only this node computes the verdict. |
+| 7 | LLM (`LLMNode`) | Explain Verdict (`llmNode_7`) | System prompt: `@prompts/evidence-fit-evaluate_llm-node_system.md`. User message: bound directly to `{{codeNode_7.output}}` (whole node output) via Studio's inline prompt editor — not externalized, since it is pure data-binding with no static instructional text of its own. Model config: `@model-configs/evidence-fit-evaluate_llm-node.ts`. |
 | 8 | API Response (`graphqlResponseNode`) | Response (`responseNode_triggerNode_1`) | outputMapping (exact JSON below). **Read the callout after the JSON before wiring this node.** |
 
 **Vector Search node — confirmed fields, closed from a real deployed export:** the
@@ -621,13 +645,13 @@ ever needed, check the node panel in Studio for what it actually offers.
 
 ```json
 {
-  "verdict": "{{codeNode_6.output.verdict}}",
-  "ok": "{{codeNode_6.output.ok}}",
-  "issues": "{{codeNode_6.output.issues}}",
-  "baseline": "{{codeNode_6.output.baseline}}",
-  "candidate": "{{codeNode_6.output.candidate}}",
-  "recommended": "{{codeNode_6.output.recommended}}",
-  "explanation": "{{llmNode_7.output.text}}"
+  "verdict": "{{codeNode_7.output.verdict}}",
+  "ok": "{{codeNode_7.output.ok}}",
+  "issues": "{{codeNode_7.output.issues}}",
+  "baseline": "{{codeNode_7.output.baseline}}",
+  "candidate": "{{codeNode_7.output.candidate}}",
+  "recommended": "{{codeNode_7.output.recommended}}",
+  "explanation": "{{LLMNode_8.output.generatedResponse}}"
 }
 ```
 
