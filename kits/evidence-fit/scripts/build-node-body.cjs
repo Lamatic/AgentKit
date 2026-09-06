@@ -60,13 +60,48 @@ function buildNodeBody(source) {
   transformed.dispose();
   // Local scope allows dead-code elimination and identifier mangling, while the
   // outer assignment preserves Lamatic's output contract. Source stays verbatim.
-  return esbuild.transformSync(`output=(()=>{let output;\n${body}\nreturn output})();`, {
+  const minified = esbuild.transformSync(`output=(()=>{let output;\n${body}\nreturn output})();`, {
     loader: "ts",
     target: "es2020",
     minify: true,
     treeShaking: true,
     legalComments: "none",
-  }).code.replace(/__LAMATIC_TEMPLATE_(\d+)__/g, (_, i) => templates[Number(i)]);
+  }).code;
+
+  return escapeRawNewlines(minified).replace(
+    /__LAMATIC_TEMPLATE_(\d+)__/g,
+    (_, i) => templates[Number(i)]
+  );
+}
+
+/**
+ * Minified output is one line, so any raw newline left in it sits inside a template
+ * literal — esbuild rewrites the source's `"\n"` escape into a backtick literal holding
+ * a real newline. That is a live bug rather than a cosmetic one: the byte then travels
+ * through git's CRLF normalisation and a copy-paste into Studio's editor, and a `\n`
+ * that arrives as `\r\n` turns a one-character Set member into a two-character string.
+ * `CLAUSE_TERMINATORS.has(text[i])` tests one character at a time, so newline silently
+ * stops being a clause terminator and clause-aware chunking changes shape.
+ *
+ * Escaping is semantics-preserving — inside a template literal `\n` and a raw newline
+ * are the same character — but the result is verified to still parse before it is
+ * returned, rather than trusted.
+ */
+function escapeRawNewlines(code) {
+  // esbuild terminates its output with a newline. That one is outside any literal, so
+  // it is dropped rather than escaped.
+  const trimmed = code.replace(/\n$/, "");
+  const escaped = trimmed.replace(/\r/g, "\\r").replace(/\n/g, "\\n");
+  if (escaped === trimmed) return trimmed;
+  try {
+    new Function(escaped);
+  } catch {
+    throw new Error(
+      "Escaping raw newlines produced unparsable output — a newline was emitted outside a " +
+        "template literal. Inspect the minifier output before shipping this body."
+    );
+  }
+  return escaped;
 }
 
 module.exports = { buildNodeBody };

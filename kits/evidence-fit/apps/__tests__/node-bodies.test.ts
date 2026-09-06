@@ -83,11 +83,55 @@ test("built Metrics retains accumulator compatibility and handles an empty loop"
   assert.equal(empty.candidate.spanCoverageAtK.numerator, 0);
 });
 
+// Maintained source -> the artifact the exported flow actually resolves via @scripts/.
+const NODE_ARTIFACTS = [
+  ["evidence-fit-evaluate_metrics.ts", "evidence-fit-evaluate_code-node-7_code.ts"],
+  ["evidence-fit-evaluate_combine-search-results.ts", "evidence-fit-evaluate_code-node-5_code.ts"],
+  ["evidence-fit-index_prepare-chunks.ts", "evidence-fit-index_code-node-2_code.ts"],
+] as const;
+
+const readScript = (file: string) =>
+  readFileSync(new URL(`../../scripts/${file}`, import.meta.url), "utf8");
+
 test("all built node bodies fit the platform budget and contain no unresolved build placeholders", () => {
-  for (const file of ["evidence-fit-evaluate_metrics.ts", "evidence-fit-evaluate_combine-search-results.ts", "evidence-fit-index_prepare-chunks.ts"]) {
-    const built = buildNodeBody(readFileSync(new URL(`../../scripts/${file}`, import.meta.url), "utf8"));
+  for (const [file] of NODE_ARTIFACTS) {
+    const built = buildNodeBody(readScript(file));
     assert.ok(Buffer.byteLength(built) <= 10000, `${file} exceeds the code-size budget`);
     assert.ok(!built.includes("__LAMATIC_TEMPLATE_"));
+  }
+});
+
+// The flows resolve @scripts/<node>_code.ts, not the readable sources beside them. When
+// those two drift, review happens against code the platform never runs. This caught a
+// shipped Combine artifact that read currentCase.id without parsing it first, which
+// emptied caseId and silently zeroed every retrieval metric.
+test("each exported node artifact is exactly what its maintained source builds to", () => {
+  for (const [source, artifact] of NODE_ARTIFACTS) {
+    assert.equal(
+      readScript(artifact).trim(),
+      buildNodeBody(readScript(source)).trim(),
+      `${artifact} has drifted from ${source} — rebuild it with scripts/build-node-body.cjs`
+    );
+  }
+});
+
+// A raw newline in a built body only survives while nothing normalises line endings.
+// Git checkout on Windows and a paste into Studio's editor both do. The minifier turns
+// the source's "\n" into a backtick literal holding a real newline, and once that
+// arrives as \r\n, `CLAUSE_TERMINATORS.has(char)` can never match it — newline stops
+// being a clause terminator and clause-aware chunking quietly changes shape.
+test("no built node body carries a raw newline that CRLF normalisation could corrupt", () => {
+  for (const [source, artifact] of NODE_ARTIFACTS) {
+    for (const [label, code] of [
+      [source, buildNodeBody(readScript(source))],
+      [artifact, readScript(artifact).replace(/\r?\n$/, "")],
+    ] as const) {
+      assert.equal(
+        /[\r\n]/.test(code),
+        false,
+        `${label} contains a raw line break; it must be escaped as \\n to survive checkout`
+      );
+    }
   }
 });
 
