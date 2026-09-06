@@ -116,6 +116,7 @@ export const nodes = [
         "nodeName": "Index",
         "vectorDB": "EvidenceFit",
         "primaryKeys": [
+          "experimentId",
           "documentId",
           "strategy",
           "chunkId"

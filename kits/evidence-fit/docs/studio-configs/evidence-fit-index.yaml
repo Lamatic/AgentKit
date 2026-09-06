@@ -34,12 +34,11 @@ nodes:
       filters: ''
       limit: 20
       primaryKeys:
+        - experimentId
         - documentId
         - strategy
         - chunkId
       vectorsField: '{{vectorizeNode_3.output.vectors}}'
-      metadataField: '{{codeNode_2.output.metadata}}'
-      duplicateOperation: overwrite
       metadataField: '{{codeNode_2.output.metadata}}'
       duplicateOperation: overwrite
     needs:
