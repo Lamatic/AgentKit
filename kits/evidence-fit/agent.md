@@ -62,9 +62,27 @@ that verdict.
 ### Evaluate (`evidence-fit-evaluate`)
 
 - Trigger
-  - API Request. Expected input: `{ documentId: string; strategy: "fixed-width" | "clause-aware"; topK: number; cases: { id: string; question: string }[] }`.
-  - Called once per strategy by `apps/actions/orchestrate.ts`, after both strategies have
-    been indexed.
+  - API Request. Complete expected input, matching what `runEvaluateFlow` sends:
+    ```ts
+    {
+      experimentId: string;
+      documentId: string;
+      documentText: string;
+      topK: number;
+      cases: {
+        id: string;
+        question: string;
+        evidence: { quote: string; start?: number; end?: number }[];
+        required?: boolean;
+      }[];
+      alignmentIssues?: ValidationIssue[];
+    }
+    ```
+    `documentText` and full `evidence` are not optional: the Metrics node re-chunks the
+    document itself and resolves every gold span against it, so a trigger missing either
+    cannot produce a verdict. There is no `strategy` field — one call evaluates both.
+  - Called **once per experiment** by `apps/actions/orchestrate.ts`, after both
+    strategies have been indexed.
 - What it does
   - Vector-searches per case, filtered by `experimentId` and `strategy` metadata so no
     result leaks across experiments or strategies.
@@ -97,10 +115,12 @@ that verdict.
   computes the final comparison via `compareStrategies` — using the deployed flows' real
   chunking and retrieval when configured, or an equivalent local engine run when not
   (`isLamaticConfigured()`).
-- Both flows are **not yet exported into this repository** — see
-  `docs/STUDIO-BUILD.md` for the exact manual build checklist and the known gap between
-  today's stripped-down Evaluate request and what the Metrics node needs for its own
-  verdict to be meaningful outside the app.
+- Both flows are exported at `flows/evidence-fit-index.ts` and
+  `flows/evidence-fit-evaluate.ts`. Importing them into a Lamatic project still needs
+  manual work: every model and vector-database field stores a project-specific
+  `credentialId` that Studio mints server-side, so those pickers are set by hand after
+  import. `docs/STUDIO-BUILD.md` is the field-level reference for that, and for
+  rebuilding either flow from scratch.
 
 ## Guardrails
 

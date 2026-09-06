@@ -383,7 +383,7 @@ is supposed to fail the whole suite if either copy ever drifts from `core.ts`. P
 
 - [ ] All 147 tests pass again, matching Part A.
 
-### 5.2 No credential can reach the browser
+### 5.2 No credential reaches the browser bundle
 
 From `kits/evidence-fit/apps` (not the kit root — the kit root's own `README.md`
 contains the literal string `NEXT_PUBLIC_` in a sentence *about* this guarantee, which

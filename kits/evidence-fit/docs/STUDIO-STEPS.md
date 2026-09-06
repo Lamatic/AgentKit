@@ -141,14 +141,19 @@ chunk result.
 - [ ] **1.** Add a Code node immediately after API Request. Name it **Prepare Chunks**.
   **Expected result:** a new node on the canvas, connected from API Request.
 
-- [ ] **2.** Open `scripts/evidence-fit-index_prepare-chunks.ts` in your editor, select
-  everything, and copy it — vendored block included. It's roughly 900 lines; that length
-  is expected and correct, don't trim it.
-  **Expected result:** the full file contents are on your clipboard.
+- [ ] **2.** Build the node body. Do **not** paste the `.ts` file: it is TypeScript, code
+  nodes run plain JavaScript, and at roughly 900 lines it is far past the platform's
+  10,000-character limit. From `kits/evidence-fit` (after `npm ci` in `apps`):
+  ```bash
+  node scripts/build-node-body.cjs scripts/evidence-fit-index_prepare-chunks.ts prepare-chunks.js
+  ```
+  **Expected result:** it prints a character and byte count, both under 10,000. The
+  already-built body is also committed at
+  `scripts/evidence-fit-index_code-node-2_code.ts` if you would rather copy that.
 
-- [ ] **3.** Paste the entire contents into the Code node's `code` field.
-  **Expected result:** the editor shows the full script, ending in the `output = { ok:
-  ..., issues: ..., texts: ..., metadata: ... }` assignment.
+- [ ] **3.** Paste the entire built body into the Code node's `code` field.
+  **Expected result:** the editor shows one long line of minified JavaScript ending in
+  `})();`.
 
 - [ ] **4.** Find this line near the top of the pasted script:
   ```
@@ -455,9 +460,12 @@ canvas) — Studio's canvas shows the loop as a boundary you drop nodes into. Bo
   **Expected result:** no validation error on the Loop End node.
 
 - [ ] **3.** After wiring section 2.6 below, come back and test-run the whole loop, then
-  confirm `{{forLoopEndNode_6.output.accumulated.results}}` (your Loop End node's id)
-  comes back as an array with exactly one entry per case in your test payload — not one
-  entry per case-per-strategy (2×), and not one flattened list of chunks.
+  open the Loop End node's output. In the verified build it comes back as
+  `{ condition: "Loop End", loopOutput: [...] }` — one `loopOutput` entry per case in your
+  test payload, each holding the node records for that iteration including Combine's
+  `{ output: { caseId, results } }`. Not one entry per case-per-strategy (2×), and not one
+  flattened list of chunks. An `accumulated` key may or may not appear depending on how
+  `outputAccumulator` is configured; the Metrics node reads either.
   **Expected result:** the accumulated array's length equals your test payload's `cases`
   array length.
 
@@ -468,19 +476,29 @@ canvas) — Studio's canvas shows the loop as a boundary you drop nodes into. Bo
   **Expected result:** a new node on the canvas, outside the loop, connected from Loop
   End.
 
-- [ ] **2.** Open `scripts/evidence-fit-evaluate_metrics.ts`, select all, copy, and paste
-  the entire contents into this node's `code` field.
-  **Expected result:** the editor shows the full script.
+- [ ] **2.** Set the node ids in `scripts/evidence-fit-evaluate_metrics.ts` **first**
+  (step 3), then build it and paste the built body — the `.ts` file itself is TypeScript
+  and roughly four times the 10,000-character code-node limit:
+  ```bash
+  node scripts/build-node-body.cjs scripts/evidence-fit-evaluate_metrics.ts metrics.js
+  ```
+  **Expected result:** it prints a size under 10,000, and the editor shows one long line
+  of minified JavaScript. The already-built body is committed at
+  `scripts/evidence-fit-evaluate_code-node-7_code.ts`.
 
-- [ ] **3.** Find and update these two lines near the top of the pasted script:
+- [ ] **3.** Before building, find and update these two lines near the top of the source:
   ```
   let trigger = {{triggerNode_1.output}};
   let searchOut = {{searchNode_1.output}};
   ```
   Replace `triggerNode_1` with your real API Request node's id. Replace
-  `searchNode_1` with your Loop End node's accumulated-results path:
-  `{{forLoopEndNode_6.output.accumulated.results}}` — **not** a raw Vector Search node's
-  id. The placeholder name in the script is illustrative ("your per-case search node");
+  `searchNode_1` with your Loop End node's **whole** output — `{{forLoopEndNode_6.output}}`
+  — **not** a raw Vector Search node's id, and not a deeper path into it. Studio resolves
+  a template before the code runs, so a deep path whose intermediate key is missing
+  throws during resolution and the node's own parsing never gets to run. The live Loop
+  End output is `{ condition, loopOutput: [...] }`, with each iteration carrying the
+  Combine node's `{ output: { caseId, results } }`; the script digs that out itself.
+  The placeholder name in the script is illustrative ("your per-case search node");
   what actually belongs there is whatever produces the final array of `{caseId, results}`
   entries, which in this build is the Loop End node's accumulator, not either Search node
   directly. Binding either Search node's output here directly would give the script only
@@ -700,7 +718,8 @@ Response), no grey/unresolved bindings, `verdict` traceable to the Metrics node 
 | Grey / non-resolving `{{...}}` bindings | The node id inside a pasted script or mapping doesn't match your actual node's id | Re-check every `{{...}}` reference in the Code nodes and mappings against the real ids shown in each node's settings panel; prefer binding a whole node output over a nested path when you're not certain of the exact shape |
 | Vector Search returns nothing for every case | The two flows point at different vector databases, or `evidence-fit-index` hasn't been run yet for this `experimentId`/`strategy` combination | Confirm both flows' VectorDB fields point at the same database (Phase 0 step 5); re-run Phase 3 steps 2–3 for the `experimentId` you're testing |
 | `Search — Fixed-Width` and `Search — Clause-Aware` return overlapping/wrong-strategy results | The `filters` JSON was mistyped, incomplete, or the `strategy` operand's `valueText` was left the same on both nodes | Re-check `filters` on each node against section 2.3 step 3/6 field by field — confirm both `path` values (`experimentId`, `strategy`), that `operator` is `Equal` on both operands, and that the two nodes' `strategy` operand differ (`fixed-width` vs `clause-aware`) |
-| Metrics code node's `baseline`/`candidate` come back `null` with `ok: false` | The accumulated search results didn't reach the Metrics node in the `{caseId, results}` shape it expects — often because the Variables node's `results` field only merged one strategy, or the Loop End's `outputAccumulator` wasn't wired to the Variables node | Test-run the Loop End node in isolation (section 2.5 step 3) and confirm `accumulated.results` has one entry per case, each with a `results` array containing both `"fixed-width"` and `"clause-aware"` items before touching the Metrics node again |
+| Metrics code node's `baseline`/`candidate` come back `null` with `ok: false` | The per-case search results didn't reach the Metrics node in the `{caseId, results}` shape it expects | Test-run the Loop End node (section 2.5 step 3) and confirm its `loopOutput` has one entry per case, each carrying a Combine record whose `results` array contains both `"fixed-width"` and `"clause-aware"` items, before touching the Metrics node again |
+| Every retrieval metric is `0` — `spanCoverageAtK` `0/814`, `completeEvidenceRecallAtK` `0/5` — while span integrity, severed spans and the chunk listing are all correct | Metrics received no usable per-case entries. Check `_entriesReceived` in its output: `0` means the loop binding resolved to nothing, so fix the binding. A non-zero count with zero coverage means the entries arrived without a usable `caseId` — Metrics skips any entry whose `caseId` is empty, and every retrieval number then reads as a clean zero rather than an error | Open the Combine node's output and read its diagnostics: `_caseIdEmpty` must be `false`, and `_fixedHits`/`_clauseHits` must both be greater than zero. If `_caseIdEmpty` is `true`, the loop variable arrived as JSON text and was not parsed — rebuild Combine from `scripts/evidence-fit-evaluate_combine-search-results.ts` |
 | A deployed test looks fine but the app's Evaluate call fails with "did not return a valid comparison shape" | The API Response `outputMapping` is missing one of `verdict`/`baseline`/`candidate`/`recommended`, or one is misspelled | Re-check `outputMapping` in section 2.8 field by field against `apps/actions/orchestrate.ts`'s `parseComparison()` |
 
 ---

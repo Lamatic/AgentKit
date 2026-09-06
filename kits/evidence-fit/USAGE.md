@@ -178,11 +178,15 @@ reranker. Only deployed mode, against a real vector index, measures actual retri
 
 ## 7. Wiring up the deployed path
 
-1. **Build both flows by hand in Lamatic Studio**, following
-   [`docs/STUDIO-BUILD.md`](./docs/STUDIO-BUILD.md) — the exact node-by-node checklist,
-   including every `@reference` file to paste in and the precise API Response
-   `outputMapping` for each flow. The flows are not yet exported into this repository, so
-   this manual build is currently the only way to get them into your project.
+1. **Import both flows into your Lamatic project.** They are exported at
+   [`flows/evidence-fit-index.ts`](./flows/evidence-fit-index.ts) and
+   [`flows/evidence-fit-evaluate.ts`](./flows/evidence-fit-evaluate.ts), together with the
+   `@reference` files they resolve. After importing, open each Vectorize, Vector Search,
+   VectorDB and LLM node and set its model/credential picker by hand — those fields store
+   a `credentialId` that Lamatic mints per project, so they ship blank by design and are
+   the one thing an import cannot carry over.
+   [`docs/STUDIO-BUILD.md`](./docs/STUDIO-BUILD.md) is the node-by-node reference, for
+   that step and for rebuilding either flow from scratch.
 2. **Deploy both flows** and copy each one's Flow ID from Studio's flow details panel.
 3. **Set five environment variables** in `apps/.env.local` (copy `apps/.env.example` as a
    starting point):
@@ -244,7 +248,7 @@ Lamatic code node (deployed mode).
 Because of that, `core.ts` is **vendored** — copied byte-for-byte — into two files under
 `scripts/`, each inside a marked block:
 
-```
+```text
 scripts/evidence-fit-index_prepare-chunks.ts
 scripts/evidence-fit-evaluate_metrics.ts
 ```

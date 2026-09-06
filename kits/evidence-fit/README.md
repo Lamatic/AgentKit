@@ -54,11 +54,13 @@ even had a chance."
 
 ## 3. Architecture and the two flow contracts
 
-EvidenceFit is a **kit**: two Lamatic flows plus a Next.js app (`apps/`). The flows are
-**not yet exported into this repository** — they must be built by hand in Lamatic Studio
-following `docs/STUDIO-BUILD.md`, then exported to `flows/evidence-fit-index.ts` and
-`flows/evidence-fit-evaluate.ts`. Until then, the app runs entirely in **local mode**
-(Section 10), which needs no Lamatic project at all.
+EvidenceFit is a **kit**: two Lamatic flows plus a Next.js app (`apps/`). Both flows are
+exported at `flows/evidence-fit-index.ts` and `flows/evidence-fit-evaluate.ts` — import
+them into your own Lamatic project, set each model and vector-database picker by hand
+(those carry a project-specific `credentialId` that cannot be committed), and deploy.
+`docs/STUDIO-BUILD.md` is the field-level reference if you would rather rebuild them from
+scratch. With no Lamatic project at all, the app runs entirely in **local mode**
+(Section 10).
 
 ```text
 experimentId, documentId, documentText, strategy  →  Index flow     →  vector index (both strategies, one collection)
