@@ -396,39 +396,23 @@ function classifyUpstreamError(raw: string): UpstreamErrorClass {
   return "unknown";
 }
 
-const MAX_LOGGED_ERROR_CHARS = 200;
-
-/**
- * Bounded, redacted excerpt of an upstream error message safe to write to server logs.
- * `raw` is transport-layer error text that may echo fragments of the request (the
- * document under test, case content) or, in the worst case, credentials — so it is never
- * logged verbatim. Anything resembling an Authorization header, a bearer token, an API
- * key, or another long opaque token is stripped before the result is hard-capped.
- */
-function redactForLogging(raw: string): string {
-  const redacted = raw
-    .replace(/authorization\s*:\s*\S+/gi, "authorization: [redacted]")
-    .replace(/bearer\s+[a-z0-9._~+/-]+=*/gi, "bearer [redacted]")
-    .replace(/\b(api[_-]?key|apikey|x-api-key)\b\s*[:=]\s*\S+/gi, "$1=[redacted]")
-    .replace(/\b[a-z0-9._~+/-]{20,}=*\b/gi, "[redacted]");
-  return redacted.length > MAX_LOGGED_ERROR_CHARS
-    ? `${redacted.slice(0, MAX_LOGGED_ERROR_CHARS)}…`
-    : redacted;
-}
-
 /**
  * Turns an upstream failure into an actionable, generic message. The raw error text is
- * only ever used here for classification and a bounded, redacted log excerpt — it is
- * never interpolated verbatim into the string returned to the caller, nor written
- * verbatim to server logs, since it may echo request details or credentials from the
- * transport layer.
+ * used here for classification only. It is never interpolated into the string returned
+ * to the caller, and never written to server logs — not even redacted.
+ *
+ * An earlier version logged a redacted excerpt of it. That leaked twice over: the
+ * Authorization rule matched `\S+`, so `Authorization: Bearer abc123` lost only the
+ * word `Bearer` and kept a short token; and redaction by pattern cannot remove what it
+ * cannot recognise, so ordinary echoed request content — the document under test, the
+ * acceptance-case quotes, which for this kit are exactly the confidential contract
+ * clauses someone is evaluating — passed through untouched. The classification below is
+ * what makes a failure actionable; the excerpt only ever added exposure.
  */
 function upstreamMessage(label: "Index" | "Evaluate", detail: string, err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
   const classification = classifyUpstreamError(raw);
-  console.error(
-    `[evidence-fit] ${label} flow (${detail}) failed [${classification}]: ${redactForLogging(raw)}`
-  );
+  console.error(`[evidence-fit] ${label} flow (${detail}) failed [${classification}]`);
 
   switch (classification) {
     case "timeout":

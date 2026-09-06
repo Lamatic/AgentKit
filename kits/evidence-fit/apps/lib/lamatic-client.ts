@@ -40,6 +40,27 @@ export function getLamaticClient(): Lamatic {
       "Lamatic is not configured. Set LAMATIC_API_KEY, LAMATIC_PROJECT_ID and LAMATIC_API_URL in apps/.env.local."
     );
   }
+  // The SDK passes `endpoint` straight to fetch and sends the API key in an
+  // Authorization header, so a plain-http endpoint would put the key on the wire in
+  // cleartext. A misconfigured LAMATIC_API_URL must fail loudly here rather than
+  // silently downgrade. localhost is allowed so the flows can be pointed at a local
+  // mock during development.
+  let host: string;
+  try {
+    const url = new URL(env.apiUrl);
+    host = url.hostname;
+    const isLoopback = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    if (url.protocol !== "https:" && !isLoopback) {
+      throw new Error(
+        `LAMATIC_API_URL must use https — "${url.protocol}//" would send the API key in ` +
+          `cleartext. Only localhost may use http.`
+      );
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("LAMATIC_API_URL must use https")) throw err;
+    throw new Error("LAMATIC_API_URL is not a valid URL. Set it to your Lamatic API endpoint.");
+  }
+
   if (!client) {
     client = new Lamatic({
       endpoint: env.apiUrl,
