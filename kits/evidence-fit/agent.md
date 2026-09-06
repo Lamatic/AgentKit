@@ -97,9 +97,9 @@ that verdict.
     Metrics code node, and maps the LLM node's output only into `explanation` — there is
     no graph path from the model to the verdict.
 - When to use this flow
-  - Run after indexing, once per strategy, to get ranked chunks and (once the flow's
-    trigger is extended to carry full evidence — see `docs/STUDIO-BUILD.md`) a
-    self-contained verdict.
+  - Run once per experiment, after both strategies have been indexed. A single call
+    searches, scores and compares both, and returns the verdict — there is no
+    per-strategy invocation.
 - Output
   - `{ rankings: Record<caseId, string[]> }`, plus `verdict`, `issues`, `baseline`,
     `candidate`, `recommended`, and `explanation`.
@@ -110,10 +110,10 @@ that verdict.
 ### Flow Interaction
 
 - `lamatic.config.ts` declares both steps as `mandatory`.
-- `apps/actions/orchestrate.ts` calls Index then Evaluate once per strategy
-  (`fixed-width`, `clause-aware`), aligns the results against the vendored engine, and
-  computes the final comparison via `compareStrategies` — using the deployed flows' real
-  chunking and retrieval when configured, or an equivalent local engine run when not
+- `apps/actions/orchestrate.ts` calls Index once per strategy (`fixed-width`,
+  `clause-aware`), then Evaluate exactly once for the whole experiment. The comparison
+  via `compareStrategies` happens inside the Evaluate flow's Metrics node when Lamatic is
+  configured, and in-process against an equivalent local engine run when it is not
   (`isLamaticConfigured()`).
 - Both flows are exported at `flows/evidence-fit-index.ts` and
   `flows/evidence-fit-evaluate.ts`. Importing them into a Lamatic project still needs

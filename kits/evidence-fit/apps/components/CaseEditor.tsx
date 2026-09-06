@@ -97,7 +97,10 @@ export function CaseEditor({ cases, onChange }: Props) {
     // The counter alone is not enough: a user who renames `case-1` to `case-2` makes the
     // counter's next candidate a duplicate, and the run is then blocked by the
     // duplicate-id check with no obvious cause. Skip past ids already in use.
-    const taken = new Set(cases.map((c) => c.id));
+    // Trimmed, to match duplicateCaseIds above. Reserving the raw `"case-2 "` would not
+    // reserve `case-2`, so the next add would hand out an id that then collides once
+    // both sides are trimmed.
+    const taken = new Set(cases.map((c) => c.id.trim()).filter(Boolean));
     while (taken.has(`case-${nextCaseNumber.current}`)) nextCaseNumber.current += 1;
     const id = `case-${nextCaseNumber.current}`;
     nextCaseNumber.current += 1;
