@@ -71,7 +71,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"severity\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"One of: low, medium, high, critical\"\n    },\n    \"root_cause_hypothesis\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"A short, specific explanation of the most likely cause of the defect\"\n    },\n    \"recommended_action\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"One of: pass, rework, reject, escalate\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"One or two sentences explaining why this severity and action were chosen\"\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"severity\": {\n      \"type\": \"string\",\n      \"enum\": [\"low\", \"medium\", \"high\", \"critical\"],\n      \"required\": true,\n      \"description\": \"The severity level of the defect\"\n    },\n    \"root_cause_hypothesis\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"A short, specific explanation of the most likely cause of the defect\"\n    },\n    \"recommended_action\": {\n      \"type\": \"string\",\n      \"enum\": [\"pass\", \"rework\", \"reject\", \"escalate\"],\n      \"required\": true,\n      \"description\": \"The recommended quality control action\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"One or two sentences explaining why this severity and action were chosen\"\n    }\n  }\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
@@ -107,7 +107,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{}"
+        "outputMapping": "{\n  \"severity\": \"{{InstructorLLMNode_359.output.severity}}\",\n  \"root_cause_hypothesis\": \"{{InstructorLLMNode_359.output.root_cause_hypothesis}}\",\n  \"recommended_action\": \"{{InstructorLLMNode_359.output.recommended_action}}\",\n  \"reasoning\": \"{{InstructorLLMNode_359.output.reasoning}}\"\n}"
       }
     }
   }
