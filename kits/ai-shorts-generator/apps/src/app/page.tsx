@@ -62,19 +62,20 @@ async function loadScenes(): Promise<Scene[] | null> {
 
 function imageSource(imageUrl: string): string {
   const value = imageUrl.trim();
-  if (value.startsWith("data:image/")) return value;
-  // Some flows return the base64 payload without its data-URI prefix.
-  if (/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return `data:image/jpeg;base64,${value}`;
-  return value;
+  return /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value) ? value : "";
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
+    const source = imageSource(url);
+    if (!source) {
+      reject(new Error("This scene image is not in the expected format."));
+      return;
+    }
     const image = new Image();
-    if (!url.startsWith("data:")) image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error("This scene image could not be opened for the video."));
-    image.src = imageSource(url);
+    image.src = source;
   });
 }
 

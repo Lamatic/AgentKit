@@ -128,10 +128,23 @@ function normalizeScene(value: unknown): unknown {
     ? Number(scene.scene_number)
     : scene.scene_number;
   // Image-generation nodes can return a one-item array; the UI needs its first data URI.
-  if (Array.isArray(scene.image_url) && scene.image_url.length === 1) {
-    return { ...scene, scene_number: sceneNumber, image_url: scene.image_url[0] };
-  }
-  return { ...scene, scene_number: sceneNumber };
+  const imageUrl = Array.isArray(scene.image_url) && scene.image_url.length === 1
+    ? scene.image_url[0]
+    : scene.image_url;
+  return { ...scene, scene_number: sceneNumber, image_url: normalizeImageUrl(imageUrl) };
+}
+
+function normalizeImageUrl(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const image = value.trim();
+  if (isSafeImageDataUrl(image)) return image;
+  // The image node may return a base64 payload without its data-URI prefix.
+  if (/^[A-Za-z0-9+/]+={0,2}$/.test(image)) return `data:image/jpeg;base64,${image}`;
+  return value;
+}
+
+function isSafeImageDataUrl(value: string): boolean {
+  return /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value);
 }
 
 async function createNarrationAudio(text: string) {
@@ -183,7 +196,7 @@ function isScene(value: unknown): value is Scene {
     typeof scene.scene_number === "number" &&
     typeof scene.voiceover_text === "string" &&
     scene.voiceover_text.trim().length > 0 &&
-    (typeof scene.image_url === "string" || scene.image_url === null)
+    (scene.image_url === null || (typeof scene.image_url === "string" && isSafeImageDataUrl(scene.image_url)))
   );
 }
 
