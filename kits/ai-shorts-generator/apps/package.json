@@ -10,19 +10,25 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lamatic": "^0.3.2",
     "next": "^15.5.25",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.87.0",
+    "tailwind-merge": "^3.6.0",
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "eslint": "^9",
     "eslint-config-next": "^15.5.25",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5"
   }
 }

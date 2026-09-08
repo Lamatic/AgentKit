@@ -116,7 +116,7 @@ function parseFlowOutput(value: unknown): Scene[] | null {
       ? (parsed as Record<string, unknown>).output
       : undefined;
   const scenes = Array.isArray(output) ? output.map(normalizeScene) : null;
-  return scenes && scenes.length > 0 && scenes.every(isScene)
+  return scenes && isValidSceneSequence(scenes)
     ? scenes
     : null;
 }
@@ -184,5 +184,11 @@ function isScene(value: unknown): value is Scene {
     typeof scene.voiceover_text === "string" &&
     scene.voiceover_text.trim().length > 0 &&
     (typeof scene.image_url === "string" || scene.image_url === null)
+  );
+}
+
+function isValidSceneSequence(scenes: unknown[]): scenes is Scene[] {
+  return scenes.length === 5 && scenes.every((scene, index) =>
+    isScene(scene) && scene.scene_number === index + 1
   );
 }

@@ -4,6 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type Scene = { scene_number: number; voiceover_text: string; image_url: string | null };
 const DB_NAME = "ai-shorts-generator";
@@ -155,7 +159,7 @@ export default function Home() {
 
   function drawScene(context: CanvasRenderingContext2D, scene: Scene, image: HTMLImageElement | null) {
     const { width, height } = context.canvas;
-    context.fillStyle = "#171717";
+    context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#171717";
     context.fillRect(0, 0, width, height);
     if (image) {
       const scale = Math.min(width / image.width, height / image.height);
@@ -235,34 +239,42 @@ export default function Home() {
   }
 
   return (
-    <main className="app-shell">
-      <section className="app-container">
-        <header className="app-header">
-          <p className="eyebrow">AI SHORTS</p>
-          <h1>Create a narrated video</h1>
+    <main className="min-h-screen bg-background px-4 py-8 sm:px-6">
+      <section className="mx-auto w-full max-w-6xl">
+        <header className="border-b border-muted pb-6">
+          <p className="text-sm font-medium tracking-widest text-muted-foreground">AI SHORTS</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Create a narrated video</h1>
         </header>
-        <form onSubmit={handleSubmit(handleGenerate)} className="topic-form">
-          <label htmlFor="sampleInput">Describe your video</label>
-          <div className="topic-form-row">
-            <input id="sampleInput" {...register("sampleInput")} disabled={loading || rendering} placeholder="For example: explain data types in programming" />
-            <button className="primary-button" disabled={loading || rendering}>{loading ? "Generating…" : "Generate"}</button>
-          </div>
-          {errors.sampleInput && <p role="alert" className="form-error">{errors.sampleInput.message}</p>}
-          <p className="form-note">Creating a new video replaces the saved project. Download the current video first.</p>
-        </form>
-        {error && <p role="alert" className="app-error">{error}</p>}
-        <div className="workspace">
-          <section className="video-panel">
-            <canvas ref={canvasRef} width={1280} height={720} className={`video-canvas${videoUrl ? " is-hidden" : ""}`} aria-label="Live video preview" />
-            {videoUrl ? <video src={videoUrl} controls className="video-player" /> : !rendering && <div className="video-placeholder">{scenes.length ? "Ready to create preview" : "Your video preview will appear here"}</div>}
+        <Card className="mt-6">
+          <CardContent>
+            <form onSubmit={handleSubmit(handleGenerate)}>
+              <label htmlFor="sampleInput" className="mb-2 block text-sm font-medium">Describe your video</label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Input id="sampleInput" {...register("sampleInput")} disabled={loading || rendering} placeholder="For example: explain data types in programming" />
+                <Button type="submit" disabled={loading || rendering}>{loading ? "Generating…" : "Generate"}</Button>
+              </div>
+              {errors.sampleInput && <p role="alert" className="mt-2 text-sm text-destructive">{errors.sampleInput.message}</p>}
+              <p className="mt-3 text-xs text-subtle-foreground">Creating a new video replaces the saved project. Download the current video first.</p>
+            </form>
+          </CardContent>
+        </Card>
+        {error && <p role="alert" className="mt-5 rounded-md border border-[var(--destructive-border)] bg-[var(--destructive-background)] p-4 text-sm text-destructive">{error}</p>}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18.75rem]">
+          <section className="relative aspect-video overflow-hidden rounded-lg border border-muted bg-black">
+            <canvas ref={canvasRef} width={1280} height={720} className={cn("h-full w-full bg-black object-contain", videoUrl && "hidden")} aria-label="Live video preview" />
+            {videoUrl ? <video src={videoUrl} controls className="absolute inset-0 h-full w-full bg-black object-contain" /> : !rendering && <div className="absolute inset-0 grid place-items-center p-8 text-center text-sm text-subtle-foreground">{scenes.length ? "Ready to create preview" : "Your video preview will appear here"}</div>}
           </section>
-          <aside className="scene-panel">
-            <h2>Scenes</h2>
-            <p className="scene-count">{scenes.length ? `${scenes.length} scenes saved locally` : "Generate a video to begin."}</p>
-            <ol className="scene-list">{scenes.map((scene) => <li key={scene.scene_number} className="scene-item">{scene.image_url ? <img src={imageSource(scene.image_url)} alt="Generated scene" className="scene-image" /> : <div className="scene-image scene-image-empty" />}<span>{scene.voiceover_text}</span></li>)}</ol>
-            <button onClick={createVideo} disabled={!scenes.length || rendering} className="primary-button create-preview-button">{rendering ? "Creating preview…" : "Create preview"}</button>
-            {videoUrl && <a href={videoUrl} download="ai-short.webm" className="download-button">Download video</a>}
-          </aside>
+          <Card>
+            <CardContent>
+              <h2 className="text-base font-medium">Scenes</h2>
+              <p className="mt-1 text-sm text-subtle-foreground">{scenes.length ? `${scenes.length} scenes saved locally` : "Generate a video to begin."}</p>
+              <ol className="mt-4 max-h-64 list-none overflow-auto pr-1">
+                {scenes.map((scene) => <li key={scene.scene_number} className="mb-3 flex gap-3 text-sm leading-5"><>{scene.image_url ? <img src={imageSource(scene.image_url)} alt="Generated scene" className="h-12 w-16 shrink-0 rounded bg-black object-contain" /> : <div className="h-12 w-16 shrink-0 rounded bg-muted" />}</><span>{scene.voiceover_text}</span></li>)}
+              </ol>
+              <Button onClick={createVideo} disabled={!scenes.length || rendering} className="mt-5 w-full">{rendering ? "Creating preview…" : "Create preview"}</Button>
+              {videoUrl && <a href={videoUrl} download="ai-short.webm" className={cn(buttonVariants({ variant: "outline" }), "mt-3 w-full")}>Download video</a>}
+            </CardContent>
+          </Card>
         </div>
       </section>
     </main>

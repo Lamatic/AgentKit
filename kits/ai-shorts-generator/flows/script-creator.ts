@@ -142,7 +142,7 @@ export const nodes = [
       "nodeId": "apiNode",
       "values": {
         "id": "apiNode_224",
-        "url": "https://api.cloudflare.com/client/v4/accounts/{{secrets.project.cloudfare_id}}/ai/run/@cf/black-forest-labs/flux-1-schnell",
+        "url": "https://api.cloudflare.com/client/v4/accounts/{{secrets.project.cloudfare_id}}/ai/run/@cf/black-forest-labs/flux-2-klein-4b",
         "body": "{\n  \"prompt\": \"{{forLoopNode_677.output.currentValue.image_prompt}}\"\n}",
         "method": "POST",
         "headers": "{\"Content-Type\":\"application/json\",\"Authorization\":\"Bearer {{secrets.project.cloudfare_worker_ai}}\"}",
