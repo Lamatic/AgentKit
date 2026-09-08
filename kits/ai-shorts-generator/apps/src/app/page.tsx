@@ -1,11 +1,18 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 type Scene = { scene_number: number; voiceover_text: string; image_url: string | null };
 const DB_NAME = "ai-shorts-generator";
 const STORE_NAME = "projects";
 const PROJECT_KEY = "latest-scenes";
+const topicSchema = z.object({
+  sampleInput: z.string().trim().min(1, "Enter a topic for your video.").max(500, "Keep the topic under 500 characters."),
+});
+type TopicForm = z.infer<typeof topicSchema>;
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -72,31 +79,36 @@ function audioEnded(source: AudioBufferSourceNode): Promise<void> {
 }
 
 export default function Home() {
-  const [sampleInput, setSampleInput] = useState("");
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [loading, setLoading] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoUrlRef = useRef<string | null>(null);
+  const { register, handleSubmit, formState: { errors } } = useForm<TopicForm>({
+    resolver: zodResolver(topicSchema),
+    defaultValues: { sampleInput: "" },
+  });
 
   useEffect(() => {
     loadScenes().then((saved) => saved && setScenes(saved)).catch(() => undefined);
-    return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
-  }, [videoUrl]);
+    return () => {
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+    };
+  }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!sampleInput.trim()) return;
+  async function handleGenerate({ sampleInput }: TopicForm) {
     setLoading(true); setError(null);
-    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+    videoUrlRef.current = null;
     setVideoUrl(null);
     setScenes([]);
     await clearSavedProject().catch(() => undefined);
     try {
       const response = await fetch("/api/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sampleInput: sampleInput.trim() }),
+        body: JSON.stringify({ sampleInput }),
       });
       const data = await response.json().catch(() => null) as { output?: Scene[]; error?: string } | null;
       if (!response.ok || !data?.output) throw new Error(data?.error ?? "The server returned an unreadable response. Please try again.");
@@ -157,7 +169,11 @@ export default function Home() {
     if (!canvas || !scenes.length) return;
     setRendering(true); setError(null);
     let context: AudioContext | null = null;
+    let stream: MediaStream | null = null;
     try {
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+      videoUrlRef.current = null;
+      setVideoUrl(null);
       const drawingContext = canvas.getContext("2d");
       if (!drawingContext) throw new Error("Canvas is not supported in this browser.");
       const AudioContextClass = window.AudioContext || (window as typeof window & {
@@ -179,7 +195,7 @@ export default function Home() {
 
       const audioDestination = context.createMediaStreamDestination();
       const videoStream = canvas.captureStream(30);
-      const stream = new MediaStream([...videoStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks()]);
+      stream = new MediaStream([...videoStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks()]);
       const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus") ? "video/webm;codecs=vp9,opus" : "video/webm";
       const recorder = new MediaRecorder(stream, { mimeType });
       const chunks: BlobPart[] = [];
@@ -204,44 +220,48 @@ export default function Home() {
       }
       recorder.stop();
       const video = await finished;
-      setVideoUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return URL.createObjectURL(video); });
-      stream.getTracks().forEach((track) => track.stop());
+      const nextVideoUrl = URL.createObjectURL(video);
+      videoUrlRef.current = nextVideoUrl;
+      setVideoUrl(nextVideoUrl);
     } catch (reason) {
       setError(reason instanceof TypeError && reason.message === "Failed to fetch"
         ? "We could not reach the narration service. Check your internet connection and try again."
         : reason instanceof Error ? reason.message : "We could not create the video. Please try again.");
     } finally {
+      stream?.getTracks().forEach((track) => track.stop());
       await context?.close();
       setRendering(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-neutral-950 px-4 py-8 text-neutral-100 sm:px-8">
-      <section className="mx-auto max-w-6xl">
-        <header className="border-b border-neutral-800 pb-6">
-          <p className="text-sm font-medium tracking-wide text-neutral-400">AI SHORTS</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Create a narrated video</h1>
+    <main className="app-shell">
+      <section className="app-container">
+        <header className="app-header">
+          <p className="eyebrow">AI SHORTS</p>
+          <h1>Create a narrated video</h1>
         </header>
-        <form onSubmit={handleSubmit} className="mt-6 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-          <label htmlFor="sampleInput" className="mb-2 block text-sm font-medium text-neutral-200">Describe your video</label>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input id="sampleInput" value={sampleInput} onChange={(event) => setSampleInput(event.target.value)} required placeholder="For example: explain data types in programming" className="min-w-0 flex-1 rounded-md border border-neutral-700 bg-neutral-950 px-4 py-3 text-neutral-100 outline-none focus:border-neutral-400" />
-            <button disabled={loading} className="rounded-md bg-white px-5 py-3 font-medium text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Generating…" : "Generate"}</button>
+        <form onSubmit={handleSubmit(handleGenerate)} className="topic-form">
+          <label htmlFor="sampleInput">Describe your video</label>
+          <div className="topic-form-row">
+            <input id="sampleInput" {...register("sampleInput")} disabled={loading || rendering} placeholder="For example: explain data types in programming" />
+            <button className="primary-button" disabled={loading || rendering}>{loading ? "Generating…" : "Generate"}</button>
           </div>
-          <p className="mt-3 text-xs text-neutral-500">Creating a new video replaces the saved project. Download the current video first.</p>
+          {errors.sampleInput && <p role="alert" className="form-error">{errors.sampleInput.message}</p>}
+          <p className="form-note">Creating a new video replaces the saved project. Download the current video first.</p>
         </form>
-        {error && <p role="alert" className="mt-5 rounded-md border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</p>}
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <section className="relative aspect-video overflow-hidden rounded-lg border border-neutral-800 bg-black">
-            {videoUrl ? <video src={videoUrl} controls className="h-full w-full bg-black object-contain" /> : <><canvas ref={canvasRef} width={1280} height={720} className="h-full w-full bg-black object-contain" aria-label="Live video preview" />{!rendering && <div className="absolute inset-0 flex items-center justify-center text-sm text-neutral-500">{scenes.length ? "Ready to create preview" : "Your video preview will appear here"}</div>}</>}
+        {error && <p role="alert" className="app-error">{error}</p>}
+        <div className="workspace">
+          <section className="video-panel">
+            <canvas ref={canvasRef} width={1280} height={720} className={`video-canvas${videoUrl ? " is-hidden" : ""}`} aria-label="Live video preview" />
+            {videoUrl ? <video src={videoUrl} controls className="video-player" /> : !rendering && <div className="video-placeholder">{scenes.length ? "Ready to create preview" : "Your video preview will appear here"}</div>}
           </section>
-          <aside className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-            <h2 className="font-medium">Scenes</h2>
-            <p className="mt-1 text-sm text-neutral-500">{scenes.length ? `${scenes.length} scenes saved locally` : "Generate a video to begin."}</p>
-            <ol className="mt-4 max-h-64 space-y-3 overflow-auto pr-1">{scenes.map((scene) => <li key={scene.scene_number} className="flex gap-3 text-sm leading-5 text-neutral-300">{scene.image_url ? <img src={imageSource(scene.image_url)} alt="Generated scene" className="h-12 w-16 shrink-0 rounded bg-black object-contain" /> : <div className="h-12 w-16 shrink-0 rounded bg-neutral-800" />}<span>{scene.voiceover_text}</span></li>)}</ol>
-            <button onClick={createVideo} disabled={!scenes.length || rendering} className="mt-5 w-full rounded-md bg-white px-4 py-3 font-medium text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50">{rendering ? "Creating preview…" : "Create preview"}</button>
-            {videoUrl && <a href={videoUrl} download="ai-short.webm" className="mt-3 block w-full rounded-md border border-neutral-600 px-4 py-3 text-center font-medium text-white transition hover:bg-neutral-800">Download video</a>}
+          <aside className="scene-panel">
+            <h2>Scenes</h2>
+            <p className="scene-count">{scenes.length ? `${scenes.length} scenes saved locally` : "Generate a video to begin."}</p>
+            <ol className="scene-list">{scenes.map((scene) => <li key={scene.scene_number} className="scene-item">{scene.image_url ? <img src={imageSource(scene.image_url)} alt="Generated scene" className="scene-image" /> : <div className="scene-image scene-image-empty" />}<span>{scene.voiceover_text}</span></li>)}</ol>
+            <button onClick={createVideo} disabled={!scenes.length || rendering} className="primary-button create-preview-button">{rendering ? "Creating preview…" : "Create preview"}</button>
+            {videoUrl && <a href={videoUrl} download="ai-short.webm" className="download-button">Download video</a>}
           </aside>
         </div>
       </section>

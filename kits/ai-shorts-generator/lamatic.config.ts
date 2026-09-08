@@ -20,6 +20,6 @@ export default {
   ],
   links: {
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/ai-shorts-generator",
-    deploy: "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fai-shorts-generator%2Fapps&root-directory=kits%2Fai-shorts-generator%2Fapps"
+    deploy: "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fai-shorts-generator%2Fapps&root-directory=kits%2Fai-shorts-generator%2Fapps&env=LAMATIC_PROJECT_ENDPOINT,LAMATIC_PROJECT_ID,LAMATIC_PROJECT_API_KEY,NEXT_PUBLIC_LAMATIC_FLOW_ID"
   }
 };

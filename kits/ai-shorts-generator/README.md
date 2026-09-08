@@ -39,7 +39,7 @@ Only one project is stored at a time. Generate a new video only after downloadin
 
 ## How It Works
 
-```
+```text
 Topic entered in the app
          |
    API Request node (Lamatic trigger)

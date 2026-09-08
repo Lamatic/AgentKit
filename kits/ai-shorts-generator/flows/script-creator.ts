@@ -74,7 +74,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"scenes\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"scene_number\": {\n            \"type\": \"number\"\n          },\n          \"voiceover_text\": {\n            \"type\": \"string\"\n          },\n          \"image_prompt\": {\n            \"type\": \"string\"\n          }\n        },\n        \"additionalProperties\": true\n      }\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"scenes\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"scene_number\": {\n            \"type\": \"string\"\n          },\n          \"voiceover_text\": {\n            \"type\": \"string\"\n          },\n          \"image_prompt\": {\n            \"type\": \"string\"\n          }\n        },\n        \"additionalProperties\": true\n      }\n    }\n  }\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",
