@@ -1,0 +1,32 @@
+{
+  "name": "send-gate-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo UI and test harness for the send-gate AgentKit: a pre-send gate that verifies agent-written messages against a source of truth.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test tests/*.test.mjs",
+    "emit": "node scripts/emit-code-node.mjs",
+    "emit:check": "node scripts/emit-code-node.mjs --check"
+  },
+  "dependencies": {
+    "lamatic": "0.3.2",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.13",
+    "terser": "^5.43.1",
+    "typescript": "^5.6.0"
+  }
+}

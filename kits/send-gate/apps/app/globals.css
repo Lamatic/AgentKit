@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b0e12;
+  --color-panel: #12161c;
+  --color-panel-2: #171c23;
+  --color-line: #262d36;
+  --color-text: #e7ebef;
+  --color-dim: #8a94a0;
+  --color-accent: #7dd3fc;
+  --color-ok: #34d399;
+  --color-warn: #fbbf24;
+  --color-bad: #f87171;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--color-bg); color: var(--color-text); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+textarea, input { font-family: var(--font-mono); }
+textarea { resize: vertical; }
+::selection { background: #1e3a5f; }

@@ -1,0 +1,1 @@
+Verify this draft against the facts and produce the rewrite. Input JSON: {{codeNode_211.output.judgeInput}}
