@@ -89,6 +89,8 @@ npm run dev                  # http://localhost:3000
 
 With an empty `.env.local` the app runs in **local mode**: the deterministic stages run in-process, no credentials, no model. Blocked drafts get no rewrite in this mode (that is the judge's job). Fill in `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_URL` and `SEND_GATE_FLOW_ID` and the same UI calls the deployed flow via the `lamatic` SDK.
 
+`LAMATIC_API_URL` is the **API URL** Studio shows under the flow's *API Docs → Connect to your project* (shape `https://<org>-<project>.lamatic.dev`). The `*.lamatic.workers.dev` host from the deployment page is not the GraphQL endpoint; it answers with an HTML page and the SDK then fails with "Unexpected token '<' … is not valid JSON". The app checks the endpoint once and says so in plain words.
+
 Five scenarios are wired in: invented numbers in a Hinglish B2B nudge, a fully grounded refund reply, drafter facts overridden by `truth_url`, a greeting that takes the fast path, and correct facts in the wrong register with a foreign phone number.
 
 `/api/truth` is a mock source of truth (three orders) with the request/response shape the gate expects: `GET /api/truth?ids=PO1430779&recipient=…` → `{ "order": {…}, "offers": [], "eta": null }`. The deployed flow runs on Lamatic's side, so it needs a public URL; `assets/truth/PO1430779.json` is a static stand-in with the same shape.

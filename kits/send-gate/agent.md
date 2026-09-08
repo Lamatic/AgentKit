@@ -64,6 +64,7 @@ Drafting agents invent figures, statuses and promises with perfect confidence. I
 | Symptom | Cause | Fix |
 |---|---|---|
 | Everything is `unsupported` | `facts` is not valid JSON, or is nested differently from the statement rules' fact paths (`order.status`, `offers`, `eta`, `refund.status`, `payment.status`) | Fix the JSON; or pass `policy.statementRules` with your own `factPath`s |
+| `Unexpected token '<', "<!DOCTYPE"… is not valid JSON` | `LAMATIC_API_URL` points at a web page (`*.lamatic.workers.dev`, Studio, docs) instead of the GraphQL endpoint | Use the API URL from the flow's *API Docs → Connect to your project*, shape `https://<org>-<project>.lamatic.dev` |
 | `audit.fetchError: truth_url fetch failed` | `truth_url` is not reachable from Lamatic's runtime (localhost, private network) | Use a public URL; `assets/truth/PO1430779.json` shows the shape |
 | Verdict `block` with `finalMessage: null` although the judge ran | The rewrite still contained an unsupported figure; `rewriteCheck.findings` says which | Improve the judge prompt or facts; the block is correct behaviour |
 | Judge ran on a trivial greeting | `policy.alwaysCheck` or `needs_fact_check="true"` was set | Unset them; the fast path needs risk `none` |

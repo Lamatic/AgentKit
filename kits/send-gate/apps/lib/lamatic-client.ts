@@ -30,12 +30,39 @@ function parseMaybe<T>(value: unknown, fallback: T): T {
   }
 }
 
+
+/**
+ * The SDK JSON-parses whatever the endpoint returns, so a wrong LAMATIC_API_URL (the Studio page,
+ * the docs page, a URL without the GraphQL path) surfaces as "Unexpected token '<' ... is not valid
+ * JSON". Check once, up front, and say what is actually wrong.
+ */
+let endpointChecked = "";
+async function assertGraphqlEndpoint(url: string): Promise<void> {
+  if (endpointChecked === url) return;
+  if (!/^https?:\/\//.test(url)) throw new Error("LAMATIC_API_URL must be the project's GraphQL endpoint from Studio → Settings → API Docs (an https URL).");
+  if (/studio\.lamatic\.ai|lamatic\.ai\/docs/.test(url)) {
+    throw new Error(`LAMATIC_API_URL is set to a web page (${url}). Use the GraphQL endpoint shown under Studio → Settings → API Docs, not the Studio or docs URL.`);
+  }
+  let res: Response;
+  try {
+    res = await fetch(url, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query: "{ __typename }" }), signal: AbortSignal.timeout(10000) });
+  } catch (e) {
+    throw new Error(`LAMATIC_API_URL is not reachable (${url}): ${e instanceof Error ? e.message : String(e)}`);
+  }
+  const text = await res.text();
+  if (/^\s*<!doctype|^\s*<html/i.test(text)) {
+    throw new Error(`LAMATIC_API_URL (${url}) answers with an HTML page, not GraphQL JSON. Copy the endpoint from Studio → Settings → API Docs; it ends in the API host, not studio.lamatic.ai.`);
+  }
+  endpointChecked = url;
+}
+
 /**
  * Executes the deployed send-gate flow. The trigger schema declares every field as a string,
  * so booleans are sent as "true"/"" and JSON as text; the flow parses them itself.
  */
 export async function runSendGateFlow(req: GateRequest): Promise<GateResult> {
   if (!sendGateFlowId) throw new Error("SEND_GATE_FLOW_ID is not set.");
+  await assertGraphqlEndpoint(process.env.LAMATIC_API_URL ?? "");
   const res = await client().executeFlow(sendGateFlowId, {
     draft: req.draft,
     facts: req.facts,
