@@ -10,6 +10,7 @@ type Scene = {
 const FLOW_TIMEOUT_MS = 30_000;
 const TTS_TIMEOUT_MS = 15_000;
 
+/** Handles scene-generation and narration-audio requests from the browser. */
 export async function POST(req: NextRequest) {
   let body: unknown;
   try {
@@ -89,6 +90,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ output: parsed });
 }
 
+/** Returns a normalized HTTPS endpoint or null when the configured endpoint is unsafe. */
 function validatedHttpsEndpoint(value: string | undefined): string | null {
   if (!value) return null;
   try {
@@ -99,6 +101,7 @@ function validatedHttpsEndpoint(value: string | undefined): string | null {
   }
 }
 
+/** Converts supported Lamatic result shapes into a validated five-scene sequence. */
 function parseFlowOutput(value: unknown): Scene[] | null {
   let parsed = value;
   // Flow exports may return a JSON string, { output: Scene[] }, or Scene[] directly.
@@ -121,6 +124,7 @@ function parseFlowOutput(value: unknown): Scene[] | null {
     : null;
 }
 
+/** Normalizes a single flow scene before its shape and image source are validated. */
 function normalizeScene(value: unknown): unknown {
   if (typeof value !== "object" || value === null) return value;
   const scene = value as Record<string, unknown>;
@@ -134,6 +138,7 @@ function normalizeScene(value: unknown): unknown {
   return { ...scene, scene_number: sceneNumber, image_url: normalizeImageUrl(imageUrl) };
 }
 
+/** Converts a raw base64 image payload into a safe image data URL. */
 function normalizeImageUrl(value: unknown): unknown {
   if (typeof value !== "string") return value;
   const image = value.trim();
@@ -143,10 +148,12 @@ function normalizeImageUrl(value: unknown): unknown {
   return value;
 }
 
+/** Checks whether a value is an allowed base64 raster image data URL. */
 function isSafeImageDataUrl(value: string): boolean {
   return /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value);
 }
 
+/** Creates bounded narration audio for one validated text chunk. */
 async function createNarrationAudio(text: string) {
   const narration = text.trim();
   if (!narration) {
@@ -189,6 +196,7 @@ async function createNarrationAudio(text: string) {
   }
 }
 
+/** Checks that an unknown value has the complete, safe scene shape. */
 function isScene(value: unknown): value is Scene {
   if (typeof value !== "object" || value === null) return false;
   const scene = value as Record<string, unknown>;
@@ -200,6 +208,7 @@ function isScene(value: unknown): value is Scene {
   );
 }
 
+/** Enforces the required ordered sequence of exactly five scenes. */
 function isValidSceneSequence(scenes: unknown[]): scenes is Scene[] {
   return scenes.length === 5 && scenes.every((scene, index) =>
     isScene(scene) && scene.scene_number === index + 1

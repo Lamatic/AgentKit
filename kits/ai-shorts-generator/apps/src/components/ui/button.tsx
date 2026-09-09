@@ -18,6 +18,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
 
+/** Renders a reusable button with the kit's supported visual variants. */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant, ...props }, ref) => (
   <button ref={ref} className={cn(buttonVariants({ variant }), className)} {...props} />
 ));

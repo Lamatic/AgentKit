@@ -18,6 +18,7 @@ const topicSchema = z.object({
 });
 type TopicForm = z.infer<typeof topicSchema>;
 
+/** Opens the browser database used to retain the current scene project. */
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -27,6 +28,7 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
+/** Stores the latest generated scene list in the browser database. */
 async function saveScenes(scenes: Scene[]) {
   const database = await openDatabase();
   await new Promise<void>((resolve, reject) => {
@@ -38,6 +40,7 @@ async function saveScenes(scenes: Scene[]) {
   database.close();
 }
 
+/** Removes the previous project before a new video is generated. */
 async function clearSavedProject() {
   const database = await openDatabase();
   await new Promise<void>((resolve, reject) => {
@@ -49,6 +52,7 @@ async function clearSavedProject() {
   database.close();
 }
 
+/** Loads the saved scene list, if one exists in the browser database. */
 async function loadScenes(): Promise<Scene[] | null> {
   const database = await openDatabase();
   const scenes = await new Promise<Scene[] | null>((resolve, reject) => {
@@ -60,11 +64,13 @@ async function loadScenes(): Promise<Scene[] | null> {
   return scenes;
 }
 
+/** Returns a browser-safe image data URL or an empty value for unsafe input. */
 function imageSource(imageUrl: string): string {
   const value = imageUrl.trim();
   return /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value) ? value : "";
 }
 
+/** Loads a validated scene image for canvas rendering. */
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const source = imageSource(url);
@@ -79,10 +85,12 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+/** Resolves after a scheduled narration buffer has finished playing. */
 function audioEnded(source: AudioBufferSourceNode): Promise<void> {
   return new Promise((resolve) => { source.onended = () => resolve(); });
 }
 
+/** Renders the interactive AI shorts generator page. */
 export default function Home() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,6 +111,7 @@ export default function Home() {
     };
   }, []);
 
+  /** Requests scenes for a new topic and replaces the locally saved project. */
   async function handleGenerate({ sampleInput }: TopicForm) {
     setLoading(true); setError(null);
     if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
@@ -126,6 +135,7 @@ export default function Home() {
     } finally { setLoading(false); }
   }
 
+  /** Splits narration into chunks accepted by the narration endpoint. */
   function splitNarration(text: string): string[] {
     const words = text.trim().split(/\s+/);
     const chunks: string[] = [];
@@ -142,6 +152,7 @@ export default function Home() {
     return chunks;
   }
 
+  /** Fetches and returns narration audio buffers for a complete scene script. */
   async function fetchTts(text: string): Promise<ArrayBuffer[]> {
     const chunks = splitNarration(text);
     return Promise.all(chunks.map(async (chunk) => {
@@ -158,6 +169,7 @@ export default function Home() {
     }));
   }
 
+  /** Draws one scene image on the recording canvas without cropping it. */
   function drawScene(context: CanvasRenderingContext2D, scene: Scene, image: HTMLImageElement | null) {
     const { width, height } = context.canvas;
     context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#171717";
@@ -169,6 +181,7 @@ export default function Home() {
     }
   }
 
+  /** Records preloaded scene images and narration into one synchronized video. */
   async function createVideo() {
     const canvas = canvasRef.current;
     if (!canvas || !scenes.length) return;

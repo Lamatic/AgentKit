@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   description: "AI Shorts Generator",
 };
 
+/** Provides the document shell, fonts, and global styles for every app route. */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
