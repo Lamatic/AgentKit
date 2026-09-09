@@ -14,6 +14,7 @@ export default function DebriefPage() {
   const [rounds, setRounds] = useState<string[]>([""]);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<DebriefOutput | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
   const [error, setError] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
@@ -39,6 +40,7 @@ export default function DebriefPage() {
     setIsLoading(true);
     setError("");
     setResult(null);
+    setIsFallback(false);
     setCopied(false);
 
     // Tag each block by round before it reaches the model, per PRD 5.2
@@ -54,6 +56,7 @@ export default function DebriefPage() {
       const response = await summarizeFeedback(tagged);
       if (response.success && response.data) {
         setResult(response.data);
+        setIsFallback(Boolean(response.fallback));
       } else {
         setError(response.error || "Summarization failed");
       }
@@ -66,6 +69,7 @@ export default function DebriefPage() {
 
   const handleReset = () => {
     setResult(null);
+    setIsFallback(false);
     setError("");
     setCopied(false);
   };
@@ -84,6 +88,7 @@ export default function DebriefPage() {
   const clearAll = () => {
     setRounds([""]);
     setResult(null);
+    setIsFallback(false);
     setError("");
   };
 
@@ -193,6 +198,11 @@ export default function DebriefPage() {
             </div>
 
             <Card className="bg-white/90 shadow-sm">
+              {isFallback && (
+                <p className="rounded-t-lg bg-amber-50 px-4 py-2 text-xs text-amber-800">
+                  Local fallback mode. Lamatic credentials missing, so this is keyword based, not model output.
+                </p>
+              )}
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle className="text-lg">Result</CardTitle>
                 <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">

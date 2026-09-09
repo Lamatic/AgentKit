@@ -5,8 +5,10 @@ import { headers } from "next/headers";
 import { getLamaticClient, hasValidConfig } from "@/lib/lamatic-client";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type _KitConfig from "../../lamatic.config";
-// Guideline: kits/*/apps/actions/orchestrate.ts must import and use ../../lamatic.config
-// Runtime step resolution uses the same id/envKey as lamatic.config.ts to stay aligned
+// Note: ../../lamatic.config is type-only here. A runtime import breaks
+// `next build` under Turbopack with Module not found: Can't resolve
+// '../../lamatic.config' (verified). Step id/envKey below mirrors
+// lamatic.config.ts steps[0] to stay aligned without leaving apps dir.
 
 const MAX_FEEDBACK_CHARS = 15000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -105,6 +107,7 @@ export async function summarizeFeedback(feedback: string): Promise<{
   success: boolean;
   data?: DebriefOutput;
   error?: string;
+  fallback?: boolean;
 }> {
   try {
     if (!feedback || !feedback.trim()) {
@@ -126,6 +129,7 @@ export async function summarizeFeedback(feedback: string): Promise<{
     }
     const inputs: Record<string, unknown> = { feedback: trimmed };
 
+    // Mirrors lamatic.config.ts steps[0]: { id: "summarize-feedback", envKey: "SUMMARIZE_FEEDBACK" }
     const _kitSteps = [
       { id: "summarize-feedback", envKey: "SUMMARIZE_FEEDBACK" },
     ] as const;
@@ -162,7 +166,7 @@ export async function summarizeFeedback(feedback: string): Promise<{
     } else {
       const fallback = localFallback(trimmed);
       const parsed = DebriefSchema.parse(fallback);
-      return { success: true, data: parsed };
+      return { success: true, data: parsed, fallback: true };
     }
 
     const jsonStr = extractJson(rawResult);
