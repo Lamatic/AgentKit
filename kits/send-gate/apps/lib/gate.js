@@ -20,6 +20,10 @@ const ph = (s) => { const d = String(s).replace(/\D/g, ""); return d.length > 10
 const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const pj = (v, f) => { if (v == null) return f; if (typeof v === "string") { const t = v.trim(); if (!t) return f; try { return JSON.parse(t); } catch (e) { return f; } } return v; };
 const path = (o, p) => p ? String(p).split(".").reduce((a, k) => (a == null ? undefined : a[k]), o) : undefined;
+// Caller-supplied rules are untrusted: only literal `terms` are accepted (escaped, whole-word). Regex patterns stay server-defined.
+const term = (t) => (/^\w/.test(t) ? "\\b" : "") + esc(t) + (/\w$/.test(t) ? "\\b" : "");
+const ruleRe = (r, custom) => custom ? (Array.isArray(r.terms) && r.terms.length ? new RegExp("(?:" + r.terms.map(term).join("|") + ")", "i") : null) : r.re;
+const pol = (p) => Object.assign({ formalAddress: true, allowUngroundedSmallCounts: true }, pj(p, {}) || {});
 
 const MON = "jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec";
 const FIG = [
@@ -36,13 +40,13 @@ const FIG = [
  * `never` = forbidden outright.
  */
 export const DEFAULT_STATEMENT_RULES = [
-  { id: "order_placed", kind: "order_status", pattern: "\\b(order|po)\\b[^.!?\\n]{0,40}\\b(placed|confirmed|booked|ho gaya|lag gaya)\\b|\\b(placed|confirmed|booked)\\b[^.!?\\n]{0,20}\\border\\b", factPath: "order.status", expect: ["placed", "confirmed", "booked"], message: "Claims order placed." },
-  { id: "delivered", kind: "order_status", pattern: "\\b(delivered|deliver ho gaya|pahu?nch gaya)\\b", factPath: "order.status", expect: ["delivered"], message: "Claims delivered." },
-  { id: "refund", kind: "refund", pattern: "\\brefund(ed)?\\b[^.!?\\n]{0,30}\\b(issued|processed|credited|done|sent|initiated|ho gaya|kar diya)\\b", factPath: "refund.status", expect: ["issued", "processed", "credited", "initiated"], message: "Claims refund issued." },
-  { id: "offer", kind: "offer", pattern: "\\b(discount|offer|cashback|voucher|coupon|off|free|muft|scheme)\\b", factPath: "offers", message: "Mentions an offer." },
-  { id: "eta", kind: "delivery_eta", pattern: "\\b(within|in|by)\\s+\\d+\\s*(min|hour|hr|day|ghant|din)|\\b(aaj|today|tomorrow|kal|tonight|subah|shaam|morning|evening)\\b[^.!?\\n]{0,25}\\b(deliver|pahunch|reach|aa jaa?yega)|\\b(deliver|pahunch|reach)\\w*\\b[^.!?\\n]{0,30}\\b(aaj|today|tomorrow|kal|tonight|by\\s+\\w+)\\b", factPath: "eta", message: "Gives an ETA." },
-  { id: "payment", kind: "payment", pattern: "\\b(payment|paisa|amount)\\b[^.!?\\n]{0,30}\\b(received|mil gaya|aa gaya|credited|confirmed)\\b", factPath: "payment.status", expect: ["received", "paid", "confirmed", "credited"], message: "Claims payment received." },
-  { id: "guarantee", kind: "guarantee", pattern: "\\b(guarantee|guaranteed|100%\\s*(sure|pakka)|pakka\\s*promise|zaroor milega)\\b", never: true, message: "Guarantees an outcome." },
+  { id: "order_placed", kind: "order_status", re: /\b(order|po)\b[^.!?\n]{0,40}\b(placed|confirmed|booked|ho gaya|lag gaya)\b|\b(placed|confirmed|booked)\b[^.!?\n]{0,20}\border\b/i, factPath: "order.status", expect: ["placed", "confirmed", "booked"], message: "Order placed." },
+  { id: "delivered", kind: "order_status", re: /\b(delivered|deliver ho gaya|pahu?nch gaya)\b/i, factPath: "order.status", expect: ["delivered"], message: "Delivered." },
+  { id: "refund", kind: "refund", re: /\brefund(ed)?\b[^.!?\n]{0,30}\b(issued|processed|credited|done|sent|initiated|ho gaya|kar diya)\b/i, factPath: "refund.status", expect: ["issued", "processed", "credited", "initiated"], message: "Refund done." },
+  { id: "offer", kind: "offer", re: /\b(discount|offer|cashback|voucher|coupon|off|free|muft|scheme)\b/i, factPath: "offers", message: "Offer." },
+  { id: "eta", kind: "delivery_eta", re: /\b(within|in|by)\s+\d+\s*(min|hour|hr|day|ghant|din)|\b(aaj|today|tomorrow|kal|tonight|subah|shaam|morning|evening)\b[^.!?\n]{0,25}\b(deliver|pahunch|reach|aa jaa?yega)|\b(deliver|pahunch|reach)\w*\b[^.!?\n]{0,30}\b(aaj|today|tomorrow|kal|tonight|by\s+\w+)\b/i, factPath: "eta", message: "ETA promised." },
+  { id: "payment", kind: "payment", re: /\b(payment|paisa|amount)\b[^.!?\n]{0,30}\b(received|mil gaya|aa gaya|credited|confirmed)\b/i, factPath: "payment.status", expect: ["received", "paid", "confirmed", "credited"], message: "Payment received." },
+  { id: "guarantee", kind: "guarantee", re: /\b(guarantee|guaranteed|100%\s*(sure|pakka)|pakka\s*promise|zaroor milega)\b/i, never: true, message: "Guarantee." },
 ];
 const INFORMAL = /\b(tu|tum|tera|teri|tere|tumhar[aei]|tujhe|tumhe|tumko)\b/i;
 const ABUSE = /\b(bhenchod|madarchod|chutiya|bsdk|harami|kamina|saala|fuck|shit|bastard|idiot|stupid)\b/i;
@@ -71,13 +75,14 @@ function figures(text) {
 /** Every draft becomes the same JSON shape: what gets logged, verified and asserted on. */
 export function extractClaims(draft, policyIn) {
   const text = String(draft || "");
-  const policy = Object.assign({ formalAddress: true, allowUngroundedSmallCounts: true }, pj(policyIn, {}) || {});
+  const policy = pol(policyIn);
   const figs = figures(text);
   const off = new Set(policy.disableRules || []);
   const statements = [];
-  for (const r of DEFAULT_STATEMENT_RULES.concat(policy.statementRules || [])) {
-    if (off.has(r.id)) continue;
-    let m; try { m = text.match(new RegExp(r.pattern, "i")); } catch (e) { continue; }
+  const custom = Array.isArray(policy.statementRules) ? policy.statementRules : [];
+  for (const r of DEFAULT_STATEMENT_RULES.concat(custom)) {
+    if (!r || off.has(r.id)) continue;
+    const re = ruleRe(r, custom.indexOf(r) >= 0), m = re ? text.match(re) : null;
     if (m) statements.push({ id: "s" + (statements.length + 1), rule: r.id, kind: r.kind || "statement", text: m[0], factPath: r.factPath || null, expect: r.expect || null, never: !!r.never, message: r.message || "" });
   }
   const register = { informalAddress: !!(policy.formalAddress && INFORMAL.test(text)), profanity: ABUSE.test(text) };
@@ -104,10 +109,10 @@ function index(facts, recipient, policy) {
     for (const x of raw.match(/-?\d[\d,]*(?:\.\d+)?/g) || []) put(N, num(x), p);
     if (/[A-Za-z]/.test(raw) && /\d/.test(raw) && raw.length <= 40) put(I, idk(raw), p);
     for (const x of raw.match(/\b[A-Z]{1,6}[-_ ]?\d{3,}\b/g) || []) put(I, idk(x), p);
-    for (const x of raw.match(/(?:\+?91[\s-]?)?[6-9]\d{9}\b/g) || []) put(P, ph(x), p);
-    for (const x of raw.match(/https?:\/\/[^\s)>\]]+/gi) || []) put(L, low(x.replace(/[.,;:!?]+$/, "")), p);
+    for (const x of raw.match(FIG[1][1]) || []) put(P, ph(x), p);
+    for (const x of raw.match(FIG[0][1]) || []) put(L, FIG[0][2](x), p);
   }
-  return { N, I, P, T, L, size: e.length };
+  return { N, I, P, T, L };
 }
 
 const ok = (actual, expect) => actual == null ? false : Array.isArray(actual) ? actual.length > 0 && (!expect || actual.some((a) => expect.map(low).includes(low(a)))) : typeof actual === "object" ? Object.keys(actual).length > 0 : expect ? expect.map(low).includes(low(actual)) : String(actual).trim().length > 0;
@@ -115,16 +120,16 @@ const ok = (actual, expect) => actual == null ? false : Array.isArray(actual) ? 
 /** One verification per claim, each carrying an evidence class and the fact path that decided it. */
 export function verifyClaims(claims, factsIn, recipientIn, policyIn, provenance) {
   const facts = pj(factsIn, {}) || {}, recipient = pj(recipientIn, {}) || {};
-  const policy = Object.assign({ formalAddress: true, allowUngroundedSmallCounts: true }, pj(policyIn, {}) || {});
+  const policy = pol(policyIn);
   const source = provenance || "facts", ix = index(facts, recipient, policy), v = [];
   const add = (claimId, kind, token, status, evidence, severity, message) => v.push({ claimId, kind, token, status, source, evidence: evidence || "", severity, message: message || "" });
-  const V = STATUS.VERIFIED, C = STATUS.CONTRADICTED, U = STATUS.UNSUPPORTED;
+  const V = STATUS.VERIFIED, C = STATUS.CONTRADICTED, U = STATUS.UNSUPPORTED, nf = (t) => "\"" + t + "\" not in facts.";
   for (const f of claims.figures || []) {
     const k = f.kind;
-    if (k === "count" && policy.allowUngroundedSmallCounts && /^\d$/.test(f.value)) add(f.id, k, f.token, V, "small count", "info");
-    else if (k === "currency" || k === "percent" || k === "count") ix.N.has(f.value) ? add(f.id, k, f.token, V, ix.N.get(f.value), "info") : add(f.id, k, f.token, U, "", "block", "\"" + f.token + "\" not in facts.");
-    else if (k === "identifier") { const d = num(f.token.replace(/\D/g, "")); ix.I.has(f.value) ? add(f.id, k, f.token, V, ix.I.get(f.value), "info") : d && ix.N.has(d) ? add(f.id, k, f.token, V, ix.N.get(d), "info") : add(f.id, k, f.token, U, "", "block", "\"" + f.token + "\" not in facts."); }
-    else if (k === "date") (ix.T.has(f.value) || [...ix.T.keys()].some((t) => t.includes(f.value))) ? add(f.id, k, f.token, V, "facts text", "info") : add(f.id, k, f.token, U, "", "block", "\"" + f.token + "\" not in facts.");
+    if (k === "count" && policy.allowUngroundedSmallCounts && /^\d$/.test(f.value)) add(f.id, k, f.token, V, "small", "info");
+    else if (k === "currency" || k === "percent" || k === "count") ix.N.has(f.value) ? add(f.id, k, f.token, V, ix.N.get(f.value), "info") : add(f.id, k, f.token, U, "", "block", nf(f.token));
+    else if (k === "identifier") { const d = num(f.token.replace(/\D/g, "")); ix.I.has(f.value) ? add(f.id, k, f.token, V, ix.I.get(f.value), "info") : d && ix.N.has(d) ? add(f.id, k, f.token, V, ix.N.get(d), "info") : add(f.id, k, f.token, U, "", "block", nf(f.token)); }
+    else if (k === "date") (ix.T.has(f.value) || [...ix.T.keys()].some((t) => t.includes(f.value))) ? add(f.id, k, f.token, V, "facts text", "info") : add(f.id, k, f.token, U, "", "block", nf(f.token));
     else if (k === "link") ix.L.has(f.value) ? add(f.id, k, f.token, V, ix.L.get(f.value), "info") : add(f.id, k, f.token, U, "", "block", "Link not in facts.");
     else if (k === "phone") ix.P.has(f.value) ? add(f.id, k, f.token, V, ix.P.get(f.value), "info") : add(f.id, k, f.token, C, "recipient.phone=" + JSON.stringify(recipient.phone || null), "block", "Phone not the recipient's.");
   }
@@ -138,7 +143,7 @@ export function verifyClaims(claims, factsIn, recipientIn, policyIn, provenance)
   if (claims.register && claims.register.profanity) add("register", "register", "profanity", C, "policy", "block", "Abusive language.");
   const counts = { verified: 0, contradicted: 0, unsupported: 0, unverifiable: 0, block: 0, rewrite: 0 };
   for (const x of v) { counts[x.status]++; if (x.severity !== "info") counts[x.severity]++; }
-  return { verifications: v, preVerdict: counts.block ? "block" : counts.rewrite ? "rewrite" : "allow", counts, factIndexSize: ix.size };
+  return { verifications: v, preVerdict: counts.block ? "block" : counts.rewrite ? "rewrite" : "allow", counts };
 }
 
 /** Fetched (source-of-truth) values override the drafter's facts; a drafter cannot launder an invented number by inventing facts too. */
@@ -149,6 +154,13 @@ export function mergeFacts(provided, fetched) {
   const deep = (t, s) => { for (const k of Object.keys(s)) t[k] = s[k] && typeof s[k] === "object" && !Array.isArray(s[k]) && t[k] && typeof t[k] === "object" && !Array.isArray(t[k]) ? (deep(t[k], s[k]), t[k]) : s[k]; };
   deep(out, b);
   return { facts: out, provenance: "tool" };
+}
+
+/** Where the gate may fetch facts from: https only, no credentials, public host names only, and an allow-list when one is given. Pure. */
+export function truthUrlProblem(url, hosts) {
+  let u; try { u = new URL(String(url || "")); } catch (e) { return "truth_url: invalid URL"; }
+  const h = u.hostname.toLowerCase(), a = (hosts || []).map(low).filter(Boolean);
+  return u.protocol !== "https:" ? "truth_url: https only" : u.username || u.password ? "truth_url: no credentials in URL" : h.indexOf(".") < 0 || h[0] === "[" || /^\d+(\.\d+){3}$/.test(h) || /\.(local|internal|localhost)$/.test(h) ? "truth_url: public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "truth_url: host not on allow-list" : null;
 }
 
 /** Claims + verification in one call (app and tests). */

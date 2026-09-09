@@ -6,3 +6,4 @@ out/
 .env.*.local
 *.tsbuildinfo
 scripts/out/
+next-env.d.ts

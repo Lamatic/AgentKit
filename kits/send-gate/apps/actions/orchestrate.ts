@@ -1,8 +1,14 @@
 "use server";
 
+import config from "../../lamatic.config";
+import { truthUrlProblem } from "../lib/gate";
 import { flowConfigured, runSendGateFlow } from "../lib/lamatic-client";
-import { runSendGateLocally } from "../lib/local-runner";
+import { runSendGateLocally, truthHosts } from "../lib/local-runner";
 import type { GateRequest, GateResponse } from "../lib/types";
+
+// The kit's step definition names the env var that holds the deployed flow id.
+const SEND_GATE_STEP = config.steps.find((s) => s.id === "send-gate");
+const FLOW_ID_ENV = SEND_GATE_STEP?.envKey ?? "SEND_GATE_FLOW_ID";
 
 const MAX_DRAFT = 4000;
 const MAX_JSON = 20000;
@@ -20,7 +26,10 @@ function validate(req: GateRequest): string | null {
       }
     }
   }
-  if (req.truthUrl.trim() && !/^https?:\/\//.test(req.truthUrl.trim())) return "truth_url must be an http(s) URL.";
+  if (req.truthUrl.trim()) {
+    const problem = truthUrlProblem(req.truthUrl.trim(), truthHosts());
+    if (problem) return problem;
+  }
   return null;
 }
 
@@ -39,7 +48,7 @@ export async function runSendGate(input: GateRequest): Promise<GateResponse> {
   const problem = validate(req);
   if (problem) return { ok: false, mode, elapsedMs: 0, error: problem };
   try {
-    const result = mode === "flow" ? await runSendGateFlow(req) : await runSendGateLocally(req);
+    const result = mode === "flow" ? await runSendGateFlow(req, process.env[FLOW_ID_ENV]) : await runSendGateLocally(req);
     return { ok: true, mode, elapsedMs: Date.now() - started, result };
   } catch (e) {
     return { ok: false, mode, elapsedMs: Date.now() - started, error: e instanceof Error ? e.message : String(e) };

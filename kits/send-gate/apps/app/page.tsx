@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { getMode, runSendGate } from "../actions/orchestrate";
 import { Composer } from "../components/composer";
 import { ResultPanel } from "../components/result-panel";
-import { initialState, scenarioById, stateFromScenario, toRequest } from "../lib/composer-state";
+import { composerProblem, initialState, scenarioById, stateFromScenario, toRequest } from "../lib/composer-state";
 import type { ComposerState } from "../lib/composer-state";
 import type { GateResponse } from "../lib/types";
 
@@ -36,18 +36,19 @@ export default function Page() {
     if (params.get("run") === "1") run(next);
   }, [run]);
 
+  // Same gate for the button and the shortcut: nothing runs while a run is pending or the facts are malformed.
+  const canRun = !pending && composerProblem(state) === null;
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        run(state);
+        if (canRun) run(state);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [run, state]);
-
-  const canRun = !pending && state.draft.trim().length > 0;
+  }, [run, state, canRun]);
 
   return (
     <div className="min-h-screen">

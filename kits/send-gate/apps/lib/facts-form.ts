@@ -62,10 +62,13 @@ export function formToFacts(f: FactsForm): Record<string, unknown> {
   if (f.orderTotal.trim()) order.total = numOrText(f.orderTotal);
   if (f.orderItems.trim()) order.items = numOrText(f.orderItems);
   if (Object.keys(order).length) out.order = { ...(isObj(out.order) ? out.order : {}), ...order };
-  out.offers = list(f.offers).map((o) => {
+  const offers = list(f.offers).map((o) => {
     const m = o.match(/^(\S+)\s+(\d+(?:\.\d+)?)\s*%?$/);
     return m ? { code: m[1], percent: Number(m[2]) } : { code: o };
   });
+  // An empty Offers field keeps whatever the extra JSON supplied; `offers` is still always present.
+  if (offers.length) out.offers = offers;
+  else if (!Array.isArray(out.offers)) out.offers = [];
   if (f.eta.trim()) out.eta = f.eta.trim();
   else if (!("eta" in out)) out.eta = null;
   const links = list(f.links);
@@ -77,6 +80,9 @@ export function formToFacts(f: FactsForm): Record<string, unknown> {
   if (f.paymentStatus) out.payment = { ...(isObj(out.payment) ? out.payment : {}), status: f.paymentStatus };
   return out;
 }
+
+/** Non-empty extra JSON that is not an object is an error the UI must show, never silently drop. */
+export const extraJsonProblem = (f: FactsForm): string | null => (f.extra.trim() && parseJsonObject(f.extra) === null ? "The extra facts must be a JSON object." : null);
 
 /** Facts object → fields. Anything the fields cannot hold goes to `extra` as JSON. */
 export function factsToForm(input: unknown): FactsForm {

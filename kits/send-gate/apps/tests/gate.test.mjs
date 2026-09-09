@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { checkDraft, decide, extractClaims, mergeFacts, STATUS, _internals } from "../lib/gate.js";
+import { checkDraft, decide, extractClaims, mergeFacts, STATUS, truthUrlProblem, _internals } from "../lib/gate.js";
 
 const facts = {
   order: { po: "PO1430779", status: "pending", total: 8864, items: 10, seller: "Hoppin Distributors" },
@@ -111,7 +111,7 @@ test("small counts are tolerated, currency is not", () => {
 });
 
 test("policy can add a statement rule and disable a default", () => {
-  const policy = { disableRules: ["offer"], statementRules: [{ id: "credit_limit", kind: "credit", pattern: "credit limit", factPath: "buyer.creditLimit", message: "no credit info" }] };
+  const policy = { disableRules: ["offer"], statementRules: [{ id: "credit_limit", kind: "credit", terms: ["credit limit"], factPath: "buyer.creditLimit", message: "no credit info" }] };
   const r = checkDraft({ draft: "Aapka credit limit badh gaya hai, saath mein discount bhi.", facts, recipient, policy });
   assert.ok(r.verifications.some((v) => v.kind === "credit" && v.status === STATUS.UNSUPPORTED));
   assert.ok(!r.verifications.some((v) => v.kind === "offer"));
@@ -153,6 +153,25 @@ test("decide: judge block + grounded rewrite becomes rewrite", () => {
   assert.ok(d.finalMessage.includes("PO1430779"));
 });
 
+test("decide: a clean pre-check + judge block claim + grounded rewrite downgrades block to rewrite", () => {
+  // The pre-check allows this draft (nothing the rules can see), so the block comes from the judge alone.
+  const input = { draft: "Aapka order PO1430779 pending hai; hum ise priority par bhej denge.", facts, recipient };
+  const pre = checkDraft(input);
+  assert.equal(pre.preVerdict, "allow");
+  const d = decide(input, pre, { unsupported_claims: [{ claim: "hum ise priority par bhej denge", why: "no priority commitment in facts", severity: "block" }], rewrite: "Aapka order PO1430779 abhi pending hai." });
+  assert.equal(d.verdict, "rewrite");
+  assert.equal(d.finalMessage, "Aapka order PO1430779 abhi pending hai.");
+  assert.equal(d.rewriteCheck.preVerdict, "allow");
+  assert.equal(d.counts.block, 1);
+});
+
+test("decide: judge block claim with a rewrite that fails re-verification stays blocked", () => {
+  const input = { draft: "Aapka order PO1430779 pending hai; hum ise priority par bhej denge.", facts, recipient };
+  const d = decide(input, checkDraft(input), { unsupported_claims: [{ claim: "priority", why: "not in facts", severity: "block" }], rewrite: "Aapka order kal subah ₹9,000 mein pahunch jayega." });
+  assert.equal(d.verdict, "block");
+  assert.equal(d.finalMessage, null);
+});
+
 test("decide: a rewrite that still invents a number is blocked", () => {
   const input = { draft: "Aapka order kal pahunch jayega.", facts, recipient };
   const d = decide(input, checkDraft(input), { unsupported_claims: [], rewrite: "Aapka order 2 ghante mein ₹9,000 ke saath pahunch jayega." });
@@ -171,4 +190,32 @@ test("internals: number normalisation", () => {
   assert.equal(_internals.num("₹1,200.00"), "1200");
   assert.equal(_internals.num("Rs. 05"), "5");
   assert.equal(_internals.num("abc"), null);
+});
+
+// --- Untrusted inputs: truth_url and caller-supplied rules ----------------------
+
+test("truthUrlProblem: https, public host, allow-list, no credentials", () => {
+  assert.equal(truthUrlProblem("https://raw.githubusercontent.com/x/y/z.json", ["raw.githubusercontent.com"]), null);
+  assert.equal(truthUrlProblem("https://api.raw.githubusercontent.com/z", ["raw.githubusercontent.com"]), null);
+  assert.match(truthUrlProblem("http://raw.githubusercontent.com/z", []), /https/);
+  assert.match(truthUrlProblem("https://user:pw@raw.githubusercontent.com/z", []), /credentials/);
+  assert.match(truthUrlProblem("https://localhost:3000/api/truth", []), /public host/);
+  assert.match(truthUrlProblem("https://169.254.169.254/latest/meta-data", []), /public host/);
+  assert.match(truthUrlProblem("https://[::1]/x", []), /public host/);
+  assert.match(truthUrlProblem("https://orders.internal/x", []), /public host/);
+  assert.match(truthUrlProblem("https://evil.example.com/z", ["raw.githubusercontent.com"]), /allow-list/);
+  assert.match(truthUrlProblem("not a url", []), /valid URL/);
+});
+
+test("custom statement rules: only literal terms are honoured, escaped; caller regex patterns are ignored", () => {
+  const policy = { statementRules: [
+    { id: "bonus", kind: "offer", terms: ["free gift", "muft (tohfa)"], factPath: "offers", message: "Mentions a gift." },
+    { id: "evil", kind: "x", pattern: "(a+)+$", factPath: "x", message: "ReDoS" },
+    { id: "plain", kind: "custom", pattern: "\\bexpress delivery\\b", factPath: "eta", message: "Regex from a caller is ignored." }
+  ] };
+  const c = extractClaims("Aapko muft (tohfa) milega, express delivery ke saath! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!", policy);
+  const rules = c.statements.map((s) => s.rule);
+  assert.ok(rules.includes("bonus"));
+  assert.ok(!rules.includes("plain"), "caller regex patterns are not honoured");
+  assert.ok(!rules.includes("evil"));
 });

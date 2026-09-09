@@ -1,6 +1,6 @@
 "use client";
 
-import { ORDER_STATUSES, PAYMENT_STATUSES, REFUND_STATUSES, RULE_IDS } from "../lib/facts-form";
+import { ORDER_STATUSES, PAYMENT_STATUSES, REFUND_STATUSES, RULE_IDS, extraJsonProblem, parseJsonObject } from "../lib/facts-form";
 import type { FactsForm, PolicyForm, RecipientForm } from "../lib/facts-form";
 import { SAMPLE_TRUTH_URL, SCENARIOS } from "../lib/scenarios";
 import { blankState, scenarioById, stateFromScenario, switchFactsMode } from "../lib/composer-state";
@@ -65,9 +65,9 @@ export function Composer({ state, onChange }: Props) {
       <Section
         title="Message"
         aside={
-          <div className="seg" role="tablist" aria-label="Source">
-            <button type="button" role="tab" aria-pressed={state.source === "scenario"} onClick={() => onChange(stateFromScenario(scenario ?? SCENARIOS[0]))}>Scenarios</button>
-            <button type="button" role="tab" aria-pressed={state.source === "custom"} onClick={() => onChange({ ...blankState(), advancedOpen: state.advancedOpen })}>Custom</button>
+          <div className="seg" aria-label="Source">
+            <button type="button" aria-pressed={state.source === "scenario"} onClick={() => onChange(stateFromScenario(scenario ?? SCENARIOS[0]))}>Scenarios</button>
+            <button type="button" aria-pressed={state.source === "custom"} onClick={() => onChange({ ...blankState(), advancedOpen: state.advancedOpen })}>Custom</button>
           </div>
         }
       >
@@ -105,7 +105,7 @@ export function Composer({ state, onChange }: Props) {
       >
         {state.factsMode === "json" ? (
           <div>
-            <textarea className="control mono text-xs" rows={12} value={state.factsJson} onChange={(e) => set({ factsJson: e.target.value, factsJsonError: "" })} placeholder='{ "order": { "po": "PO1430779", "status": "pending", "total": 8864 }, "offers": [], "eta": null }' />
+            <textarea className="control mono text-xs" rows={12} value={state.factsJson} onChange={(e) => set({ factsJson: e.target.value, factsJsonError: e.target.value.trim() && parseJsonObject(e.target.value) === null ? "Not a JSON object yet." : "" })} placeholder='{ "order": { "po": "PO1430779", "status": "pending", "total": 8864 }, "offers": [], "eta": null }' />
             {state.factsJsonError && <p className="mt-2 text-xs text-bad">{state.factsJsonError}</p>}
             <p className="mt-2 text-[11px] text-muted">Keys the rules look at: order.status, offers, eta, refund.status, payment.status, links, plus anything you add.</p>
           </div>
@@ -130,6 +130,7 @@ export function Composer({ state, onChange }: Props) {
             <details className="group" open={Boolean(state.facts.extra)}>
               <summary className="cursor-pointer select-none text-xs font-medium text-muted hover:text-ink">More facts as JSON (optional)</summary>
               <textarea className="control mono mt-2 text-xs" rows={4} value={state.facts.extra} placeholder='{ "seller": "Hoppin Distributors" }' onChange={(e) => setFacts({ extra: e.target.value })} />
+              {extraJsonProblem(state.facts) && <p className="mt-2 text-xs text-bad">{extraJsonProblem(state.facts)}</p>}
             </details>
           </div>
         )}
@@ -144,7 +145,7 @@ export function Composer({ state, onChange }: Props) {
       </Section>
 
       <section className="card p-5">
-        <button type="button" className="flex w-full items-center justify-between text-left" onClick={() => set({ advancedOpen: !state.advancedOpen })}>
+        <button type="button" className="flex w-full items-center justify-between text-left" aria-expanded={state.advancedOpen} onClick={() => set({ advancedOpen: !state.advancedOpen })}>
           <h2 className="text-sm font-semibold tracking-tight">Source of truth and policy</h2>
           <span className="text-xs text-muted">{state.advancedOpen ? "Hide" : "Show"}</span>
         </button>

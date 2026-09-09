@@ -19,16 +19,20 @@ function client() {
 }
 
 /** Output-mapping values sometimes arrive JSON-encoded; normalise so the UI sees objects. */
-function parseMaybe<T>(value: unknown, fallback: T): T {
-  if (typeof value !== "string") return (value ?? fallback) as T;
+function parseMaybe(value: unknown): unknown {
+  if (typeof value !== "string") return value;
   const t = value.trim();
-  if (!t) return fallback;
+  if (!t) return undefined;
   try {
-    return JSON.parse(t) as T;
+    return JSON.parse(t);
   } catch {
-    return value as unknown as T;
+    return undefined;
   }
 }
+const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+const asObject = <T extends object>(v: unknown, fallback: T): T => (isObj(v) ? (v as T) : fallback);
+const VERDICTS: GateResult["verdict"][] = ["allow", "rewrite", "block"];
 
 
 /**
@@ -39,7 +43,7 @@ function parseMaybe<T>(value: unknown, fallback: T): T {
 let endpointChecked = "";
 async function assertGraphqlEndpoint(url: string): Promise<void> {
   if (endpointChecked === url) return;
-  if (!/^https?:\/\//.test(url)) throw new Error("LAMATIC_API_URL must be the project's GraphQL endpoint from Studio → Settings → API Docs (an https URL).");
+  if (!/^https:\/\//.test(url)) throw new Error("LAMATIC_API_URL must be the project's GraphQL endpoint from Studio → Settings → API Docs (an https:// URL; the API key travels with every call).");
   if (/studio\.lamatic\.ai|lamatic\.ai\/docs/.test(url)) {
     throw new Error(`LAMATIC_API_URL is set to a web page (${url}). Use the GraphQL endpoint shown under Studio → Settings → API Docs, not the Studio or docs URL.`);
   }
@@ -60,10 +64,10 @@ async function assertGraphqlEndpoint(url: string): Promise<void> {
  * Executes the deployed send-gate flow. The trigger schema declares every field as a string,
  * so booleans are sent as "true"/"" and JSON as text; the flow parses them itself.
  */
-export async function runSendGateFlow(req: GateRequest): Promise<GateResult> {
-  if (!sendGateFlowId) throw new Error("SEND_GATE_FLOW_ID is not set.");
+export async function runSendGateFlow(req: GateRequest, flowId: string | undefined = sendGateFlowId): Promise<GateResult> {
+  if (!flowId) throw new Error(`${step?.envKey ?? "SEND_GATE_FLOW_ID"} is not set.`);
   await assertGraphqlEndpoint(process.env.LAMATIC_API_URL ?? "");
-  const res = await client().executeFlow(sendGateFlowId, {
+  const res = await client().executeFlow(flowId, {
     draft: req.draft,
     facts: req.facts,
     recipient: req.recipient,
@@ -74,15 +78,29 @@ export async function runSendGateFlow(req: GateRequest): Promise<GateResult> {
   if (res.status !== "success" || !res.result) {
     throw new Error(res.message ? `Lamatic: ${res.message}` : `Lamatic returned status "${res.status}".`);
   }
-  const r = res.result as Record<string, unknown>;
+  const r = asObject<Record<string, unknown>>(res.result, {});
+  // Output-mapping values sometimes arrive JSON-encoded; anything malformed falls back to a safe shape
+  // (a block verdict, empty lists) rather than a string the UI would try to iterate.
+  const verdictRaw = parseMaybe(r.verdict);
+  const verdict = VERDICTS.includes(verdictRaw as GateResult["verdict"]) ? (verdictRaw as GateResult["verdict"]) : "block";
+  const rc = parseMaybe(r.rewriteCheck);
+  const rewriteCheck = isObj(rc) ? (rc as { preVerdict?: unknown; findings?: unknown }) : null;
+  const audit = asObject<Partial<GateResult["audit"]>>(parseMaybe(r.audit), {});
   return {
-    verdict: parseMaybe(r.verdict, "block"),
-    finalMessage: r.finalMessage == null || r.finalMessage === "null" ? null : String(r.finalMessage),
-    claims: parseMaybe(r.claims, {} as GateResult["claims"]),
-    verifications: parseMaybe(r.verifications, []),
-    findings: parseMaybe(r.findings, []),
-    counts: parseMaybe(r.counts, {}),
-    rewriteCheck: parseMaybe(r.rewriteCheck, null),
-    audit: parseMaybe(r.audit, {} as GateResult["audit"])
+    verdict,
+    finalMessage: verdict === "block" || r.finalMessage == null || r.finalMessage === "null" ? null : String(r.finalMessage),
+    claims: asObject<GateResult["claims"]>(parseMaybe(r.claims), { schemaVersion: "1", figures: [], statements: [], register: { informalAddress: false, profanity: false }, risk: "high", needsFactCheck: true } as GateResult["claims"]),
+    verifications: asArray(parseMaybe(r.verifications)),
+    findings: asArray(parseMaybe(r.findings)),
+    counts: asObject<Record<string, number>>(parseMaybe(r.counts), {}),
+    rewriteCheck: rewriteCheck && VERDICTS.includes(rewriteCheck.preVerdict as GateResult["verdict"]) ? { preVerdict: rewriteCheck.preVerdict as GateResult["verdict"], findings: asArray(rewriteCheck.findings) } : null,
+    audit: {
+      needsFactCheck: Boolean(audit.needsFactCheck),
+      provenance: audit.provenance === "tool" ? "tool" : "facts",
+      fetchError: typeof audit.fetchError === "string" ? audit.fetchError : "",
+      judgeUsed: Boolean(audit.judgeUsed),
+      judgeNotes: typeof audit.judgeNotes === "string" ? audit.judgeNotes : "",
+      schemaVersion: typeof audit.schemaVersion === "string" ? audit.schemaVersion : ""
+    }
   };
 }

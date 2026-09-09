@@ -16,9 +16,12 @@ export const STATUS: {
 export interface StatementRule {
   id: string;
   kind?: string;
-  pattern: string;
-  factPath?: string;
-  expect?: string[];
+  /** Built-in rules: a server-defined regex. */
+  re?: RegExp;
+  /** Caller-supplied rules: literal phrases, escaped and matched whole-word. Regex patterns are not accepted from callers. */
+  terms?: string[];
+  factPath?: string | null;
+  expect?: string[] | null;
   never?: boolean;
   message?: string;
 }
@@ -77,8 +80,7 @@ export interface VerifyResult {
   verifications: Verification[];
   preVerdict: Verdict;
   counts: Record<string, number>;
-  factIndexSize: number;
-}
+  }
 
 export interface CheckResult extends VerifyResult {
   claims: Claims;
@@ -105,5 +107,6 @@ type Json = unknown;
 export function extractClaims(draft: string, policy?: Policy | string | null): Claims;
 export function verifyClaims(claims: Claims, facts: Json, recipient: Json, policy?: Policy | string | null, provenance?: string): VerifyResult;
 export function mergeFacts(provided: Json, fetched: Json): { facts: Record<string, unknown>; provenance: "facts" | "tool" };
+export function truthUrlProblem(url: string, hosts?: string[] | null): string | null;
 export function checkDraft(input: { draft: string; facts?: Json; recipient?: Json; policy?: Policy | string | null; provenance?: string }): CheckResult;
 export function decide(input: { draft: string; facts?: Json; recipient?: Json; policy?: Policy | string | null; provenance?: string }, pre: { preVerdict: Verdict; findings: Verification[] }, judge?: JudgeOutput | string | null): Decision;
