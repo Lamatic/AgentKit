@@ -25,11 +25,20 @@ const term = (t) => (/^\w/.test(t) ? "\\b" : "") + esc(t) + (/\w$/.test(t) ? "\\
 const ruleRe = (r, custom) => custom ? (Array.isArray(r.terms) && r.terms.length ? new RegExp("(?:" + r.terms.map(term).join("|") + ")", "i") : null) : r.re;
 const pol = (p) => Object.assign({ formalAddress: true, allowUngroundedSmallCounts: true }, pj(p, {}) || {});
 
-const MON = "jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec";
+const M3 = "janfebmaraprmayjunjulaugsepoctnovdec";
+const MON = M3.match(/.{3}/g).join("|");
+/** One shape for every date form, so "2026-09-10", "10/09/2026" and "10 September 2026" all match. */
+const dnorm = (s) => {
+  const t = low(s), n = t.match(/\d+/g) || [], m = /[a-z]{3}/.exec(t), mo = m ? (M3.indexOf(m[0]) + 3) / 3 | 0 : 0;
+  if (mo) return (n.find((x) => x.length === 4) || "") + "-" + mo + "-" + +(n.find((x) => x.length < 3) || 0);
+  if (n.length !== 3) return t;
+  const iso = n[0].length === 4;
+  return (iso ? n[0] : n[2].length < 3 ? "20" + n[2] : n[2]) + "-" + +n[1] + "-" + +(iso ? n[2] : n[0]);
+};
 const FIG = [
   ["link", /https?:\/\/[^\s)>\]]+/gi, (t) => low(t.replace(/[.,;:!?]+$/, ""))],
   ["phone", /(?:\+?91[\s-]?)?[6-9]\d{9}\b/g, ph],
-  ["date", new RegExp("\\b(\\d{1,2}[\\/.-]\\d{1,2}[\\/.-]\\d{2,4}|\\d{4}-\\d\\d-\\d\\d|\\d{1,2}\\s+(?:" + MON + ")[a-z]*(?:\\s+\\d{4})?|(?:" + MON + ")[a-z]*\\s+\\d{1,2}(?:,?\\s+\\d{4})?)\\b", "gi"), low],
+  ["date", new RegExp("\\b(\\d{1,4}[\\/.-]\\d{1,2}[\\/.-]\\d{2,4}|\\d{1,2}\\s+(?:" + MON + ")[a-z]*(?:\\s+\\d{4})?|(?:" + MON + ")[a-z]*\\s+\\d{1,2}(?:,?\\s+\\d{4})?)\\b", "gi"), dnorm],
   ["identifier", /\b(?:[A-Z]{1,6}[-_ ]?\d{3,}|\d{3,}[-_]?[A-Z]{1,6}|[A-Z0-9]*\d[A-Z0-9]*-[A-Z0-9-]{3,})\b/g, idk],
   ["number", /(?:[₹$€£]\s?|\b(?:rs\.?|inr)\s?)?-?\d[\d,]*(?:\.\d+)?\s?(?:%|percent|lakh|lakhs|crore|k\b)?/gi, null],
 ];
@@ -100,20 +109,21 @@ function flat(v, p, out) {
 
 function index(facts, recipient, policy) {
   const e = flat(facts, "", []); flat(recipient, "recipient", e); flat(policy.allowedValues || [], "policy.allowedValues", e);
-  const N = new Map(), I = new Map(), P = new Map(), T = new Map(), L = new Map();
+  const N = new Map(), I = new Map(), P = new Map(), D = new Map(), L = new Map();
   const put = (m, k, p) => { if (k != null && !m.has(k)) m.set(k, p); };
   for (const [p, raw] of e) {
-    put(T, low(raw), p);
     put(N, num(raw), p);
     for (const x of raw.match(/-?\d[\d,]*(?:\.\d+)?/g) || []) put(N, num(x), p);
     if (/[A-Za-z]/.test(raw) && /\d/.test(raw) && raw.length <= 40) put(I, idk(raw), p);
-    for (const x of raw.match(/\b[A-Z]{1,6}[-_ ]?\d{3,}\b/g) || []) put(I, idk(x), p);
+    for (const x of raw.match(FIG[3][1]) || []) put(I, idk(x), p);
+    for (const x of raw.match(FIG[2][1]) || []) put(D, dnorm(x), p);
     for (const x of raw.match(FIG[1][1]) || []) put(P, ph(x), p);
     for (const x of raw.match(FIG[0][1]) || []) put(L, FIG[0][2](x), p);
   }
-  return { N, I, P, T, L };
+  return { N, I, P, D, L };
 }
 
+const FMAP = { currency: "N", percent: "N", count: "N", identifier: "I", date: "D", link: "L", phone: "P" };
 const ok = (actual, expect) => actual == null ? false : Array.isArray(actual) ? actual.length > 0 && (!expect || actual.some((a) => expect.map(low).includes(low(a)))) : typeof actual === "object" ? Object.keys(actual).length > 0 : expect ? expect.map(low).includes(low(actual)) : String(actual).trim().length > 0;
 
 /** One verification per claim, each carrying an evidence class and the fact path that decided it. */
@@ -126,13 +136,16 @@ export function verifyClaims(claims, factsIn, recipientIn, policyIn, provenance)
   const S = (s, status, evidence, severity, message) => add(s.id, s.kind, s.text, status, evidence, severity, message);
   const V = "verified", C = "contradicted", U = "unsupported", nf = (t) => "\"" + t + "\" not in facts.";
   for (const f of claims.figures || []) {
-    const k = f.kind;
-    if (k === "count" && policy.allowUngroundedSmallCounts && /^\d$/.test(f.value)) F(f, V, "small", "info");
-    else if (k === "currency" || k === "percent" || k === "count") ix.N.has(f.value) ? F(f, V, ix.N.get(f.value), "info") : F(f, U, "", "block", nf(f.token));
-    else if (k === "identifier") { const d = num(f.token.replace(/\D/g, "")); ix.I.has(f.value) ? F(f, V, ix.I.get(f.value), "info") : d && ix.N.has(d) ? F(f, V, ix.N.get(d), "info") : F(f, U, "", "block", nf(f.token)); }
-    else if (k === "date") [...ix.T.keys()].some((t) => t.includes(f.value)) ? F(f, V, "text", "info") : F(f, U, "", "block", nf(f.token));
-    else if (k === "link") ix.L.has(f.value) ? F(f, V, ix.L.get(f.value), "info") : F(f, U, "", "block", nf(f.token));
-    else if (k === "phone") ix.P.has(f.value) ? F(f, V, ix.P.get(f.value), "info") : F(f, C, "recipient.phone=" + JSON.stringify(recipient.phone || null), "block", "Phone not the recipient's.");
+    const k = f.kind, small = k === "count" && policy.allowUngroundedSmallCounts && /^\d$/.test(f.value);
+    const mp = ix[FMAP[k]] || ix.N;
+    // Evidence = the fact path the value was found at. Identifiers also answer to their digits alone
+    // ("PO1430779" against 1430779); a date with no year matches any year ("10 Sep" against 2026-09-10).
+    let ev = small ? "small" : mp.get(f.value);
+    if (ev == null && k === "identifier") ev = ix.N.get(num(f.token.replace(/\D/g, "")));
+    if (ev == null && k === "date" && f.value[0] === "-") for (const [t, p] of mp) if (t.endsWith(f.value)) { ev = p; break; }
+    ev != null ? F(f, V, ev, "info")
+      : k === "phone" ? F(f, C, "recipient.phone=" + (recipient.phone || null), "block", "Phone not the recipient's.")
+      : F(f, U, "", "block", nf(f.token));
   }
   for (const s of claims.statements || []) {
     if (s.never) { S(s, C, "policy", "block", s.message); continue; }
@@ -161,13 +174,13 @@ export function mergeFacts(provided, fetched) {
 /** Where the gate may fetch facts from: https only, no credentials, public host names only, and an allow-list when one is given. Pure. */
 /** truth_url was asked for but could not be used: nothing counts as verified, so the draft blocks and no rewrite is accepted. */
 export function failClosed(verification, error) {
-  return { verifications: [{ claimId: "truth", kind: "truth_url", token: "", status: "unverifiable", source: "tool", evidence: error, severity: "block", message: "truth_url unusable: nothing verified." }].concat(verification.verifications), preVerdict: "block" };
+  return { verifications: [{ claimId: "truth", kind: "truth_url", token: "", status: "unverifiable", source: "tool", evidence: error, severity: "block", message: "Source of truth unusable." }].concat(verification.verifications), preVerdict: "block" };
 }
 
 export function truthUrlProblem(url, hosts) {
   let u; try { u = new URL(String(url || "")); } catch (e) { return "truth_url: invalid URL"; }
   const h = u.hostname.toLowerCase(), a = (hosts || []).map(low).filter(Boolean);
-  const why = u.protocol !== "https:" ? "https only" : u.username || u.password ? "no credentials" : !h.includes(".") || h[0] === "[" || /^\d+(\.\d+){3}$/.test(h) || /\.(local|internal|localhost)$/.test(h) ? "public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "host not on allow-list" : "";
+  const why = u.protocol !== "https:" ? "https only" : u.username || u.password ? "no credentials" : /^\[|^\d+(\.\d+){3}$|^[^.]+$|\.(local|internal|localhost)$/.test(h) ? "public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "host not on allow-list" : "";
   return why ? "truth_url: " + why : null;
 }
 

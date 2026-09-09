@@ -113,7 +113,7 @@ npm run emit:check   # scripts/send-gate_code-node-{211,515}_code.ts are up to d
 npm run emit         # regenerate them (terser; Studio caps a Code node at ~10,000 chars)
 ```
 
-The Code-node scripts are minified because Studio caps a node at roughly 10,000 characters and the library plus glue is about 15,000 readable. Read `apps/lib/gate.js` and the two templates in `apps/scripts/emit-code-node.mjs`; the readable assembled versions land in `apps/scripts/out/` when you run `npm run emit`.
+The Code-node scripts are minified because Studio caps a node at roughly 10,000 characters and the library plus glue is about 15,000 readable. `npm run emit` refuses to write a node over the cap; the pre-check is at 9,998 characters today, so plan on splitting it into two Code nodes before adding much more. Read `apps/lib/gate.js` and the two templates in `apps/scripts/emit-code-node.mjs`; the readable assembled versions land in `apps/scripts/out/` when you run `npm run emit`.
 
 ## Deploying the flow yourself
 

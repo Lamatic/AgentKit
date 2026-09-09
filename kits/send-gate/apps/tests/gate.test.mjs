@@ -95,6 +95,22 @@ test("foreign phone is contradicted, unknown link unsupported; recipient phone a
   assert.equal(good.preVerdict, "allow", JSON.stringify(good.findings));
 });
 
+test("the same date in another form is still the same date", () => {
+  // The draft and the facts rarely agree on formatting; only a genuinely different date may block.
+  const day = { eta: "2026-09-10" };
+  for (const written of ["10 Sep 2026", "10 September 2026", "Sep 10, 2026", "10/09/2026", "2026-09-10", "10 Sep"]) {
+    const r = checkDraft({ draft: `Delivery ${written} ko ho jayegi.`, facts: day, recipient });
+    assert.equal(r.preVerdict, "allow", `${written}: ` + JSON.stringify(r.findings));
+  }
+  // and the other way round: facts in words, draft in ISO
+  assert.equal(checkDraft({ draft: "Delivery 2026-09-10 ko.", facts: { eta: "10 Sep 2026" }, recipient }).preVerdict, "allow");
+  for (const wrong of ["11 Sep 2026", "10 Oct 2026", "10 Sep 2027", "2026-10-09"]) {
+    const r = checkDraft({ draft: `Delivery ${wrong} ko ho jayegi.`, facts: day, recipient });
+    assert.equal(r.preVerdict, "block", `${wrong} should not pass`);
+    assert.ok(has(r, "date", STATUS.UNSUPPORTED));
+  }
+});
+
 test("dates must be in the facts", () => {
   assert.ok(has(checkDraft({ draft: "Delivery on 12/09/2026.", facts, recipient }), "date", STATUS.UNSUPPORTED));
   assert.ok(has(checkDraft({ draft: "Delivery on 12/09/2026.", facts: { ...facts, eta: "12/09/2026" }, recipient }), "date", STATUS.VERIFIED));
