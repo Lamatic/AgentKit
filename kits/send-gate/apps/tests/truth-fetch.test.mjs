@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import { decide, extractClaims, failClosed, mergeFacts, verifyClaims } from "../lib/gate.js";
 import { fetchTruth, readCapped, TRUTH_MAX_BYTES } from "../lib/truth-fetch.js";
 
-const HOSTS = ["raw.githubusercontent.com"];
-const TRUTH = "https://raw.githubusercontent.com/example/truth/main/PO1430779.json";
+const HOSTS = ["cdn.jsdelivr.net"]; // the default allow-list, and what codeNode_211 carries
+const TRUTH = "https://cdn.jsdelivr.net/gh/example/truth@main/PO1430779.json";
 const facts = { order: { po: "PO1430779", status: "pending", total: 8864, items: 10 }, offers: [], eta: null, links: ["https://app.badho.in/buyer/cart-screen/abc123"] };
 const recipient = { name: "Aditya Kirana Store", phone: "919045576383" };
 const draft = "Namaste! Aapka order PO1430779 (₹8,864, 10 items) abhi pending hai. Cart: https://app.badho.in/buyer/cart-screen/abc123";
@@ -41,7 +41,7 @@ test("readCapped: stops reading at the cap and cancels the stream instead of buf
 test("fetchTruth: a host off the allow-list is refused before any request is made", async () => {
   let called = false;
   const t = await withFetch(() => { called = true; }, () => fetchTruth("https://evil.example/truth.json", ["PO1"], HOSTS, ""));
-  assert.match(t.error, /allow-list/);
+  assert.match(t.error, /not allowed/);
   assert.equal(t.fetched, null);
   assert.equal(called, false);
 });
@@ -57,10 +57,17 @@ test("fetchTruth: sends only the draft's identifiers in the query and the token 
   assert.ok(!/recipient|secret/.test(seen.url));
 });
 
-test("fetchTruth: an unexpanded secret reference is never sent as a bearer token", async () => {
+test("fetchTruth: a secret that does not exist is never sent as a bearer token", async () => {
+  // Studio leaves the reference unexpanded, or substitutes the text "undefined"; a public source
+  // such as GitHub raw answers 404 to any bearer token, so neither may go out.
+  for (const nonToken of ["{{secrets.project.TRUTH_TOKEN}}", "undefined", "null", "", null, undefined]) {
+    let seen;
+    await withFetch((url, init) => { seen = init; return new Response("{}"); }, () => fetchTruth(TRUTH, [], HOSTS, nonToken));
+    assert.equal(seen.headers.authorization, undefined, `sent a token for ${JSON.stringify(nonToken)}`);
+  }
   let seen;
-  await withFetch((url, init) => { seen = init; return new Response("{}"); }, () => fetchTruth(TRUTH, [], HOSTS, "{{secrets.project.TRUTH_TOKEN}}"));
-  assert.equal(seen.headers.authorization, undefined);
+  await withFetch((url, init) => { seen = init; return new Response("{}"); }, () => fetchTruth(TRUTH, [], HOSTS, "s3cret"));
+  assert.equal(seen.headers.authorization, "Bearer s3cret");
 });
 
 test("fetchTruth: network failure, redirect, non-JSON and oversize bodies all report an error and fetch nothing", async () => {

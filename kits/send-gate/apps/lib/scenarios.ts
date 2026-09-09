@@ -11,7 +11,7 @@ const j = (v: unknown) => JSON.stringify(v, null, 2);
 
 /** Public sample of the truth endpoint's shape. Reachable from Lamatic's runtime, unlike localhost. */
 export const SAMPLE_TRUTH_URL =
-  "https://raw.githubusercontent.com/adityamukhopadhyay/AgentKit/feat/send-gate/kits/send-gate/assets/truth/PO1430779.json";
+  "https://cdn.jsdelivr.net/gh/adityamukhopadhyay/AgentKit@feat/send-gate/kits/send-gate/assets/truth/PO1430779.json";
 
 export const SCENARIOS: Scenario[] = [
   {

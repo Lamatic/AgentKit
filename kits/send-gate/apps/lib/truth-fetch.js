@@ -27,9 +27,10 @@ export async function fetchTruth(url, ids, hosts, token) {
   const bad = truthUrlProblem(url, hosts);
   if (bad) return no(bad);
   const headers = { accept: "application/json" };
-  // In the Code node the token is a Studio secret reference; if it is not defined the "{{...}}" text
-  // stays unexpanded, and that must never be sent as a credential.
-  if (token && token[0] !== "{") headers.authorization = "Bearer " + token;
+  // In the Code node the token comes from a Studio secret. A secret that does not exist arrives either
+  // as the unexpanded "{{...}}" reference or as the text "undefined"; neither is a credential, and
+  // sending one breaks otherwise-public sources (GitHub raw answers 404 to any bearer token).
+  if (token && !/^(\{|undefined$|null$)/.test(token)) headers.authorization = "Bearer " + token;
   try {
     const res = await fetch(url + (url.includes("?") ? "&" : "?") + "ids=" + encodeURIComponent(ids.join(",")), { headers, redirect: "manual", signal: AbortSignal.timeout(8000) });
     if (!res.ok) { res.body && res.body.cancel(); return no("truth_url: HTTP " + res.status); }

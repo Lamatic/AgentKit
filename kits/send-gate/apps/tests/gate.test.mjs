@@ -219,7 +219,7 @@ test("truthUrlProblem: https, public host, allow-list, no credentials", () => {
   assert.match(truthUrlProblem("https://169.254.169.254/latest/meta-data", []), /public host/);
   assert.match(truthUrlProblem("https://[::1]/x", []), /public host/);
   assert.match(truthUrlProblem("https://orders.internal/x", []), /public host/);
-  assert.match(truthUrlProblem("https://evil.example.com/z", ["raw.githubusercontent.com"]), /allow-list/);
+  assert.match(truthUrlProblem("https://evil.example.com/z", ["raw.githubusercontent.com"]), /not allowed/);
   assert.match(truthUrlProblem("not a url", []), /valid URL/);
 });
 

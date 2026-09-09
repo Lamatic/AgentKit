@@ -8,7 +8,7 @@ import type { GateRequest, GateResult } from "./types";
 
 /** Hosts `truth_url` may point at (TRUTH_URL_HOSTS, comma-separated). Same rule the Code node applies. */
 export function truthHosts(): string[] {
-  return (process.env.TRUTH_URL_HOSTS ?? "raw.githubusercontent.com").split(",").map((s) => s.trim()).filter(Boolean);
+  return (process.env.TRUTH_URL_HOSTS ?? "cdn.jsdelivr.net").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
 export async function runSendGateLocally(req: GateRequest): Promise<GateResult> {

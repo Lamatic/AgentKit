@@ -31,7 +31,7 @@ const precheck = `
 // Trigger fields arrive as strings (Studio trigger schema); the library parses JSON itself.
 const trigger = {{triggerNode_1.output}};
 // Hosts truth_url may point at (https only, exact host or subdomain). Edit before deploying.
-const TRUTH_HOSTS = ["raw.githubusercontent.com"];
+const TRUTH_HOSTS = ["cdn.jsdelivr.net"];
 // Optional bearer token for the source of truth: the project secret TRUTH_TOKEN (Studio ->
 // Settings -> Secrets), inlined by Studio at deploy time; never part of the request. While no such
 // secret exists the reference stays unexpanded and fetchTruth sends no token.

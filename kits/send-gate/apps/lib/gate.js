@@ -144,7 +144,7 @@ export function verifyClaims(claims, factsIn, recipientIn, policyIn, provenance)
     if (ev == null && k === "identifier") ev = ix.N.get(num(f.token.replace(/\D/g, "")));
     if (ev == null && k === "date" && f.value[0] === "-") for (const [t, p] of mp) if (t.endsWith(f.value)) { ev = p; break; }
     ev != null ? F(f, V, ev, "info")
-      : k === "phone" ? F(f, C, "recipient.phone=" + (recipient.phone || null), "block", "Phone not the recipient's.")
+      : k === "phone" ? F(f, C, "recipient.phone=" + (recipient.phone || null), "block", "Wrong phone number.")
       : F(f, U, "", "block", nf(f.token));
   }
   for (const s of claims.statements || []) {
@@ -174,13 +174,13 @@ export function mergeFacts(provided, fetched) {
 /** Where the gate may fetch facts from: https only, no credentials, public host names only, and an allow-list when one is given. Pure. */
 /** truth_url was asked for but could not be used: nothing counts as verified, so the draft blocks and no rewrite is accepted. */
 export function failClosed(verification, error) {
-  return { verifications: [{ claimId: "truth", kind: "truth_url", token: "", status: "unverifiable", source: "tool", evidence: error, severity: "block", message: "Source of truth unusable." }].concat(verification.verifications), preVerdict: "block" };
+  return { verifications: [{ claimId: "truth", kind: "truth_url", token: "", status: "unverifiable", source: "tool", evidence: error, severity: "block", message: "truth_url unusable." }].concat(verification.verifications), preVerdict: "block" };
 }
 
 export function truthUrlProblem(url, hosts) {
   let u; try { u = new URL(String(url || "")); } catch (e) { return "truth_url: invalid URL"; }
   const h = u.hostname.toLowerCase(), a = (hosts || []).map(low).filter(Boolean);
-  const why = u.protocol !== "https:" ? "https only" : u.username || u.password ? "no credentials" : /^\[|^\d+(\.\d+){3}$|^[^.]+$|\.(local|internal|localhost)$/.test(h) ? "public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "host not on allow-list" : "";
+  const why = u.protocol !== "https:" ? "https only" : u.username || u.password ? "no credentials" : /^\[|^\d+(\.\d+){3}$|^[^.]+$|\.(local|internal|localhost)$/.test(h) ? "public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "host not allowed" : "";
   return why ? "truth_url: " + why : null;
 }
 
