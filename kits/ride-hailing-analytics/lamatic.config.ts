@@ -11,7 +11,8 @@ export default {
   "steps": [
     {
       "id": "ride-hailing-text-to-sql",
-      "type": "mandatory" as const
+      "type": "mandatory" as const,
+      "envKey": "LAMATIC_FLOW_ID"
     }
   ],
   "links": {

@@ -1,6 +1,6 @@
 "use server"
 
-import { lamaticClient } from "@/lib/lamatic-client"
+import { lamaticClient, flowIds } from "@/lib/lamatic-client"
 
 export type QueryResultRow = Record<string, string | number | null>
 
@@ -18,7 +18,7 @@ export async function askQuestion(
   error?: string
 }> {
   try {
-    const workflowId = process.env.LAMATIC_FLOW_ID
+    const workflowId = flowIds.rideHailingTextToSql
 
     if (!workflowId) {
       throw new Error("Workflow not found in config.")
@@ -62,4 +62,4 @@ export async function askQuestion(
       error: errorMessage,
     }
   }
-}
+} 
