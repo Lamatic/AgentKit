@@ -42,7 +42,7 @@ Drafting agents invent figures, statuses and promises with perfect confidence. I
 | Service | Used by | Credential |
 |---|---|---|
 | Gemini (`gemini-3.5-flash-lite` via Lamatic model config) | `InstructorLLMNode_699` | Lamatic credential attached in Studio |
-| Caller's source of truth (HTTPS JSON endpoint on the allow-list) | `codeNode_211` via `truth_url` | Optional bearer token held server-side: the project secret `TRUTH_URL_TOKEN` (Studio → Settings → Secrets, referenced by `codeNode_211` as `{{secrets.project.TRUTH_URL_TOKEN}}`; the `TRUTH_URL_TOKEN` env var in the app), never in the URL |
+| Caller's source of truth (HTTPS JSON endpoint on the allow-list) | `codeNode_211` via `truth_url` | Optional bearer token held server-side: a project secret named `TRUTH_TOKEN` (Studio → Settings → Secrets, referenced by `codeNode_211` as `{{secrets.project.TRUTH_TOKEN}}`; the `TRUTH_URL_TOKEN` env var in the app), never in the URL |
 | Lamatic GraphQL API (`executeWorkflow`) | `apps/lib/lamatic-client.ts` via the `lamatic` SDK | `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_URL` |
 
 ## Environment setup

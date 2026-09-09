@@ -59,7 +59,7 @@ test("fetchTruth: sends only the draft's identifiers in the query and the token 
 
 test("fetchTruth: an unexpanded secret reference is never sent as a bearer token", async () => {
   let seen;
-  await withFetch((url, init) => { seen = init; return new Response("{}"); }, () => fetchTruth(TRUTH, [], HOSTS, "{{secrets.project.TRUTH_URL_TOKEN}}"));
+  await withFetch((url, init) => { seen = init; return new Response("{}"); }, () => fetchTruth(TRUTH, [], HOSTS, "{{secrets.project.TRUTH_TOKEN}}"));
   assert.equal(seen.headers.authorization, undefined);
 });
 
@@ -105,7 +105,7 @@ const node211 = readFileSync(new URL("../../scripts/send-gate_code-node-211_code
 async function runPrecheck(trigger) {
   // The secret reference is left unexpanded on purpose: that is what Studio does when the secret is not defined.
   const code = node211.replace("{{triggerNode_1.output}}", JSON.stringify(trigger));
-  assert.ok(code.includes("{{secrets.project.TRUTH_URL_TOKEN}}"), "node 211 must reference the TRUTH_URL_TOKEN project secret");
+  assert.ok(code.includes("{{secrets.project.TRUTH_TOKEN}}"), "node 211 must reference the TRUTH_TOKEN project secret");
   return new Function("return (async () => { let output; " + code + "\nreturn output; })()")();
 }
 const trigger = { draft, facts: JSON.stringify(facts), recipient: JSON.stringify(recipient), policy: "", needs_fact_check: "", truth_url: TRUTH };

@@ -32,10 +32,10 @@ const precheck = `
 const trigger = {{triggerNode_1.output}};
 // Hosts truth_url may point at (https only, exact host or subdomain). Edit before deploying.
 const TRUTH_HOSTS = ["raw.githubusercontent.com"];
-// Optional bearer token for the source of truth: the project secret TRUTH_URL_TOKEN (Studio ->
-// Settings -> Secrets), inlined by Studio at run time; never part of the request. If the secret is not
-// defined the reference stays unexpanded and fetchTruth sends no token.
-const TRUTH_TOKEN = "{{secrets.project.TRUTH_URL_TOKEN}}";
+// Optional bearer token for the source of truth: the project secret TRUTH_TOKEN (Studio ->
+// Settings -> Secrets), inlined by Studio at deploy time; never part of the request. While no such
+// secret exists the reference stays unexpanded and fetchTruth sends no token.
+const TRUTH_TOKEN = "{{secrets.project.TRUTH_TOKEN}}";
 
 ${lib}
 ${truthFetch}
