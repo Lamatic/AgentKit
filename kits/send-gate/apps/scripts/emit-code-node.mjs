@@ -17,13 +17,15 @@ const here = dirname(fileURLToPath(import.meta.url));
 const kitRoot = join(here, "..", "..");
 const check = process.argv.includes("--check");
 
-const lib = readFileSync(join(here, "..", "lib", "gate.js"), "utf8")
-  // Code nodes are plain scripts: strip ESM exports, keep the functions.
-  .replace(/^export const STATUS/m, "const STATUS")
-  .replace(/^export const DEFAULT_STATEMENT_RULES/m, "const DEFAULT_STATEMENT_RULES")
-  .replace(/^export function /gm, "function ")
+// Code nodes are plain scripts: strip ESM imports/exports, keep the functions.
+const strip = (file) => readFileSync(join(here, "..", "lib", file), "utf8")
+  .replace(/^import [^\n]*\n/gm, "")
+  .replace(/^export const (STATUS|DEFAULT_STATEMENT_RULES|TRUTH_MAX_BYTES)\b/gm, "const $1")
+  .replace(/^export (async )?function /gm, "$1function ")
   .replace(/^export const _internals[^\n]*\n/m, "");
-if (/^\s*export\b/m.test(lib)) throw new Error("gate.js: an export statement survived the strip; extend the replace list above");
+const lib = strip("gate.js");
+const truthFetch = strip("truth-fetch.js");
+for (const src of [lib, truthFetch]) if (/^\s*(export|import)\b/m.test(src)) throw new Error("an import/export statement survived the strip; extend the replace list above");
 
 const precheck = `
 // Trigger fields arrive as strings (Studio trigger schema); the library parses JSON itself.
@@ -34,58 +36,43 @@ const TRUTH_HOSTS = ["raw.githubusercontent.com"];
 const TRUTH_TOKEN = "";
 
 ${lib}
+${truthFetch}
 
 const draft = String(trigger.draft || "");
 const claims = extractClaims(draft, trigger.policy);
 claims.draft = draft;
-const forced = String(trigger.needs_fact_check || "").toLowerCase() === "true";
-const needsFactCheck = claims.needsFactCheck || forced;
+const needsFactCheck = claims.needsFactCheck || String(trigger.needs_fact_check || "").toLowerCase() === "true";
 
 // Source of truth: if the caller gave us a truth_url, fetch the facts ourselves, keyed by the
-// identifiers the draft actually mentions. Fetched values override whatever the drafter passed
-// in (see mergeFacts). Only runs when a check is needed.
-let fetched = null;
-let fetchError = "";
+// identifiers the draft actually mentions (validated URL, no redirects, timeout, bounded body; see
+// lib/truth-fetch.js). Fetched values override whatever the drafter passed in (mergeFacts).
+let fetched = null, fetchError = "";
 const truthUrl = String(trigger.truth_url || "").trim();
 if (needsFactCheck && truthUrl) {
-  // https only, no credentials, allow-listed public host; redirects not followed, timeout and size cap on the body.
-  fetchError = truthUrlProblem(truthUrl, TRUTH_HOSTS) || "";
-  if (!fetchError) try {
-    const ids = (claims.figures || []).filter((f) => f.kind === "identifier").map((f) => f.token);
-    const h = { accept: "application/json" };
-    if (TRUTH_TOKEN) h.authorization = "Bearer " + TRUTH_TOKEN;
-    const res = await fetch(truthUrl + (truthUrl.indexOf("?") >= 0 ? "&" : "?") + "ids=" + encodeURIComponent(ids.join(",")), { headers: h, redirect: "manual", signal: AbortSignal.timeout(8000) }); // "manual": a 3xx is not followed and fails the res.ok check below (the edge runtime rejects "error")
-    const body = res.ok ? await res.text() : "";
-    fetchError = !res.ok ? "truth_url: HTTP " + res.status : body.length > 2e5 ? "truth_url: body too large" : "";
-    if (!fetchError) fetched = JSON.parse(body); // a non-JSON body (HTML error page) lands in the catch below
-  } catch (e) {
-    fetchError = "truth_url: " + (e && e.message || e);
-  }
+  ({ fetched, error: fetchError } = await fetchTruth(truthUrl, (claims.figures || []).filter((f) => f.kind === "identifier").map((f) => f.token), TRUTH_HOSTS, TRUTH_TOKEN));
 }
 const merged = mergeFacts(trigger.facts, fetched);
 
-const verification = needsFactCheck
+let verification = needsFactCheck
   ? verifyClaims(claims, merged.facts, trigger.recipient, trigger.policy, merged.provenance)
-  : { verifications: [], preVerdict: "allow", counts: {}, factIndexSize: 0 };
+  : { verifications: [], preVerdict: "allow" };
+// A truth_url that could not be used means nothing was verified: block, whatever the caller's facts say.
+if (fetchError) verification = failClosed(verification, fetchError);
 const findings = verification.verifications.filter((v) => v.severity !== "info");
 // The judge sees the recipient's name only; phone and email stay in the deterministic verifier.
 const rcp = pj(trigger.recipient, {}) || {};
 
-output = {
+// merged = { facts, provenance }; verification = { verifications, preVerdict }.
+output = Object.assign({
   draft,
   claims,
   needsFactCheck,
-  provenance: merged.provenance,
   fetchError,
-  facts: merged.facts,
   recipient: trigger.recipient || "",
-  verifications: verification.verifications,
   findings,
-  preVerdict: verification.preVerdict,
-  counts: verification.counts,
   // What the judge needs, pre-serialised so the prompt stays small and stable.
   judgeInput: JSON.stringify({ draft, facts: merged.facts, recipient: rcp.name ? { name: String(rcp.name) } : null, findings, unresolved: (claims.statements || []).filter((s) => !s.factPath && !s.never) })
-};
+}, merged, verification);
 `;
 
 const decide = `
@@ -133,7 +120,7 @@ async function build(name, source) {
   if (!/\{\{triggerNode_1\.output\}\}|\{\{codeNode_211\.output\}\}/.test(code)) throw new Error(name + ": template variables were lost during minification");
   if (name === "decide" && !/\[\{\{InstructorLLMNode_699\.output\}\}\]\[0\]/.test(code)) throw new Error("decide: judge bracket guard was folded");
   code = BANNER + code + "\n";
-  if (code.length > LIMIT) throw new Error(`${name}: ${code.length} chars exceeds Studio's ~${LIMIT}-char Code node limit`);
+  if (code.length > LIMIT) throw new Error(`${name}: ${code.length} chars exceeds Studio's ~${LIMIT}-char Code node limit (${code.length - LIMIT} over)`);
   return code;
 }
 

@@ -1,7 +1,9 @@
 // Runs the two deterministic stages exactly as the Lamatic Code nodes do, in-process.
 // Used when the flow is not configured, so `npm run dev` works with zero credentials.
 // The LLM judge stage is the only thing missing: blocked drafts get no rewrite here.
-import { decide, extractClaims, mergeFacts, truthUrlProblem, verifyClaims } from "./gate";
+import { decide, extractClaims, failClosed, mergeFacts, verifyClaims } from "./gate";
+import type { VerifyResult } from "./gate";
+import { fetchTruth } from "./truth-fetch";
 import type { GateRequest, GateResult } from "./types";
 
 /** Hosts `truth_url` may point at (TRUTH_URL_HOSTS, comma-separated). Same rule the Code node applies. */
@@ -15,33 +17,21 @@ export async function runSendGateLocally(req: GateRequest): Promise<GateResult> 
   claims.draft = draft;
   const needsFactCheck = claims.needsFactCheck || req.needsFactCheck;
 
-  let fetched: unknown = null;
-  let fetchError = "";
+  // Same fetcher as codeNode_211: validated URL, ids only in the query, no redirects, timeout, bounded body.
+  let fetched: unknown = null, fetchError = "";
   const truthUrl = req.truthUrl.trim();
   if (needsFactCheck && truthUrl) {
-    // Validated once here and again right before the fetch: https only, no credentials, allow-listed public host.
-    fetchError = truthUrlProblem(truthUrl, truthHosts()) ?? "";
-    if (!fetchError) {
-      try {
-        const ids = claims.figures.filter((f) => f.kind === "identifier").map((f) => f.token);
-        const url = `${truthUrl}${truthUrl.includes("?") ? "&" : "?"}ids=${encodeURIComponent(ids.join(","))}`;
-        const headers: Record<string, string> = { accept: "application/json" };
-        if (process.env.TRUTH_URL_TOKEN) headers.authorization = `Bearer ${process.env.TRUTH_URL_TOKEN}`;
-        const res = await fetch(url, { headers, redirect: "error", signal: AbortSignal.timeout(8000) });
-        const body = res.ok ? await res.text() : "";
-        if (!res.ok) fetchError = `truth_url responded ${res.status}`;
-        else if (body.length > 200_000) fetchError = "truth_url: body too large";
-        else fetched = JSON.parse(body); // non-JSON (an HTML error page) throws and is reported below
-      } catch (e) {
-        fetchError = `truth_url fetch failed: ${e instanceof Error ? e.message : String(e)}`;
-      }
-    }
+    const ids = claims.figures.filter((f) => f.kind === "identifier").map((f) => f.token);
+    const t = await fetchTruth(truthUrl, ids, truthHosts(), process.env.TRUTH_URL_TOKEN);
+    fetched = t.fetched; fetchError = t.error;
   }
   const merged = mergeFacts(req.facts, fetched);
 
-  const verification = needsFactCheck
+  let verification: VerifyResult = needsFactCheck
     ? verifyClaims(claims, merged.facts, req.recipient, req.policy, merged.provenance)
-    : { verifications: [], preVerdict: "allow" as const, counts: {}, factIndexSize: 0 };
+    : { verifications: [], preVerdict: "allow" };
+  // A truth_url that could not be used means nothing was verified: block, whatever the caller's facts say.
+  if (fetchError) verification = failClosed(verification, fetchError);
   const findings = verification.verifications.filter((v) => v.severity !== "info");
 
   const result = needsFactCheck

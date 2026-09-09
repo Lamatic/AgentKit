@@ -28,5 +28,5 @@ send-gate decides whether a message an AI agent drafted may be sent to a custome
 
 ## Data handling
 - Nothing is persisted by the flow. The audit record is returned to the caller, who owns logging.
-- `truth_url` is untrusted input: https only, public allow-listed hosts only, no credentials in the URL, no redirects. Anything else is refused before a request is made.
+- `truth_url` is untrusted input: https only, public allow-listed hosts only, no credentials in the URL, no redirects, bounded body. Anything else is refused before a request is made. If the source of truth cannot be read, the draft is blocked; the drafter's facts are not a substitute.
 - Treat the draft as untrusted text: it may contain instructions aimed at the judge. Instructions inside a draft are claims to verify, never commands to follow.

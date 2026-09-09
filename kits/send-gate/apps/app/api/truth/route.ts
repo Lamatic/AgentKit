@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 /**
  * Stand-in for a real source of truth (order management system, CRM, ticketing).
- * send-gate calls `truth_url?ids=<identifiers in the draft>&recipient=<json>` and deep-merges
+ * send-gate calls `truth_url?ids=<identifiers in the draft>` (nothing else in the query) and deep-merges
  * whatever comes back over the drafter's facts, so a drafter cannot launder an invented number
- * by inventing matching facts. Replace this with your own endpoint; keep the shape.
+ * by inventing matching facts. If the call fails the draft is blocked. Replace this with your own endpoint; keep the shape.
  */
 const ORDERS: Record<string, Record<string, unknown>> = {
   PO1430779: {

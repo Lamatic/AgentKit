@@ -13,7 +13,7 @@
 /** Evidence classes: what the gate can prove about a claim. */
 export const STATUS = { VERIFIED: "verified", CONTRADICTED: "contradicted", UNSUPPORTED: "unsupported", UNVERIFIABLE: "unverifiable" };
 
-const num = (s) => { const c = String(s).replace(/[₹$€£]|rs\.?|inr/gi, "").replace(/[,\s]/g, ""); if (!/^-?\d+(\.\d+)?$/.test(c)) return null; const n = Number(c); return isFinite(n) ? String(n) : null; };
+const num = (s) => { const c = String(s).replace(/[₹$€£]|rs\.?|inr/gi, "").replace(/[,\s]/g, ""); return /^-?\d+(\.\d+)?$/.test(c) ? String(Number(c)) : null; };
 const low = (s) => String(s).toLowerCase().replace(/\s+/g, " ").trim();
 const idk = (s) => String(s).toUpperCase().replace(/[\s\-_#:]/g, "");
 const ph = (s) => { const d = String(s).replace(/\D/g, ""); return d.length > 10 ? d.slice(-10) : d; };
@@ -61,7 +61,6 @@ function figures(text) {
       if (!free(m)) continue;
       const tok = m[0].trim();
       if (kind !== "number") { out.push({ kind, token: kind === "link" ? tok.replace(/[.,;:!?]+$/, "") : tok, value: norm(tok) }); continue; }
-      if (!/\d/.test(tok)) continue;
       const l = tok.toLowerCase();
       const mult = /lakh/.test(l) ? 1e5 : /crore/.test(l) ? 1e7 : /\dk$/.test(l.replace(/\s/g, "")) ? 1e3 : 1;
       const base = num(l.replace(/%|percent|lakhs?|crores?|k$/g, ""));
@@ -123,44 +122,52 @@ export function verifyClaims(claims, factsIn, recipientIn, policyIn, provenance)
   const policy = pol(policyIn);
   const source = provenance || "facts", ix = index(facts, recipient, policy), v = [];
   const add = (claimId, kind, token, status, evidence, severity, message) => v.push({ claimId, kind, token, status, source, evidence: evidence || "", severity, message: message || "" });
-  const V = STATUS.VERIFIED, C = STATUS.CONTRADICTED, U = STATUS.UNSUPPORTED, nf = (t) => "\"" + t + "\" not in facts.";
+  const F = (f, status, evidence, severity, message) => add(f.id, f.kind, f.token, status, evidence, severity, message);
+  const S = (s, status, evidence, severity, message) => add(s.id, s.kind, s.text, status, evidence, severity, message);
+  const V = "verified", C = "contradicted", U = "unsupported", nf = (t) => "\"" + t + "\" not in facts.";
   for (const f of claims.figures || []) {
     const k = f.kind;
-    if (k === "count" && policy.allowUngroundedSmallCounts && /^\d$/.test(f.value)) add(f.id, k, f.token, V, "small", "info");
-    else if (k === "currency" || k === "percent" || k === "count") ix.N.has(f.value) ? add(f.id, k, f.token, V, ix.N.get(f.value), "info") : add(f.id, k, f.token, U, "", "block", nf(f.token));
-    else if (k === "identifier") { const d = num(f.token.replace(/\D/g, "")); ix.I.has(f.value) ? add(f.id, k, f.token, V, ix.I.get(f.value), "info") : d && ix.N.has(d) ? add(f.id, k, f.token, V, ix.N.get(d), "info") : add(f.id, k, f.token, U, "", "block", nf(f.token)); }
-    else if (k === "date") (ix.T.has(f.value) || [...ix.T.keys()].some((t) => t.includes(f.value))) ? add(f.id, k, f.token, V, "facts text", "info") : add(f.id, k, f.token, U, "", "block", nf(f.token));
-    else if (k === "link") ix.L.has(f.value) ? add(f.id, k, f.token, V, ix.L.get(f.value), "info") : add(f.id, k, f.token, U, "", "block", "Link not in facts.");
-    else if (k === "phone") ix.P.has(f.value) ? add(f.id, k, f.token, V, ix.P.get(f.value), "info") : add(f.id, k, f.token, C, "recipient.phone=" + JSON.stringify(recipient.phone || null), "block", "Phone not the recipient's.");
+    if (k === "count" && policy.allowUngroundedSmallCounts && /^\d$/.test(f.value)) F(f, V, "small", "info");
+    else if (k === "currency" || k === "percent" || k === "count") ix.N.has(f.value) ? F(f, V, ix.N.get(f.value), "info") : F(f, U, "", "block", nf(f.token));
+    else if (k === "identifier") { const d = num(f.token.replace(/\D/g, "")); ix.I.has(f.value) ? F(f, V, ix.I.get(f.value), "info") : d && ix.N.has(d) ? F(f, V, ix.N.get(d), "info") : F(f, U, "", "block", nf(f.token)); }
+    else if (k === "date") [...ix.T.keys()].some((t) => t.includes(f.value)) ? F(f, V, "facts text", "info") : F(f, U, "", "block", nf(f.token));
+    else if (k === "link") ix.L.has(f.value) ? F(f, V, ix.L.get(f.value), "info") : F(f, U, "", "block", "Link not in facts.");
+    else if (k === "phone") ix.P.has(f.value) ? F(f, V, ix.P.get(f.value), "info") : F(f, C, "recipient.phone=" + JSON.stringify(recipient.phone || null), "block", "Phone not the recipient's.");
   }
   for (const s of claims.statements || []) {
-    if (s.never) { add(s.id, s.kind, s.text, C, "policy: forbidden", "block", s.message); continue; }
-    if (!s.factPath) { add(s.id, s.kind, s.text, STATUS.UNVERIFIABLE, "", "rewrite", s.message); continue; }
+    if (s.never) { S(s, C, "policy: forbidden", "block", s.message); continue; }
+    if (!s.factPath) { S(s, "unverifiable", "", "rewrite", s.message); continue; }
     const a = path(facts, s.factPath), ev = s.factPath + " = " + JSON.stringify(a === undefined ? null : a);
-    ok(a, s.expect) ? add(s.id, s.kind, s.text, V, ev, "info") : a == null || (Array.isArray(a) && !a.length) ? add(s.id, s.kind, s.text, U, ev, "block", s.message + " Nothing at " + s.factPath) : add(s.id, s.kind, s.text, C, ev, "block", s.message + " Facts: " + ev);
+    ok(a, s.expect) ? S(s, V, ev, "info") : a == null || (Array.isArray(a) && !a.length) ? S(s, U, ev, "block", s.message + " Nothing at " + s.factPath) : S(s, C, ev, "block", s.message + " Facts: " + ev);
   }
   if (claims.register && claims.register.informalAddress) add("register", "register", "informal address", C, "policy.formalAddress", "rewrite", "Informal address; use \"aap\".");
   if (claims.register && claims.register.profanity) add("register", "register", "profanity", C, "policy", "block", "Abusive language.");
-  const counts = { verified: 0, contradicted: 0, unsupported: 0, unverifiable: 0, block: 0, rewrite: 0 };
-  for (const x of v) { counts[x.status]++; if (x.severity !== "info") counts[x.severity]++; }
-  return { verifications: v, preVerdict: counts.block ? "block" : counts.rewrite ? "rewrite" : "allow", counts };
+  const any = (sev) => v.some((x) => x.severity === sev);
+  return { verifications: v, preVerdict: any("block") ? "block" : any("rewrite") ? "rewrite" : "allow" };
 }
 
 /** Fetched (source-of-truth) values override the drafter's facts; a drafter cannot launder an invented number by inventing facts too. */
 export function mergeFacts(provided, fetched) {
+  const obj = (x) => !!x && typeof x === "object" && !Array.isArray(x);
   const a = pj(provided, {}) || {}, b = pj(fetched, null);
-  if (!b || typeof b !== "object" || Array.isArray(b) || !Object.keys(b).length) return { facts: a, provenance: "facts" };
+  if (!obj(b) || !Object.keys(b).length) return { facts: a, provenance: "facts" };
   const out = JSON.parse(JSON.stringify(a));
-  const deep = (t, s) => { for (const k of Object.keys(s)) t[k] = s[k] && typeof s[k] === "object" && !Array.isArray(s[k]) && t[k] && typeof t[k] === "object" && !Array.isArray(t[k]) ? (deep(t[k], s[k]), t[k]) : s[k]; };
+  const deep = (t, s) => { for (const k of Object.keys(s)) t[k] = obj(s[k]) && obj(t[k]) ? (deep(t[k], s[k]), t[k]) : s[k]; };
   deep(out, b);
   return { facts: out, provenance: "tool" };
 }
 
 /** Where the gate may fetch facts from: https only, no credentials, public host names only, and an allow-list when one is given. Pure. */
+/** truth_url was asked for but could not be used: nothing counts as verified, so the draft blocks and no rewrite is accepted. */
+export function failClosed(verification, error) {
+  return { verifications: [{ claimId: "truth", kind: "truth_url", token: "", status: "unverifiable", source: "tool", evidence: error, severity: "block", message: "Source of truth unavailable: nothing verified." }].concat(verification.verifications), preVerdict: "block" };
+}
+
 export function truthUrlProblem(url, hosts) {
   let u; try { u = new URL(String(url || "")); } catch (e) { return "truth_url: invalid URL"; }
   const h = u.hostname.toLowerCase(), a = (hosts || []).map(low).filter(Boolean);
-  return u.protocol !== "https:" ? "truth_url: https only" : u.username || u.password ? "truth_url: no credentials in URL" : h.indexOf(".") < 0 || h[0] === "[" || /^\d+(\.\d+){3}$/.test(h) || /\.(local|internal|localhost)$/.test(h) ? "truth_url: public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "truth_url: host not on allow-list" : null;
+  const why = u.protocol !== "https:" ? "https only" : u.username || u.password ? "no credentials in URL" : !h.includes(".") || h[0] === "[" || /^\d+(\.\d+){3}$/.test(h) || /\.(local|internal|localhost)$/.test(h) ? "public host only" : a.length && !a.some((x) => h === x || h.slice(-x.length - 1) === "." + x) ? "host not on allow-list" : "";
+  return why ? "truth_url: " + why : null;
 }
 
 /** Claims + verification in one call (app and tests). */
@@ -179,11 +186,12 @@ export function decide(input, pre, judgeIn) {
   const hard = claims.filter((c) => c && String(c.severity || "").toLowerCase() === "block");
   let verdict = pre.preVerdict;
   if (hard.length) verdict = "block"; else if (verdict === "allow" && claims.length) verdict = "rewrite";
-  const findings = (pre.findings || []).concat(claims.map((c, i) => ({ claimId: "judge" + (i + 1), kind: "semantic", token: c.claim, status: STATUS.UNSUPPORTED, source: "judge", evidence: c.why || "", severity: hard.includes(c) ? "block" : "rewrite", message: c.why || "Unsupported claim." })));
+  const findings = (pre.findings || []).concat(claims.map((c, i) => ({ claimId: "judge" + (i + 1), kind: "semantic", token: c.claim, status: "unsupported", source: "judge", evidence: c.why || "", severity: hard.includes(c) ? "block" : "rewrite", message: c.why || "Unsupported claim." })));
   let finalMessage = null, rewriteCheck = null;
   if (verdict === "allow") finalMessage = String(input.draft);
   else {
-    const rw = typeof j.rewrite === "string" ? j.rewrite.trim() : "";
+    // No source of truth means nothing can be re-verified either: a rewrite is not accepted.
+    const rw = (pre.findings || []).some((f) => f.kind === "truth_url") ? "" : typeof j.rewrite === "string" ? j.rewrite.trim() : "";
     if (rw) { rewriteCheck = checkDraft(Object.assign({}, input, { draft: rw })); if (rewriteCheck.preVerdict === "allow") { finalMessage = rw; verdict = "rewrite"; } else verdict = "block"; }
     else verdict = "block";
   }

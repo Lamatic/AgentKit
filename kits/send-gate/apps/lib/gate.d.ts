@@ -79,8 +79,7 @@ export interface Verification {
 export interface VerifyResult {
   verifications: Verification[];
   preVerdict: Verdict;
-  counts: Record<string, number>;
-  }
+}
 
 export interface CheckResult extends VerifyResult {
   claims: Claims;
@@ -108,5 +107,7 @@ export function extractClaims(draft: string, policy?: Policy | string | null): C
 export function verifyClaims(claims: Claims, facts: Json, recipient: Json, policy?: Policy | string | null, provenance?: string): VerifyResult;
 export function mergeFacts(provided: Json, fetched: Json): { facts: Record<string, unknown>; provenance: "facts" | "tool" };
 export function truthUrlProblem(url: string, hosts?: string[] | null): string | null;
+/** Wraps a verification when truth_url could not be used: adds a blocking `truth_url` finding and forces `preVerdict: "block"`. */
+export function failClosed(verification: VerifyResult, error: string): VerifyResult;
 export function checkDraft(input: { draft: string; facts?: Json; recipient?: Json; policy?: Policy | string | null; provenance?: string }): CheckResult;
 export function decide(input: { draft: string; facts?: Json; recipient?: Json; policy?: Policy | string | null; provenance?: string }, pre: { preVerdict: Verdict; findings: Verification[] }, judge?: JudgeOutput | string | null): Decision;
