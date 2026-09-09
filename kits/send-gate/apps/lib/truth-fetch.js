@@ -27,7 +27,9 @@ export async function fetchTruth(url, ids, hosts, token) {
   const bad = truthUrlProblem(url, hosts);
   if (bad) return no(bad);
   const headers = { accept: "application/json" };
-  if (token) headers.authorization = "Bearer " + token;
+  // In the Code node the token is a Studio secret reference; if it is not defined the "{{...}}" text
+  // stays unexpanded, and that must never be sent as a credential.
+  if (token && token[0] !== "{") headers.authorization = "Bearer " + token;
   try {
     const res = await fetch(url + (url.includes("?") ? "&" : "?") + "ids=" + encodeURIComponent(ids.join(",")), { headers, redirect: "manual", signal: AbortSignal.timeout(8000) });
     if (!res.ok) { res.body && res.body.cancel(); return no("truth_url: HTTP " + res.status); }

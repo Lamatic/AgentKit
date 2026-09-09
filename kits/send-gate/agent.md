@@ -25,7 +25,7 @@ Drafting agents invent figures, statuses and promises with perfect confidence. I
 
 **Dependencies.** One LLM credential for the judge (Gemini configured; any JSON-mode model works). Optional: an HTTPS source of truth for `truth_url`.
 
-**`truth_url` contract.** The URL is caller-supplied and therefore untrusted. Before any fetch, in both the Code node and the local runner, it must be `https://`, carry no credentials, name a public host (no IP literals, `localhost`, `.local` or `.internal`), and match the host allow-list (`TRUTH_HOSTS` in `codeNode_211`, `TRUTH_URL_HOSTS` in the app; default `raw.githubusercontent.com`). Redirects are refused, the request times out after 8 s, the body is read in bounded chunks and dropped past 200 KB, and non-JSON answers are rejected. Only the identifiers found in the draft are sent as `?ids=`; the recipient is not put in the URL. A rejected, failed, oversized or non-JSON fetch fails closed: `audit.fetchError` says why, a `truth_url` finding is added, the verdict is `block` and no rewrite is accepted, because nothing could be verified. The drafter's facts are not used as a fallback. Both the local runner and `codeNode_211` call the same `apps/lib/truth-fetch.js`.
+**`truth_url` contract.** The URL is caller-supplied and therefore untrusted. Before any fetch, in both the Code node and the local runner, it must be `https://`, carry no credentials, name a public host (no IP literals, `localhost`, `.local` or `.internal`), and match the host allow-list (`TRUTH_HOSTS` in `codeNode_211`, `TRUTH_URL_HOSTS` in the app; default `raw.githubusercontent.com`). Redirects are refused, the request times out after 8 s, the body is read in bounded chunks and dropped past 200 KB, and non-JSON answers are rejected. Only the identifiers found in the draft are sent as `?ids=`; the recipient is not put in the URL. A rejected, failed, oversized or non-JSON fetch fails closed: `audit.fetchError` says why, a `truth_url` finding is added, the verdict is `block` and no rewrite is accepted, because nothing could be verified. The drafter's facts are not used as a fallback. The local runner imports `apps/lib/truth-fetch.js`; `codeNode_211` embeds a generated, minified copy of it, so after changing the fetcher run `npm run emit` and `npm run emit:check`.
 
 ## Guardrails
 
@@ -42,7 +42,7 @@ Drafting agents invent figures, statuses and promises with perfect confidence. I
 | Service | Used by | Credential |
 |---|---|---|
 | Gemini (`gemini-3.5-flash-lite` via Lamatic model config) | `InstructorLLMNode_699` | Lamatic credential attached in Studio |
-| Caller's source of truth (HTTPS JSON endpoint on the allow-list) | `codeNode_211` via `truth_url` | Optional bearer token held server-side (`TRUTH_TOKEN` in the Code node, `TRUTH_URL_TOKEN` in the app), never in the URL |
+| Caller's source of truth (HTTPS JSON endpoint on the allow-list) | `codeNode_211` via `truth_url` | Optional bearer token held server-side: the project secret `TRUTH_URL_TOKEN` (Studio → Settings → Secrets, referenced by `codeNode_211` as `{{secrets.project.TRUTH_URL_TOKEN}}`; the `TRUTH_URL_TOKEN` env var in the app), never in the URL |
 | Lamatic GraphQL API (`executeWorkflow`) | `apps/lib/lamatic-client.ts` via the `lamatic` SDK | `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_URL` |
 
 ## Environment setup

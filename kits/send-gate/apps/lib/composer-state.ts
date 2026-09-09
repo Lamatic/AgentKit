@@ -62,7 +62,9 @@ export function currentFactsObject(state: ComposerState): Record<string, unknown
 }
 
 export function toRequest(state: ComposerState): GateRequest {
-  const facts = state.factsMode === "json" ? state.factsJson.trim() : toJsonText(formToFacts(state.facts));
+  const fields = formToFacts(state.facts);
+  if (state.factsMode === "fields" && fields === null) throw new Error("The extra facts are not a JSON object."); // composerProblem() gates every caller
+  const facts = state.factsMode === "json" ? state.factsJson.trim() : toJsonText(fields ?? {});
   return {
     draft: state.draft,
     facts,
@@ -75,7 +77,11 @@ export function toRequest(state: ComposerState): GateRequest {
 
 export function switchFactsMode(state: ComposerState, mode: "fields" | "json"): ComposerState {
   if (mode === state.factsMode) return state;
-  if (mode === "json") return { ...state, factsMode: "json", factsJson: JSON.stringify(formToFacts(state.facts), null, 2), factsJsonError: "" };
+  if (mode === "json") {
+    const fields = formToFacts(state.facts);
+    if (fields === null) return state; // the extra-JSON error is already shown under the field; nothing to convert yet
+    return { ...state, factsMode: "json", factsJson: JSON.stringify(fields, null, 2), factsJsonError: "" };
+  }
   if (!state.factsJson.trim()) return { ...state, factsMode: "fields", facts: { ...EMPTY_FACTS }, factsJsonError: "" };
   const parsed = parseJsonObject(state.factsJson);
   if (!parsed) return { ...state, factsJsonError: "This is not a JSON object yet. Fix it, or clear it, to go back to fields." };

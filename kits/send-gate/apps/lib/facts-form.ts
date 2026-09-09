@@ -53,9 +53,14 @@ export function parseJsonObject(text: string): Record<string, unknown> | null {
   }
 }
 
-/** Fields → facts object. Empty fields are omitted; `offers` is always present because "no offers" is itself a fact. */
-export function formToFacts(f: FactsForm): Record<string, unknown> {
-  const out: Record<string, unknown> = { ...(parseJsonObject(f.extra) ?? {}) };
+/**
+ * Fields → facts object. Empty fields are omitted; `offers` is always present because "no offers" is itself a fact.
+ * Returns null when the extra JSON is malformed: callers must not run the gate with those facts silently dropped.
+ */
+export function formToFacts(f: FactsForm): Record<string, unknown> | null {
+  const extra = parseJsonObject(f.extra);
+  if (extra === null) return null;
+  const out: Record<string, unknown> = { ...extra };
   const order: Record<string, unknown> = {};
   if (f.orderId.trim()) order[/^po/i.test(f.orderId.trim()) ? "po" : "id"] = f.orderId.trim();
   if (f.orderStatus) order.status = f.orderStatus;
@@ -82,7 +87,7 @@ export function formToFacts(f: FactsForm): Record<string, unknown> {
 }
 
 /** Non-empty extra JSON that is not an object is an error the UI must show, never silently drop. */
-export const extraJsonProblem = (f: FactsForm): string | null => (f.extra.trim() && parseJsonObject(f.extra) === null ? "The extra facts must be a JSON object." : null);
+export const extraJsonProblem = (f: FactsForm): string | null => (formToFacts(f) === null ? "The extra facts must be a JSON object." : null);
 
 /** Facts object → fields. Anything the fields cannot hold goes to `extra` as JSON. */
 export function factsToForm(input: unknown): FactsForm {

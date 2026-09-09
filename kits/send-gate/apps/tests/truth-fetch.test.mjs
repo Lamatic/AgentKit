@@ -57,6 +57,12 @@ test("fetchTruth: sends only the draft's identifiers in the query and the token 
   assert.ok(!/recipient|secret/.test(seen.url));
 });
 
+test("fetchTruth: an unexpanded secret reference is never sent as a bearer token", async () => {
+  let seen;
+  await withFetch((url, init) => { seen = init; return new Response("{}"); }, () => fetchTruth(TRUTH, [], HOSTS, "{{secrets.project.TRUTH_URL_TOKEN}}"));
+  assert.equal(seen.headers.authorization, undefined);
+});
+
 test("fetchTruth: network failure, redirect, non-JSON and oversize bodies all report an error and fetch nothing", async () => {
   const cases = [
     [() => { throw new TypeError("fetch failed"); }, /fetch failed/],
@@ -97,8 +103,9 @@ test("fail closed: matching caller facts and an unreachable allow-listed truth_u
 const node211 = readFileSync(new URL("../../scripts/send-gate_code-node-211_code.ts", import.meta.url), "utf8");
 /** Runs the emitted precheck node the way Studio does: template variable inlined, `output` collected. */
 async function runPrecheck(trigger) {
+  // The secret reference is left unexpanded on purpose: that is what Studio does when the secret is not defined.
   const code = node211.replace("{{triggerNode_1.output}}", JSON.stringify(trigger));
-  assert.ok(!code.includes("{{"), "every template variable must be inlined");
+  assert.ok(code.includes("{{secrets.project.TRUTH_URL_TOKEN}}"), "node 211 must reference the TRUTH_URL_TOKEN project secret");
   return new Function("return (async () => { let output; " + code + "\nreturn output; })()")();
 }
 const trigger = { draft, facts: JSON.stringify(facts), recipient: JSON.stringify(recipient), policy: "", needs_fact_check: "", truth_url: TRUTH };
@@ -121,8 +128,10 @@ test("code node 211: the truth_url body is read in bounded chunks", async () => 
   assert.equal(state.cancelled, true);
 });
 
-test("code node 211: a good truth_url answer overrides the caller's facts (provenance tool)", async () => {
-  const out = await withFetch(() => new Response(JSON.stringify({ order: { status: "placed", total: 9000 } })), () => runPrecheck(trigger));
+test("code node 211: a good truth_url answer overrides the caller's facts (provenance tool); no token sent while the secret is undefined", async () => {
+  let seen;
+  const out = await withFetch((url, init) => { seen = init; return new Response(JSON.stringify({ order: { status: "placed", total: 9000 } })); }, () => runPrecheck(trigger));
+  assert.equal(seen.headers.authorization, undefined);
   assert.equal(out.fetchError, "");
   assert.equal(out.provenance, "tool");
   assert.equal(out.facts.order.total, 9000);
