@@ -48,13 +48,13 @@ let fetched = null;
 let fetchError = "";
 const truthUrl = String(trigger.truth_url || "").trim();
 if (needsFactCheck && truthUrl) {
-  // https only, no credentials, allow-listed public host; redirects refused, timeout and size cap on the body.
+  // https only, no credentials, allow-listed public host; redirects not followed, timeout and size cap on the body.
   fetchError = truthUrlProblem(truthUrl, TRUTH_HOSTS) || "";
   if (!fetchError) try {
     const ids = (claims.figures || []).filter((f) => f.kind === "identifier").map((f) => f.token);
     const h = { accept: "application/json" };
     if (TRUTH_TOKEN) h.authorization = "Bearer " + TRUTH_TOKEN;
-    const res = await fetch(truthUrl + (truthUrl.indexOf("?") >= 0 ? "&" : "?") + "ids=" + encodeURIComponent(ids.join(",")), { headers: h, redirect: "error", signal: AbortSignal.timeout(8000) });
+    const res = await fetch(truthUrl + (truthUrl.indexOf("?") >= 0 ? "&" : "?") + "ids=" + encodeURIComponent(ids.join(",")), { headers: h, redirect: "manual", signal: AbortSignal.timeout(8000) }); // "manual": a 3xx is not followed and fails the res.ok check below (the edge runtime rejects "error")
     const body = res.ok ? await res.text() : "";
     fetchError = !res.ok ? "truth_url: HTTP " + res.status : body.length > 2e5 ? "truth_url: body too large" : "";
     if (!fetchError) fetched = JSON.parse(body); // a non-JSON body (HTML error page) lands in the catch below

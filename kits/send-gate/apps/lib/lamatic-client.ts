@@ -26,7 +26,7 @@ function parseMaybe(value: unknown): unknown {
   try {
     return JSON.parse(t);
   } catch {
-    return undefined;
+    return value; // a plain string such as "allow"; the shape checks below reject it where an object or array is required
   }
 }
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
