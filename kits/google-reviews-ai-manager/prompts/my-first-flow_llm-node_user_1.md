@@ -1,0 +1,1 @@
+Please write a short reply to this Google Review. The customer gave a rating of [starRating variable] stars. Their review: '[reviewText variable]'.
