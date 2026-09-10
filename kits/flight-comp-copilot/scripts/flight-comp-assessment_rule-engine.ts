@@ -23,6 +23,10 @@ const AMOUNTS = {
 
 const TIERS = ["short", "medium", "long"];
 const UNKNOWN = -1;
+// Sentinel for the reroute offset fields. Unlike the delay/notice fields, these
+// accept genuinely negative values (a reroute that arrived early), so the unknown
+// sentinel must sit outside the plausible value range to avoid collisions.
+const UNKNOWN_REROUTE = -999;
 
 function tierLabel(tier) {
   if (tier === "short") return "≤ 1,500 km";
@@ -68,6 +72,17 @@ function toNumberOrNullSentinel(raw) {
   // or a notice period; any other negative (e.g. -2 from a lax provider response)
   // must surface as unknown, not as a confident verdict.
   return Number.isFinite(n) && (n >= 0 || n === UNKNOWN) ? n : null;
+}
+
+// Reroute offsets differ from delay/notice: negative values are valid (the reroute
+// arrived or departed earlier than the original schedule), so this normalizer
+// accepts any finite number and leaves sentinel interpretation to the engine.
+function toRerouteOffsetOrNull(raw) {
+  if (raw === null || raw === undefined || raw === "" || typeof raw === "boolean") {
+    return null;
+  }
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
 }
 
 function assess(f) {
@@ -184,16 +199,19 @@ function assess(f) {
     // scheduled departure (two hours for 7-14 days' notice) AND arrive no more
     // than two hours after (four hours for 7-14 days' notice). Either value
     // unknown means the exemption cannot be established -> needs-info.
-    const reroute = toNumberOrNullSentinel(f.reroutedArrivalDelayHours);
-    const rerouteDep = toNumberOrNullSentinel(f.reroutedDepartureOffsetHours);
+    const reroute = toRerouteOffsetOrNull(f.reroutedArrivalDelayHours);
+    const rerouteDep = toRerouteOffsetOrNull(f.reroutedDepartureOffsetHours);
+    // Article 5(1)(c)(ii)-(iii) requires the reroute to arrive LESS than four (or two)
+    // hours late and to depart no more than two (or one) hours early — the arrival
+    // bound is strict, the departure bound is inclusive.
     const windowExemptArrive = notice >= 7 ? 4 : 2;
     const windowExemptDepart = notice >= 7 ? 2 : 1;
     const rerouteOk =
-      reroute !== null && reroute !== UNKNOWN &&
-      rerouteDep !== null && rerouteDep !== UNKNOWN &&
-      reroute <= windowExemptArrive && rerouteDep <= windowExemptDepart;
+      reroute !== null && reroute !== UNKNOWN_REROUTE &&
+      rerouteDep !== null && rerouteDep !== UNKNOWN_REROUTE &&
+      reroute < windowExemptArrive && rerouteDep <= windowExemptDepart;
     const delay = reroute;
-    if (reroute === null || reroute === UNKNOWN || rerouteDep === null || rerouteDep === UNKNOWN) {
+    if (reroute === null || reroute === UNKNOWN_REROUTE || rerouteDep === null || rerouteDep === UNKNOWN_REROUTE) {
       return needsInfo(
         "For the Article 5(1)(c) exemption, both rerouting facts are needed: how late the replacement flight arrived compared to the original schedule, and how much earlier it departed (the exemption allows at most " + windowExemptDepart + " hour(s) early departure and " + windowExemptArrive + " hours late arrival for a cancellation notified " + notice + " days ahead). How did the re-routing times compare to your original schedule?"
       );

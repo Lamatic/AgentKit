@@ -8,7 +8,7 @@ A single Lamatic flow, submitted as an **AgentKit template**. The problem is ori
 
 ## Problem
 
-Under EU Regulation 261/2004 and its UK-retained equivalent, passengers on delayed (3+ hours), cancelled (short notice), or flights where passengers are involuntarily denied boarding (often because of overbooking) are owed fixed cash compensation by distance tier when the regulation's conditions are met; downgraded flights are owed a reimbursement of 30–75% of the ticket price. Most eligible passengers never claim. Three things stop them:
+Under EU Regulation 261/2004 and its UK-retained equivalent, passengers whose flights arrive at their final destination at least 3 hours late, flights cancelled at short notice, or flights where passengers are involuntarily denied boarding (often because of overbooking) are owed fixed cash compensation by distance tier when the regulation's conditions are met; downgraded flights are owed a reimbursement of 30–75% of the ticket price. Most eligible passengers never claim. Three things stop them:
 
 - The rules are conditional: the payout depends on route distance, notice period, arrival delay, and cause, so passengers can't tell whether their case qualifies.
 - Commercial claim agencies (AirHelp, Flightright, etc.) charge 25–35% of the payout to work the rules out.
