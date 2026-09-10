@@ -21,12 +21,14 @@ Assign `distanceTier` from the great-circle distance between origin and final de
 - `short` — up to 1,500 km (e.g. London–Paris, Barcelona–Madrid, Frankfurt–Rome).
 - `medium` — over 1,500 km within the EU/UK, or 1,500–3,500 km elsewhere (e.g. London–Athens, New York–Los Angeles, Paris–Dubai is long: check carefully).
 - `long` — over 3,500 km for flights between an EU/UK airport and a non-EU/UK destination (e.g. London–New York, Paris–Tokyo, Frankfurt–Johannesburg).
+- `unknown` — the origin or destination airport is not stated and the distance cannot be estimated. Do not guess a tier; the compensation amount depends on it.
 Use `distanceKmEstimate` for the best great-circle estimate in km between the airports named; set the tier from that number using the thresholds above (1,500 km and 3,500 km).
 
 Assign `jurisdiction`:
 
 - `UK-261` — the flight departed from a UK airport, or arrived in the UK on a UK/EU carrier.
 - `EU-261` — the flight departed from an EU airport, or arrived in the EU on an EU or UK carrier.
+- `unknown` — the departure airport is not stated and cannot be inferred. Do not guess a jurisdiction; the amounts differ between the EU and UK regulations.
 
 Rules for values:
 
@@ -37,7 +39,7 @@ Rules for values:
 
 Output this exact JSON shape:
 {
-  "jurisdiction": "EU-261" | "UK-261",
+  "jurisdiction": "EU-261" | "UK-261" | "unknown",
   "airline": string,
   "flightNumber": string,
   "originAirport": string (IATA code if stated, else city/airport name),
@@ -49,6 +51,6 @@ Output this exact JSON shape:
   "cause": "airline-controllable" | "extraordinary" | "unknown",
   "causeText": string (short faithful quote or summary of the stated cause, "" if none),
   "distanceKmEstimate": number,
-  "distanceTier": "short" | "medium" | "long",
+  "distanceTier": "short" | "medium" | "long" | "unknown",
   "bookingReference": string
 }
