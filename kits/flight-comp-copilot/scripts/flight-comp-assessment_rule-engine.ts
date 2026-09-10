@@ -70,6 +70,14 @@ function toNumberOrNullSentinel(raw) {
 function assess(f) {
   // "unknown" jurisdiction (no route info extracted) must not silently default to
   // EU-261 — the amounts differ between regulations, so ask instead of guess.
+  // "out-of-scope" (a route neither regulation covers, e.g. a domestic flight in a
+  // third country) is a definitive not-eligible, not a question.
+  if (f.jurisdiction === "out-of-scope") {
+    return notEligible(
+      "EU Regulation 261/2004 / UK261 scope (Article 3): the regulation covers flights departing an EU/UK airport, and flights arriving in the EU on an EU carrier (or in the UK on a UK/EU carrier)",
+      "The route described falls outside EU261/UK261: the flight did not depart from an EU or UK airport, and it was not flying into the EU on an EU carrier or into the UK on a UK/EU carrier. Neither regulation applies, so no compensation is owed under them. Other jurisdictions (for example the US DOT framework) may provide different rights, but this flow does not assess those."
+    );
+  }
   if (f.jurisdiction !== "EU-261" && f.jurisdiction !== "UK-261") {
     return needsInfo(
       "The flight's jurisdiction (EU-261 vs UK-261) could not be determined from the description. Which regulation applies depends on where the flight departed from and the operating carrier — confirm the departure airport and the airline's registration."

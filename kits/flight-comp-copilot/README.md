@@ -8,7 +8,7 @@ A single Lamatic flow, submitted as an **AgentKit template**. The problem is ori
 
 ## Problem
 
-Under EU Regulation 261/2004 and its UK-retained equivalent, passengers on delayed (3+ hours), cancelled (short notice), overbooked, or downgraded flights are owed fixed cash compensation by distance tier. Most eligible passengers never claim. Three things stop them:
+Under EU Regulation 261/2004 and its UK-retained equivalent, passengers on delayed (3+ hours), cancelled (short notice), or overbooked flights are owed fixed cash compensation by distance tier when the regulation's conditions are met; downgraded flights are owed a reimbursement of 30–75% of the ticket price. Most eligible passengers never claim. Three things stop them:
 
 - The rules are conditional: the payout depends on route distance, notice period, arrival delay, and cause, so passengers can't tell whether their case qualifies.
 - Commercial claim agencies (AirHelp, Flightright, etc.) charge 25–35% of the payout to work the rules out.
@@ -21,7 +21,7 @@ A single flow that splits the work into two layers:
 1. **Extraction (LLM, schema-validated)** — turns the messy free-text account ("AF1980 CDG→JFK, hydraulic fault, landed 4.5h late") into structured facts: airline, route, dates, disruption type, arrival delay, notice period, cause, distance tier.
 2. **The rules (deterministic code)** — a code node applies the regulation's money rules: distance-tier amounts, the 3-hour delay threshold, cancellation notice windows, the 50% reduction for 3–4h long-haul delays, downgrade percentages, and the extraordinary-circumstances exclusion.
 
-The language model never decides eligibility or invents an amount. Every verdict comes from the rule engine, and the letter-drafting stage receives that verdict as authoritative input. A model that hallucinates cannot inflate your claim — or talk you out of one you're owed.
+The language model never directly selects the verdict or the amount — every verdict comes from the rule engine, and the letter-drafting stage receives that verdict as authoritative input. One honest limitation: the extracted facts are model output and an untrusted input to the rules. Schema validation checks structure, not factual accuracy, so a wrong extracted value (a mis-tiered route, a misread delay) can still produce a wrong assessment. The response returns `distanceKmEstimate` and the full fact set so borderline calls can be checked.
 
 Three outcomes, three different letters:
 

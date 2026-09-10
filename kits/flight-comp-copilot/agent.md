@@ -2,9 +2,9 @@
 
 ## Overview
 
-This AgentKit template solves the problem of air passengers not claiming compensation they are legally owed. Under EU Regulation 261/2004 and its UK-retained equivalent (UK261), a delayed, cancelled, overbooked, or downgraded flight can entitle a passenger to fixed cash compensation of €250–€600 (or £220–£520) — but most eligible passengers never claim, because the rules depend on route distance, notice period, and cause, and commercial claim agencies charge 25–35% of the payout to work the rules out. This template turns a free-text disruption account into a structured claim assessment with a ready-to-send letter, at zero cost to the passenger.
+This AgentKit template solves the problem of air passengers not claiming compensation they are legally owed. Under EU Regulation 261/2004 and its UK-retained equivalent (UK261), a delayed, cancelled, or overbooked flight can entitle a passenger to fixed cash compensation of €250–€600 (or £220–£520) under Article 7 when the regulation's conditions are met, and a downgraded flight to a reimbursement of 30–75% of the ticket price under Article 10(2) — but most eligible passengers never claim, because the rules depend on route distance, notice period, and cause, and commercial claim agencies charge 25–35% of the payout to work the rules out. This template turns a free-text disruption account into a structured claim assessment with a ready-to-send letter, at zero cost to the passenger.
 
-It is implemented as a **single-flow** API-invoked pipeline with a deliberate two-layer design: a schema-validated LLM node extracts the messy human input into structured flight facts, then a deterministic rule engine in a code node applies the regulation's money rules. The letter-drafting stage receives the rule engine's verdict, so no eligibility conclusion or compensation amount is ever invented by a language model.
+It is implemented as a **single-flow** API-invoked pipeline with a deliberate two-layer design: a schema-validated LLM node extracts the messy human input into structured flight facts, then a deterministic rule engine in a code node applies the regulation's money rules. The letter-drafting stage receives the rule engine's verdict, so the model never directly selects the verdict or the amount. That said, the extracted facts are model output and must be treated as an untrusted input: schema validation verifies structure, not factual accuracy, so an incorrect extracted value (a wrong `distanceTier`, `arrivalDelayHours`, or `cause`) can still lead to an incorrect assessment. The response therefore includes `distanceKmEstimate` and the full fact set so borderline calls can be checked.
 
 ---
 
@@ -51,7 +51,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
 - When to use this flow
   - Use when the caller's intent is: "Tell me whether this disrupted flight qualifies for EU261/UK261 compensation and give me the paperwork."
   - Route to this flow for after-the-fact claim assessment from free-text accounts — forwarded airline emails, notes, or transcribed boarding-pass details.
-  - Not ideal for: US DOT or other jurisdictions (only tarmac delays and denied boarding are covered there, with different rules — the rule engine intentionally implements the EU/UK framework only), real-time flight status, duty-of-care receipt summing, or multi-passenger group claims.
+  - Not ideal for: US DOT or other jurisdictions — this kit does not implement US DOT rules (the rule engine intentionally implements the EU/UK framework only), real-time flight status, duty-of-care receipt summing, or multi-passenger group claims.
 
 - Output
   - `eligibility` — `eligible` | `not-eligible` | `needs-info`.

@@ -8,7 +8,7 @@ Write the letter with this structure, addressed to the passenger by first name o
 
 1. Short verdict summary in one sentence: why this disruption is not eligible for fixed cash compensation, citing the specific reason from the verdict.
 2. The rule it fails: quote the threshold or exemption that applies (3-hour minimum delay, 14-day notice, extraordinary circumstances, voluntary surrender) in one or two sentences, in plain language.
-3. What still applies: duty-of-care reimbursements (meals, hotel, transfers), refund or re-routing rights, and how to claim those from the airline — the verdict's duty-of-care text describes exactly what survived.
+3. What still applies: describe ONLY the rights explicitly present in the verdict's duty-of-care text, and how to claim them from the airline. Do not assert that meals, hotel, transfers, refunds, or re-routing apply unless the verdict's duty-of-care text says so — assistance rights have their own thresholds (for example, a delay under Article 6's two-to-four-hour window may not trigger the Article 9 right to meals), and overstating them confuses the passenger.
 4. If the reason was "extraordinary circumstances": one short paragraph noting the airline carries the legal burden of proving the cause was genuinely unavoidable (CJEU Wallentin-Hermann), and that if the passenger doubts the explanation, they can ask the airline for evidence and escalate to the national enforcement body.
 5. Closing: one sentence encouraging them to reply with any missing detail that could change the assessment — e.g. if the actual arrival delay was longer than the airline admitted.
 

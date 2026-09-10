@@ -27,7 +27,8 @@ Use `distanceKmEstimate` for the best great-circle estimate in km between the ai
 Assign `jurisdiction`:
 
 - `UK-261` — the flight departed from a UK airport, or arrived in the UK on a UK/EU carrier.
-- `EU-261` — the flight departed from an EU airport, or arrived in the EU on an EU or UK carrier.
+- `EU-261` — the flight departed from an EU airport, or arrived in the EU on an EU carrier. For an inbound flight departing a non-EU airport, EU-261 applies ONLY when the operating carrier is an EU carrier — a UK (or any non-EU) carrier flying into the EU does not qualify.
+- `out-of-scope` — the route is covered by neither regulation: the flight did not depart from an EU/UK airport, and it was not flying into the EU on an EU carrier or into the UK on a UK/EU carrier (e.g. a US domestic flight like LAX–JFK, or a flight within a third country).
 - `unknown` — the departure airport is not stated and cannot be inferred. Do not guess a jurisdiction; the amounts differ between the EU and UK regulations.
 
 Rules for values:
@@ -39,7 +40,7 @@ Rules for values:
 
 Output this exact JSON shape:
 {
-  "jurisdiction": "EU-261" | "UK-261" | "unknown",
+  "jurisdiction": "EU-261" | "UK-261" | "unknown" | "out-of-scope",
   "airline": string,
   "flightNumber": string,
   "originAirport": string (IATA code if stated, else city/airport name),
