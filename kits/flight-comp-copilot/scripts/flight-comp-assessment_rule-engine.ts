@@ -206,10 +206,15 @@ function assess(f) {
     // bound is strict, the departure bound is inclusive.
     const windowExemptArrive = notice >= 7 ? 4 : 2;
     const windowExemptDepart = notice >= 7 ? 2 : 1;
+    // Both reroute offsets are signed relative to the original schedule: negative
+    // means earlier, 0 means on time (or later, which is equally compliant for
+    // departures), positive means later. The Article 5(1)(c) departure bound is
+    // therefore a LOWER bound: the reroute must not depart more than
+    // windowExemptDepart hours early, i.e. offset >= -windowExemptDepart.
     const rerouteOk =
       reroute !== null && reroute !== UNKNOWN_REROUTE &&
       rerouteDep !== null && rerouteDep !== UNKNOWN_REROUTE &&
-      reroute < windowExemptArrive && rerouteDep <= windowExemptDepart;
+      reroute < windowExemptArrive && rerouteDep >= -windowExemptDepart;
     const delay = reroute;
     if (reroute === null || reroute === UNKNOWN_REROUTE || rerouteDep === null || rerouteDep === UNKNOWN_REROUTE) {
       return needsInfo(
