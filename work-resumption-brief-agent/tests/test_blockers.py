@@ -86,4 +86,4 @@ def test_high_impact_blocker(identifier):
     blockers = identifier.identify_blockers(states)
 
     assert len(blockers) == 1
-    assert "HIGH IMPACT" in blockers[0].impact
+    assert blockers[0].impact == "HIGH"

@@ -9,6 +9,33 @@ logger = setup_logger("EntityResolver")
 class EntityResolver:
     """Resolve entity mentions across sources using layered matching."""
 
+    GENERIC_CANDIDATES = {
+        "use",
+        "using",
+        "switch",
+        "switching",
+        "going",
+        "back",
+        "start",
+        "starting",
+        "improve",
+        "improving",
+        "fix",
+        "fixing",
+        "blocks",
+        "block",
+        "add",
+        "adding",
+        "work",
+        "in",
+        "on",
+        "to",
+        "the",
+        "a",
+        "an",
+        "decision",
+    }
+
     def __init__(self):
         self.synonym_map = {
             "parser": [
@@ -45,38 +72,58 @@ class EntityResolver:
         self,
         events: List[NormalizedEvent],
     ) -> Dict[str, List[str]]:
-        """Map entity mentions to canonical entities."""
+        """Resolve entities across normalized events."""
 
-        entity_map: Dict[str, List[str]] = {}
+        entity_map = {}
 
         for event in events:
             content = event.content or ""
+            candidates = event.entity_candidates or []
 
-            compound_entity = self._find_compound_in_text(
-                content
-            )
+            # Recover a meaningful work entity when the parser
+            # extracted only a generic action word.
+            #
+            # Example:
+            #   "Add benchmarks" -> parser extracts ["Add"]
+            #   "benchmarks" is the actual work entity.
+            if (
+                len(candidates) == 1
+                and self._is_generic_candidate(candidates[0])
+            ):
+                words = content.split()
 
-            if compound_entity:
-                entity_map.setdefault(
-                    compound_entity,
-                    []
-                )
-                entity_map[compound_entity].append(
-                    event.source_id
-                )
+                if len(words) >= 2:
+                    fallback_entity = words[1].strip(
+                        ".,!?;:()[]{}\"'"
+                    )
 
-            candidates = event.entity_candidates
+                    if fallback_entity:
+                        candidates = [fallback_entity]
 
-            candidate_compound = self._find_compound_entity(
-                candidates
-            )
+            candidate_compound = self._find_compound_entity(candidates)
+            text_compound = self._find_compound_in_text(content)
+
+            compound_entity = None
 
             if candidate_compound:
-                entity_map.setdefault(
-                    candidate_compound,
-                    []
-                )
-                entity_map[candidate_compound].append(
+                compound_entity = candidate_compound
+
+            elif text_compound:
+                normalized_candidates = {
+                    self._normalize(candidate)
+                    for candidate in candidates
+                    if candidate
+                }
+
+                if text_compound == "Resume parser":
+                    if "resume_parser" not in normalized_candidates:
+                        compound_entity = text_compound
+                else:
+                    compound_entity = text_compound
+
+            if compound_entity:
+                entity_map.setdefault(compound_entity, [])
+                entity_map[compound_entity].append(
                     event.source_id
                 )
 
@@ -84,19 +131,20 @@ class EntityResolver:
                 if not candidate:
                     continue
 
-                normalized_candidate = self._normalize(
-                    candidate
-                )
+                if self._is_generic_candidate(candidate):
+                    continue
 
-                if compound_entity == "API schema":
-                    if normalized_candidate in {
-                        "api",
-                        "schema",
-                        "api_schema",
+                if compound_entity == "Resume parser":
+                    if self._normalize(candidate) in {
+                        "resume",
+                        "parser",
+                        "implement",
                     }:
                         continue
 
-                if candidate_compound == "API schema":
+                normalized_candidate = self._normalize(candidate)
+
+                if compound_entity == "API schema":
                     if normalized_candidate in {
                         "api",
                         "schema",
@@ -114,6 +162,20 @@ class EntityResolver:
                         []
                     )
                     entity_map[canonical_compound].append(
+                        event.source_id
+                    )
+                    continue
+
+                canonical_entity = self._canonical_entity(
+                    candidate
+                )
+
+                if canonical_entity:
+                    entity_map.setdefault(
+                        canonical_entity,
+                        []
+                    )
+                    entity_map[canonical_entity].append(
                         event.source_id
                     )
                     continue
@@ -172,7 +234,7 @@ class EntityResolver:
         return entity_map
 
     def _normalize(self, text: str) -> str:
-        """Normalize text for comparison."""
+        """Normalize entity text for comparison."""
 
         return (
             text.strip()
@@ -181,23 +243,64 @@ class EntityResolver:
             .replace(" ", "_")
         )
 
+    def _is_generic_candidate(
+        self,
+        candidate: str,
+    ) -> bool:
+        """Check whether a candidate is a generic action/connector word."""
+
+        normalized = (
+            candidate.strip()
+            .lower()
+            .replace("-", " ")
+            .replace("_", " ")
+        )
+
+        return normalized in self.GENERIC_CANDIDATES
+
+    def _canonical_entity(
+        self,
+        candidate: str,
+    ) -> Optional[str]:
+        """Map known technology/entity variants to logical entities."""
+
+        normalized = (
+            candidate.strip()
+            .lower()
+            .replace("-", " ")
+            .replace("_", " ")
+        )
+
+        database_entities = {
+            "database",
+            "postgresql",
+            "postgres",
+            "sqlite",
+            "mysql",
+            "mongodb",
+            "mongo",
+        }
+
+        if normalized in database_entities:
+            return "Database"
+
+        return None
+
     def _canonical_compound(
         self,
         candidate: str,
     ) -> Optional[str]:
-        """Return canonical name for a compound entity."""
+        """Return the canonical form of a compound entity."""
 
         normalized = self._normalize(candidate)
 
-        return self.compound_entities.get(
-            normalized
-        )
+        return self.compound_entities.get(normalized)
 
     def _find_compound_in_text(
         self,
         text: str,
     ) -> Optional[str]:
-        """Detect compound entities directly in source text."""
+        """Find known logical entities directly in source text."""
 
         normalized_text = (
             text.strip()
@@ -215,13 +318,55 @@ class EntityResolver:
         if "schema api" in normalized_text:
             return "API schema"
 
+        if "resume parser" in normalized_text:
+            return "Resume parser"
+
+        if "resume parsing" in normalized_text:
+            return "Resume parser"
+
+        if "database" in normalized_text:
+            return "Database"
+
+        if "postgresql" in normalized_text:
+            return "Database"
+
+        if "postgres" in normalized_text:
+            return "Database"
+
+        if "sqlite" in normalized_text:
+            return "Database"
+
+        if "mysql" in normalized_text:
+            return "Database"
+
+        if "mongodb" in normalized_text:
+            return "Database"
+
+        if "mongo" in normalized_text:
+            return "Database"
+
+        if "schema" in normalized_text:
+            return "Schema"
+
+        if "tests" in normalized_text:
+            return "Tests"
+
+        if "testing" in normalized_text:
+            return "Tests"
+
+        if "feature x" in normalized_text:
+            return "Feature X"
+
+        if "performance" in normalized_text:
+            return "Performance"
+
         return None
 
     def _find_compound_entity(
         self,
         candidates: List[str],
     ) -> Optional[str]:
-        """Detect compound entities from entity candidates."""
+        """Find compound entities among extracted candidates."""
 
         normalized_candidates = {
             self._normalize(candidate)
@@ -249,12 +394,11 @@ class EntityResolver:
         self,
         candidate: str,
     ) -> Optional[str]:
-        """Find semantic matches while preserving exact entities."""
+        """Resolve known synonyms to canonical entities."""
 
         candidate_lower = candidate.strip().lower()
 
         for key, synonyms in self.synonym_map.items():
-
             if candidate_lower == key.lower():
                 return None
 
@@ -268,7 +412,7 @@ class EntityResolver:
         self,
         entity_map: Dict[str, List[str]],
     ) -> None:
-        """Merge API and Schema only when both entities exist."""
+        """Merge separate API and schema entities."""
 
         api_key = None
         schema_key = None
@@ -289,36 +433,27 @@ class EntityResolver:
         if compound_key is not None:
             combined_sources = entity_map.get(
                 compound_key,
-                []
+                [],
             )
 
             if api_key is not None:
                 combined_sources.extend(
                     entity_map.get(api_key, [])
                 )
-                entity_map.pop(
-                    api_key,
-                    None
-                )
+                entity_map.pop(api_key, None)
 
             if schema_key is not None:
                 combined_sources.extend(
                     entity_map.get(schema_key, [])
                 )
-                entity_map.pop(
-                    schema_key,
-                    None
-                )
+                entity_map.pop(schema_key, None)
 
             entity_map["API schema"] = list(
                 dict.fromkeys(combined_sources)
             )
 
             if compound_key != "API schema":
-                entity_map.pop(
-                    compound_key,
-                    None
-                )
+                entity_map.pop(compound_key, None)
 
             return
 
@@ -330,14 +465,8 @@ class EntityResolver:
             + entity_map.get(schema_key, [])
         )
 
-        entity_map.pop(
-            api_key,
-            None
-        )
-        entity_map.pop(
-            schema_key,
-            None
-        )
+        entity_map.pop(api_key, None)
+        entity_map.pop(schema_key, None)
 
         entity_map["API schema"] = list(
             dict.fromkeys(combined_sources)

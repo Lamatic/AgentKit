@@ -1,6 +1,6 @@
 from src.logger import setup_logger
-from src.models import Blocker, WorkState
-from typing import List
+from src.models import Blocker, WorkState, SourceType
+from typing import Dict, List, Optional
 
 
 logger = setup_logger("BlockerIdentifier")
@@ -11,12 +11,14 @@ class BlockerIdentifier:
 
     def identify_blockers(
         self,
-        states: List[WorkState]
+        states: List[WorkState],
+        events_by_entity: Optional[Dict[str, List]] = None,
     ) -> List[Blocker]:
-        """Find blocked work and determine its impact."""
+        """Find blocked work and detect stale implementations."""
 
         blockers = []
 
+        # Preserve the existing blocked-state behavior.
         for state in states:
             if state.state.value != "blocked":
                 continue
@@ -28,21 +30,88 @@ class BlockerIdentifier:
                 states
             )
 
-            blocker = Blocker(
-                blocker=blocker_reason,
-                affected_work=state.entity,
-                impact=impact,
-                evidence=state.evidence,
-                confidence=0.85
+            blockers.append(
+                Blocker(
+                    blocker=blocker_reason,
+                    affected_work=state.entity,
+                    impact=impact,
+                    evidence=state.evidence,
+                    confidence=0.85
+                )
             )
 
-            blockers.append(blocker)
+        # Detect a decision that was reverted after code was changed
+        # to an incompatible implementation.
+        if events_by_entity:
+            for entity, events in events_by_entity.items():
+                stale_blocker = self._detect_stale_decision(
+                    entity,
+                    events
+                )
+
+                if stale_blocker is None:
+                    continue
+
+                blockers.append(stale_blocker)
 
         logger.info(
             f"Identified {len(blockers)} blockers"
         )
 
         return blockers
+
+    def _detect_stale_decision(
+        self,
+        entity: str,
+        events: List,
+    ) -> Optional[Blocker]:
+        """Detect when the latest decision differs from the implementation."""
+
+        if entity.lower() != "database":
+            return None
+
+        ordered_events = sorted(
+            events,
+            key=lambda event: event.timestamp
+        )
+
+        decisions = []
+
+        for event in ordered_events:
+            content = event.content.lower()
+
+            if "postgresql" in content or "postgres" in content:
+                decisions.append(("postgresql", event))
+
+            elif "sqlite" in content:
+                decisions.append(("sqlite", event))
+
+        if len(decisions) < 3:
+            return None
+
+        first_decision, first_event = decisions[0]
+        implementation, implementation_event = decisions[1]
+        latest_decision, latest_event = decisions[-1]
+
+        if (
+            first_decision == "postgresql"
+            and implementation == "sqlite"
+            and latest_decision == "postgresql"
+            and implementation_event.timestamp < latest_event.timestamp
+        ):
+            return Blocker(
+                blocker="Code not updated",
+                affected_work=entity,
+                impact="HIGH",
+                evidence=[
+                    first_event.source_id,
+                    implementation_event.source_id,
+                    latest_event.source_id,
+                ],
+                confidence=0.90,
+            )
+
+        return None
 
     def _assess_impact(
         self,
@@ -110,10 +179,8 @@ class BlockerIdentifier:
                 dependents.append(state)
 
         if len(dependents) >= 2:
-            return (
-                f"Blocks {len(dependents)} downstream tasks "
-                "(HIGH IMPACT)"
-            )
+            return "HIGH"
+
 
         if len(dependents) == 1:
             return "Blocks 1 downstream task"

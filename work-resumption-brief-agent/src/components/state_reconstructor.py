@@ -1,6 +1,7 @@
+from typing import Dict, List, Optional
+
 from src.logger import setup_logger
 from src.models import WorkState, Evidence, Conflict, StateCategory
-from typing import List
 
 
 logger = setup_logger("StateReconstructor")
@@ -12,19 +13,46 @@ class StateReconstructor:
     def reconstruct_state(
         self,
         evidence_list: List[Evidence],
-        conflicts: List[Conflict]
+        conflicts: List[Conflict],
+        entity_map: Optional[Dict[str, List[str]]] = None,
     ) -> List[WorkState]:
         """Combine evidence and conflicts into work states."""
 
         states = []
         entity_evidence = {}
 
-        for evidence in evidence_list:
-            for entity in self._extract_entities(evidence.conclusion):
-                if entity not in entity_evidence:
-                    entity_evidence[entity] = []
+        # When the agent provides the canonical entity map, preserve
+        # those entity names instead of extracting names from conclusions.
+        if entity_map:
+            for entity, source_ids in entity_map.items():
 
-                entity_evidence[entity].append(evidence)
+                if not isinstance(source_ids, list):
+                    logger.warning(
+                        f"Invalid source ID collection for entity: {entity}"
+                    )
+                    continue
+
+                entity_events = [
+                    evidence
+                    for evidence in evidence_list
+                    if any(
+                        source_id in evidence.sources
+                        for source_id in source_ids
+                    )
+                ]
+
+                if entity_events:
+                    entity_evidence[entity] = entity_events
+
+        # Preserve the original standalone behavior used by the
+        # StateReconstructor unit tests.
+        else:
+            for evidence in evidence_list:
+                for entity in self._extract_entities(evidence.conclusion):
+                    if entity not in entity_evidence:
+                        entity_evidence[entity] = []
+
+                    entity_evidence[entity].append(evidence)
 
         for entity, evidence_set in entity_evidence.items():
 
@@ -78,7 +106,7 @@ class StateReconstructor:
                 state=state_category,
                 confidence=avg_confidence,
                 evidence=list(set(all_sources)),
-                last_update=None
+                last_update=None,
             )
 
             states.append(work_state)
@@ -94,7 +122,7 @@ class StateReconstructor:
 
         words = conclusion.split()
 
-        # Preserve compound entity names.
+        # Preserve compound API schema entity names.
         if (
             len(words) >= 2
             and words[0].lower() == "api"
@@ -102,10 +130,12 @@ class StateReconstructor:
         ):
             return ["API schema"]
 
-        entities = [
-            word
-            for word in words
-            if word and word[0].isupper()
-        ]
+        entities = []
 
-        return list(set(entities[:2]))
+        for word in words:
+            cleaned = word.strip(".,!?;:()[]{}\"'")
+
+            if cleaned and cleaned[0].isupper():
+                entities.append(cleaned)
+
+        return entities[:2]

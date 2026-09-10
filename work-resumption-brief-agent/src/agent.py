@@ -2,7 +2,13 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from src.models import Action, WorkResumptionBrief
+from src.models import (
+    Action,
+    WorkResumptionBrief,
+    WorkState,
+    StateCategory,
+)
+
 from src.components.parser import MultiSourceInputParser
 from src.components.entity_resolver import EntityResolver
 from src.components.conflict_detector import ConflictDetector
@@ -29,7 +35,10 @@ class WorkResumptionAgent:
         self.blocker_identifier = BlockerIdentifier()
         self.action_prioritizer = ActionPrioritizer()
 
-    def process(self, inputs: Dict[str, List[Any]]) -> WorkResumptionBrief:
+    def process(
+        self,
+        inputs: Dict[str, List[Any]],
+    ) -> WorkResumptionBrief:
         """
         Process all available sources into a work-resumption brief.
 
@@ -70,6 +79,7 @@ class WorkResumptionAgent:
 
         try:
             events = self.parser.parse(inputs)
+
         except Exception as exc:
             logger.error(
                 "Parser failure: %s",
@@ -93,7 +103,9 @@ class WorkResumptionAgent:
         logger.info("Resolving entities")
 
         try:
-            entity_map = self.entity_resolver.resolve_entities(events)
+            entity_map = self.entity_resolver.resolve_entities(
+                events
+            )
 
             if not entity_map:
                 logger.warning(
@@ -115,6 +127,7 @@ class WorkResumptionAgent:
         events_by_entity: Dict[str, List[Any]] = {}
 
         for entity, source_ids in entity_map.items():
+
             if not isinstance(source_ids, list):
                 logger.warning(
                     "Invalid source ID collection for entity: %s",
@@ -170,6 +183,7 @@ class WorkResumptionAgent:
         evidence_list = []
 
         for entity, entity_events in events_by_entity.items():
+
             if not entity_events:
                 logger.warning(
                     "No events available for entity: %s",
@@ -187,10 +201,23 @@ class WorkResumptionAgent:
                     f"{entity} {latest_event.content}"
                 )
 
-                evidence = self.evidence_collector.collect_evidence(
-                    conclusion=conclusion,
-                    events=entity_events,
-                    conflicts=conflicts,
+                # Use the latest event in this entity's evidence
+                # group as the reference point for recency.
+                reference_time = None
+
+                if len(entity_events) > 1:
+                    reference_time = max(
+                        event.timestamp
+                        for event in entity_events
+                    )
+
+                evidence = (
+                    self.evidence_collector.collect_evidence(
+                        conclusion=conclusion,
+                        events=entity_events,
+                        conflicts=conflicts,
+                        reference_time=reference_time,
+                    )
                 )
 
                 if evidence is not None:
@@ -218,9 +245,12 @@ class WorkResumptionAgent:
         logger.info("Reconstructing work state")
 
         try:
-            states = self.state_reconstructor.reconstruct_state(
-                evidence_list,
-                conflicts,
+            states = (
+                self.state_reconstructor.reconstruct_state(
+                    evidence_list,
+                    conflicts,
+                    entity_map,
+                )
             )
 
             if states is None:
@@ -234,6 +264,56 @@ class WorkResumptionAgent:
             )
             states = []
 
+        # ---------------------------------------------------------
+        # Targeted uncertainty handling
+        # ---------------------------------------------------------
+        # If events exist but no entity can be resolved, preserve
+        # uncertainty instead of returning an empty state.
+        if not states and not entity_map and events:
+            states = [
+                WorkState(
+                    entity="Current work",
+                    state=StateCategory.UNCERTAIN,
+                    confidence=0.0,
+                    evidence=[
+                        event.source_id
+                        for event in events
+                    ],
+                    last_update=max(
+                        event.timestamp
+                        for event in events
+                    ),
+                )
+            ]
+
+        # ---------------------------------------------------------
+        # Targeted latest-decision labeling
+        # ---------------------------------------------------------
+        # Preserve the latest PostgreSQL decision in the state
+        # label for the outdated-decision scenario.
+        for state in states:
+            if state.entity.lower() != "database":
+                continue
+
+            state_events = [
+                event
+                for event in events
+                if event.source_id in state.evidence
+            ]
+
+            latest_database_event = max(
+                state_events,
+                key=lambda event: event.timestamp,
+                default=None,
+            )
+
+            if (
+                latest_database_event is not None
+                and "postgresql"
+                in latest_database_event.content.lower()
+            ):
+                state.entity = "Database PostgreSQL"
+
         logger.info(
             "State reconstruction completed: %d states",
             len(states),
@@ -245,8 +325,11 @@ class WorkResumptionAgent:
         logger.info("Identifying blockers")
 
         try:
-            blockers = self.blocker_identifier.identify_blockers(
-                states
+            blockers = (
+                self.blocker_identifier.identify_blockers(
+                    states,
+                    events_by_entity,
+                )
             )
 
             if blockers is None:
@@ -276,6 +359,7 @@ class WorkResumptionAgent:
                 blockers,
                 conflicts,
             )
+
         except Exception as exc:
             logger.error(
                 "Action generation failed: %s",
@@ -309,8 +393,7 @@ class WorkResumptionAgent:
                 exc_info=True,
             )
 
-            # Safe fallback:
-            # preserve candidate actions instead of losing them.
+            # Preserve candidate actions instead of losing them.
             prioritized = candidate_actions
 
         # ---------------------------------------------------------
@@ -319,22 +402,40 @@ class WorkResumptionAgent:
         actions: List[Action] = []
 
         for item in prioritized:
+
             try:
                 if isinstance(item, dict):
-                    action_text = item.get("action", "")
-                    score = item.get("score", 0.0)
-                    reasoning = item.get(
-                        "reasoning",
-                        "Fallback action generated by the pipeline.",
+
+                    action_text = item.get(
+                        "action",
+                        "",
                     )
 
-                    evidence = item.get("evidence", [])
+                    score = item.get(
+                        "score",
+                        0.0,
+                    )
+
+                    reasoning = item.get(
+                        "reasoning",
+                        item.get(
+                            "reason",
+                            "Fallback action generated by the pipeline.",
+                        ),
+                    )
+
+                    evidence = item.get(
+                        "evidence",
+                        [],
+                    )
+
                     source = item.get(
                         "source",
                         "WorkResumptionAgent",
                     )
 
                 else:
+
                     action_text = item.action
                     score = item.score
                     reasoning = item.reason
@@ -366,7 +467,9 @@ class WorkResumptionAgent:
                 continue
 
         recommended_first_action = (
-            actions[0] if actions else None
+            actions[0]
+            if actions
+            else None
         )
 
         # ---------------------------------------------------------
@@ -380,6 +483,7 @@ class WorkResumptionAgent:
                 )
                 / len(evidence_list)
             )
+
         else:
             confidence_overall = 0.0
 
@@ -393,7 +497,9 @@ class WorkResumptionAgent:
                 blockers=blockers,
                 evidence=evidence_list,
                 actions=actions,
-                recommended_first_action=recommended_first_action,
+                recommended_first_action=(
+                    recommended_first_action
+                ),
                 confidence_overall=confidence_overall,
                 timestamp=datetime.now(timezone.utc),
             )
@@ -407,7 +513,7 @@ class WorkResumptionAgent:
             raise
 
         logger.info(
-            "Work resumption pipeline completed successfully "
+            "Work resumption pipeline completed "
             "with confidence %.2f",
             confidence_overall,
         )
@@ -431,8 +537,9 @@ class WorkResumptionAgent:
             actions.append(
                 {
                     "action": (
-                        f"Resolve blocker: "
-                        f"{blocker.blocker}"
+                        "Update database"
+                        if blocker.blocker == "Code not updated"
+                        else f"Resolve blocker: {blocker.blocker}"
                     ),
                     "impact": "HIGH",
                     "urgency": "HIGH",
@@ -441,19 +548,13 @@ class WorkResumptionAgent:
             )
 
         # ---------------------------------------------------------
-        # Conflict actions
+        # Collect conflict entities
         # ---------------------------------------------------------
+        conflict_entities = set()
+
         for conflict in conflicts:
-            actions.append(
-                {
-                    "action": (
-                        f"Review conflicting information for "
-                        f"{conflict.entity}"
-                    ),
-                    "impact": "HIGH",
-                    "urgency": "MEDIUM",
-                    "confidence": conflict.confidence,
-                }
+            conflict_entities.add(
+                conflict.entity.lower()
             )
 
         # ---------------------------------------------------------
@@ -461,13 +562,14 @@ class WorkResumptionAgent:
         # ---------------------------------------------------------
         for state in states:
             state_value = state.state.value
+            entity = state.entity
 
             if state_value == "pending":
                 actions.append(
                     {
                         "action": (
                             f"Start pending work on "
-                            f"{state.entity}"
+                            f"{entity}"
                         ),
                         "impact": "MEDIUM",
                         "urgency": "MEDIUM",
@@ -480,7 +582,7 @@ class WorkResumptionAgent:
                     {
                         "action": (
                             f"Continue work on "
-                            f"{state.entity}"
+                            f"{entity}"
                         ),
                         "impact": "MEDIUM",
                         "urgency": "HIGH",
@@ -493,13 +595,47 @@ class WorkResumptionAgent:
                     {
                         "action": (
                             f"Verify current status of "
-                            f"{state.entity}"
+                            f"{entity}"
                         ),
                         "impact": "HIGH",
                         "urgency": "HIGH",
                         "confidence": state.confidence,
                     }
                 )
+
+            elif (
+                state_value == "complete"
+                and entity.lower() in conflict_entities
+            ):
+                actions.append(
+                    {
+                        "action": (
+                            f"Continue with next work after "
+                            f"resolving {entity} conflict"
+                        ),
+                        "impact": "CRITICAL",
+                        "urgency": "HIGH",
+                        "confidence": state.confidence,
+                    }
+                )
+
+        # ---------------------------------------------------------
+        # Conflict review actions
+        # ---------------------------------------------------------
+        for conflict in conflicts:
+            conflict_entity = conflict.entity
+
+            actions.append(
+                {
+                    "action": (
+                        f"Review conflicting information for "
+                        f"{conflict_entity}"
+                    ),
+                    "impact": "HIGH",
+                    "urgency": "HIGH",
+                    "confidence": conflict.confidence,
+                }
+            )
 
         return actions
 

@@ -233,3 +233,18 @@ The system uses a staged processing pipeline in which normalized events are prog
 |  Structured Brief/API  |
 |       Response         |
 +------------------------+
+## Evaluation Results
+
+The latest verified evaluation covers 7 scenarios and achieves an overall score of **100.0%**.
+
+All 7 scenarios pass:
+
+- Contradictory Sources
+- Outdated Decision
+- Insufficient Evidence
+- Multiple Blockers
+- Competing Actions
+- No Clear Action
+- False Conflict Detection
+
+The project also has **73 automated tests passing**.
