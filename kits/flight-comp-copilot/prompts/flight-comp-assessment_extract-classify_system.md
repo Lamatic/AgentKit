@@ -35,8 +35,9 @@ Rules for values:
 
 - `arrivalDelayHours`: hours of arrival delay at the final destination. 0 if none. Use -1 if the text does not allow a delay to be determined.
 - `cancellationNoticeDays`: whole days between the cancellation notice and the scheduled departure. Use -1 if unknown. For a cancellation the passenger learned about at the airport, use 0.
-- `reroutedArrivalDelayHours`: for cancellations only — how many hours the replacement flight arrived after the original scheduled arrival. Negative values are valid: use e.g. -0.5 if the replacement arrived 30 minutes ahead of the original schedule. Use the sentinel -999 if there was no rerouting or the comparison cannot be determined — never -1, which is a real value here.
-- `reroutedDepartureOffsetHours`: for cancellations only — hours relative to the original scheduled departure: negative if the replacement departed earlier than the original schedule (e.g. -5 for five hours early), 0 if it departed exactly on the original time or later. Use the sentinel -999 if there was no rerouting or the comparison cannot be determined — never -1, which is a real value here (one hour early).
+- `reroutingStatus`: for cancellations only — `offered` if the airline provided or arranged any replacement flight (even a bad one), `not-offered` if the account explicitly states no replacement/re-routing was offered, `unknown` if the account does not say either way. Do not guess.
+- `reroutedArrivalDelayHours`: for cancellations only — how many hours the replacement flight arrived after the original scheduled arrival. Negative values are valid: use e.g. -0.5 if the replacement arrived 30 minutes ahead of the original schedule. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here.
+- `reroutedDepartureOffsetHours`: for cancellations only — hours relative to the original scheduled departure: negative if the replacement departed earlier than the original schedule (e.g. -5 for five hours early), 0 if it departed exactly on the original time or later. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here (one hour early).
 - If a fact is not present in the input, use an empty string "" for strings, -1 for these two numeric sentinels — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
 - `scheduledDepartureDate` in YYYY-MM-DD, or "" if not stated.
 
@@ -51,6 +52,7 @@ Output this exact JSON shape:
   "disruptionType": "delay" | "cancellation" | "denied-boarding" | "downgrade" | "other",
   "arrivalDelayHours": number,
   "cancellationNoticeDays": number,
+  "reroutingStatus": "offered" | "not-offered" | "unknown",
   "reroutedArrivalDelayHours": number,
   "reroutedDepartureOffsetHours": number,
   "cause": "airline-controllable" | "extraordinary" | "unknown",

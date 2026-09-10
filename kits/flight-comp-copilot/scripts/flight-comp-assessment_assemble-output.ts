@@ -25,6 +25,7 @@ output = {
     arrivalDelayHours: {{InstructorLLMNode_210.output.arrivalDelayHours}},
     cancellationNoticeDays: {{InstructorLLMNode_210.output.cancellationNoticeDays}},
     reroutedArrivalDelayHours: {{InstructorLLMNode_210.output.reroutedArrivalDelayHours}},
+    reroutingStatus: {{InstructorLLMNode_210.output.reroutingStatus}},
     reroutedDepartureOffsetHours: {{InstructorLLMNode_210.output.reroutedDepartureOffsetHours}},
     cause: {{InstructorLLMNode_210.output.cause}},
     causeText: {{InstructorLLMNode_210.output.causeText}},

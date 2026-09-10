@@ -199,6 +199,12 @@ function assess(f) {
     // scheduled departure (two hours for 7-14 days' notice) AND arrive no more
     // than two hours after (four hours for 7-14 days' notice). Either value
     // unknown means the exemption cannot be established -> needs-info.
+    // Article 5(1)(c) exempts the airline only when it OFFERED rerouting within the
+    // notice-window limits. Three distinct states matter, and conflating them was a
+    // real defect: an explicitly absent offer means the exemption cannot apply at all
+    // (compensation stands), while an unknown offer or unknown times means the facts
+    // needed to decide the exemption are missing (needs-info).
+    const reroutingStatus = f.reroutingStatus;
     const reroute = toRerouteOffsetOrNull(f.reroutedArrivalDelayHours);
     const rerouteDep = toRerouteOffsetOrNull(f.reroutedDepartureOffsetHours);
     // Article 5(1)(c)(ii)-(iii) requires the reroute to arrive LESS than four (or two)
@@ -216,6 +222,24 @@ function assess(f) {
       rerouteDep !== null && rerouteDep !== UNKNOWN_REROUTE &&
       reroute < windowExemptArrive && rerouteDep >= -windowExemptDepart;
     const delay = reroute;
+    if (reroutingStatus === "unknown") {
+      return needsInfo(
+        "Whether the airline offered a replacement flight (re-routing) is not stated. The Article 5(1)(c) exemption depends on whether a compliant re-routing was offered — did the airline provide or arrange any alternative flight?"
+      );
+    }
+    if (reroutingStatus === "not-offered") {
+      return {
+        eligibility: "eligible",
+        compensationAmount: base,
+        currency: currency,
+        legalBasis:
+          "EU Regulation 261/2004, Articles 5(1)(c) and 7(1) (cancellation without a re-routing offer); UK261 equivalent",
+        decisionReason:
+          "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the account states that no re-routing was offered. The Article 5(1)(c) exemption requires the airline to have offered a compliant replacement flight, so with no offer it cannot apply — fixed compensation stands by distance tier (" + tierLabel(f.distanceTier) + ").",
+        dutyOfCare:
+          "Under Article 9, meals, refreshments, hotel accommodation where needed, and airport transfers are owed regardless of compensation. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
+      };
+    }
     if (reroute === null || reroute === UNKNOWN_REROUTE || rerouteDep === null || rerouteDep === UNKNOWN_REROUTE) {
       return needsInfo(
         "For the Article 5(1)(c) exemption, both rerouting facts are needed: how late the replacement flight arrived compared to the original schedule, and how much earlier it departed (the exemption allows at most " + windowExemptDepart + " hour(s) early departure and " + windowExemptArrive + " hours late arrival for a cancellation notified " + notice + " days ahead). How did the re-routing times compare to your original schedule?"
@@ -283,6 +307,7 @@ output = assess({
   cancellationNoticeDays: {{InstructorLLMNode_210.output.cancellationNoticeDays}},
   reroutedArrivalDelayHours: {{InstructorLLMNode_210.output.reroutedArrivalDelayHours}},
   reroutedDepartureOffsetHours: {{InstructorLLMNode_210.output.reroutedDepartureOffsetHours}},
+  reroutingStatus: {{InstructorLLMNode_210.output.reroutingStatus}},
   cause: {{InstructorLLMNode_210.output.cause}},
   causeText: {{InstructorLLMNode_210.output.causeText}},
   distanceTier: {{InstructorLLMNode_210.output.distanceTier}}
