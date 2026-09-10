@@ -26,15 +26,17 @@ Use `distanceKmEstimate` for the best great-circle estimate in km between the ai
 
 Assign `jurisdiction`:
 
-- `UK-261` — the flight departed from a UK airport, or arrived in the UK on a UK/EU carrier.
+- `UK-261` — the flight departed from a UK airport, arrived in the UK on a UK/EU carrier, or arrived in the EU on a UK carrier.
 - `EU-261` — the flight departed from an EU airport, or arrived in the EU on an EU carrier. For an inbound flight departing a non-EU airport, EU-261 applies ONLY when the operating carrier is an EU carrier — a UK (or any non-EU) carrier flying into the EU does not qualify.
-- `out-of-scope` — the route is covered by neither regulation: the flight did not depart from an EU/UK airport, and it was not flying into the EU on an EU carrier or into the UK on a UK/EU carrier (e.g. a US domestic flight like LAX–JFK, or a flight within a third country).
+- `out-of-scope` — based on the known route and operating-carrier facts, the flight is covered by neither regulation: it did not depart from an EU/UK airport, and it was not flying into the EU on an EU or UK carrier, or into the UK on a UK/EU carrier (e.g. a US domestic flight like LAX–JFK, or a flight within a third country). If the operating carrier is not stated for an otherwise-covered route, use `unknown`, not `out-of-scope`.
 - `unknown` — the departure airport is not stated and cannot be inferred. Do not guess a jurisdiction; the amounts differ between the EU and UK regulations.
 
 Rules for values:
 
 - `arrivalDelayHours`: hours of arrival delay at the final destination. 0 if none. Use -1 if the text does not allow a delay to be determined.
 - `cancellationNoticeDays`: whole days between the cancellation notice and the scheduled departure. Use -1 if unknown. For a cancellation the passenger learned about at the airport, use 0.
+- `reroutedArrivalDelayHours`: for cancellations only — how many hours the replacement flight arrived after the original scheduled arrival (negative if earlier, i.e. arrived ahead of schedule). 0 if it arrived exactly on the original schedule. Use -1 if there was no rerouting or the comparison is unknown.
+- `reroutedDepartureOffsetHours`: for cancellations only — how many hours EARLIER the replacement flight departed than the original scheduled departure. 0 if it departed at the original time or later. Use -1 if there was no rerouting or the comparison is unknown.
 - If a fact is not present in the input, use an empty string "" for strings, -1 for these two numeric sentinels — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
 - `scheduledDepartureDate` in YYYY-MM-DD, or "" if not stated.
 
@@ -49,6 +51,8 @@ Output this exact JSON shape:
   "disruptionType": "delay" | "cancellation" | "denied-boarding" | "downgrade" | "other",
   "arrivalDelayHours": number,
   "cancellationNoticeDays": number,
+  "reroutedArrivalDelayHours": number,
+  "reroutedDepartureOffsetHours": number,
   "cause": "airline-controllable" | "extraordinary" | "unknown",
   "causeText": string (short faithful quote or summary of the stated cause, "" if none),
   "distanceKmEstimate": number,

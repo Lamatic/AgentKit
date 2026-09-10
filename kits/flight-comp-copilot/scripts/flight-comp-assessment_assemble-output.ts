@@ -24,6 +24,8 @@ output = {
     disruptionType: {{InstructorLLMNode_210.output.disruptionType}},
     arrivalDelayHours: {{InstructorLLMNode_210.output.arrivalDelayHours}},
     cancellationNoticeDays: {{InstructorLLMNode_210.output.cancellationNoticeDays}},
+    reroutedArrivalDelayHours: {{InstructorLLMNode_210.output.reroutedArrivalDelayHours}},
+    reroutedDepartureOffsetHours: {{InstructorLLMNode_210.output.reroutedDepartureOffsetHours}},
     cause: {{InstructorLLMNode_210.output.cause}},
     causeText: {{InstructorLLMNode_210.output.causeText}},
     distanceKmEstimate: {{InstructorLLMNode_210.output.distanceKmEstimate}},

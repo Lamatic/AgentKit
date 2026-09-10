@@ -64,7 +64,10 @@ function toNumberOrNullSentinel(raw) {
     return null;
   }
   const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
+  // Only non-negative values and the -1 unknown sentinel are meaningful for a delay
+  // or a notice period; any other negative (e.g. -2 from a lax provider response)
+  // must surface as unknown, not as a confident verdict.
+  return Number.isFinite(n) && (n >= 0 || n === UNKNOWN) ? n : null;
 }
 
 function assess(f) {
@@ -73,10 +76,18 @@ function assess(f) {
   // "out-of-scope" (a route neither regulation covers, e.g. a domestic flight in a
   // third country) is a definitive not-eligible, not a question.
   if (f.jurisdiction === "out-of-scope") {
-    return notEligible(
-      "EU Regulation 261/2004 / UK261 scope (Article 3): the regulation covers flights departing an EU/UK airport, and flights arriving in the EU on an EU carrier (or in the UK on a UK/EU carrier)",
-      "The route described falls outside EU261/UK261: the flight did not depart from an EU or UK airport, and it was not flying into the EU on an EU carrier or into the UK on a UK/EU carrier. Neither regulation applies, so no compensation is owed under them. Other jurisdictions (for example the US DOT framework) may provide different rights, but this flow does not assess those."
-    );
+    // Deliberately NOT notEligible(): that helper attaches Article 8/9/10 rights,
+    // which must not be asserted for a route both regulations do not cover.
+    return {
+      eligibility: "not-eligible",
+      compensationAmount: null,
+      currency: null,
+      legalBasis:
+        "EU Regulation 261/2004 / UK261, Article 3 (scope): the regulations cover flights departing an EU/UK airport, and flights arriving in the EU on an EU or UK carrier, or in the UK on a UK/EU carrier",
+      decisionReason:
+        "The route described falls outside EU261/UK261: the flight did not depart from an EU or UK airport, and it was not flying into the EU or UK on a covered carrier. Neither regulation applies, so no compensation is owed under them. Other jurisdictions (for example the US DOT framework) may provide different rights, but this flow does not assess those.",
+      dutyOfCare: null,
+    };
   }
   if (f.jurisdiction !== "EU-261" && f.jurisdiction !== "UK-261") {
     return needsInfo(
@@ -168,12 +179,29 @@ function assess(f) {
         "The cancellation was notified " + notice + " days before scheduled departure. Cancellations notified at least 14 days in advance are exempt from cash compensation."
       );
     }
-    const windowExemptDelay = notice >= 7 ? 4 : 2;
-    const rerouteOk = delay !== null && delay !== UNKNOWN && delay <= windowExemptDelay;
+    // Article 5(1)(c) requires BOTH reroute conditions for the exemption: the
+    // rerouted flight must depart no more than one hour before the original
+    // scheduled departure (two hours for 7-14 days' notice) AND arrive no more
+    // than two hours after (four hours for 7-14 days' notice). Either value
+    // unknown means the exemption cannot be established -> needs-info.
+    const reroute = toNumberOrNullSentinel(f.reroutedArrivalDelayHours);
+    const rerouteDep = toNumberOrNullSentinel(f.reroutedDepartureOffsetHours);
+    const windowExemptArrive = notice >= 7 ? 4 : 2;
+    const windowExemptDepart = notice >= 7 ? 2 : 1;
+    const rerouteOk =
+      reroute !== null && reroute !== UNKNOWN &&
+      rerouteDep !== null && rerouteDep !== UNKNOWN &&
+      reroute <= windowExemptArrive && rerouteDep <= windowExemptDepart;
+    const delay = reroute;
+    if (reroute === null || reroute === UNKNOWN || rerouteDep === null || rerouteDep === UNKNOWN) {
+      return needsInfo(
+        "For the Article 5(1)(c) exemption, both rerouting facts are needed: how late the replacement flight arrived compared to the original schedule, and how much earlier it departed (the exemption allows at most " + windowExemptDepart + " hour(s) early departure and " + windowExemptArrive + " hours late arrival for a cancellation notified " + notice + " days ahead). How did the re-routing times compare to your original schedule?"
+      );
+    }
     if (rerouteOk) {
       return notEligible(
         "EU Regulation 261/2004, Article 5(1)(c)(" + (notice >= 7 ? "ii" : "iii") + ") (notice within the compensation window with compliant re-routing); UK261 equivalent",
-        "The cancellation was notified " + notice + " days ahead (inside the Article 5(1)(c) window) and the re-routing arrived " + delay + " hours late — within the " + windowExemptDelay + "-hour allowance for that notice period — which exempts the airline from compensation."
+        "The cancellation was notified " + notice + " days ahead (inside the Article 5(1)(c) window) and the re-routing arrived " + delay + " hours late — within the " + windowExemptArrive + "-hour arrival allowance (and no more than " + windowExemptDepart + " hour(s) early departure) for that notice period — which exempts the airline from compensation."
       );
     }
     // Inside the notice window without a proven compliant reroute, compensation stands.
@@ -185,11 +213,7 @@ function assess(f) {
       legalBasis:
         "EU Regulation 261/2004, Articles 5(1)(c) and 7(1) (cancellation without compliant notice or re-routing); UK261 equivalent",
       decisionReason:
-        "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window" +
-        (delay !== null && delay !== UNKNOWN
-          ? ", and the re-routing arrived " + delay + " hours late — beyond the " + windowExemptDelay + "-hour allowance for that notice period"
-          : ". The re-routing arrival delay is unknown, so the exemption cannot be established — the airline bears the burden of proving the re-routing complied") +
-        ". Fixed compensation applies by distance tier (" + tierLabel(f.distanceTier) + ").",
+        "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + delay + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). Fixed compensation applies by distance tier (" + tierLabel(f.distanceTier) + "). The airline bears the burden of proving the re-routing complied.",
       dutyOfCare:
         "Under Article 9, meals, refreshments, hotel accommodation where needed, and airport transfers are owed regardless of compensation. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
     };
@@ -234,6 +258,8 @@ output = assess({
   disruptionType: {{InstructorLLMNode_210.output.disruptionType}},
   arrivalDelayHours: {{InstructorLLMNode_210.output.arrivalDelayHours}},
   cancellationNoticeDays: {{InstructorLLMNode_210.output.cancellationNoticeDays}},
+  reroutedArrivalDelayHours: {{InstructorLLMNode_210.output.reroutedArrivalDelayHours}},
+  reroutedDepartureOffsetHours: {{InstructorLLMNode_210.output.reroutedDepartureOffsetHours}},
   cause: {{InstructorLLMNode_210.output.cause}},
   causeText: {{InstructorLLMNode_210.output.causeText}},
   distanceTier: {{InstructorLLMNode_210.output.distanceTier}}
