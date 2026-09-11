@@ -1,15 +1,15 @@
 Evaluate this proposed decision with a rigorous pre-mortem.
 
 Decision:
-{{decision}}
+{{triggerNode_1.output.decision}}
 
 Context and available evidence:
-{{context}}
+{{triggerNode_1.output.context}}
 
 Constraints:
-{{constraints}}
+{{triggerNode_1.output.constraints}}
 
 Time horizon:
-{{timeHorizon}}
+{{triggerNode_1.output.timeHorizon}}
 
 Produce the assumption ledger, ranked failure modes, validation experiments, recommendation, and prioritized next actions. If optional fields are empty, state the resulting uncertainty rather than guessing.
