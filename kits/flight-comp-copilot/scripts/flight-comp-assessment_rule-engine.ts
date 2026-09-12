@@ -116,7 +116,11 @@ function toTicketCurrency(raw) {
 // ISO 4217 minor-unit digits by currency. Most currencies have 2 (EUR, GBP, USD);
 // the exceptions are listed explicitly: three-decimal (BHD–TND), zero-decimal
 // (BIF–XPF), and four-decimal (CLF, UYW) codes. 2 is the safe default for unknown
-// codes, matching ISO 4217's "2 unless otherwise specified" convention.
+// codes, matching ISO 4217's "2 unless otherwise specified" convention. Codes that
+// ISO lists as 2 but that use 1/5 subunits in practice (MGA, MRU) are deliberately
+// NOT overridden here: ISO's published minor unit for both is 2, and CLDR-style
+// zero-fraction handling would contradict the published table, so the default
+// applies.
 const CURRENCY_MINOR_DIGITS = {
   BHD: 3, IQD: 3, JOD: 3, KWD: 3, LYD: 3, OMR: 3, TND: 3,
   BIF: 0, CLP: 0, DJF: 0, GNF: 0, ISK: 0, JPY: 0, KMF: 0, KRW: 0,
@@ -124,14 +128,20 @@ const CURRENCY_MINOR_DIGITS = {
   CLF: 4, UYW: 4,
 };
 
-// Round an amount to the currency's ISO 4217 minor-unit precision, so a 30% refund
-// of a 101.00 EUR ticket stays 30.30 EUR (not truncated to 30) while zero-decimal
-// currencies such as JPY round to whole units and three-decimal currencies such as
-// KWD keep their third digit.
-function toRefundUnits(amount, currency) {
+// Round a refund to the currency's ISO 4217 minor-unit precision deterministically.
+// The percentage is applied to the price scaled to integer minor units first, so
+// exact half-way ties become exact .5 integers and Math.round rounds them half-up
+// consistently — floating-point noise can never flip the direction of a tie the
+// way the naive Math.round(amount * factor) / factor idiom does (e.g. 0.29 EUR at
+// 50% rounding down while 0.99 EUR at 50% rounds up). Zero-decimal currencies such
+// as JPY round to whole units; three-decimal (KWD) and four-decimal (CLF) codes
+// keep their extra digits.
+function toRefundUnits(price, percent, currency) {
   const digits = CURRENCY_MINOR_DIGITS[currency] !== undefined ? CURRENCY_MINOR_DIGITS[currency] : 2;
   const factor = Math.pow(10, digits);
-  return Math.round(amount * factor) / factor;
+  const priceMinor = Math.round(price * factor);
+  const refundMinor = Math.round((priceMinor * percent) / 100);
+  return refundMinor / factor;
 }
 
 function assess(f) {
@@ -267,7 +277,7 @@ function assess(f) {
       reroute !== null && reroute !== UNKNOWN_REROUTE &&
       rerouteDep !== null && rerouteDep !== UNKNOWN_REROUTE &&
       reroute < windowExemptArrive && rerouteDep >= -windowExemptDepart;
-    const delay = reroute;
+    const rerouteArrivalHours = reroute;
     if (reroutingStatus === "unknown" || reroutingStatus === undefined || reroutingStatus === null) {
       return needsInfo(
         "Whether the airline offered a replacement flight (re-routing) is not stated. The Article 5(1)(c) exemption depends on whether a compliant re-routing was offered — did the airline provide or arrange any alternative flight?"
@@ -293,7 +303,7 @@ function assess(f) {
     if (rerouteOk) {
       return notEligible(
         "EU Regulation 261/2004, Article 5(1)(c)(" + (notice >= 7 ? "ii" : "iii") + ") (notice within the compensation window with compliant re-routing); UK261 equivalent",
-        "The cancellation was notified " + notice + " days ahead (inside the Article 5(1)(c) window) and the re-routing arrived " + delay + " hours late — within the " + windowExemptArrive + "-hour arrival allowance (and no more than " + windowExemptDepart + " hour(s) early departure) for that notice period — which exempts the airline from compensation.",
+        "The cancellation was notified " + notice + " days ahead (inside the Article 5(1)(c) window) and the re-routing arrived " + rerouteArrivalHours + " hours late — within the " + windowExemptArrive + "-hour arrival allowance (and no more than " + windowExemptDepart + " hour(s) early departure) for that notice period — which exempts the airline from compensation.",
         CANCELLATION_CARE
       );
     }
@@ -314,8 +324,8 @@ function assess(f) {
         ? "EU Regulation 261/2004, Articles 5(1)(c) and 7(2) (cancellation with re-routing arriving within the " + art72Limit + "-hour tier limit); UK261 equivalent"
         : "EU Regulation 261/2004, Articles 5(1)(c) and 7(1) (cancellation without compliant notice or re-routing); UK261 equivalent",
       decisionReason: withinArt72
-        ? "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + delay + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). The replacement did arrive within " + art72Limit + " hours of the original schedule, so the compensation is halved to 50% of the " + tierLabel(f.distanceTier) + " tier amount under Article 7(2). The airline bears the burden of proving the re-routing complied."
-        : "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + delay + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). The replacement also exceeded the Article 7(2) " + art72Limit + "-hour tier limit, so the full fixed compensation applies by distance tier (" + tierLabel(f.distanceTier) + "). The airline bears the burden of proving the re-routing complied.",
+        ? "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + rerouteArrivalHours + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). The replacement did arrive within " + art72Limit + " hours of the original schedule, so the compensation is halved to 50% of the " + tierLabel(f.distanceTier) + " tier amount under Article 7(2). The airline bears the burden of proving the re-routing complied."
+        : "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + rerouteArrivalHours + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). The replacement also exceeded the Article 7(2) " + art72Limit + "-hour tier limit, so the full fixed compensation applies by distance tier (" + tierLabel(f.distanceTier) + "). The airline bears the burden of proving the re-routing complied.",
       dutyOfCare: CANCELLATION_CARE,
     };
   }
@@ -331,8 +341,8 @@ function assess(f) {
       legalBasis:
         "EU Regulation 261/2004, Article 4(3) (involuntary denied boarding); UK261 equivalent",
       decisionReason:
-        "Boarding was denied against the passenger's will (involuntary denied boarding). Full fixed compensation applies by distance tier (" +
-        tierLabel(f.distanceTier) + ") with no 50% reduction, notice exemption, or extraordinary-circumstances defense. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies.",
+        "Boarding was denied against the passenger's will (involuntary denied boarding). Fixed compensation applies by distance tier (" +
+        tierLabel(f.distanceTier) + ") with no notice exemption or extraordinary-circumstances defense; the Article 7(2) 50% reduction was not assessed because the extraction captures re-routing times only for cancellations. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself.",
       dutyOfCare:
         "As an involuntarily denied boarding passenger, the Article 8 choice applies immediately — re-routing at the earliest opportunity, re-routing at a later date, or a refund of the ticket — together with Article 9 care while waiting: meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications.",
     };
@@ -349,7 +359,7 @@ function assess(f) {
   if (price === null || price === UNKNOWN || price <= 0) {
     return needsInfo(
       "The ticket was downgraded. Article 10(2) requires a refund of " + percent + "% of the price paid for the " +
-      tierLabel(f.distanceTier) + " tier. The price paid for the downgraded segment was not stated — provide it (it can be passed in the additional context field) so the exact refund can be computed."
+      tierLabel(f.distanceTier) + " tier. The price paid for the downgraded segment was not stated — provide the full price of that segment (not just the fare difference) so the exact refund can be computed."
     );
   }
   if (ticketCurrency === null) {
@@ -358,7 +368,13 @@ function assess(f) {
       tierLabel(f.distanceTier) + " tier. The price is known but the currency it was paid in is not stated — confirm the currency (for example EUR or GBP) so the exact refund can be computed."
     );
   }
-  const refund = toRefundUnits((price * percent) / 100, ticketCurrency);
+  const refund = toRefundUnits(price, percent, ticketCurrency);
+  if (refund === 0) {
+    return needsInfo(
+      "The ticket was downgraded. Article 10(2) sets a refund of " + percent + "% of the price paid for the " +
+      tierLabel(f.distanceTier) + " tier, but on the stated price of " + price + " " + ticketCurrency + " that percentage rounds below the smallest unit of the currency, so no refund amount can be paid. Confirm the ticket price (the full price of the downgraded segment, not just the fare difference) so the refund can be computed."
+    );
+  }
   return {
     eligibility: "eligible",
     compensationAmount: refund,
@@ -366,7 +382,7 @@ function assess(f) {
     legalBasis:
       "EU Regulation 261/2004, Article 10(2) (downgrade reimbursement); UK261 equivalent",
     decisionReason:
-      "The ticket was downgraded on a " + tierLabel(f.distanceTier) + " route, where Article 10(2) sets a refund of " + percent + "% of the price paid. On a stated price of " + price + " " + ticketCurrency + ", the reimbursement is " + refund + " " + ticketCurrency + ", payable within seven days by the same means the ticket was paid. No extraordinary-circumstances defense applies to a downgrade refund.",
+      "The ticket was downgraded on a " + tierLabel(f.distanceTier) + " route, where Article 10(2) sets a refund of " + percent + "% of the price paid. On a stated price of " + price + " " + ticketCurrency + ", the reimbursement is " + refund + " " + ticketCurrency + ", payable within seven days by the means provided for in Article 7(3) (cash, electronic bank transfer, bank orders or bank cheques, or travel vouchers with the passenger's signed agreement). No extraordinary-circumstances defense applies to a downgrade refund.",
     dutyOfCare:
       "Article 10(2) reimbursement is the remedy for a downgrade. The Article 8/9 re-routing and care rights attach to cancellations and long waiting times, not to a completed flight in a lower cabin, so the flow does not assert them here.",
   };

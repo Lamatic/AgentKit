@@ -56,13 +56,13 @@ Because this kit is a template with a single flow, all behaviour is concentrated
 - Output
   - `eligibility` — `eligible` | `not-eligible` | `needs-info`.
   - `compensationAmount` — the fixed statutory amount, or the computed 30/50/75% downgrade refund when the ticket price and currency were extracted; null when not eligible, needs-info, or the downgrade price is missing.
-  - `currency` — `EUR` or `GBP`, or null.
+  - `currency` — `EUR` (EU-261) / `GBP` (UK-261) for fixed compensation, or the ticket currency for downgrade refunds; null otherwise.
   - `legalBasis` — the specific regulation article(s) the decision rests on.
   - `decisionReason` — plain-language explanation of how the rules were applied.
   - `extractedFacts` — the structured flight facts.
   - `letter` — the drafted claim, explanation, or information-request letter.
-  - `missingFacts` — what the passenger still needs to provide (non-empty when `needs-info`).
-  - `dutyOfCare` — the meals/hotel/transfer rights that exist regardless of compensation.
+  - `missingFacts` — what the passenger still needs to provide (non-empty when `needs-info`; lists the first blocking fact, since the assessment cannot proceed past it).
+  - `dutyOfCare` — duty-of-care guidance from the verdict; null when the route is out of scope or no guidance applies.
 
 - Dependencies
   - External services: one configured LLM provider (tested with OpenAI `gpt-4o-mini`) for the extraction node and the three drafting nodes.

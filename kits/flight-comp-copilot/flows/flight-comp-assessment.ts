@@ -56,14 +56,14 @@
  * | Field | Type | Description |
  * |---|---|---|
  * | `eligibility` | `string` | `eligible`, `not-eligible`, or `needs-info` — decided by the rule engine, never the model. |
- * | `compensationAmount` | `number \| null` | Fixed statutory amount in the response currency, or null when not eligible / unknown. |
- * | `currency` | `string \| null` | `EUR` (EU261) or `GBP` (UK261), or null. |
+ * | `compensationAmount` | `number \| null` | Fixed statutory amount, or the computed 30/50/75% downgrade refund; null when not eligible, needs-info, or the downgrade price is missing. |
+ * | `currency` | `string \| null` | `EUR` (EU-261) / `GBP` (UK-261) for fixed compensation, or the ticket currency for downgrade refunds; null otherwise. |
  * | `legalBasis` | `string` | The specific regulation article and clause the decision rests on. |
  * | `decisionReason` | `string` | Plain-language explanation of how the rules were applied to these facts. |
  * | `extractedFacts` | `object` | The structured flight facts extracted from the input text. |
  * | `letter` | `string` | The drafted claim, explanation, or information-request letter. |
  * | `missingFacts` | `array` | Facts the passenger still needs to provide (non-empty when `needs-info`). |
- * | `dutyOfCare` | `string` | Summary of the meals/hotel/re-routing rights that exist regardless of compensation. |
+ * | `dutyOfCare` | `string \| null` | Duty-of-care guidance from the verdict; null when the route is out of scope or no guidance applies. |
  *
  * ## Dependencies
  * ### Upstream Flows
@@ -97,8 +97,8 @@
  * 6. `Draft Rejection Explanation` (`LLMNode`) — explains which exclusion applies and what
  *    rights remain (e.g. duty of care under Article 9).
  * 7. `Draft Info Request` (`LLMNode`) — asks the passenger for the specific missing facts.
- * 8. `Assemble Output` (`codeNode`) — merges facts, assessment, and letter; clamps any
- *    out-of-range model values.
+ * 8. `Assemble Output` (`codeNode`) — merges facts, assessment, and letter; picks
+ *    whichever letter branch produced text and normalizes the missing-facts list.
  * 9. `API Response` (`graphqlResponseNode`) — returns the assembled object under `result`.
  *
  * ## Error Scenarios
