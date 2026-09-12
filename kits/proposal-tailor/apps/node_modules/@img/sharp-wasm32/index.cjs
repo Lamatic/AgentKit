@@ -1,1 +1,0 @@
-module.exports = require('./lib/sharp-wasm32-0.35.4.node');

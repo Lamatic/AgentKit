@@ -1,3 +1,0 @@
-export declare const INSTANT_VALIDATION_BOUNDARY_NAME = "__next_instant_validation_boundary__";
-export declare const INSTANT_SLOT_MARKER_PREFIX = "__next_instant_slot_";
-export declare const INSTANT_SLOT_MARKER_SUFFIX = "__";

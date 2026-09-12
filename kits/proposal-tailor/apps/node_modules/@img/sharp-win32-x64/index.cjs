@@ -1,1 +1,0 @@
-module.exports = require('./lib/sharp-win32-x64-0.35.4.node');

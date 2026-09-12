@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../src/lib/interop-default.ts"],"sourcesContent":["export function interopDefault<T>(mod: { default: T } | T): T {\n  // @ts-ignore\n  return mod.default || mod\n}\n"],"names":["interopDefault","mod","default"],"mappings":"AAAA,OAAO,SAASA,eAAkBC,GAAuB;IACvD,aAAa;IACb,OAAOA,IAAIC,OAAO,IAAID;AACxB","ignoreList":[0]}
