@@ -26,9 +26,10 @@ Use `distanceKmEstimate` for the best great-circle estimate in km between the ai
 
 Assign `jurisdiction`:
 
-- `UK-261` — the flight departed from a UK airport, arrived in the UK on a UK/EU carrier, or arrived in the EU on a UK carrier.
-- `EU-261` — the flight departed from an EU airport, or arrived in the EU on an EU carrier. For an inbound flight departing a non-EU airport, EU-261 applies ONLY when the operating carrier is an EU carrier — a UK (or any non-EU) carrier flying into the EU does not qualify.
-- `out-of-scope` — based on the known route and operating-carrier facts, the flight is covered by neither regulation: it did not depart from an EU/UK airport, and it was not flying into the EU on an EU or UK carrier, or into the UK on a UK/EU carrier (e.g. a US domestic flight like LAX–JFK, or a flight within a third country). If the operating carrier is not stated for an otherwise-covered route, use `unknown`, not `out-of-scope`.
+- `UK-261` — the flight departed from a UK airport, or arrived in the UK on a UK or EU carrier.
+- `EU-261` — the flight departed from an EU airport (the operating carrier does not matter: EU-261 covers every EU departure, including UK-operated flights), or arrived in the EU on an EU carrier. For an inbound flight departing a non-EU airport, EU-261 applies ONLY when the operating carrier is an EU carrier — a UK (or any non-EU) carrier flying into the EU does not qualify for EU-261 on arrival alone (a UK carrier flying into the EU from outside the EU/UK is out of scope unless it departed the UK).
+- Overlap policy: a flight can be covered by both regulations — for example an EU departure that arrives in the UK (EU-261 by departure, UK-261 by arrival on a UK/EU carrier), or a UK departure on an EU carrier arriving in the EU (UK-261 by departure, EU-261 by arrival). The regulations prohibit double recovery but set no precedence, so this product uses one deterministic tie-break: assign the jurisdiction of the departure region — `EU-261` for flights departing an EU airport, `UK-261` for flights departing a UK airport. The arrival-based coverage matters only when the departure region's regulation does not cover the flight (e.g. a US–London flight on a UK carrier is `UK-261`, not `EU-261`).
+- `out-of-scope` — based on the known route and operating-carrier facts, the flight is covered by neither regulation: it did not depart from an EU or UK airport, and it was not flying into the EU on an EU carrier, or into the UK on a UK/EU carrier (e.g. a US domestic flight like LAX–JFK, or a flight within a third country). If the operating carrier is not stated for an otherwise-covered route, use `unknown`, not `out-of-scope`.
 - `unknown` — the departure airport is not stated and cannot be inferred. Do not guess a jurisdiction; the amounts differ between the EU and UK regulations.
 
 Rules for values:
@@ -38,6 +39,7 @@ Rules for values:
 - `reroutingStatus`: `offered` if the airline provided or arranged any replacement flight (even a bad one), `not-offered` if the account explicitly states no replacement/re-routing was offered, `unknown` if the account does not say either way — and ALWAYS `unknown` when the disruption type is anything other than a cancellation (rerouting only applies to cancellations; never emit an empty string here, it would fail schema validation). Do not guess.
 - `reroutedArrivalDelayHours`: for cancellations only — how many hours the replacement flight arrived after the original scheduled arrival. Negative values are valid: use e.g. -0.5 if the replacement arrived 30 minutes ahead of the original schedule. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here.
 - `reroutedDepartureOffsetHours`: for cancellations only — hours relative to the original scheduled departure: negative if the replacement departed earlier than the original schedule (e.g. -5 for five hours early), positive if it departed later (e.g. 2 for two hours after the original departure time), 0 reserved for a departure exactly on the original schedule. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here (one hour early).
+- `ticketPrice` / `ticketCurrency`: for downgrade cases — the price paid for the downgraded segment (in `additionalContext` if given there) and the 3-letter code of the currency it was paid in (e.g. `EUR`, `GBP`, `USD`). Use -1 for `ticketPrice` and "" for `ticketCurrency` when the text does not state them. Never invent a price or currency.
 - If a fact is not present in the input, use an empty string "" for strings, -1 for these two numeric sentinels — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
 - `scheduledDepartureDate` in YYYY-MM-DD, or "" if not stated.
 
@@ -59,5 +61,7 @@ Output this exact JSON shape:
   "causeText": string (short faithful quote or summary of the stated cause, "" if none),
   "distanceKmEstimate": number,
   "distanceTier": "short" | "medium" | "long" | "unknown",
+  "ticketPrice": number (price paid for the downgraded segment, -1 if unknown),
+  "ticketCurrency": string (3-letter currency code of the price paid, "" if unknown),
   "bookingReference": string
 }

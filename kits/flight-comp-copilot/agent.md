@@ -34,10 +34,10 @@ Because this kit is a template with a single flow, all behaviour is concentrated
   1. `API Request` (`graphqlNode`)
      - Accepts the incoming request and surfaces the input fields to downstream nodes.
   2. `Extract & Classify` (`InstructorLLMNode`)
-     - Extracts schema-validated flight facts from the free text: jurisdiction (EU-261/UK-261), airline, flight number, route, scheduled departure, disruption type (delay / cancellation / denied-boarding / downgrade / other), arrival delay hours, cancellation notice days, cause (airline-controllable / extraordinary / unknown), and great-circle distance tier (short / medium / long).
+     - Extracts schema-validated flight facts from the free text: jurisdiction (EU-261/UK-261), airline, flight number, route, scheduled departure, disruption type (delay / cancellation / denied-boarding / downgrade / other), arrival delay hours, cancellation notice days, re-routing status and timing for cancellations, ticket price and currency for downgrades, cause (airline-controllable / extraordinary / unknown), and great-circle distance tier (short / medium / long).
      - The prompt instructs the model to treat the disruption text as untrusted data, never as instructions, to resist prompt injection.
   3. `Rule Engine` (`codeNode`)
-     - Applies the deterministic money rules from the regulation: distance-tier amounts (250/400/600 EUR or 220/350/520 GBP), the 3-hour arrival-delay threshold, the cancellation notice windows (14 days / 7–14 days / under 7 days), the 50% reduction for 3–4 hour long-haul delays (Article 7(2)), the downgrade percentages (30/50/75% of ticket price, Article 10(2)), and the extraordinary-circumstances exclusion (Article 5(3)).
+     - Applies the deterministic money rules from the regulation: distance-tier amounts (250/400/600 EUR or 220/350/520 GBP), the 3-hour arrival-delay threshold, the cancellation notice windows (14 days / 7–14 days / under 7 days), the Article 7(2) 50% reduction for re-routed cancellations arriving within the tier limit (2h short / 3h medium / 4h long — ordinary delays are never halved), the downgrade percentages (30/50/75% of the stated ticket price, Article 10(2)), and the extraordinary-circumstances exclusion (Article 5(3)).
      - Unknown causes route to the claim path rather than rejection, because the burden of proving extraordinary circumstances sits with the airline under CJEU case law.
   4. `Eligibility Branch` (`conditionNode`)
      - Routes to one of three drafting strategies based on the rule engine's verdict.
@@ -55,7 +55,7 @@ Because this kit is a template with a single flow, all behaviour is concentrated
 
 - Output
   - `eligibility` — `eligible` | `not-eligible` | `needs-info`.
-  - `compensationAmount` — the fixed statutory amount, or null when not eligible or percentage-based (downgrade).
+  - `compensationAmount` — the fixed statutory amount, or the computed 30/50/75% downgrade refund when the ticket price and currency were extracted; null when not eligible, needs-info, or the downgrade price is missing.
   - `currency` — `EUR` or `GBP`, or null.
   - `legalBasis` — the specific regulation article(s) the decision rests on.
   - `decisionReason` — plain-language explanation of how the rules were applied.

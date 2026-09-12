@@ -5,11 +5,12 @@
 // extracts facts; every money rule below is plain code so the verdict is reproducible
 // and auditable. Verdicts: "eligible" | "not-eligible" | "needs-info".
 //
-// Boundary note: Article 7(2) halves long-haul compensation for delays of 3–4 hours.
-// Sources split on whether exactly 4.0h falls inside the halved window (Flightright:
-// 3–4h inclusive; UK CAA wording "less than four hours"). This engine treats 4.0h
-// as halved and documents the choice here; real arrival delays rarely land exactly
-// on the boundary.
+// Boundary note: Article 7(2) permits a 50% reduction only where re-routing under
+// Article 8 was offered and the replacement arrives within the tier limit — 2 hours
+// for short, 3 for medium, 4 for long, inclusive. Ordinary delays are NOT halved: the
+// regulation ties the reduction to offered re-routing, so the full tier amount
+// applies (UK CAA guidance halves 3–4h long-haul delays by analogy, but this engine
+// follows the regulation text; the divergence is documented here deliberately).
 
 // Tiered fixed amounts, per EU Regulation 261/2004 Article 7(1) and the UK-retained
 // equivalent (amounts in GBP):
@@ -21,6 +22,10 @@ const AMOUNTS = {
   "UK-261": { short: 220, medium: 350, long: 520 },
 };
 
+// Article 7(2) rerouting arrival limits (inclusive), by distance tier. Also used as
+// the Article 6(1) care thresholds reference for delay duty-of-care wording.
+const ART72_LIMIT = { short: 2, medium: 3, long: 4 };
+
 const TIERS = ["short", "medium", "long"];
 const UNKNOWN = -1;
 // Sentinel for the reroute offset fields. Unlike the delay/notice fields, these
@@ -28,10 +33,24 @@ const UNKNOWN = -1;
 // sentinel must sit outside the plausible value range to avoid collisions.
 const UNKNOWN_REROUTE = -999;
 
-function tierLabel(tier) {
-  if (tier === "short") return "≤ 1,500 km";
-  if (tier === "medium") return "1,500–3,500 km";
-  return "over 3,500 km";
+// Cancellations carry the Articles 8/9 rights immediately, with no departure-delay
+// threshold: the passenger is entitled to the Article 8 choice (refund or re-routing)
+// and Article 9 care while waiting, whatever the notice period or the
+// extraordinary-circumstances outcome of the cash-compensation question.
+const CANCELLATION_CARE =
+  "The cancellation itself carries rights independent of cash compensation: under Article 8, the choice between a refund within seven days, re-routing at the earliest opportunity, or re-routing at a later date; and under Article 9, meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications. These apply even where the cash-compensation exemption holds.";
+
+// For delays, Articles 6/8/9 attach rights to the waiting time and the departure
+// delay — facts the extraction schema does not capture (it extracts the arrival
+// delay). The engine therefore states the thresholds instead of asserting the
+// rights, so a rejection never grants assistance the stated facts cannot support.
+function delayDutyOfCare(tier) {
+  const careThreshold = ART72_LIMIT[tier] || 2;
+  return (
+    "The flow extracts the arrival delay but not the departure or waiting time, so it cannot determine these rights on the stated facts. For reference: Article 9 assistance (meals and refreshments, plus hotel accommodation and transfers if an overnight stay becomes necessary) is owed once the wait reaches " +
+    careThreshold +
+    " hours on this route length, and a full refund of the ticket instead of travel under Article 8 requires a departure delay of at least five hours. If the wait met those thresholds, the passenger can claim these rights from the airline directly with receipts, regardless of the cash-compensation outcome."
+  );
 }
 
 function needsInfo(reason) {
@@ -42,20 +61,19 @@ function needsInfo(reason) {
     legalBasis: "EU Regulation 261/2004 / UK261 (facts incomplete)",
     decisionReason: reason,
     dutyOfCare:
-      "Under Article 9, passengers are entitled to meals, refreshments, hotel accommodation where an overnight stay becomes necessary, and transfers, regardless of whether cash compensation is ultimately owed.",
+      "These rights cannot be confirmed until the missing facts are provided. For reference: a cancellation always carries the Article 8 choice of a refund or re-routing plus Article 9 care while waiting; for delays, Article 9 assistance is owed once the wait reaches 2–4 hours by route length, and a full refund instead of travel requires a departure delay of at least five hours.",
     missingFacts: [reason],
   };
 }
 
-function notEligible(legalBasis, decisionReason) {
+function notEligible(legalBasis, decisionReason, dutyOfCare) {
   return {
     eligibility: "not-eligible",
     compensationAmount: null,
     currency: null,
     legalBasis: legalBasis,
     decisionReason: decisionReason,
-    dutyOfCare:
-      "Article 9 duty of care still applies: meals and refreshments proportionate to the wait, hotel accommodation and transfers if the delay runs overnight, plus two free communications. If the airline provided none of these, reasonable receipts can be reclaimed from the airline directly. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
+    dutyOfCare: dutyOfCare === undefined ? null : dutyOfCare,
   };
 }
 
@@ -85,6 +103,16 @@ function toRerouteOffsetOrNull(raw) {
   return Number.isFinite(n) ? n : null;
 }
 
+// A ticket currency must be a stated 3-letter code — anything else (missing, "N/A",
+// a currency name) means the refund amount cannot be computed in a real unit.
+function toTicketCurrency(raw) {
+  if (typeof raw !== "string") {
+    return null;
+  }
+  const c = raw.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : null;
+}
+
 function assess(f) {
   // "unknown" jurisdiction (no route info extracted) must not silently default to
   // EU-261 — the amounts differ between regulations, so ask instead of guess.
@@ -98,9 +126,9 @@ function assess(f) {
       compensationAmount: null,
       currency: null,
       legalBasis:
-        "EU Regulation 261/2004 / UK261, Article 3 (scope): the regulations cover flights departing an EU/UK airport, and flights arriving in the EU on an EU or UK carrier, or in the UK on a UK/EU carrier",
+        "EU Regulation 261/2004 / UK261, Article 3 (scope): the regulations cover flights departing an EU/UK airport, arriving in the EU on an EU carrier, or arriving in the UK on a UK or EU carrier",
       decisionReason:
-        "The route described falls outside EU261/UK261: the flight did not depart from an EU or UK airport, and it was not flying into the EU or UK on a covered carrier. Neither regulation applies, so no compensation is owed under them. Other jurisdictions (for example the US DOT framework) may provide different rights, but this flow does not assess those.",
+        "The route described falls outside EU261/UK261: the flight did not depart from an EU or UK airport, did not arrive in the EU on an EU carrier, and did not arrive in the UK on a UK or EU carrier. Neither regulation applies, so no compensation is owed under them. Other jurisdictions (for example the US DOT framework) may provide different rights, but this flow does not assess those.",
       dutyOfCare: null,
     };
   }
@@ -142,7 +170,8 @@ function assess(f) {
   ) {
     return notEligible(
       "EU Regulation 261/2004, Article 5(3) / recital 15 (extraordinary circumstances), as interpreted by CJEU Wallentin-Hermann; UK261 equivalent",
-      "The stated cause (" + (f.causeText || "extraordinary circumstances") + ") falls outside the airline's control. Extraordinary circumstances exclude cash compensation under EU261/UK261. Note that the airline bears the burden of proving the circumstance was genuinely unavoidable, and technical faults, crew shortages, and overbookings do not count as extraordinary under CJEU case law."
+      "The stated cause (" + (f.causeText || "extraordinary circumstances") + ") falls outside the airline's control. Extraordinary circumstances exclude cash compensation under EU261/UK261. Note that the airline bears the burden of proving the circumstance was genuinely unavoidable, and technical faults, crew shortages, and overbookings do not count as extraordinary under CJEU case law.",
+      f.disruptionType === "cancellation" ? CANCELLATION_CARE : delayDutyOfCare(f.distanceTier)
     );
   }
 
@@ -155,27 +184,22 @@ function assess(f) {
     if (delay < 3) {
       return notEligible(
         "EU Regulation 261/2004, Article 7 (delay below the 3-hour threshold); UK261 equivalent",
-        "The arrival delay was " + delay + " hours. Fixed cash compensation under EU261/UK261 requires an arrival delay of at least 3 hours at the final destination."
+        "The arrival delay was " + delay + " hours. Fixed cash compensation under EU261/UK261 requires an arrival delay of at least 3 hours at the final destination.",
+        delayDutyOfCare(f.distanceTier)
       );
     }
-    // Article 7(2): long-haul delays of 3–4 hours are halved (boundary choice documented
-    // in the header comment).
-    const halved = f.distanceTier === "long" && delay <= 4;
-    const amount = halved ? amounts.long / 2 : base;
+    // Ordinary delays take the full tier amount. The Article 7(2) 50% reduction applies
+    // only where re-routing was offered — the cancellation branch below applies it
+    // there, within the tier-specific arrival limit (see the header note).
     return {
       eligibility: "eligible",
-      compensationAmount: Math.round(amount),
+      compensationAmount: base,
       currency: currency,
-      legalBasis: halved
-        ? "EU Regulation 261/2004, Article 7(2) (50% reduction for delays of 3–4 hours on flights over 3,500 km); UK261 equivalent"
-        : "EU Regulation 261/2004, Article 7(1)(c) / Sturgeon (C-402/07): arrival delay of 3+ hours is treated as a cancellation for compensation purposes; UK261 equivalent",
+      legalBasis:
+        "EU Regulation 261/2004, Article 7(1) / Sturgeon (C-402/07): arrival delay of 3+ hours is treated as a cancellation for compensation purposes; UK261 equivalent",
       decisionReason:
-        "The flight arrived " + delay + " hours late on a " + tierLabel(f.distanceTier) + " route" +
-        (halved
-          ? ". Delays of 3–4 hours on long-haul routes qualify for 50% of the full long-haul amount under Article 7(2)."
-          : ". Arrival delays of 3 hours or more qualify for fixed compensation by distance tier."),
-      dutyOfCare:
-        "Under Article 9, meals, refreshments, hotel accommodation where needed, and airport transfers are owed regardless of compensation. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
+        "The flight arrived " + delay + " hours late on a " + tierLabel(f.distanceTier) + " route. Arrival delays of 3 hours or more qualify for the full fixed compensation by distance tier.",
+      dutyOfCare: delayDutyOfCare(f.distanceTier),
     };
   }
 
@@ -191,7 +215,8 @@ function assess(f) {
     if (notice >= 14) {
       return notEligible(
         "EU Regulation 261/2004, Article 5(1)(c)(i) (14-day notice exemption); UK261 equivalent",
-        "The cancellation was notified " + notice + " days before scheduled departure. Cancellations notified at least 14 days in advance are exempt from cash compensation."
+        "The cancellation was notified " + notice + " days before scheduled departure. Cancellations notified at least 14 days in advance are exempt from cash compensation.",
+        CANCELLATION_CARE
       );
     }
     // Article 5(1)(c) requires BOTH reroute conditions for the exemption: the
@@ -222,7 +247,7 @@ function assess(f) {
       rerouteDep !== null && rerouteDep !== UNKNOWN_REROUTE &&
       reroute < windowExemptArrive && rerouteDep >= -windowExemptDepart;
     const delay = reroute;
-    if (reroutingStatus === "unknown") {
+    if (reroutingStatus === "unknown" || reroutingStatus === undefined || reroutingStatus === null) {
       return needsInfo(
         "Whether the airline offered a replacement flight (re-routing) is not stated. The Article 5(1)(c) exemption depends on whether a compliant re-routing was offered — did the airline provide or arrange any alternative flight?"
       );
@@ -235,9 +260,8 @@ function assess(f) {
         legalBasis:
           "EU Regulation 261/2004, Articles 5(1)(c) and 7(1) (cancellation without a re-routing offer); UK261 equivalent",
         decisionReason:
-          "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the account states that no re-routing was offered. The Article 5(1)(c) exemption requires the airline to have offered a compliant replacement flight, so with no offer it cannot apply — fixed compensation stands by distance tier (" + tierLabel(f.distanceTier) + ").",
-        dutyOfCare:
-          "Under Article 9, meals, refreshments, hotel accommodation where needed, and airport transfers are owed regardless of compensation. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
+          "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the account states that no re-routing was offered. The Article 5(1)(c) exemption requires the airline to have offered a compliant replacement flight, so with no offer it cannot apply — fixed compensation stands at the full tier amount (" + tierLabel(f.distanceTier) + "), with no Article 7(2) reduction because no re-routing was offered.",
+        dutyOfCare: CANCELLATION_CARE,
       };
     }
     if (reroute === null || reroute === UNKNOWN_REROUTE || rerouteDep === null || rerouteDep === UNKNOWN_REROUTE) {
@@ -248,21 +272,30 @@ function assess(f) {
     if (rerouteOk) {
       return notEligible(
         "EU Regulation 261/2004, Article 5(1)(c)(" + (notice >= 7 ? "ii" : "iii") + ") (notice within the compensation window with compliant re-routing); UK261 equivalent",
-        "The cancellation was notified " + notice + " days ahead (inside the Article 5(1)(c) window) and the re-routing arrived " + delay + " hours late — within the " + windowExemptArrive + "-hour arrival allowance (and no more than " + windowExemptDepart + " hour(s) early departure) for that notice period — which exempts the airline from compensation."
+        "The cancellation was notified " + notice + " days ahead (inside the Article 5(1)(c) window) and the re-routing arrived " + delay + " hours late — within the " + windowExemptArrive + "-hour arrival allowance (and no more than " + windowExemptDepart + " hour(s) early departure) for that notice period — which exempts the airline from compensation.",
+        CANCELLATION_CARE
       );
     }
     // Inside the notice window without a proven compliant reroute, compensation stands.
-    // The burden of proving the reroute complied sits with the airline.
+    // Article 7(2) then halves it where the offered re-routing still arrived within
+    // the tier limit (2h short / 3h medium / 4h long, inclusive) — the reduction is
+    // conditioned only on the arrival time, so it applies whether the exemption
+    // failed on the arrival bound or the departure bound. The burden of proving the
+    // reroute complied sits with the airline either way.
+    const art72Limit = ART72_LIMIT[f.distanceTier];
+    const withinArt72 = reroute <= art72Limit;
+    const amount = withinArt72 ? Math.round(base / 2) : base;
     return {
       eligibility: "eligible",
-      compensationAmount: base,
+      compensationAmount: amount,
       currency: currency,
-      legalBasis:
-        "EU Regulation 261/2004, Articles 5(1)(c) and 7(1) (cancellation without compliant notice or re-routing); UK261 equivalent",
-      decisionReason:
-        "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + delay + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). Fixed compensation applies by distance tier (" + tierLabel(f.distanceTier) + "). The airline bears the burden of proving the re-routing complied.",
-      dutyOfCare:
-        "Under Article 9, meals, refreshments, hotel accommodation where needed, and airport transfers are owed regardless of compensation. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
+      legalBasis: withinArt72
+        ? "EU Regulation 261/2004, Articles 5(1)(c) and 7(2) (cancellation with re-routing arriving within the " + art72Limit + "-hour tier limit); UK261 equivalent"
+        : "EU Regulation 261/2004, Articles 5(1)(c) and 7(1) (cancellation without compliant notice or re-routing); UK261 equivalent",
+      decisionReason: withinArt72
+        ? "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + delay + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). The replacement did arrive within " + art72Limit + " hours of the original schedule, so the compensation is halved to 50% of the " + tierLabel(f.distanceTier) + " tier amount under Article 7(2). The airline bears the burden of proving the re-routing complied."
+        : "The cancellation was notified " + notice + " days before departure, inside the Article 5(1)(c) window, and the re-routing does not meet the exemption limits (it arrived " + delay + " hours late against a " + windowExemptArrive + "-hour allowance, or departed more than " + windowExemptDepart + " hour(s) early). The replacement also exceeded the Article 7(2) " + art72Limit + "-hour tier limit, so the full fixed compensation applies by distance tier (" + tierLabel(f.distanceTier) + "). The airline bears the burden of proving the re-routing complied.",
+      dutyOfCare: CANCELLATION_CARE,
     };
   }
 
@@ -280,19 +313,48 @@ function assess(f) {
         "Boarding was denied against the passenger's will (involuntary denied boarding). Full fixed compensation applies by distance tier (" +
         tierLabel(f.distanceTier) + ") with no 50% reduction, notice exemption, or extraordinary-circumstances defense. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies.",
       dutyOfCare:
-        "Under Article 9, meals, refreshments, hotel accommodation where needed, and airport transfers are owed regardless of compensation. Under Articles 8/10, the ticket cost can be refunded instead if travel no longer serves a purpose.",
+        "As an involuntarily denied boarding passenger, the Article 8 choice applies immediately — re-routing at the earliest opportunity, re-routing at a later date, or a refund of the ticket — together with Article 9 care while waiting: meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications.",
     };
   }
 
   // Remaining case: downgrade. Article 10(2) requires a refund of 30/50/75% of the
-  // ticket price by distance tier — a percentage of a price the flow does not extract.
-  // Rather than emit an eligible verdict with no computable amount, ask for the price;
-  // the percentage itself is stated so the passenger knows the basis.
+  // price paid for the downgraded segment, by distance tier. The refund is computed
+  // only when BOTH the price and its currency were extracted — a percentage of an
+  // unstated price, or a price in an unknown currency, is not a claimable amount.
   const PERCENT = { short: 30, medium: 50, long: 75 };
-  return needsInfo(
-    "The ticket was downgraded. Article 10(2) requires a refund of " + PERCENT[f.distanceTier] + "% of the ticket price for the " +
-    tierLabel(f.distanceTier) + " tier. Provide the price paid for the downgraded segment so the exact amount can be computed."
-  );
+  const percent = PERCENT[f.distanceTier];
+  const price = toNumberOrNullSentinel(f.ticketPrice);
+  const ticketCurrency = toTicketCurrency(f.ticketCurrency);
+  if (price === null || price === UNKNOWN || price <= 0) {
+    return needsInfo(
+      "The ticket was downgraded. Article 10(2) requires a refund of " + percent + "% of the price paid for the " +
+      tierLabel(f.distanceTier) + " tier. The price paid for the downgraded segment was not stated — provide it (it can be passed in the additional context field) so the exact refund can be computed."
+    );
+  }
+  if (ticketCurrency === null) {
+    return needsInfo(
+      "The ticket was downgraded. Article 10(2) requires a refund of " + percent + "% of the price paid for the " +
+      tierLabel(f.distanceTier) + " tier. The price is known but the currency it was paid in is not stated — confirm the currency (for example EUR or GBP) so the exact refund can be computed."
+    );
+  }
+  const refund = Math.round((price * percent) / 100);
+  return {
+    eligibility: "eligible",
+    compensationAmount: refund,
+    currency: ticketCurrency,
+    legalBasis:
+      "EU Regulation 261/2004, Article 10(2) (downgrade reimbursement); UK261 equivalent",
+    decisionReason:
+      "The ticket was downgraded on a " + tierLabel(f.distanceTier) + " route, where Article 10(2) sets a refund of " + percent + "% of the price paid. On a stated price of " + price + " " + ticketCurrency + ", the reimbursement is " + refund + " " + ticketCurrency + " (rounded to the nearest whole unit), payable within seven days by the same means the ticket was paid. No extraordinary-circumstances defense applies to a downgrade refund.",
+    dutyOfCare:
+      "Article 10(2) reimbursement is the remedy for a downgrade. The Article 8/9 re-routing and care rights attach to cancellations and long waiting times, not to a completed flight in a lower cabin, so the flow does not assert them here.",
+  };
+}
+
+function tierLabel(tier) {
+  if (tier === "short") return "≤ 1,500 km";
+  if (tier === "medium") return "1,500–3,500 km";
+  return "over 3,500 km";
 }
 
 output = assess({
@@ -310,5 +372,7 @@ output = assess({
   reroutingStatus: {{InstructorLLMNode_210.output.reroutingStatus}},
   cause: {{InstructorLLMNode_210.output.cause}},
   causeText: {{InstructorLLMNode_210.output.causeText}},
+  ticketPrice: {{InstructorLLMNode_210.output.ticketPrice}},
+  ticketCurrency: {{InstructorLLMNode_210.output.ticketCurrency}},
   distanceTier: {{InstructorLLMNode_210.output.distanceTier}}
 });
