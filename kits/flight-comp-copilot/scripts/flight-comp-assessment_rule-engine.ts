@@ -114,12 +114,14 @@ function toTicketCurrency(raw) {
 }
 
 // ISO 4217 minor-unit digits by currency. Most currencies have 2 (EUR, GBP, USD);
-// notable exceptions are listed explicitly and 2 is the safe default for unknown
+// the exceptions are listed explicitly: three-decimal (BHD–TND), zero-decimal
+// (BIF–XPF), and four-decimal (CLF, UYW) codes. 2 is the safe default for unknown
 // codes, matching ISO 4217's "2 unless otherwise specified" convention.
 const CURRENCY_MINOR_DIGITS = {
   BHD: 3, IQD: 3, JOD: 3, KWD: 3, LYD: 3, OMR: 3, TND: 3,
   BIF: 0, CLP: 0, DJF: 0, GNF: 0, ISK: 0, JPY: 0, KMF: 0, KRW: 0,
-  PYG: 0, RWF: 0, UGX: 0, UYI: 0, VND: 0, VUV: 0, XAF: 0, XOF: 0, XPF: 0,
+  MGA: 0, PYG: 0, RWF: 0, UGX: 0, UYI: 0, VND: 0, VUV: 0, XAF: 0, XOF: 0, XPF: 0,
+  CLF: 4, UYW: 4,
 };
 
 // Round an amount to the currency's ISO 4217 minor-unit precision, so a 30% refund
