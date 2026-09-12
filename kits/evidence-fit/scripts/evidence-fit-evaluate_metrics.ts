@@ -387,6 +387,11 @@ export function clauseAwareChunks(
   let curEnd = -1;
   let n = 0;
 
+  /**
+   * Emit the units packed so far as one chunk and reset the accumulator. A no-op
+   * when nothing is pending, so it is safe to call at every boundary and again
+   * once the last unit has been consumed.
+   */
   const flush = () => {
     if (curStart === -1) return;
     chunks.push({
@@ -749,6 +754,19 @@ function localRank(c: ResolvedCase, chunks: Chunk[], documentId: string): Chunk[
     .map((x) => x.ch);
 }
 
+/**
+ * Score one chunking strategy against a document's acceptance cases.
+ *
+ * Chunks `documentText` with that strategy's own config, resolves every gold
+ * quote to exact offsets, then measures how much of that evidence survived the
+ * chunk boundaries and how much of it is reachable within the top `topK`
+ * results. Ranking comes from `args.rankedByCaseId` when the caller has real
+ * retrieval results; otherwise a deterministic local ranker stands in, so this
+ * one function serves both the deployed flow and local mode.
+ *
+ * Returns `ok: false` with issues — never a guessed span — when a quote cannot
+ * be located unambiguously in the document.
+ */
 export function evaluateStrategy(args: EvaluateArgs): EvaluateResult {
   const resolved = resolveGoldSpans(args.documentText, args.cases);
   if (!resolved.ok) return { ok: false, issues: resolved.issues };
@@ -854,6 +872,19 @@ export type CompareResult =
 
 const VERDICT_ORDER: Record<Verdict, number> = { SHIP: 0, TUNE: 1, BLOCK: 2 };
 
+/**
+ * Evaluate the fixed-width baseline and the clause-aware candidate over the same
+ * document and cases, and reduce the pair to one shippable answer.
+ *
+ * The comparison is what this kit exists to produce: per-strategy metrics, a
+ * `recommended` strategy, and an overall `SHIP` / `TUNE` / `BLOCK` verdict. The
+ * verdict is the worse of the two strategies' verdicts unless one of them is
+ * clearly recommendable, and it is computed here in plain code — no model is
+ * consulted, and nothing downstream is wired to override it.
+ *
+ * Returns `ok: false` with the resolver's issues if either strategy could not be
+ * evaluated, so a validation failure can never be read as a passing verdict.
+ */
 export function compareStrategies(args: {
   documentId: string;
   documentText: string;
@@ -943,6 +974,13 @@ export function compareStrategies(args: {
 let trigger = {{triggerNode_1.output}};
 let searchOut = {{forLoopEndNode_6.output}};
 
+/**
+ * Coerce a loop/trigger value to a usable string, or "" when there isn't one.
+ *
+ * Rejects the literal "[object Object]", which is what Lamatic produces when an
+ * object is interpolated into a string slot — treating that as a real id would
+ * silently key every case under the same bogus name.
+ */
 function asString(v) {
   if (v == null) return "";
   if (typeof v === "string") return v === "[object Object]" ? "" : v;
@@ -950,6 +988,11 @@ function asString(v) {
   return "";
 }
 
+/**
+ * Return `v` as an object, parsing it first when Lamatic handed it over as JSON
+ * text (which it does about as often as it hands over a real object). Returns
+ * null for anything that is not an object and does not parse into one.
+ */
 function toObject(v) {
   if (typeof v === "string") {
     try {
@@ -961,6 +1004,11 @@ function toObject(v) {
   return v && typeof v === "object" ? v : null;
 }
 
+/**
+ * Return `v` as an array, parsing JSON text first, or null when it is neither.
+ * Null rather than [] so callers can tell "not an array" from "empty array" —
+ * the difference between a binding problem and a genuinely empty result set.
+ */
 function toArray(v) {
   if (Array.isArray(v)) return v;
   const parsed = typeof v === "string" ? toObject(v) : v;
@@ -1036,6 +1084,11 @@ if (searchData.some(Array.isArray)) {
   searchData = [].concat.apply([], searchData);
 }
 
+/**
+ * Pull the hit list off one per-case entry, accepting whichever of
+ * results/matches/chunks/hits the configured search node happens to emit, and
+ * parsing it when it arrives as JSON text. Always returns an array.
+ */
 function resultsOf(entry) {
   let r =
     entry && entry.results !== undefined
@@ -1051,6 +1104,11 @@ function resultsOf(entry) {
   return arr || [];
 }
 
+/**
+ * Locate the metadata object on one search hit. Vector nodes nest it under
+ * metadata/document/record depending on configuration; a flat hit carries the
+ * chunk fields directly, so the item itself is the last fallback.
+ */
 function metadataOf(item) {
   if (!item || typeof item !== "object") return null;
   if (item.metadata && typeof item.metadata === "object") return item.metadata;
@@ -1060,6 +1118,11 @@ function metadataOf(item) {
   return item;
 }
 
+/**
+ * Parse an integer offset, accepting the numeric strings the vector store
+ * returns for metadata fields. Returns null — never 0 — when there is no usable
+ * number, so a missing offset cannot be mistaken for the start of the document.
+ */
 function toInt(v) {
   if (typeof v === "number" && Number.isFinite(v)) return Math.trunc(v);
   if (typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v))) {
@@ -1068,9 +1131,13 @@ function toInt(v) {
   return null;
 }
 
-// Rebuilds a vendored Chunk from one search result's metadata, or returns
-// null when the metadata is incomplete. Incomplete metadata is dropped, not
-// guessed at — an unverifiable chunk must not participate in scoring.
+/**
+ * Rebuild a vendored `Chunk` from one search result's metadata, or return null
+ * when that metadata is incomplete.
+ *
+ * Incomplete metadata is dropped, never guessed at: an unverifiable chunk must
+ * not participate in scoring, because a fabricated offset would move a metric.
+ */
 function buildChunkFromMetadata(meta) {
   if (!meta || typeof meta !== "object") return null;
 

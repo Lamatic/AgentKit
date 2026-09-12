@@ -11,6 +11,7 @@ import {
   type ResolvedCase,
 } from "../lib/evidence/core.ts";
 
+/** A fixed-width chunk over [start, end) whose text is filler of the right length. */
 const chunk = (id: string, start: number, end: number, documentId = "doc1"): Chunk => ({
   chunkId: id,
   documentId,
@@ -20,6 +21,7 @@ const chunk = (id: string, start: number, end: number, documentId = "doc1"): Chu
   text: "x".repeat(end - start),
 });
 
+/** A single resolved case whose gold spans are exactly the intervals given. */
 const oneCase = (spans: { start: number; end: number }[], required = true): ResolvedCase => ({
   id: "c1",
   question: "q",

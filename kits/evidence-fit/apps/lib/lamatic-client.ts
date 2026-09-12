@@ -12,6 +12,11 @@
 
 import { Lamatic } from "lamatic";
 
+/**
+ * Read the Lamatic credentials from the environment. Kept in one place so every
+ * caller sees the same view, and so nothing reaches for `process.env` outside
+ * the server boundary.
+ */
 function readEnv() {
   return {
     apiKey: process.env.LAMATIC_API_KEY,
@@ -105,6 +110,10 @@ export function asRecord(value: unknown): Record<string, unknown> {
   return {};
 }
 
+/**
+ * Unwrap every value of a flow response one level, so callers read the fields
+ * themselves rather than whatever envelope the SDK wrapped each one in.
+ */
 export function unwrapRecord(raw: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(raw)) out[k] = unwrap(v);

@@ -387,6 +387,11 @@ export function clauseAwareChunks(
   let curEnd = -1;
   let n = 0;
 
+  /**
+   * Emit the units packed so far as one chunk and reset the accumulator. A no-op
+   * when nothing is pending, so it is safe to call at every boundary and again
+   * once the last unit has been consumed.
+   */
   const flush = () => {
     if (curStart === -1) return;
     chunks.push({
@@ -749,6 +754,19 @@ function localRank(c: ResolvedCase, chunks: Chunk[], documentId: string): Chunk[
     .map((x) => x.ch);
 }
 
+/**
+ * Score one chunking strategy against a document's acceptance cases.
+ *
+ * Chunks `documentText` with that strategy's own config, resolves every gold
+ * quote to exact offsets, then measures how much of that evidence survived the
+ * chunk boundaries and how much of it is reachable within the top `topK`
+ * results. Ranking comes from `args.rankedByCaseId` when the caller has real
+ * retrieval results; otherwise a deterministic local ranker stands in, so this
+ * one function serves both the deployed flow and local mode.
+ *
+ * Returns `ok: false` with issues — never a guessed span — when a quote cannot
+ * be located unambiguously in the document.
+ */
 export function evaluateStrategy(args: EvaluateArgs): EvaluateResult {
   const resolved = resolveGoldSpans(args.documentText, args.cases);
   if (!resolved.ok) return { ok: false, issues: resolved.issues };
@@ -854,6 +872,19 @@ export type CompareResult =
 
 const VERDICT_ORDER: Record<Verdict, number> = { SHIP: 0, TUNE: 1, BLOCK: 2 };
 
+/**
+ * Evaluate the fixed-width baseline and the clause-aware candidate over the same
+ * document and cases, and reduce the pair to one shippable answer.
+ *
+ * The comparison is what this kit exists to produce: per-strategy metrics, a
+ * `recommended` strategy, and an overall `SHIP` / `TUNE` / `BLOCK` verdict. The
+ * verdict is the worse of the two strategies' verdicts unless one of them is
+ * clearly recommendable, and it is computed here in plain code — no model is
+ * consulted, and nothing downstream is wired to override it.
+ *
+ * Returns `ok: false` with the resolver's issues if either strategy could not be
+ * evaluated, so a validation failure can never be read as a passing verdict.
+ */
 export function compareStrategies(args: {
   documentId: string;
   documentText: string;
@@ -947,6 +978,13 @@ export function compareStrategies(args: {
 
 let trigger = {{triggerNode_1.output}};
 
+/**
+ * Coerce a trigger value to a usable string, or "" when there isn't one.
+ *
+ * Rejects the literal "[object Object]", which is what Lamatic produces when an
+ * object is interpolated into a string slot — accepting it would index every
+ * chunk under a meaningless documentId.
+ */
 function asString(v) {
   if (v == null) return "";
   if (typeof v === "string") return v === "[object Object]" ? "" : v;

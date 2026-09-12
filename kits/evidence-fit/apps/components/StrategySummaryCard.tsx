@@ -6,6 +6,10 @@ const TITLE: Record<StrategyName, string> = {
   "clause-aware": "Candidate — clause-aware chunking",
 };
 
+/**
+ * One strategy's headline card: chunk count, span integrity, severed boundaries
+ * and coverage, labelled as the baseline or the candidate.
+ */
 export function StrategySummaryCard({ result }: { result: StrategyResult }) {
   return (
     <div className="min-w-[16rem] flex-1 space-y-3 rounded-lg border border-slate-200 p-4 dark:border-slate-800">

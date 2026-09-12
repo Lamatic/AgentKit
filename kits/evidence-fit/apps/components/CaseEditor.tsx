@@ -62,12 +62,14 @@ export function CaseEditor({ cases, onChange }: Props) {
 
   const duplicateIds = duplicateCaseIds(cases);
 
+  /** Apply a partial change to one case, replacing the list immutably. */
   function updateCase(index: number, patch: Partial<DraftCase>) {
     const next = cases.slice();
     next[index] = { ...next[index], ...patch };
     onChange(next);
   }
 
+  /** Replace the text of one evidence quote on one case. */
   function updateEvidence(caseIndex: number, evidenceIndex: number, quote: string) {
     const next = cases.slice();
     const evidence = next[caseIndex].evidence.slice();
@@ -76,6 +78,7 @@ export function CaseEditor({ cases, onChange }: Props) {
     onChange(next);
   }
 
+  /** Append an empty evidence quote to one case, up to the per-case cap. */
   function addEvidence(caseIndex: number) {
     const next = cases.slice();
     const c = next[caseIndex];
@@ -84,6 +87,7 @@ export function CaseEditor({ cases, onChange }: Props) {
     onChange(next);
   }
 
+  /** Remove one evidence quote, keeping at least one on every case. */
   function removeEvidence(caseIndex: number, evidenceIndex: number) {
     const next = cases.slice();
     const c = next[caseIndex];
@@ -92,6 +96,10 @@ export function CaseEditor({ cases, onChange }: Props) {
     onChange(next);
   }
 
+  /**
+   * Append a blank case under a generated id that no existing case is using.
+   * See the notes below for why the counter alone is not enough.
+   */
   function addCase() {
     if (cases.length >= LIMITS.maxCases) return;
     // The counter alone is not enough: a user who renames `case-1` to `case-2` makes the
@@ -107,6 +115,7 @@ export function CaseEditor({ cases, onChange }: Props) {
     onChange([...cases, { id, question: "", required: true, evidence: [{ quote: "" }] }]);
   }
 
+  /** Remove one case, keeping at least one in the experiment. */
   function removeCase(index: number) {
     if (cases.length <= 1) return;
     onChange(cases.filter((_, i) => i !== index));

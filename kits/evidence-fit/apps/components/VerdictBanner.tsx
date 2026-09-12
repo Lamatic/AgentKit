@@ -48,6 +48,11 @@ function achievingLabel(comparison: Comparison): string {
   return STRATEGY_LABEL["fixed-width"];
 }
 
+/**
+ * The run's headline: the SHIP / TUNE / BLOCK verdict computed by the engine,
+ * plus which strategies achieved complete evidence. Displays the verdict as
+ * given — it never recomputes or softens it.
+ */
 export function VerdictBanner({ comparison }: { comparison: Comparison }) {
   const label = achievingLabel(comparison);
   const copy = VERDICT_COPY[comparison.verdict];

@@ -22,6 +22,14 @@ type Segment = {
   boundarySevers: boolean;
 };
 
+/**
+ * Split the context window around one gold span into renderable segments, split
+ * at every chunk boundary that falls inside it.
+ *
+ * A boundary strictly inside the span is what severs the evidence, so each
+ * segment records whether the boundary that starts it severs — that flag is what
+ * lets the view colour the one boundary that caused the verdict.
+ */
 function buildSegments(
   documentText: string,
   span: GoldSpan,
@@ -57,6 +65,7 @@ function buildSegments(
   return { winStart, winEnd, segments };
 }
 
+/** Render one gold span with its surrounding context and its chunk boundaries marked. */
 function SpanView({
   documentText,
   span,

@@ -24,6 +24,10 @@ const VENDORED_SCRIPTS = [
 const coreSource = readFileSync(CORE_PATH, "utf8");
 const coreTrimmed = coreSource.trim();
 
+/**
+ * Return the text between the BEGIN/END vendoring markers, failing the test with
+ * an actionable message when a marker is missing or out of order.
+ */
 function extractVendoredBlock(scriptSource: string, fileName: string): string {
   const beginIndex = scriptSource.indexOf(BEGIN_MARKER);
   const endIndex = scriptSource.indexOf(END_MARKER);

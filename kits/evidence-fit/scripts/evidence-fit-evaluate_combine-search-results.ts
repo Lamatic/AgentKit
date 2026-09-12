@@ -33,6 +33,10 @@ const KEEP = ["documentId", "strategy", "chunkId", "start", "end"];
 // past the cutoff.
 const PER_STRATEGY = 8;
 
+/**
+ * Parse `v` when Lamatic handed it over as JSON text, otherwise return it as-is.
+ * Unparsable text is returned unchanged so the caller can still inspect it.
+ */
 function toObject(v) {
   if (typeof v !== "string") return v;
   try {
@@ -49,6 +53,14 @@ function toObject(v) {
 // chunk listing all stay correct — so the flow looks healthy and is not.
 currentCase = toObject(currentCase);
 
+/**
+ * Read the acceptance case's id out of whatever the loop variable turned out to
+ * be — a bare id string, or an object using id/caseId/case_id.
+ *
+ * Returns "" when there is none. Downstream, Metrics skips any entry with an
+ * empty caseId, so this returning "" is what turns a parsing failure into zeroed
+ * retrieval metrics rather than a visible error.
+ */
 function caseIdOf(c) {
   if (typeof c === "string") return c;
   if (c && typeof c === "object") {
@@ -62,7 +74,10 @@ function caseIdOf(c) {
   return "";
 }
 
-// Unwrap whichever envelope the vector search node returns its hits in.
+/**
+ * Unwrap whichever envelope the vector search node returns its hits in, parsing
+ * JSON text first. Returns [] when no hit list can be found.
+ */
 function toResults(v) {
   const p = toObject(v);
   if (Array.isArray(p)) return p;
@@ -75,6 +90,11 @@ function toResults(v) {
   return [];
 }
 
+/**
+ * Locate the metadata object on one search hit. Vector nodes nest it under
+ * metadata/document/record depending on configuration; a flat hit carries the
+ * chunk fields directly, so the item itself is the last fallback.
+ */
 function metaOf(item) {
   if (!item || typeof item !== "object") return null;
   if (item.metadata && typeof item.metadata === "object") return item.metadata;
@@ -83,6 +103,13 @@ function metaOf(item) {
   return item;
 }
 
+/**
+ * Reduce raw hits to at most PER_STRATEGY slim records holding only the KEEP
+ * fields, dropping any hit that cannot be attributed to a chunk and a strategy.
+ *
+ * This is what keeps the loop's accumulated output readable in Studio: a raw hit
+ * carries a 1536-float embedding plus scores and store internals.
+ */
 function project(list) {
   const out = [];
   for (let i = 0; i < list.length && out.length < PER_STRATEGY; i++) {

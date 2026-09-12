@@ -15,6 +15,12 @@ const fixed = fixedWidthChunks(trigger.documentText, trigger.documentId, FIXED_W
 const clause = clauseAwareChunks(trigger.documentText, trigger.documentId, CLAUSE_CONFIG);
 const entries = trigger.cases.map(c => ({ caseId: c.id, results: [...fixed, ...clause] }));
 
+/**
+ * Execute a built node body the way Studio would: substitute each `{{...}}`
+ * binding with its JSON value, run it in a fresh VM context, and return whatever
+ * it assigned to `output`. Any unexpected binding fails the test rather than
+ * resolving to undefined.
+ */
 function run(loopOutput: unknown, code = body) {
   const bindings: Record<string, unknown> = {
     "triggerNode_1.output": JSON.stringify(trigger),
@@ -31,7 +37,13 @@ function run(loopOutput: unknown, code = body) {
 
 // This is the observed Studio contract, including unrelated node output and
 // reminted node ids. The prior parser counted condition + loopOutput as 2 cases.
+/**
+ * Build the Loop End envelope Studio actually returns. With `stringifyNested`,
+ * every nested level arrives as JSON text instead of an object — the other half
+ * of the contract, since Lamatic hands over either.
+ */
 function envelope(stringifyNested = false) {
+  /** Pass a level through as an object, or as JSON text when the variant demands it. */
   const encode = (value: unknown) => stringifyNested ? JSON.stringify(value) : value;
   return {
     condition: "Loop End",
@@ -90,6 +102,7 @@ const NODE_ARTIFACTS = [
   ["evidence-fit-index_prepare-chunks.ts", "evidence-fit-index_code-node-2_code.ts"],
 ] as const;
 
+/** Read one file from scripts/ as text. */
 const readScript = (file: string) =>
   readFileSync(new URL(`../../scripts/${file}`, import.meta.url), "utf8");
 

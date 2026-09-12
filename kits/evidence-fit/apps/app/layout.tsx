@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     "complete evidence.",
 };
 
+/** App shell: sets the document language and the page's base surface and text colours. */
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">

@@ -33,6 +33,7 @@ export type ValidationResult = { ok: true } | { ok: false; errors: string[] };
 export function validateExperimentInput(input: ExperimentInput): ValidationResult {
   const errors: string[] = [];
 
+  /** Require `v` to be a non-empty id within the length cap, recording an error if not. */
   const checkId = (v: unknown, name: string) => {
     if (typeof v !== "string" || v.length === 0) {
       errors.push(`${name} is required.`);

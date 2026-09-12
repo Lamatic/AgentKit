@@ -18,11 +18,17 @@ const inputClass =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 " +
   "focus-visible:outline-blue-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100";
 
+/**
+ * Mint an id for one run. Every run gets a fresh one so its vectors stay isolated
+ * from every other experiment in the shared collection. Falls back to a
+ * timestamp/random id where `crypto.randomUUID` is unavailable.
+ */
 function newExperimentId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `exp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** A blank required acceptance case with one empty evidence quote, numbered `n`. */
 function emptyCase(n: number): DraftCase {
   return { id: `case-${n}`, question: "", required: true, evidence: [{ quote: "" }] };
 }
@@ -31,6 +37,11 @@ type EngineErrorState = { title: string; messages: string[] };
 
 const NO_ENGINE_ERRORS: EngineErrorState = { title: "", messages: [] };
 
+/**
+ * The kit's single page: edit an experiment (document, acceptance cases, topK),
+ * run the comparison, and read the verdict, per-strategy metrics, per-case
+ * results and the boundary inspector that shows which chunk edge severed what.
+ */
 export default function Home() {
   const [documentId, setDocumentId] = useState("");
   const [documentText, setDocumentText] = useState("");
@@ -46,6 +57,7 @@ export default function Home() {
   const [inputsChangedSinceRun, setInputsChangedSinceRun] = useState(false);
   const runRevision = useRef(0);
 
+  /** Clear every result-derived panel so nothing from a prior run stays on screen. */
   function resetResults() {
     setValidationErrors([]);
     setEngineErrors(NO_ENGINE_ERRORS);
@@ -76,6 +88,10 @@ export default function Home() {
     setInputsChangedSinceRun(true);
   }
 
+  /**
+   * Replace the whole form with the bundled sample contract experiment — the one
+   * whose numbers the README quotes.
+   */
   function loadDemo() {
     // Replacing every input orphans a run in flight, same as editing one would.
     runRevision.current += 1;
@@ -93,12 +109,17 @@ export default function Home() {
     resetResults();
   }
 
+  /**
+   * Run the comparison and render whichever of validation / upstream / results
+   * came back — unless a newer run or an input edit has already superseded it.
+   */
   async function handleRun() {
     // Every run claims a revision. Anything that changes the inputs bumps it, so a run
     // that was overtaken can tell on the way out that its answer no longer describes
     // what is on screen, and drop it.
     const thisRun = runRevision.current + 1;
     runRevision.current = thisRun;
+    /** True once this run has been superseded, so its answer must be dropped. */
     const isStale = () => runRevision.current !== thisRun;
 
     setLoading(true);

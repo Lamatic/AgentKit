@@ -127,6 +127,16 @@ function checkInputShape(input: unknown): string[] | null {
   return errors.length > 0 ? errors : null;
 }
 
+/**
+ * Server action behind the app's "Compare strategies" button.
+ *
+ * Validates the submitted experiment, then runs it either against the deployed
+ * Lamatic flows or, when no credentials are configured, entirely in process
+ * against the same engine — so the kit is reviewable without a Lamatic project.
+ *
+ * Never throws: every failure comes back as a discriminated result
+ * (`validation` / `upstream`) so the UI can say which half went wrong.
+ */
 export async function runComparison(input: unknown): Promise<OrchestrateResult> {
   const shapeErrors = checkInputShape(input);
   if (shapeErrors) {
@@ -159,6 +169,14 @@ export async function runComparison(input: unknown): Promise<OrchestrateResult> 
   return runDeployed(experimentInput, topK);
 }
 
+/**
+ * Run one experiment against the deployed flows: Index once per strategy, then
+ * Evaluate exactly once for both.
+ *
+ * Indexing is awaited to completion before Evaluate is called — a single flow
+ * doing both could search before the write settled and return a confident,
+ * unexplained BLOCK. The response is shape-checked before it is trusted.
+ */
 async function runDeployed(input: ExperimentInput, topK: number): Promise<OrchestrateResult> {
   const indexFlowId = process.env.LAMATIC_EVIDENCE_FIT_INDEX_FLOW_ID;
   const evaluateFlowId = process.env.LAMATIC_EVIDENCE_FIT_EVALUATE_FLOW_ID;
@@ -229,6 +247,13 @@ async function runDeployed(input: ExperimentInput, topK: number): Promise<Orches
   return { ok: true, mode: "deployed", comparison };
 }
 
+/**
+ * Execute the Index flow for one strategy and confirm it actually indexed.
+ *
+ * Throws when the flow errors, reports `ok: false`, or indexes zero chunks —
+ * an empty index must fail loudly here rather than surface later as a strategy
+ * that merely appears to retrieve nothing.
+ */
 async function runIndexFlow(
   client: ReturnType<typeof getLamaticClient>,
   flowId: string,
@@ -248,6 +273,11 @@ async function runIndexFlow(
   }
 }
 
+/**
+ * Execute the Evaluate flow once for the whole experiment and return its parsed
+ * comparison. One call scores both strategies; there is no per-strategy
+ * invocation.
+ */
 async function runEvaluateFlow(
   client: ReturnType<typeof getLamaticClient>,
   flowId: string,
@@ -279,6 +309,7 @@ async function runEvaluateFlow(
 // a field that is present but the wrong shape fails validation exactly like a missing
 // field, and nothing here fills in a default for a bad value.
 
+/** True when `v` carries the integer numerator/denominator plus rate a `Rate` needs. */
 function isRate(v: unknown): v is Rate {
   if (typeof v !== "object" || v === null) return false;
   const r = v as Record<string, unknown>;
@@ -289,10 +320,12 @@ function isRate(v: unknown): v is Rate {
   );
 }
 
+/** True only for the three verdicts the engine can produce. */
 function isVerdict(v: unknown): v is Verdict {
   return v === "SHIP" || v === "TUNE" || v === "BLOCK";
 }
 
+/** True when `v` has every field a `Chunk` needs, each with the right type. */
 function isChunk(v: unknown): v is Chunk {
   if (typeof v !== "object" || v === null) return false;
   const c = v as Record<string, unknown>;
@@ -306,6 +339,7 @@ function isChunk(v: unknown): v is Chunk {
   );
 }
 
+/** True when `v` is a per-case result complete enough to render and score against. */
 function isCaseResult(v: unknown): v is CaseResult {
   if (typeof v !== "object" || v === null) return false;
   const c = v as Record<string, unknown>;
@@ -320,6 +354,11 @@ function isCaseResult(v: unknown): v is CaseResult {
   );
 }
 
+/**
+ * True when `v` is a complete strategy result *and* is labelled with the strategy
+ * the caller expected — so a response with the two strategies transposed fails
+ * validation instead of being scored under the wrong name.
+ */
 function isStrategyResult(v: unknown, expectedStrategy: StrategyName): v is StrategyResult {
   if (typeof v !== "object" || v === null) return false;
   const s = v as Record<string, unknown>;
@@ -388,6 +427,12 @@ function asFiniteNumber(v: unknown): number | null {
 
 type UpstreamErrorClass = "timeout" | "connection" | "invalid_shape" | "reported_failure" | "unknown";
 
+/**
+ * Bucket an upstream failure into a class safe to log.
+ *
+ * Only the class is ever logged — the raw upstream text can carry request
+ * payloads or credentials, so it stays out of the log entirely.
+ */
 function classifyUpstreamError(raw: string): UpstreamErrorClass {
   if (/EXECUTE_SOFT_TIMEOUT|timed?\s*out|timeout/i.test(raw)) return "timeout";
   if (/fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|UND_ERR/i.test(raw)) return "connection";

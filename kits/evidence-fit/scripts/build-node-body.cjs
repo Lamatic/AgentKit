@@ -7,6 +7,17 @@ const appRequire = createRequire(path.join(__dirname, "../apps/package.json"));
 const esbuild = appRequire("esbuild");
 const ts = appRequire("typescript");
 
+/**
+ * Turn one readable `scripts/*.ts` source into the exact body that goes into a
+ * Lamatic code node.
+ *
+ * Lamatic caps a code node at 10,000 characters and reports an over-length body
+ * only at run time, so this drops every engine declaration the glue cannot
+ * reach, transpiles to plain JavaScript, and minifies inside an IIFE — wrapping
+ * is what lets the minifier mangle identifiers that would otherwise be globals.
+ * `{{...}}` templates are held aside across the whole pipeline and restored
+ * verbatim at the end.
+ */
 function buildNodeBody(source) {
   // Select engine declarations reachable from the Lamatic glue. Scan the AST,
   // so comments cannot accidentally retain an unused engine function.
@@ -23,6 +34,7 @@ function buildNodeBody(source) {
       }
     }
     const kept = new Set();
+    /** Mark the declaration an identifier refers to as reachable, then recurse into it. */
     function visit(node) {
       if (ts.isIdentifier(node)) {
         const declaration = declarations.get(node.text);
@@ -45,6 +57,7 @@ function buildNodeBody(source) {
   // their short label. The app and vendored source retain their full guidance.
   const parsed = ts.createSourceFile("node.ts", body, ts.ScriptTarget.Latest, true);
   const transformed = ts.transform(parsed, [context => root => {
+    /** Rewrite each issue object's `message` to its `code`, to buy back characters. */
     const visit = node => {
       if (ts.isObjectLiteralExpression(node)) {
         const code = node.properties.find(p => ts.isPropertyAssignment(p) && p.name.getText(parsed) === "code" && ts.isStringLiteral(p.initializer));
