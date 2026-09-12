@@ -113,6 +113,25 @@ function toTicketCurrency(raw) {
   return /^[A-Z]{3}$/.test(c) ? c : null;
 }
 
+// ISO 4217 minor-unit digits by currency. Most currencies have 2 (EUR, GBP, USD);
+// notable exceptions are listed explicitly and 2 is the safe default for unknown
+// codes, matching ISO 4217's "2 unless otherwise specified" convention.
+const CURRENCY_MINOR_DIGITS = {
+  BHD: 3, IQD: 3, JOD: 3, KWD: 3, LYD: 3, OMR: 3, TND: 3,
+  BIF: 0, CLP: 0, DJF: 0, GNF: 0, ISK: 0, JPY: 0, KMF: 0, KRW: 0,
+  PYG: 0, RWF: 0, UGX: 0, UYI: 0, VND: 0, VUV: 0, XAF: 0, XOF: 0, XPF: 0,
+};
+
+// Round an amount to the currency's ISO 4217 minor-unit precision, so a 30% refund
+// of a 101.00 EUR ticket stays 30.30 EUR (not truncated to 30) while zero-decimal
+// currencies such as JPY round to whole units and three-decimal currencies such as
+// KWD keep their third digit.
+function toRefundUnits(amount, currency) {
+  const digits = CURRENCY_MINOR_DIGITS[currency] !== undefined ? CURRENCY_MINOR_DIGITS[currency] : 2;
+  const factor = Math.pow(10, digits);
+  return Math.round(amount * factor) / factor;
+}
+
 function assess(f) {
   // "unknown" jurisdiction (no route info extracted) must not silently default to
   // EU-261 — the amounts differ between regulations, so ask instead of guess.
@@ -337,7 +356,7 @@ function assess(f) {
       tierLabel(f.distanceTier) + " tier. The price is known but the currency it was paid in is not stated — confirm the currency (for example EUR or GBP) so the exact refund can be computed."
     );
   }
-  const refund = Math.round((price * percent) / 100);
+  const refund = toRefundUnits((price * percent) / 100, ticketCurrency);
   return {
     eligibility: "eligible",
     compensationAmount: refund,
@@ -345,7 +364,7 @@ function assess(f) {
     legalBasis:
       "EU Regulation 261/2004, Article 10(2) (downgrade reimbursement); UK261 equivalent",
     decisionReason:
-      "The ticket was downgraded on a " + tierLabel(f.distanceTier) + " route, where Article 10(2) sets a refund of " + percent + "% of the price paid. On a stated price of " + price + " " + ticketCurrency + ", the reimbursement is " + refund + " " + ticketCurrency + " (rounded to the nearest whole unit), payable within seven days by the same means the ticket was paid. No extraordinary-circumstances defense applies to a downgrade refund.",
+      "The ticket was downgraded on a " + tierLabel(f.distanceTier) + " route, where Article 10(2) sets a refund of " + percent + "% of the price paid. On a stated price of " + price + " " + ticketCurrency + ", the reimbursement is " + refund + " " + ticketCurrency + ", payable within seven days by the same means the ticket was paid. No extraordinary-circumstances defense applies to a downgrade refund.",
     dutyOfCare:
       "Article 10(2) reimbursement is the remedy for a downgrade. The Article 8/9 re-routing and care rights attach to cancellations and long waiting times, not to a completed flight in a lower cabin, so the flow does not assert them here.",
   };

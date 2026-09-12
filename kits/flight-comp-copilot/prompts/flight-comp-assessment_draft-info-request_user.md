@@ -3,7 +3,7 @@ RULE ENGINE VERDICT (authoritative — never contradict or alter it):
 - Eligibility: {{codeNode_320.output.eligibility}} (information still needed)
 - Reasoning: {{codeNode_320.output.decisionReason}}
 - Missing facts: {{codeNode_320.output.missingFacts}}
-- Duty-of-care rights that apply meanwhile: {{codeNode_320.output.dutyOfCare}}
+- Duty-of-care guidance from the verdict (preserve its conditional wording — do not present it as rights that apply meanwhile): {{codeNode_320.output.dutyOfCare}}
 
 EXTRACTED FLIGHT FACTS SO FAR:
 
