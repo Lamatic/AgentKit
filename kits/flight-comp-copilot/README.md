@@ -19,7 +19,7 @@ Under EU Regulation 261/2004 and its UK-retained equivalent, passengers whose fl
 A single flow that splits the work into two layers:
 
 1. **Extraction (LLM, schema-validated)** — turns the messy free-text account ("AF1980 CDG→JFK, hydraulic fault, landed 4.5h late") into structured facts: airline, route, dates, disruption type, arrival delay, notice period, cause, distance tier.
-2. **The rules (deterministic code)** — a code node applies the regulation's money rules: distance-tier amounts, the 3-hour delay threshold, cancellation notice windows, the 50% Article 7(2) reduction for re-routed cancellations that still arrive within the tier limit, downgrade percentages (computed from the stated ticket price), and the extraordinary-circumstances exclusion.
+2. **The rules (deterministic code)** — a code node applies the regulation's money rules: distance-tier amounts, the 3-hour delay threshold, cancellation notice windows, the 50% Article 7(2) reduction for re-routed cancellations and denied-boarding replacements that still arrive within the tier limit, downgrade percentages (computed from the stated ticket price), and the extraordinary-circumstances exclusion.
 
 The language model never directly selects the verdict or the amount — every verdict comes from the rule engine, and the letter-drafting stage receives that verdict as authoritative input. One honest limitation: the extracted facts are model output and an untrusted input to the rules. Schema validation checks structure, not factual accuracy, so a wrong extracted value (a mis-tiered route, a misread delay) can still produce a wrong assessment. The response returns `distanceKmEstimate` and the full fact set so borderline calls can be checked.
 
@@ -46,9 +46,9 @@ API Request → Extract & Classify (InstructorLLMNode, schema-validated)
 The rule engine implements, with article citations in comments:
 
 - **Article 7(1)** — fixed amounts by tier: ≤1,500 km / 1,500–3,500 km / >3,500 km (250/400/600 EUR; 220/350/520 GBP under UK261)
-- **Article 7(2)** — the 50% reduction for re-routed cancellations arriving within the tier limit (2h short / 3h medium / 4h long); ordinary delays are never halved
+- **Article 7(2)** — the 50% reduction for re-routed cancellations and denied-boarding replacements arriving within the tier limit (2h short / 3h medium / 4h long); ordinary delays are never halved
 - **Article 5(1)(c)** — the 14-day and 7–14-day cancellation notice exemptions, including the compliant re-routing test
-- **Article 4(3)** — involuntary denied boarding (no halving, no notice exemption)
+- **Article 4(3)** — involuntary denied boarding (no notice exemption; the Article 7(2) reduction applies when compliant re-routing was provided)
 - **Article 10(2)** — downgrade refunds at 30/50/75% of ticket price
 - **Article 5(3) + CJEU Wallentin-Hermann** — extraordinary circumstances exclude compensation, but only genuinely external causes count; technical faults and crew shortages don't, and the burden of proof is the airline's
 

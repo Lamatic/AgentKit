@@ -331,18 +331,54 @@ function assess(f) {
   }
 
   if (f.disruptionType === "denied-boarding") {
-    // Article 4(3): involuntary denied boarding carries full compensation — no halving,
-    // no notice exemption, and no extraordinary-circumstances defense. Voluntary
-    // surrender for vouchers voids it.
+    // Article 4(3) sends involuntary denied-boarding compensation to Article 7, and
+    // Article 7(2) permits a 50% reduction when the passenger received Article 8
+    // re-routing arriving within the tier limit (2/3/4 hours) — the provision is not
+    // limited to cancellations. There is no notice-window exemption here (that is
+    // Article 5(1)(c), cancellation-only) and no extraordinary-circumstances defense
+    // (Article 4(3)). Voluntary surrender for vouchers voids the right entirely.
+    const dbReroutingStatus = f.reroutingStatus;
+    if (dbReroutingStatus === "unknown" || dbReroutingStatus === undefined || dbReroutingStatus === null || dbReroutingStatus === "") {
+      return needsInfo(
+        "Whether the airline re-booked you on another flight after boarding was denied is not stated. Under Article 7(2), the fixed compensation for involuntary denied boarding is reduced by 50% when the replacement flight arrived within the distance-tier limit (2 hours for short routes, 3 for medium, 4 for long) of the original schedule — did the airline provide or arrange any replacement flight, and how late did it arrive compared to your original arrival time?"
+      );
+    }
+    if (dbReroutingStatus === "not-offered") {
+      return {
+        eligibility: "eligible",
+        compensationAmount: base,
+        currency: currency,
+        legalBasis:
+          "EU Regulation 261/2004, Article 4(3) with Article 7(1) (involuntary denied boarding without re-routing); UK261 equivalent",
+        decisionReason:
+          "Boarding was denied against the passenger's will (involuntary denied boarding) and no re-routing was offered. The full fixed compensation applies by distance tier (" +
+          tierLabel(f.distanceTier) + ") with no notice exemption or extraordinary-circumstances defense, and no Article 7(2) reduction because no re-routing was provided. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself.",
+        dutyOfCare:
+          "As an involuntarily denied boarding passenger, the Article 8 choice applies immediately — re-routing at the earliest opportunity, re-routing at a later date, or a refund of the ticket — together with Article 9 care while waiting: meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications.",
+      };
+    }
+    // dbReroutingStatus === "offered": Article 7(2) reduces the compensation by 50%
+    // only when the replacement arrived within the tier-specific limit; beyond it,
+    // the full amount stands. Unknown arrival times cannot support a reduction.
+    const dbRerouteArrival = toRerouteOffsetOrNull(f.reroutedArrivalDelayHours);
+    if (dbRerouteArrival === null || dbRerouteArrival === UNKNOWN_REROUTE) {
+      return needsInfo(
+        "The account says the airline re-booked you on another flight after boarding was denied, but not how late that replacement arrived compared to your original arrival time. Under Article 7(2), the fixed compensation is reduced by 50% only when the replacement arrived within the distance-tier limit (2 hours for short routes, 3 for medium, 4 for long) — about how many hours late did the replacement flight arrive at your final destination?"
+      );
+    }
+    const dbArt72Limit = ART72_LIMIT[f.distanceTier];
+    const dbWithinArt72 = dbRerouteArrival <= dbArt72Limit;
+    const dbAmount = dbWithinArt72 ? Math.round(base / 2) : base;
     return {
       eligibility: "eligible",
-      compensationAmount: base,
+      compensationAmount: dbAmount,
       currency: currency,
-      legalBasis:
-        "EU Regulation 261/2004, Article 4(3) (involuntary denied boarding); UK261 equivalent",
-      decisionReason:
-        "Boarding was denied against the passenger's will (involuntary denied boarding). Fixed compensation applies by distance tier (" +
-        tierLabel(f.distanceTier) + ") with no notice exemption or extraordinary-circumstances defense; the Article 7(2) 50% reduction was not assessed because the extraction captures re-routing times only for cancellations. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself.",
+      legalBasis: dbWithinArt72
+        ? "EU Regulation 261/2004, Article 4(3) with Article 7(2) (involuntary denied boarding with re-routing arriving within the " + dbArt72Limit + "-hour tier limit); UK261 equivalent"
+        : "EU Regulation 261/2004, Article 4(3) with Article 7(1) (involuntary denied boarding with re-routing beyond the tier limit); UK261 equivalent",
+      decisionReason: dbWithinArt72
+        ? "Boarding was denied against the passenger's will (involuntary denied boarding) and the airline re-booked the passenger on a replacement that arrived " + dbRerouteArrival + " hours after the original schedule — within the Article 7(2) " + dbArt72Limit + "-hour limit for a " + tierLabel(f.distanceTier) + " route — so the fixed compensation is reduced by 50%. There is no notice exemption or extraordinary-circumstances defense for denied boarding. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself."
+        : "Boarding was denied against the passenger's will (involuntary denied boarding) and the airline re-booked the passenger on a replacement that arrived " + dbRerouteArrival + " hours after the original schedule — beyond the Article 7(2) " + dbArt72Limit + "-hour limit for a " + tierLabel(f.distanceTier) + " route — so the full fixed compensation applies by distance tier. There is no notice exemption or extraordinary-circumstances defense for denied boarding. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself.",
       dutyOfCare:
         "As an involuntarily denied boarding passenger, the Article 8 choice applies immediately — re-routing at the earliest opportunity, re-routing at a later date, or a refund of the ticket — together with Article 9 care while waiting: meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications.",
     };
