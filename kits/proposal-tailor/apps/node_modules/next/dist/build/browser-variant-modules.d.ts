@@ -1,0 +1,1 @@
+export declare const browserVariantModules: readonly ["client/components/client-boundary-params", "client/components/instant-samples", "client/components/instant-validation/impl", "client/components/navigation-dynamic-rendering", "client/components/server-async-storage", "client/components/unstable-rethrow"];

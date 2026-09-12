@@ -1,0 +1,37 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "default", {
+    enumerable: true,
+    get: function() {
+        return CssSyntaxError;
+    }
+});
+class CssSyntaxError extends Error {
+    constructor(error){
+        super(error);
+        Object.defineProperty(this, "__NEXT_ERROR_CODE", {
+            value: "E394",
+            enumerable: false,
+            configurable: true
+        });
+        const { reason, line, column } = error;
+        this.name = 'CssSyntaxError';
+        // Based on https://github.com/postcss/postcss/blob/master/lib/css-syntax-error.es6#L132
+        // We don't need `plugin` and `file` properties.
+        this.message = `${this.name}\n\n`;
+        if (typeof line !== 'undefined') {
+            this.message += `(${line}:${column}) `;
+        }
+        this.message += reason;
+        const code = error.showSourceCode();
+        if (code) {
+            this.message += `\n\n${code}\n`;
+        }
+        // We don't need stack https://github.com/postcss/postcss/blob/master/docs/guidelines/runner.md#31-dont-show-js-stack-for-csssyntaxerror
+        this.stack = false;
+    }
+}
+
+//# sourceMappingURL=CssSyntaxError.js.map

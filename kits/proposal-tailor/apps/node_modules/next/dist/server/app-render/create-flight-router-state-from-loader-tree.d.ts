@@ -1,0 +1,5 @@
+import type { LoaderTree } from '../lib/app-dir-module';
+import { type FlightRouterState, type PrefetchHints } from '../../shared/lib/app-router-types';
+import type { GetDynamicParamFromSegment } from './app-render';
+export declare function createFlightRouterStateFromLoaderTree(loaderTree: LoaderTree, hintTree: PrefetchHints | null, prefetchInliningEnabled: boolean, cacheComponents: boolean, partialPrefetching: boolean | 'unstable_eager' | undefined, isStaticGeneration: boolean, isBuildTimePrerendering: boolean, getDynamicParamFromSegment: GetDynamicParamFromSegment, searchParams: any, didFindRootLayout?: boolean): Promise<FlightRouterState>;
+export declare function createRouteTreePrefetch(loaderTree: LoaderTree, hintTree: PrefetchHints | null, prefetchInliningEnabled: boolean, cacheComponents: boolean, partialPrefetching: boolean | 'unstable_eager' | undefined, isStaticGeneration: boolean, isBuildTimePrerendering: boolean, getDynamicParamFromSegment: GetDynamicParamFromSegment, didFindRootLayout?: boolean): Promise<FlightRouterState>;
