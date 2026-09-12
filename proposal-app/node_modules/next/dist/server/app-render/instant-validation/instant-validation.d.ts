@@ -1,0 +1,132 @@
+import type { InitialRSCPayload, Segment } from '../../../shared/lib/app-router-types';
+import { RenderStage } from '../staged-rendering';
+import type { ValidationBoundaryTracking } from './boundary-tracking';
+import { type LoaderTree } from '../../lib/app-dir-module';
+import type { GetDynamicParamFromSegment } from '../app-render';
+import type { Instant } from '../../../build/segment-config/app/app-segment-config';
+import { Readable } from 'node:stream';
+import type { DebugChannelPair } from '../debug-channel-server';
+import type { FlightComponentMod } from '../stream-ops';
+import type { NextParsedUrlQuery } from '../../request-meta';
+type ClientReferenceManifest = Record<string, any>;
+/** Used to identify a segment. Conceptually similar to request keys in the Client Segment Cache. */
+export type SegmentPath = string & {
+    _tag: 'SegmentPath';
+};
+/**
+ * Isomorphic to a FlightRouterState, but with extra data attached.
+ * Carries the segment path for each segment so we can easily get it from the cache.
+ *  */
+export type RouteTree = {
+    path: SegmentPath;
+    segment: Segment;
+    module: null | {
+        type: 'layout' | 'page';
+        instantConfig: Instant | null;
+        conventionPath: string;
+        createInstantStack: (() => Error) | null;
+    };
+    slots: {
+        [parallelRouteKey: string]: RouteTree;
+    } | null;
+};
+export type SegmentStage = RenderStage.Static | RenderStage.ShellRuntime | RenderStage.Runtime | RenderStage.Dynamic;
+/** The stages that a prefetched segment can be in. */
+type PrefetchedSegmentStage = Exclude<SegmentStage, RenderStage.Dynamic>;
+export type StageChunks = Record<SegmentStage, Uint8Array[]>;
+export type StageEndTimes = Record<PrefetchedSegmentStage, number>;
+type RenderToFlightStream = (ComponentMod: FlightComponentMod, payload: any, clientModules: any, opts: any) => AsyncIterable<Uint8Array>;
+/**
+ * Splits an existing staged stream (represented as arrays of chunks)
+ * into separate staged streams (also in arrays-of-chunks form), one for each segment.
+ * */
+export declare function collectStagedSegmentData(prefetchKind: ValidationPrefetchKind, ComponentMod: FlightComponentMod, renderFlightStream: RenderToFlightStream, fullPageChunks: StageChunks, fullPageDebugChunks: Uint8Array[] | null, startTime: number, stageEndTimes: StageEndTimes, clientReferenceManifest: ClientReferenceManifest, createDebugChannel: () => DebugChannelPair | undefined): Promise<{
+    cache: SegmentCache;
+    payload: InitialRSCPayload;
+}>;
+/**
+ * Creates a late-release stream for a given payload.
+ * When `renderSignal` is triggered, the stream will release late chunks
+ * to provide extra debug info.
+ * */
+export declare function createCombinedPayloadStream(ComponentMod: FlightComponentMod, renderFlightStream: RenderToFlightStream, payload: InitialRSCPayload, extraChunksAbortController: AbortController, renderSignal: AbortSignal, clientReferenceManifest: ClientReferenceManifest, startTime: number, isDebugChannelEnabled: boolean, createDebugChannel: () => DebugChannelPair | undefined): Promise<{
+    stream: Readable;
+    debugStream: Readable | null;
+}>;
+export type SegmentCache = {
+    head: SegmentCacheItem | null;
+    segments: Map<SegmentPath, SegmentCacheItem>;
+};
+type SegmentCacheItem = Record<SegmentStage, SegmentCacheItemStageEntry | null>;
+type SegmentCacheItemStageEntry = {
+    chunks: Uint8Array[];
+    allChunks: Uint8Array[];
+    debugChunks: Uint8Array[] | null;
+};
+/**
+ * Walks the LoaderTree to discover validation depth bounds.
+ *
+ * Each route group between URL segments represents a potential
+ * shared/new boundary in a client navigation. When a user navigates
+ * between sibling routes that share a route group layout, that
+ * layout is already mounted — its Suspense boundaries are revealed
+ * and don't cover new content below. By tracking the max group
+ * depth at each URL depth, we can iterate all possible group
+ * boundaries and validate that blocking code is always covered by
+ * Suspense in the new tree. This is conservative: some boundaries
+ * may not correspond to real navigations (e.g. a route group with
+ * no siblings), but it ensures we don't miss real violations.
+ *
+ * The max is taken across all parallel slots. When slots have
+ * different numbers of groups, the deepest slot determines the
+ * iteration range. Shallower slots simply stay entirely shared
+ * at group depths beyond their own group count — they run out
+ * of groups before reaching the boundary, so their content
+ * remains in the Dynamic stage.
+ *
+ * Returns an array where:
+ * - length = max URL depth (number of URL-consuming segments)
+ * - array[i] = max group depth at URL depth i (number of route group
+ *   segments between this URL depth and the next)
+ *
+ * For example, a tree like:
+ *   '' / (outer) / (inner) / dashboard / page
+ * returns [2, 0] — URL depth 0 (root) has 2 group layers before
+ * the next URL segment (dashboard), and URL depth 1 (dashboard) has
+ * 0 group layers before the leaf.
+ */
+export declare function discoverValidationDepths(loaderTree: LoaderTree): number[];
+/**
+ * Builds a combined RSC payload for validation at a given URL depth.
+ *
+ * Walks the LoaderTree directly, loading modules and counting
+ * URL-contributing layouts. When `depth` URL segments have been
+ * consumed, the boundary flips from shared (dynamic stage) to new
+ * (static/runtime stage). As the new subtree is built, we check for
+ * instant configs. If none are found, returns null — no validation
+ * needed at this depth or deeper.
+ *
+ * This combines module loading, tree walking, config discovery, and
+ * payload construction into a single pass.
+ */
+export type ValidationPayloadResult = {
+    payload: InitialRSCPayload;
+    /** Whether errors from this payload could be ambiguous between runtime
+     * API access (cookies, headers) and uncached IO (connection, fetch).
+     * True when some segments used Static stage. False when all segments
+     * used Runtime stage and errors are definitively from uncached IO. */
+    hasAmbiguousErrors: boolean;
+    /** Per-slot config factories indexed by slot marker index. When a
+     * boundary spans multiple parallel slots, each slot gets a marker
+     * component in the tree. The marker's index maps to this array to
+     * find the right config for error attribution. */
+    slotStacks: Array<(() => Error) | null>;
+};
+export declare enum ValidationPrefetchKind {
+    /** App Shells, for `<Link>` without `prefetch={true}` */
+    Shell = 1,
+    /** Behavior when Partial Prefetching is not enabled. */
+    LegacySpeculative = 3
+}
+export declare function createCombinedPayloadAtDepth(prefetchKind: ValidationPrefetchKind, initialRSCPayload: InitialRSCPayload, cache: SegmentCache, initialLoaderTree: LoaderTree, getDynamicParamFromSegment: GetDynamicParamFromSegment, query: NextParsedUrlQuery | null, depth: number, groupDepth: number, releaseSignal: AbortSignal, boundaryState: ValidationBoundaryTracking, clientReferenceManifest: ClientReferenceManifest, useRuntimeStageForPartialSegments: boolean): Promise<ValidationPayloadResult | null>;
+export {};

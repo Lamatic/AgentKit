@@ -1,0 +1,2 @@
+export declare function computeCacheBustingSearchParam(prefetchHeader: '1' | '2' | '3' | '0' | undefined, segmentPrefetchHeader: string | string[] | undefined, stateTreeHeader: string | string[] | undefined, nextUrlHeader: string | string[] | undefined): Promise<string>;
+export declare function computeLegacyCacheBustingSearchParam(prefetchHeader: '1' | '2' | '3' | '0' | undefined, segmentPrefetchHeader: string | string[] | undefined, stateTreeHeader: string | string[] | undefined, nextUrlHeader: string | string[] | undefined): string;

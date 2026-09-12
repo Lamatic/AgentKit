@@ -1,0 +1,117 @@
+import '../adapter/setup-node-env.external';
+import '../../server/web/globals';
+import { adapter } from '../../server/web/adapter';
+import { IncrementalCache } from '../../server/lib/incremental-cache';
+// OPTIONAL_IMPORT:incrementalCacheHandler
+// Import the userland code.
+import * as _mod from 'VAR_USERLAND';
+import { edgeInstrumentationOnRequestError } from '../../server/web/globals';
+import { isNextRouterError } from '../../client/components/is-next-router-error';
+import { toNodeOutgoingHttpHeaders } from '../../server/web/utils';
+const mod = {
+    ..._mod
+};
+const page = 'VAR_DEFINITION_PAGE';
+const isProxy = page === '/proxy' || page === '/src/proxy';
+const handlerUserland = (isProxy ? mod.proxy : mod.middleware) || mod.default;
+class ProxyMissingExportError extends Error {
+    constructor(message){
+        super(message);
+        Object.defineProperty(this, "__NEXT_ERROR_CODE", {
+            value: "E394",
+            enumerable: false,
+            configurable: true
+        });
+        // Stack isn't useful here, remove it considering it spams logs during development.
+        this.stack = '';
+    }
+}
+// TODO: This spams logs during development. Find a better way to handle this.
+// Removing this will spam "fn is not a function" logs which is worse.
+if (typeof handlerUserland !== 'function') {
+    throw new ProxyMissingExportError(`The ${isProxy ? 'Proxy' : 'Middleware'} file "${page}" must export a function named \`${isProxy ? 'proxy' : 'middleware'}\` or a default function.`);
+}
+// Proxy will only sent out the FetchEvent to next server,
+// so load instrumentation module here and track the error inside proxy module.
+function errorHandledHandler(fn) {
+    return async (...args)=>{
+        try {
+            return await fn(...args);
+        } catch (err) {
+            // In development, error the navigation API usage in runtime,
+            // since it's not allowed to be used in proxy as it's outside of react component tree.
+            if (process.env.NODE_ENV !== 'production') {
+                if (isNextRouterError(err)) {
+                    err.message = `Next.js navigation API is not allowed to be used in ${isProxy ? 'Proxy' : 'Middleware'}.`;
+                    throw err;
+                }
+            }
+            const req = args[0];
+            const url = new URL(req.url);
+            const resource = url.pathname + url.search;
+            await edgeInstrumentationOnRequestError(err, {
+                path: resource,
+                method: req.method,
+                headers: Object.fromEntries(req.headers.entries())
+            }, {
+                routerKind: 'Pages Router',
+                routePath: '/proxy',
+                routeType: 'proxy',
+                revalidateReason: undefined
+            });
+            throw err;
+        }
+    };
+}
+const internalHandler = async (opts)=>{
+    if (process.env.NEXT_RUNTIME !== 'edge') {
+        var _opts_request_requestMeta, _opts_request_requestMeta1;
+        // This mirrors what `RouteModule#prepare` does for routes
+        // edge runtime handles loading instrumentation at the edge adapter level
+        const { join, relative } = require('node:path');
+        const { ensureInstrumentationRegistered } = require('../../server/lib/router-utils/instrumentation-globals.external');
+        const absoluteProjectDir = join(/* turbopackIgnore: true */ process.cwd(), ((_opts_request_requestMeta = opts.request.requestMeta) == null ? void 0 : _opts_request_requestMeta.relativeProjectDir) || '');
+        const absoluteDistDir = (_opts_request_requestMeta1 = opts.request.requestMeta) == null ? void 0 : _opts_request_requestMeta1.distDir;
+        const distDir = absoluteDistDir ? relative(absoluteProjectDir, absoluteDistDir) : '.next';
+        await ensureInstrumentationRegistered(absoluteProjectDir, distDir);
+    }
+    return adapter({
+        ...opts,
+        IncrementalCache,
+        incrementalCacheHandler,
+        page,
+        handler: errorHandledHandler(handlerUserland)
+    });
+};
+export async function handler(request, ctx) {
+    const result = await internalHandler({
+        request: {
+            url: request.url,
+            method: request.method,
+            headers: toNodeOutgoingHttpHeaders(request.headers),
+            nextConfig: {
+                basePath: process.env.__NEXT_BASE_PATH,
+                i18n: process.env.__NEXT_I18N_CONFIG,
+                trailingSlash: Boolean(process.env.__NEXT_TRAILING_SLASH),
+                experimental: {
+                    cacheLife: process.env.__NEXT_CACHE_LIFE,
+                    authInterrupts: Boolean(process.env.__NEXT_EXPERIMENTAL_AUTH_INTERRUPTS),
+                    clientParamParsingOrigins: process.env.__NEXT_CLIENT_PARAM_PARSING_ORIGINS
+                }
+            },
+            page: {
+                name: page
+            },
+            body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body ?? undefined : undefined,
+            waitUntil: ctx.waitUntil,
+            requestMeta: ctx.requestMeta,
+            signal: ctx.signal || new AbortController().signal
+        }
+    });
+    ctx.waitUntil == null ? void 0 : ctx.waitUntil.call(ctx, result.waitUntil);
+    return result.response;
+}
+// backwards compat for non-adapter setups
+export default internalHandler;
+
+//# sourceMappingURL=middleware.js.map

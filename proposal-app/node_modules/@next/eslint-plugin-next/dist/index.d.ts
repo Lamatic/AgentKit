@@ -1,0 +1,62 @@
+import type { Linter, Rule } from 'eslint';
+declare const plugin: {
+    meta: {
+        name: string;
+    };
+    rules: {
+        'google-font-display': Rule.RuleModule;
+        'google-font-preconnect': Rule.RuleModule;
+        'inline-script-id': Rule.RuleModule;
+        'next-script-for-ga': Rule.RuleModule;
+        'no-assign-module-variable': Rule.RuleModule;
+        'no-async-client-component': Rule.RuleModule;
+        'no-before-interactive-script-outside-document': Rule.RuleModule;
+        'no-css-tags': Rule.RuleModule;
+        'no-document-import-in-page': Rule.RuleModule;
+        'no-duplicate-head': Rule.RuleModule;
+        'no-head-element': Rule.RuleModule;
+        'no-head-import-in-document': Rule.RuleModule;
+        'no-html-link-for-pages': Rule.RuleModule;
+        'no-img-element': Rule.RuleModule;
+        'no-location-assign-relative-destination': Rule.RuleModule;
+        'no-page-custom-font': Rule.RuleModule;
+        'no-script-component-in-head': Rule.RuleModule;
+        'no-styled-jsx-in-document': Rule.RuleModule;
+        'no-sync-scripts': Rule.RuleModule;
+        'no-title-in-document-head': Rule.RuleModule;
+        'no-typos': Rule.RuleModule;
+        'no-unwanted-polyfillio': Rule.RuleModule;
+    };
+    configs: ESLintPluginConfigs;
+};
+type ESLintPluginConfigs = {
+    'recommended-legacy': Linter.LegacyConfig;
+    'core-web-vitals-legacy': Linter.LegacyConfig;
+    recommended: Linter.Config;
+    'core-web-vitals': Linter.Config;
+};
+export default plugin;
+export declare const rules: {
+    'google-font-display': Rule.RuleModule;
+    'google-font-preconnect': Rule.RuleModule;
+    'inline-script-id': Rule.RuleModule;
+    'next-script-for-ga': Rule.RuleModule;
+    'no-assign-module-variable': Rule.RuleModule;
+    'no-async-client-component': Rule.RuleModule;
+    'no-before-interactive-script-outside-document': Rule.RuleModule;
+    'no-css-tags': Rule.RuleModule;
+    'no-document-import-in-page': Rule.RuleModule;
+    'no-duplicate-head': Rule.RuleModule;
+    'no-head-element': Rule.RuleModule;
+    'no-head-import-in-document': Rule.RuleModule;
+    'no-html-link-for-pages': Rule.RuleModule;
+    'no-img-element': Rule.RuleModule;
+    'no-location-assign-relative-destination': Rule.RuleModule;
+    'no-page-custom-font': Rule.RuleModule;
+    'no-script-component-in-head': Rule.RuleModule;
+    'no-styled-jsx-in-document': Rule.RuleModule;
+    'no-sync-scripts': Rule.RuleModule;
+    'no-title-in-document-head': Rule.RuleModule;
+    'no-typos': Rule.RuleModule;
+    'no-unwanted-polyfillio': Rule.RuleModule;
+}, configs: ESLintPluginConfigs;

@@ -1,0 +1,44 @@
+import type { ErrorInfo } from './error-boundary';
+import React from 'react';
+type UserProps = Record<string, any>;
+/**
+ * `catchError` is a counterpart to `error.js` that provides a granular
+ * control of error boundaries at the component level. It provides the `ErrorInfo`
+ * including `retry` for error recovery.
+ *
+ * Pass a Component-like fallback function that receives the props and `ErrorInfo`.
+ * The props omit `children` intentionally as it is the "fallback" of the error and
+ * is not expected to render the children.
+ *
+ * This API is must be used inside the client module graph and cannot be imported
+ * in `server-only` environments like proxy, instrumentation, etc.
+ *
+ * @example
+ * ```tsx
+ * // CustomErrorBoundary.tsx
+ * 'use client'
+ * import { catchError, type ErrorInfo } from 'next/error'
+ *
+ * function CustomErrorBoundary(props: Props, errorInfo: ErrorInfo) {
+ *   return ...
+ * }
+ *
+ * export default catchError(CustomErrorBoundary)
+ *
+ * // page.tsx
+ * 'use client'
+ * import CustomErrorBoundary from './CustomErrorBoundary'
+ *
+ * export default function Page() {
+ *   return (
+ *     <CustomErrorBoundary>
+ *       ...
+ *     </CustomErrorBoundary>
+ *   )
+ * }
+ * ```
+ */
+export declare function catchError<P extends UserProps>(fallback: (props: P, errorInfo: ErrorInfo) => React.ReactNode): React.ComponentType<P & {
+    children?: React.ReactNode;
+}>;
+export {};
