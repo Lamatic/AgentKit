@@ -36,7 +36,10 @@ that verdict.
 ### Index (`evidence-fit-index`)
 
 - Trigger
-  - API Request. Expected input: `{ documentId: string; documentText: string; strategy: "fixed-width" | "clause-aware" }`.
+  - API Request. Expected input: `{ experimentId: string; documentId: string; documentText: string; strategy: "fixed-width" | "clause-aware" }`.
+    `experimentId` is required: it is written into every indexed record’s metadata and
+    leads the vector store’s `primaryKeys`, so two experiments over the same document
+    and strategy stay isolated instead of overwriting each other.
   - Called once per strategy by `apps/actions/orchestrate.ts`.
 - What it does
   - There is no Lamatic chunker in this flow. `Prepare Chunks` (codeNode,

@@ -215,7 +215,7 @@ chunkId, start, end, content}` objects).
   | `action` | `index` |
   | `filters` | `""` (empty string — index actions don't filter) |
   | `duplicateOperation` | `overwrite` |
-  | `primaryKeys` | `["documentId", "strategy", "chunkId"]` — the composite key that makes re-indexing the same document/strategy/chunk idempotent rather than creating duplicates |
+  | `primaryKeys` | `["experimentId", "documentId", "strategy", "chunkId"]` — the composite key that keeps each experiment isolated and makes re-indexing the same experiment/document/strategy/chunk idempotent rather than creating duplicates |
   | `metadataField` | `{{codeNode_2.output.metadata}}` |
 
   **Expected result:** all five fields show the values above, with `metadataField`
