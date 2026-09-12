@@ -1,6 +1,6 @@
 export default {
   "name": "Proposal Tailor",
-  "description": "",
+  "description": "An agentic tool designed to automatically generate customized, professional proposals.",
   "version": "1.0.0",
   "type": "kit",
   "author": {
@@ -15,7 +15,7 @@ export default {
     }
   ],
   "links": {
-    "deploy": "",
-    "github": ""
+    "deploy": "https://apps-nine-beryl.vercel.app/",
+    "github": "https://github.com/HeyyAbishek/AgentKit"
   }
 };
