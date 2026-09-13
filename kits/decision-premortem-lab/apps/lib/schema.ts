@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const boundedText = (maximum: number) => z.string().max(maximum);
 const levelSchema = z.enum(["low", "medium", "high"]);
+const reportText = z.string().trim().min(1);
 
 export const premortemInputSchema = z.object({
   decision: z
@@ -15,41 +16,41 @@ export const premortemInputSchema = z.object({
 });
 
 export const premortemResultSchema = z.object({
-  decisionSummary: z.string(),
+  decisionSummary: reportText,
   assumptions: z.array(
     z.object({
-      assumption: z.string(),
+      assumption: reportText,
       evidenceStatus: z.enum(["supported", "uncertain", "unsupported"]),
-      rationale: z.string(),
-      fastestTest: z.string(),
+      rationale: reportText,
+      fastestTest: reportText,
     }),
-  ),
+  ).min(1),
   failureModes: z.array(
     z.object({
-      failureMode: z.string(),
+      failureMode: reportText,
       likelihood: levelSchema,
       impact: levelSchema,
-      warningSignals: z.array(z.string()),
-      mitigation: z.string(),
-      ownerRole: z.string(),
+      warningSignals: z.array(reportText),
+      mitigation: reportText,
+      ownerRole: reportText,
     }),
-  ),
+  ).min(1),
   experiments: z.array(
     z.object({
-      hypothesis: z.string(),
-      method: z.string(),
-      successMetric: z.string(),
-      stopCondition: z.string(),
-      estimatedEffort: z.string(),
-      timebox: z.string(),
+      hypothesis: reportText,
+      method: reportText,
+      successMetric: reportText,
+      stopCondition: reportText,
+      estimatedEffort: reportText,
+      timebox: reportText,
     }),
-  ),
+  ).min(1),
   recommendation: z.object({
     status: z.enum(["proceed", "pilot", "revise", "stop"]),
-    rationale: z.string(),
+    rationale: reportText,
     confidence: levelSchema,
   }),
-  nextActions: z.array(z.string()),
+  nextActions: z.array(reportText).min(1),
 });
 
 export type PremortemInput = z.infer<typeof premortemInputSchema>;

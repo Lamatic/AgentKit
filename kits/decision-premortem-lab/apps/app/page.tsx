@@ -99,6 +99,7 @@ export default function Home() {
     setLoading(true);
     setError("");
     setExampleMode(false);
+    setResult(null);
     try {
       const response = await analyzeDecision(input);
       if (response.success) setResult(response.data);
@@ -158,15 +159,18 @@ export default function Home() {
           <label>
             Context and evidence
             <textarea {...register("context")} placeholder="Known facts, customer signals, previous tests, stakeholder views…" />
+            {errors.context && <span className="field-error">{errors.context.message}</span>}
           </label>
           <div className="field-grid">
             <label>
               Constraints
               <textarea {...register("constraints")} placeholder="Budget, people, policy…" />
+              {errors.constraints && <span className="field-error">{errors.constraints.message}</span>}
             </label>
             <label>
               Time horizon
               <textarea {...register("timeHorizon")} placeholder="When must this work?" />
+              {errors.timeHorizon && <span className="field-error">{errors.timeHorizon.message}</span>}
             </label>
           </div>
           {error && <p className="error" role="alert">{error}</p>}

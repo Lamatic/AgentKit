@@ -12,7 +12,10 @@ export async function analyzeDecision(
 > {
   const validatedInput = premortemInputSchema.safeParse(input);
   if (!validatedInput.success) {
-    return { success: false, error: validatedInput.error.issues[0]?.message ?? "Check the decision details." };
+    return {
+      success: false,
+      error: validatedInput.error.issues[0]?.message ?? "Check the decision details.",
+    };
   }
 
   try {
@@ -23,7 +26,10 @@ export async function analyzeDecision(
     }
     return { success: true, data: validatedResult.data };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Analysis failed.";
-    return { success: false, error: message };
+    console.error("Decision pre-mortem analysis failed.", error);
+    return {
+      success: false,
+      error: "The pre-mortem could not be generated. Please try again.",
+    };
   }
 }
