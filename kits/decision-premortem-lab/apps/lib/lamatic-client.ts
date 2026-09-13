@@ -11,7 +11,8 @@ function requiredEnvironment(name: string): string {
 function parsePossiblyEncoded(value: unknown): unknown {
   if (typeof value !== "string") return value;
   if (!value.startsWith("$")) return value;
-  const normalized = value.slice(1);
+  const normalized = value.slice(1).trimStart();
+  if (!normalized.startsWith("{") && !normalized.startsWith("[")) return value;
   try {
     return JSON.parse(normalized);
   } catch {
