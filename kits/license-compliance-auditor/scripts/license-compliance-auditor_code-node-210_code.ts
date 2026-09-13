@@ -13,9 +13,26 @@ const COPYLEFT_LICENSES = [
   'LGPL-2.1', 'LGPL-3.0', 'SSPL-1.0', 'CC-BY-SA-4.0', 'EUPL-1.2'
 ];
 
+// Strips a single, fully-matching pair of wrapping parentheses (e.g.
+// "(MIT)" -> "MIT"), but leaves unbalanced parens (e.g. "MIT)") or
+// multiple separately-wrapped groups (e.g. "(MIT) OR (GPL-3.0)") untouched
+// so malformed or multi-group expressions are correctly caught by the
+// nested-expression guard below instead of being silently mangled into
+// something that looks like a valid single license id.
 function stripParens(license) {
   if (!license || typeof license !== 'string') return '';
-  return license.trim().replace(/^\(|\)$/g, '').trim();
+  const s = license.trim();
+  if (!s.startsWith('(') || !s.endsWith(')')) return s;
+
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === '(') depth++;
+    else if (s[i] === ')') {
+      depth--;
+      if (depth === 0 && i !== s.length - 1) return s;
+    }
+  }
+  return s.slice(1, -1).trim();
 }
 
 function parseDeps(val) {

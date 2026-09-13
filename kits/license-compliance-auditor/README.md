@@ -59,6 +59,7 @@ node samples/test_classifier.js
 ### 2. Sample Input & Output
 
 **`dependency_licenses` tested** (see `samples/sample_dependency_licenses.json`):
+
 ```json
 [
   { "name": "react", "version": "18.3.1", "license": "MIT" },
@@ -72,6 +73,7 @@ node samples/test_classifier.js
 ```
 
 **API Response Shape** (`findings` abbreviated below to the 2 non-`OK` entries for brevity — the real response includes all 7):
+
 ```json
 {
   "has_violations": true,
@@ -129,17 +131,20 @@ node samples/test_classifier.js
 - Active Lamatic AI Studio account and deployed workflow
 
 ### 1. Configure Environment Variables
+
 ```bash
 cp samples/.env.example samples/.env
 # then fill in LAMATIC_API_URL and LAMATIC_API_KEY from Settings → API Keys
 ```
 
 ### 2. Run the Local Classifier Self-Check (no deployment needed)
+
 ```bash
 node samples/test_classifier.js
 ```
 
 ### 3. Run the Live Flow Smoke Test (requires a deployed flow)
+
 ```bash
 node samples/test_flow.js
 ```

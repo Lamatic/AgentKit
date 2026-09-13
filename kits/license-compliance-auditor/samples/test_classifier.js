@@ -17,9 +17,24 @@ const COPYLEFT_LICENSES = [
   'LGPL-2.1', 'LGPL-3.0', 'SSPL-1.0', 'CC-BY-SA-4.0', 'EUPL-1.2'
 ];
 
+// Strips a single, fully-matching pair of wrapping parentheses (e.g.
+// "(MIT)" -> "MIT"), but leaves unbalanced parens or multiple separately-
+// wrapped groups untouched so malformed/multi-group expressions are caught
+// by the nested-expression guard instead of being silently mangled.
 function stripParens(license) {
   if (!license || typeof license !== 'string') return '';
-  return license.trim().replace(/^\(|\)$/g, '').trim();
+  const s = license.trim();
+  if (!s.startsWith('(') || !s.endsWith(')')) return s;
+
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === '(') depth++;
+    else if (s[i] === ')') {
+      depth--;
+      if (depth === 0 && i !== s.length - 1) return s;
+    }
+  }
+  return s.slice(1, -1).trim();
 }
 
 function classifySingle(license, allowSet, copyleftSet) {
@@ -122,6 +137,19 @@ assert.strictEqual(
 assert.strictEqual(
   classify({ license: 'GPL-3.0 OR (MIT AND Apache-2.0)' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
   'Nested mixed expression should be routed to manual review, not guessed at'
+);
+
+// Malformed / multi-group parens must not be silently normalized away —
+// they should stay caught by the nested-expression guard.
+assert.strictEqual(stripParens('MIT)'), 'MIT)', 'Unbalanced trailing paren must be preserved, not stripped');
+assert.strictEqual(stripParens('(MIT'), '(MIT', 'Unbalanced leading paren must be preserved, not stripped');
+assert.strictEqual(
+  stripParens('(MIT) OR (GPL-3.0)'), '(MIT) OR (GPL-3.0)',
+  'Multiple separately-wrapped groups must not be mangled by stripping only the outer chars'
+);
+assert.strictEqual(
+  classify({ license: 'MIT)' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
+  'Malformed license string must not silently resolve to a plain-license OK verdict'
 );
 
 console.log('All classifier checks passed:');
