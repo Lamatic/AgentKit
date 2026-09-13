@@ -17,6 +17,10 @@ const ACCEPTED_TYPES = {
 
 const MAX_SIZE_MB = 10
 
+/**
+ * Reads a File object and resolves with its contents as a base64 data URL.
+ * Used before sending the document to the server action for analysis.
+ */
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -26,6 +30,11 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
+/**
+ * Drag-and-drop / click-to-browse file upload zone.
+ * Accepts PDF, JPEG, and PNG files up to MAX_SIZE_MB in size.
+ * Converts the selected file to base64 and calls onFileReady when ready.
+ */
 export function UploadZone({ onFileReady, disabled }: UploadZoneProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string>("")
@@ -73,6 +82,7 @@ export function UploadZone({ onFileReady, disabled }: UploadZoneProps) {
     disabled: disabled || converting,
   })
 
+  /** Clears the selected file and resets any conversion error state. */
   const clearFile = (e: React.MouseEvent) => {
     e.stopPropagation()
     setSelectedFile(null)

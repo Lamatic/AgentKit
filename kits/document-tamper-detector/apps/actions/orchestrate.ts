@@ -38,6 +38,12 @@ const MAX_REQUESTS_PER_WINDOW = 10;
 const MAX_RATE_LIMIT_ENTRIES = 1000; // Bound memory consumption against DoS
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
 
+/**
+ * Per-IP sliding-window rate limiter.
+ * Evicts expired entries on each call and caps the map at MAX_RATE_LIMIT_ENTRIES
+ * to prevent unbounded memory growth (CWE-400).
+ * Returns true if the request is within the allowed quota, false if exceeded.
+ */
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
 
@@ -69,7 +75,11 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-// Allowed file signatures / magic bytes
+/**
+ * Validates a file's magic bytes to ensure it is one of the accepted types
+ * (PDF, PNG, JPEG). Returns the detected MIME type or null for unknown formats.
+ * Prevents client-supplied MIME type spoofing by inspecting the raw bytes.
+ */
 function validateFileSignature(buffer: Buffer): { isValid: boolean; detectedMime: string | null } {
   // PDF: starts with %PDF (0x25, 0x50, 0x44, 0x46)
   if (buffer.length >= 4 && buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
@@ -86,6 +96,16 @@ function validateFileSignature(buffer: Buffer): { isValid: boolean; detectedMime
   return { isValid: false, detectedMime: null };
 }
 
+/**
+ * Next.js Server Action that receives a base64-encoded document, validates it
+ * server-side (rate limit, byte size, magic bytes), submits it to the Lamatic
+ * flow, and returns a typed TrustReport or a normalised error.
+ *
+ * @param fileBase64 - Base64 document content (with or without data URL prefix)
+ * @param fileName   - Original filename for context logging
+ * @param fileType   - Caller-supplied MIME type (overridden by magic-byte check)
+ * @param ocrBoxes   - Optional pre-computed OCR bounding boxes for Signal 2
+ */
 export async function analyzeDocument(
   fileBase64: string,
   fileName: string,

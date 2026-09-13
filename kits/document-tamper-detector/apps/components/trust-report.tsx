@@ -9,6 +9,10 @@ interface TrustReportCardProps {
 }
 
 // ── Risk Gauge (SVG circle) ───────────────────────────
+/**
+ * Renders an animated SVG circle gauge showing the risk score 0–100.
+ * Color transitions from green (low) through amber and orange to red (critical).
+ */
 function RiskGauge({ score }: { score: number }) {
   const radius = 56
   const circumference = 2 * Math.PI * radius
@@ -81,6 +85,10 @@ const SIGNAL_COLORS: Record<string, string> = {
 }
 
 // ── Individual flag card ──────────────────────────────
+/**
+ * Collapsible card displaying a single tamper flag: signal badge, region label,
+ * confidence percentage bar, and plain-language explanation.
+ */
 function FlagCard({ flag, index }: { flag: TrustReportFlag; index: number }) {
   const [open, setOpen] = useState(index === 0)
 
@@ -130,6 +138,10 @@ function FlagCard({ flag, index }: { flag: TrustReportFlag; index: number }) {
 }
 
 // ── Signal breakdown bar ──────────────────────────────
+/**
+ * Horizontal bar chart showing the score contribution and flag count for each
+ * detection signal (metadata, font_spacing, ELA, VLM).
+ */
 function SignalBreakdown({ breakdown }: { breakdown: TrustReport["signal_breakdown"] }) {
   const signals = [
     { key: "metadata", label: "Metadata", ...breakdown.metadata },
@@ -162,6 +174,10 @@ function SignalBreakdown({ breakdown }: { breakdown: TrustReport["signal_breakdo
 }
 
 // ── Verdict icon ──────────────────────────────────────
+/**
+ * Returns the appropriate Lucide shield icon based on the verdict color
+ * (green → CheckCircle, amber → Shield, orange → ShieldAlert, red → ShieldX).
+ */
 function VerdictIcon({ color }: { color: TrustReport["verdict_color"] }) {
   if (color === "green") return <CheckCircle className="w-5 h-5 text-green-400" />
   if (color === "amber") return <Shield className="w-5 h-5 text-amber-400" />
@@ -177,6 +193,10 @@ const VERDICT_BG: Record<TrustReport["verdict_color"], string> = {
 }
 
 // ── Main trust report card ────────────────────────────
+/**
+ * Full trust report card. Renders the risk gauge, verdict banner, signal
+ * breakdown table, per-flag collapsible cards, and the safety disclaimer.
+ */
 export function TrustReportCard({ report }: TrustReportCardProps) {
   return (
     <div className="space-y-6 max-w-2xl mx-auto w-full">

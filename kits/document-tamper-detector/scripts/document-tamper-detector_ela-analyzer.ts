@@ -33,7 +33,10 @@ interface ELAResult {
   flagged_regions_description: string;
 }
 
-// Decode base64 to byte array
+/**
+ * Strips the optional data-URL prefix and decodes a base64 string to a Uint8Array
+ * for byte-level structure inspection.
+ */
 function b64ToBytes(base64: string): Uint8Array {
   const raw = base64.includes(",") ? base64.split(",")[1] : base64;
   const binaryStr = atob(raw);
@@ -44,11 +47,11 @@ function b64ToBytes(base64: string): Uint8Array {
   return bytes;
 }
 
-// JPEG structure analysis — detect quantisation table anomalies
-// JPEG quantisation tables encode the compression quality of each 8×8 DCT block.
-// When an image is resaved at lower quality, the quantisation tables change.
-// Multiple conflicting tables or tables with inconsistent grid patterns
-// are a signal that different regions were compressed at different quality levels.
+/**
+ * Inspects the raw JPEG byte stream for quantisation table anomalies, mixed
+ * APP0/APP1 headers, and abnormal restart-marker counts — all of which are
+ * structural fingerprints of selective re-encoding or region-level editing.
+ */
 function analyzeJpegStructure(bytes: Uint8Array): ELAFlag[] {
   const flags: ELAFlag[] = [];
 
@@ -117,7 +120,11 @@ function analyzeJpegStructure(bytes: Uint8Array): ELAFlag[] {
   return flags;
 }
 
-// PNG analysis — check for non-standard chunk ordering (common in edited PNGs)
+/**
+ * Inspects the PNG chunk sequence for metadata appended after the image data
+ * and for an abnormally high number of IDAT chunks — both are structural
+ * indicators of post-processing or region-level image assembly.
+ */
 function analyzePngStructure(bytes: Uint8Array): ELAFlag[] {
   const flags: ELAFlag[] = [];
 
@@ -170,6 +177,10 @@ function analyzePngStructure(bytes: Uint8Array): ELAFlag[] {
   return flags;
 }
 
+/**
+ * Builds a human-readable description of ELA-flagged regions for use in the
+ * downstream VLM assessor prompt.
+ */
 function buildRegionDescription(flags: ELAFlag[]): string {
   if (flags.length === 0) return "No regions flagged by ELA/structure analysis.";
   return flags

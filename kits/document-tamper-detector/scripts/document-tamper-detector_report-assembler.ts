@@ -43,7 +43,11 @@ interface TrustReport {
   disclaimer: string;
 }
 
-// Compute a 0–100 signal score from an array of flags in that category
+/**
+ * Computes a 0–100 signal score from an array of flags for a single detection
+ * category. Averages flag confidences and applies a count boost (capped at 30%)
+ * so that multiple corroborating flags increase suspicion appropriately.
+ */
 function signalScore(flags: Flag[]): number {
   if (flags.length === 0) return 0;
   // Average confidence of flags, boosted by count (more flags = higher suspicion, up to a cap)
@@ -52,7 +56,11 @@ function signalScore(flags: Flag[]): number {
   return Math.min(Math.round((avgConf + countBoost) * 100), 100);
 }
 
-// Determine verdict string and color from score
+/**
+ * Maps a composite risk score (0–100) to a human-readable verdict string and a
+ * colour code used in the trust report UI.
+ * Thresholds: 0–25 → green, 26–55 → amber, 56–80 → orange, 81–100 → red.
+ */
 function getVerdict(score: number): { verdict: string; color: "green" | "amber" | "orange" | "red" } {
   if (score <= 25) return { verdict: "Low risk — no major anomalies detected. Document appears consistent.", color: "green" };
   if (score <= 55) return { verdict: "Moderate risk — review flagged regions before trusting this document.", color: "amber" };

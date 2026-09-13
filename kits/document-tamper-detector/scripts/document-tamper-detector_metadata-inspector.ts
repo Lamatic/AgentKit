@@ -24,7 +24,10 @@ interface MetadataResult {
   metadata_extracted: Record<string, string>;
 }
 
-// Decode the base64 payload to a binary string for header inspection
+/**
+ * Strips any data-URL prefix and decodes a base64 string to a Uint8Array
+ * so that header bytes can be inspected directly.
+ */
 function decodeBase64ToBytes(base64: string): Uint8Array {
   // Strip data URL prefix if present (e.g. "data:application/pdf;base64,")
   const raw = base64.includes(",") ? base64.split(",")[1] : base64;
@@ -36,7 +39,10 @@ function decodeBase64ToBytes(base64: string): Uint8Array {
   return bytes;
 }
 
-// Extract text between two markers from a byte array (for PDF parsing)
+/**
+ * Returns the substring between `start` and `end` in `text`, or null if either
+ * delimiter is absent. Used for lightweight PDF Info-dict field extraction.
+ */
 function extractBetween(text: string, start: string, end: string): string | null {
   const si = text.indexOf(start);
   if (si === -1) return null;
@@ -45,7 +51,10 @@ function extractBetween(text: string, start: string, end: string): string | null
   return text.substring(si + start.length, ei).trim();
 }
 
-// Parse a PDF date string: D:YYYYMMDDHHmmss
+/**
+ * Parses a PDF date string in the format `D:YYYYMMDDHHmmss` into a JS Date,
+ * returning null for unrecognised formats.
+ */
 function parsePdfDate(dateStr: string): Date | null {
   const match = dateStr.match(/D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/);
   if (!match) return null;
@@ -65,6 +74,11 @@ const SCANNER_SOFTWARE_KEYWORDS = [
   "cutepdf", "bullzip", "docuscan", "scanpapyrus", "camscanner", "scanbot"
 ];
 
+/**
+ * Inspects a PDF's /Info dictionary for metadata anomalies: missing metadata,
+ * suspicious modification-vs-creation date gaps, image-editing software in
+ * Producer/Creator fields, and scanner+editor software mismatches.
+ */
 function inspectPdfMetadata(rawText: string): { flags: MetadataFlag[]; metadata: Record<string, string> } {
   const flags: MetadataFlag[] = [];
   const metadata: Record<string, string> = {};
@@ -155,6 +169,11 @@ function inspectPdfMetadata(rawText: string): { flags: MetadataFlag[]; metadata:
   return { flags, metadata };
 }
 
+/**
+ * Inspects a JPEG or PNG image for EXIF presence and editing-software keywords
+ * embedded in the image stream, flagging patterns inconsistent with camera or
+ * scanner output.
+ */
 function inspectImageMetadata(rawText: string, fileType: string): { flags: MetadataFlag[]; metadata: Record<string, string> } {
   const flags: MetadataFlag[] = [];
   const metadata: Record<string, string> = {};

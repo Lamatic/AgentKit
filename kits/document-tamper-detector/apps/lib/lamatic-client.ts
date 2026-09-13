@@ -1,3 +1,8 @@
+/**
+ * Lamatic SDK client singleton.
+ * Validates required environment variables at module load time and constructs
+ * the Lamatic client used by all server actions in this application.
+ */
 import { Lamatic } from "lamatic";
 import { config } from '../orchestrate.js'
 

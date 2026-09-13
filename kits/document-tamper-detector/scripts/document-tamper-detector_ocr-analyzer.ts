@@ -45,16 +45,22 @@ interface OCRResult {
 }
 
 // Statistical helpers
+/** Returns the arithmetic mean of the given numeric array, or 0 for an empty array. */
 function mean(arr: number[]): number {
   return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 }
 
+/** Returns the population standard deviation of arr given its precomputed mean m. */
 function stdDev(arr: number[], m: number): number {
   if (arr.length < 2) return 0;
   return Math.sqrt(arr.reduce((sum, v) => sum + Math.pow(v - m, 2), 0) / arr.length);
 }
 
-// Analyse bounding boxes for statistical font/spacing outliers
+/**
+ * Analyses an array of OCR bounding boxes for statistical font-height and
+ * inter-word-gap outliers (> 2.5σ / 2.8σ from the document mean).
+ * Returns an OCRFlag for each outlier found.
+ */
 function analyzeBoxes(boxes: BoundingBox[]): OCRFlag[] {
   const flags: OCRFlag[] = [];
 
@@ -141,7 +147,10 @@ function analyzeBoxes(boxes: BoundingBox[]): OCRFlag[] {
   return flags;
 }
 
-// Build a description of flagged regions for the downstream VLM prompt
+/**
+ * Builds a human-readable description of flagged regions for use in the
+ * downstream VLM prompt template.
+ */
 function buildRegionDescription(flags: OCRFlag[]): string {
   if (flags.length === 0) return "No regions flagged by OCR analysis.";
   return flags

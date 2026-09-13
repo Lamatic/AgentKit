@@ -15,6 +15,10 @@ const STAGES = [
   { id: "vlm", icon: Eye, label: "Visual AI assessment", sub: "Vision LLM reviewing flagged regions" },
 ]
 
+/**
+ * Shows animated progress through the four analysis stages while the server
+ * action is running. Each stage advances on a 4.5 second interval.
+ */
 function AnalysisProgress({ currentStage }: { currentStage: number }) {
   return (
     <div className="max-w-md mx-auto w-full space-y-3">
@@ -79,7 +83,11 @@ function AnalysisProgress({ currentStage }: { currentStage: number }) {
   )
 }
 
-// ── Hero section stats ────────────────────────────────
+// ── Hero section stats ──────────────────────────────────
+/**
+ * Displays three headline statistics (detection signals, file formats, avg
+ * analysis time) below the hero heading.
+ */
 function HeroStats() {
   return (
     <div className="flex items-center justify-center gap-6 mt-6 flex-wrap">
@@ -97,7 +105,12 @@ function HeroStats() {
   )
 }
 
-// ── Main page ─────────────────────────────────────────
+// ── Main page ───────────────────────────────────────
+/**
+ * Root page component. Manages the full upload → analyse → report lifecycle:
+ * file selection state, progress animation, server action invocation, and
+ * report or error rendering.
+ */
 export default function HomePage() {
   const [fileData, setFileData] = useState<{ base64: string; name: string; type: string } | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
