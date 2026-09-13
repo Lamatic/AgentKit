@@ -1,5 +1,4 @@
 import { Lamatic } from "lamatic";
-import lamaticConfig from "../../lamatic.config";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -47,17 +46,14 @@ export function normalizeLamaticResult(value: unknown): unknown {
   return parsed;
 }
 
-export async function executeDecisionPremortem(payload: JsonRecord): Promise<unknown> {
+export async function executeDecisionPremortem(
+  payload: JsonRecord,
+  workflowEnvironmentKey: string,
+): Promise<unknown> {
   const endpoint = requireHttpsEndpoint(requiredEnvironment("LAMATIC_API_URL"));
   const projectId = requiredEnvironment("LAMATIC_PROJECT_ID");
   const apiKey = requiredEnvironment("LAMATIC_API_KEY");
-  const flowStep = lamaticConfig.steps.find(
-    (step) => step.id === "decision-premortem-lab",
-  );
-  if (!flowStep?.envKey) {
-    throw new Error("Decision pre-mortem flow configuration is invalid.");
-  }
-  const workflowId = requiredEnvironment(flowStep.envKey);
+  const workflowId = requiredEnvironment(workflowEnvironmentKey);
 
   const client = new Lamatic({ endpoint, projectId, apiKey });
   const response = await client.executeFlow(workflowId, payload);

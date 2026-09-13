@@ -3,6 +3,7 @@
 import { executeDecisionPremortem } from "@/lib/lamatic-client";
 import { premortemInputSchema, premortemResultSchema } from "@/lib/schema";
 import type { PremortemInput, PremortemResult } from "@/lib/types";
+import lamaticConfig from "../../lamatic.config";
 
 export async function analyzeDecision(
   input: PremortemInput,
@@ -19,7 +20,16 @@ export async function analyzeDecision(
   }
 
   try {
-    const result = await executeDecisionPremortem(validatedInput.data);
+    const flowStep = lamaticConfig.steps.find(
+      (step) => step.id === "decision-premortem-lab",
+    );
+    if (!flowStep?.envKey) {
+      throw new Error("Decision pre-mortem flow configuration is invalid.");
+    }
+    const result = await executeDecisionPremortem(
+      validatedInput.data,
+      flowStep.envKey,
+    );
     const validatedResult = premortemResultSchema.safeParse(result);
     if (!validatedResult.success) {
       throw new Error("The flow returned an unexpected result shape.");
