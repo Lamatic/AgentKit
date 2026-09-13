@@ -30,7 +30,7 @@ export const premortemResultSchema = z.object({
       failureMode: reportText,
       likelihood: levelSchema,
       impact: levelSchema,
-      warningSignals: z.array(reportText),
+      warningSignals: z.array(reportText).min(1),
       mitigation: reportText,
       ownerRole: reportText,
     }),
