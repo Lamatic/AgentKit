@@ -35,18 +35,36 @@ export interface TrustReport {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 10;
+const MAX_RATE_LIMIT_ENTRIES = 1000; // Bound memory consumption against DoS
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
+
+  // 1. Evict expired entries to prevent unbounded memory growth
+  for (const [key, record] of rateLimitMap.entries()) {
+    if (now > record.resetTime) {
+      rateLimitMap.delete(key);
+    }
+  }
+
   const record = rateLimitMap.get(ip);
   if (!record || now > record.resetTime) {
+    // 2. Enforce maximum map size bound: remove oldest entry if capacity reached
+    if (rateLimitMap.size >= MAX_RATE_LIMIT_ENTRIES) {
+      const oldestKey = rateLimitMap.keys().next().value;
+      if (oldestKey !== undefined) {
+        rateLimitMap.delete(oldestKey);
+      }
+    }
     rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
     return true;
   }
+
   if (record.count >= MAX_REQUESTS_PER_WINDOW) {
     return false;
   }
+
   record.count += 1;
   return true;
 }
