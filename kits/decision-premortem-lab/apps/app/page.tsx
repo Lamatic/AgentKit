@@ -1,7 +1,10 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { analyzeDecision } from "@/actions/orchestrate";
+import { premortemInputSchema } from "@/lib/schema";
 import type { PremortemInput, PremortemResult } from "@/lib/types";
 
 const sampleInput: PremortemInput = {
@@ -78,27 +81,37 @@ const blankInput: PremortemInput = {
 };
 
 export default function Home() {
-  const [input, setInput] = useState<PremortemInput>(blankInput);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PremortemInput>({
+    resolver: zodResolver(premortemInputSchema),
+    defaultValues: blankInput,
+  });
   const [result, setResult] = useState<PremortemResult | null>(null);
   const [exampleMode, setExampleMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const update = (key: keyof PremortemInput, value: string) =>
-    setInput((current) => ({ ...current, [key]: value }));
-
-  async function submit() {
+  async function submit(input: PremortemInput) {
     setLoading(true);
     setError("");
     setExampleMode(false);
-    const response = await analyzeDecision(input);
-    if (response.success) setResult(response.data);
-    else setError(response.error);
-    setLoading(false);
+    try {
+      const response = await analyzeDecision(input);
+      if (response.success) setResult(response.data);
+      else setError(response.error);
+    } catch {
+      setError("The pre-mortem could not be generated.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function showExample() {
-    setInput(sampleInput);
+    reset(sampleInput);
     setResult(sampleResult);
     setExampleMode(true);
     setError("");
@@ -133,37 +146,38 @@ export default function Home() {
       </section>
 
       <section className="workspace">
-        <div className="input-panel">
+        <form className="input-panel" onSubmit={handleSubmit(submit)}>
           <div className="section-heading">
             <span>01</span><div><h2>Frame the decision</h2><p>Specific inputs produce useful tests.</p></div>
           </div>
           <label>
             Proposed decision <b>required</b>
-            <textarea value={input.decision} onChange={(e) => update("decision", e.target.value)} placeholder="What are you considering, and what commitment would it require?" />
+            <textarea {...register("decision")} placeholder="What are you considering, and what commitment would it require?" />
+            {errors.decision && <span className="field-error">{errors.decision.message}</span>}
           </label>
           <label>
             Context and evidence
-            <textarea value={input.context} onChange={(e) => update("context", e.target.value)} placeholder="Known facts, customer signals, previous tests, stakeholder views…" />
+            <textarea {...register("context")} placeholder="Known facts, customer signals, previous tests, stakeholder views…" />
           </label>
           <div className="field-grid">
             <label>
               Constraints
-              <textarea value={input.constraints} onChange={(e) => update("constraints", e.target.value)} placeholder="Budget, people, policy…" />
+              <textarea {...register("constraints")} placeholder="Budget, people, policy…" />
             </label>
             <label>
               Time horizon
-              <textarea value={input.timeHorizon} onChange={(e) => update("timeHorizon", e.target.value)} placeholder="When must this work?" />
+              <textarea {...register("timeHorizon")} placeholder="When must this work?" />
             </label>
           </div>
           {error && <p className="error" role="alert">{error}</p>}
           <div className="actions">
-            <button className="primary" onClick={submit} disabled={loading}>
+            <button className="primary" type="submit" disabled={loading}>
               {loading ? "Running pre-mortem…" : "Run pre-mortem →"}
             </button>
-            <button className="secondary" onClick={showExample}>View worked example</button>
+            <button className="secondary" type="button" onClick={showExample} disabled={loading}>View worked example</button>
           </div>
           <p className="privacy">No decision is executed. Inputs are used only to generate this report.</p>
-        </div>
+        </form>
 
         <div className="report-panel" aria-live="polite">
           {!result ? (

@@ -2,6 +2,7 @@
   "name": "decision-premortem-lab",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.26.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,15 +10,21 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
     "lamatic": "0.3.2",
-    "next": "16.3.4",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "next": "15.5.14",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "^7.60.0",
+    "zod": "3.25.76"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
     "typescript": "^5"
   }
 }

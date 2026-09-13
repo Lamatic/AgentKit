@@ -57,17 +57,20 @@ The LLM performs qualitative synthesis, while the schema constrains the result i
 ```bash
 cd kits/decision-premortem-lab/apps
 cp .env.example .env.local
-npm install
-npm run dev
+corepack enable
+pnpm install
+pnpm dev
 ```
 
 Fill `.env.local` with the Lamatic project values listed in `.env.example`. The interface includes a clearly labelled illustrative report so reviewers can inspect the complete dashboard without credentials; live analysis always calls the deployed Lamatic flow.
 
+For Vercel, set the project root to this `apps` directory and add the build environment variable `ENABLE_EXPERIMENTAL_COREPACK=1`. The `packageManager` field pins the deployment and local workflow to pnpm 10.26.0.
+
 ## Quality checks
 
 ```bash
-npm run check
-npm run build
+pnpm check
+pnpm build
 ```
 
 ## Safety and limitations

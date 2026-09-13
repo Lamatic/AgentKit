@@ -14,8 +14,21 @@ function parsePossiblyEncoded(value: unknown): unknown {
   try {
     return JSON.parse(normalized);
   } catch {
-    return normalized;
+    return value;
   }
+}
+
+function requireHttpsEndpoint(value: string): string {
+  let endpoint: URL;
+  try {
+    endpoint = new URL(value);
+  } catch {
+    throw new Error("LAMATIC_API_URL must be a valid HTTPS URL.");
+  }
+  if (endpoint.protocol !== "https:") {
+    throw new Error("LAMATIC_API_URL must use HTTPS.");
+  }
+  return value;
 }
 
 export function normalizeLamaticResult(value: unknown): unknown {
@@ -33,7 +46,7 @@ export function normalizeLamaticResult(value: unknown): unknown {
 }
 
 export async function executeDecisionPremortem(payload: JsonRecord): Promise<unknown> {
-  const endpoint = requiredEnvironment("LAMATIC_API_URL");
+  const endpoint = requireHttpsEndpoint(requiredEnvironment("LAMATIC_API_URL"));
   const projectId = requiredEnvironment("LAMATIC_PROJECT_ID");
   const apiKey = requiredEnvironment("LAMATIC_API_KEY");
   const workflowId = requiredEnvironment("DECISION_PREMORTEM_FLOW_ID");

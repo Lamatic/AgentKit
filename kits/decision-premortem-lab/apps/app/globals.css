@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --ink: #141814;
   --paper: #f3f0e8;
@@ -49,9 +51,11 @@ textarea:focus { border-color: var(--ink); box-shadow: 3px 3px 0 var(--acid); }
 .primary:hover:not(:disabled) { background: #2b302b; transform: translateY(-1px); }
 .primary:disabled { opacity: .55; cursor: wait; }
 .secondary { background: transparent; }
-.secondary:hover { background: var(--acid); }
+.secondary:hover:not(:disabled) { background: var(--acid); }
+.secondary:disabled { opacity: .55; cursor: wait; }
 .privacy { font-size: 10px; color: var(--muted); margin: 12px 0 0; }
 .error { border-left: 4px solid var(--orange); padding: 10px 12px; background: #fff0ea; font-size: 13px; }
+.field-error { display: block; margin-top: 6px; color: #a3321c; font-size: 11px; text-transform: none; letter-spacing: 0; }
 
 .empty { min-height: 600px; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; max-width: 520px; margin: auto; }
 .empty-orbit { width: 116px; height: 116px; border: 1px solid var(--ink); border-radius: 50%; display: grid; place-items: center; position: relative; margin-bottom: 34px; }
