@@ -88,6 +88,17 @@ function classify(dep, allowSet, copyleftSet) {
     return { status: 'REVIEW_NEEDED', reason: 'No license declared for this dependency.' };
   }
 
+  // ponytail: only flat "A OR B" / "A AND B" expressions are parsed with
+  // precedence; anything nested (remaining parentheses after stripping one
+  // outer wrap) or mixing both operators is routed to REVIEW_NEEDED instead
+  // of guessed at — a naive split on nested text can silently misclassify
+  // (e.g. "GPL-3.0 AND (MIT OR Apache-2.0)" is BLOCKED, not OK). Upgrade to
+  // a real precedence-aware SPDX expression parser if nested expressions
+  // turn out to be common in practice.
+  if (/[()]/.test(expr) || (/\sOR\s/i.test(expr) && /\sAND\s/i.test(expr))) {
+    return { status: 'REVIEW_NEEDED', reason: `'${expr}' is a nested or mixed SPDX expression — automated classification only supports flat OR or flat AND expressions; needs manual review.` };
+  }
+
   if (/\sOR\s/i.test(expr)) {
     const operands = expr.split(/\s+OR\s+/i).map(stripParens);
     const allowed = operands.find(op => allowSet.has(op));

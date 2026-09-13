@@ -45,6 +45,13 @@ function classify(dep, allowSet, copyleftSet) {
     return { status: 'REVIEW_NEEDED', reason: 'No license declared for this dependency.' };
   }
 
+  // Only flat "A OR B" / "A AND B" expressions are parsed; anything nested
+  // (parens remaining after stripping one outer wrap) or mixing both
+  // operators is routed to REVIEW_NEEDED rather than guessed at.
+  if (/[()]/.test(expr) || (/\sOR\s/i.test(expr) && /\sAND\s/i.test(expr))) {
+    return { status: 'REVIEW_NEEDED', reason: `'${expr}' is a nested or mixed SPDX expression — automated classification only supports flat OR or flat AND expressions; needs manual review.` };
+  }
+
   if (/\sOR\s/i.test(expr)) {
     const operands = expr.split(/\s+OR\s+/i).map(stripParens);
     const allowed = operands.find(op => allowSet.has(op));
@@ -104,6 +111,17 @@ assert.strictEqual(
 assert.strictEqual(
   classify({ license: 'MIT AND Apache-2.0' }, allowSet, copyleftSet).status, 'OK',
   'Compound "AND" expression with only allow-listed components should be OK'
+);
+
+// Nested/mixed expressions: must never silently misclassify (e.g. drop a
+// copyleft obligation), so they're conservatively routed to REVIEW_NEEDED.
+assert.strictEqual(
+  classify({ license: 'GPL-3.0 AND (MIT OR Apache-2.0)' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
+  'Nested mixed expression must NOT resolve to OK (would silently drop the GPL-3.0 obligation)'
+);
+assert.strictEqual(
+  classify({ license: 'GPL-3.0 OR (MIT AND Apache-2.0)' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
+  'Nested mixed expression should be routed to manual review, not guessed at'
 );
 
 console.log('All classifier checks passed:');

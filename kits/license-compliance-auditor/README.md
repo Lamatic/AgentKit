@@ -38,6 +38,7 @@ dependency_licenses + allow_list ──▶ codeNode_210 (JS classifier) ──�
 - **Deterministic Classification:** License classification is computed via deterministic JavaScript (`codeNode_210`), not the LLM — this avoids hallucinated license verdicts. The LLM's job is purely to explain and format the already-computed findings.
 - **No Live Registry Lookup:** The flow trusts the `license` field passed in on each dependency object; it does not call out to npm/PyPI registries itself. Pair it with a tool that already resolves licenses (`license-checker --json`, `pip-licenses --format=json`, a Syft/CycloneDX SBOM, etc.) as an upstream step.
 - **Conservative Default Allow-List:** Only well-known permissive licenses are pre-approved. Anything unrecognized is routed to `REVIEW_NEEDED` rather than silently allowed.
+- **Flat SPDX Expressions Only:** `classify()` parses flat `"A OR B"` / `"A AND B"` expressions with correct precedence, but does not parse nested/parenthesized or mixed `AND`+`OR` expressions (e.g. `"GPL-3.0 AND (MIT OR Apache-2.0)"`) — those are conservatively routed to `REVIEW_NEEDED` rather than guessed at, since a naive split could silently drop a copyleft obligation. Upgrade to a real precedence-aware SPDX expression parser if nested expressions turn out to be common in your dependency tree.
 
 ---
 
