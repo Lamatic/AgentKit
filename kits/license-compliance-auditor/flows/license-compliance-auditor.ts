@@ -126,7 +126,7 @@ export const nodes = [
         "nodeName": "Compliance Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"report\": \"{{LLMNode_430.output.generatedResponse}}\"\n}"
+        "outputMapping": "{\n  \"report\": \"{{LLMNode_430.output.generatedResponse}}\",\n  \"has_violations\": {{codeNode_210.output.has_violations}},\n  \"total_deps\": {{codeNode_210.output.total_deps}},\n  \"blocked_count\": {{codeNode_210.output.blocked_count}},\n  \"review_count\": {{codeNode_210.output.review_count}},\n  \"findings\": {{codeNode_210.output.findings}}\n}"
       }
     }
   }

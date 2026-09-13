@@ -27,6 +27,10 @@ if (!API_URL || !API_KEY) {
   throw new Error('LAMATIC_API_URL and LAMATIC_API_KEY must be set (see samples/.env.example)');
 }
 
+if (!API_URL.startsWith('https://')) {
+  throw new Error('LAMATIC_API_URL must use https:// — refusing to send the API key over an insecure connection.');
+}
+
 const depsPath = path.join(__dirname, 'sample_dependency_licenses.json');
 const dependency_licenses = fs.readFileSync(depsPath, 'utf8');
 
@@ -36,28 +40,35 @@ async function runTest() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60000);
 
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ dependency_licenses, allow_list: '' }),
-    signal: controller.signal
-  }).finally(() => clearTimeout(timeout));
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ dependency_licenses, allow_list: '' }),
+      signal: controller.signal
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    if (data.errors) {
+      throw new Error(`Workflow execution failed: ${JSON.stringify(data.errors)}`);
+    }
+
+    console.log('Flow Execution Successful!');
+    console.log('\n--- Output Report ---');
+    console.log(data);
+  } finally {
+    // Kept active through response-body reads above, not just until
+    // headers arrive, so a slow body download is still bounded by the
+    // same 60s budget.
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  if (data.errors) {
-    throw new Error(`Workflow execution failed: ${JSON.stringify(data.errors)}`);
-  }
-
-  console.log('Flow Execution Successful!');
-  console.log('\n--- Output Report ---');
-  console.log(data);
 }
 
 runTest().catch((err) => {

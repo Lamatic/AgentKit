@@ -21,3 +21,4 @@ Generate a markdown report following this structure:
 - For each blocked or review-needed dependency, suggest a concrete next step (e.g. find an alternative package, obtain legal sign-off, contact the maintainer, add to allow-list if acceptable).
 ### 6. Conclusion
 - Give a final recommendation: safe to ship as-is, or blocked pending review.
+- Add one closing line making clear this is automated screening guidance against the configured allow-list, not legal advice, and that a `BLOCKED` verdict is a conservative policy classification requiring final legal/compliance sign-off — not a deterministic legal prohibition.

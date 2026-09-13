@@ -20,3 +20,4 @@ The License Compliance Auditor is an automated assistant that reviews a project'
 
 - **Prompt Hardening:** Treats incoming dependency names/license strings strictly as untrusted data to protect against prompt injection.
 - **Strict Typing:** Validates input structure before processing and rejects missing/empty/malformed input with descriptive errors.
+- **Not Legal Advice:** Output is automated screening guidance against a configured allow-list, not a legal determination. `BLOCKED` is a conservative policy classification — final decisions require legal/compliance sign-off.

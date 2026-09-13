@@ -13,9 +13,9 @@ const COPYLEFT_LICENSES = [
   'LGPL-2.1', 'LGPL-3.0', 'SSPL-1.0', 'CC-BY-SA-4.0', 'EUPL-1.2'
 ];
 
-function normalize(license) {
+function stripParens(license) {
   if (!license || typeof license !== 'string') return '';
-  return license.trim().replace(/^\(|\)$/g, '').split(/\s+OR\s+|\s+AND\s+/i)[0].trim();
+  return license.trim().replace(/^\(|\)$/g, '').trim();
 }
 
 function parseDeps(val) {
@@ -60,10 +60,9 @@ function parseAllowList(val) {
   return val.split(',').map(s => s.trim()).filter(Boolean);
 }
 
-// Classify a single dependency against the effective allow-list / copyleft set.
-function classify(dep, allowSet, copyleftSet) {
-  const license = normalize(dep.license);
-
+// Classify a single SPDX license id (no OR/AND) against the effective
+// allow-list / copyleft set.
+function classifySingle(license, allowSet, copyleftSet) {
   if (!license || license.toUpperCase() === 'UNKNOWN') {
     return { status: 'REVIEW_NEEDED', reason: 'No license declared for this dependency.' };
   }
@@ -74,6 +73,46 @@ function classify(dep, allowSet, copyleftSet) {
     return { status: 'OK', reason: `'${license}' is on the approved allow-list.` };
   }
   return { status: 'REVIEW_NEEDED', reason: `'${license}' is not on the allow-list and is not a recognized copyleft license — needs manual classification.` };
+}
+
+// Classify a dependency's full license expression, honoring SPDX OR/AND
+// compound expressions instead of only looking at the first term:
+//  - "A OR B" (dual-licensed): usable under whichever operand is most
+//    permissive, so OK if ANY operand is allow-listed.
+//  - "A AND B" (compound): all operands' obligations apply simultaneously,
+//    so BLOCKED if ANY operand is copyleft.
+function classify(dep, allowSet, copyleftSet) {
+  const expr = stripParens(dep.license);
+
+  if (!expr) {
+    return { status: 'REVIEW_NEEDED', reason: 'No license declared for this dependency.' };
+  }
+
+  if (/\sOR\s/i.test(expr)) {
+    const operands = expr.split(/\s+OR\s+/i).map(stripParens);
+    const allowed = operands.find(op => allowSet.has(op));
+    if (allowed) {
+      return { status: 'OK', reason: `Dual-licensed as '${expr}'; the '${allowed}' option is on the approved allow-list.` };
+    }
+    if (operands.every(op => copyleftSet.has(op))) {
+      return { status: 'BLOCKED', reason: `Every option in '${expr}' is a copyleft license.` };
+    }
+    return { status: 'REVIEW_NEEDED', reason: `None of the options in '${expr}' are on the allow-list — needs manual classification.` };
+  }
+
+  if (/\sAND\s/i.test(expr)) {
+    const operands = expr.split(/\s+AND\s+/i).map(stripParens);
+    const blocking = operands.find(op => copyleftSet.has(op));
+    if (blocking) {
+      return { status: 'BLOCKED', reason: `'${expr}' includes copyleft component '${blocking}', whose obligations apply to the combined work.` };
+    }
+    if (operands.every(op => allowSet.has(op))) {
+      return { status: 'OK', reason: `Every component of '${expr}' is on the approved allow-list.` };
+    }
+    return { status: 'REVIEW_NEEDED', reason: `'${expr}' includes an unrecognized license component — needs manual classification.` };
+  }
+
+  return classifySingle(expr, allowSet, copyleftSet);
 }
 
 // Main
@@ -88,7 +127,7 @@ const findings = deps.map((dep) => {
   return {
     name: dep.name,
     version: dep.version || 'unknown',
-    license: normalize(dep.license) || 'unknown',
+    license: stripParens(dep.license) || 'unknown',
     status: result.status,
     reason: result.reason
   };

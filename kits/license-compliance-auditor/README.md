@@ -4,7 +4,7 @@ An automated workflow template built on Lamatic that scans a project's dependenc
 
 ## Features
 
-- **Deterministic License Classifier:** Classifies every dependency as `OK`, `BLOCKED`, or `REVIEW_NEEDED` using custom JavaScript execution logic (`codeNode_210`) — no hallucinated verdicts.
+- **Deterministic License Classifier:** Classifies every dependency as `OK`, `BLOCKED`, or `REVIEW_NEEDED` using custom JavaScript execution logic (`codeNode_210`) — no hallucinated verdicts. Understands SPDX compound expressions (`"GPL-3.0 OR MIT"`, `"Apache-2.0 AND MIT"`), not just single license ids.
 - **Configurable Allow-List:** Ships with a sensible default allow-list (MIT, Apache-2.0, BSD, ISC, 0BSD, Unlicense, CC0-1.0) and merges in any caller-supplied allow-list.
 - **LLM Compliance Report Generation:** Converts the structured findings into a clear, markdown-formatted compliance report using Gemini.
 - **GraphQL Integration:** Programmatically triggerable via Lamatic's GraphQL endpoint.
@@ -22,10 +22,10 @@ This kit acts as an automated license-compliance guardrail: it consumes a machin
 
 ## How It Works
 
-1. **Input:** The flow takes `dependency_licenses` (a JSON array of `{name, version, license}`) and an optional `allow_list` (comma-separated SPDX ids) via GraphQL.
-2. **Classification (`codeNode_210`):** Custom JS logic normalizes each license string, merges the default allow-list with any caller-supplied one, and classifies every dependency as `OK`, `BLOCKED` (copyleft/high-risk), or `REVIEW_NEEDED` (missing/unrecognized license).
+1. **Input:** The flow takes `dependency_licenses` and an optional `allow_list` (comma-separated SPDX ids) via GraphQL. `dependency_licenses` is declared as a `string` in the trigger schema, so over the wire it must be a **JSON-encoded string** containing an array of `{name, version, license}` — not a nested JSON array. See `samples/test_flow.js`, which reads the sample fixture file as raw text (already a JSON string) and sends it as-is.
+2. **Classification (`codeNode_210`):** Custom JS logic parses that string, merges the default allow-list with any caller-supplied one, and classifies every dependency as `OK`, `BLOCKED` (copyleft/high-risk), or `REVIEW_NEEDED` (missing/unrecognized license) — correctly handling SPDX `OR`/`AND` compound expressions (dual-licensed packages are `OK` if any option is allow-listed; compound `AND` expressions are `BLOCKED` if any component is copyleft).
 3. **Report Generation (`LLMNode_430`):** Gemini consumes the structured findings and writes a full compliance report.
-4. **Output:** Returns a ready-to-post markdown report with status, blocked dependencies, items needing review, a compliant summary, and remediation steps.
+4. **Output:** Returns the structured findings (`has_violations`, `total_deps`, `blocked_count`, `review_count`, `findings[]`) alongside a ready-to-post markdown `report` — the structured fields let a CI step gate on `has_violations` programmatically without parsing markdown, while `report` is for humans.
 
 ```text
 dependency_licenses + allow_list ──▶ codeNode_210 (JS classifier) ──▶ Structured Findings ──▶ LLMNode_430 (Gemini) ──▶ Markdown Compliance Report
@@ -38,6 +38,12 @@ dependency_licenses + allow_list ──▶ codeNode_210 (JS classifier) ──�
 - **Deterministic Classification:** License classification is computed via deterministic JavaScript (`codeNode_210`), not the LLM — this avoids hallucinated license verdicts. The LLM's job is purely to explain and format the already-computed findings.
 - **No Live Registry Lookup:** The flow trusts the `license` field passed in on each dependency object; it does not call out to npm/PyPI registries itself. Pair it with a tool that already resolves licenses (`license-checker --json`, `pip-licenses --format=json`, a Syft/CycloneDX SBOM, etc.) as an upstream step.
 - **Conservative Default Allow-List:** Only well-known permissive licenses are pre-approved. Anything unrecognized is routed to `REVIEW_NEEDED` rather than silently allowed.
+
+---
+
+## Disclaimer
+
+This kit provides **automated screening guidance, not legal advice**. A `BLOCKED` verdict is a conservative policy classification against the configured allow-list — not a deterministic legal prohibition. Real-world license risk also depends on license *version*, how the dependency is used (static/dynamic linking, modification, network use), your distribution model, and applicable exceptions. Always get a final sign-off from legal/compliance before shipping — use this report to triage what needs their attention, not to replace it.
 
 ---
 
@@ -64,7 +70,22 @@ node samples/test_classifier.js
 ]
 ```
 
-**Generated Compliance Report Output:**
+**API Response Shape** (`findings` abbreviated below to the 2 non-`OK` entries for brevity — the real response includes all 7):
+```json
+{
+  "has_violations": true,
+  "total_deps": 7,
+  "blocked_count": 1,
+  "review_count": 1,
+  "findings": [
+    { "name": "gnu-diff-tool", "version": "2.1.0", "license": "GPL-3.0", "status": "BLOCKED", "reason": "'GPL-3.0' is a copyleft license that may impose reciprocal obligations on this project." },
+    { "name": "some-internal-fork", "version": "0.0.1", "license": "unknown", "status": "REVIEW_NEEDED", "reason": "No license declared for this dependency." }
+  ],
+  "report": "### 1. Status\n..."
+}
+```
+
+**The `report` field, rendered:**
 
 ````markdown
 ### 1. Status
