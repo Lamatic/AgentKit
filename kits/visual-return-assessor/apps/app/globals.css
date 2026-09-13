@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand Color Definitions */
+  --brand-accent: #f33736;
+  --brand-border: #e3e3e3;
+  --brand-white: #ffffff;
+  --brand-black: #000000;
+
+  /* Next.js Design System Variables */
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 10, 10, 10;
+}
+
+body {
+  color: var(--brand-white);
+  background: var(--brand-black);
+  font-family: inherit;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbars matching the Brand Theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e3e3e3;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f33736;
+}
