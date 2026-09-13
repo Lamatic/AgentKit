@@ -19,4 +19,11 @@ The Proposal Tailor is an agentic kit designed to automatically generate customi
 
 ## Usage
 
-Submit client requirements and project descriptions through the provided UI. The agent will process the inputs and generate a tailored proposal document ready for client delivery.
+This kit operates via an API flow. You can trigger the proposal generation by sending a request with the following JSON payload:
+
+```json
+{
+  "job_description": "Enter the raw client project requirements here.",
+  "freelancer_skills": "Enter your relevant skills, case studies, and experience here."
+}
+```
