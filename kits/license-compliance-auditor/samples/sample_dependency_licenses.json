@@ -1,0 +1,9 @@
+[
+  { "name": "react", "version": "18.3.1", "license": "MIT" },
+  { "name": "express", "version": "4.19.2", "license": "MIT" },
+  { "name": "lodash", "version": "4.17.21", "license": "MIT" },
+  { "name": "chalk", "version": "5.3.0", "license": "Apache-2.0" },
+  { "name": "readline-sync", "version": "1.4.10", "license": "MIT" },
+  { "name": "gnu-diff-tool", "version": "2.1.0", "license": "GPL-3.0" },
+  { "name": "some-internal-fork", "version": "0.0.1", "license": "" }
+]
