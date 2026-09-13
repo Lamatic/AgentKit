@@ -1,21 +1,21 @@
 export default {
-  name: "Generative AI",
-  description: "It uses intelligent workflows to generate text, images, and JSON content through a modern Next.js interface with markdown rendering support.",
+  name: "Change Impact Lens",
+  description: "Analyzes a changed file's real dependency graph and traces direct plus indirect impact across the codebase, so you know what to test before it breaks.",
   version: "1.0.0",
   type: "kit" as const,
-  author: {"name":"Lamatic AI","email":"info@lamatic.ai"},
-  tags: ["agentic","generative"],
+  author: {"name":"Harish Chandar","email":"notharishchandar@gmail.com"},
+  tags: ["developer-tools","code-analysis","agentic"],
   steps: [
     {
-        "id": "agentic-generate-content",
+        "id": "change-impact-lens",
         "type": "mandatory",
-        "envKey": "AGENTIC_GENERATE_CONTENT"
+        "envKey": "CHANGE_IMPACT_ANALYSIS_FLOW"
     }
 ],
   links: {
-    "demo": "https://agent-kit-generation.vercel.app/",
-    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/content-generation",
-    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fcontent-generation%2Fapps&env=AGENTIC_GENERATE_CONTENT,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20Generation%20keys%20are%20required.&envLink=https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation",
-    "docs": "https://lamatic.ai/templates/agentkits/agentic/agent-kit-generation"
+    "demo": "",
+    "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/change-impact-lens",
+    "deploy": "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fchange-impact-lens%2Fapps&env=CHANGE_IMPACT_ANALYSIS_FLOW,LAMATIC_API_URL,LAMATIC_PROJECT_ID,LAMATIC_API_KEY&envDescription=Your%20Lamatic%20keys%20are%20required.",
+    "docs": ""
 },
 };
