@@ -138,7 +138,16 @@ function analyzePngStructure(bytes: Uint8Array): ELAFlag[] {
   let offset = 8; // Skip PNG signature
 
   while (offset + 12 <= bytes.length) {
-    const length = (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+    // Read length as unsigned 32-bit big-endian integer.
+    // JS bitwise operators produce signed int32, so values ≥ 0x80000000 would
+    // become negative and cause near-infinite loops or negative offsets.
+    const length = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, false);
+
+    // Reject chunks whose declared end exceeds the buffer to prevent DoS.
+    if (length > bytes.length - offset - 12) {
+      break; // Malformed or truncated PNG — stop parsing safely
+    }
+
     const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
     chunks.push({ type, offset, length });
     offset += 12 + length;

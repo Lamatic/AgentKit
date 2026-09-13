@@ -77,23 +77,34 @@ const vlmRaw = inputs.LLMNode_vlm?.output?.answer ?? null;
 const fileName: string = inputs.triggerNode_1?.output?.fileName ?? "Unknown";
 const fileType: string = inputs.triggerNode_1?.output?.fileType ?? "Unknown";
 
-// Parse VLM output (JSON string from LLM node)
+// Parse and strictly validate VLM output (JSON string from LLM node)
 let vlmFlags: Flag[] = [];
-try {
-  if (vlmRaw) {
-    const parsed = typeof vlmRaw === "string" ? JSON.parse(vlmRaw) : vlmRaw;
-    const vlmFlagsRaw = parsed?.vlm_flags ?? [];
-    vlmFlags = vlmFlagsRaw
-      .filter((f: any) => f.anomaly_detected === true)
-      .map((f: any): Flag => ({
-        region: f.region ?? "Unknown region",
-        signal: "vlm",
-        confidence: typeof f.confidence === "number" ? f.confidence : 0.5,
-        explanation: f.explanation ?? "Visual anomaly detected."
-      }));
+if (vlmRaw) {
+  let parsed: any;
+  try {
+    parsed = typeof vlmRaw === "string" ? JSON.parse(vlmRaw) : vlmRaw;
+  } catch (err: any) {
+    throw new Error(`Malformed VLM JSON response: ${err?.message || "Invalid JSON"}`);
   }
-} catch {
-  // VLM output parse failed — skip gracefully
+
+  if (!parsed || !Array.isArray(parsed.vlm_flags)) {
+    throw new Error("Invalid VLM analysis response: 'vlm_flags' must be an array.");
+  }
+
+  for (const f of parsed.vlm_flags) {
+    if (typeof f.confidence !== "number" || isNaN(f.confidence) || f.confidence < 0 || f.confidence > 1) {
+      throw new Error(`Invalid VLM flag confidence: ${f?.confidence}. Must be a number between 0.0 and 1.0.`);
+    }
+  }
+
+  vlmFlags = parsed.vlm_flags
+    .filter((f: any) => f.anomaly_detected === true)
+    .map((f: any): Flag => ({
+      region: f.region ?? "Unknown region",
+      signal: "vlm",
+      confidence: f.confidence,
+      explanation: f.explanation ?? "Visual anomaly detected."
+    }));
 }
 
 // Collect all flags
@@ -102,28 +113,33 @@ const ocrFlags: Flag[] = (ocrOutput.flags ?? []).map((f: any) => ({ ...f, signal
 const elaFlags: Flag[] = (elaOutput.flags ?? []).map((f: any) => ({ ...f, signal: "ela" as const }));
 const allFlags: Flag[] = [...metadataFlags, ...ocrFlags, ...elaFlags, ...vlmFlags];
 
-// Compute per-signal scores
-const metaScore = signalScore(metadataFlags);
-const ocrScore = signalScore(ocrFlags);
-const elaScore = elaOutput.skipped ? 0 : signalScore(elaFlags);
-const vlmScore = signalScore(vlmFlags);
+// Detect which signals were skipped
+const isMetadataSkipped = Boolean(metadataOutput.skipped);
+const isOcrSkipped = Boolean(ocrOutput.skipped);
+const isElaSkipped = Boolean(elaOutput.skipped);
+const isVlmSkipped = !vlmRaw;
 
-// Weighted composite score
-const WEIGHTS = { metadata: 0.30, ocr: 0.30, ela: 0.25, vlm: 0.15 };
+// Base signal weights (must sum to 1.0)
+const BASE_WEIGHTS = { metadata: 0.30, ocr: 0.30, ela: 0.25, vlm: 0.15 };
 
-// If ELA was skipped, redistribute its weight to metadata and OCR proportionally
-let elaWeight = WEIGHTS.ela;
-let metaWeight = WEIGHTS.metadata;
-let ocrWeight = WEIGHTS.ocr;
-let vlmWeight = WEIGHTS.vlm;
+// Determine completed signals and compute total active base weight
+let totalActiveBaseWeight = 0;
+if (!isMetadataSkipped) totalActiveBaseWeight += BASE_WEIGHTS.metadata;
+if (!isOcrSkipped) totalActiveBaseWeight += BASE_WEIGHTS.ocr;
+if (!isElaSkipped) totalActiveBaseWeight += BASE_WEIGHTS.ela;
+if (!isVlmSkipped) totalActiveBaseWeight += BASE_WEIGHTS.vlm;
 
-if (elaOutput.skipped) {
-  const redistribute = elaWeight;
-  metaWeight += redistribute * 0.5;
-  ocrWeight += redistribute * 0.3;
-  vlmWeight += redistribute * 0.2;
-  elaWeight = 0;
-}
+// Normalize weights proportionally across completed, non-skipped signals only
+const metaWeight = (!isMetadataSkipped && totalActiveBaseWeight > 0) ? (BASE_WEIGHTS.metadata / totalActiveBaseWeight) : 0;
+const ocrWeight = (!isOcrSkipped && totalActiveBaseWeight > 0) ? (BASE_WEIGHTS.ocr / totalActiveBaseWeight) : 0;
+const elaWeight = (!isElaSkipped && totalActiveBaseWeight > 0) ? (BASE_WEIGHTS.ela / totalActiveBaseWeight) : 0;
+const vlmWeight = (!isVlmSkipped && totalActiveBaseWeight > 0) ? (BASE_WEIGHTS.vlm / totalActiveBaseWeight) : 0;
+
+// Compute per-signal scores (0 for skipped signals)
+const metaScore = isMetadataSkipped ? 0 : signalScore(metadataFlags);
+const ocrScore = isOcrSkipped ? 0 : signalScore(ocrFlags);
+const elaScore = isElaSkipped ? 0 : signalScore(elaFlags);
+const vlmScore = isVlmSkipped ? 0 : signalScore(vlmFlags);
 
 const rawScore =
   metaScore * metaWeight +

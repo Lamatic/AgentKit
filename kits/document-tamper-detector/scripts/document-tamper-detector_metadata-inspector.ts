@@ -83,8 +83,28 @@ function inspectPdfMetadata(rawText: string): { flags: MetadataFlag[]; metadata:
   const flags: MetadataFlag[] = [];
   const metadata: Record<string, string> = {};
 
-  // Try to find /Info dictionary
-  const infoBlock = extractBetween(rawText, "/Info", ">>") ?? "";
+  // 1. Resolve /Info dictionary (handles direct dictionary as well as indirect references: /Info 12 0 R)
+  let infoBlock = "";
+  const indirectInfoMatch = rawText.match(/\/Info\s+(\d+)\s+(\d+)\s+R/);
+  const hasIndirectInfo = Boolean(indirectInfoMatch);
+  const hasObjectStreams = rawText.includes("/ObjStm");
+  const hasMetadataStream = rawText.includes("/Metadata");
+
+  if (indirectInfoMatch) {
+    const objNum = indirectInfoMatch[1];
+    const genNum = indirectInfoMatch[2];
+    // Look for "<obj> <gen> obj ... endobj"
+    const objRegex = new RegExp(`${objNum}\\s+${genNum}\\s+obj[\\s\\S]*?<<([\\s\\S]*?)>>`, "m");
+    const objMatch = rawText.match(objRegex);
+    if (objMatch) {
+      infoBlock = objMatch[1];
+    }
+  }
+
+  if (!infoBlock) {
+    // Try inline direct dictionary if present: /Info << ... >>
+    infoBlock = extractBetween(rawText, "/Info", ">>") ?? "";
+  }
 
   // Extract common fields
   const fields: Array<[string, string]> = [
@@ -102,14 +122,41 @@ function inspectPdfMetadata(rawText: string): { flags: MetadataFlag[]; metadata:
     if (val) metadata[key] = val;
   }
 
+  // Also check XMP metadata stream if available in text (e.g. <xmp:CreatorTool>, <xmp:ModifyDate>)
+  if (!metadata.Creator) {
+    const creatorMatch = rawText.match(/<xmp:CreatorTool>([^<]+)<\/xmp:CreatorTool>/i) ??
+                         rawText.match(/<pdf:CreatorTool>([^<]+)<\/pdf:CreatorTool>/i);
+    if (creatorMatch) metadata.Creator = creatorMatch[1].trim();
+  }
+  if (!metadata.Producer) {
+    const producerMatch = rawText.match(/<pdf:Producer>([^<]+)<\/pdf:Producer>/i);
+    if (producerMatch) metadata.Producer = producerMatch[1].trim();
+  }
+  if (!metadata.CreationDate) {
+    const createDateMatch = rawText.match(/<xmp:CreateDate>([^<]+)<\/xmp:CreateDate>/i);
+    if (createDateMatch) metadata.CreationDate = createDateMatch[1].trim();
+  }
+  if (!metadata.ModDate) {
+    const modDateMatch = rawText.match(/<xmp:ModifyDate>([^<]+)<\/xmp:ModifyDate>/i);
+    if (modDateMatch) metadata.ModDate = modDateMatch[1].trim();
+  }
+
   // Flag 1: Missing metadata entirely
   if (Object.keys(metadata).length === 0) {
+    // If the PDF references an indirect /Info dictionary or object streams (/ObjStm) or /Metadata,
+    // the dictionary is unresolved/indeterminate (e.g. stored in compressed object streams).
+    // Treat an unresolved /Info dictionary as indeterminate rather than classifying as missing metadata.
+    if (hasIndirectInfo || hasObjectStreams || hasMetadataStream) {
+      metadata["status"] = "indeterminate";
+      return { flags, metadata };
+    }
+
     flags.push({
       region: "Document metadata",
       signal: "metadata",
       confidence: 0.55,
       explanation: "This document has no embedded metadata, which is unusual. Legitimate documents created by word processors or scanners almost always include creation date and software information. Stripped metadata is a common sign of document editing.",
-      raw_detail: "No /Info dictionary found in PDF structure"
+      raw_detail: "No /Info dictionary or metadata stream found in PDF structure"
     });
     return { flags, metadata };
   }

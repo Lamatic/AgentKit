@@ -31,20 +31,17 @@ export interface TrustReport {
   disclaimer: string;
 }
 
-// In-memory rate limiter per IP/session: max 10 requests per minute
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+// Rate limiter configuration: max 10 requests per minute
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_WINDOW_SECS = 60;
 const MAX_REQUESTS_PER_WINDOW = 10;
-const MAX_RATE_LIMIT_ENTRIES = 1000; // Bound memory consumption against DoS
+const MAX_RATE_LIMIT_ENTRIES = 1000; // Bound process-local memory consumption against DoS
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
 
-/**
- * Per-IP sliding-window rate limiter.
- * Evicts expired entries on each call and caps the map at MAX_RATE_LIMIT_ENTRIES
- * to prevent unbounded memory growth (CWE-400).
- * Returns true if the request is within the allowed quota, false if exceeded.
- */
-function checkRateLimit(ip: string): boolean {
+// Process-local fallback store for local development environments
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function checkInMemoryRateLimit(ip: string): boolean {
   const now = Date.now();
 
   // 1. Evict expired entries to prevent unbounded memory growth
@@ -56,7 +53,6 @@ function checkRateLimit(ip: string): boolean {
 
   const record = rateLimitMap.get(ip);
   if (!record || now > record.resetTime) {
-    // 2. Enforce maximum map size bound: remove oldest entry if capacity reached
     if (rateLimitMap.size >= MAX_RATE_LIMIT_ENTRIES) {
       const oldestKey = rateLimitMap.keys().next().value;
       if (oldestKey !== undefined) {
@@ -73,6 +69,50 @@ function checkRateLimit(ip: string): boolean {
 
   record.count += 1;
   return true;
+}
+
+/**
+ * Shared persistent rate limiter for serverless deployments (CWE-400).
+ * Uses Upstash Redis REST API when UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+ * (or KV_REST_API_URL and KV_REST_API_TOKEN) are configured, performing atomic
+ * increment and TTL evaluation prior to executeFlow across distributed instances.
+ * Falls back to bounded in-memory store in local dev when Redis is not configured.
+ */
+async function checkRateLimit(ip: string): Promise<boolean> {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+  if (redisUrl && redisToken) {
+    try {
+      const sanitizedIp = ip.replace(/[^a-zA-Z0-9:._-]/g, "_").slice(0, 64);
+      const key = `ratelimit:tamper:${sanitizedIp}`;
+      // Execute atomic pipeline: INCR counter, set TTL on new key
+      const response = await fetch(`${redisUrl}/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCR", key],
+          ["EXPIRE", key, RATE_LIMIT_WINDOW_SECS, "NX"],
+        ]),
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        const results = await response.json();
+        const currentCount = results[0]?.result;
+        if (typeof currentCount === "number") {
+          return currentCount <= MAX_REQUESTS_PER_WINDOW;
+        }
+      }
+    } catch {
+      // If shared Redis is temporarily unreachable, safely fallback to in-memory check
+    }
+  }
+
+  return checkInMemoryRateLimit(ip);
 }
 
 /**
@@ -123,14 +163,14 @@ export async function analyzeDocument(
     let clientIp = "unknown-client";
     try {
       const headerList = await headers();
-      const forwardedFor = headerList.get("x-forwarded-for");
       const realIp = headerList.get("x-real-ip");
-      clientIp = forwardedFor ? forwardedFor.split(",")[0].trim() : (realIp || "unknown-client");
+      const forwardedFor = headerList.get("x-forwarded-for");
+      clientIp = realIp || (forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown-client");
     } catch {
       // Fallback if headers cannot be inspected
     }
 
-    if (!checkRateLimit(clientIp)) {
+    if (!(await checkRateLimit(clientIp))) {
       return {
         success: false,
         error: "Rate limit exceeded. Too many analysis requests. Please wait a minute and try again.",

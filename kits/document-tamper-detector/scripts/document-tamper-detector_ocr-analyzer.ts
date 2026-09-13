@@ -42,6 +42,8 @@ interface OCRResult {
   summary: string;
   words_analyzed: number;
   flagged_regions_description: string;
+  /** True when no ocrBoxes were provided and the signal was not run. */
+  skipped?: boolean;
 }
 
 // Statistical helpers
@@ -203,10 +205,12 @@ try {
       flagged_regions_description: buildRegionDescription(deduped)
     };
   } else {
-    // No OCR boxes provided — indicate the signal was skipped
+    // No OCR boxes provided — mark the signal as skipped so downstream
+    // weight redistribution can exclude it from the composite score.
     result = {
       flags: [],
       confidence: 0,
+      skipped: true,
       summary: "OCR analysis skipped — no bounding box data in payload. Provide ocrBoxes[] in the trigger payload to enable this signal.",
       words_analyzed: 0,
       flagged_regions_description: "OCR analysis was not run on this document."
