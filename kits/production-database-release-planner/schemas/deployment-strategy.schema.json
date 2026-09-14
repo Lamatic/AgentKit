@@ -7,6 +7,7 @@
     "operations",
     "target_table",
     "target_columns",
+    "operation_details",
     "is_destructive",
     "data_loss_potential",
     "explanation",
@@ -55,6 +56,20 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      ]
+    },
+    "operation_details": {
+      "description": "Migration facts explicitly represented in the SQL for each operation (e.g. column, data_type, default, index_name, constraint_name — keys vary per operation type and only include information explicitly present in the SQL). An object for a single operation, or an array of objects (one per operation, same order as `operations`) for multiple.",
+      "oneOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object"
           }
         }
       ]
