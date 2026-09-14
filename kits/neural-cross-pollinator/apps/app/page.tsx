@@ -32,23 +32,24 @@ export default function Home() {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-300">Domain A</label>
-            <input
-              value={domainA}
-              onChange={(e) => setDomainA(e.target.value)}
-              placeholder="e.g. bee colony behavior"
-              className="mt-1 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm focus:border-neutral-400 focus:outline-none"
-              required
-            />
+            <label htmlFor="domainA" className="block text-sm font-medium text-neutral-300">Domain A</label>
+            <inputid="d0mainA"
+            value={domainA}
+            onChange={(e) => setDomainA(e.target.value)}
+             placeholder="e.g. bee colony behavior"
+             className="mt-1 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm focus:border-neutral-400 focus:outline-none"
+             required
+             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-300">Domain B</label>
+            <label htmlFor="domainB" className="block text-sm font-medium text-neutral-300">Domain B</label>
             <input
-              value={domainB}
-              onChange={(e) => setDomainB(e.target.value)}
-              placeholder="e.g. stock market crashes"
-              className="mt-1 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm focus:border-neutral-400 focus:outline-none"
-              required
+            id="domainB"
+            value={domainB}
+            onChange={(e) => setDomainB(e.target.value)}
+            placeholder="e.g. stock market crashes"
+            className="mt-1 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm focus:border-neutral-400 focus:outline-none"
+            required
             />
           </div>
           <button

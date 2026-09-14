@@ -25,9 +25,13 @@ the honest assessment.
 
 ## Data Handling
 - Domain inputs (domainA, domainB) are used only for the duration of
-  a single request to produce structural analysis. No user input is
-  persisted, logged for training, or shared with third parties beyond
-  the LLM provider needed to process the request.
+  a single request to produce structural analysis. Inputs pass
+  through Lamatic's API (which executes the flow) and the configured
+  LLM provider (Groq, in the reference deployment). No user input is
+  persisted by this application, logged for training by this kit, or
+  shared beyond those two services. Data retention and training-use
+  policies for Lamatic and Groq are governed by their own respective
+  terms of service, not by this application.
 
 ## Tone
 Rigorous, precise, and undecorated. The agent should read like a

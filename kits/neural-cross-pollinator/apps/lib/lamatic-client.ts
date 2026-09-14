@@ -28,6 +28,27 @@ function requireEnv(name: string): string {
   return value;
 }
 
+// Lamatic can return object/array-mapped fields as either a real
+// JSON value OR a JSON-encoded string, depending on how the field's
+// declared type resolves server-side. Guard against both shapes so
+// a successful response never crashes the page on .map().
+function normalizeParallels(value: unknown): ParallelMatch[] {
+  if (Array.isArray(value)) {
+    return value as ParallelMatch[];
+  }
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed as ParallelMatch[];
+      }
+    } catch {
+      // fall through to the empty-array fallback below
+    }
+  }
+  return [];
+}
+
 export async function runNeuralCrossPollinator(
   domainA: string,
   domainB: string
@@ -37,9 +58,12 @@ export async function runNeuralCrossPollinator(
   const projectId = requireEnv("LAMATIC_PROJECT_ID");
   const workflowId = requireEnv("NEURAL_CROSS_POLLINATOR_FLOW_ID");
 
-  // Same GraphQL shape we manually tested working in Lamatic's API Playground.
+  // domainA/domainB are required by the flow's input schema, so the
+  // GraphQL variables must be non-null (String!) to match — a
+  // nullable declaration here can get rejected during validation
+  // before the flow even runs.
   const query = `
-    query ExecuteWorkflow($workflowId: String!, $domainA: String, $domainB: String) {
+    query ExecuteWorkflow($workflowId: String!, $domainA: String!, $domainB: String!) {
       executeWorkflow(
         workflowId: $workflowId
         payload: { domainA: $domainA, domainB: $domainB }
@@ -79,5 +103,14 @@ export async function runNeuralCrossPollinator(
     throw new Error("Flow execution did not return a success status");
   }
 
-  return executed.result as CrossPollinatorResult;
+  const raw = executed.result ?? {};
+
+  return {
+    domainA_analysis: String(raw.domainA_analysis ?? ""),
+    domainB_analysis: String(raw.domainB_analysis ?? ""),
+    parallels: normalizeParallels(raw.parallels),
+    proposed_innovation: String(raw.proposed_innovation ?? ""),
+    evaluation: String(raw.evaluation ?? ""),
+    final_summary: String(raw.final_summary ?? "")
+  };
 }
