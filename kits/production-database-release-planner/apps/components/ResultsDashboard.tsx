@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileText } from "lucide-react";
 import type {
   ConfidenceLevel,
+  DowntimeLevel,
   MigrationPipelineResult,
   ReleaseStatus,
   RiskLevel,
@@ -29,6 +30,17 @@ const tabs: Array<{ id: ResultTab; label: string }> = [
 ];
 
 const riskToneMap: Record<RiskLevel, "gray" | "green" | "amber" | "red"> = {
+  LOW: "green",
+  MEDIUM: "amber",
+  HIGH: "red",
+  UNKNOWN: "gray",
+};
+
+const downtimeToneMap: Record<
+  DowntimeLevel,
+  "gray" | "green" | "amber" | "red"
+> = {
+  NONE: "green",
   LOW: "green",
   MEDIUM: "amber",
   HIGH: "red",
@@ -162,11 +174,13 @@ export default function ResultsDashboard({ result }: ResultsDashboardProps) {
           <DeploymentStrategyTab
             deploymentOrder={result.deployment_strategy.deployment_order}
             estimatedDowntime={result.deployment_strategy.estimated_downtime}
-            maintenanceWindowRequired={result.deployment_strategy.maintenance_window_required}
+            maintenanceWindowRequired={
+              result.deployment_strategy.maintenance_window_required
+            }
             recommendation={result.deployment_strategy.recommendation}
             strategy={result.deployment_strategy.strategy}
             strategyTone={strategyToneMap[result.deployment_strategy.strategy]}
-            toneMap={riskToneMap}
+            toneMap={downtimeToneMap}
           />
         ) : null}
 

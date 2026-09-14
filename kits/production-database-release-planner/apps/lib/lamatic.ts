@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   ConfidenceLevel,
+  DowntimeLevel,
   MigrationPipelineResult,
   ReleaseStatus,
   RiskLevel,
@@ -12,6 +13,7 @@ import type {
 // the user's text under the `chatMessage` field. Forward the editor SQL
 // as `chatMessage` so the flow receives the same logical input as the
 // Lamatic chatbot.
+
 export const LAMATIC_FLOW_INPUT_FIELD = "chatMessage" as const;
 
 type LamaticWorkflowResponse = {
@@ -24,20 +26,39 @@ type LamaticWorkflowResponse = {
   errors?: Array<{ message?: string }>;
 };
 
-const riskLevels = new Set<RiskLevel>(["LOW", "MEDIUM", "HIGH", "UNKNOWN"]);
-const confidenceLevels = new Set<ConfidenceLevel>(["LOW", "MEDIUM", "HIGH"]);
+const riskLevels = new Set<RiskLevel>([
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "UNKNOWN",
+]);
+
+const confidenceLevels = new Set<ConfidenceLevel>([
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+]);
+
 const releaseStatuses = new Set<ReleaseStatus>([
   "APPROVE",
   "APPROVE_WITH_CAUTION",
   "REJECT",
 ]);
+
 const strategyTypes = new Set<StrategyType>([
   "DIRECT_MIGRATION",
   "ONLINE_MIGRATION",
   "PHASED_ROLLOUT",
   "EXPAND_CONTRACT",
 ]);
-const downtimeLevels = new Set<RiskLevel>(["LOW", "MEDIUM", "HIGH", "UNKNOWN"]);
+
+const downtimeLevels = new Set<DowntimeLevel>([
+  "NONE",
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "UNKNOWN",
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -48,7 +69,7 @@ function parseMaybeJson(value: unknown): unknown {
     return value;
   }
 
-  const stripped = value.replace(/^\$/, "").trim();
+  const stripped = value.replace(/^\$+/, "").trim();
 
   if (!stripped.startsWith("{") && !stripped.startsWith("[")) {
     return stripped;
@@ -70,7 +91,10 @@ function normalizeValue(value: unknown): unknown {
 
   if (isRecord(parsed)) {
     return Object.fromEntries(
-      Object.entries(parsed).map(([key, entry]) => [key, normalizeValue(entry)]),
+      Object.entries(parsed).map(([key, entry]) => [
+        key,
+        normalizeValue(entry),
+      ]),
     );
   }
 
@@ -109,10 +133,16 @@ function coerceBoolean(value: unknown, path: string): boolean {
   throw new Error(`Lamatic response is missing a boolean at ${path}.`);
 }
 
-function coerceBooleanOrUnknown(value: unknown, path: string): boolean | "UNKNOWN" {
+function coerceBooleanOrUnknown(
+  value: unknown,
+  path: string,
+): boolean | "UNKNOWN" {
   const normalized = normalizeValue(value);
 
-  if (typeof normalized === "string" && normalized.toUpperCase() === "UNKNOWN") {
+  if (
+    typeof normalized === "string" &&
+    normalized.toUpperCase() === "UNKNOWN"
+  ) {
     return "UNKNOWN";
   }
 
@@ -130,7 +160,9 @@ function coerceEnum<T extends string>(
     return normalized;
   }
 
-  throw new Error(`Lamatic response has an invalid value at ${path}: ${normalized}`);
+  throw new Error(
+    `Lamatic response has an invalid value at ${path}: ${normalized}`,
+  );
 }
 
 function coerceStringArray(value: unknown, path: string): string[] {
@@ -142,14 +174,23 @@ function coerceStringArray(value: unknown, path: string): string[] {
     return [normalized];
   }
 
-  if (!Array.isArray(normalized) || !normalized.every((item) => typeof item === "string")) {
-    throw new Error(`Lamatic response is missing a string array at ${path}.`);
+  if (
+    !Array.isArray(normalized) ||
+    !normalized.every((item) => typeof item === "string")
+  ) {
+    throw new Error(
+      `Lamatic response is missing a string array at ${path}.`,
+    );
   }
 
   return normalized;
 }
 
-function coerceTargetColumns(value: unknown, operationCount: number, path: string): string[][] {
+function coerceTargetColumns(
+  value: unknown,
+  operationCount: number,
+  path: string,
+): string[][] {
   const normalized = normalizeValue(value);
 
   if (!Array.isArray(normalized)) {
@@ -159,14 +200,18 @@ function coerceTargetColumns(value: unknown, operationCount: number, path: strin
   const isNestedStringArray =
     normalized.length > 0 &&
     normalized.every(
-      (item) => Array.isArray(item) && item.every((entry) => typeof entry === "string"),
+      (item) =>
+        Array.isArray(item) &&
+        item.every((entry) => typeof entry === "string"),
     );
 
   if (isNestedStringArray) {
     return normalized as string[][];
   }
 
-  const isFlatStringArray = normalized.every((item) => typeof item === "string");
+  const isFlatStringArray = normalized.every(
+    (item) => typeof item === "string",
+  );
 
   if (!isFlatStringArray) {
     throw new Error(
@@ -198,7 +243,9 @@ function coerceOperationDetails(
 
   if (Array.isArray(normalized)) {
     if (!normalized.every((item) => isRecord(item))) {
-      throw new Error(`Lamatic response must contain an object or an array of objects at ${path}.`);
+      throw new Error(
+        `Lamatic response must contain an object or an array of objects at ${path}.`,
+      );
     }
 
     if (normalized.length !== operationCount) {
@@ -220,7 +267,9 @@ function coerceOperationDetails(
     return normalized;
   }
 
-  throw new Error(`Lamatic response must contain an object or an array of objects at ${path}.`);
+  throw new Error(
+    `Lamatic response must contain an object or an array of objects at ${path}.`,
+  );
 }
 
 function extractWorkflowResult(value: unknown): unknown {
@@ -259,14 +308,14 @@ function extractJsonObjectsFromText(value: string): unknown[] {
         continue;
       }
 
-      if (char === "\"") {
+      if (char === '"') {
         inString = false;
       }
 
       continue;
     }
 
-    if (char === "\"") {
+    if (char === '"') {
       inString = true;
       continue;
     }
@@ -386,16 +435,23 @@ async function invokeLamaticEndpoint(
 
   if (!response.ok) {
     const upstreamMessage =
-      parsed?.errors?.map((error) => error?.message).filter(Boolean).join("; ") ||
+      parsed?.errors
+        ?.map((error) => error?.message)
+        .filter(Boolean)
+        .join("; ") ||
       (trimmedText.startsWith("<")
         ? "Lamatic returned HTML instead of JSON."
         : trimmedText || "Lamatic returned an unsuccessful response.");
 
-    throw new Error(`Lamatic request failed (${response.status}) at ${endpoint}: ${upstreamMessage}`);
+    throw new Error(
+      `Lamatic request failed (${response.status}) at ${endpoint}: ${upstreamMessage}`,
+    );
   }
 
   if (!parsed) {
-    throw new Error(`Lamatic returned an invalid non-JSON response from ${endpoint}.`);
+    throw new Error(
+      `Lamatic returned an invalid non-JSON response from ${endpoint}.`,
+    );
   }
 
   if (Array.isArray(parsed.errors) && parsed.errors.length > 0) {
@@ -420,8 +476,15 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
   }
 
   const operations = coerceStringArray(result.operations, "operations");
-  const targetTable = coerceStringArray(result.target_table, "target_table");
-  const targetColumns = coerceTargetColumns(result.target_columns, operations.length, "target_columns");
+  const targetTable = coerceStringArray(
+    result.target_table,
+    "target_table",
+  );
+  const targetColumns = coerceTargetColumns(
+    result.target_columns,
+    operations.length,
+    "target_columns",
+  );
 
   if (
     operations.length !== targetTable.length ||
@@ -436,64 +499,92 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
     operations,
     target_table: targetTable,
     target_columns: targetColumns,
-    operation_details: coerceOperationDetails(result.operation_details, operations.length, "operation_details"),
-    is_destructive: coerceBoolean(result.is_destructive, "is_destructive"),
-    data_loss_potential: coerceEnum(result.data_loss_potential, riskLevels, "data_loss_potential"),
+    operation_details: coerceOperationDetails(
+      result.operation_details,
+      operations.length,
+      "operation_details",
+    ),
+    is_destructive: coerceBoolean(
+      result.is_destructive,
+      "is_destructive",
+    ),
+    data_loss_potential: coerceEnum(
+      result.data_loss_potential,
+      riskLevels,
+      "data_loss_potential",
+    ),
     explanation: coerceString(result.explanation, "explanation"),
+
     behavior_analysis: {
       blocking_risk: coerceEnum(
-        result.behavior_analysis && isRecord(result.behavior_analysis)
+        result.behavior_analysis &&
+          isRecord(result.behavior_analysis)
           ? result.behavior_analysis.blocking_risk
           : undefined,
         riskLevels,
         "behavior_analysis.blocking_risk",
       ),
+
       lock_type: coerceString(
-        result.behavior_analysis && isRecord(result.behavior_analysis)
+        result.behavior_analysis &&
+          isRecord(result.behavior_analysis)
           ? result.behavior_analysis.lock_type
           : undefined,
         "behavior_analysis.lock_type",
       ),
+
       production_risk: coerceEnum(
-        result.behavior_analysis && isRecord(result.behavior_analysis)
+        result.behavior_analysis &&
+          isRecord(result.behavior_analysis)
           ? result.behavior_analysis.production_risk
           : undefined,
         riskLevels,
         "behavior_analysis.production_risk",
       ),
+
       reasoning: coerceString(
-        result.behavior_analysis && isRecord(result.behavior_analysis)
+        result.behavior_analysis &&
+          isRecord(result.behavior_analysis)
           ? result.behavior_analysis.reasoning
           : undefined,
         "behavior_analysis.reasoning",
       ),
+
       table_rewrite: coerceBooleanOrUnknown(
-        result.behavior_analysis && isRecord(result.behavior_analysis)
+        result.behavior_analysis &&
+          isRecord(result.behavior_analysis)
           ? result.behavior_analysis.table_rewrite
           : undefined,
         "behavior_analysis.table_rewrite",
       ),
     },
+
     deployment_strategy: {
       deployment_order: coerceStringArray(
-        result.deployment_strategy && isRecord(result.deployment_strategy)
+        result.deployment_strategy &&
+          isRecord(result.deployment_strategy)
           ? result.deployment_strategy.deployment_order
           : undefined,
         "deployment_strategy.deployment_order",
       ),
+
       estimated_downtime: coerceEnum(
-        result.deployment_strategy && isRecord(result.deployment_strategy)
+        result.deployment_strategy &&
+          isRecord(result.deployment_strategy)
           ? result.deployment_strategy.estimated_downtime
           : undefined,
         downtimeLevels,
         "deployment_strategy.estimated_downtime",
       ),
+
       maintenance_window_required: coerceBoolean(
-        result.deployment_strategy && isRecord(result.deployment_strategy)
+        result.deployment_strategy &&
+          isRecord(result.deployment_strategy)
           ? result.deployment_strategy.maintenance_window_required
           : undefined,
         "deployment_strategy.maintenance_window_required",
       ),
+
       recommendation: {
         best_practice: coerceString(
           result.deployment_strategy &&
@@ -503,6 +594,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
             : undefined,
           "deployment_strategy.recommendation.best_practice",
         ),
+
         summary: coerceString(
           result.deployment_strategy &&
             isRecord(result.deployment_strategy) &&
@@ -511,6 +603,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
             : undefined,
           "deployment_strategy.recommendation.summary",
         ),
+
         why: coerceString(
           result.deployment_strategy &&
             isRecord(result.deployment_strategy) &&
@@ -520,14 +613,17 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
           "deployment_strategy.recommendation.why",
         ),
       },
+
       strategy: coerceEnum(
-        result.deployment_strategy && isRecord(result.deployment_strategy)
+        result.deployment_strategy &&
+          isRecord(result.deployment_strategy)
           ? result.deployment_strategy.strategy
           : undefined,
         strategyTypes,
         "deployment_strategy.strategy",
       ),
     },
+
     release_plan: {
       release_decision: {
         confidence: coerceEnum(
@@ -539,6 +635,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
           confidenceLevels,
           "release_plan.release_decision.confidence",
         ),
+
         status: coerceEnum(
           result.release_plan &&
             isRecord(result.release_plan) &&
@@ -549,6 +646,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
           "release_plan.release_decision.status",
         ),
       },
+
       rollback_strategy: {
         rollback_order: coerceStringArray(
           result.release_plan &&
@@ -558,6 +656,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
             : undefined,
           "release_plan.rollback_strategy.rollback_order",
         ),
+
         rollback_possible: coerceBoolean(
           result.release_plan &&
             isRecord(result.release_plan) &&
@@ -566,6 +665,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
             : undefined,
           "release_plan.rollback_strategy.rollback_possible",
         ),
+
         rollback_warning: coerceString(
           result.release_plan &&
             isRecord(result.release_plan) &&
@@ -579,10 +679,13 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
   };
 }
 
-export async function runLamaticMigrationAnalysis(sql: string): Promise<MigrationPipelineResult> {
+export async function runLamaticMigrationAnalysis(
+  sql: string,
+): Promise<MigrationPipelineResult> {
   const endpoint = cleanEnvValue(
     process.env.LAMATIC_API_URL ?? process.env.LAMATIC_PROJECT_ENDPOINT,
   ).replace(/\/+$/, "");
+
   const projectId = cleanEnvValue(process.env.LAMATIC_PROJECT_ID);
   const apiKey = cleanEnvValue(process.env.LAMATIC_API_KEY);
   const flowId = cleanEnvValue(process.env.LAMATIC_FLOW_ID);
@@ -593,6 +696,13 @@ export async function runLamaticMigrationAnalysis(sql: string): Promise<Migratio
     );
   }
 
-  const result = await invokeLamaticEndpoint(endpoint, flowId, sql, apiKey, projectId);
+  const result = await invokeLamaticEndpoint(
+    endpoint,
+    flowId,
+    sql,
+    apiKey,
+    projectId,
+  );
+
   return parseMigrationResult(result);
 }

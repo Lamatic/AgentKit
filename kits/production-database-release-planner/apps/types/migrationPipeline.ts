@@ -1,5 +1,6 @@
 export type ReleaseStatus = "APPROVE" | "APPROVE_WITH_CAUTION" | "REJECT";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
+export type DowntimeLevel ="NONE"| "LOW"| "MEDIUM"| "HIGH"| "UNKNOWN";
 export type ConfidenceLevel = "LOW" | "MEDIUM" | "HIGH";
 export type StrategyType =
   | "DIRECT_MIGRATION"
@@ -18,7 +19,7 @@ export type MigrationPipelineResult = {
   data_loss_potential: RiskLevel;
   deployment_strategy: {
     deployment_order: string[];
-    estimated_downtime: RiskLevel;
+    estimated_downtime: DowntimeLevel;
     maintenance_window_required: boolean;
     recommendation: {
       best_practice: string;

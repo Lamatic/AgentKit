@@ -1,9 +1,9 @@
-import type { RiskLevel, StrategyType } from "@/types/migrationPipeline";
+import type { DowntimeLevel, StrategyType } from "@/types/migrationPipeline";
 import DeploymentTimeline from "./DeploymentTimeline";
 import StatusBadge from "./StatusBadge";
 
 type DeploymentStrategyTabProps = {
-  estimatedDowntime: RiskLevel;
+  estimatedDowntime: DowntimeLevel;
   maintenanceWindowRequired: boolean;
   recommendation: {
     summary: string;
@@ -12,7 +12,7 @@ type DeploymentStrategyTabProps = {
   };
   strategy: StrategyType;
   strategyTone: "green" | "amber" | "red";
-  toneMap: Record<RiskLevel, "gray" | "green" | "amber" | "red">;
+  toneMap: Record<DowntimeLevel, "gray" | "green" | "amber" | "red">;
   deploymentOrder: string[];
 };
 
@@ -36,6 +36,7 @@ export default function DeploymentStrategyTab({
             <StatusBadge tone={strategyTone}>{strategy}</StatusBadge>
           </div>
         </div>
+
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
             Maintenance Window Required
@@ -44,6 +45,7 @@ export default function DeploymentStrategyTab({
             {maintenanceWindowRequired ? "Required" : "Not required"}
           </p>
         </div>
+
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
             Estimated Downtime
@@ -71,19 +73,27 @@ export default function DeploymentStrategyTab({
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               Recommendation
             </p>
-            <p className="mt-3 text-sm leading-7 text-slate-700">{recommendation.summary}</p>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {recommendation.summary}
+            </p>
           </div>
+
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               Why
             </p>
-            <p className="mt-3 text-sm leading-7 text-slate-700">{recommendation.why}</p>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {recommendation.why}
+            </p>
           </div>
+
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               Best Practice
             </p>
-            <p className="mt-3 text-sm leading-7 text-slate-700">{recommendation.best_practice}</p>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {recommendation.best_practice}
+            </p>
           </div>
         </div>
       </div>
