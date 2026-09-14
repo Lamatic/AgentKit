@@ -189,6 +189,40 @@ function coerceTargetColumns(value: unknown, operationCount: number, path: strin
   return [normalized as string[]];
 }
 
+function coerceOperationDetails(
+  value: unknown,
+  operationCount: number,
+  path: string,
+): Record<string, unknown> | Record<string, unknown>[] {
+  const normalized = normalizeValue(value);
+
+  if (Array.isArray(normalized)) {
+    if (!normalized.every((item) => isRecord(item))) {
+      throw new Error(`Lamatic response must contain an object or an array of objects at ${path}.`);
+    }
+
+    if (normalized.length !== operationCount) {
+      throw new Error(
+        `Lamatic response has ${normalized.length} ${path} entries for ${operationCount} operations; they must match 1:1.`,
+      );
+    }
+
+    return normalized as Record<string, unknown>[];
+  }
+
+  if (isRecord(normalized)) {
+    if (operationCount > 1) {
+      throw new Error(
+        `Lamatic response has a single ${path} object for ${operationCount} operations; expected one object per operation.`,
+      );
+    }
+
+    return normalized;
+  }
+
+  throw new Error(`Lamatic response must contain an object or an array of objects at ${path}.`);
+}
+
 function extractWorkflowResult(value: unknown): unknown {
   if (!isRecord(value)) {
     return value;
@@ -402,6 +436,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
     operations,
     target_table: targetTable,
     target_columns: targetColumns,
+    operation_details: coerceOperationDetails(result.operation_details, operations.length, "operation_details"),
     is_destructive: coerceBoolean(result.is_destructive, "is_destructive"),
     data_loss_potential: coerceEnum(result.data_loss_potential, riskLevels, "data_loss_potential"),
     explanation: coerceString(result.explanation, "explanation"),

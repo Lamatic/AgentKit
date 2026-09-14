@@ -29,6 +29,7 @@ export type MigrationPipelineResult = {
   };
   explanation: string;
   is_destructive: boolean;
+  operation_details: Record<string, unknown> | Record<string, unknown>[];
   operations: string[];
   release_plan: {
     release_decision: {
