@@ -10,9 +10,9 @@ Centralizing the four-agent chain into one deployed Lamatic flow keeps prompt/mo
 
 ## Flows
 
-### `1. Release Safety Pipeline - release-safety-pipeline`
+### `1. Production Database Release Planner - production-database-release-planner`
 
-- **Flow ID / Env key mapping:** `release-safety-pipeline` (configured via `LAMATIC_FLOW_ID`)
+- **Flow ID / Env key mapping:** `production-database-release-planner` (configured via `LAMATIC_FLOW_ID`)
 
 #### Trigger
 - **Invocation type:** Chat Widget trigger, called from the app's server route as a workflow execution.
@@ -57,7 +57,7 @@ Use this flow whenever a SQL migration needs a structured risk and release asses
   - `LAMATIC_PROJECT_ID`
   - `LAMATIC_API_KEY`
 - **Flow selection / routing**
-  - `LAMATIC_FLOW_ID` (the deployed flow/workflow ID for `release-safety-pipeline`)
+  - `LAMATIC_FLOW_ID` (the deployed flow/workflow ID for `production-database-release-planner`)
 - **Model providers** (configured in Lamatic Studio) — an LLM provider for each of the four agent stages.
 - **Schemas** — `schemas/*.schema.json`, used to validate each stage's structured output.
 - **Prompts** — `prompts/` (system prompt for the behavior analysis agent shown as reference).
@@ -86,7 +86,7 @@ This kit contains a single runnable flow that behaves as a fixed four-stage pipe
 
 | IntegrationType | Purpose | Required Credential / Config Key |
 |---|---|---|
-| Lamatic Flow Runtime (API) | Execute the deployed `release-safety-pipeline` flow | `LAMATIC_API_URL` (or `LAMATIC_PROJECT_ENDPOINT`), `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` |
+| Lamatic Flow Runtime (API) | Execute the deployed `production-database-release-planner` flow | `LAMATIC_API_URL` (or `LAMATIC_PROJECT_ENDPOINT`), `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY` |
 | AgentKit Flow ID Routing | Select the deployed flow instance for this kit | `LAMATIC_FLOW_ID` |
 | LLM Provider (via Lamatic) | Power all four agent stages | Configured in Lamatic Studio (provider-specific keys stored in Lamatic) |
 | Next.js App (UI) | SQL editor, pipeline progress view, and results dashboard | App runtime config; consumes the env vars above via `apps/app/api/analyze-migration/route.ts` |
@@ -95,12 +95,12 @@ This kit contains a single runnable flow that behaves as a fixed four-stage pipe
 - `LAMATIC_API_URL` — Base URL for the Lamatic API (e.g. `https://<org>-<project>.lamatic.dev`); used by every flow invocation. `LAMATIC_PROJECT_ENDPOINT` is accepted as a legacy fallback.
 - `LAMATIC_PROJECT_ID` — Lamatic project identifier from Lamatic project settings; used by every flow invocation.
 - `LAMATIC_API_KEY` — API key from Lamatic project settings; used by every flow invocation.
-- `LAMATIC_FLOW_ID` — Deployed flow/workflow ID for `release-safety-pipeline`; obtained from Lamatic Studio after deploying this kit's flow.
+- `LAMATIC_FLOW_ID` — Deployed flow/workflow ID for `production-database-release-planner`; obtained from Lamatic Studio after deploying this kit's flow.
 - `constitutions/` — Default constitution defining identity/safety/scope/data-handling/tone constraints; governs runtime behavior in Lamatic.
 - `schemas/` — Per-stage JSON Schema contracts used to validate agent output.
 
 ## Quickstart
-1. In Lamatic Studio, create a project and deploy the `release-safety-pipeline` flow; copy the resulting project keys and Flow ID.
+1. In Lamatic Studio, create a project and deploy the `production-database-release-planner` flow; copy the resulting project keys and Flow ID.
 2. In `apps/`, copy `.env.example` to `.env.local` and set `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`, and `LAMATIC_FLOW_ID`.
 3. Install and run the app from `apps/`:
    1. `npm install`
@@ -121,3 +121,4 @@ This kit contains a single runnable flow that behaves as a fixed four-stage pipe
 ## Notes
 - This kit is intended to be deployed via Vercel from `apps/`; a one-click deploy link is provided in `lamatic.config.ts`.
 - The recommended workflow is "pre and post": build and deploy the flow in Lamatic Studio first, then wire the resulting env keys into this app.
+- The Chat Widget trigger's `domains` allowlist is currently restricted to `http://localhost:3000`. Update it to your production origin in Lamatic Studio before deploying, or the widget will refuse to load there.

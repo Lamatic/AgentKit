@@ -82,28 +82,41 @@ production-database-release-planner/
 ### Prerequisites
 
 - Node.js 18+ and npm.
-- A Lamatic project with the `release-safety-pipeline` flow deployed (see [`agent.md`](agent.md) for the expected flow contract).
+- A Lamatic project with the `production-database-release-planner` flow deployed (see [`agent.md`](agent.md) for the expected flow contract).
 
 ### Steps
 
 1. From the repository root, move into the app directory:
+
    ```bash
    cd kits/production-database-release-planner/apps
    ```
+
 2. Copy the environment template and fill in your Lamatic project values:
+
    ```bash
    cp .env.example .env.local
    ```
+
    Set `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`, and `LAMATIC_FLOW_ID` in `.env.local` (see `.env.example` for details on each variable).
+
 3. Install dependencies:
+
    ```bash
    npm ci
    ```
+
 4. Run the app in development mode:
+
    ```bash
    npm run dev
    ```
+
 5. Open [http://localhost:3000](http://localhost:3000), paste or select a preset SQL migration, and run the pipeline.
+
+### Before deploying to production
+
+The Chat Widget trigger in `flows/production-database-release-planner.ts` currently restricts embedding to `http://localhost:3000` (`data.values.domains` on the `trigger` node). Once you have a production domain, update this list in Lamatic Studio (or re-export the flow) to include it — otherwise the deployed widget will refuse to load from your production origin.
 
 ## Example Workflow
 

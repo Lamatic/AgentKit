@@ -42,6 +42,7 @@
       ]
     },
     "target_columns": {
+      "description": "A flat string array when there is exactly one operation, or one column-name array per operation when there are multiple. A flat array with more than one operation is ambiguous and is rejected by the application parser (apps/lib/lamatic.ts) before it reaches this schema.",
       "anyOf": [
         {
           "type": "array",

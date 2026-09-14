@@ -149,29 +149,44 @@ function coerceStringArray(value: unknown, path: string): string[] {
   return normalized;
 }
 
-function coerceNestedStringArrays(value: unknown, path: string): string[][] {
+function coerceTargetColumns(value: unknown, operationCount: number, path: string): string[][] {
   const normalized = normalizeValue(value);
 
-  // The flow's LLM output collapses a single table's column list to a flat
-  // array (e.g. "target_columns": ["age"] instead of [["age"]]).
-  if (typeof normalized === "string") {
-    return [[normalized]];
+  if (!Array.isArray(normalized)) {
+    throw new Error(`Lamatic response is missing an array at ${path}.`);
   }
 
-  if (Array.isArray(normalized) && normalized.every((item) => typeof item === "string")) {
-    return [normalized];
-  }
-
-  if (
-    !Array.isArray(normalized) ||
-    !normalized.every(
+  const isNestedStringArray =
+    normalized.length > 0 &&
+    normalized.every(
       (item) => Array.isArray(item) && item.every((entry) => typeof entry === "string"),
-    )
-  ) {
-    throw new Error(`Lamatic response is missing a nested string array at ${path}.`);
+    );
+
+  if (isNestedStringArray) {
+    return normalized as string[][];
   }
 
-  return normalized;
+  const isFlatStringArray = normalized.every((item) => typeof item === "string");
+
+  if (!isFlatStringArray) {
+    throw new Error(
+      `Lamatic response must contain a string array (single operation) or nested string arrays (one per operation) at ${path}.`,
+    );
+  }
+
+  // A flat array only unambiguously describes a single operation's columns.
+  // For >1 operations there's no way to tell which columns belong to which
+  // operation, so reject it here rather than silently guessing — this must
+  // run before the operations/target_table/target_columns cardinality check
+  // below, since that check would otherwise just report a length mismatch
+  // instead of the real ambiguity.
+  if (operationCount > 1) {
+    throw new Error(
+      `Lamatic response has an ambiguous flat ${path} for ${operationCount} operations; expected one column-name array per operation, e.g. [["col"], []].`,
+    );
+  }
+
+  return [normalized as string[]];
 }
 
 function extractWorkflowResult(value: unknown): unknown {
@@ -372,7 +387,7 @@ function parseMigrationResult(rawResult: unknown): MigrationPipelineResult {
 
   const operations = coerceStringArray(result.operations, "operations");
   const targetTable = coerceStringArray(result.target_table, "target_table");
-  const targetColumns = coerceNestedStringArrays(result.target_columns, "target_columns");
+  const targetColumns = coerceTargetColumns(result.target_columns, operations.length, "target_columns");
 
   if (
     operations.length !== targetTable.length ||

@@ -8,7 +8,7 @@ export default {
   tags: ["agentic", "database", "devops", "postgresql", "release-management"],
   steps: [
     {
-      id: "release-safety-pipeline",
+      id: "production-database-release-planner",
       type: "mandatory" as const,
       envKey: "LAMATIC_FLOW_ID",
     },
