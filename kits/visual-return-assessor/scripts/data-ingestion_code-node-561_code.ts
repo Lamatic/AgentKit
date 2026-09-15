@@ -7,8 +7,9 @@ const extractOutput = {{extractFromFileNode_996.output}};
 // Extract raw string from metadata.url
 let rawText = "";
 
-if (extractOutput && extractOutput.files && extractOutput.files[0] && extractOutput.files[0].data[0]) {
-  rawText = extractOutput.files[0].data[0] || "";
+const data = extractOutput?.files?.[0]?.data?.[0];
+if (typeof data === "string") {
+  rawText = data;
 }
 
 // Strip out the 'data:text/markdown;base64,' prefix if present
