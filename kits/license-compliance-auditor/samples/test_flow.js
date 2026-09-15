@@ -60,20 +60,25 @@ async function runTest() {
       throw new Error(`Workflow execution failed: ${JSON.stringify(data.errors)}`);
     }
 
-    // Don't just check for the absence of an error — assert the response
-    // actually has the expected shape and matches the known fixture
-    // composition (samples/sample_dependency_licenses.json has one MIT dep,
-    // one GPL-3.0 dep, and one dep with no declared license).
+    // Don't just check for the absence of an error, and don't just check
+    // "at least one of each status" (that would still pass if a dependency
+    // got silently dropped or double-counted) — assert the exact counts
+    // against the known fixture (samples/sample_dependency_licenses.json:
+    // 7 deps total, 5 OK, 1 BLOCKED (gnu-diff-tool/GPL-3.0), 1 REVIEW_NEEDED
+    // (some-internal-fork, no declared license)).
+    const EXPECTED = { total_deps: 7, blocked_count: 1, review_count: 1, ok_count: 5 };
     const problems = [];
     if (typeof data.report !== 'string' || data.report.length === 0) problems.push('missing/empty "report" string');
     if (typeof data.has_violations !== 'boolean') problems.push('missing/non-boolean "has_violations"');
-    if (typeof data.total_deps !== 'number') problems.push('missing/non-number "total_deps"');
-    if (!Array.isArray(data.findings)) problems.push('missing/non-array "findings"');
-    if (Array.isArray(data.findings)) {
-      const statuses = data.findings.map((f) => f.status);
-      if (!statuses.includes('OK')) problems.push('expected at least one OK finding (react/MIT), found none');
-      if (!statuses.includes('BLOCKED')) problems.push('expected at least one BLOCKED finding (gnu-diff-tool/GPL-3.0), found none');
-      if (!statuses.includes('REVIEW_NEEDED')) problems.push('expected at least one REVIEW_NEEDED finding (some-internal-fork), found none');
+    if (data.total_deps !== EXPECTED.total_deps) problems.push(`expected total_deps=${EXPECTED.total_deps}, got ${data.total_deps}`);
+    if (data.blocked_count !== EXPECTED.blocked_count) problems.push(`expected blocked_count=${EXPECTED.blocked_count}, got ${data.blocked_count}`);
+    if (data.review_count !== EXPECTED.review_count) problems.push(`expected review_count=${EXPECTED.review_count}, got ${data.review_count}`);
+    if (!Array.isArray(data.findings)) {
+      problems.push('missing/non-array "findings"');
+    } else {
+      if (data.findings.length !== EXPECTED.total_deps) problems.push(`expected findings.length=${EXPECTED.total_deps}, got ${data.findings.length}`);
+      const okCount = data.findings.filter((f) => f.status === 'OK').length;
+      if (okCount !== EXPECTED.ok_count) problems.push(`expected ${EXPECTED.ok_count} OK findings, got ${okCount}`);
     }
     if (problems.length > 0) {
       throw new Error(`Response shape/content check failed: ${problems.join('; ')}`);
