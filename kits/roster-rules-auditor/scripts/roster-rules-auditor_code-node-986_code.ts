@@ -33,6 +33,12 @@ return String(x).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}
 function tokenOnLine(tok,lc){var i=lc.indexOf(tok);while(i!==-1){var before=i===0?" ":lc.charAt(i-1)
 ;var after=i+tok.length>=lc.length?" ":lc.charAt(i+tok.length)
 ;if(!/[0-9:]/.test(before)&&!/[0-9:]/.test(after))return true;i=lc.indexOf(tok,i+1)}return false}
+/** True when the ISO date occurs on the line as a complete alphanumeric token.
+    Separate from tokenOnLine because that helper must tolerate a letter flank so
+    a time such as 9:00 still matches inside 9:00am; a date must not. */function dateOnLine(iso,line){
+var i=line.indexOf(iso);while(i!==-1){var before=i===0?" ":line.charAt(i-1)
+;var after=i+iso.length>=line.length?" ":line.charAt(i+iso.length)
+;if(!/[A-Za-z0-9]/.test(before)&&!/[A-Za-z0-9]/.test(after))return true;i=line.indexOf(iso,i+1)}return false}
 /** True when the 24-hour time is written on the line as HH:MM, H:MM or a simple am/pm form. */
 function timeOnLine(t,line){var m=/^(\d{2}):(\d{2})$/.exec(t);if(!m)return false
 ;var h=+m[1],mm=m[2],lc=line.toLowerCase();var f=[t];if(h<10)f.push(h+":"+mm)
@@ -53,7 +59,7 @@ for(i=0;i<(raw||[]).length;i++){var s=raw[i],src=s&&s.source_text!=null?String(s
 no(s,"TIMEZONE_NOT_SUPPORTED","times are evaluated as naive wall-clock");continue}
 if(!s.person||!s.date||!s.start||!s.end){no(s,"MISSING_FIELD","person/date/start/end required");continue}
 if(!nameOnLine(s.person,src)){no(s,"PERSON_NOT_IN_SOURCE",String(s.person));continue}var d=dayNum(s.date)
-;if(d===null){no(s,"UNPARSEABLE_DATE",String(s.date));continue}if(!tokenOnLine(isoOf(d),src)){
+;if(d===null){no(s,"UNPARSEABLE_DATE",String(s.date));continue}if(!dateOnLine(isoOf(d),src)){
 no(s,"DATE_NOT_IN_SOURCE",isoOf(d));continue}var a=mins(s.start),b=mins(s.end);if(a===null||b===null){
 no(s,"UNPARSEABLE_TIME",String(s.start)+" / "+String(s.end));continue}
 if(!timeOnLine(hhmm(a),src)||!timeOnLine(hhmm(b),src)){
