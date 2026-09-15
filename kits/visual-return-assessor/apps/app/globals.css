@@ -1,42 +1,47 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-black: #000000;
+  --color-brand-white: #ffffff;
+  --color-brand-red: #f33736;
+  --color-brand-gray: #e3e3e3;
+  --color-brand-card: #0a0a0a;
+}
 
 :root {
-  /* Brand Color Definitions */
-  --brand-accent: #f33736;
-  --brand-border: #e3e3e3;
-  --brand-white: #ffffff;
-  --brand-black: #000000;
-
-  /* Next.js Design System Variables */
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 10, 10, 10;
+  --background: var(--color-brand-black);
+  --foreground: var(--color-brand-white);
+  --border-color: rgba(227, 227, 227, 0.2);
+  --accent-red: var(--color-brand-red);
 }
 
 body {
-  color: var(--brand-white);
-  background: var(--brand-black);
-  font-family: inherit;
-  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
 }
 
-/* Custom Scrollbars matching the Brand Theme */
+/* Scrollbar styles using single-source design system variables */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e3e3e3;
-  border-radius: 3px;
+  background: var(--border-color);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f33736;
+  background: var(--accent-red);
 }

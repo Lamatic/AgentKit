@@ -7,16 +7,19 @@ export const metadata = {
     "Autonomous damage inspection & return policy routing powered by Lamatic AI",
 };
 
+/**
+ * Root layout wrapper for Visual Return Assessor UI.
+ * @param {Object} props - Component props containing children node.
+ * @returns {JSX.Element} The root layout container.
+ */
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-slate-950 text-slate-100 antialiased min-h-screen">
-        {children}
-      </body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }

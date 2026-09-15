@@ -23,7 +23,7 @@ export default {
   ],
   links: {
     deploy:
-      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%visual-return-assessor%2Fapps",
+      "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fvisual-return-assessor%2Fapps",
     github:
       "https://github.com/Lamatic/AgentKit/tree/main/kits/visual-return-assessor",
     demo: "",
