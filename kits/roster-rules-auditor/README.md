@@ -69,8 +69,8 @@ The full response also carries `findings`, `people`, `shifts_parsed`, `rules_par
 - **`PASS`** — no violations, *and* every roster line and every rule was understood.
 - **`FAIL`** — at least one violation was computed.
 - **`INCOMPLETE`** — something could not be read: an unparsed shift or rule, a roster line no shift
-  claimed, or overlapping shifts for one person. **The auditor never reports `PASS` on input it did
-  not fully understand.**
+  claimed, a rule line no rule claimed, overlapping shifts for one person, or parser output that was
+  not usable JSON. **The auditor never reports `PASS` on input it did not fully understand.**
 
 ## Architecture
 
@@ -113,8 +113,9 @@ A threshold must appear as digits in the rule text. The parser cannot supply a n
 write, and the evaluator re-checks this before using it.
 
 Roster lines are refused the same way, into `unparsed_shifts`. Every non-blank roster line must be
-accounted for; a line no shift claims is reported in `unclaimed_lines`, so a dropped shift is
-visible instead of quietly becoming a clean result.
+accounted for, and so must every non-blank rule line; lines claimed by nothing are reported in
+`unclaimed_lines` and `unclaimed_rule_lines`, so a dropped shift or a dropped rule is visible
+instead of quietly becoming a clean result.
 
 ## Input format constraints
 
@@ -126,12 +127,27 @@ These are enforced, not advisory:
 - An overnight shift (`22:00-06:00`) is detected by the evaluator and belongs to its **start date**.
 - Weeks start **Monday**, and a shift counts wholly in the week of its start date.
 - Times are treated as **naive wall-clock**. There is no timezone conversion and DST is not
-  modelled, so a duration is the wall-clock difference. The parser refuses roster lines carrying a
-  timezone for this reason.
+  modelled, so a duration is the wall-clock difference. A roster line carrying a timezone marker
+  (`IST`, `PST`, `UTC+5:30`, a trailing `Z`) is refused with `TIMEZONE_NOT_SUPPORTED`.
 
 ## Setup
 
-No environment variables and no local runtime. Import the template into Lamatic Studio and attach a
-text-generation credential to the two LLM nodes — the exported model configs reference an
-OpenRouter credential named `lamatic-openrouter`; substitute your own provider and credential.
-Then deploy the flow and call its API endpoint with the two input fields.
+No environment variables, no local runtime, and no `apps/` directory — this is a single-flow
+template.
+
+1. Import the template into Lamatic Studio.
+2. **Select your own workspace credential on both LLM nodes, inside Studio.** The exported
+   model-config files carry a `credentialId`, `provider_name` and `credential_name` from the
+   workspace this template was built in. Those values will not resolve in yours.
+3. **Do not hand-edit the files in `model-configs/`.** Studio has no runtime placeholder or
+   environment-variable mechanism for credentials — the binding is made in Studio and written back
+   by Studio. Editing the generated files does not attach a credential and will desynchronise them
+   from the flow.
+4. Deploy the flow and call its API endpoint with `roster_text` and `rules_text`.
+
+Any text-generation provider works. The export happens to reference an OpenRouter credential named
+`lamatic-openrouter`; that is what this template was built against, not a requirement.
+
+The two parser prompts assume a model that follows a strict JSON output instruction. If yours
+returns prose, an empty string, or a truncated object, the flow reports `INCOMPLETE` with
+`PARSER_OUTPUT_UNREADABLE` rather than failing.

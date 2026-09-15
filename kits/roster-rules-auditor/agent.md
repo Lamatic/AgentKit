@@ -79,12 +79,18 @@ rule is used, it confirms the predicate is one of the three and the threshold is
 in the rule's own text. A parser that distorts a value cannot make that value count — the shift or
 rule is refused instead.
 
-**Line accounting.** Every non-blank roster line must be claimed by a parsed or refused shift. Any
-line claimed by neither is reported in `unclaimed_lines`, so a silently dropped shift surfaces
-rather than producing a clean result.
+**Line accounting.** Every non-blank roster line must be claimed by a parsed or refused shift, and
+every non-blank rule line by a parsed or refused rule. Lines claimed by neither are reported in
+`unclaimed_lines` and `unclaimed_rule_lines`, so a silently dropped shift — or a dropped rule that
+would otherwise simply never be enforced — surfaces instead of producing a clean result.
+
+**Unreadable parser output.** If either LLM node returns something that is not usable JSON, the
+result is `INCOMPLETE` carrying `PARSER_OUTPUT_UNREADABLE`, not a thrown error. This keeps
+malformed, empty, or truncated parser output visible as an explicit incomplete result.
 
 **Status semantics.** `PASS` requires zero violations *and* zero unparsed shifts *and* zero unparsed
-rules *and* zero unclaimed lines *and* no overlapping-shift findings. `FAIL` means a violation was
+rules *and* zero unclaimed roster lines *and* zero unclaimed rule lines *and* no overlapping-shift
+findings. `FAIL` means a violation was
 computed. `INCOMPLETE` means the input could not be fully established. The auditor never reports
 `PASS` on input it did not fully understand.
 
@@ -96,8 +102,9 @@ Stated in the response under `assumptions`, so the disclosure travels with the o
 - An overnight shift belongs to its start date.
 - Durations are naive wall-clock. There is no timezone conversion and DST is not modelled — so on a
   DST transition day the reported duration is the wall-clock difference, not elapsed real time.
-  The roster parser refuses timezone-bearing lines for this reason; that guard lives in the prompt,
-  not in the evaluator.
+  A roster line carrying a timezone marker is refused **by the evaluator** with
+  `TIMEZONE_NOT_SUPPORTED`; the parser prompt refuses it too, but the guard does not depend on the
+  prompt.
 - Overlapping shifts for one person are reported as a finding, and rest checks are suppressed for
   the affected pair rather than reporting a negative gap as a rest breach.
 
