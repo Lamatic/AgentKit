@@ -21,7 +21,7 @@ output = {
   success: activeData.success ?? false,
   decision: finalDecision,
   confidenceScore: activeData.confidenceScore ?? 0,
-  fraudRiskScore: rawFraudScore || "UNKNOWN",
+  fraudRiskScore: rawFraudScore ?? "UNKNOWN",
   authenticityMatch: activeData.authenticityMatch ?? false,
   damageType: activeData.damageType || "None",
   policyReference: activeData.policyReference || "N/A",
