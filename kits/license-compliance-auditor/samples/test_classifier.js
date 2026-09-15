@@ -37,6 +37,15 @@ function stripParens(license) {
   return s.slice(1, -1).trim();
 }
 
+// Rejects operands that are empty or still contain a leftover "OR"/"AND"
+// keyword — the signature of a repeated or trailing operator that would
+// otherwise let a malformed expression classify on only its first piece.
+function isValidOperand(op) {
+  const trimmed = (op || '').trim();
+  if (!trimmed) return false;
+  return !/\b(OR|AND)\b/i.test(trimmed);
+}
+
 function classifySingle(license, allowSet, copyleftSet) {
   if (!license || license.toUpperCase() === 'UNKNOWN') {
     return { status: 'REVIEW_NEEDED', reason: 'No license declared for this dependency.' };
@@ -69,6 +78,9 @@ function classify(dep, allowSet, copyleftSet) {
 
   if (/\sOR\s/i.test(expr)) {
     const operands = expr.split(/\s+OR\s+/i).map(stripParens);
+    if (!operands.every(isValidOperand)) {
+      return { status: 'REVIEW_NEEDED', reason: `'${expr}' has a malformed OR expression (empty or repeated/trailing operator) — needs manual classification.` };
+    }
     const allowed = operands.find(op => allowSet.has(op));
     if (allowed) {
       return { status: 'OK', reason: `Dual-licensed as '${expr}'; the '${allowed}' option is on the approved allow-list.` };
@@ -81,6 +93,9 @@ function classify(dep, allowSet, copyleftSet) {
 
   if (/\sAND\s/i.test(expr)) {
     const operands = expr.split(/\s+AND\s+/i).map(stripParens);
+    if (!operands.every(isValidOperand)) {
+      return { status: 'REVIEW_NEEDED', reason: `'${expr}' has a malformed AND expression (empty or repeated/trailing operator) — needs manual classification.` };
+    }
     const blocking = operands.find(op => copyleftSet.has(op));
     if (blocking) {
       return { status: 'BLOCKED', reason: `'${expr}' includes copyleft component '${blocking}', whose obligations apply to the combined work.` };
@@ -150,6 +165,17 @@ assert.strictEqual(
 assert.strictEqual(
   classify({ license: 'MIT)' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
   'Malformed license string must not silently resolve to a plain-license OK verdict'
+);
+
+// Repeated/trailing operators must not let a malformed expression classify
+// off of only its first well-formed piece.
+assert.strictEqual(
+  classify({ license: 'MIT OR OR GPL-3.0' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
+  'Repeated "OR OR" must not silently resolve to OK based on the first clean operand'
+);
+assert.strictEqual(
+  classify({ license: 'MIT AND AND Apache-2.0' }, allowSet, copyleftSet).status, 'REVIEW_NEEDED',
+  'Repeated "AND AND" must be caught as malformed, not silently classified'
 );
 
 console.log('All classifier checks passed:');

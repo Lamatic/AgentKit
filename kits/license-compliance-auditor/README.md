@@ -92,7 +92,7 @@ node samples/test_classifier.js
 
 ````markdown
 ### 1. Status
-- **Overall Status:** ⚠️ VIOLATIONS DETECTED
+- **Overall Status:** ⛔ VIOLATIONS DETECTED
 - **Summary:** 5 of 7 dependencies use approved permissive licenses; one copyleft dependency and one dependency with no declared license need attention before this can ship.
 
 ---

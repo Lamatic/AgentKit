@@ -35,6 +35,16 @@ function stripParens(license) {
   return s.slice(1, -1).trim();
 }
 
+// Rejects operands that are empty or still contain a leftover "OR"/"AND"
+// keyword — the signature of a repeated or trailing operator (e.g. "MIT OR
+// OR GPL-3.0" splits into ["MIT", "OR GPL-3.0"]) that would otherwise let a
+// malformed expression classify based on only its first, well-formed piece.
+function isValidOperand(op) {
+  const trimmed = (op || '').trim();
+  if (!trimmed) return false;
+  return !/\b(OR|AND)\b/i.test(trimmed);
+}
+
 function parseDeps(val) {
   if (!val) {
     throw new Error("Invalid input: dependency_licenses is missing or empty.");
@@ -118,6 +128,9 @@ function classify(dep, allowSet, copyleftSet) {
 
   if (/\sOR\s/i.test(expr)) {
     const operands = expr.split(/\s+OR\s+/i).map(stripParens);
+    if (!operands.every(isValidOperand)) {
+      return { status: 'REVIEW_NEEDED', reason: `'${expr}' has a malformed OR expression (empty or repeated/trailing operator) — needs manual classification.` };
+    }
     const allowed = operands.find(op => allowSet.has(op));
     if (allowed) {
       return { status: 'OK', reason: `Dual-licensed as '${expr}'; the '${allowed}' option is on the approved allow-list.` };
@@ -130,6 +143,9 @@ function classify(dep, allowSet, copyleftSet) {
 
   if (/\sAND\s/i.test(expr)) {
     const operands = expr.split(/\s+AND\s+/i).map(stripParens);
+    if (!operands.every(isValidOperand)) {
+      return { status: 'REVIEW_NEEDED', reason: `'${expr}' has a malformed AND expression (empty or repeated/trailing operator) — needs manual classification.` };
+    }
     const blocking = operands.find(op => copyleftSet.has(op));
     if (blocking) {
       return { status: 'BLOCKED', reason: `'${expr}' includes copyleft component '${blocking}', whose obligations apply to the combined work.` };
