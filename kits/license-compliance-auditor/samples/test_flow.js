@@ -60,7 +60,26 @@ async function runTest() {
       throw new Error(`Workflow execution failed: ${JSON.stringify(data.errors)}`);
     }
 
-    console.log('Flow Execution Successful!');
+    // Don't just check for the absence of an error — assert the response
+    // actually has the expected shape and matches the known fixture
+    // composition (samples/sample_dependency_licenses.json has one MIT dep,
+    // one GPL-3.0 dep, and one dep with no declared license).
+    const problems = [];
+    if (typeof data.report !== 'string' || data.report.length === 0) problems.push('missing/empty "report" string');
+    if (typeof data.has_violations !== 'boolean') problems.push('missing/non-boolean "has_violations"');
+    if (typeof data.total_deps !== 'number') problems.push('missing/non-number "total_deps"');
+    if (!Array.isArray(data.findings)) problems.push('missing/non-array "findings"');
+    if (Array.isArray(data.findings)) {
+      const statuses = data.findings.map((f) => f.status);
+      if (!statuses.includes('OK')) problems.push('expected at least one OK finding (react/MIT), found none');
+      if (!statuses.includes('BLOCKED')) problems.push('expected at least one BLOCKED finding (gnu-diff-tool/GPL-3.0), found none');
+      if (!statuses.includes('REVIEW_NEEDED')) problems.push('expected at least one REVIEW_NEEDED finding (some-internal-fork), found none');
+    }
+    if (problems.length > 0) {
+      throw new Error(`Response shape/content check failed: ${problems.join('; ')}`);
+    }
+
+    console.log('Flow Execution Successful! Response matches expected shape and fixture composition.');
     console.log('\n--- Output Report ---');
     console.log(data);
   } finally {

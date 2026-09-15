@@ -8,9 +8,17 @@ const DEFAULT_ALLOW_LIST = [
 ];
 
 // Known copyleft / high-risk licenses that require legal review before use.
+// Includes both the legacy bare ids and the canonical modern SPDX
+// -only / -or-later variants, since real-world manifests use either.
 const COPYLEFT_LICENSES = [
-  'GPL-1.0', 'GPL-2.0', 'GPL-3.0', 'AGPL-1.0', 'AGPL-3.0',
-  'LGPL-2.1', 'LGPL-3.0', 'SSPL-1.0', 'CC-BY-SA-4.0', 'EUPL-1.2'
+  'GPL-1.0', 'GPL-1.0-only', 'GPL-1.0-or-later',
+  'GPL-2.0', 'GPL-2.0-only', 'GPL-2.0-or-later',
+  'GPL-3.0', 'GPL-3.0-only', 'GPL-3.0-or-later',
+  'AGPL-1.0', 'AGPL-1.0-only', 'AGPL-1.0-or-later',
+  'AGPL-3.0', 'AGPL-3.0-only', 'AGPL-3.0-or-later',
+  'LGPL-2.1', 'LGPL-2.1-only', 'LGPL-2.1-or-later',
+  'LGPL-3.0', 'LGPL-3.0-only', 'LGPL-3.0-or-later',
+  'SSPL-1.0', 'CC-BY-SA-4.0', 'EUPL-1.2'
 ];
 
 // Strips a single, fully-matching pair of wrapping parentheses (e.g.
@@ -45,6 +53,28 @@ function isValidOperand(op) {
   return !/\b(OR|AND)\b/i.test(trimmed);
 }
 
+// Escapes "<"/">" so a crafted dependency name/version/license value can
+// never break out of the <compliance_data> tag boundary in the report
+// prompt (prompt-injection hardening) — applied once here so every
+// downstream consumer (classifier, findings, report) already sees safe
+// values.
+function escapeAngles(s) {
+  if (typeof s !== 'string') return s;
+  return s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Accepts both lowercase (name/version/license) and the capitalized keys
+// pip-licenses' default JSON output uses (Name/Version/License), so real
+// output from either license-checker or pip-licenses works without the
+// caller having to pre-transform field names.
+function normalizeDep(dep) {
+  return {
+    name: escapeAngles(dep.name ?? dep.Name),
+    version: escapeAngles(dep.version ?? dep.Version ?? 'unknown'),
+    license: escapeAngles(dep.license ?? dep.License ?? dep.LicenseExpression ?? '')
+  };
+}
+
 function parseDeps(val) {
   if (!val) {
     throw new Error("Invalid input: dependency_licenses is missing or empty.");
@@ -70,16 +100,20 @@ function parseDeps(val) {
     throw new Error("Invalid input: dependency_licenses array cannot be empty.");
   }
 
-  for (const dep of parsed) {
+  const normalized = parsed.map((dep) => {
     if (typeof dep !== 'object' || dep === null || Array.isArray(dep)) {
       throw new Error("Invalid input: each dependency entry must be a non-null object.");
     }
+    return normalizeDep(dep);
+  });
+
+  for (const dep of normalized) {
     if (!dep.name || typeof dep.name !== 'string') {
-      throw new Error("Invalid input: every dependency entry needs a string 'name'.");
+      throw new Error("Invalid input: every dependency entry needs a 'name' (or 'Name') field.");
     }
   }
 
-  return parsed;
+  return normalized;
 }
 
 function parseAllowList(val) {

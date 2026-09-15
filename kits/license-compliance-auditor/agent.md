@@ -12,12 +12,12 @@ The License Compliance Auditor is an automated assistant that reviews a project'
 
 ## Flow Architecture
 
-1. **Input Payload:** Receives `dependency_licenses` (a JSON array of `{name, version, license}`, e.g. the output of `license-checker --json` or `pip-licenses --format=json`) and an optional `allow_list`.
+1. **Input Payload:** Receives `dependency_licenses` (a JSON array of dependency objects) and an optional `allow_list`. Each dependency needs a `name`/`Name`, `version`/`Version`, and `license`/`License` field — both casings are accepted, so `pip-licenses --format=json`'s native capitalized output (`Name`/`Version`/`License`) and a lowercase `{name, version, license}` shape (e.g. hand-built from `license-checker --json`) both work without pre-transforming field names.
 2. **Code Node:** Parses the input, classifies every dependency deterministically, and outputs a structured JSON findings report.
 3. **LLM Node:** Consumes the findings securely and writes a markdown compliance report.
 
 ## Guardrails & Security
 
-- **Prompt Hardening:** Treats incoming dependency names/license strings strictly as untrusted data to protect against prompt injection.
+- **Prompt Hardening:** Treats incoming dependency names/license strings strictly as untrusted data to protect against prompt injection. `<`/`>` characters are escaped in every dependency field before they reach the report prompt, so a crafted value can never break out of the data tag boundary.
 - **Strict Typing:** Validates input structure before processing and rejects missing/empty/malformed input with descriptive errors.
 - **Not Legal Advice:** Output is automated screening guidance against a configured allow-list, not a legal determination. `BLOCKED` is a conservative policy classification — final decisions require legal/compliance sign-off.
