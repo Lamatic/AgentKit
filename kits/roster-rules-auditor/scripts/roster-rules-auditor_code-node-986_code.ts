@@ -53,7 +53,7 @@ for(i=0;i<(raw||[]).length;i++){var s=raw[i],src=s&&s.source_text!=null?String(s
 no(s,"TIMEZONE_NOT_SUPPORTED","times are evaluated as naive wall-clock");continue}
 if(!s.person||!s.date||!s.start||!s.end){no(s,"MISSING_FIELD","person/date/start/end required");continue}
 if(!nameOnLine(s.person,src)){no(s,"PERSON_NOT_IN_SOURCE",String(s.person));continue}var d=dayNum(s.date)
-;if(d===null){no(s,"UNPARSEABLE_DATE",String(s.date));continue}if(src.indexOf(isoOf(d))===-1){
+;if(d===null){no(s,"UNPARSEABLE_DATE",String(s.date));continue}if(!tokenOnLine(isoOf(d),src)){
 no(s,"DATE_NOT_IN_SOURCE",isoOf(d));continue}var a=mins(s.start),b=mins(s.end);if(a===null||b===null){
 no(s,"UNPARSEABLE_TIME",String(s.start)+" / "+String(s.end));continue}
 if(!timeOnLine(hhmm(a),src)||!timeOnLine(hhmm(b),src)){
@@ -89,7 +89,7 @@ function put(list,rule,extra){var v=vbase(rule);for(var k in extra)v[k]=extra[k]
 /** Evaluate parsed shifts and rules; returns PASS, FAIL or INCOMPLETE with full provenance. */
 function audit(input){var rosterText=String(input&&input.roster_text||"")
 ;var rulesText=String(input&&input.rules_text||"");var p=input&&input.parsed||{}
-;var S=readShifts(p.shifts,rosterText),R=readRules(p.rules,rulesText);var i,j,k;var badShifts=[],badRules=[]
+;var S=readShifts(p.shifts,rosterText),R=readRules(p.rules,rulesText);var i,j,k,q;var badShifts=[],badRules=[]
 ;for(i=0;i<(p.unparsed_shifts||[]).length;i++){var u=p.unparsed_shifts[i];badShifts.push({
 source_text:String(u.source_text||""),reason:String(u.reason||"UNSPECIFIED"),detail:u.detail||null})}
 for(i=0;i<S.bad.length;i++)badShifts.push(S.bad[i]);for(i=0;i<(p.unparsed_rules||[]).length;i++){
@@ -101,9 +101,10 @@ for(i=0;i<R.bad.length;i++)badRules.push(R.bad[i]);var shifts=S.ok
 ;for(i=0;i<shifts.length;i++){var s=shifts[i];if(!by[s.key]){by[s.key]=[];pmap[s.key]={person:s.person,
 shifts:0,hours:0};people.push(pmap[s.key])}by[s.key].push(s);pmap[s.key].shifts++;pmap[s.key].hours+=s.hours}
 for(k in by)by[k].sort(function(a,b){return a.start_ts-b.start_ts});var findings=[],skip={};for(k in by){
-var L=by[k];for(i=0;i+1<L.length;i++)if(L[i].end_ts>L[i+1].start_ts){skip[L[i].id+"|"+L[i+1].id]=1
-;findings.push({finding:"OVERLAPPING_SHIFTS",person:L[i].person,shift_ids:[L[i].id,L[i+1].id],
-detail:L[i].label+" overlaps "+L[i+1].label})}}var V=[];for(j=0;j<R.ok.length;j++){var rule=R.ok[j]
+var L=by[k];for(i=0;i<L.length;i++){for(q=i+1;q<L.length&&L[q].start_ts<=L[i].end_ts;q++){
+if(L[i].end_ts<=L[q].start_ts)continue;skip[L[i].id+"|"+L[q].id]=1;findings.push({
+finding:"OVERLAPPING_SHIFTS",person:L[i].person,shift_ids:[L[i].id,L[q].id],
+detail:L[i].label+" overlaps "+L[q].label})}}}var V=[];for(j=0;j<R.ok.length;j++){var rule=R.ok[j]
 ;if(rule.type==="MAX_SHIFT_HOURS"){for(i=0;i<shifts.length;i++)if(shifts[i].hours>rule.value)put(V,rule,{
 person:shifts[i].person,shift_ids:[shifts[i].id],actual_hours:shifts[i].hours,
 excess_hours:shifts[i].hours-rule.value,detail:shifts[i].label+" is "+shifts[i].hours+"h"})
