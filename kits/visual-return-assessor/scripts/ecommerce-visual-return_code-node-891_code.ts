@@ -13,8 +13,8 @@ if (decision === "APPROVE") {
   output = {
     success: true,
     decision: "APPROVE",
-    confidenceScore: evaluator?.confidenceScore || 0.95,
-    fraudRiskScore: evaluator?.fraudRiskScore || 0.05,
+    confidenceScore: evaluator?.confidenceScore ?? 0.95,
+    fraudRiskScore: evaluator?.fraudRiskScore ?? 0.05,
     authenticityMatch: vision?.authenticityMatch ?? true,
     damageType: vision?.damageType || "VERIFIED_DAMAGE",
     policyReference: evaluator?.policyReference || "Standard Return Policy",
@@ -27,8 +27,8 @@ else if(decision === "MANUAL_REVIEW") {
   output = {
     success: true,
     decision: "MANUAL_REVIEW",
-    confidenceScore: evaluator?.confidenceScore || 0.70,
-    fraudRiskScore: evaluator?.fraudRiskScore || 0.45,
+    confidenceScore: evaluator?.confidenceScore ?? 0.70,
+    fraudRiskScore: evaluator?.fraudRiskScore ?? 0.45,
     authenticityMatch: vision?.authenticityMatch ?? true,
     damageType: vision?.damageType || "INCONCLUSIVE",
     policyReference: evaluator?.policyReference || "Section 4.1 - Manual Inspection Required",
@@ -41,8 +41,8 @@ else{
 output = {
   success: false,
   decision: "REJECT",
-  confidenceScore: evaluator?.confidenceScore || 0.90,
-  fraudRiskScore: evaluator?.fraudRiskScore || 0.80,
+  confidenceScore: evaluator?.confidenceScore ?? 0.90,
+  fraudRiskScore: evaluator?.fraudRiskScore ?? 0.80,
   authenticityMatch: vision?.authenticityMatch ?? true,
   damageType: vision?.damageType || "NON_COVERED_DAMAGE",
   policyReference: evaluator?.policyReference || "Standard Return Exceptions",
