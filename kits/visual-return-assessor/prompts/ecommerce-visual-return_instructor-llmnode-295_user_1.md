@@ -3,7 +3,7 @@ Claimed Reason: <claim_reason>{{triggerNode_1.output.claimReason}}</claim_reason
 Visual Findings:
 - Damage: <damage_type>{{InstructorLLMNode_560.output.damageType}}</damage_type>
 - Severity: <severity_score>{{InstructorLLMNode_560.output.severityScore}}</severity_score> / 1.0
-- Visual Notes: <visual_notes>{{InstructorLLMNode_560.output.notes}}</visual_notes>
+- Visual Notes: <visual_notes>{{InstructorLLMNode_560.output.visualNotes}}</visual_notes>
 Retrieved Policy Rules (Ref:<policy_ref> {{RAGNode_330.output.references}}</policy_ref>):
 <policy_content>{{RAGNode_330.output.modelResponse}}</policy_content>
 Evaluate whether damage severity and policy criteria qualify for auto-approval, require manual human review, or should be rejected.
