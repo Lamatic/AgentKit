@@ -33,7 +33,8 @@ export default function Home() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
             <label htmlFor="domainA" className="block text-sm font-medium text-neutral-300">Domain A</label>
-            <inputid="d0mainA"
+            <input 
+            id="domainA"
             value={domainA}
             onChange={(e) => setDomainA(e.target.value)}
              placeholder="e.g. bee colony behavior"
