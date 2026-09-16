@@ -7,7 +7,7 @@ Analyze the return eligibility for the following claim:
 -Stated Claim Reason: <claim_reason>{{triggerNode_1.output.claimReason}}</claim_reason>
 -Identified Visual Damage: <visual_damage>{{InstructorLLMNode_560.output.damageType}}</visual_damage>
 -Visual Severity Score: <severity_score>{{InstructorLLMNode_560.output.severityScore}}</severity_score>
--Inspection Summary: <inspection_summary>{{InstructorLLMNode_560.output.notes}}</inspection_summary>
+-Inspection Summary: <inspection_summary>{{InstructorLLMNode_560.output.visualNotes}}</inspection_summary>
 -Retrieved Policy Context:
 <policy_context>
 {{RAGNode_330.output.context}}

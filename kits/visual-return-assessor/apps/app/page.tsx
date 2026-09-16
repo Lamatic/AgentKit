@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -20,16 +20,22 @@ import {
   AssessmentResult,
 } from "../actions/orchestrate";
 
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 // 7 MiB raw file threshold (7 * 1024 * 1024 bytes)
-// Guarantees serialized Base64 payloads remain comfortably under the 10 MB Server Action limit
 const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 const SIZE_ERROR_MESSAGE = "File size must be 7 MiB or smaller";
 
 // --- ZOD SCHEMAS & TYPES ---
 
-/**
- * Validation schema for the return assessment claim form.
- */
 const returnFormSchema = z.object({
   orderId: z.string().min(1, "Order Reference ID is required"),
   itemCategory: z.string().min(1, "Please select a product category"),
@@ -52,12 +58,8 @@ const returnFormSchema = z.object({
     ),
 });
 
-/** Form field values derived from returnFormSchema. */
 type ReturnFormValues = z.infer<typeof returnFormSchema>;
 
-/**
- * Validation schema for the store policy upload form.
- */
 const policyFormSchema = z.object({
   category: z.string().min(1, "Please select a product category"),
   policyFile: z
@@ -74,15 +76,9 @@ const policyFormSchema = z.object({
     ),
 });
 
-/** Form field values derived from policyFormSchema. */
 type PolicyFormValues = z.infer<typeof policyFormSchema>;
-
-/** Active mode view toggle for the dashboard. */
 type FormMode = "return" | "policy";
 
-/**
- * UI styling map for different assessment decision states.
- */
 const decisionStyles: Record<
   string,
   {
@@ -117,15 +113,11 @@ const decisionStyles: Record<
 };
 
 /**
- * Main dashboard page component for the Visual Return Assessor application[cite: 2].
+ * Main dashboard component for assessing product returns and ingesting policy documents using AI.
  *
- * Manages dual form workflows for automated AI return assessment and store policy
- * document uploads[cite: 2]. Includes dynamic live previews, form state management[cite: 2],
- * and verdict visualization[cite: 2].
- *
- * @returns The rendered Return Assessor dashboard page component[cite: 2].
+ * @returns {React.ReactElement} The rendered dashboard UI.
  */
-export default function ReturnAssessorDashboard() {
+export default function ReturnAssessorDashboard(): React.ReactElement {
   const [formMode, setFormMode] = useState<FormMode>("return");
   const [loading, setLoading] = useState(false);
 
@@ -161,14 +153,16 @@ export default function ReturnAssessorDashboard() {
     },
   });
 
-  // Watch fields for live preview updates
   const watchedImageFiles = returnForm.watch("imageFile");
   const watchedPolicyFiles = policyForm.watch("policyFile");
 
   const selectedImageFile = watchedImageFiles?.[0] || null;
   const selectedPolicyFile = watchedPolicyFiles?.[0] || null;
 
-  // Manage Preview URLs
+  /**
+   * Generates a blob object URL preview for the uploaded damage inspection photo
+   * and revokes it when the file changes or component unmounts.
+   */
   useEffect(() => {
     if (selectedImageFile) {
       const url = URL.createObjectURL(selectedImageFile);
@@ -179,6 +173,10 @@ export default function ReturnAssessorDashboard() {
     }
   }, [selectedImageFile]);
 
+  /**
+   * Generates a blob object URL preview for the uploaded policy document
+   * and revokes it when the file changes or component unmounts.
+   */
   useEffect(() => {
     if (selectedPolicyFile) {
       const url = URL.createObjectURL(selectedPolicyFile);
@@ -190,12 +188,11 @@ export default function ReturnAssessorDashboard() {
   }, [selectedPolicyFile]);
 
   /**
-   * Toggles between return assessment claim mode and policy upload mode[cite: 2].
-   * Resets active forms and feedback states[cite: 2].
+   * Toggles between the Return Assessor form and the Policy Uploader form, resetting active results and form states.
    *
-   * @param mode - The target tab mode to switch to ("return" | "policy")[cite: 2].
+   * @param {FormMode} mode - The form mode to activate ('return' | 'policy').
    */
-  const handleModeSwitch = (mode: FormMode) => {
+  const handleModeSwitch = (mode: FormMode): void => {
     setFormMode(mode);
     setResult(null);
     setReturnAssessmentFail(null);
@@ -206,10 +203,10 @@ export default function ReturnAssessorDashboard() {
   };
 
   /**
-   * Converts a given File object to a Base64-encoded string representation[cite: 2].
+   * Converts a given File object into a Base64-encoded Data URL string.
    *
-   * @param file - The file object to encode[cite: 2].
-   * @returns A promise that resolves to the Base64 Data URL string[cite: 2].
+   * @param {File} file - The file to convert.
+   * @returns {Promise<string>} A promise that resolves with the Base64 string.
    */
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -220,15 +217,13 @@ export default function ReturnAssessorDashboard() {
     });
   };
 
-  // --- SUBMIT HANDLERS ---
-
   /**
-   * Handles submission of the return claim form[cite: 2].
-   * Converts the uploaded inspection photo to Base64 and triggers server assessment[cite: 2].
+   * Handles submission of the return assessment form by encoding the damage inspection photo
+   * and calling the AI orchestrator.
    *
-   * @param data - Validated form field data[cite: 2].
+   * @param {ReturnFormValues} data - Form data validated by returnFormSchema.
    */
-  const onReturnSubmit = async (data: ReturnFormValues) => {
+  const onReturnSubmit = async (data: ReturnFormValues): Promise<void> => {
     setLoading(true);
     setReturnAssessmentFail(null);
     setResult(null);
@@ -262,12 +257,12 @@ export default function ReturnAssessorDashboard() {
   };
 
   /**
-   * Handles submission of the policy document upload form[cite: 2].
-   * Encodes the policy document and triggers server ingestion[cite: 2].
+   * Handles submission of the policy uploader form by encoding the file to Base64
+   * and storing it into vector storage.
    *
-   * @param data - Validated policy form data[cite: 2].
+   * @param {PolicyFormValues} data - Form data validated by policyFormSchema.
    */
-  const onPolicySubmit = async (data: PolicyFormValues) => {
+  const onPolicySubmit = async (data: PolicyFormValues): Promise<void> => {
     setLoading(true);
     setPolicyUploadSuccess(null);
     setPolicyUploadFail(null);
@@ -301,12 +296,20 @@ export default function ReturnAssessorDashboard() {
   };
 
   /**
-   * Returns display properties (color and text label) based on numerical fraud risk score[cite: 2].
+   * Maps a numerical fraud risk score (0 to 1) to a UI badge object containing label and color formatting.
    *
-   * @param score - Fraud risk floating-point score between 0.0 and 1.0 (defaults to 0)[cite: 2].
-   * @returns Object containing the styling color class and formatted risk percentage label[cite: 2].
+   * @param {number | null} score - The numerical fraud risk score.
+   * @returns {{ color: string; label: string }} Badge formatting configuration.
    */
-  const getFraudRiskBadge = (score: number = 0) => {
+  const getFraudRiskBadge = (
+    score: number | null,
+  ): { color: string; label: string } => {
+    if (score === null || score === undefined) {
+      return {
+        color: "text-neutral-400",
+        label: "N/A",
+      };
+    }
     if (score > 0.5) {
       return {
         color: "text-brand-red",
@@ -324,6 +327,50 @@ export default function ReturnAssessorDashboard() {
       label: `${(score * 100).toFixed(0)}% (Low Risk)`,
     };
   };
+
+  /**
+   * Validates and normalizes assessment metrics from the AI orchestrator response.
+   *
+   * @param {AssessmentResult | null} res - Raw assessment response from backend.
+   * @returns {{ confidence: number | null; fraud: number | null; authenticity: boolean | null }} Bounded assessment values.
+   */
+  const normalizeMetrics = (
+    res: AssessmentResult | null,
+  ): {
+    confidence: number | null;
+    fraud: number | null;
+    authenticity: boolean | null;
+  } => {
+    if (!res) return { confidence: null, fraud: null, authenticity: null };
+
+    /**
+     * Helper guard to verify if a given value is a valid finite number within [0, 1].
+     *
+     * @param {unknown} val - Value to check.
+     * @returns {boolean} True if val is a bounded number.
+     */
+    const isBoundedNumber = (val: unknown): val is number =>
+      typeof val === "number" && Number.isFinite(val) && val >= 0 && val <= 1;
+
+    const confidence = isBoundedNumber(res.confidenceScore)
+      ? res.confidenceScore
+      : null;
+
+    const fraud = isBoundedNumber(res.fraudRiskScore)
+      ? res.fraudRiskScore
+      : null;
+
+    const authenticity =
+      typeof res.authenticityMatch === "boolean" ? res.authenticityMatch : null;
+
+    return { confidence, fraud, authenticity };
+  };
+
+  const {
+    confidence: normalizedConfidence,
+    fraud: normalizedFraudScore,
+    authenticity: normalizedAuthenticity,
+  } = normalizeMetrics(result);
 
   const showRightPanel =
     (formMode === "return" && (result || selectedImageFile)) ||
@@ -392,8 +439,9 @@ export default function ReturnAssessorDashboard() {
 
           {/* Form Switcher */}
           <div className="flex bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
-            <button
+            <Button
               type="button"
+              variant={formMode === "return" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("return")}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-lg transition duration-200 ${
                 formMode === "return"
@@ -402,9 +450,10 @@ export default function ReturnAssessorDashboard() {
               }`}
             >
               <Package className="w-4 h-4" /> Return Assessor
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={formMode === "policy" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("policy")}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-lg transition duration-200 ${
                 formMode === "policy"
@@ -413,7 +462,7 @@ export default function ReturnAssessorDashboard() {
               }`}
             >
               <FileText className="w-4 h-4" /> Policy Uploader
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -444,11 +493,7 @@ export default function ReturnAssessorDashboard() {
                     <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
                       Order Reference ID
                     </label>
-                    <input
-                      type="text"
-                      {...returnForm.register("orderId")}
-                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition"
-                    />
+                    <Input type="text" {...returnForm.register("orderId")} />
                     {returnForm.formState.errors.orderId && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
                         {returnForm.formState.errors.orderId.message}
@@ -460,19 +505,34 @@ export default function ReturnAssessorDashboard() {
                     <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
                       Product Category
                     </label>
-                    <select
-                      {...returnForm.register("itemCategory")}
-                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition"
-                    >
-                      <option value="Consumer Electronics">
-                        Consumer Electronics
-                      </option>
-                      <option value="Apparel & Footwear">
-                        Apparel & Footwear
-                      </option>
-                      <option value="Home & Kitchen">Home & Kitchen</option>
-                      <option value="Luxury Goods">Luxury Goods</option>
-                    </select>
+                    <Controller
+                      control={returnForm.control}
+                      name="itemCategory"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select product category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Consumer Electronics">
+                              Consumer Electronics
+                            </SelectItem>
+                            <SelectItem value="Apparel & Footwear">
+                              Apparel & Footwear
+                            </SelectItem>
+                            <SelectItem value="Home & Kitchen">
+                              Home & Kitchen
+                            </SelectItem>
+                            <SelectItem value="Luxury Goods">
+                              Luxury Goods
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     {returnForm.formState.errors.itemCategory && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
                         {returnForm.formState.errors.itemCategory.message}
@@ -500,11 +560,11 @@ export default function ReturnAssessorDashboard() {
                     <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
                       Damage Inspection Photo (JPG / PNG Only)
                     </label>
-                    <input
+                    <Input
                       type="file"
                       accept="image/jpeg, image/jpg, image/png"
                       {...returnForm.register("imageFile")}
-                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
+                      className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
                     />
                     {returnForm.formState.errors.imageFile && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
@@ -516,16 +576,15 @@ export default function ReturnAssessorDashboard() {
                     )}
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-brand-red hover:bg-brand-red/90 text-brand-white font-semibold py-2.5 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 border border-brand-red mt-2 cursor-pointer"
+                    className="w-full mt-2"
                   >
                     <span>Run Agent Assessment</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                    <ArrowRight className="w-4 h-4 ml-2 inline" />
+                  </Button>
 
-                  {/* Return Assessment Failure Alert Banner */}
                   {returnAssessmentFail && (
                     <div className="p-3 bg-brand-red/10 border border-brand-red/40 rounded-lg text-brand-red text-xs font-mono">
                       {returnAssessmentFail}
@@ -553,19 +612,34 @@ export default function ReturnAssessorDashboard() {
                     <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
                       Target Product Category
                     </label>
-                    <select
-                      {...policyForm.register("category")}
-                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition"
-                    >
-                      <option value="Consumer Electronics">
-                        Consumer Electronics
-                      </option>
-                      <option value="Apparel & Footwear">
-                        Apparel & Footwear
-                      </option>
-                      <option value="Home & Kitchen">Home & Kitchen</option>
-                      <option value="Luxury Goods">Luxury Goods</option>
-                    </select>
+                    <Controller
+                      control={policyForm.control}
+                      name="category"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select target category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Consumer Electronics">
+                              Consumer Electronics
+                            </SelectItem>
+                            <SelectItem value="Apparel & Footwear">
+                              Apparel & Footwear
+                            </SelectItem>
+                            <SelectItem value="Home & Kitchen">
+                              Home & Kitchen
+                            </SelectItem>
+                            <SelectItem value="Luxury Goods">
+                              Luxury Goods
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     {policyForm.formState.errors.category && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
                         {policyForm.formState.errors.category.message}
@@ -577,11 +651,11 @@ export default function ReturnAssessorDashboard() {
                     <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
                       Policy Document (PDF / TXT Only)
                     </label>
-                    <input
+                    <Input
                       type="file"
                       accept="application/pdf, text/plain"
                       {...policyForm.register("policyFile")}
-                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
+                      className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
                     />
                     {policyForm.formState.errors.policyFile && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
@@ -593,14 +667,14 @@ export default function ReturnAssessorDashboard() {
                     )}
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-brand-red hover:bg-brand-red/90 text-brand-white font-semibold py-2.5 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 border border-brand-red mt-2 cursor-pointer"
+                    className="w-full mt-2"
                   >
-                    <Upload className="w-4 h-4" />
+                    <Upload className="w-4 h-4 mr-2 inline" />
                     <span>Upload & Process Policy</span>
-                  </button>
+                  </Button>
 
                   {policyUploadSuccess && (
                     <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-lg text-emerald-400 text-xs font-mono">
@@ -620,7 +694,6 @@ export default function ReturnAssessorDashboard() {
           {/* Right Preview Panel & Return Matrix */}
           {showRightPanel && (
             <div className="lg:col-span-7 space-y-6">
-              {/* File Preview Card - Return Assessor Mode */}
               {formMode === "return" && selectedImageFile && (
                 <div className="bg-brand-black border border-neutral-800 rounded-xl p-4 space-y-3">
                   <p className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
@@ -644,7 +717,6 @@ export default function ReturnAssessorDashboard() {
                 </div>
               )}
 
-              {/* File Preview Card - Policy Uploader Mode */}
               {formMode === "policy" && selectedPolicyFile && (
                 <div className="bg-brand-black border border-neutral-800 rounded-xl p-6 space-y-3">
                   <p className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
@@ -692,10 +764,8 @@ export default function ReturnAssessorDashboard() {
                 </div>
               )}
 
-              {/* RETURN MATRIX */}
               {formMode === "return" && result && (
                 <div className="bg-brand-black border border-neutral-800 rounded-xl p-6 space-y-6">
-                  {/* Verdict Banner Header */}
                   <div
                     className={`flex items-center justify-between rounded-xl border ${activeStyle.border} ${activeStyle.bg} p-4`}
                   >
@@ -717,14 +787,15 @@ export default function ReturnAssessorDashboard() {
                     </span>
                   </div>
 
-                  {/* Metrics Row */}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-brand-black border border-neutral-800 rounded-lg p-3">
                       <p className="text-xs text-neutral-400 font-mono">
                         Confidence
                       </p>
                       <p className="text-lg font-bold text-brand-white mt-1">
-                        {((result.confidenceScore ?? 0.05) * 100).toFixed(0)}%
+                        {normalizedConfidence !== null
+                          ? `${(normalizedConfidence * 100).toFixed(0)}%`
+                          : "N/A"}
                       </p>
                     </div>
 
@@ -733,13 +804,7 @@ export default function ReturnAssessorDashboard() {
                         Fraud Risk
                       </p>
                       {(() => {
-                        const parsedScore = Number(result.fraudRiskScore);
-                        const score = Number.isFinite(parsedScore)
-                          ? parsedScore
-                          : null;
-                        const badge = score
-                          ? getFraudRiskBadge(score)
-                          : getFraudRiskBadge();
+                        const badge = getFraudRiskBadge(normalizedFraudScore);
                         return (
                           <p
                             className={`text-lg font-bold mt-1 ${badge.color}`}
@@ -754,17 +819,24 @@ export default function ReturnAssessorDashboard() {
                       <p className="text-xs text-neutral-400 font-mono">
                         Authenticity
                       </p>
-                      <p className="text-lg font-bold text-emerald-400 mt-1">
-                        {result.authenticityMatch
+                      <p
+                        className={`text-lg font-bold mt-1 ${
+                          normalizedAuthenticity === true
+                            ? "text-emerald-400"
+                            : normalizedAuthenticity === false
+                              ? "text-rose-400"
+                              : "text-neutral-400"
+                        }`}
+                      >
+                        {normalizedAuthenticity === true
                           ? "Verified"
-                          : !result.authenticityMatch
+                          : normalizedAuthenticity === false
                             ? "Mismatch"
                             : "N/A"}
                       </p>
                     </div>
                   </div>
 
-                  {/* Damage & Policy Reference Detail */}
                   <div className="space-y-3 rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-neutral-400 font-mono text-xs">
@@ -784,7 +856,6 @@ export default function ReturnAssessorDashboard() {
                     </div>
                   </div>
 
-                  {/* Reasoning Log */}
                   <div className="space-y-2">
                     <p className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
                       Agent Justification Log

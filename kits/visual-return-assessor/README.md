@@ -108,7 +108,7 @@ It implements a multi-flow system that routes customer return claims and policy 
 
 ### 2. Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create an `apps/.env.local` file:
 
 ```bash
 # Lamatic API Credentials
@@ -124,6 +124,7 @@ POLICY_DATA_INGESTION="your_policy_data_ingestion_flow_id"
 ### 3. Install & Run Locally
 
 ```bash
+cd apps
 npm install
 npm run dev
 # Open http://localhost:3000
