@@ -54,6 +54,8 @@ Schema, MITRE ATT&CK-aligned models), not a genuinely new mechanism.
 
 ## Setup
 
+**Requires Node.js 18.18 or later.**
+
 1. Clone this repo and `cd kits/neural-cross-pollinator/apps`
 2. `npm install`
 3. `cp .env.example .env.local`
