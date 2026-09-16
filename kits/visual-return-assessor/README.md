@@ -164,13 +164,12 @@ npm run dev
 ├── prompts/                          # AgentKit generated
 ├── scripts/                          # AgentKit generated
 ├── apps/                             # Web application workspace
-│   └── app/                          # Next.js frontend application
-│       ├── actions/
-│       │   └── orchestrate.ts        # Lamatic GraphQL orchestration & flow routing
-│       ├── app/
-│       │   └── page.tsx              # Return assessment submission & Policy document ingestion portal
-│       └── lib/
-│           └── lamatic-client.ts     # Lamatic SDK client
+│   ├── actions/
+│   │   └── orchestrate.ts             # Lamatic GraphQL orchestration & flow routing
+│   ├── app/
+│   │   └── page.tsx                  # Return assessment submission & policy document ingestion portal
+│   └── lib/
+│       └── lamatic-client.ts         # Lamatic SDK client
 ├── agent.md                          # Agent architecture and system specifications
 ├── lamatic.config.ts                 # AgentKit documentation
 ├── README.md
