@@ -1,3 +1,55 @@
+/*
+ * # Neural Cross-Pollinator
+ * Finds genuine structural parallels between two unrelated domains,
+ * proposes a mechanism transfer as a candidate innovation, and
+ * critically evaluates whether that idea is actually novel.
+ */
+
+// Flow: neural-cross-pollinator
+
+export const meta = {
+  name: "Neural Cross-Pollinator",
+  description:
+    "Finds structural parallels between two unrelated domains and proposes a critically-evaluated cross-domain innovation.",
+  tags: ["reasoning", "cross-domain", "innovation"],
+  testInput: { domainA: "bee colony behavior", domainB: "stock market crashes" },
+  author: { name: "Manha Kabir" }
+};
+
+export const inputs = {
+  APIRequest: [
+    { name: "domainA", label: "Domain A", type: "string", required: true, isPrivate: false },
+    { name: "domainB", label: "Domain B", type: "string", required: true, isPrivate: false }
+  ]
+};
+
+export const references = {
+  constitutions: { default: "@constitutions/default.md" }
+};
+
+const analysisSchema = {
+  type: "object",
+  properties: {
+    entities: { type: "array", items: { type: "string" } },
+    mechanisms: { type: "array", items: { type: "string" } },
+    constraints: { type: "array", items: { type: "string" } },
+    feedback_loops: { type: "array", items: { type: "string" } },
+    adaptation_patterns: { type: "array", items: { type: "string" } }
+  }
+};
+
+const analysisSystemPrompt =
+  "You are a structural analysis engine. Given a domain, break it down into its core structural components. Be precise and avoid vague generalities. Return only the structured breakdown, no commentary.";
+
+const groqModel = {
+  configName: "configA",
+  type: "generator/text",
+  provider_name: "groq",
+  credential_name: "Groq neural",
+  model_name: "groq/openai/gpt-oss-120b",
+  params: {}
+};
+
 export const nodes = [
   {
     id: "APIRequest",
