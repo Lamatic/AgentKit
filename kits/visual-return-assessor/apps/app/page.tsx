@@ -20,6 +20,11 @@ import {
   AssessmentResult,
 } from "../actions/orchestrate";
 
+// 7 MiB raw file threshold (7 * 1024 * 1024 bytes)
+// Guarantees serialized Base64 payloads remain comfortably under the 10 MB Server Action limit
+const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
+const SIZE_ERROR_MESSAGE = "File size must be 7 MiB or smaller";
+
 // --- ZOD SCHEMAS & TYPES ---
 
 /**
@@ -40,6 +45,10 @@ const returnFormSchema = z.object({
         files &&
         ["image/jpeg", "image/jpg", "image/png"].includes(files[0]?.type),
       "Only JPG and PNG files are supported",
+    )
+    .refine(
+      (files) => files && files[0]?.size <= MAX_FILE_SIZE_BYTES,
+      SIZE_ERROR_MESSAGE,
     ),
 });
 
@@ -58,6 +67,10 @@ const policyFormSchema = z.object({
       (files) =>
         files && ["application/pdf", "text/plain"].includes(files[0]?.type),
       "Only PDF and TXT files are supported",
+    )
+    .refine(
+      (files) => files && files[0]?.size <= MAX_FILE_SIZE_BYTES,
+      SIZE_ERROR_MESSAGE,
     ),
 });
 
