@@ -5,12 +5,16 @@
 // extracts facts; every money rule below is plain code so the verdict is reproducible
 // and auditable. Verdicts: "eligible" | "not-eligible" | "needs-info".
 //
-// Boundary note: Article 7(2) permits a 50% reduction only where re-routing under
-// Article 8 was offered and the replacement arrives within the tier limit — 2 hours
-// for short, 3 for medium, 4 for long, inclusive. Ordinary delays are NOT halved: the
-// regulation ties the reduction to offered re-routing, so the full tier amount
-// applies (UK CAA guidance halves 3–4h long-haul delays by analogy, but this engine
-// follows the regulation text; the divergence is documented here deliberately).
+// Boundary note: Article 7(2) permits a 50% reduction in two situations:
+// 1. Where re-routing under Article 8 was offered (cancellations and involuntary
+//    denied boarding) and the replacement arrives within the tier limit — 2 hours
+//    for short, 3 for medium, 4 for long, inclusive.
+// 2. For long-haul delays (> 3,500 km) where the arrival delay is between 3 and 4
+//    hours (delay >= 3 && delay < 4), as established by CJEU Sturgeon (Joined Cases
+//    C-402/07 and C-432/07, para 63) and Nelson (Joined Cases C-581/10 and C-629/10,
+//    para 78) applying Article 7(2)(c). Delays of 4+ hours receive the full tier amount.
+//    (For short and medium flights, compensable delays >= 3h already exceed the 2h/3h
+//    Article 7(2)(a)/(b) thresholds, so full compensation applies).
 
 // Tiered fixed amounts, per EU Regulation 261/2004 Article 7(1) and the UK-retained
 // equivalent (amounts in GBP):
@@ -219,17 +223,25 @@ function assess(f) {
         delayDutyOfCare(f.distanceTier)
       );
     }
-    // Ordinary delays take the full tier amount. The Article 7(2) 50% reduction applies
-    // only where re-routing was offered — the cancellation branch below applies it
-    // there, within the tier-specific arrival limit (see the header note).
+    // CJEU Sturgeon (Joined Cases C-402/07 and C-432/07, para 63) and Nelson (Joined
+    // Cases C-581/10 and C-629/10, para 78) established that under Article 7(2)(c),
+    // long-haul flight delays (> 3,500 km) between 3 and 4 hours (< 4 hours) receive
+    // a 50% reduction in statutory compensation. Delays of 4+ hours receive full compensation.
+    // For short and medium routes, compensable delays (>= 3h) already exceed the Article
+    // 7(2)(a)/(b) limits (2h and 3h), so the full tier amount applies.
+    const isLongHaulHalved = f.distanceTier === "long" && delay >= 3 && delay < 4;
+    const delayAmount = isLongHaulHalved ? Math.round(amounts.long / 2) : base;
+
     return {
       eligibility: "eligible",
-      compensationAmount: base,
+      compensationAmount: delayAmount,
       currency: currency,
-      legalBasis:
-        "EU Regulation 261/2004, Article 7(1) / Sturgeon (C-402/07): arrival delay of 3+ hours is treated as a cancellation for compensation purposes; UK261 equivalent",
-      decisionReason:
-        "The flight arrived " + delay + " hours late on a " + tierLabel(f.distanceTier) + " route. Arrival delays of 3 hours or more qualify for the full fixed compensation by distance tier.",
+      legalBasis: isLongHaulHalved
+        ? "EU Regulation 261/2004, Article 7(2)(c) / Sturgeon (Joined Cases C-402/07 and C-432/07) and Nelson (Joined Cases C-581/10 and C-629/10): arrival delay between 3 and 4 hours on a flight over 3,500 km qualifies for a 50% statutory reduction; UK261 equivalent"
+        : "EU Regulation 261/2004, Article 7(1) / Sturgeon (C-402/07): arrival delay of 3+ hours is treated as a cancellation for compensation purposes; UK261 equivalent",
+      decisionReason: isLongHaulHalved
+        ? "The flight arrived " + delay + " hours late on a " + tierLabel(f.distanceTier) + " route. Under CJEU Sturgeon / Nelson case law applying Article 7(2)(c), an arrival delay between 3 and 4 hours on a flight over 3,500 km entitles the passenger to 50% of the long-haul fixed compensation (" + delayAmount + " " + currency + "). Delays of 4 hours or more receive the full tier amount."
+        : "The flight arrived " + delay + " hours late on a " + tierLabel(f.distanceTier) + " route. Arrival delays of 3 hours or more qualify for the full fixed compensation by distance tier" + (f.distanceTier === "long" ? " (exceeding the 4-hour threshold for Article 7(2)(c) reduction)." : "."),
       dutyOfCare: delayDutyOfCare(f.distanceTier),
     };
   }
@@ -331,6 +343,30 @@ function assess(f) {
   }
 
   if (f.disruptionType === "denied-boarding") {
+    // Article 2(j) defines denied boarding as a refusal to carry passengers on a flight,
+    // although they have presented themselves for boarding, except where there are
+    // reasonable grounds to deny them boarding, such as reasons of health, safety or
+    // security, or inadequate travel documentation. Refusal on reasonable grounds
+    // excludes both compensation and care rights under the regulation.
+    const dbReason = f.deniedBoardingReason;
+    if (dbReason === "reasonable-grounds") {
+      return notEligible(
+        "EU Regulation 261/2004, Article 2(j) (refusal of carriage on reasonable grounds); UK261 equivalent",
+        "Boarding was denied on reasonable grounds under Article 2(j) (such as reasons of health, safety, security, or inadequate travel documentation). Under EU261/UK261, refusal of carriage on these statutory grounds is excluded from the definition of denied boarding and does not qualify for cash compensation or assistance.",
+        null
+      );
+    }
+    if (dbReason === "unknown" || dbReason === undefined || dbReason === null || dbReason === "") {
+      return needsInfo(
+        "The reason boarding was denied is missing or unknown. Article 2(j) excludes refusal of carriage on reasonable grounds (such as health, safety, security, or inadequate travel documentation). Did the airline deny boarding due to commercial/operational reasons (e.g. overbooking) against your will, or on reasonable grounds under Article 2(j)?"
+      );
+    }
+    if (dbReason !== "compensable-involuntary") {
+      return needsInfo(
+        "The reason boarding was denied is unclear. Under Article 2(j), compensation applies only to involuntary denial of boarding (e.g. overbooking), not where carriage is refused on reasonable grounds (health, safety, security, or travel documents)."
+      );
+    }
+
     // Article 4(3) sends involuntary denied-boarding compensation to Article 7, and
     // Article 7(2) permits a 50% reduction when the passenger received Article 8
     // re-routing arriving within the tier limit (2/3/4 hours) — the provision is not
@@ -351,8 +387,8 @@ function assess(f) {
         legalBasis:
           "EU Regulation 261/2004, Article 4(3) with Article 7(1) (involuntary denied boarding without re-routing); UK261 equivalent",
         decisionReason:
-          "Boarding was denied against the passenger's will (involuntary denied boarding) and no re-routing was offered. The full fixed compensation applies by distance tier (" +
-          tierLabel(f.distanceTier) + ") with no notice exemption or extraordinary-circumstances defense, and no Article 7(2) reduction because no re-routing was provided. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself.",
+          "Boarding was denied against the passenger's will for commercial or operational reasons (involuntary denied boarding) without Article 2(j) reasonable grounds, and no re-routing was offered. The full fixed compensation applies by distance tier (" +
+          tierLabel(f.distanceTier) + ") with no notice exemption or extraordinary-circumstances defense, and no Article 7(2) reduction because no re-routing was provided. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies.",
         dutyOfCare:
           "As an involuntarily denied boarding passenger, the Article 8 choice applies immediately — re-routing at the earliest opportunity, re-routing at a later date, or a refund of the ticket — together with Article 9 care while waiting: meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications.",
       };
@@ -377,8 +413,8 @@ function assess(f) {
         ? "EU Regulation 261/2004, Article 4(3) with Article 7(2) (involuntary denied boarding with re-routing arriving within the " + dbArt72Limit + "-hour tier limit); UK261 equivalent"
         : "EU Regulation 261/2004, Article 4(3) with Article 7(1) (involuntary denied boarding with re-routing beyond the tier limit); UK261 equivalent",
       decisionReason: dbWithinArt72
-        ? "Boarding was denied against the passenger's will (involuntary denied boarding) and the airline re-booked the passenger on a replacement that arrived " + dbRerouteArrival + " hours after the original schedule — within the Article 7(2) " + dbArt72Limit + "-hour limit for a " + tierLabel(f.distanceTier) + " route — so the fixed compensation is reduced by 50%. There is no notice exemption or extraordinary-circumstances defense for denied boarding. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself."
-        : "Boarding was denied against the passenger's will (involuntary denied boarding) and the airline re-booked the passenger on a replacement that arrived " + dbRerouteArrival + " hours after the original schedule — beyond the Article 7(2) " + dbArt72Limit + "-hour limit for a " + tierLabel(f.distanceTier) + " route — so the full fixed compensation applies by distance tier. There is no notice exemption or extraordinary-circumstances defense for denied boarding. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies. This flow does not assess the statutory exclusion for passengers denied boarding for reasons of health, safety or security, or inadequate travel documents; a denial on those grounds is not covered by the compensation right itself.",
+        ? "Boarding was denied against the passenger's will for commercial or operational reasons (involuntary denied boarding) without Article 2(j) reasonable grounds, and the airline re-booked the passenger on a replacement that arrived " + dbRerouteArrival + " hours after the original schedule — within the Article 7(2) " + dbArt72Limit + "-hour limit for a " + tierLabel(f.distanceTier) + " route — so the fixed compensation is reduced by 50%. There is no notice exemption or extraordinary-circumstances defense for denied boarding. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies."
+        : "Boarding was denied against the passenger's will for commercial or operational reasons (involuntary denied boarding) without Article 2(j) reasonable grounds, and the airline re-booked the passenger on a replacement that arrived " + dbRerouteArrival + " hours after the original schedule — beyond the Article 7(2) " + dbArt72Limit + "-hour limit for a " + tierLabel(f.distanceTier) + " route — so the full fixed compensation applies by distance tier. There is no notice exemption or extraordinary-circumstances defense for denied boarding. Voluntary surrender in exchange for vouchers voids this — only involuntary denial qualifies.",
       dutyOfCare:
         "As an involuntarily denied boarding passenger, the Article 8 choice applies immediately — re-routing at the earliest opportunity, re-routing at a later date, or a refund of the ticket — together with Article 9 care while waiting: meals and refreshments proportionate to the wait, hotel accommodation and transfers if an overnight stay becomes necessary, and two free communications.",
     };
@@ -447,5 +483,6 @@ output = assess({
   causeText: {{InstructorLLMNode_210.output.causeText}},
   ticketPrice: {{InstructorLLMNode_210.output.ticketPrice}},
   ticketCurrency: {{InstructorLLMNode_210.output.ticketCurrency}},
-  distanceTier: {{InstructorLLMNode_210.output.distanceTier}}
+  distanceTier: {{InstructorLLMNode_210.output.distanceTier}},
+  deniedBoardingReason: {{InstructorLLMNode_210.output.deniedBoardingReason}}
 });

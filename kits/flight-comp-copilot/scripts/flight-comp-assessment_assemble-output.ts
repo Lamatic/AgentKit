@@ -22,6 +22,7 @@ output = {
     destinationAirport: {{InstructorLLMNode_210.output.destinationAirport}},
     scheduledDepartureDate: {{InstructorLLMNode_210.output.scheduledDepartureDate}},
     disruptionType: {{InstructorLLMNode_210.output.disruptionType}},
+    deniedBoardingReason: {{InstructorLLMNode_210.output.deniedBoardingReason}},
     arrivalDelayHours: {{InstructorLLMNode_210.output.arrivalDelayHours}},
     cancellationNoticeDays: {{InstructorLLMNode_210.output.cancellationNoticeDays}},
     reroutedArrivalDelayHours: {{InstructorLLMNode_210.output.reroutedArrivalDelayHours}},

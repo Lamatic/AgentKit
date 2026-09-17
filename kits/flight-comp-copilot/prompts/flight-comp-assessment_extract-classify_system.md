@@ -10,6 +10,12 @@ Classify `disruptionType` into exactly one value:
 - `downgrade` — the passenger flew in a lower class than ticketed.
 - `other` — anything that does not clearly fit the above.
 
+Classify `deniedBoardingReason` into exactly one value:
+
+- `compensable-involuntary` — the passenger was denied boarding against their will for airline commercial or operational reasons (e.g. overbooking, aircraft downsizing, seat reallocation) and did not voluntarily surrender their reservation.
+- `reasonable-grounds` — the passenger was refused carriage on reasonable grounds under Article 2(j), such as reasons of health, safety or security, intoxication, unruly behavior, or inadequate travel documentation (e.g. expired passport, missing visa or entry permits).
+- `unknown` — the grounds for refusal are not stated or unclear; and ALWAYS `unknown` when `disruptionType` is not `denied-boarding` (never emit an empty string here).
+
 Classify `cause` into exactly one value:
 
 - `airline-controllable` — technical faults, crew shortages or strikes by the airline's own staff, overbooking, operational failures. Under CJEU case law (Wallentin-Hermann, van der Lans) these are NOT extraordinary circumstances.
@@ -40,6 +46,7 @@ Rules for values:
 - `reroutedArrivalDelayHours`: for cancellations and denied-boarding — how many hours the replacement flight arrived after the original scheduled arrival. Negative values are valid: use e.g. -0.5 if the replacement arrived 30 minutes ahead of the original schedule. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here.
 - `reroutedDepartureOffsetHours`: for cancellations — hours relative to the original scheduled departure: negative if the replacement departed earlier than the original schedule (e.g. -5 for five hours early), positive if it departed later (e.g. 2 for two hours after the original departure time), 0 reserved for a departure exactly on the original schedule. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here (one hour early). For denied-boarding keep -999 unless the account states the replacement's departure offset.
 - `ticketPrice` / `ticketCurrency`: for downgrade cases — the price paid for the downgraded segment (in `additionalContext` if given there) and the 3-letter code of the currency it was paid in (e.g. `EUR`, `GBP`, `USD`). Use -1 for `ticketPrice` and "" for `ticketCurrency` when the text does not state them. Never invent a price or currency.
+- `deniedBoardingReason`: `compensable-involuntary` for involuntary refusal (overbooking/commercial reasons), `reasonable-grounds` for Article 2(j) exclusions (health, safety, unruly behavior, missing docs), `unknown` if not specified or when `disruptionType` is not `denied-boarding`.
 - If a fact is not present in the input, use an empty string "" for strings, -1 for the numeric fields whose rules above specify -1 (arrival delay, cancellation notice days, ticket price) and -999 for the reroute offset fields — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
 - `scheduledDepartureDate` in YYYY-MM-DD, or "" if not stated.
 
@@ -52,6 +59,7 @@ Output this exact JSON shape:
   "destinationAirport": string,
   "scheduledDepartureDate": string (YYYY-MM-DD or ""),
   "disruptionType": "delay" | "cancellation" | "denied-boarding" | "downgrade" | "other",
+  "deniedBoardingReason": "compensable-involuntary" | "reasonable-grounds" | "unknown",
   "arrivalDelayHours": number,
   "cancellationNoticeDays": number,
   "reroutingStatus": "offered" | "not-offered" | "unknown",
