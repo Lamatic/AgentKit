@@ -87,7 +87,7 @@ Use this flow whenever a customer or support agent submits a product return clai
 
 - **Lamatic runtime & project configuration**: `LAMATIC_API_URL`, `LAMATIC_PROJECT_ID`, `LAMATIC_API_KEY`
 - **Flow ID / Env key mapping:**: `VISUAL_RETURN_ASSESSOR`
-- **Model providers**: Vision LLM provider and LLM provider configured in Lamatic Studio.
+- **Model providers**: Vision LLM , Embedding model, RAG LLM, Policy Evaluator LLM, Vector Store providers configured in Lamatic Studio.
 
 ---
 
@@ -138,7 +138,7 @@ Use this flow when uploading new warranty policies, updating category return gui
 - **Mandatory Photo Verification:** Return requests missing valid `imageBinary` data default to `REJECT` or require mandatory re-submission.
 - **Fraud Risk Threshold:** Any claim yielding a fraud risk score above **0.50** automatically overrides automated approval to `MANUAL_REVIEW`.
 - **Category-Scoped Retrieval:** Policy searches are strictly partitioned by `category` metadata to prevent rule contamination across product types.
-- **Safety & PII:** Redacts `userEmail` and sensitive PII before sending context to LLM nodes; strictly prohibits prompt injection attempts within claim reason text.
+- **Safety:** Strictly prohibits prompt injection attempts within claim reason text.
 
 ---
 

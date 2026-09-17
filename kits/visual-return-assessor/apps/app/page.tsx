@@ -258,7 +258,18 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
       });
 
       if (res?.status === "success") {
-        setResult((res.result || res) as AssessmentResult);
+        const assessment = res.result as Partial<AssessmentResult> | null;
+        if (
+          !assessment ||
+          typeof assessment.success !== "boolean" ||
+          typeof assessment.decision !== "string"
+        ) {
+          setReturnAssessmentFail(
+            `Failed to process assessment for order "${data.orderId}".`,
+          );
+          return;
+        }
+        setResult(assessment as AssessmentResult);
       } else {
         setReturnAssessmentFail(
           `Failed to process assessment for order "${data.orderId}".`,
@@ -296,6 +307,20 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
       });
 
       if (res?.status === "success") {
+        const result = res.result as {
+          success?: boolean;
+          data?: string;
+        } | null;
+        if (
+          !result ||
+          typeof result.success !== "boolean" ||
+          typeof result.data !== "string"
+        ) {
+          setPolicyUploadFail(
+            `Failed to store "${file.name}" for ${data.category}.`,
+          );
+          return;
+        }
         setPolicyUploadSuccess(
           `Policy document "${file.name}" successfully stored for ${data.category}.`,
         );

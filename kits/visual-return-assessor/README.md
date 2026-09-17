@@ -91,7 +91,7 @@ It implements a multi-flow system that routes customer return claims and policy 
 - **Mandatory Photo Verification:** Return requests missing valid `imageBinary` data default to `REJECT` or require mandatory re-submission.
 - **Fraud Risk Threshold:** Any claim yielding a fraud risk score above **0.50** automatically overrides automated approval to `MANUAL_REVIEW`.
 - **Category-Scoped Retrieval:** Policy searches are strictly partitioned by `category` metadata to prevent rule contamination across product types.
-- **Safety & PII:** Redacts `userEmail` and sensitive PII before sending context to LLM nodes; strictly prohibits prompt injection attempts within claim reason text.
+- **Safety:** Strictly prohibits prompt injection attempts within claim reason text.
 
 ---
 
@@ -103,7 +103,7 @@ It implements a multi-flow system that routes customer return claims and policy 
 2. Create a project (if you don’t have one yet).
 3. Click **"+ New Flow"** and select **"Templates"**.
 4. Create and deploy the **`Visual Return Assessor`** and **`Policy Data Ingestion`** flows.
-5. Configure your Vision LLM, Vector Store, and logic nodes in Lamatic Studio.
+5. Configure your Vision LLM, Embedding model, RAG LLM, Policy Evaluator LLM, Vector Store providers, and logic nodes in Lamatic Studio.
 6. Obtain your deployed Flow IDs and project API credentials.
 
 ### 2. Environment Variables

@@ -1,7 +1,7 @@
 // Assign the value you want to return from this code node to `output`. 
 // The `output` variable is already declared.
   // Fast-Track Rejection (Tampering/Fake Item)
-  vision = {{InstructorLLMNode_560.output}}
+  const vision = {{InstructorLLMNode_560.output}}
   
   output = {
     success: false,
