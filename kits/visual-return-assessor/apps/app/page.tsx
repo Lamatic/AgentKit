@@ -242,7 +242,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
         imageBinary: base64Image,
       });
 
-      if (res) {
+      if (res?.status === "success") {
         setResult((res.result || res) as AssessmentResult);
       } else {
         setReturnAssessmentFail(
@@ -280,7 +280,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
         content: base64Policy,
       });
 
-      if (res?.statusCode === 200) {
+      if (res?.status === "success") {
         setPolicyUploadSuccess(
           `Policy document "${file.name}" successfully stored for ${data.category}.`,
         );
@@ -492,10 +492,17 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="orderId"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Order Reference ID
                     </label>
-                    <Input type="text" {...returnForm.register("orderId")} />
+                    <Input
+                      id="orderId"
+                      type="text"
+                      {...returnForm.register("orderId")}
+                    />
                     {returnForm.formState.errors.orderId && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
                         {returnForm.formState.errors.orderId.message}
@@ -504,7 +511,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="itemCategory"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Product Category
                     </label>
                     <Controller
@@ -515,7 +525,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="itemCategory">
                             <SelectValue placeholder="Select product category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -543,10 +553,14 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="claimReason"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Customer Issue Description
                     </label>
                     <textarea
+                      id="claimReason"
                       rows={2}
                       {...returnForm.register("claimReason")}
                       className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition resize-none"
@@ -559,10 +573,14 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="imageFile"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Damage Inspection Photo (JPG / PNG Only)
                     </label>
                     <Input
+                      id="imageFile"
                       type="file"
                       accept="image/jpeg, image/jpg, image/png"
                       {...returnForm.register("imageFile")}
@@ -611,10 +629,14 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="brand"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Brand Name
                     </label>
                     <Input
+                      id="brand"
                       type="text"
                       placeholder="e.g. Sony"
                       {...policyForm.register("brand")}
@@ -627,7 +649,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="policyCategory"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Target Product Category
                     </label>
                     <Controller
@@ -638,7 +663,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="policyCategory">
                             <SelectValue placeholder="Select target category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -666,10 +691,14 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                    <label
+                      htmlFor="policyFile"
+                      className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
+                    >
                       Policy Document (PDF / TXT Only)
                     </label>
                     <Input
+                      id="policyFile"
                       type="file"
                       accept="application/pdf, text/plain"
                       {...policyForm.register("policyFile")}

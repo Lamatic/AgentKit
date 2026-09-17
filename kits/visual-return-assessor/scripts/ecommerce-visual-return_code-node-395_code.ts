@@ -5,7 +5,7 @@ const rejectData = {{codeNode_131.output}} || null;
 // Pick the node that actually produced an output object
 const activeData = successData || rejectData || {};
 
-let finalDecision = activeData.decision || "REJECTED";
+let finalDecision = activeData.decision || "MANUAL_REVIEW";
 const rawFraudScore = activeData.fraudRiskScore;
 
 const numericFraudScore = typeof rawFraudScore === "number"
