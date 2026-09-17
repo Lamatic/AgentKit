@@ -4,17 +4,9 @@
 // Get raw output from Extract Node
 const extractOutput = {{extractFromFileNode_996.output}};
 
-// Extract raw string from metadata.url
-let rawText = "";
+// extractFromFileNode_996 decodes the base64 string in our imageBinary and holds it in output.files.data[0] as a rawstring containing our file data as it was.
 
-const data = extractOutput?.files?.[0]?.data?.[0];
-if (typeof data === "string") {
-  rawText = data;
-}
+// Access the rawstring from extractFromFileNode_996's output JSON 
+const data = extractOutput?.files?.[0]?.data?.[0] || "";
 
-// Strip out the 'data:text/markdown;base64,' prefix if present
-if (rawText.startsWith("data:")) {
-  rawText = rawText.substring(rawText.indexOf(",") + 1);
-}
-
-output = rawText
+output = data

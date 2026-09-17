@@ -67,21 +67,20 @@ function validateBase64Size(
 
 // Export Centralized Config
 
-const visualEnvKey = lamaticConfig.steps.find(
-  (x) => x.id === "ecommerce-visual-return",
+const visualEnvKey = lamaticConfig?.steps?.find(
+  (x) => x?.id === "ecommerce-visual-return",
 )?.envKey;
 
-const ingestionEnvKey = lamaticConfig.steps.find(
-  (x) => x.id === "data-ingestion",
+const ingestionEnvKey = lamaticConfig?.steps?.find(
+  (x) => x?.id === "data-ingestion",
 )?.envKey;
 
-const visualWorkflowId = visualEnvKey
-  ? process.env[visualEnvKey]
-  : config.visual;
+// Safe fallback resolving: checks both key existence AND env var population
+const visualWorkflowId =
+  (visualEnvKey && process.env[visualEnvKey]) || config?.visual;
 
-const ingestionWorkflowId = ingestionEnvKey
-  ? process.env[ingestionEnvKey]
-  : config.ingestion;
+const ingestionWorkflowId =
+  (ingestionEnvKey && process.env[ingestionEnvKey]) || config?.ingestion;
 
 // Payload Interface for Data Ingestion Workflow
 export interface IngestionPayload {
@@ -126,20 +125,20 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
   if (!ingestionWorkflowId) {
     throw new Error("Data Ingestion environment variable is missing.");
   }
-  if (!payload.content) {
+  if (!payload?.content) {
     throw new Error("No file provided for policy document upload.");
   }
 
   // Enforce decoded byte size limit boundary (7 MiB)
-  validateBase64Size(payload.content, "policy document");
+  validateBase64Size(payload?.content, "policy document");
 
   try {
     // Triggers the executeWorkflow query via the Lamatic SDK
     const response = await lamaticClient.executeFlow(ingestionWorkflowId, {
-      documentName: payload.documentName,
-      brand: payload.brand,
-      category: payload.category,
-      content: payload.content,
+      documentName: payload?.documentName,
+      brand: payload?.brand,
+      category: payload?.category,
+      content: payload?.content,
     });
 
     return response;
@@ -170,20 +169,20 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
   if (!payload) {
     throw new Error("Invalid payload provided for assessment.");
   }
-  if (!payload.imageBinary) {
+  if (!payload?.imageBinary) {
     throw new Error("No inspection image provided for assessment.");
   }
 
   // Enforce decoded byte size limit boundary (7 MiB)
-  validateBase64Size(payload.imageBinary, "inspection image");
+  validateBase64Size(payload?.imageBinary, "inspection image");
 
   try {
     const response = await lamaticClient.executeFlow(visualWorkflowId, {
-      orderId: payload.orderId,
-      itemCategory: payload.itemCategory,
-      claimReason: payload.claimReason,
-      imageBinary: payload.imageBinary,
-      userEmail: payload.userEmail,
+      orderId: payload?.orderId,
+      itemCategory: payload?.itemCategory,
+      claimReason: payload?.claimReason,
+      imageBinary: payload?.imageBinary,
+      userEmail: payload?.userEmail,
     });
 
     return response;

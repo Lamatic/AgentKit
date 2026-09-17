@@ -58,11 +58,12 @@ const returnFormSchema = z.object({
     .refine(
       (files) =>
         files &&
-        ["image/jpeg", "image/jpg", "image/png"].includes(files[0]?.type),
+        files[0] &&
+        ["image/jpeg", "image/jpg", "image/png"].includes(files[0].type),
       "Only JPG and PNG files are supported",
     )
     .refine(
-      (files) => files && files[0]?.size <= MAX_FILE_SIZE_BYTES,
+      (files) => files && files[0] && files[0].size <= MAX_FILE_SIZE_BYTES,
       SIZE_ERROR_MESSAGE,
     ),
 });
@@ -83,11 +84,13 @@ const policyFormSchema = z.object({
     .refine((files) => files && files.length > 0, "Policy document is required")
     .refine(
       (files) =>
-        files && ["application/pdf", "text/plain"].includes(files[0]?.type),
+        files &&
+        files[0] &&
+        ["application/pdf", "text/plain"].includes(files[0].type),
       "Only PDF and TXT files are supported",
     )
     .refine(
-      (files) => files && files[0]?.size <= MAX_FILE_SIZE_BYTES,
+      (files) => files && files[0] && files[0].size <= MAX_FILE_SIZE_BYTES,
       SIZE_ERROR_MESSAGE,
     ),
 });
@@ -173,8 +176,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
   const watchedImageFiles = returnForm.watch("imageFile");
   const watchedPolicyFiles = policyForm.watch("policyFile");
 
-  const selectedImageFile = watchedImageFiles?.[0] || null;
-  const selectedPolicyFile = watchedPolicyFiles?.[0] || null;
+  const selectedImageFile = watchedImageFiles?.[0] ?? null;
+  const selectedPolicyFile = watchedPolicyFiles?.[0] ?? null;
 
   /**
    * Generates a blob object URL preview for the uploaded damage inspection photo
@@ -229,7 +232,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Failed to convert file to Base64 format."));
+        }
+      };
       reader.onerror = (error) => reject(error);
     });
   };
@@ -246,8 +255,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
     setResult(null);
 
     try {
-      const file = data.imageFile[0];
-      const base64Image = file ? await fileToBase64(file) : "";
+      const file = data.imageFile?.[0];
+      if (!file) {
+        setReturnAssessmentFail("Inspection image is missing.");
+        return;
+      }
+
+      const base64Image = await fileToBase64(file);
 
       const res = await processReturnAssessment({
         orderId: data.orderId,
@@ -296,7 +310,12 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
     setPolicyUploadFail(null);
 
     try {
-      const file = data.policyFile[0];
+      const file = data.policyFile?.[0];
+      if (!file) {
+        setPolicyUploadFail("Policy document is missing.");
+        return;
+      }
+
       const base64Policy = await fileToBase64(file);
 
       const res = await uploadPolicyDocument({
@@ -307,14 +326,14 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
       });
 
       if (res?.status === "success") {
-        const result = res.result as {
+        const resResult = res.result as {
           success?: boolean;
           data?: string;
         } | null;
         if (
-          !result ||
-          typeof result.success !== "boolean" ||
-          typeof result.data !== "string"
+          !resResult ||
+          resResult.success !== true ||
+          typeof resResult.data !== "string"
         ) {
           setPolicyUploadFail(
             `Failed to store "${file.name}" for ${data.category}.`,
@@ -412,9 +431,11 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
     (formMode === "return" && (result || selectedImageFile)) ||
     (formMode === "policy" && selectedPolicyFile);
 
-  const activeStyle = result?.decision
-    ? decisionStyles[result.decision] || decisionStyles.MANUAL_REVIEW
-    : decisionStyles.MANUAL_REVIEW;
+  const activeStyleKey =
+    result?.decision && result.decision in decisionStyles
+      ? result.decision
+      : "MANUAL_REVIEW";
+  const activeStyle = decisionStyles[activeStyleKey];
 
   return (
     <main className="relative min-h-screen bg-brand-black text-brand-white font-sans p-6 md:p-12">
@@ -477,6 +498,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
           <div className="flex bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
             <Button
               type="button"
+              disabled={loading}
               variant={formMode === "return" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("return")}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-lg transition duration-200 ${
@@ -489,6 +511,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
             </Button>
             <Button
               type="button"
+              disabled={loading}
               variant={formMode === "policy" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("policy")}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-lg transition duration-200 ${
@@ -535,6 +558,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <Input
                       id="orderId"
                       type="text"
+                      required
                       {...returnForm.register("orderId")}
                     />
                     {returnForm.formState.errors.orderId && (
@@ -559,7 +583,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger id="itemCategory">
+                          <SelectTrigger id="itemCategory" aria-required="true">
                             <SelectValue placeholder="Select product category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -597,6 +621,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="claimReason"
                       rows={2}
                       maxLength={2000}
+                      required
                       {...returnForm.register("claimReason")}
                       className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition resize-none"
                     />
@@ -617,6 +642,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <Input
                       id="imageFile"
                       type="file"
+                      required
                       accept="image/jpeg, image/jpg, image/png"
                       {...returnForm.register("imageFile")}
                       className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
@@ -673,6 +699,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <Input
                       id="brand"
                       type="text"
+                      required
                       placeholder="e.g. Sony"
                       {...policyForm.register("brand")}
                     />
@@ -698,7 +725,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger id="policyCategory">
+                          <SelectTrigger
+                            id="policyCategory"
+                            aria-required="true"
+                          >
                             <SelectValue placeholder="Select target category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -735,6 +765,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <Input
                       id="policyFile"
                       type="file"
+                      required
                       accept="application/pdf, text/plain"
                       {...policyForm.register("policyFile")}
                       className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
@@ -805,44 +836,32 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     Selected Policy Document Preview
                   </p>
 
-                  {policyPreviewUrl ? (
-                    <a
-                      href={policyPreviewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-between bg-neutral-900 hover:bg-neutral-800 p-4 rounded-lg border border-neutral-800 transition duration-200 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <FileText className="w-8 h-8 text-brand-red" />
-                        <div className="overflow-hidden">
-                          <p className="text-sm font-semibold truncate text-brand-white group-hover:text-brand-red transition">
-                            {selectedPolicyFile.name}
-                          </p>
-                          <p className="text-xs font-mono text-neutral-500">
-                            {(selectedPolicyFile.size / 1024).toFixed(1)} KB •{" "}
-                            {selectedPolicyFile.type || "Document"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 text-xs font-mono text-brand-red bg-brand-red/10 px-2.5 py-1 rounded border border-brand-red/30 group-hover:bg-brand-red/20 transition">
-                        <span>Open</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-neutral-900 p-4 rounded-lg border border-neutral-800">
-                      <FileText className="w-8 h-8 text-neutral-500" />
+                  <div className="flex items-center justify-between bg-neutral-900 p-4 rounded-lg border border-neutral-800">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <FileText className="w-8 h-8 text-brand-red" />
                       <div className="overflow-hidden">
                         <p className="text-sm font-semibold truncate text-brand-white">
                           {selectedPolicyFile.name}
                         </p>
                         <p className="text-xs font-mono text-neutral-500">
-                          {(selectedPolicyFile.size / 1024).toFixed(1)} KB
+                          {(selectedPolicyFile.size / 1024).toFixed(1)} KB •{" "}
+                          {selectedPolicyFile.type || "Document"}
                         </p>
                       </div>
                     </div>
-                  )}
+
+                    {policyPreviewUrl && (
+                      <a
+                        href={policyPreviewUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs font-mono text-brand-red bg-brand-red/10 px-2.5 py-1 rounded border border-brand-red/30 hover:bg-brand-red/20 transition"
+                      >
+                        <span>View</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
 
