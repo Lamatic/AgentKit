@@ -106,7 +106,7 @@
  * |---|---|---|
  * | Extraction node schema validation error | Model returned `null` or omitted a required field | The prompt instructs empty strings over `null`; if it recurs, relax the field in the schema or add it to the prompt's rules |
  * | `eligibility` is always `needs-info` | Input text lacks disruption type or the critical threshold facts | Supply more detail in `disruptionText`; check `missingFacts` in the response for exactly what is needed |
- * | Wrong distance tier (e.g. 400 EUR instead of 600 EUR) | Extraction misjudged the airport-pair distance | Check `distanceKmEstimate` in `extractedFacts`; borderline airport-pair distances are especially sensitive, but any incorrect airport extraction can affect the assessment |
+ * | Wrong distance tier (e.g. medium instead of long) | Extraction misjudged the airport pair or derived incorrect route facts | First compare `originAirport` and `destinationAirport` in `extractedFacts` against the disruption account; then review the airport-derived values — `distanceKmEstimate`, `distanceTier`, and `routeClassification` — and verify operating carrier and route scope separately for `jurisdiction` |
  * | Letter cites a different amount than `compensationAmount` | Drafting model ignored the injected assessment | The prompts forbid inventing amounts; re-check that the branch fed the correct node output |
  * | Flow fails at the rule engine | Non-numeric values reached the engine (e.g. delay given as text) | The engine coerces with `Number()` and falls back to `needs-info`; verify extraction schema fields are typed as `number` |
  *
