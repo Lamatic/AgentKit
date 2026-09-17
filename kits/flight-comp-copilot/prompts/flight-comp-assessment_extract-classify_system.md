@@ -25,10 +25,10 @@ Classify `cause` into exactly one value:
 Assign `distanceTier` from the great-circle distance between origin and final destination:
 
 - `short` — up to 1,500 km (e.g. London–Paris, Barcelona–Madrid, Frankfurt–Rome).
-- `medium` — over 1,500 km on EU intra-Community routes, or 1,500–3,500 km otherwise (e.g. London–Athens, Paris–Réunion, New York–Los Angeles; Paris–Dubai is long: check carefully).
+- `medium` — over 1,500 km on EU intra-Community routes, or over 1,500 km and up to 3,500 km otherwise (e.g. London–Athens, Paris–Réunion, New York–Los Angeles; Paris–Dubai is long: check carefully).
 - `long` — over 3,500 km on non-intra-Community routes, including UK-involving routes (e.g. London–New York, Paris–Tokyo, Frankfurt–Johannesburg).
 - `unknown` — the origin or destination airport is not stated and the distance cannot be estimated. Do not guess a tier; the compensation amount depends on it.
-Use `distanceKmEstimate` for the best great-circle estimate in km between the airports named; set the tier from that number using the thresholds above (1,500 km and 3,500 km, noting that distances over 3,500 km qualify as medium only on EU intra-Community routes and are long otherwise).
+`distanceKmEstimate` is required: emit the best great-circle estimate in km between the airports named, or -1 whenever the distance cannot be estimated or the airports are unknown. Set `distanceTier` from that number using the thresholds above (1,500 km and 3,500 km, noting that distances over 3,500 km qualify as medium only on EU intra-Community routes and are long otherwise).
 
 Classify `routeClassification` into exactly one value:
 
@@ -54,7 +54,7 @@ Rules for values:
 - `ticketPrice` / `ticketCurrency`: for downgrade cases — the price paid for the downgraded segment (in `additionalContext` if given there) and the 3-letter code of the currency it was paid in (e.g. `EUR`, `GBP`, `USD`). Use -1 for `ticketPrice` and "" for `ticketCurrency` when the text does not state them. Never invent a price or currency.
 - `deniedBoardingReason`: `compensable-involuntary` for involuntary refusal (overbooking/commercial reasons), `reasonable-grounds` for Article 2(j) exclusions (health, safety, unruly behavior, missing docs), `unknown` if not specified or when `disruptionType` is not `denied-boarding`.
 - `routeClassification`: `intra-community` if both origin and destination airports are in EU Member States (including outermost regions), `non-intra-community` if either airport is outside the EU (including UK airports), `unknown` if origin or destination is not stated.
-- If a fact is not present in the input, use an empty string "" for strings, -1 for the numeric fields whose rules above specify -1 (arrival delay, cancellation notice days, ticket price) and -999 for the reroute offset fields — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
+- If a fact is not present in the input, use an empty string "" for strings, -1 for the numeric fields whose rules above specify -1 (arrival delay, cancellation notice days, ticket price, distanceKmEstimate) and -999 for the reroute offset fields — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
 - `scheduledDepartureDate` in YYYY-MM-DD, or "" if not stated.
 
 Output this exact JSON shape:
@@ -74,7 +74,7 @@ Output this exact JSON shape:
   "reroutedDepartureOffsetHours": number,
   "cause": "airline-controllable" | "extraordinary" | "unknown",
   "causeText": string (short faithful quote or summary of the stated cause, "" if none),
-  "distanceKmEstimate": number,
+  "distanceKmEstimate": number (-1 if distance unknown or cannot be estimated),
   "distanceTier": "short" | "medium" | "long" | "unknown",
   "routeClassification": "intra-community" | "non-intra-community" | "unknown",
   "ticketPrice": number (price paid for the downgraded segment, -1 if unknown),

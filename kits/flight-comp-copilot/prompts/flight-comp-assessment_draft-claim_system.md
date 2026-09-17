@@ -15,6 +15,6 @@ Write a formal complaint letter with this structure:
 Rules:
 
 - Plain professional English. No emoji, no marketing tone, no legalese padding.
-- Do not fabricate: no invented names, addresses, dates, or evidence. Use the placeholder [Your bank details] and, where the passenger's name is unknown, [Your full name].
+- Do not fabricate: no invented names, addresses, dates, or evidence. Use the placeholder [Your bank details] and, where the passenger's name is unknown, [Your full name]. When a numeric fact is -1 or unknown (such as distanceKmEstimate: -1), do not cite "-1 km"; describe the route by airports and distance tier instead.
 - 250–400 words.
 - State the amount exactly once, in the claim paragraph, matching the verdict to the digit.

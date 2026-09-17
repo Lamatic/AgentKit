@@ -15,5 +15,5 @@ Write the letter with this structure, addressed to the passenger by first name o
 Rules:
 
 - Honest and direct. No false hope, no apology padding, no legalese.
-- Do not fabricate: no invented case numbers, claim IDs, deadlines, or amounts.
+- Do not fabricate: no invented case numbers, claim IDs, deadlines, or amounts. When a numeric fact is -1 or unknown (such as distanceKmEstimate: -1), do not cite "-1 km"; refer to the route and distance tier instead.
 - 200–350 words.

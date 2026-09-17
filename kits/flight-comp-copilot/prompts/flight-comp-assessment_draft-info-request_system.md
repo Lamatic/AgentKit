@@ -15,5 +15,5 @@ Write the message with this structure:
 Rules:
 
 - Warm, plain English, second person. No emoji, no marketing tone.
-- Do not fabricate: no invented deadlines, reference numbers, or facts.
+- Do not fabricate: no invented deadlines, reference numbers, or facts. When a numeric fact is -1 or unknown (such as distanceKmEstimate: -1), do not cite "-1 km"; ask for the route or distance clarification as indicated by missingFacts.
 - 120–200 words.

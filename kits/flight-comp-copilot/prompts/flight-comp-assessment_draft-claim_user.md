@@ -10,7 +10,7 @@ EXTRACTED FLIGHT FACTS:
 
 - Jurisdiction: {{InstructorLLMNode_210.output.jurisdiction}}
 - Airline: {{InstructorLLMNode_210.output.airline}} (flight {{InstructorLLMNode_210.output.flightNumber}}, booking ref {{InstructorLLMNode_210.output.bookingReference}})
-- Route: {{InstructorLLMNode_210.output.originAirport}} → {{InstructorLLMNode_210.output.destinationAirport}} ({{InstructorLLMNode_210.output.distanceTier}}-haul, approx. {{InstructorLLMNode_210.output.distanceKmEstimate}} km)
+- Route: {{InstructorLLMNode_210.output.originAirport}} → {{InstructorLLMNode_210.output.destinationAirport}} ({{InstructorLLMNode_210.output.distanceTier}}-haul, approx. {{InstructorLLMNode_210.output.distanceKmEstimate}} km; -1 indicates distance is unknown or could not be estimated)
 - Scheduled departure: {{InstructorLLMNode_210.output.scheduledDepartureDate}}
 - Disruption: {{InstructorLLMNode_210.output.disruptionType}} (cause: {{InstructorLLMNode_210.output.cause}} — {{InstructorLLMNode_210.output.causeText}})
 - Arrival delay: {{InstructorLLMNode_210.output.arrivalDelayHours}} hours
