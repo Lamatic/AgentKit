@@ -186,6 +186,29 @@ function assess(f) {
       "The flight's distance tier (" + String(f.distanceTier) + ") was not recognised. The compensation amount depends on route distance: up to 1,500 km, 1,500–3,500 km, or over 3,500 km. Confirm the origin and final destination airports."
     );
   }
+
+  // Reconcile distanceKmEstimate with distanceTier: if the numerical distance estimate
+  // is known, verify that it is consistent with the assigned distance tier. When the
+  // values contradict each other (e.g. 5,000 km labeled "short"), ask for clarification
+  // rather than calculating compensation on a contradictory tier.
+  const distKm = toNumberOrNullSentinel(f.distanceKmEstimate);
+  if (distKm !== null && distKm !== UNKNOWN && distKm > 0) {
+    let expectedTier;
+    if (distKm <= 1500) {
+      expectedTier = "short";
+    } else if (distKm <= 3500) {
+      expectedTier = "medium";
+    } else {
+      expectedTier = "long";
+    }
+    const isConsistent = f.distanceTier === expectedTier || (distKm > 3500 && f.distanceTier === "medium");
+    if (!isConsistent) {
+      return needsInfo(
+        "The estimated route distance of " + distKm + " km does not match the assigned distance tier (" + f.distanceTier + "). The distance thresholds are: short up to 1,500 km, medium 1,500–3,500 km, and long over 3,500 km. Confirm the route distance to determine the correct compensation tier."
+      );
+    }
+  }
+
   const base = amounts[f.distanceTier];
 
   // A disruption type we cannot map to a rule set is not a claim we can assess.
@@ -484,5 +507,6 @@ output = assess({
   ticketPrice: {{InstructorLLMNode_210.output.ticketPrice}},
   ticketCurrency: {{InstructorLLMNode_210.output.ticketCurrency}},
   distanceTier: {{InstructorLLMNode_210.output.distanceTier}},
+  distanceKmEstimate: {{InstructorLLMNode_210.output.distanceKmEstimate}},
   deniedBoardingReason: {{InstructorLLMNode_210.output.deniedBoardingReason}}
 });
