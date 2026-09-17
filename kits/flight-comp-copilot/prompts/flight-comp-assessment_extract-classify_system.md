@@ -25,15 +25,15 @@ Classify `cause` into exactly one value:
 Assign `distanceTier` from the great-circle distance between origin and final destination:
 
 - `short` — up to 1,500 km (e.g. London–Paris, Barcelona–Madrid, Frankfurt–Rome).
-- `medium` — over 1,500 km within the EU/UK, or 1,500–3,500 km elsewhere (e.g. London–Athens, New York–Los Angeles, Paris–Dubai is long: check carefully).
-- `long` — over 3,500 km for flights between an EU/UK airport and a non-EU/UK destination (e.g. London–New York, Paris–Tokyo, Frankfurt–Johannesburg).
+- `medium` — over 1,500 km on EU intra-Community routes, or 1,500–3,500 km otherwise (e.g. London–Athens, Paris–Réunion, New York–Los Angeles; Paris–Dubai is long: check carefully).
+- `long` — over 3,500 km on non-intra-Community routes, including UK-involving routes (e.g. London–New York, Paris–Tokyo, Frankfurt–Johannesburg).
 - `unknown` — the origin or destination airport is not stated and the distance cannot be estimated. Do not guess a tier; the compensation amount depends on it.
-Use `distanceKmEstimate` for the best great-circle estimate in km between the airports named; set the tier from that number using the thresholds above (1,500 km and 3,500 km).
+Use `distanceKmEstimate` for the best great-circle estimate in km between the airports named; set the tier from that number using the thresholds above (1,500 km and 3,500 km, noting that distances over 3,500 km qualify as medium only on EU intra-Community routes and are long otherwise).
 
 Classify `routeClassification` into exactly one value:
 
 - `intra-community` — both the origin and destination airports are within the territory of EU Member States (including EU outermost regions such as the Canary Islands, Madeira, Azores, Guadeloupe, Martinique, Mayotte, Réunion, Saint-Martin, and French Guiana). Under EU-261 Article 7(1)(b), all intra-Community flights over 1,500 km fall into the medium distance tier (€400), even if over 3,500 km. Note that the UK is not an EU Member State.
-- `non-intra-community` — at least one of the origin or destination airports is outside the EU (for example flights between the UK and EU, US and EU, or flights entirely outside the EU). Flights over 3,500 km that are not intra-Community fall into the long tier.
+- `non-intra-community` — at least one of the origin or destination airports is outside the EU (for example flights between the UK and EU, US and EU, UK domestic flights, or flights entirely outside the EU). All flights over 3,500 km on non-intra-Community routes fall into the long tier, including UK-involving routes.
 - `unknown` — the origin or destination airport is not stated and the route cannot be classified.
 
 Assign `jurisdiction`:
