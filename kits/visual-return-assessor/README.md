@@ -11,7 +11,7 @@ This AgentKit contains 2 flows:
 
 **Visual Return Assessor** is an enterprise AI agent system built with Lamatic.ai. It solves the problem of automated e-commerce return decisions and policy compliance verification from a single API surface.
 
-It implements a multi-flow system that routes customer return claims and policy document uploads to dedicated Lamatic orchestrator flows (`VISUAL_RETURN_ASSESSOR` and `POLICY_DATA_INGESTION`). The system coordinates computer vision damage checks, vector search (RAG) over stored warranty rules, and automated fraud risk scoring to issue verdicts (`APPROVED`, `REJECTED`, or `MANUAL_REVIEW`).
+It implements a multi-flow system that routes customer return claims and policy document uploads to dedicated Lamatic orchestrator flows (`VISUAL_RETURN_ASSESSOR` and `POLICY_DATA_INGESTION`). The system coordinates computer vision damage checks, vector search (RAG) over stored warranty rules, and automated fraud risk scoring to issue verdicts (`APPROVE`, `REJECT`, or `MANUAL_REVIEW`).
 
 ---
 
@@ -48,7 +48,7 @@ It implements a multi-flow system that routes customer return claims and policy 
 ```json
 {
   "success": true,
-  "decision": "APPROVED",
+  "decision": "APPROVE",
   "confidenceScore": 0.94,
   "fraudRiskScore": 0.12,
   "authenticityMatch": true,
@@ -88,7 +88,7 @@ It implements a multi-flow system that routes customer return claims and policy 
 
 ## Guardrails
 
-- **Mandatory Photo Verification:** Return requests missing valid `imageBinary` data default to `REJECTED` or require mandatory re-submission.
+- **Mandatory Photo Verification:** Return requests missing valid `imageBinary` data default to `REJECT` or require mandatory re-submission.
 - **Fraud Risk Threshold:** Any claim yielding a fraud risk score above **0.50** automatically overrides automated approval to `MANUAL_REVIEW`.
 - **Category-Scoped Retrieval:** Policy searches are strictly partitioned by `category` metadata to prevent rule contamination across product types.
 - **Safety & PII:** Redacts `userEmail` and sensitive PII before sending context to LLM nodes; strictly prohibits prompt injection attempts within claim reason text.

@@ -34,12 +34,21 @@ import {
 const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 const SIZE_ERROR_MESSAGE = "File size must be 7 MiB or smaller";
 
-// --- ZOD SCHEMAS & TYPES ---
+// --- ZOD SCHEMAS & TYPES WITH UPPER BOUND CAPS ---
 
 const returnFormSchema = z.object({
-  orderId: z.string().min(1, "Order Reference ID is required"),
-  itemCategory: z.string().min(1, "Please select a product category"),
-  claimReason: z.string().min(5, "Claim reason must be at least 5 characters"),
+  orderId: z
+    .string()
+    .min(1, "Order Reference ID is required")
+    .max(100, "Order Reference ID must not exceed 100 characters"),
+  itemCategory: z
+    .string()
+    .min(1, "Please select a product category")
+    .max(100, "Category name must not exceed 100 characters"),
+  claimReason: z
+    .string()
+    .min(5, "Claim reason must be at least 5 characters")
+    .max(2000, "Claim reason must not exceed 2000 characters"),
   imageFile: z
     .custom<FileList>()
     .refine(
@@ -61,8 +70,14 @@ const returnFormSchema = z.object({
 type ReturnFormValues = z.infer<typeof returnFormSchema>;
 
 const policyFormSchema = z.object({
-  brand: z.string().min(1, "Brand name is required"),
-  category: z.string().min(1, "Please select a product category"),
+  brand: z
+    .string()
+    .min(1, "Brand name is required")
+    .max(100, "Brand name must not exceed 100 characters"),
+  category: z
+    .string()
+    .min(1, "Please select a product category")
+    .max(100, "Category name must not exceed 100 characters"),
   policyFile: z
     .custom<FileList>()
     .refine((files) => files && files.length > 0, "Policy document is required")
@@ -345,12 +360,6 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
   } => {
     if (!res) return { confidence: null, fraud: null, authenticity: null };
 
-    /**
-     * Helper guard to verify if a given value is a valid finite number within [0, 1].
-     *
-     * @param {unknown} val - Value to check.
-     * @returns {boolean} True if val is a bounded number.
-     */
     const isBoundedNumber = (val: unknown): val is number =>
       typeof val === "number" && Number.isFinite(val) && val >= 0 && val <= 1;
 
@@ -562,6 +571,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <textarea
                       id="claimReason"
                       rows={2}
+                      maxLength={2000}
                       {...returnForm.register("claimReason")}
                       className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition resize-none"
                     />
@@ -898,7 +908,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         Policy Citation
                       </span>
                       <span className="font-semibold text-brand-red font-mono text-xs">
-                        {result.policyReference || "Standard Policy Check"}
+                        {result.policyReference || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -908,7 +918,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       Agent Justification Log
                     </p>
                     <p className="text-sm text-neutral-300 bg-brand-black border border-neutral-800 rounded-lg p-4 leading-relaxed">
-                      {result.reasoning}
+                      {result.reasoning || "N/A"}
                     </p>
                   </div>
                 </div>

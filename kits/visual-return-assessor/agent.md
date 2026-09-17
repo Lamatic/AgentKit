@@ -57,7 +57,7 @@ Step-by-step walkthrough of the node chain:
    - Computes an aggregate fraud risk score based on damage consistency, and claim parameters.
 
 5. `Finalise Output (codeNode)`
-   - Consolidates execution metrics into a single structured response payload (`APPROVED`, `REJECTED`, or `MANUAL_REVIEW`).
+   - Consolidates execution metrics into a single structured response payload (`APPROVE`, `REJECT`, or `MANUAL_REVIEW`).
 
 6. `API Response (graphqlResponseNode)`
    - Returns the finalized payload to the client interface.
@@ -73,7 +73,7 @@ Use this flow whenever a customer or support agent submits a product return clai
   ```json
   {
     "success": true,
-    "decision": "APPROVED",
+    "decision": "APPROVE",
     "confidenceScore": 0.94,
     "fraudRiskScore": 0.12,
     "authenticityMatch": true,
@@ -135,7 +135,7 @@ Use this flow when uploading new warranty policies, updating category return gui
 
 ## Guardrails
 
-- **Mandatory Photo Verification:** Return requests missing valid `imageBinary` data default to `REJECTED` or require mandatory re-submission.
+- **Mandatory Photo Verification:** Return requests missing valid `imageBinary` data default to `REJECT` or require mandatory re-submission.
 - **Fraud Risk Threshold:** Any claim yielding a fraud risk score above **0.50** automatically overrides automated approval to `MANUAL_REVIEW`.
 - **Category-Scoped Retrieval:** Policy searches are strictly partitioned by `category` metadata to prevent rule contamination across product types.
 - **Safety & PII:** Redacts `userEmail` and sensitive PII before sending context to LLM nodes; strictly prohibits prompt injection attempts within claim reason text.
