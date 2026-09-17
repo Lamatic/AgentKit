@@ -92,7 +92,7 @@ This project is a single-flow template; there are no inter-flow dependencies. If
 
 - Operational limits
   - Subject to the LLM provider's rate limits and context window; very long correspondence threads may be truncated.
-  - Distance-tier classification depends on the extraction model's geographic estimate; tiers are broad (1,500 / 3,500 km) so only borderline airport pairs are at risk, and `distanceKmEstimate` is returned for verification.
+  - Distance-tier classification depends on the extraction model's geographic estimate; borderline airport pairs are especially sensitive, while incorrect airport extraction can produce a consistent but wrong distance and tier for any route and affect the compensation assessment. `distanceKmEstimate` is returned for verification.
 
 ## Integration Reference
 

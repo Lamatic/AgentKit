@@ -497,7 +497,7 @@ function assess(f) {
 
 function tierLabel(tier) {
   if (tier === "short") return "≤ 1,500 km";
-  if (tier === "medium") return "1,500–3,500 km";
+  if (tier === "medium") return "over 1,500 km intra-Community, or 1,500–3,500 km otherwise";
   return "over 3,500 km";
 }
 
