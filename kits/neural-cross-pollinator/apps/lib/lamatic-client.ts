@@ -50,13 +50,13 @@ function normalizeParallels(value: unknown): ParallelMatch[] {
 }
 
 export async function runNeuralCrossPollinator(
+  workflowId: string,
   domainA: string,
   domainB: string
 ): Promise<CrossPollinatorResult> {
   const apiUrl = requireEnv("LAMATIC_API_URL");
   const apiKey = requireEnv("LAMATIC_API_KEY");
   const projectId = requireEnv("LAMATIC_PROJECT_ID");
-  const workflowId = requireEnv("NEURAL_CROSS_POLLINATOR_FLOW_ID");
 
   // domainA/domainB are required by the flow's input schema, so the
   // GraphQL variables must be non-null (String!) to match — a
