@@ -32,6 +32,7 @@ output = {
     causeText: {{InstructorLLMNode_210.output.causeText}},
     distanceKmEstimate: {{InstructorLLMNode_210.output.distanceKmEstimate}},
     distanceTier: {{InstructorLLMNode_210.output.distanceTier}},
+    routeClassification: {{InstructorLLMNode_210.output.routeClassification}},
     ticketPrice: {{InstructorLLMNode_210.output.ticketPrice}},
     ticketCurrency: {{InstructorLLMNode_210.output.ticketCurrency}},
     bookingReference: {{InstructorLLMNode_210.output.bookingReference}},

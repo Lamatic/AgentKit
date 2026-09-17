@@ -30,6 +30,12 @@ Assign `distanceTier` from the great-circle distance between origin and final de
 - `unknown` — the origin or destination airport is not stated and the distance cannot be estimated. Do not guess a tier; the compensation amount depends on it.
 Use `distanceKmEstimate` for the best great-circle estimate in km between the airports named; set the tier from that number using the thresholds above (1,500 km and 3,500 km).
 
+Classify `routeClassification` into exactly one value:
+
+- `intra-community` — both the origin and destination airports are within the territory of EU Member States (including EU outermost regions such as the Canary Islands, Madeira, Azores, Guadeloupe, Martinique, Mayotte, Réunion, Saint-Martin, and French Guiana). Under EU-261 Article 7(1)(b), all intra-Community flights over 1,500 km fall into the medium distance tier (€400), even if over 3,500 km. Note that the UK is not an EU Member State.
+- `non-intra-community` — at least one of the origin or destination airports is outside the EU (for example flights between the UK and EU, US and EU, or flights entirely outside the EU). Flights over 3,500 km that are not intra-Community fall into the long tier.
+- `unknown` — the origin or destination airport is not stated and the route cannot be classified.
+
 Assign `jurisdiction`:
 
 - `UK-261` — the flight departed from a UK airport, or arrived in the UK on a UK or EU carrier.
@@ -47,6 +53,7 @@ Rules for values:
 - `reroutedDepartureOffsetHours`: for cancellations — hours relative to the original scheduled departure: negative if the replacement departed earlier than the original schedule (e.g. -5 for five hours early), positive if it departed later (e.g. 2 for two hours after the original departure time), 0 reserved for a departure exactly on the original schedule. Use the sentinel -999 if rerouting was offered but the time comparison cannot be determined — never -1, which is a real value here (one hour early). For denied-boarding keep -999 unless the account states the replacement's departure offset.
 - `ticketPrice` / `ticketCurrency`: for downgrade cases — the price paid for the downgraded segment (in `additionalContext` if given there) and the 3-letter code of the currency it was paid in (e.g. `EUR`, `GBP`, `USD`). Use -1 for `ticketPrice` and "" for `ticketCurrency` when the text does not state them. Never invent a price or currency.
 - `deniedBoardingReason`: `compensable-involuntary` for involuntary refusal (overbooking/commercial reasons), `reasonable-grounds` for Article 2(j) exclusions (health, safety, unruly behavior, missing docs), `unknown` if not specified or when `disruptionType` is not `denied-boarding`.
+- `routeClassification`: `intra-community` if both origin and destination airports are in EU Member States (including outermost regions), `non-intra-community` if either airport is outside the EU (including UK airports), `unknown` if origin or destination is not stated.
 - If a fact is not present in the input, use an empty string "" for strings, -1 for the numeric fields whose rules above specify -1 (arrival delay, cancellation notice days, ticket price) and -999 for the reroute offset fields — never the literal word "null", never placeholders like "N/A". Do not invent flight numbers, dates, or causes.
 - `scheduledDepartureDate` in YYYY-MM-DD, or "" if not stated.
 
@@ -69,6 +76,7 @@ Output this exact JSON shape:
   "causeText": string (short faithful quote or summary of the stated cause, "" if none),
   "distanceKmEstimate": number,
   "distanceTier": "short" | "medium" | "long" | "unknown",
+  "routeClassification": "intra-community" | "non-intra-community" | "unknown",
   "ticketPrice": number (price paid for the downgraded segment, -1 if unknown),
   "ticketCurrency": string (3-letter currency code of the price paid, "" if unknown),
   "bookingReference": string

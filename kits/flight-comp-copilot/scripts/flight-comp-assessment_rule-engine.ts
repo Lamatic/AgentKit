@@ -191,6 +191,12 @@ function assess(f) {
   // is known, verify that it is consistent with the assigned distance tier. When the
   // values contradict each other (e.g. 5,000 km labeled "short"), ask for clarification
   // rather than calculating compensation on a contradictory tier.
+  //
+  // Article 7(1)(b) of EU-261 sets the medium tier amount (€400) for all intra-Community
+  // flights of more than 1,500 km, even if the distance exceeds 3,500 km. Restrict this
+  // long-distance medium exception strictly to EU-261 routes with an explicit
+  // "intra-community" classification. For UK-261, non-intra-Community, or unknown route
+  // classifications, all flights over 3,500 km must remain in the long tier.
   const distKm = toNumberOrNullSentinel(f.distanceKmEstimate);
   if (distKm !== null && distKm !== UNKNOWN && distKm > 0) {
     let expectedTier;
@@ -201,10 +207,16 @@ function assess(f) {
     } else {
       expectedTier = "long";
     }
-    const isConsistent = f.distanceTier === expectedTier || (distKm > 3500 && f.distanceTier === "medium");
+    const isIntraEuMediumException =
+      distKm > 3500 &&
+      f.distanceTier === "medium" &&
+      f.jurisdiction === "EU-261" &&
+      f.routeClassification === "intra-community";
+
+    const isConsistent = f.distanceTier === expectedTier || isIntraEuMediumException;
     if (!isConsistent) {
       return needsInfo(
-        "The estimated route distance of " + distKm + " km does not match the assigned distance tier (" + f.distanceTier + "). The distance thresholds are: short up to 1,500 km, medium 1,500–3,500 km, and long over 3,500 km. Confirm the route distance to determine the correct compensation tier."
+        "The estimated route distance of " + distKm + " km does not match the assigned distance tier (" + f.distanceTier + "). The distance thresholds are: short up to 1,500 km, medium 1,500–3,500 km, and long over 3,500 km (with intra-Community flights over 1,500 km capped at the medium tier under EU-261). Confirm the route distance and airports to determine the correct compensation tier."
       );
     }
   }
@@ -508,5 +520,6 @@ output = assess({
   ticketCurrency: {{InstructorLLMNode_210.output.ticketCurrency}},
   distanceTier: {{InstructorLLMNode_210.output.distanceTier}},
   distanceKmEstimate: {{InstructorLLMNode_210.output.distanceKmEstimate}},
+  routeClassification: {{InstructorLLMNode_210.output.routeClassification}},
   deniedBoardingReason: {{InstructorLLMNode_210.output.deniedBoardingReason}}
 });
