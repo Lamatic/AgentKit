@@ -207,6 +207,19 @@ function assess(f) {
     } else {
       expectedTier = "long";
     }
+    if (distKm > 3500 && f.jurisdiction === "EU-261" && f.distanceTier === "long") {
+      if (!f.routeClassification || f.routeClassification === "unknown") {
+        return needsInfo(
+          "The estimated route distance of " + distKm + " km exceeds 3,500 km under EU-261, but the route classification is unknown. Under EU-261 Article 7(1)(b), all intra-Community flights over 1,500 km are capped at the medium tier (€400), while only non-intra-Community flights qualify for the long tier (€600). Confirm the route classification to determine the correct compensation tier."
+        );
+      }
+      if (f.routeClassification === "intra-community") {
+        return needsInfo(
+          "The estimated route distance of " + distKm + " km is an intra-Community flight under EU-261. Under Article 7(1)(b), all intra-Community flights over 1,500 km are capped at the medium distance tier (€400), not the long tier. Confirm the assigned distance tier."
+        );
+      }
+    }
+
     const isIntraEuMediumException =
       distKm > 3500 &&
       f.distanceTier === "medium" &&
