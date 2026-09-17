@@ -131,7 +131,7 @@ This project is a single-flow template; there are no inter-flow dependencies. If
 |---|---|---|
 | Extraction node schema validation error | Model returned `null` or omitted a required field | The prompt mandates empty strings / `-1` sentinels over `null`; if it recurs, relax the field in the node schema |
 | `eligibility` always `needs-info` | Input text lacks disruption type or threshold facts | Supply more detail; the `missingFacts` array states exactly what is needed |
-| Wrong distance tier (e.g. 400 instead of 600) | Extraction misjudged the airport-pair distance | Check `distanceKmEstimate` in `extractedFacts`; borderline airport-pair distances are especially sensitive, but any incorrect airport extraction can affect the assessment |
+| Wrong distance tier (e.g. 400 instead of 600) | Extraction misjudged the airport pair or derived incorrect route facts | First compare `originAirport` and `destinationAirport` in `extractedFacts` against the disruption account; then review the values derived from those airports — `distanceKmEstimate`, `distanceTier`, `routeClassification`, and `jurisdiction` — and correct any that are inconsistent with the actual route |
 | Letter cites a different amount than `compensationAmount` | Drafting model ignored the verdict | The prompts forbid inventing amounts; re-check the branch wired the correct node output |
 | Rule engine returns `needs-info` unexpectedly | Non-numeric delay/notice reached the engine | The engine coerces with `Number()` and falls back to `needs-info`; verify the schema fields are typed `number` |
 
