@@ -122,7 +122,7 @@ Step-by-step walkthrough of the node chain:
    - Splits policy rules into semantic chunks and generates vector embeddings.
 
 4. `Vector Storage Ingestion (VectorStoreNode)`
-   - Stores embedded chunks tagged with `category` `chunk data` and `brand` metadata for downstream RAG retrieval.
+   - Stores embedded chunks tagged with `category` `content` and `brand` metadata for downstream RAG retrieval.
 
 5. `API Response (graphqlResponseNode)`
    - Returns confirmation status of successful vector indexing.

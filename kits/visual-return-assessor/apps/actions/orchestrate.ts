@@ -2,6 +2,56 @@
 
 import { config, lamaticClient } from "@/lib/lamatic-client";
 import lamaticConfig from "../../lamatic.config";
+
+// --- CONSTANTS & VALIDATION HELPERS ---
+
+// 7 MiB threshold in raw decoded bytes
+const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
+
+/**
+ * Calculates the exact binary byte size of a Base64 string or Data URL.
+ *
+ * @param base64String - The Base64 encoded payload.
+ * @returns {number} The size of the decoded payload in bytes.
+ */
+function getBase64DecodedByteSize(base64String: string): number {
+  if (!base64String) return 0;
+
+  // Strip Data URL scheme header if present (e.g. "data:image/png;base64,...")
+  const base64Data = base64String.includes(",")
+    ? base64String.split(",")[1]
+    : base64String;
+
+  // Account for Base64 equal sign padding
+  const paddingMatches = base64Data.match(/=/g);
+  const paddingCount = paddingMatches ? paddingMatches.length : 0;
+
+  return Math.floor((base64Data.length * 3) / 4) - paddingCount;
+}
+
+/**
+ * Asserts that a Base64 string does not exceed the allowed byte size limit.
+ *
+ * @param base64String - The Base64 payload to validate.
+ * @param fieldName - Friendly name of the payload field for error reporting.
+ * @param maxBytes - Maximum allowed size in bytes (defaults to 7 MiB).
+ * @throws {Error} If the decoded size exceeds the threshold.
+ */
+function validateBase64Size(
+  base64String: string,
+  fieldName: string,
+  maxBytes: number = MAX_FILE_SIZE_BYTES,
+): void {
+  const byteSize = getBase64DecodedByteSize(base64String);
+
+  if (byteSize > maxBytes) {
+    const megabytes = (byteSize / (1024 * 1024)).toFixed(2);
+    throw new Error(
+      `File size limit exceeded for ${fieldName}. Received ${megabytes} MiB, maximum allowed is 7 MiB.`,
+    );
+  }
+}
+
 // Export Centralized Config
 
 const visualEnvKey = lamaticConfig.steps.find(
@@ -56,6 +106,7 @@ export interface AssessmentResult {
  * @param {IngestionPayload} payload - Policy document details and encoded content.
  * @returns {Promise<unknown>} The result returned by the Lamatic ingestion flow.
  * @throws {Error} If ingestion configuration or document content is missing.
+ * @throws {Error} If the document file size exceeds the 7 MiB threshold.
  * @throws {Error} If the Lamatic ingestion flow fails.
  */
 export async function uploadPolicyDocument(payload: IngestionPayload) {
@@ -65,6 +116,9 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
   if (!payload.content) {
     throw new Error("No file provided for policy document upload.");
   }
+
+  // Enforce decoded byte size limit boundary (7 MiB)
+  validateBase64Size(payload.content, "policy document");
 
   try {
     // Triggers the executeWorkflow query via the Lamatic SDK
@@ -93,6 +147,7 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
  * @param {ReturnAssessorPayload} payload - Return claim details and visual evidence.
  * @returns {Promise<unknown>} The result returned by the Lamatic assessment flow.
  * @throws {Error} If assessment configuration, payload, or image evidence is missing.
+ * @throws {Error} If the inspection image file size exceeds the 7 MiB threshold.
  * @throws {Error} If the Lamatic assessment flow fails.
  */
 export async function processReturnAssessment(payload: ReturnAssessorPayload) {
@@ -103,8 +158,11 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
     throw new Error("Invalid payload provided for assessment.");
   }
   if (!payload.imageBinary) {
-    throw new Error("No file provided for policy document upload.");
+    throw new Error("No inspection image provided for assessment.");
   }
+
+  // Enforce decoded byte size limit boundary (7 MiB)
+  validateBase64Size(payload.imageBinary, "inspection image");
 
   try {
     const response = await lamaticClient.executeFlow(visualWorkflowId, {

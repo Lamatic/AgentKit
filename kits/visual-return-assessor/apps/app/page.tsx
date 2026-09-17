@@ -61,6 +61,7 @@ const returnFormSchema = z.object({
 type ReturnFormValues = z.infer<typeof returnFormSchema>;
 
 const policyFormSchema = z.object({
+  brand: z.string().min(1, "Brand name is required"),
   category: z.string().min(1, "Please select a product category"),
   policyFile: z
     .custom<FileList>()
@@ -149,6 +150,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
   const policyForm = useForm<PolicyFormValues>({
     resolver: zodResolver(policyFormSchema),
     defaultValues: {
+      brand: "",
       category: "Consumer Electronics",
     },
   });
@@ -273,7 +275,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
       const res = await uploadPolicyDocument({
         documentName: file.name,
-        brand: file.name,
+        brand: data.brand,
         category: data.category,
         content: base64Policy,
       });
@@ -608,6 +610,22 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   onSubmit={policyForm.handleSubmit(onPolicySubmit)}
                   className="space-y-4"
                 >
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
+                      Brand Name
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="e.g. Sony"
+                      {...policyForm.register("brand")}
+                    />
+                    {policyForm.formState.errors.brand && (
+                      <p className="text-brand-red text-xs mt-1 font-mono">
+                        {policyForm.formState.errors.brand.message}
+                      </p>
+                    )}
+                  </div>
+
                   <div>
                     <label className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1">
                       Target Product Category
