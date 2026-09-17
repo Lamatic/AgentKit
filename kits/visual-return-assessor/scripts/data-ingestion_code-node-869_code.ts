@@ -11,7 +11,7 @@ const content = {{codeNode_281.output}}
 
 for (let i = 0; i < vectorsArray.length; i++){
 
-  const pk = `${docName}_${brand}_${category}_${i}`
+  const pk = JSON.stringify([docName, brand, category, i]);
 
   metaData.push({ 
     "chunkId": pk,
