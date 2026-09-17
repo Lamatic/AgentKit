@@ -24,6 +24,24 @@ export const inputs = {
 };
 
 export const references = {
+  prompts: {
+    analysisSystem: "@prompts/analysis-system.md",
+    domainAUser: "@prompts/domain-a-user.md",
+    domainBUser: "@prompts/domain-b-user.md",
+    findParallelsSystem: "@prompts/find-parallels-system.md",
+    findParallelsUser: "@prompts/find-parallels-user.md",
+    transferMechanismSystem: "@prompts/transfer-mechanism-system.md",
+    transferMechanismUser: "@prompts/transfer-mechanism-user.md",
+    evaluateInnovationSystem: "@prompts/evaluate-innovation-system.md",
+    evaluateInnovationUser: "@prompts/evaluate-innovation-user.md",
+    presentSuccessSystem: "@prompts/present-success-system.md",
+    presentSuccessUser: "@prompts/present-success-user.md",
+    presentCaveatSystem: "@prompts/present-caveat-system.md",
+    presentCaveatUser: "@prompts/present-caveat-user.md"
+  },
+  modelConfigs: {
+    groq: "@model-configs/groq.ts"
+  },
   constitutions: { default: "@constitutions/default.md" }
 };
 
@@ -36,18 +54,6 @@ const analysisSchema = {
     feedback_loops: { type: "array", items: { type: "string" } },
     adaptation_patterns: { type: "array", items: { type: "string" } }
   }
-};
-
-const analysisSystemPrompt =
-  "You are a structural analysis engine. Given a domain, break it down into its core structural components. Be precise and avoid vague generalities. Return only the structured breakdown, no commentary.";
-
-const groqModel = {
-  configName: "configA",
-  type: "generator/text",
-  provider_name: "groq",
-  credential_name: "Groq neural",
-  model_name: "groq/openai/gpt-oss-120b",
-  params: {}
 };
 
 export const nodes = [
@@ -72,10 +78,10 @@ export const nodes = [
         nodeName: "Analyze Domain A",
         schema: analysisSchema,
         prompts: [
-          { role: "system", content: analysisSystemPrompt },
-          { role: "user", content: "Analyze this domain : {{APIRequest.output.domainA}}" }
+          { role: "system", content: "@prompts/analysis-system.md" },
+          { role: "user", content: "@prompts/domain-a-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
@@ -88,10 +94,10 @@ export const nodes = [
         nodeName: "Analyze Domain B",
         schema: analysisSchema,
         prompts: [
-          { role: "system", content: analysisSystemPrompt },
-          { role: "user", content: "Analyze this domain : {{APIRequest.output.domainB}}" }
+          { role: "system", content: "@prompts/analysis-system.md" },
+          { role: "user", content: "@prompts/domain-b-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
@@ -120,18 +126,10 @@ export const nodes = [
           }
         },
         prompts: [
-          {
-            role: "system",
-            content:
-              "You are a cross-domain pattern-matching engine. You will be given two structural analyses of unrelated domains. Identify genuine structural parallels between them — matching mechanisms, feedback loops, or adaptation patterns that serve an equivalent function despite belonging to different fields. Reject superficial or forced comparisons. Only report parallels with real structural grounding."
-          },
-          {
-            role: "user",
-            content:
-              "Domain A analysis: {{InstructorLLMNode_566.output.entities}},{{InstructorLLMNode_566.output.mechanisms}},{{InstructorLLMNode_566.output.constraints}},{{InstructorLLMNode_566.output.feedback_loops}},{{InstructorLLMNode_566.output.adaptation_patterns}} Domain B analysis: {{InstructorLLMNode_452.output.entities}},{{InstructorLLMNode_452.output.mechanisms}},{{InstructorLLMNode_452.output.constraints}},{{InstructorLLMNode_452.output.feedback_loops}},{{InstructorLLMNode_452.output.adaptation_patterns}}"
-          }
+          { role: "system", content: "@prompts/find-parallels-system.md" },
+          { role: "user", content: "@prompts/find-parallels-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
@@ -159,18 +157,10 @@ export const nodes = [
           }
         },
         prompts: [
-          {
-            role: "system",
-            content:
-              "You are an innovation engine. Given a set of structural parallels between two domains, select the single most promising parallel — the one with the clearest and most actionable shared structure. Propose a concrete mechanism transfer: describe how the mechanism from one domain could be adapted into an actionable innovation in the other domain. Be specific and practical, not vague or poetic."
-          },
-          {
-            role: "user",
-            content:
-              "Structural parallels found : {{InstructorLLMNode_323.output.parallels}} Overall analogy strength: {{InstructorLLMNode_323.output.overall_analogy_strength}}"
-          }
+          { role: "system", content: "@prompts/transfer-mechanism-system.md" },
+          { role: "user", content: "@prompts/transfer-mechanism-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
@@ -192,18 +182,10 @@ export const nodes = [
           }
         },
         prompts: [
-          {
-            role: "system",
-            content:
-              "You are a rigorous, skeptical critic evaluating a proposed cross-domain innovation. Do not be flattering. Assess whether the proposed mechanism transfer is genuinely novel, technically feasible, and non-obvious — or whether it is superficial, impractical, or a re-labeling of an existing idea. Score honestly."
-          },
-          {
-            role: "user",
-            content:
-              "Proposed innovation: {{InstructorLLMNode_572.output.proposed_innovation}} Mechanism details: {{InstructorLLMNode_572.output.transferred_mechanism}}"
-          }
+          { role: "system", content: "@prompts/evaluate-innovation-system.md" },
+          { role: "user", content: "@prompts/evaluate-innovation-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
@@ -237,18 +219,10 @@ export const nodes = [
       values: {
         nodeName: "Present Success",
         prompts: [
-          {
-            role: "system",
-            content:
-              "You are the final presenter for a cross-domain innovation engine called Neural Cross-Pollinator. A rigorous critic has already evaluated this specific idea and rated it a genuine, novel innovation. Your job is to present it confidently and clearly to the end user, in plain language, without hedging or over-qualifying."
-          },
-          {
-            role: "user",
-            content:
-              "Transfer Mechanism : {{InstructorLLMNode_572.output.proposed_innovation}} Evaluate Innovation : {{InstructorLLMNode_952.output.eureka_moment}}"
-          }
+          { role: "system", content: "@prompts/present-success-system.md" },
+          { role: "user", content: "@prompts/present-success-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
@@ -260,17 +234,10 @@ export const nodes = [
       values: {
         nodeName: "Present Caveat",
         prompts: [
-          {
-            role: "system",
-            content:
-              "You are the final presenter for a cross-domain innovation engine called Neural Cross-Pollinator. A rigorous critic has already evaluated this specific idea and found it interesting but not genuinely novel or fully practical. Your job is to communicate this honestly to the end user — acknowledge the structural parallel that was found, but be direct that it doesn't yet rise to a real innovation, and briefly say why."
-          },
-          {
-            role: "user",
-            content: "Evaluate innovation : {{InstructorLLMNode_952.output.critique}}"
-          }
+          { role: "system", content: "@prompts/present-caveat-system.md" },
+          { role: "user", content: "@prompts/present-caveat-user.md" }
         ],
-        generativeModelName: [groqModel]
+        generativeModelName: ["@model-configs/groq.ts"]
       }
     }
   },
