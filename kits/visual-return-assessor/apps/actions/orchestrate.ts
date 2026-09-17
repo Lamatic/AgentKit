@@ -18,13 +18,26 @@ function getBase64DecodedByteSize(base64String: string): number {
   if (!base64String) return 0;
 
   // Strip Data URL scheme header if present (e.g. "data:image/png;base64,...")
-  const base64Data = base64String.includes(",")
-    ? base64String.split(",")[1]
-    : base64String;
+  const dataUrlMatch = base64String.match(
+    /^data:[^,]*;base64,([A-Za-z0-9+/]*={0,2})$/,
+  );
+  const base64Data = dataUrlMatch ? dataUrlMatch[1] : base64String;
+
+  if (
+    base64Data.length % 4 !== 0 ||
+    !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
+      base64Data,
+    )
+  ) {
+    throw new Error("Invalid Base64 payload.");
+  }
 
   // Account for Base64 equal sign padding
-  const paddingMatches = base64Data.match(/=/g);
-  const paddingCount = paddingMatches ? paddingMatches.length : 0;
+  const paddingCount = base64Data.endsWith("==")
+    ? 2
+    : base64Data.endsWith("=")
+      ? 1
+      : 0;
 
   return Math.floor((base64Data.length * 3) / 4) - paddingCount;
 }
