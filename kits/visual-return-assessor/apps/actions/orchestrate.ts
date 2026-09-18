@@ -11,19 +11,23 @@ const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 // 10 MB maximum serialized character cap to prevent Server Action payload bloat & DoS
 const MAX_SERIALIZED_CHAR_LIMIT = 10 * 1024 * 1024;
 
-// Strict whitelist regex for allowed Data URL prefixes
+// Strict whitelist regex for allowed Data URL prefixes (JPEG and PNG only for images)
 const ALLOWED_DATA_URL_PREFIX =
-  /^data:(?:image\/(?:png|jpeg|webp|gif)|application\/pdf|text\/plain);base64,/i;
+  /^data:(?:image\/(?:png|jpeg)|application\/pdf|text\/plain);base64,/i;
 
 /**
- * Validates the decoded binary buffer against magic byte signatures for supported image formats.
+ * Validates the decoded binary buffer against magic byte signatures for supported image formats
+ * and returns the normalized image MIME type.
  *
  * Supported formats:
  * - JPEG: FF D8 FF
  * - PNG:  89 50 4E 47 0D 0A 1A 0A
- * - WebP: 52 49 46 46 (RIFF) ... 57 41 56 45 / 57 45 42 50 (WEBP)
+ *
+ * @param buffer - The decoded binary buffer of the image.
+ * @returns {string} The detected image MIME type ("image/jpeg" or "image/png").
+ * @throws {Error} If the binary signature does not match JPEG or PNG.
  */
-function validateImageMagicBytes(buffer: Buffer): void {
+function validateImageMagicBytes(buffer: Buffer): string {
   if (!buffer || buffer.length < 8) {
     throw new Error(
       "Uploaded file binary is corrupt or too small to be a valid image.",
@@ -42,31 +46,28 @@ function validateImageMagicBytes(buffer: Buffer): void {
     buffer[6] === 0x1a &&
     buffer[7] === 0x0a;
 
-  const isWebp =
-    buffer[0] === 0x52 &&
-    buffer[1] === 0x49 &&
-    buffer[2] === 0x46 &&
-    buffer[3] === 0x46 &&
-    buffer[8] === 0x57 &&
-    buffer[9] === 0x45 &&
-    buffer[10] === 0x42 &&
-    buffer[11] === 0x50;
-
-  if (!isJpeg && !isPng && !isWebp) {
-    throw new Error(
-      "Invalid or unsupported image file signature. Payloads must be valid PNG, JPEG, or WebP binary images.",
-    );
+  if (isJpeg) {
+    return "image/jpeg";
   }
+
+  if (isPng) {
+    return "image/png";
+  }
+
+  throw new Error(
+    "Invalid or unsupported image file signature. Payloads must be valid PNG or JPEG binary images.",
+  );
 }
 
 /**
  * Validates, caps, and sanitizes Base64 or Data URL input payloads.
  * Protects against DoS attacks via unbounded serialized strings or malicious headers.
+ * When verifyImageSignature is true, normalizes the Data URL header to match the validated JPEG or PNG binary bytes.
  *
  * @param rawInput - The raw Base64 or Data URL payload from the client.
  * @param fieldName - Friendly name of the payload field for error reporting.
  * @param maxBytes - Maximum allowed decoded size in bytes (defaults to 7 MiB).
- * @param verifyImageSignature - Set to true to enforce magic byte checking for image inputs.
+ * @param verifyImageSignature - Set to true to enforce magic byte checking and rewrite header for image inputs.
  * @returns {string} The sanitized payload ready for Lamatic execution.
  * @throws {Error} If the string exceeds character limits, contains illegal characters, or fails signature validation.
  */
@@ -137,13 +138,14 @@ function sanitizeAndValidateBase64Payload(
     );
   }
 
-  // 7. Verify magic bytes / file signature if required
+  // 7. Verify magic bytes / file signature if required and reconstruct Data URL with validated MIME type
   if (verifyImageSignature) {
     const buffer = Buffer.from(base64Data, "base64");
-    validateImageMagicBytes(buffer);
+    const detectedMime = validateImageMagicBytes(buffer);
+    return `data:${detectedMime};base64,${base64Data}`;
   }
 
-  // Return sanitized, trimmed string to avoid forwarding inflated payload bloat
+  // Return sanitized string to avoid forwarding inflated payload bloat
   return trimmed;
 }
 

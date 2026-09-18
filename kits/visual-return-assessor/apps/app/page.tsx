@@ -625,12 +625,20 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
             className="flex bg-neutral-900 border border-neutral-800 p-1 rounded-xl"
           >
             <Button
+              id="tab-return"
               type="button"
               role="tab"
               aria-selected={formMode === "return"}
+              aria-controls="tabpanel-return"
+              tabIndex={formMode === "return" ? 0 : -1}
               disabled={loading}
               variant={formMode === "return" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("return")}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight") {
+                  setFormMode("policy");
+                }
+              }}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-lg transition duration-200 ${
                 formMode === "return"
                   ? "bg-brand-red text-brand-white font-bold"
@@ -640,12 +648,20 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
               <Package className="w-4 h-4" aria-hidden="true" /> Return Assessor
             </Button>
             <Button
+              id="tab-policy"
               type="button"
               role="tab"
               aria-selected={formMode === "policy"}
+              aria-controls="tabpanel-policy"
+              tabIndex={formMode === "policy" ? 0 : -1}
               disabled={loading}
               variant={formMode === "policy" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("policy")}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") {
+                  setFormMode("return");
+                }
+              }}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-lg transition duration-200 ${
                 formMode === "policy"
                   ? "bg-brand-red text-brand-white font-bold"
@@ -666,6 +682,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
         >
           {/* Form Panel */}
           <div
+            role="tabpanel"
+            tabIndex={0}
+            id={`panel-${formMode}`}
+            aria-labelledby={`tab-${formMode}`}
             className={`${
               showRightPanel ? "lg:col-span-5" : "w-full"
             } bg-brand-black border border-neutral-800 rounded-xl p-6 space-y-5`}
@@ -726,8 +746,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="orderId"
                       type="text"
                       required
-                      disabled={!!result}
-                      aria-disabled={!!result}
+                      disabled={loading || !!result}
+                      aria-disabled={loading || !!result}
                       aria-invalid={!!returnForm.formState.errors.orderId}
                       aria-describedby={
                         returnForm.formState.errors.orderId
@@ -762,13 +782,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
-                          disabled={!!result}
+                          disabled={loading || !!result}
                         >
                           <SelectTrigger
                             id="itemCategory"
                             aria-labelledby="label-itemCategory"
                             aria-required="true"
-                            aria-disabled={!!result}
+                            aria-disabled={loading || !!result}
                             aria-invalid={
                               !!returnForm.formState.errors.itemCategory
                             }
@@ -820,8 +840,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       rows={2}
                       maxLength={2000}
                       required
-                      disabled={!!result}
-                      aria-disabled={!!result}
+                      disabled={loading || !!result}
+                      aria-disabled={loading || !!result}
                       aria-invalid={!!returnForm.formState.errors.claimReason}
                       aria-describedby={
                         returnForm.formState.errors.claimReason
@@ -853,8 +873,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="imageFile"
                       type="file"
                       required
-                      disabled={!!result}
-                      aria-disabled={!!result}
+                      disabled={loading || !!result}
+                      aria-disabled={loading || !!result}
                       aria-invalid={!!returnForm.formState.errors.imageFile}
                       aria-describedby={
                         returnForm.formState.errors.imageFile
@@ -951,6 +971,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="brand"
                       type="text"
                       required
+                      disabled={loading}
+                      aria-disabled={loading}
                       placeholder="e.g. Sony"
                       aria-invalid={!!policyForm.formState.errors.brand}
                       aria-describedby={
@@ -986,10 +1008,12 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={loading}
                         >
                           <SelectTrigger
                             id="policyCategory"
                             aria-labelledby="label-policyCategory"
+                            aria-disabled={loading}
                             aria-required="true"
                             aria-invalid={
                               !!policyForm.formState.errors.category
@@ -1041,6 +1065,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="policyFile"
                       type="file"
                       required
+                      disabled={loading}
+                      aria-disabled={loading}
                       accept="application/pdf, text/plain"
                       aria-invalid={!!policyForm.formState.errors.policyFile}
                       aria-describedby={
