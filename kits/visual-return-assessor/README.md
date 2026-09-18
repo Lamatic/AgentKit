@@ -80,9 +80,10 @@ It implements a multi-flow system that routes customer return claims and policy 
 
 1. **`API Request (graphqlNode)`**: Receives policy document metadata and text/Base64 stream.
 2. **`Document Extractor (extractFromFileNode)`**: Decodes data and extracts plain text content.
-3. **`Text Chunking & Embedding (EmbeddingNode)`**: Splits policy rules into semantic chunks and generates vector embeddings.
-4. **`Vector Storage Ingestion (VectorStoreNode)`**: Stores embedded chunks tagged with `category` and `brand` metadata.
-5. **`API Response (graphqlResponseNode)`**: Returns vector indexing execution status.
+3. **`Delete Stale Vectors (VectorStoreNode)`**: Purges all existing vector chunks in vector store matching the (documentName, brand, category) metadata tuple to prevent stale chunk retention.
+4. **`Text Chunking & Embedding (EmbeddingNode)`**: Splits policy rules into semantic chunks and generates vector embeddings.
+5. **`Vector Storage Ingestion (VectorStoreNode)`**: Stores embedded chunks tagged with `category` and `brand` metadata.
+6. **`API Response (graphqlResponseNode)`**: Returns vector indexing execution status.
 
 ---
 

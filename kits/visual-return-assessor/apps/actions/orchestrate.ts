@@ -11,17 +11,16 @@ const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 // 10 MB maximum serialized character cap to prevent Server Action payload bloat & DoS
 const MAX_SERIALIZED_CHAR_LIMIT = 10 * 1024 * 1024;
 
+// Strict whitelist regex for allowed Data URL prefixes for policy documents
+const ALLOWED_DOC_DATA_URL_PREFIX =
+  /^data:(?:application\/pdf|text\/plain);base64,/i;
+
 // Strict whitelist regex for allowed Data URL prefixes (JPEG and PNG only for images)
-const ALLOWED_DATA_URL_PREFIX =
-  /^data:(?:image\/(?:png|jpeg)|application\/pdf|text\/plain);base64,/i;
+const ALLOWED_IMAGE_DATA_URL_PREFIX = /^data:(?:image\/(?:png|jpeg));base64,/i;
 
 /**
  * Validates the decoded binary buffer against magic byte signatures for supported image formats
  * and returns the normalized image MIME type.
- *
- * Supported formats:
- * - JPEG: FF D8 FF
- * - PNG:  89 50 4E 47 0D 0A 1A 0A
  *
  * @param buffer - The decoded binary buffer of the image.
  * @returns {string} The detected image MIME type ("image/jpeg" or "image/png").
@@ -60,22 +59,84 @@ function validateImageMagicBytes(buffer: Buffer): string {
 }
 
 /**
- * Validates, caps, and sanitizes Base64 or Data URL input payloads.
- * Protects against DoS attacks via unbounded serialized strings or malicious headers.
- * When verifyImageSignature is true, normalizes the Data URL header to match the validated JPEG or PNG binary bytes.
+ * Validates policy document payloads (PDF magic bytes or UTF-8 plain text).
+ * Returns the verified MIME type.
  *
- * @param rawInput - The raw Base64 or Data URL payload from the client.
- * @param fieldName - Friendly name of the payload field for error reporting.
- * @param maxBytes - Maximum allowed decoded size in bytes (defaults to 7 MiB).
- * @param verifyImageSignature - Set to true to enforce magic byte checking and rewrite header for image inputs.
- * @returns {string} The sanitized payload ready for Lamatic execution.
- * @throws {Error} If the string exceeds character limits, contains illegal characters, or fails signature validation.
+ * @param buffer - The decoded binary buffer of the document.
+ * @param declaredHeader - The raw Data URL prefix supplied with the payload, if present.
+ * @returns {string} The detected document MIME type ("application/pdf" or "text/plain").
+ * @throws {Error} If the document binary fails signature checks or UTF-8 text validation.
+ */
+function validateDocumentFormat(
+  buffer: Buffer,
+  declaredHeader: string | null,
+): string {
+  if (!buffer || buffer.length === 0) {
+    throw new Error("Document binary payload is empty.");
+  }
+
+  // Check 1: PDF Magic Signature ("%PDF-" -> 0x25 0x50 0x44 0x46)
+  const isPdf =
+    buffer.length >= 4 &&
+    buffer[0] === 0x25 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x44 &&
+    buffer[3] === 0x46;
+
+  if (isPdf) {
+    return "application/pdf";
+  }
+
+  // Check 2: Explicit TXT Validation (Valid non-empty UTF-8 text string without illegal null bytes)
+  try {
+    const textContent = buffer.toString("utf-8");
+
+    // Check for UTF-8 decoding replacement characters (indicates corrupt/binary non-text data)
+    // and check for null bytes which shouldn't exist in standard policy documents.
+    const hasDecodingErrors = textContent.includes("\uFFFD");
+    const hasNullBytes = /\0/.test(textContent);
+
+    if (!hasDecodingErrors && !hasNullBytes && textContent.trim().length > 0) {
+      return "text/plain";
+    }
+  } catch (error: any) {
+    console.error("Policy document UTF-8 decoding failed:", error);
+    throw new Error(
+      "Failed to decode policy document text encoding. Please ensure the file is valid UTF-8 plain text.",
+    );
+  }
+
+  // If header claimed text or pdf but failed both checks:
+  if (declaredHeader?.includes("application/pdf")) {
+    throw new Error(
+      "Invalid PDF file structure. Missing standard %PDF- magic signature.",
+    );
+  }
+
+  throw new Error(
+    "Invalid policy document payload. File must be a valid PDF or plain UTF-8 text document.",
+  );
+}
+
+/**
+ * Validates, caps, sanitizes, and normalizes Base64 or Data URL input payloads before workflow execution.
+ *
+ * Enforces security boundaries by capping payload character length, validating Base64 encoding structure,
+ * checking decoded byte limits, and inspecting binary file signatures for images (PNG/JPEG) and
+ * policy documents (PDF/UTF-8 text).
+ *
+ * @param rawInput - The raw Base64 or Data URL string supplied by the client.
+ * @param fieldName - A friendly descriptive field name used for error reporting (e.g. "inspection image").
+ * @param maxBytes - Maximum allowed size in bytes after Base64 decoding (defaults to 7 MiB).
+ * @param mode - Validation strategy: `"image"` (JPEG/PNG magic bytes check), `"document"` (PDF/UTF-8 check), or `"raw"` (Base64/size check only).
+ * @returns {string} The normalized Data URL (or Base64 string) ready for Lamatic workflow execution.
+ * @throws {Error} If payload exceeds character/byte limits, contains invalid encoding, or fails file format signature validation.
  */
 function sanitizeAndValidateBase64Payload(
   rawInput: string,
   fieldName: string,
   maxBytes: number = MAX_FILE_SIZE_BYTES,
-  verifyImageSignature: boolean = false,
+  mode: "image" | "document" | "raw" = "raw",
 ): string {
   if (!rawInput || typeof rawInput !== "string") {
     throw new Error(`Invalid payload provided for ${fieldName}.`);
@@ -90,16 +151,25 @@ function sanitizeAndValidateBase64Payload(
 
   const trimmed = rawInput.trim();
   let base64Data = trimmed;
+  let declaredHeader: string | null = null;
 
   // 2. Validate and strip Data URL prefix if present
   if (trimmed.startsWith("data:")) {
-    const match = trimmed.match(ALLOWED_DATA_URL_PREFIX);
+    const allowedRegex =
+      mode === "image"
+        ? ALLOWED_IMAGE_DATA_URL_PREFIX
+        : mode === "document"
+          ? ALLOWED_DOC_DATA_URL_PREFIX
+          : /^data:[^;]+;base64,/i;
+
+    const match = trimmed.match(allowedRegex);
     if (!match) {
       throw new Error(
         `Invalid or unsupported Data URL header for ${fieldName}.`,
       );
     }
-    base64Data = trimmed.slice(match[0].length);
+    declaredHeader = match[0];
+    base64Data = trimmed.slice(declaredHeader.length);
   }
 
   // 3. Reject any payload containing whitespace or control characters
@@ -138,14 +208,19 @@ function sanitizeAndValidateBase64Payload(
     );
   }
 
-  // 7. Verify magic bytes / file signature if required and reconstruct Data URL with validated MIME type
-  if (verifyImageSignature) {
+  // 7. Format Verification & Header Normalization before execution
+  if (mode === "image") {
     const buffer = Buffer.from(base64Data, "base64");
     const detectedMime = validateImageMagicBytes(buffer);
     return `data:${detectedMime};base64,${base64Data}`;
   }
 
-  // Return sanitized string to avoid forwarding inflated payload bloat
+  if (mode === "document") {
+    const buffer = Buffer.from(base64Data, "base64");
+    const detectedMime = validateDocumentFormat(buffer, declaredHeader);
+    return `data:${detectedMime};base64,${base64Data}`;
+  }
+
   return trimmed;
 }
 
@@ -200,7 +275,7 @@ export interface AssessmentResult {
 // coderabbit:ignore authorization_bypass
 /**
  * Uploads a policy document for RAG indexing.
- * Intentionally unauthenticated for open-source kit environment.
+ * Enforces contract validation for PDF magic signature or valid UTF-8 plain text prior to Lamatic execution.
  *
  * @param {IngestionPayload} payload - Policy document details and encoded content.
  * @returns {Promise<unknown>} The result returned by the Lamatic ingestion flow.
@@ -216,12 +291,12 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
     throw new Error("No file provided for policy document upload.");
   }
 
-  // Enforce 10 MB serialized character cap and 7 MiB binary size boundary
+  // Enforce 10 MB character cap, 7 MiB binary size, AND policy format contract validation (PDF/TXT)
   const sanitizedContent = sanitizeAndValidateBase64Payload(
     payload?.content,
     "policy document",
     MAX_FILE_SIZE_BYTES,
-    false,
+    "document",
   );
 
   try {
@@ -250,7 +325,6 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
 // coderabbit:ignore authorization_bypass
 /**
  * Executes the visual return assessment flow and returns its decision data.
- * Intentionally unauthenticated for open-source kit environment.
  *
  * @param {ReturnAssessorPayload} payload - Return claim details and visual evidence.
  * @returns {Promise<unknown>} The result returned by the Lamatic assessment flow.
@@ -266,12 +340,12 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
     throw new Error("No inspection image provided for assessment.");
   }
 
-  // Enforce 10 MB serialized character cap, 7 MiB binary limit, AND magic-byte image validation
+  // Enforce 10 MB character cap, 7 MiB binary limit, AND magic-byte PNG/JPEG validation
   const sanitizedImageBinary = sanitizeAndValidateBase64Payload(
     payload?.imageBinary,
     "inspection image",
     MAX_FILE_SIZE_BYTES,
-    true,
+    "image",
   );
 
   try {
