@@ -26,7 +26,7 @@ Managing Notion workspaces manually—such as formatting notes into structured b
 ## Integration Reference
 
 - **Notion Payloads & Queries**: Generates structured, schema-guided Notion REST API payloads and query parameters for (`/v1/pages`, `/v1/databases`, `/v1/search`, `/v1/blocks/{id}/children`).
-- **Lamatic Studio**: Orchestrates the LLM prompt execution, schema parsing, and API response mapping.
+- **Lamatic Studio**: Orchestrates the LLM prompt execution and API response mapping.
 
 ## Environment Setup
 

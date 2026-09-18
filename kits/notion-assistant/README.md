@@ -10,7 +10,7 @@ An AI-powered Notion Assistant template built on [Lamatic.ai](https://lamatic.ai
 ## 🌟 Key Features
 
 - **Natural Language Workspace Ops**: Ask questions, request page creation, or format unstructured notes into organized Notion structures.
-- **Valid Block Tree Generation**: Generates compliant Notion block payloads (`heading_1`, `heading_2`, `heading_3`, `paragraph`, `to_do`, `bulleted_list_item`, `callout`, `code`).
+- **Prompt-Guided Block Tree Generation**: Generates structured Notion block payloads (`heading_1`, `heading_2`, `heading_3`, `paragraph`, `to_do`, `bulleted_list_item`, `callout`, `code`) guided by prompt schemas.
 - **Database Property Mapping**: Automatically maps titles, status tags, priorities, and dates to Notion Database property types.
 - **Built-in Security & PII Redaction**: Automatically suppresses private Notion tokens (`secret_...`), API keys, and sensitive contact details while preserving valid target parent IDs.
 
