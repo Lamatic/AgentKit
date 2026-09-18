@@ -2,11 +2,11 @@
 
 ## Overview
 
-The Notion Assistant is an AI-powered workspace copilot designed to bridge natural language requests with structured Notion workspace operations. It transforms unstructured user commands, meeting notes, and research into verified Notion block hierarchies, database item properties, and search queries.
+The Notion Assistant is an AI-powered workspace copilot designed to bridge natural language requests with structured Notion workspace operations. It transforms unstructured user commands, meeting notes, and research into schema-guided Notion block hierarchies, database item properties, and search queries.
 
 ## Purpose
 
-Managing Notion workspaces manually—such as formatting notes into structured blocks, creating database entries with consistent multi-select tags, and summarizing extensive project documentation—can be tedious and error-prone. The Notion Assistant automates this lifecycle by translating user intent into deterministic Notion API payloads with built-in PII and secret sanitization.
+Managing Notion workspaces manually—such as formatting notes into structured blocks, creating database entries with consistent multi-select tags, and summarizing extensive project documentation—can be tedious and error-prone. The Notion Assistant automates this lifecycle by translating user intent into structured, schema-guided Notion API payloads with built-in PII and secret sanitization.
 
 ## Flows
 
@@ -21,11 +21,11 @@ Managing Notion workspaces manually—such as formatting notes into structured b
 
 - **Credential Protection**: Automatically suppresses and redacts Notion integration tokens (`secret_...`), Bearer tokens, and private API keys while preserving valid database and page parent IDs.
 - **PII Redaction**: Redacts phone numbers, personal email addresses, and private contact information from generated blocks.
-- **Schema Validation**: Guides generated child blocks to adhere to standard Notion API block types (`heading_1`, `heading_2`, `heading_3`, `paragraph`, `to_do`, `bulleted_list_item`, `callout`, `code`).
+- **Schema Guidance**: Guides generated child blocks through prompt instructions to adhere to standard Notion API block types (`heading_1`, `heading_2`, `heading_3`, `paragraph`, `to_do`, `bulleted_list_item`, `callout`, `code`).
 
 ## Integration Reference
 
-- **Notion Payloads & Queries**: Generates structured, validated Notion REST API payloads and query parameters for (`/v1/pages`, `/v1/databases`, `/v1/search`, `/v1/blocks/{id}/children`).
+- **Notion Payloads & Queries**: Generates structured, schema-guided Notion REST API payloads and query parameters for (`/v1/pages`, `/v1/databases`, `/v1/search`, `/v1/blocks/{id}/children`).
 - **Lamatic Studio**: Orchestrates the LLM prompt execution, schema parsing, and API response mapping.
 
 ## Environment Setup
