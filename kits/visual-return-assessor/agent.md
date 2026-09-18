@@ -115,7 +115,7 @@ Step-by-step walkthrough of the node chain:
 1. `API Request (graphqlNode)`
    - Receives document metadata (`documentName`, `brand`, `category`) and file `content`.
 
-2. `Document Extractor (codeNode)`
+2. `Document Extractor (extractFromFileNode)`
    - Decodes Base64 data and extracts plain text from incoming `.pdf` or `.txt` content streams.
 
 3. `Text Chunking & Embedding (EmbeddingNode)`

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -113,21 +113,25 @@ const decisionStyles: Record<
     border: "border-emerald-500/30",
     badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
     text: "Approved",
-    icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
+    icon: (
+      <CheckCircle2 className="w-5 h-5 text-emerald-400" aria-hidden="true" />
+    ),
   },
   REJECT: {
     bg: "bg-rose-500/10",
     border: "border-rose-500/30",
     badge: "bg-rose-500/20 text-rose-400 border-rose-500/40",
     text: "Rejected",
-    icon: <XCircle className="w-5 h-5 text-rose-400" />,
+    icon: <XCircle className="w-5 h-5 text-rose-400" aria-hidden="true" />,
   },
   MANUAL_REVIEW: {
     bg: "bg-amber-500/10",
     border: "border-amber-500/30",
     badge: "bg-amber-500/20 text-amber-400 border-amber-500/40",
     text: "Manual Review Required",
-    icon: <AlertTriangle className="w-5 h-5 text-amber-400" />,
+    icon: (
+      <AlertTriangle className="w-5 h-5 text-amber-400" aria-hidden="true" />
+    ),
   },
 };
 
@@ -139,6 +143,10 @@ const decisionStyles: Record<
 export default function ReturnAssessorDashboard(): React.ReactElement {
   const [formMode, setFormMode] = useState<FormMode>("return");
   const [loading, setLoading] = useState(false);
+
+  // Input element refs for imperative resets
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const policyInputRef = useRef<HTMLInputElement | null>(null);
 
   // Status feedback state
   const [returnAssessmentFail, setReturnAssessmentFail] = useState<
@@ -172,6 +180,11 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
       category: "Consumer Electronics",
     },
   });
+
+  const { ref: returnImageRegisterRef, ...returnImageRegisterProps } =
+    returnForm.register("imageFile");
+  const { ref: policyFileRegisterRef, ...policyFileRegisterProps } =
+    policyForm.register("policyFile");
 
   const watchedImageFiles = returnForm.watch("imageFile");
   const watchedPolicyFiles = policyForm.watch("policyFile");
@@ -220,6 +233,9 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
     setPolicyUploadFail(null);
     returnForm.reset();
     policyForm.reset();
+
+    if (imageInputRef.current) imageInputRef.current.value = "";
+    if (policyInputRef.current) policyInputRef.current.value = "";
   };
 
   /**
@@ -344,6 +360,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
           `Policy document "${file.name}" successfully stored for ${data.category}.`,
         );
         policyForm.reset();
+        if (policyInputRef.current) policyInputRef.current.value = "";
       } else {
         setPolicyUploadFail(
           `Failed to store "${file.name}" for ${data.category}.`,
@@ -439,9 +456,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
   return (
     <main className="relative min-h-screen bg-brand-black text-brand-white font-sans p-6 md:p-12">
-      {/* LOADING OVERLAY */}
+      {/* LOADING OVERLAY WITH ACCESSIBLE LIVE ANNOUNCEMENT */}
       {loading && (
-        <div className="fixed inset-0 z-50 bg-brand-black/80 backdrop-blur-md flex flex-col items-center justify-center transition-opacity duration-300">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-50 bg-brand-black/80 backdrop-blur-md flex flex-col items-center justify-center transition-opacity duration-300"
+        >
           <div className="relative flex items-center justify-center">
             <div className="w-24 h-24 border-4 border-white/10 border-t-brand-red rounded-full animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -451,6 +472,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-full h-full"
+                  aria-hidden="true"
                 >
                   <path
                     d="M162 0H38C17.0132 0 0 17.0132 0 38V162C0 182.987 17.0132 200 38 200H162C182.987 200 200 182.987 200 162V38C200 17.0132 182.987 0 162 0Z"
@@ -494,10 +516,16 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
             </h1>
           </div>
 
-          {/* Form Switcher */}
-          <div className="flex bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
+          {/* Form Switcher with ARIA Tab semantics */}
+          <div
+            role="tablist"
+            aria-label="Dashboard Mode Switcher"
+            className="flex bg-neutral-900 border border-neutral-800 p-1 rounded-xl"
+          >
             <Button
               type="button"
+              role="tab"
+              aria-selected={formMode === "return"}
               disabled={loading}
               variant={formMode === "return" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("return")}
@@ -507,10 +535,12 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   : "text-neutral-400 hover:text-brand-white"
               }`}
             >
-              <Package className="w-4 h-4" /> Return Assessor
+              <Package className="w-4 h-4" aria-hidden="true" /> Return Assessor
             </Button>
             <Button
               type="button"
+              role="tab"
+              aria-selected={formMode === "policy"}
               disabled={loading}
               variant={formMode === "policy" ? "default" : "ghost"}
               onClick={() => handleModeSwitch("policy")}
@@ -520,7 +550,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                   : "text-neutral-400 hover:text-brand-white"
               }`}
             >
-              <FileText className="w-4 h-4" /> Policy Uploader
+              <FileText className="w-4 h-4" aria-hidden="true" /> Policy
+              Uploader
             </Button>
           </div>
         </div>
@@ -541,7 +572,11 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
               /* FORM 1: RETURN ASSESSOR */
               <>
                 <h2 className="text-lg font-semibold text-brand-white flex items-center gap-2">
-                  <Package className="w-5 h-5 text-brand-red" /> Submit Claim
+                  <Package
+                    className="w-5 h-5 text-brand-red"
+                    aria-hidden="true"
+                  />{" "}
+                  Submit Claim
                 </h2>
 
                 <form
@@ -644,9 +679,17 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       type="file"
                       required
                       accept="image/jpeg, image/jpg, image/png"
-                      {...returnForm.register("imageFile")}
+                      aria-describedby="imageFileHelp"
+                      {...returnImageRegisterProps}
+                      ref={(e) => {
+                        returnImageRegisterRef(e);
+                        imageInputRef.current = e;
+                      }}
                       className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
                     />
+                    <p id="imageFileHelp" className="sr-only">
+                      Upload a JPG or PNG image up to 7 megabytes in size.
+                    </p>
                     {returnForm.formState.errors.imageFile && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
                         {
@@ -663,11 +706,17 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     className="w-full mt-2"
                   >
                     <span>Run Agent Assessment</span>
-                    <ArrowRight className="w-4 h-4 ml-2 inline" />
+                    <ArrowRight
+                      className="w-4 h-4 ml-2 inline"
+                      aria-hidden="true"
+                    />
                   </Button>
 
                   {returnAssessmentFail && (
-                    <div className="p-3 bg-brand-red/10 border border-brand-red/40 rounded-lg text-brand-red text-xs font-mono">
+                    <div
+                      role="alert"
+                      className="p-3 bg-brand-red/10 border border-brand-red/40 rounded-lg text-brand-red text-xs font-mono"
+                    >
                       {returnAssessmentFail}
                     </div>
                   )}
@@ -677,8 +726,11 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
               /* FORM 2: POLICY UPLOADER */
               <>
                 <h2 className="text-lg font-semibold text-brand-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-brand-red" /> Upload Store
-                  Policy
+                  <FileText
+                    className="w-5 h-5 text-brand-red"
+                    aria-hidden="true"
+                  />{" "}
+                  Upload Store Policy
                 </h2>
                 <p className="text-xs text-neutral-400">
                   Ingest warranty policies into vector storage for automated
@@ -767,9 +819,17 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       type="file"
                       required
                       accept="application/pdf, text/plain"
-                      {...policyForm.register("policyFile")}
+                      aria-describedby="policyFileHelp"
+                      {...policyFileRegisterProps}
+                      ref={(e) => {
+                        policyFileRegisterRef(e);
+                        policyInputRef.current = e;
+                      }}
                       className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
                     />
+                    <p id="policyFileHelp" className="sr-only">
+                      Upload a PDF or TXT file up to 7 megabytes in size.
+                    </p>
                     {policyForm.formState.errors.policyFile && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
                         {
@@ -785,17 +845,27 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     disabled={loading}
                     className="w-full mt-2"
                   >
-                    <Upload className="w-4 h-4 mr-2 inline" />
+                    <Upload
+                      className="w-4 h-4 mr-2 inline"
+                      aria-hidden="true"
+                    />
                     <span>Upload & Process Policy</span>
                   </Button>
 
                   {policyUploadSuccess && (
-                    <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-lg text-emerald-400 text-xs font-mono">
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-lg text-emerald-400 text-xs font-mono"
+                    >
                       {policyUploadSuccess}
                     </div>
                   )}
                   {policyUploadFail && (
-                    <div className="p-3 bg-brand-red/10 border border-brand-red/40 rounded-lg text-brand-red text-xs font-mono">
+                    <div
+                      role="alert"
+                      className="p-3 bg-brand-red/10 border border-brand-red/40 rounded-lg text-brand-red text-xs font-mono"
+                    >
                       {policyUploadFail}
                     </div>
                   )}
@@ -822,7 +892,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <div className="relative h-48 w-full rounded-lg overflow-hidden border border-neutral-800 bg-brand-black">
                       <img
                         src={imagePreviewUrl}
-                        alt="Inspection Preview"
+                        alt={`Inspection photo preview for file ${selectedImageFile.name}`}
                         className="w-full h-full object-contain"
                       />
                     </div>
@@ -838,7 +908,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
                   <div className="flex items-center justify-between bg-neutral-900 p-4 rounded-lg border border-neutral-800">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <FileText className="w-8 h-8 text-brand-red" />
+                      <FileText
+                        className="w-8 h-8 text-brand-red"
+                        aria-hidden="true"
+                      />
                       <div className="overflow-hidden">
                         <p className="text-sm font-semibold truncate text-brand-white">
                           {selectedPolicyFile.name}
@@ -858,15 +931,21 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         className="flex items-center gap-1 text-xs font-mono text-brand-red bg-brand-red/10 px-2.5 py-1 rounded border border-brand-red/30 hover:bg-brand-red/20 transition"
                       >
                         <span>View</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
                       </a>
                     )}
                   </div>
                 </div>
               )}
 
+              {/* DYNAMIC ASSESSMENT RESULTS WITH LIVE ANNOUNCEMENT REGION */}
               {formMode === "return" && result && (
-                <div className="bg-brand-black border border-neutral-800 rounded-xl p-6 space-y-6">
+                <section
+                  role="region"
+                  aria-live="polite"
+                  aria-label="Agent Assessment Output"
+                  className="bg-brand-black border border-neutral-800 rounded-xl p-6 space-y-6"
+                >
                   <div
                     className={`flex items-center justify-between rounded-xl border ${activeStyle.border} ${activeStyle.bg} p-4`}
                   >
@@ -965,7 +1044,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       {result.reasoning || "N/A"}
                     </p>
                   </div>
-                </div>
+                </section>
               )}
             </div>
           )}

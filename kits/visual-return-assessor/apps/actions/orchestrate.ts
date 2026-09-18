@@ -11,28 +11,34 @@ const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 /**
  * Calculates the exact binary byte size of a Base64 string or Data URL.
  *
- * @param base64String - The Base64 encoded payload.
+ * @param base64String - The Base64 encoded payload or Data URL.
  * @returns {number} The size of the decoded payload in bytes.
+ * @throws {Error} If the Base64 structure or characters are invalid.
  */
 function getBase64DecodedByteSize(base64String: string): number {
   if (!base64String) return 0;
 
-  // Strip Data URL scheme header if present (e.g. "data:image/png;base64,...")
-  const dataUrlMatch = base64String.match(
-    /^data:[^,]*;base64,([A-Za-z0-9+/]*={0,2})$/,
-  );
-  const base64Data = dataUrlMatch ? dataUrlMatch[1] : base64String;
+  // 1. Clean whitespace, line breaks, and carriage returns
+  const sanitized = base64String.trim().replace(/[\r\n\s]/g, "");
 
+  // 2. Strip Data URL scheme header if present (e.g., "data:image/png;base64,...")
+  const commaIndex = sanitized.indexOf(",");
+  const base64Data =
+    commaIndex !== -1 && sanitized.startsWith("data:")
+      ? sanitized.slice(commaIndex + 1)
+      : sanitized;
+
+  // 3. Validate structural length and Base64 character set (including unpadded 4-char tail blocks)
   if (
     base64Data.length % 4 !== 0 ||
-    !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
+    !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})?$/.test(
       base64Data,
     )
   ) {
     throw new Error("Invalid Base64 payload.");
   }
 
-  // Account for Base64 equal sign padding
+  // 4. Account for Base64 equal sign padding
   const paddingCount = base64Data.endsWith("==")
     ? 2
     : base64Data.endsWith("=")
@@ -65,7 +71,7 @@ function validateBase64Size(
   }
 }
 
-// Export Centralized Config
+// --- CENTRALIZED CONFIG RESOLUTION ---
 
 const visualEnvKey = lamaticConfig?.steps?.find(
   (x) => x?.id === "ecommerce-visual-return",
@@ -75,14 +81,15 @@ const ingestionEnvKey = lamaticConfig?.steps?.find(
   (x) => x?.id === "data-ingestion",
 )?.envKey;
 
-// Safe fallback resolving: checks both key existence AND env var population
+// Safe fallback resolving: checks key existence AND non-empty environment variable values
 const visualWorkflowId =
   (visualEnvKey && process.env[visualEnvKey]) || config?.visual;
 
 const ingestionWorkflowId =
   (ingestionEnvKey && process.env[ingestionEnvKey]) || config?.ingestion;
 
-// Payload Interface for Data Ingestion Workflow
+// --- TYPES & INTERFACES ---
+
 export interface IngestionPayload {
   documentName: string;
   brand: string;
@@ -94,8 +101,8 @@ export interface ReturnAssessorPayload {
   orderId: string;
   itemCategory: string;
   claimReason: string;
-  imageBinary: string; // Base64 string of the damaged/returned item photo
-  userEmail: string; // e.g., "image/jpeg" or "image/png"
+  imageBinary: string; // Base64 string or Data URL of the damaged/returned item photo
+  userEmail: string; // Customer email address (e.g., "customer@example.com")
 }
 
 export interface AssessmentResult {
@@ -109,6 +116,8 @@ export interface AssessmentResult {
   reasoning?: string;
 }
 
+// --- SERVER ACTIONS ---
+
 // coderabbit:ignore CWE-862
 // coderabbit:ignore authorization_bypass
 /**
@@ -117,29 +126,33 @@ export interface AssessmentResult {
  *
  * @param {IngestionPayload} payload - Policy document details and encoded content.
  * @returns {Promise<unknown>} The result returned by the Lamatic ingestion flow.
- * @throws {Error} If ingestion configuration or document content is missing.
- * @throws {Error} If the document file size exceeds the 7 MiB threshold.
- * @throws {Error} If the Lamatic ingestion flow fails.
  */
 export async function uploadPolicyDocument(payload: IngestionPayload) {
   if (!ingestionWorkflowId) {
     throw new Error("Data Ingestion environment variable is missing.");
   }
-  if (!payload?.content) {
+  if (!payload) {
+    throw new Error("Invalid payload provided for upload.");
+  }
+  if (typeof payload?.content !== "string" || !payload?.content) {
     throw new Error("No file provided for policy document upload.");
   }
 
   // Enforce decoded byte size limit boundary (7 MiB)
-  validateBase64Size(payload?.content, "policy document");
+  validateBase64Size(payload.content, "policy document");
 
   try {
-    // Triggers the executeWorkflow query via the Lamatic SDK
     const response = await lamaticClient.executeFlow(ingestionWorkflowId, {
       documentName: payload?.documentName,
       brand: payload?.brand,
       category: payload?.category,
       content: payload?.content,
     });
+
+    if (response?.result?.success) {
+      response.result.success =
+        response.result.success === true || response.result.success === "true";
+    }
 
     return response;
   } catch (error: any) {
@@ -158,9 +171,6 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
  *
  * @param {ReturnAssessorPayload} payload - Return claim details and visual evidence.
  * @returns {Promise<unknown>} The result returned by the Lamatic assessment flow.
- * @throws {Error} If assessment configuration, payload, or image evidence is missing.
- * @throws {Error} If the inspection image file size exceeds the 7 MiB threshold.
- * @throws {Error} If the Lamatic assessment flow fails.
  */
 export async function processReturnAssessment(payload: ReturnAssessorPayload) {
   if (!visualWorkflowId) {
@@ -169,12 +179,12 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
   if (!payload) {
     throw new Error("Invalid payload provided for assessment.");
   }
-  if (!payload?.imageBinary) {
+  if (typeof payload?.imageBinary !== "string" || !payload?.imageBinary) {
     throw new Error("No inspection image provided for assessment.");
   }
 
   // Enforce decoded byte size limit boundary (7 MiB)
-  validateBase64Size(payload?.imageBinary, "inspection image");
+  validateBase64Size(payload.imageBinary, "inspection image");
 
   try {
     const response = await lamaticClient.executeFlow(visualWorkflowId, {
