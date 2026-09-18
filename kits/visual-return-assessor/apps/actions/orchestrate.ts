@@ -3,72 +3,91 @@
 import { config, lamaticClient } from "@/lib/lamatic-client";
 import lamaticConfig from "../../lamatic.config";
 
-// --- CONSTANTS & VALIDATION HELPERS ---
+// --- CONSTANTS & SANITIZATION HELPERS ---
 
-// 7 MiB threshold in raw decoded bytes
+// 7 MiB threshold for raw decoded binary size
 const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 
+// 10 MB maximum serialized character cap to prevent Server Action payload bloat & DoS
+const MAX_SERIALIZED_CHAR_LIMIT = 10 * 1024 * 1024;
+
+// Strict whitelist regex for allowed Data URL prefixes
+const ALLOWED_DATA_URL_PREFIX =
+  /^data:(?:image\/(?:png|jpeg|webp|gif)|application\/pdf);base64,/i;
+
 /**
- * Calculates the exact binary byte size of a Base64 string or Data URL.
+ * Validates, caps, and sanitizes Base64 or Data URL input payloads.
+ * Protects against DoS attacks via unbounded serialized strings or malicious headers.
  *
- * @param base64String - The Base64 encoded payload or Data URL.
- * @returns {number} The size of the decoded payload in bytes.
- * @throws {Error} If the Base64 structure or characters are invalid.
+ * @param rawInput - The raw Base64 or Data URL payload from the client.
+ * @param fieldName - Friendly name of the payload field for error reporting.
+ * @param maxBytes - Maximum allowed decoded size in bytes (defaults to 7 MiB).
+ * @returns {string} The sanitized payload ready for Lamatic execution.
+ * @throws {Error} If the string exceeds character limits, contains illegal characters, or exceeds binary size bounds.
  */
-function getBase64DecodedByteSize(base64String: string): number {
-  if (!base64String) return 0;
+function sanitizeAndValidateBase64Payload(
+  rawInput: string,
+  fieldName: string,
+  maxBytes: number = MAX_FILE_SIZE_BYTES,
+): string {
+  if (!rawInput || typeof rawInput !== "string") {
+    throw new Error(`Invalid payload provided for ${fieldName}.`);
+  }
 
-  // 1. Clean whitespace, line breaks, and carriage returns
-  const sanitized = base64String.trim().replace(/[\r\n\s]/g, "");
+  // 1. Enforce strict serialized string character limit (DoS prevention)
+  if (rawInput.length > MAX_SERIALIZED_CHAR_LIMIT) {
+    throw new Error(
+      `Payload size for ${fieldName} exceeds the maximum allowed transmission limit.`,
+    );
+  }
 
-  // 2. Strip Data URL scheme header if present (e.g., "data:image/png;base64,...")
-  const commaIndex = sanitized.indexOf(",");
-  const base64Data =
-    commaIndex !== -1 && sanitized.startsWith("data:")
-      ? sanitized.slice(commaIndex + 1)
-      : sanitized;
+  const trimmed = rawInput.trim();
+  let base64Data = trimmed;
 
-  // 3. Validate structural length and Base64 character set (including unpadded 4-char tail blocks)
+  // 2. Validate and strip Data URL prefix if present
+  if (trimmed.startsWith("data:")) {
+    const match = trimmed.match(ALLOWED_DATA_URL_PREFIX);
+    if (!match) {
+      throw new Error(
+        `Invalid or unsupported Data URL header for ${fieldName}.`,
+      );
+    }
+    base64Data = trimmed.slice(match[0].length);
+  }
+
+  // 3. Reject any payload containing whitespace or control characters
+  if (/[\r\n\s]/.test(base64Data)) {
+    throw new Error(`Invalid Base64 format in ${fieldName}.`);
+  }
+
+  // 4. Validate Base64 structural integrity and character set
   if (
     base64Data.length % 4 !== 0 ||
     !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})?$/.test(
       base64Data,
     )
   ) {
-    throw new Error("Invalid Base64 payload.");
+    throw new Error(`Invalid Base64 character encoding for ${fieldName}.`);
   }
 
-  // 4. Account for Base64 equal sign padding
+  // 5. Calculate exact decoded byte size
   const paddingCount = base64Data.endsWith("==")
     ? 2
     : base64Data.endsWith("=")
       ? 1
       : 0;
+  const decodedByteSize =
+    Math.floor((base64Data.length * 3) / 4) - paddingCount;
 
-  return Math.floor((base64Data.length * 3) / 4) - paddingCount;
-}
-
-/**
- * Asserts that a Base64 string does not exceed the allowed byte size limit.
- *
- * @param base64String - The Base64 payload to validate.
- * @param fieldName - Friendly name of the payload field for error reporting.
- * @param maxBytes - Maximum allowed size in bytes (defaults to 7 MiB).
- * @throws {Error} If the decoded size exceeds the threshold.
- */
-function validateBase64Size(
-  base64String: string,
-  fieldName: string,
-  maxBytes: number = MAX_FILE_SIZE_BYTES,
-): void {
-  const byteSize = getBase64DecodedByteSize(base64String);
-
-  if (byteSize > maxBytes) {
-    const megabytes = (byteSize / (1024 * 1024)).toFixed(2);
+  if (decodedByteSize > maxBytes) {
+    const megabytes = (decodedByteSize / (1024 * 1024)).toFixed(2);
     throw new Error(
       `File size limit exceeded for ${fieldName}. Received ${megabytes} MiB, maximum allowed is 7 MiB.`,
     );
   }
+
+  // Return sanitized, trimmed string to avoid forwarding inflated payload bloat
+  return trimmed;
 }
 
 // --- CENTRALIZED CONFIG RESOLUTION ---
@@ -138,15 +157,18 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
     throw new Error("No file provided for policy document upload.");
   }
 
-  // Enforce decoded byte size limit boundary (7 MiB)
-  validateBase64Size(payload.content, "policy document");
+  // Enforce 10 MB serialized character cap and 7 MiB binary size boundary
+  const sanitizedContent = sanitizeAndValidateBase64Payload(
+    payload?.content,
+    "policy document",
+  );
 
   try {
     const response = await lamaticClient.executeFlow(ingestionWorkflowId, {
       documentName: payload?.documentName,
       brand: payload?.brand,
       category: payload?.category,
-      content: payload?.content,
+      content: sanitizedContent,
     });
 
     if (response?.result?.success) {
@@ -183,15 +205,18 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
     throw new Error("No inspection image provided for assessment.");
   }
 
-  // Enforce decoded byte size limit boundary (7 MiB)
-  validateBase64Size(payload.imageBinary, "inspection image");
+  // Enforce 10 MB serialized character cap and 7 MiB binary size boundary
+  const sanitizedImageBinary = sanitizeAndValidateBase64Payload(
+    payload?.imageBinary,
+    "inspection image",
+  );
 
   try {
     const response = await lamaticClient.executeFlow(visualWorkflowId, {
       orderId: payload?.orderId,
       itemCategory: payload?.itemCategory,
       claimReason: payload?.claimReason,
-      imageBinary: payload?.imageBinary,
+      imageBinary: sanitizedImageBinary,
       userEmail: payload?.userEmail,
     });
 

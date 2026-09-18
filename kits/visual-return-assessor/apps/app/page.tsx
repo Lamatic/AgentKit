@@ -13,6 +13,8 @@ import {
   Upload,
   ArrowRight,
   ExternalLink,
+  Edit3,
+  Lock,
 } from "lucide-react";
 import {
   processReturnAssessment,
@@ -144,6 +146,9 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
   const [formMode, setFormMode] = useState<FormMode>("return");
   const [loading, setLoading] = useState(false);
 
+  // Modal confirmation state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
   // Input element refs for imperative resets
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const policyInputRef = useRef<HTMLInputElement | null>(null);
@@ -236,6 +241,21 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
     if (imageInputRef.current) imageInputRef.current.value = "";
     if (policyInputRef.current) policyInputRef.current.value = "";
+  };
+
+  /**
+   * Triggers the custom confirmation modal before unlocking form details.
+   */
+  const handleEditClaim = (): void => {
+    setShowConfirmDialog(true);
+  };
+
+  /**
+   * Confirms clearing active assessment results and unlocks form.
+   */
+  const confirmClearResult = (): void => {
+    setResult(null);
+    setShowConfirmDialog(false);
   };
 
   /**
@@ -456,6 +476,53 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
   return (
     <main className="relative min-h-screen bg-brand-black text-brand-white font-sans p-6 md:p-12">
+      {/* CONFIRMATION DIALOG MODAL */}
+      {showConfirmDialog && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-dialog-title"
+          aria-describedby="confirm-dialog-description"
+          className="fixed inset-0 z-50 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-amber-400">
+              <AlertTriangle className="w-6 h-6 shrink-0" aria-hidden="true" />
+              <h3
+                id="confirm-dialog-title"
+                className="text-lg font-semibold text-brand-white"
+              >
+                Clear Assessment Result?
+              </h3>
+            </div>
+            <p
+              id="confirm-dialog-description"
+              className="text-sm text-neutral-300 leading-relaxed"
+            >
+              Editing form details will clear your current assessment result. Do
+              you want to continue?
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowConfirmDialog(false)}
+                className="text-neutral-400 hover:text-brand-white hover:bg-neutral-800 font-mono text-xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmClearResult}
+                className="bg-brand-red text-brand-white hover:bg-brand-red/90 font-mono text-xs"
+              >
+                Confirm & Unlock
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LOADING OVERLAY WITH ACCESSIBLE LIVE ANNOUNCEMENT */}
       {loading && (
         <div
@@ -571,13 +638,42 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
             {formMode === "return" ? (
               /* FORM 1: RETURN ASSESSOR */
               <>
-                <h2 className="text-lg font-semibold text-brand-white flex items-center gap-2">
-                  <Package
-                    className="w-5 h-5 text-brand-red"
-                    aria-hidden="true"
-                  />{" "}
-                  Submit Claim
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-brand-white flex items-center gap-2">
+                    <Package
+                      className="w-5 h-5 text-brand-red"
+                      aria-hidden="true"
+                    />{" "}
+                    Submit Claim
+                  </h2>
+                  {result && (
+                    <span className="flex items-center gap-1.5 text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                      <Lock className="w-3 h-3" aria-hidden="true" /> Form
+                      Locked
+                    </span>
+                  )}
+                </div>
+
+                {result && (
+                  <div
+                    role="alert"
+                    aria-live="polite"
+                    className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-between gap-2 text-xs font-mono text-amber-300"
+                  >
+                    <span>
+                      Form is locked while displaying assessment results.
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleEditClaim}
+                      className="text-xs text-amber-400 hover:text-amber-200 underline p-0 h-auto font-mono shrink-0"
+                      aria-label="Unlock form and clear current assessment result"
+                    >
+                      Unlock & Edit
+                    </Button>
+                  </div>
+                )}
 
                 <form
                   onSubmit={returnForm.handleSubmit(onReturnSubmit)}
@@ -594,6 +690,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="orderId"
                       type="text"
                       required
+                      disabled={!!result}
+                      aria-disabled={!!result}
                       {...returnForm.register("orderId")}
                     />
                     {returnForm.formState.errors.orderId && (
@@ -617,8 +715,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={!!result}
                         >
-                          <SelectTrigger id="itemCategory" aria-required="true">
+                          <SelectTrigger
+                            id="itemCategory"
+                            aria-required="true"
+                            aria-disabled={!!result}
+                          >
                             <SelectValue placeholder="Select product category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -657,8 +760,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       rows={2}
                       maxLength={2000}
                       required
+                      disabled={!!result}
+                      aria-disabled={!!result}
                       {...returnForm.register("claimReason")}
-                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition resize-none"
+                      className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     {returnForm.formState.errors.claimReason && (
                       <p className="text-brand-red text-xs mt-1 font-mono">
@@ -678,6 +783,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       id="imageFile"
                       type="file"
                       required
+                      disabled={!!result}
+                      aria-disabled={!!result}
                       accept="image/jpeg, image/jpg, image/png"
                       aria-describedby="imageFileHelp"
                       {...returnImageRegisterProps}
@@ -685,7 +792,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         returnImageRegisterRef(e);
                         imageInputRef.current = e;
                       }}
-                      className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer"
+                      className="text-xs text-neutral-300 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-brand-red/20 file:text-brand-red hover:file:bg-brand-red/30 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p id="imageFileHelp" className="sr-only">
                       Upload a JPG or PNG image up to 7 megabytes in size.
@@ -700,17 +807,30 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     )}
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full mt-2"
-                  >
-                    <span>Run Agent Assessment</span>
-                    <ArrowRight
-                      className="w-4 h-4 ml-2 inline"
-                      aria-hidden="true"
-                    />
-                  </Button>
+                  {!result ? (
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full mt-2"
+                    >
+                      <span>Run Agent Assessment</span>
+                      <ArrowRight
+                        className="w-4 h-4 ml-2 inline"
+                        aria-hidden="true"
+                      />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleEditClaim}
+                      className="w-full mt-2 border-neutral-700 text-neutral-300 hover:text-brand-white hover:border-neutral-500 font-mono text-xs flex items-center justify-center gap-2"
+                      aria-label="Edit claim form and clear current assessment result"
+                    >
+                      <Edit3 className="w-4 h-4" aria-hidden="true" />
+                      <span>Edit Claim & Clear Result</span>
+                    </Button>
+                  )}
 
                   {returnAssessmentFail && (
                     <div
