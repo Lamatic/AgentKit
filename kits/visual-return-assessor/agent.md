@@ -162,7 +162,7 @@ Use this flow when uploading new warranty policies, updating category return gui
 - `VISUAL_RETURN_ASSESSOR` — Deployed Flow ID for the return claim workflow.
 - `POLICY_DATA_INGESTION` — Deployed Flow ID for the policy ingestion workflow.
 
-Example `.env.local`:
+Example `apps/.env.local`:
 
 ```env
 LAMATIC_API_KEY="your_lamatic_api_key"

@@ -46,7 +46,7 @@ const SIZE_ERROR_MESSAGE = "File size must be 7 MiB or smaller";
 
 const VALID_DECISIONS = ["APPROVE", "REJECT", "MANUAL_REVIEW"] as const;
 
-// --- ZOD SCHEMAS & TYPES WITH UPPER BOUND CAPS ---
+// --- ZOD SCHEMAS & TYPES ---
 
 const returnFormSchema = z.object({
   orderId: z
@@ -109,6 +109,42 @@ const policyFormSchema = z.object({
 
 type PolicyFormValues = z.infer<typeof policyFormSchema>;
 type FormMode = "return" | "policy";
+
+// Zod schema with strict equality checks in preprocessors (Point 6 fix)
+const assessmentResultSchema = z.object({
+  success: z.boolean(),
+  decision: z.enum(VALID_DECISIONS),
+  confidenceScore: z.number().nullable().optional(),
+  fraudRiskScore: z.number().nullable().optional(),
+  authenticityMatch: z.boolean().nullable().optional(),
+  damageType: z.preprocess(
+    (val) =>
+      typeof val === "string"
+        ? val
+        : val !== null && val !== undefined
+          ? String(val)
+          : "N/A",
+    z.string(),
+  ),
+  policyReference: z.preprocess(
+    (val) =>
+      typeof val === "string"
+        ? val
+        : val !== null && val !== undefined
+          ? String(val)
+          : "N/A",
+    z.string(),
+  ),
+  reasoning: z.preprocess(
+    (val) =>
+      typeof val === "string"
+        ? val
+        : val !== null && val !== undefined
+          ? String(val)
+          : "N/A",
+    z.string(),
+  ),
+});
 
 const decisionStyles: Record<
   string,
@@ -263,10 +299,11 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
   };
 
   /**
-   * Confirms clearing active assessment results and unlocks form.
+   * Confirms clearing active assessment results while retaining all current form inputs and files intact.
    */
   const confirmClearResult = (): void => {
     setResult(null);
+    setReturnAssessmentFail(null);
     setShowConfirmDialog(false);
   };
 
@@ -320,30 +357,22 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
       });
 
       if (res?.status === "success") {
-        const assessment = res.result as Partial<AssessmentResult> | null;
+        const parseResult = assessmentResultSchema.safeParse(res.result);
 
-        // Reject unknown decision values before calling setResult
-        if (
-          !assessment ||
-          typeof assessment.success !== "boolean" ||
-          typeof assessment.decision !== "string" ||
-          !VALID_DECISIONS.includes(
-            assessment.decision as (typeof VALID_DECISIONS)[number],
-          )
-        ) {
+        if (!parseResult.success) {
           setReturnAssessmentFail(
-            `Assessment returned an unrecognized decision value for order "${data.orderId}".`,
+            `Assessment returned an invalid result format for order "${data.orderId}".`,
           );
           return;
         }
 
-        setResult(assessment as AssessmentResult);
+        setResult(parseResult.data as AssessmentResult);
       } else {
         setReturnAssessmentFail(
           `Failed to process assessment for order "${data.orderId}".`,
         );
       }
-    } catch (err) {
+    } catch {
       setReturnAssessmentFail(
         `Failed to execute assessment for order "${data.orderId}". Please try again.`,
       );
@@ -404,7 +433,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
           `Failed to store "${file.name}" for ${data.category}.`,
         );
       }
-    } catch (err) {
+    } catch {
       setPolicyUploadFail(`Failed to upload policy document.`);
     } finally {
       setLoading(false);
@@ -503,7 +532,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
               <span>Clear Assessment Result?</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-neutral-300 leading-relaxed pt-2">
-              Editing form details will clear your current assessment result. Do
+              Unlocking the form will clear your current assessment result, but
+              all your input details and uploaded files will be preserved. Do
               you want to continue?
             </DialogDescription>
           </DialogHeader>
@@ -686,6 +716,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                 >
                   <div>
                     <label
+                      id="label-orderId"
                       htmlFor="orderId"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -697,17 +728,28 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       required
                       disabled={!!result}
                       aria-disabled={!!result}
+                      aria-invalid={!!returnForm.formState.errors.orderId}
+                      aria-describedby={
+                        returnForm.formState.errors.orderId
+                          ? "orderId-error"
+                          : undefined
+                      }
                       {...returnForm.register("orderId")}
                     />
                     {returnForm.formState.errors.orderId && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="orderId-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {returnForm.formState.errors.orderId.message}
                       </p>
                     )}
                   </div>
 
                   <div>
+                    {/* Point 2 Fix: Added explicit ID for label and linked to SelectTrigger via aria-labelledby */}
                     <label
+                      id="label-itemCategory"
                       htmlFor="itemCategory"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -724,8 +766,17 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         >
                           <SelectTrigger
                             id="itemCategory"
+                            aria-labelledby="label-itemCategory"
                             aria-required="true"
                             aria-disabled={!!result}
+                            aria-invalid={
+                              !!returnForm.formState.errors.itemCategory
+                            }
+                            aria-describedby={
+                              returnForm.formState.errors.itemCategory
+                                ? "itemCategory-error"
+                                : undefined
+                            }
                           >
                             <SelectValue placeholder="Select product category" />
                           </SelectTrigger>
@@ -747,7 +798,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       )}
                     />
                     {returnForm.formState.errors.itemCategory && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="itemCategory-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {returnForm.formState.errors.itemCategory.message}
                       </p>
                     )}
@@ -755,6 +809,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
                   <div>
                     <label
+                      id="label-claimReason"
                       htmlFor="claimReason"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -767,11 +822,20 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       required
                       disabled={!!result}
                       aria-disabled={!!result}
+                      aria-invalid={!!returnForm.formState.errors.claimReason}
+                      aria-describedby={
+                        returnForm.formState.errors.claimReason
+                          ? "claimReason-error"
+                          : undefined
+                      }
                       {...returnForm.register("claimReason")}
                       className="w-full bg-brand-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-brand-white focus:outline-none focus:border-brand-red transition resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     {returnForm.formState.errors.claimReason && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="claimReason-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {returnForm.formState.errors.claimReason.message}
                       </p>
                     )}
@@ -779,6 +843,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
                   <div>
                     <label
+                      id="label-imageFile"
                       htmlFor="imageFile"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -790,8 +855,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       required
                       disabled={!!result}
                       aria-disabled={!!result}
+                      aria-invalid={!!returnForm.formState.errors.imageFile}
+                      aria-describedby={
+                        returnForm.formState.errors.imageFile
+                          ? "imageFileHelp imageFile-error"
+                          : "imageFileHelp"
+                      }
                       accept="image/jpeg, image/jpg, image/png"
-                      aria-describedby="imageFileHelp"
                       {...returnImageRegisterProps}
                       ref={(e) => {
                         returnImageRegisterRef(e);
@@ -803,7 +873,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       Upload a JPG or PNG image up to 7 megabytes in size.
                     </p>
                     {returnForm.formState.errors.imageFile && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="imageFile-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {
                           returnForm.formState.errors.imageFile
                             .message as string
@@ -868,6 +941,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                 >
                   <div>
                     <label
+                      id="label-brand"
                       htmlFor="brand"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -878,17 +952,28 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       type="text"
                       required
                       placeholder="e.g. Sony"
+                      aria-invalid={!!policyForm.formState.errors.brand}
+                      aria-describedby={
+                        policyForm.formState.errors.brand
+                          ? "brand-error"
+                          : undefined
+                      }
                       {...policyForm.register("brand")}
                     />
                     {policyForm.formState.errors.brand && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="brand-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {policyForm.formState.errors.brand.message}
                       </p>
                     )}
                   </div>
 
                   <div>
+                    {/* Point 2 Fix: Added explicit ID for label and linked to SelectTrigger via aria-labelledby */}
                     <label
+                      id="label-policyCategory"
                       htmlFor="policyCategory"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -904,7 +989,16 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                         >
                           <SelectTrigger
                             id="policyCategory"
+                            aria-labelledby="label-policyCategory"
                             aria-required="true"
+                            aria-invalid={
+                              !!policyForm.formState.errors.category
+                            }
+                            aria-describedby={
+                              policyForm.formState.errors.category
+                                ? "policyCategory-error"
+                                : undefined
+                            }
                           >
                             <SelectValue placeholder="Select target category" />
                           </SelectTrigger>
@@ -926,7 +1020,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       )}
                     />
                     {policyForm.formState.errors.category && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="policyCategory-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {policyForm.formState.errors.category.message}
                       </p>
                     )}
@@ -934,6 +1031,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
                   <div>
                     <label
+                      id="label-policyFile"
                       htmlFor="policyFile"
                       className="block text-xs font-mono text-neutral-400 uppercase tracking-wider mb-1"
                     >
@@ -944,7 +1042,12 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       type="file"
                       required
                       accept="application/pdf, text/plain"
-                      aria-describedby="policyFileHelp"
+                      aria-invalid={!!policyForm.formState.errors.policyFile}
+                      aria-describedby={
+                        policyForm.formState.errors.policyFile
+                          ? "policyFileHelp policyFile-error"
+                          : "policyFileHelp"
+                      }
                       {...policyFileRegisterProps}
                       ref={(e) => {
                         policyFileRegisterRef(e);
@@ -956,7 +1059,10 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       Upload a PDF or TXT file up to 7 megabytes in size.
                     </p>
                     {policyForm.formState.errors.policyFile && (
-                      <p className="text-brand-red text-xs mt-1 font-mono">
+                      <p
+                        id="policyFile-error"
+                        className="text-brand-red text-xs mt-1 font-mono"
+                      >
                         {
                           policyForm.formState.errors.policyFile
                             .message as string
@@ -1013,12 +1119,13 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                       {(selectedImageFile.size / 1024).toFixed(1)} KB
                     </span>
                   </div>
+                  {/* Point 4 Fix: Preserved explicit image container aspect ratio and height to prevent CLS */}
                   {imagePreviewUrl && (
-                    <div className="relative h-48 w-full rounded-lg overflow-hidden border border-neutral-800 bg-brand-black">
+                    <div className="relative h-64 w-full rounded-lg overflow-hidden border border-neutral-800 bg-brand-black aspect-video flex items-center justify-center">
                       <img
                         src={imagePreviewUrl}
                         alt={`Inspection photo preview for file ${selectedImageFile.name}`}
-                        className="w-full h-full object-contain"
+                        className="max-h-full max-w-full object-contain rounded"
                       />
                     </div>
                   )}
