@@ -111,6 +111,6 @@ export async function runNeuralCrossPollinator(
     parallels: normalizeParallels(raw.parallels),
     proposed_innovation: String(raw.proposed_innovation ?? ""),
     evaluation: String(raw.evaluation ?? ""),
-    final_summary: String(raw.final_summary ?? "")
+    final_summary: String(raw.success_summary || raw.caveat_summary || "")
   };
 }
