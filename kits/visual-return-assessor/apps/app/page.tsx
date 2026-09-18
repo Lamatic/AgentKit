@@ -31,10 +31,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // 7 MiB raw file threshold (7 * 1024 * 1024 bytes)
 const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 const SIZE_ERROR_MESSAGE = "File size must be 7 MiB or smaller";
+
+const VALID_DECISIONS = ["APPROVE", "REJECT", "MANUAL_REVIEW"] as const;
 
 // --- ZOD SCHEMAS & TYPES WITH UPPER BOUND CAPS ---
 
@@ -231,6 +241,8 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
    * @param {FormMode} mode - The form mode to activate ('return' | 'policy').
    */
   const handleModeSwitch = (mode: FormMode): void => {
+    if (mode === formMode) return;
+
     setFormMode(mode);
     setResult(null);
     setReturnAssessmentFail(null);
@@ -309,16 +321,22 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
       if (res?.status === "success") {
         const assessment = res.result as Partial<AssessmentResult> | null;
+
+        // Reject unknown decision values before calling setResult
         if (
           !assessment ||
           typeof assessment.success !== "boolean" ||
-          typeof assessment.decision !== "string"
+          typeof assessment.decision !== "string" ||
+          !VALID_DECISIONS.includes(
+            assessment.decision as (typeof VALID_DECISIONS)[number],
+          )
         ) {
           setReturnAssessmentFail(
-            `Failed to process assessment for order "${data.orderId}".`,
+            `Assessment returned an unrecognized decision value for order "${data.orderId}".`,
           );
           return;
         }
+
         setResult(assessment as AssessmentResult);
       } else {
         setReturnAssessmentFail(
@@ -476,52 +494,39 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
 
   return (
     <main className="relative min-h-screen bg-brand-black text-brand-white font-sans p-6 md:p-12">
-      {/* CONFIRMATION DIALOG MODAL */}
-      {showConfirmDialog && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-description"
-          className="fixed inset-0 z-50 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        >
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3 text-amber-400">
+      {/* SHADCN / RADIX DIALOG MODAL FOR KEYBOARD & FOCUS ACCESSIBILITY */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="bg-neutral-900 border-neutral-800 text-brand-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-amber-400 text-lg font-semibold">
               <AlertTriangle className="w-6 h-6 shrink-0" aria-hidden="true" />
-              <h3
-                id="confirm-dialog-title"
-                className="text-lg font-semibold text-brand-white"
-              >
-                Clear Assessment Result?
-              </h3>
-            </div>
-            <p
-              id="confirm-dialog-description"
-              className="text-sm text-neutral-300 leading-relaxed"
-            >
+              <span>Clear Assessment Result?</span>
+            </DialogTitle>
+            <DialogDescription className="text-sm text-neutral-300 leading-relaxed pt-2">
               Editing form details will clear your current assessment result. Do
               you want to continue?
-            </p>
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowConfirmDialog(false)}
-                className="text-neutral-400 hover:text-brand-white hover:bg-neutral-800 font-mono text-xs"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={confirmClearResult}
-                className="bg-brand-red text-brand-white hover:bg-brand-red/90 font-mono text-xs"
-              >
-                Confirm & Unlock
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex items-center justify-end gap-3 pt-4 sm:space-x-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowConfirmDialog(false)}
+              className="text-neutral-400 hover:text-brand-white hover:bg-neutral-800 font-mono text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmClearResult}
+              className="bg-brand-red text-brand-white hover:bg-brand-red/90 font-mono text-xs"
+            >
+              Confirm & Unlock
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* LOADING OVERLAY WITH ACCESSIBLE LIVE ANNOUNCEMENT */}
       {loading && (
@@ -1083,7 +1088,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <span
                       className={`rounded-full border px-3 py-1 text-xs font-semibold font-mono ${activeStyle.badge}`}
                     >
-                      {result.decision || "MANUAL_REVIEW"}
+                      {result.decision || "N/A"}
                     </span>
                   </div>
 

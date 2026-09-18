@@ -16,19 +16,65 @@ const ALLOWED_DATA_URL_PREFIX =
   /^data:(?:image\/(?:png|jpeg|webp|gif)|application\/pdf);base64,/i;
 
 /**
+ * Validates the decoded binary buffer against magic byte signatures for supported image formats.
+ *
+ * Supported formats:
+ * - JPEG: FF D8 FF
+ * - PNG:  89 50 4E 47 0D 0A 1A 0A
+ * - WebP: 52 49 46 46 (RIFF) ... 57 41 56 45 / 57 45 42 50 (WEBP)
+ */
+function validateImageMagicBytes(buffer: Buffer): void {
+  if (!buffer || buffer.length < 8) {
+    throw new Error(
+      "Uploaded file binary is corrupt or too small to be a valid image.",
+    );
+  }
+
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+
+  const isPng =
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a;
+
+  const isWebp =
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50;
+
+  if (!isJpeg && !isPng && !isWebp) {
+    throw new Error(
+      "Invalid or unsupported image file signature. Payloads must be valid PNG, JPEG, or WebP binary images.",
+    );
+  }
+}
+
+/**
  * Validates, caps, and sanitizes Base64 or Data URL input payloads.
  * Protects against DoS attacks via unbounded serialized strings or malicious headers.
  *
  * @param rawInput - The raw Base64 or Data URL payload from the client.
  * @param fieldName - Friendly name of the payload field for error reporting.
  * @param maxBytes - Maximum allowed decoded size in bytes (defaults to 7 MiB).
+ * @param verifyImageSignature - Set to true to enforce magic byte checking for image inputs.
  * @returns {string} The sanitized payload ready for Lamatic execution.
- * @throws {Error} If the string exceeds character limits, contains illegal characters, or exceeds binary size bounds.
+ * @throws {Error} If the string exceeds character limits, contains illegal characters, or fails signature validation.
  */
 function sanitizeAndValidateBase64Payload(
   rawInput: string,
   fieldName: string,
   maxBytes: number = MAX_FILE_SIZE_BYTES,
+  verifyImageSignature: boolean = false,
 ): string {
   if (!rawInput || typeof rawInput !== "string") {
     throw new Error(`Invalid payload provided for ${fieldName}.`);
@@ -60,7 +106,12 @@ function sanitizeAndValidateBase64Payload(
     throw new Error(`Invalid Base64 format in ${fieldName}.`);
   }
 
-  // 4. Validate Base64 structural integrity and character set
+  // 4. Reject empty base64Data before structural validation
+  if (base64Data.length === 0) {
+    throw new Error(`No file content provided for ${fieldName}.`);
+  }
+
+  // 5. Validate Base64 structural integrity and character set
   if (
     base64Data.length % 4 !== 0 ||
     !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})?$/.test(
@@ -70,7 +121,7 @@ function sanitizeAndValidateBase64Payload(
     throw new Error(`Invalid Base64 character encoding for ${fieldName}.`);
   }
 
-  // 5. Calculate exact decoded byte size
+  // 6. Calculate exact decoded byte size
   const paddingCount = base64Data.endsWith("==")
     ? 2
     : base64Data.endsWith("=")
@@ -84,6 +135,12 @@ function sanitizeAndValidateBase64Payload(
     throw new Error(
       `File size limit exceeded for ${fieldName}. Received ${megabytes} MiB, maximum allowed is 7 MiB.`,
     );
+  }
+
+  // 7. Verify magic bytes / file signature if required
+  if (verifyImageSignature) {
+    const buffer = Buffer.from(base64Data, "base64");
+    validateImageMagicBytes(buffer);
   }
 
   // Return sanitized, trimmed string to avoid forwarding inflated payload bloat
@@ -121,7 +178,7 @@ export interface ReturnAssessorPayload {
   itemCategory: string;
   claimReason: string;
   imageBinary: string; // Base64 string or Data URL of the damaged/returned item photo
-  userEmail: string; // Customer email address (e.g., "customer@example.com")
+  userEmail: string; // Customer email address
 }
 
 export interface AssessmentResult {
@@ -161,6 +218,8 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
   const sanitizedContent = sanitizeAndValidateBase64Payload(
     payload?.content,
     "policy document",
+    MAX_FILE_SIZE_BYTES,
+    false,
   );
 
   try {
@@ -205,10 +264,12 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
     throw new Error("No inspection image provided for assessment.");
   }
 
-  // Enforce 10 MB serialized character cap and 7 MiB binary size boundary
+  // Enforce 10 MB serialized character cap, 7 MiB binary limit, AND magic-byte image validation
   const sanitizedImageBinary = sanitizeAndValidateBase64Payload(
     payload?.imageBinary,
     "inspection image",
+    MAX_FILE_SIZE_BYTES,
+    true,
   );
 
   try {
