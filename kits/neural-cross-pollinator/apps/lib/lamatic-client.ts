@@ -54,7 +54,10 @@ export async function runNeuralCrossPollinator(
   domainA: string,
   domainB: string
 ): Promise<CrossPollinatorResult> {
-  const apiUrl = requireEnv("LAMATIC_API_URL");
+    const apiUrl = requireEnv("LAMATIC_API_URL");
+  if (!apiUrl.startsWith("https://")) {
+    throw new Error("LAMATIC_API_URL must use https:// — refusing to send credentials over an insecure connection.");
+  }
   const apiKey = requireEnv("LAMATIC_API_KEY");
   const projectId = requireEnv("LAMATIC_PROJECT_ID");
 
