@@ -13,7 +13,7 @@ const MAX_SERIALIZED_CHAR_LIMIT = 10 * 1024 * 1024;
 
 // Strict whitelist regex for allowed Data URL prefixes
 const ALLOWED_DATA_URL_PREFIX =
-  /^data:(?:image\/(?:png|jpeg|webp|gif)|application\/pdf);base64,/i;
+  /^data:(?:image\/(?:png|jpeg|webp|gif)|application\/pdf|text\/plain);base64,/i;
 
 /**
  * Validates the decoded binary buffer against magic byte signatures for supported image formats.
