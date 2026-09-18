@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-  "node": ">=18.18.0"
- },
+    "node": ">=18.18.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "lamatic": "^0.3.2",
     "next": "^15.5.21",
     "react": "19.2.8",
     "react-dom": "19.2.8",

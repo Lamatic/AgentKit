@@ -1,7 +1,9 @@
 // lib/lamatic-client.ts
-// Server-only: talks to your deployed Lamatic flow via GraphQL.
+// Server-only: talks to your deployed Lamatic flow via the official SDK.
 // This file must never be imported from a "use client" component —
 // it reads secrets that should never reach the browser.
+
+import { Lamatic } from "lamatic";
 
 export interface ParallelMatch {
   domainA_element: string;
@@ -18,8 +20,6 @@ export interface CrossPollinatorResult {
   final_summary: string;
 }
 
-// Reads an env var and throws a clear error if it's missing —
-// better than a silent undefined causing a confusing failure later.
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -54,59 +54,32 @@ export async function runNeuralCrossPollinator(
   domainA: string,
   domainB: string
 ): Promise<CrossPollinatorResult> {
-    const apiUrl = requireEnv("LAMATIC_API_URL");
+  const apiUrl = requireEnv("LAMATIC_API_URL");
   if (!apiUrl.startsWith("https://")) {
-    throw new Error("LAMATIC_API_URL must use https:// — refusing to send credentials over an insecure connection.");
+    throw new Error(
+      "LAMATIC_API_URL must use https:// — refusing to send credentials over an insecure connection."
+    );
   }
   const apiKey = requireEnv("LAMATIC_API_KEY");
   const projectId = requireEnv("LAMATIC_PROJECT_ID");
 
-  // domainA/domainB are required by the flow's input schema, so the
-  // GraphQL variables must be non-null (String!) to match — a
-  // nullable declaration here can get rejected during validation
-  // before the flow even runs.
-  const query = `
-    query ExecuteWorkflow($workflowId: String!, $domainA: String!, $domainB: String!) {
-      executeWorkflow(
-        workflowId: $workflowId
-        payload: { domainA: $domainA, domainB: $domainB }
-      ) {
-        status
-        result
-      }
-    }
-  `;
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      "x-project-id": projectId
-    },
-    body: JSON.stringify({
-      query,
-      variables: { workflowId, domainA, domainB }
-    })
+  const lamatic = new Lamatic({
+    endpoint: apiUrl,
+    projectId,
+    apiKey
   });
 
-  if (!response.ok) {
-    throw new Error(`Lamatic API request failed: ${response.status} ${response.statusText}`);
+  const response = await lamatic.executeFlow(workflowId, { domainA, domainB });
+
+  // The SDK's exact response envelope isn't fully documented, so pull the
+  // real payload out defensively rather than assuming one fixed shape.
+  const raw: Record<string, unknown> =
+    (response as any)?.result ?? (response as any)?.data ?? (response as any) ?? {};
+
+  const status = (response as any)?.status;
+  if (status && status !== "success") {
+    throw new Error(`Flow execution did not return a success status (got: ${status})`);
   }
-
-  const json = await response.json();
-
-  if (json.errors?.length) {
-    throw new Error(json.errors[0]?.message ?? "Unknown error from Lamatic API");
-  }
-
-  const executed = json.data?.executeWorkflow;
-
-  if (!executed || executed.status !== "success") {
-    throw new Error("Flow execution did not return a success status");
-  }
-
-  const raw = executed.result ?? {};
 
   return {
     domainA_analysis: String(raw.domainA_analysis ?? ""),
