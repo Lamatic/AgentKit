@@ -40,7 +40,7 @@ export default async function EscrowPage() {
     console.error("[escrow] Supabase read failed, falling back to mock data:", err);
   }
 
-  const totalTvl = escrows.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const totalTvl = escrows.filter((e) => e.status === "locked").reduce((sum, e) => sum + (e.amount || 0), 0);
 
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">

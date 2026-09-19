@@ -17,6 +17,8 @@ Competitor analysis, market research, and fact-checking. Gathers and synthesizes
 
 ## Examples
 
+> Fictional entries below illustrate the expected output format only — they are not verified claims.
+
 ### Input: "Top 5 competitors in AI agent orchestration"
 **Output:**
 1. **Lamatic** — Managed agent runtime with flow-based orchestration. Series A, 50+ enterprise customers.

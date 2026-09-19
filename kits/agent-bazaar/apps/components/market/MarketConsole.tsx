@@ -60,24 +60,36 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   const handleAutoplayToggle = useCallback(async (value: boolean) => {
     const prev = autoplayRef.current;
     setAutoplay(value);
-    const res = await setAutoMarket({ run: value, market: value });
-    if (!res.ok) {
+    try {
+      const res = await setAutoMarket({ run: value, market: value });
+      if (!res.ok) {
+        setAutoplay(prev);
+        setError(res.error);
+      }
+    } catch (err) {
       setAutoplay(prev);
-      setError(res.error);
+      setError(err instanceof Error ? err.message : "Auto-market toggle failed");
     }
   }, []);
 
   const refresh = useCallback(async () => {
-    const res = await getMarketState();
-    if (res.ok) {
-      setMarket(res.data);
-      setOnline(true);
-      setError(null);
-    } else {
+    try {
+      const res = await getMarketState();
+      if (res.ok) {
+        setMarket(res.data);
+        setOnline(true);
+        setError(null);
+      } else {
+        setOnline(false);
+        setError(res.error);
+      }
+      return res;
+    } catch (err) {
+      const failure = { ok: false as const, error: err instanceof Error ? err.message : "Market refresh failed" };
       setOnline(false);
-      setError(res.error);
+      setError(failure.error);
+      return failure;
     }
-    return res;
   }, []);
 
   // Bounded catch-up burst: poll every 2s until condition is met or timeout
@@ -230,7 +242,13 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   const handlePost = useCallback(
     async (goal: string, budget: number) => {
       setError(null);
-      const res = await postTask({ goal, budget });
+      let res;
+      try {
+        res = await postTask({ goal, budget });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Post task failed");
+        return false;
+      }
       if (!res.ok) {
         setError(res.error);
         return false;
@@ -260,6 +278,8 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       }
       setActiveId(null);
       await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Reset failed");
     } finally {
       setResetting(false);
     }

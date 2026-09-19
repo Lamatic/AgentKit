@@ -15,3 +15,40 @@ ALTER TABLE credit_ledger DROP CONSTRAINT IF EXISTS credit_ledger_source_check;
 ALTER TABLE credit_ledger
   ADD CONSTRAINT credit_ledger_source_check
   CHECK (source IN ('seed', 'cron', 'manual', 'live'));
+
+-- Atomically append a live ledger entry: balance_after is computed and the
+-- row inserted in a single statement, serialized per agent via a
+-- transaction-scoped advisory lock so concurrent writers cannot compute
+-- the same running balance.
+CREATE OR REPLACE FUNCTION append_ledger(
+  p_agent_id uuid,
+  p_amount bigint,
+  p_reason text,
+  p_ref_id uuid DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtext(p_agent_id::text));
+  INSERT INTO credit_ledger (agent_id, amount, balance_after, reason, ref_id, source)
+  SELECT p_agent_id,
+         p_amount,
+         COALESCE(
+           (SELECT balance_after
+              FROM credit_ledger
+             WHERE agent_id = p_agent_id
+             ORDER BY created_at DESC
+             LIMIT 1),
+           0
+         ) + p_amount,
+         p_reason,
+         p_ref_id,
+         'live';
+END;
+$$;
+
+-- The engine calls this RPC with the service-role key.
+GRANT EXECUTE ON FUNCTION append_ledger(uuid, bigint, text, uuid) TO service_role;

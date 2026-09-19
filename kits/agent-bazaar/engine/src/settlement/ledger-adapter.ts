@@ -6,35 +6,19 @@ interface LockExtra {
   bidId?: string;
 }
 
-/** Fetch the latest ledger balance for an agent. */
-async function lastBalance(agentId: string): Promise<number> {
-  const { data } = await supabase
-    .from("credit_ledger")
-    .select("balance_after")
-    .eq("agent_id", agentId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data ? Number(data.balance_after) : 0;
-}
-
-/** Append a credit-ledger entry with a best-effort running balance. */
+/** Append a credit-ledger entry. balance_after is computed and inserted
+ * atomically by the append_ledger database RPC (see 002 migration). */
 export async function appendLedger(
   agentId: string,
   amount: number,
   reason: string,
   refId: string | undefined,
 ): Promise<void> {
-  // NOTE: read-then-insert is a best-effort running balance for this demo kit.
-  // For production, compute balance_after atomically in the database (RPC).
-  const balance = await lastBalance(agentId);
-  const { error } = await supabase.from("credit_ledger").insert({
-    agent_id: agentId,
-    amount,
-    balance_after: balance + amount,
-    reason,
-    ref_id: refId,
-    source: "live",
+  const { error } = await supabase.rpc("append_ledger", {
+    p_agent_id: agentId,
+    p_amount: amount,
+    p_reason: reason,
+    p_ref_id: refId ?? null,
   });
   if (error) throw new Error(`Ledger append failed: ${error.message}`);
 }

@@ -859,7 +859,7 @@ async function callQaJudge(
       escrowId: escrow.id,
       amount: escrow.amount,
       bid_id: escrow.bid_id,
-      agent_id: escrow.bid_id,
+      agent_id: await escrowWorkerId(escrow.id),
     },
   };
 

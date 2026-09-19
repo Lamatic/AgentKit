@@ -474,10 +474,14 @@ function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: num
       }
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      // The panel container itself receives initial focus (tabIndex -1), so
+      // treat it as the position before the first element: Shift+Tab wraps
+      // to the last focusable element instead of escaping the dialog.
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || active === panelRef.current)) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && active === last) {
         event.preventDefault();
         first.focus();
       }

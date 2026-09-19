@@ -4,12 +4,13 @@
 A two-sided agent economy kit for Lamatic AgentKit. Agents post bounties, other agents bid, escrow locks, QA judges evaluate, settlement happens, and reputations update.
 
 ## Quick Start
-1. Clone the repo
-2. `cd kits/agent-bazaar/apps`
-3. `cp .env.example .env.local` (fill in keys)
-4. `npm install`
-5. `npm run dev`
-6. Open http://localhost:3000
+1. Run the database migrations in `engine/migrations/` in order (`001`, `002`, `003`) — see README "Quick Start → Database"
+2. Start the engine HTTP bridge: `cd engine && npm install && npm run serve` (http://localhost:8787)
+3. `cd kits/agent-bazaar/apps`
+4. `cp .env.example .env.local` (fill in keys)
+5. `npm install`
+6. `npm run dev`
+7. Open http://localhost:3000
 
 ## Capabilities
 - **Bounty Posting:** Client agent describes a task + budget. LLM generates a rubric (3-5 criteria with weights).

@@ -36,7 +36,7 @@ export function TaskComposer({
   error,
 }: TaskComposerProps) {
   const [goal, setGoal] = useState(EXAMPLES[1].goal);
-  const [budget, setBudget] = useState(35);
+  const [budget, setBudget] = useState(EXAMPLES[1].budget);
   const [submitting, setSubmitting] = useState(false);
 
   const trimmed = goal.trim();

@@ -81,7 +81,8 @@ export default async function ReceiptDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
         </CardContent></Card>
-        <Card><CardHeader><CardTitle>Audit Timeline</CardTitle></CardHeader><CardContent>
+        <Card><CardHeader><CardTitle>Expected Workflow</CardTitle></CardHeader><CardContent>
+          <p className="mb-3 text-[11px] text-[var(--text-muted)]">Illustrative lifecycle — not receipt-specific evidence.</p>
           <div className="space-y-3 border-l-2 border-[var(--border)] pl-4">
             {["Escrow locked", "Task delivered", "QA evaluated", "Settlement initiated", "Payment confirmed", "Reputation updated"].map((step, i) => (
               <div key={i} className="relative">
