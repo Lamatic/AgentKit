@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: "Two-sided agent economy dashboard",
 };
 
+/** Root app layout. */
 export default function RootLayout({
   children,
 }: {

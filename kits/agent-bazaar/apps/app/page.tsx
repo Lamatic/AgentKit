@@ -3,6 +3,7 @@ import { MarketConsole } from "@/components/market/MarketConsole";
 
 export const dynamic = "force-dynamic";
 
+/** DashboardPage helper. */
 export default async function DashboardPage() {
   const initialMarket = await readMarketSafe();
 

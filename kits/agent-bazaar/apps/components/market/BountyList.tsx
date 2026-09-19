@@ -15,9 +15,12 @@ interface BountyListProps {
   onSelect: (id: string) => void;
 }
 
+/** Render the bounty selection list. */
 export function BountyList({ bounties, bids, agents, activeId, onSelect }: BountyListProps) {
+  /** nameOf helper. */
   const nameOf = (agentId: string) =>
     agents.find((agent) => agent.id === agentId)?.name ?? shortId(agentId);
+  /** bidCount helper. */
   const bidCount = (bountyId: string) => bids.filter((bid) => bid.bounty_id === bountyId).length;
   const activeCount = bounties.filter((bounty) => !TERMINAL.has(bounty.status)).length;
 

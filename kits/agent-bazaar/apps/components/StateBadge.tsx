@@ -19,6 +19,7 @@ const stateConfig: Record<string, { label: string; variant: "default" | "success
   refunded: { label: "Refunded", variant: "error" },
 };
 
+/** Render a bounty state badge. */
 export function StateBadge({ status }: StateBadgeProps) {
   const config = stateConfig[status] || { label: status, variant: "outline" as const };
   return <Badge variant={config.variant}>{config.label}</Badge>;

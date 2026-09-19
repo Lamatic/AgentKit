@@ -32,8 +32,12 @@ export interface LockExtra {
 }
 
 export interface SettlementAdapter {
+  /** Quote settlement amount and platform fee. */
   quote(amount: bigint): Promise<Quote>;
+  /** Lock escrow funds for a bounty. */
   lock(escrowId: string, amount: bigint, extra?: LockExtra): Promise<LockRef>;
+  /** Atomically settle a locked escrow to the worker. */
   settle(escrowId: string, to: string): Promise<SettlementReceipt>;
+  /** Atomically refund a locked escrow to the poster. */
   refund(escrowId: string, to: string): Promise<SettlementReceipt>;
 }

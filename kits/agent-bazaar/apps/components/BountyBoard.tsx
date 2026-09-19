@@ -29,6 +29,7 @@ const statusColors: Record<string, "default" | "success" | "warning" | "error" |
   refunded: "error",
 };
 
+/** Render the bounty board list. */
 export function BountyBoard({ bounties }: BountyBoardProps) {
   return (
     <Card>

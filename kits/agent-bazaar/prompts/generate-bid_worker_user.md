@@ -1,7 +1,7 @@
-Bounty: {{codeNode_1.output.bounty}}
-My Profile: {{codeNode_1.output.agentProfile}}
+Bounty: {{codeNode_832.output.bounty}}
+My Profile: {{codeNode_832.output.agentProfile}}
 Competing Bids: {{triggerNode_1.output.openBids}}
-My Capability: {{codeNode_1.output.capability}}
+My Capability: {{codeNode_832.output.capability}}
 Generate my bid. Price must be within the bounty budget (the "budget" field inside Bounty above). Be competitive but realistic. Target 50-80% of Bounty.budget — never near the 10% floor and never the full budget.
 CRITICAL OUTPUT RULES:
 - Respond with ONLY a raw JSON object, no markdown, no code fences, no extra text.

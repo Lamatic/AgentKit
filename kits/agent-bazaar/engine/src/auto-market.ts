@@ -20,6 +20,7 @@ export interface MarketLoad {
 
 /** Live load by pipeline stage. The status column is jsonb, so the `.not(..in..)`
  *  DB-side filter can't be trusted — count parsed statuses in JS instead. */
+/** Count live market load by pipeline stage. */
 export async function countLoad(): Promise<MarketLoad> {
   const { data } = await supabase.from("bounties").select("id,status");
   let early = 0;
@@ -63,6 +64,7 @@ const TASK_POOL: Array<{ goal: string; budget: number }> = [
 let lastAutoPostAt = 0;
 const recentlyUsedGoals = new Set<string>();
 
+/** Post an auto-market task when caps allow. */
 export async function maybePostAutoTask(): Promise<boolean> {
   const now = Date.now();
   if (now - lastAutoPostAt < COOLDOWN_MS) return false;
@@ -71,7 +73,7 @@ export async function maybePostAutoTask(): Promise<boolean> {
   // reaches QA, one extra slot opens (up to MAX_TOTAL) so the board keeps
   // draining instead of stalling behind the QA/commit tail.
   const load = await countLoad();
-  const allow = load.total < MAX_EARLY || (load.qa >= 1 && load.total < MAX_TOTAL);
+  const allow = load.early < MAX_EARLY || (load.qa >= 1 && load.total < MAX_TOTAL);
   if (!allow) return false;
 
   const available = TASK_POOL.filter((t) => !recentlyUsedGoals.has(t.goal));

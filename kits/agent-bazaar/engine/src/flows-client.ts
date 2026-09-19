@@ -3,12 +3,21 @@ import { Lamatic } from "lamatic";
 
 let client: Lamatic | null = null;
 
+/** Get or construct the Lamatic client. */
 function getClient(): Lamatic {
   if (!client) {
+    const apiKey = process.env.LAMATIC_API_KEY || "";
+    const projectId = process.env.LAMATIC_PROJECT_ID || "";
+    const endpoint = process.env.LAMATIC_API_URL || "";
+    if (!apiKey || !projectId || !endpoint) {
+      console.warn(
+        "[flows-client] Missing LAMATIC_API_KEY, LAMATIC_PROJECT_ID, or LAMATIC_API_URL — flows will use fallbacks",
+      );
+    }
     client = new Lamatic({
-      apiKey: process.env.LAMATIC_API_KEY || "",
-      projectId: process.env.LAMATIC_PROJECT_ID || "",
-      endpoint: process.env.LAMATIC_API_URL || "",
+      apiKey,
+      projectId,
+      endpoint,
     });
   }
   return client;
@@ -52,11 +61,13 @@ let rateLimitNoticeAt = 0;
 const RATE_LIMIT_RE = /429|rate limit|too many requests/i;
 const RETRY_IN_RE = /try again in (?:(\d+)\s*m\s*)?([\d.]+)\s*s/i;
 
+/** Return provider rate-limit circuit-breaker status. */
 export function getLlmStatus(): { degraded: boolean; retryAfterMs: number } {
   const ms = rateLimitedUntil - Date.now();
   return { degraded: ms > 0, retryAfterMs: Math.max(0, ms) };
 }
 
+/** Open the rate-limit circuit breaker. */
 function noteRateLimit(message: string): void {
   const m = RETRY_IN_RE.exec(message);
   const ms = m
@@ -69,6 +80,7 @@ function noteRateLimit(message: string): void {
   }
 }
 
+/** Call a flow with timeout and fallback. */
 async function callWithFallback(
   flowId: string,
   flowKey: keyof typeof FLOW_TIMEOUTS,
@@ -137,6 +149,7 @@ export interface UpdateReputationOutput {
   outcome: string;
 }
 
+/** Invoke the post-bounty flow with fallback rubric. */
 export async function postBounty(input: {
   goal: string;
   budget: number;
@@ -156,6 +169,7 @@ export async function postBounty(input: {
   return result as unknown as PostBountyOutput;
 }
 
+/** Invoke the generate-bid flow with priced fallback. */
 export async function generateBid(input: {
   bounty: Record<string, unknown>;
   agentProfile: Record<string, unknown>;
@@ -173,6 +187,7 @@ export async function generateBid(input: {
   return result as unknown as GenerateBidOutput;
 }
 
+/** Invoke the execute-task flow with winner fallback. */
 export async function executeTask(input: {
   bounty: Record<string, unknown>;
   bids: Record<string, unknown>;
@@ -204,6 +219,7 @@ export async function executeTask(input: {
   return result as unknown as ExecuteTaskOutput;
 }
 
+/** Invoke the QA judge flow with deterministic fallback. */
 export async function qaJudge(input: {
   bounty: Record<string, unknown>;
   rubric: Record<string, unknown>;
@@ -211,28 +227,34 @@ export async function qaJudge(input: {
   attempt: number;
   escrow: Record<string, unknown>;
 }): Promise<QaJudgeOutput> {
-  const score = 0.85 + Math.random() * 0.1;
-  const isPass = score >= 0.7;
+  // Deterministic degraded-mode result: fixed pass so budget-exhausted rounds
+  // stay reproducible instead of randomly passing/failing.
+  const score = 0.85;
   const result = await callWithFallback(FLOWS.qaJudge, "qaJudge", input as Record<string, unknown>, {
     score,
-    verdict: isPass ? "pass" : "fail",
-    rationale: `Artifact meets quality criteria. Score: ${score.toFixed(2)}`,
-    action: isPass ? "settle" : input.attempt < 3 ? "revise" : "refund",
+    verdict: "pass",
+    rationale: "[DEGRADED] QA flow unavailable — automatic pass with fixed score 0.85.",
+    action: "settle",
     newAttempt: input.attempt + 1,
-    reason: isPass ? "" : "Score below threshold",
+    reason: "",
   });
   return result as unknown as QaJudgeOutput;
 }
 
+/** Invoke the update-reputation flow with clamped fallback. */
 export async function updateReputation(input: {
   agentId: string;
   outcome: "pass" | "fail";
+  currentReputation?: number;
 }): Promise<UpdateReputationOutput> {
   const delta = input.outcome === "pass" ? 0.05 : -0.1;
+  const current = Number.isFinite(Number(input.currentReputation))
+    ? Number(input.currentReputation)
+    : 0.5;
   const result = await callWithFallback(FLOWS.updateReputation, "updateReputation", input as Record<string, unknown>, {
     agentId: input.agentId,
     delta,
-    newScore: 0.5 + delta,
+    newScore: Math.max(0, Math.min(1, current + delta)),
     outcome: input.outcome,
   });
   return result as unknown as UpdateReputationOutput;

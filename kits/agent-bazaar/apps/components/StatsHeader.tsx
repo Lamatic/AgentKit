@@ -8,6 +8,7 @@ interface StatsHeaderProps {
   epochLatency: string;
 }
 
+/** Render dashboard stat headers. */
 export function StatsHeader({
   totalSettled,
   jobsCompleted,

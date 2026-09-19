@@ -6,6 +6,7 @@ import { cn, formatAmount, formatPercent, shortId, timeAgo } from "@/lib/utils";
 
 const STEP_LABELS = ["Posted", "Bidding", "Escrow", "Delivered", "QA", "Settled"];
 
+/** phaseIndex helper. */
 function phaseIndex(status: string): number {
   switch (status) {
     case "draft":
@@ -33,6 +34,7 @@ interface LiveTaskPanelProps {
   bounty: BountyView | null;
 }
 
+/** Render the live task pipeline panel. */
 export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
   if (!market) {
     return (
@@ -66,9 +68,12 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
     market.deliveries
       .filter((item) => item.bounty_id === bounty.id)
       .sort((a, b) => b.attempt - a.attempt)[0] ?? null;
-  const verdict = market.verdicts.find((item) => item.bounty_id === bounty.id) ?? null;
+  const verdict = delivery
+    ? (market.verdicts.find((item) => item.delivery_id === delivery.id) ?? null)
+    : null;
   const receipt = market.receipts.find((item) => item.bounty_id === bounty.id) ?? null;
   const poster = market.agents.find((agent) => agent.id === bounty.posted_by);
+  /** nameOf helper. */
   const nameOf = (agentId: string) =>
     market.agents.find((agent) => agent.id === agentId)?.name ?? shortId(agentId);
 
@@ -375,6 +380,7 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
   );
 }
 
+/** Render a single progress step. */
 function ProgressStep({
   label,
   index,
@@ -440,12 +446,14 @@ function ProgressStep({
   );
 }
 
+/** Toggle the delivery artifact viewer. */
 function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: number }) {
   const [open, setOpen] = useState(false);
   const text = artifactText(artifact);
 
   useEffect(() => {
     if (!open) return;
+    /** onKey helper. */
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
@@ -517,6 +525,7 @@ function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: num
   );
 }
 
+/** statusPillFor helper. */
 function statusPillFor(status: string): { label: string; className: string } {
   switch (status) {
     case "settled":

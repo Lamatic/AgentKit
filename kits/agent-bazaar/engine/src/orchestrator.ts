@@ -18,6 +18,7 @@ const ESCROW_TIMEOUT_MS = 3600_000;
 const MAX_CHAIN_STEPS = Number(process.env.ENGINE_MAX_CHAIN || "6");
 const CHAIN_DWELL_MS = Number(process.env.ENGINE_CHAIN_DWELL_MS || "1500");
 
+/** sleep helper. */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -59,6 +60,7 @@ interface RunOptions {
   bountyId?: string;
 }
 
+/** Advance all active bounties by one orchestration round. */
 export async function runRound(opts: RunOptions = {}): Promise<RoundResult> {
   const result: RoundResult = { bountiesProcessed: 0, settlements: 0, refunds: 0, errors: [] };
   const mode = opts.mode ?? getMode();
@@ -97,6 +99,7 @@ export async function runRound(opts: RunOptions = {}): Promise<RoundResult> {
   // long as its slowest LLM call). Instead chain consecutive phases inside one
   // round: re-read the row, and while it kept moving, process again — with a
   // short dwell so every phase stays visible on the dashboard via Realtime.
+  /** processOne helper. */
   async function processOne(target: {
     bounty: Record<string, unknown>;
     state: BountyStatus;
@@ -148,6 +151,7 @@ export async function runRound(opts: RunOptions = {}): Promise<RoundResult> {
   return result;
 }
 
+/** Parse a stored bounty status value into a typed state. */
 export function parseStatus(raw: unknown): BountyStatus | null {
   if (!raw) return null;
   if (typeof raw === "string") {
@@ -160,6 +164,7 @@ export function parseStatus(raw: unknown): BountyStatus | null {
   return raw as BountyStatus;
 }
 
+/** processBounty helper. */
 async function processBounty(
   bounty: Record<string, unknown>,
   state: BountyStatus,
@@ -187,6 +192,7 @@ async function processBounty(
   }
 }
 
+/** resumeOpen helper. */
 async function resumeOpen(
   bounty: Record<string, unknown>,
   state: Extract<BountyStatus, { status: "open" }>,
@@ -225,6 +231,7 @@ async function resumeOpen(
   await awardAndDeliver(bounty, state, bids, ctx, false);
 }
 
+/** resumeAwarded helper. */
 async function resumeAwarded(
   bounty: Record<string, unknown>,
   ctx: RoundContext,
@@ -241,6 +248,7 @@ async function resumeAwarded(
   }
 }
 
+/** resumeInEscrow helper. */
 async function resumeInEscrow(
   bounty: Record<string, unknown>,
   state: Extract<BountyStatus, { status: "in_escrow" }>,
@@ -314,6 +322,7 @@ async function resumeInEscrow(
   });
 }
 
+/** resumeDelivered helper. */
 async function resumeDelivered(
   bounty: Record<string, unknown>,
   state: Extract<BountyStatus, { status: "delivered" }>,
@@ -353,6 +362,7 @@ async function resumeDelivered(
   }
 }
 
+/** resumeQaFail helper. */
 async function resumeQaFail(
   bounty: Record<string, unknown>,
   state: Extract<BountyStatus, { status: "qa_fail" }>,
@@ -398,6 +408,7 @@ async function resumeQaFail(
   await writeStatus(bountyId, revised);
 }
 
+/** resumeQaPass helper. */
 async function resumeQaPass(
   bounty: Record<string, unknown>,
   state: Extract<BountyStatus, { status: "qa_pass" }>,
@@ -451,6 +462,7 @@ async function resumeQaPass(
   );
 }
 
+/** refundAndFinish helper. */
 async function refundAndFinish(
   bounty: Record<string, unknown>,
   state: Extract<BountyStatus, { status: "qa_fail" }>,
@@ -483,6 +495,7 @@ async function refundAndFinish(
   await writeStatus(bountyId, refunded);
 }
 
+/** Ensure worker bids exist for a bounty. */
 async function ensureBids(
   bounty: Record<string, unknown>,
   ctx: RoundContext,
@@ -503,6 +516,7 @@ async function ensureBids(
   // All bids generate in parallel (small stagger to avoid 429 bursts) and each
   // bid is inserted the moment its own LLM call returns, so bids stream onto
   // the board one by one instead of waiting for the slowest worker.
+  /** bidOne helper. */
   async function bidOne(
     worker: (typeof workers)[number],
     index: number,
@@ -575,6 +589,7 @@ async function ensureBids(
   return inMemory;
 }
 
+/** Hydrate bids with live reputation and balances. */
 async function hydrateBids(bids: Record<string, unknown>[]): Promise<Record<string, unknown>[]> {
   if (bids.length === 0) return bids;
 
@@ -612,6 +627,7 @@ async function hydrateBids(bids: Record<string, unknown>[]): Promise<Record<stri
   });
 }
 
+/** Award a winner, lock escrow, and deliver. */
 async function awardAndDeliver(
   bounty: Record<string, unknown>,
   current: BountyStatus,
@@ -646,9 +662,14 @@ async function awardAndDeliver(
     ? rawEscrowId
     : crypto.randomUUID();
   const amountRaw = Number(result.amount);
-  const amount = Number.isFinite(amountRaw) && amountRaw > 0
+  const winnerPrice = Math.round(Number(winner.price));
+  const proposal = Number.isFinite(amountRaw) && amountRaw > 0
     ? Math.round(amountRaw)
-    : Math.round(Number(winner.price));
+    : winnerPrice;
+  const budgetCap = Math.round(Number(bounty.budget));
+  const amount = Number.isFinite(budgetCap) && budgetCap > 0
+    ? Math.min(proposal, budgetCap)
+    : proposal;
   const lockRef = existing?.lockRef || (result.lockRef as string) || `lock-${escrowId}`;
 
   const { data: existingEscrow } = await supabase
@@ -715,6 +736,7 @@ async function awardAndDeliver(
   await writeStatus(bountyId, delivered);
 }
 
+/** Normalize an LLM artifact into an object. */
 function normalizeDeliverable(raw: unknown, goal: unknown): Record<string, unknown> {
   if (raw !== null && typeof raw === "object") return raw as Record<string, unknown>;
   if (typeof raw === "string") {
@@ -734,6 +756,7 @@ function normalizeDeliverable(raw: unknown, goal: unknown): Record<string, unkno
   return { note: `No artifact returned for: ${String(goal ?? "")}` };
 }
 
+/** Resolve the winning bid from LLM or fallback scoring. */
 function resolveWinner(
   bids: Record<string, unknown>[],
   winnerBidId: unknown,
@@ -755,6 +778,7 @@ function resolveWinner(
   );
 }
 
+/** Run QA judgment for a delivery attempt. */
 async function callQaJudge(
   bounty: Record<string, unknown>,
   delivery: Record<string, unknown> | null,
@@ -817,11 +841,9 @@ async function callQaJudge(
   };
 }
 
+/** Apply pass/fail reputation updates. */
 async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promise<void> {
   const delta = outcome === "pass" ? 0.05 : -0.1;
-
-  await flows.updateReputation({ agentId, outcome });
-  recordSpend(1);
 
   const { data: agent } = await supabase
     .from("agents")
@@ -832,6 +854,9 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
   if (!agent) return;
 
   const current = Number(agent.reputation) || 0.5;
+  await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
+  recordSpend(1);
+
   const updated = Math.max(0, Math.min(1, current + delta));
   const reputation = Math.round(updated * 100) / 100;
 
@@ -845,6 +870,7 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
     .eq("id", agentId);
 }
 
+/** Persist a bounty status transition. */
 async function writeStatus(bountyId: string, next: BountyStatus): Promise<void> {
   const { error } = await supabase
     .from("bounties")
@@ -853,6 +879,7 @@ async function writeStatus(bountyId: string, next: BountyStatus): Promise<void> 
   if (error) throw new Error(`Status write failed: ${error.message}`);
 }
 
+/** Run a flow live or from replay recordings. */
 async function pipe(
   name: FlowName,
   input: Record<string, unknown>,
@@ -892,6 +919,7 @@ async function pipe(
   return output;
 }
 
+/** Fetch the latest delivery attempt number. */
 async function latestDeliveryAttempt(bountyId: string): Promise<number> {
   const { data } = await supabase
     .from("deliveries")
@@ -903,6 +931,7 @@ async function latestDeliveryAttempt(bountyId: string): Promise<number> {
   return data ? Number(data.attempt) : 1;
 }
 
+/** Resolve the worker behind an escrow. */
 async function escrowWorkerId(escrowId: string): Promise<string> {
   const { data: escrow } = await supabase
     .from("escrows")
@@ -918,6 +947,7 @@ async function escrowWorkerId(escrowId: string): Promise<string> {
   return bid?.agent_id || "";
 }
 
+/** Compute a short hash for rubric identity. */
 function sha1ish(input: string): string {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {

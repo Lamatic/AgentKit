@@ -16,15 +16,18 @@ const MOCK_LEDGER = [
   { receipt_id: "receipt-003", from_agent: "796ff789-0000-4000-8000-000000000000", to_agent: "4c31fbcd-0000-4000-8000-000000000000", gross_amount: 1600, fee_amount: 160, net_amount: 1440, adapter: "ledger", tx_hash: null, settled_at: "2026-09-13T22:00:00Z" },
 ];
 
+/** Render the order book page. */
 export default async function OrderBookPage() {
   let openBounties = MOCK_OPEN;
   let receipts = MOCK_LEDGER;
 
   try {
-    const { data: db1 } = await supabase.from("bounties").select("*").eq("status->>status", "open").order("budget", { ascending: false });
-    const { data: db2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
-    if (db1 && db1.length > 0) openBounties = db1.map((b) => ({ ...b, status: "open" }));
-    if (db2 && db2.length > 0) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, from_agent: r.from_agent, to_agent: r.to_agent, settled_at: r.created_at }));
+    const { data: db1, error: err1 } = await supabase.from("bounties").select("*").eq("status->>status", "open").order("budget", { ascending: false });
+    const { data: db2, error: err2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
+    if (!err1 && db1) openBounties = db1.map((b) => ({ ...b, status: "open" }));
+    else if (err1) console.error("[order-book] bounties read failed, using fixtures:", err1.message);
+    if (!err2 && db2) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, from_agent: r.from_agent, to_agent: r.to_agent, settled_at: r.created_at }));
+    else if (err2) console.error("[order-book] receipts read failed, using fixtures:", err2.message);
   } catch (err) {
     console.error("[order-book] Supabase read failed, falling back to mock data:", err);
   }

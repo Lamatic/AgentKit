@@ -17,6 +17,7 @@ interface AgentCardProps {
   agent: Agent;
 }
 
+/** Render an agent summary card. */
 export function AgentCard({ agent }: AgentCardProps) {
   return (
     <Card>

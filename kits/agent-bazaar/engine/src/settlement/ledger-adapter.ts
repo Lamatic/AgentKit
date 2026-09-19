@@ -6,6 +6,7 @@ interface LockExtra {
   bidId?: string;
 }
 
+/** Fetch the latest ledger balance for an agent. */
 async function lastBalance(agentId: string): Promise<number> {
   const { data } = await supabase
     .from("credit_ledger")
@@ -17,14 +18,17 @@ async function lastBalance(agentId: string): Promise<number> {
   return data ? Number(data.balance_after) : 0;
 }
 
+/** Append a credit-ledger entry with a best-effort running balance. */
 export async function appendLedger(
   agentId: string,
   amount: number,
   reason: string,
   refId: string | undefined,
 ): Promise<void> {
+  // NOTE: read-then-insert is a best-effort running balance for this demo kit.
+  // For production, compute balance_after atomically in the database (RPC).
   const balance = await lastBalance(agentId);
-  await supabase.from("credit_ledger").insert({
+  const { error } = await supabase.from("credit_ledger").insert({
     agent_id: agentId,
     amount,
     balance_after: balance + amount,
@@ -32,6 +36,7 @@ export async function appendLedger(
     ref_id: refId,
     source: "live",
   });
+  if (error) throw new Error(`Ledger append failed: ${error.message}`);
 }
 
 export class LedgerAdapter implements SettlementAdapter {
@@ -40,6 +45,7 @@ export class LedgerAdapter implements SettlementAdapter {
     return { amount, fee, total: amount, currency: "credits" };
   }
 
+  /** Lock escrow funds for a bounty. */
   async lock(escrowId: string, amount: bigint, extra?: LockExtra): Promise<LockRef> {
     const { data: existing } = await supabase
       .from("escrows")
@@ -67,19 +73,34 @@ export class LedgerAdapter implements SettlementAdapter {
     };
   }
 
+  /** Atomically settle a locked escrow to the worker. */
   async settle(escrowId: string, to: string): Promise<SettlementReceipt> {
     const { data: escrow, error: escrowError } = await supabase
       .from("escrows")
       .select("*")
       .eq("id", escrowId)
-      .single();
+      .maybeSingle();
 
     if (escrowError) throw new Error(`Escrow lookup failed: ${escrowError.message}`);
+    if (!escrow) throw new Error(`Escrow ${escrowId} not found`);
+    if (!escrow.bounty_id) throw new Error(`Escrow ${escrowId} has no bounty — refusing to settle`);
     if (escrow.status === "settled") {
       throw new Error(`Escrow ${escrowId} already settled`);
     }
     if (escrow.status === "refunded") {
       throw new Error(`Escrow ${escrowId} already refunded`);
+    }
+
+    // Atomically claim the escrow: only one caller can flip locked -> settled.
+    const { data: claimed, error: claimError } = await supabase
+      .from("escrows")
+      .update({ status: "settled", settled_at: new Date().toISOString() })
+      .eq("id", escrowId)
+      .eq("status", "locked")
+      .select("id");
+    if (claimError) throw new Error(`Escrow claim failed: ${claimError.message}`);
+    if (!claimed || claimed.length === 0) {
+      throw new Error(`Escrow ${escrowId} is no longer locked — already processed`);
     }
 
     const grossAmount = BigInt(escrow.amount);
@@ -103,7 +124,7 @@ export class LedgerAdapter implements SettlementAdapter {
       source: "live",
     };
 
-    await supabase.from("settlement_receipts").insert({
+    const { error: receiptError } = await supabase.from("settlement_receipts").insert({
       id: receipt.receiptId,
       bounty_id: bountyId,
       escrow_id: receipt.escrowId,
@@ -115,11 +136,7 @@ export class LedgerAdapter implements SettlementAdapter {
       tx_hash: null,
       adapter: receipt.adapter,
     });
-
-    await supabase
-      .from("escrows")
-      .update({ status: "settled", settled_at: new Date().toISOString() })
-      .eq("id", escrowId);
+    if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
 
     await appendLedger(to, Number(netAmount), "settlement", bountyId);
     await appendLedger(fromAgent, -Number(feeAmount), "fee", bountyId);
@@ -127,19 +144,34 @@ export class LedgerAdapter implements SettlementAdapter {
     return receipt;
   }
 
+  /** Atomically refund a locked escrow to the poster. */
   async refund(escrowId: string, to: string): Promise<SettlementReceipt> {
     const { data: escrow, error } = await supabase
       .from("escrows")
       .select("*")
       .eq("id", escrowId)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(`Escrow lookup failed: ${error.message}`);
+    if (!escrow) throw new Error(`Escrow ${escrowId} not found`);
+    if (!escrow.bounty_id) throw new Error(`Escrow ${escrowId} has no bounty — refusing to refund`);
     if (escrow.status === "settled") {
       throw new Error(`Escrow ${escrowId} already settled`);
     }
     if (escrow.status === "refunded") {
       throw new Error(`Escrow ${escrowId} already refunded`);
+    }
+
+    // Atomically claim the escrow: only one caller can flip locked -> refunded.
+    const { data: claimed, error: claimError } = await supabase
+      .from("escrows")
+      .update({ status: "refunded", settled_at: new Date().toISOString() })
+      .eq("id", escrowId)
+      .eq("status", "locked")
+      .select("id");
+    if (claimError) throw new Error(`Escrow claim failed: ${claimError.message}`);
+    if (!claimed || claimed.length === 0) {
+      throw new Error(`Escrow ${escrowId} is no longer locked — already processed`);
     }
 
     const grossAmount = BigInt(escrow.amount);
@@ -161,7 +193,7 @@ export class LedgerAdapter implements SettlementAdapter {
       source: "live",
     };
 
-    await supabase.from("settlement_receipts").insert({
+    const { error: receiptError } = await supabase.from("settlement_receipts").insert({
       id: receipt.receiptId,
       bounty_id: bountyId,
       escrow_id: receipt.escrowId,
@@ -173,11 +205,7 @@ export class LedgerAdapter implements SettlementAdapter {
       tx_hash: null,
       adapter: receipt.adapter,
     });
-
-    await supabase
-      .from("escrows")
-      .update({ status: "refunded", settled_at: new Date().toISOString() })
-      .eq("id", escrowId);
+    if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
 
     await appendLedger(to, Number(grossAmount), "refund", bountyId);
 
@@ -185,6 +213,7 @@ export class LedgerAdapter implements SettlementAdapter {
   }
 }
 
+/** Look up the poster of a bounty. */
 async function lookupPoster(bountyId: string | undefined): Promise<string> {
   if (!bountyId) return "";
   const { data } = await supabase

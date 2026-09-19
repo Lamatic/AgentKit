@@ -25,6 +25,7 @@ const TABLES = [
 
 type RealtimeStatus = "live" | "syncing" | "offline";
 
+/** Render the market console dashboard. */
 export function MarketConsole({ initialMarket }: { initialMarket: Market | null }) {
   const [market, setMarket] = useState<Market | null>(initialMarket);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -57,11 +58,12 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   }, []);
 
   const handleAutoplayToggle = useCallback(async (value: boolean) => {
+    const prev = autoplayRef.current;
     setAutoplay(value);
-    try {
-      await setAutoMarket({ run: value, market: value });
-    } catch {
-      // Engine may be offline — toggle still reflects local intent
+    const res = await setAutoMarket({ run: value, market: value });
+    if (!res.ok) {
+      setAutoplay(prev);
+      setError(res.error);
     }
   }, []);
 
@@ -84,6 +86,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       if (catchUpTimerRef.current) clearTimeout(catchUpTimerRef.current);
       const startTime = Date.now();
 
+      /** poll helper. */
       const poll = async () => {
         const elapsed = Date.now() - startTime;
         if (elapsed >= maxMs) {
@@ -160,6 +163,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let subscribedCount = 0;
 
+    /** onPostgresEvent helper. */
     const onPostgresEvent = () => {
       lastEventRef.current = Date.now();
       setRealtimeStatus("live");
@@ -250,7 +254,10 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     setError(null);
     try {
       const res = await resetMarket();
-      if (!res.ok) setError(res.error);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
       setActiveId(null);
       await refresh();
     } finally {
@@ -407,6 +414,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   );
 }
 
+/** Render a header metric. */
 function Metric({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col items-end">

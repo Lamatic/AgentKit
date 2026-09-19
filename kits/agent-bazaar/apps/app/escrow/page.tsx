@@ -16,14 +16,15 @@ const MOCK_RECEIPTS = [
   { receipt_id: "receipt-002", from_agent: "796ff788-0000-4000-8000-000000000000", to_agent: "1ff47abd-0000-4000-8000-000000000000", gross_amount: 800, fee_amount: 80, net_amount: 720, adapter: "x402", tx_hash: "0xabc123def4567890001", settled_at: "2026-09-14T01:15:00Z" },
 ];
 
+/** Render the escrow explorer page. */
 export default async function EscrowPage() {
   let escrows = MOCK_ESCROWS;
   let receipts = MOCK_RECEIPTS;
 
   try {
-    const { data: db1 } = await supabase.from("escrows").select("*, bids(id, agent_id)").order("created_at", { ascending: false }).limit(10);
-    const { data: db2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
-    if (db1 && db1.length > 0) escrows = db1.map((e) => ({
+    const { data: db1, error: err1 } = await supabase.from("escrows").select("*, bids(id, agent_id)").order("created_at", { ascending: false }).limit(10);
+    const { data: db2, error: err2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
+    if (!err1 && db1) escrows = db1.map((e) => ({
       escrow_id: e.id,
       bounty_id: e.bounty_id,
       agent_id: e.bids?.agent_id,
@@ -32,7 +33,9 @@ export default async function EscrowPage() {
       created_at: e.created_at,
       settled_at: e.settled_at,
     }));
-    if (db2 && db2.length > 0) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, to_agent: r.to_agent, from_agent: r.from_agent, settled_at: r.created_at }));
+    else if (err1) console.error("[escrow] escrows read failed, using fixtures:", err1.message);
+    if (!err2 && db2) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, to_agent: r.to_agent, from_agent: r.from_agent, settled_at: r.created_at }));
+    else if (err2) console.error("[escrow] receipts read failed, using fixtures:", err2.message);
   } catch (err) {
     console.error("[escrow] Supabase read failed, falling back to mock data:", err);
   }

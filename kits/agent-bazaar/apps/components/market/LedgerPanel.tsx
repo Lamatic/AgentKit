@@ -10,7 +10,9 @@ interface LedgerPanelProps {
   agents: AgentView[];
 }
 
+/** Render the credit ledger panel. */
 export function LedgerPanel({ ledger, agents }: LedgerPanelProps) {
+  /** nameOf helper. */
   const nameOf = (agentId: string) =>
     agents.find((agent) => agent.id === agentId)?.name ?? agentId.slice(0, 8);
   const rows = ledger.slice(0, 12);

@@ -18,6 +18,7 @@ interface BidsInFlightProps {
   bids: Bid[];
 }
 
+/** Render in-flight bids. */
 export function BidsInFlight({ bids }: BidsInFlightProps) {
   return (
     <Card>

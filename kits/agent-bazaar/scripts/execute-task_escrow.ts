@@ -30,6 +30,10 @@ if (typeof winningBid.price !== 'number' || winningBid.price <= 0) {
   throw new Error('Invalid bid price');
 }
 
+if (typeof bounty.budget !== 'number' || !isFinite(bounty.budget) || bounty.budget <= 0) {
+  throw new Error('Invalid bounty budget: must be a finite positive number');
+}
+
 if (winningBid.price > bounty.budget) {
   throw new Error('Bid price exceeds bounty budget');
 }

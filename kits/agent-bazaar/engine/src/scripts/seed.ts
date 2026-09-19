@@ -33,10 +33,12 @@ const SEED_BOUNTIES: Array<{ goal: string; budget: number; specialist: string }>
 const WORKER_GRANT = 10_000;
 const CLIENT_GRANT = 100_000;
 
+/** agentId helper. */
 function agentId(name: string): string {
   return deterministicUUID(`agent-${name.toLowerCase()}`);
 }
 
+/** hoursAgo helper. */
 function hoursAgo(h: number): string {
   return new Date(Date.now() - h * 3600_000).toISOString();
 }
@@ -50,6 +52,7 @@ const SEED_BOUNTY_IDS = SEED_BOUNTIES.map((_, i) => deterministicUUID(`bounty-${
  * its three bounties). Live/interactive rows posted by other bounties are left
  * untouched, so `seed()` can be re-run safely.
  */
+/** cleanupSeed helper. */
 async function cleanupSeed(): Promise<void> {
   const scopedDeletes: Array<[string, "bounty_id" | "agent_id" | "id", string[]]> = [
     ["settlement_receipts", "bounty_id", SEED_BOUNTY_IDS],
@@ -73,6 +76,7 @@ async function cleanupSeed(): Promise<void> {
   if (ledgerErr) throw new Error(`seed cleanup credit_ledger: ${ledgerErr.message}`);
 }
 
+/** Ensure seed agents exist in the database. */
 export async function ensureAgents(): Promise<void> {
   const workerRows = SEED_AGENTS.map((a) => ({
     id: agentId(a.name),
@@ -116,6 +120,7 @@ export async function ensureAgents(): Promise<void> {
   await ensureInitialGrant(CLIENT_AGENT.id, CLIENT_GRANT);
 }
 
+/** ensureInitialGrant helper. */
 async function ensureInitialGrant(agentIdValue: string, amount: number): Promise<void> {
   const { data, error } = await supabase
     .from("credit_ledger")
@@ -138,6 +143,7 @@ async function ensureInitialGrant(agentIdValue: string, amount: number): Promise
   if (insertErr) throw new Error(`seed grant insert: ${insertErr.message}`);
 }
 
+/** Fetch the latest ledger balance for an agent. */
 async function lastBalance(agentIdValue: string): Promise<number> {
   const { data, error } = await supabase
     .from("credit_ledger")
@@ -150,6 +156,7 @@ async function lastBalance(agentIdValue: string): Promise<number> {
   return data ? Number(data.balance_after) : 0;
 }
 
+/** appendSeedLedger helper. */
 async function appendSeedLedger(
   agentIdValue: string,
   amount: number,
@@ -170,6 +177,7 @@ async function appendSeedLedger(
   if (error) throw new Error(`seed ledger append: ${error.message}`);
 }
 
+/** Seed deterministic marketplace history. */
 export async function seed(): Promise<void> {
   console.log("Seeding Agent Bazaar economy...");
 
@@ -325,9 +333,10 @@ export async function seed(): Promise<void> {
       .update({ status: st, updated_at: hoursAgo(24 - i * 8) })
       .eq("id", bountyId);
 
-    await appendSeedLedger(CLIENT_AGENT.id, -bidPrice, "bid_lock", bountyId, hoursAgo(24 - i * 8));
-    await appendSeedLedger(workerAgentId, netAmount, "settlement", bountyId, hoursAgo(24 - i * 8));
-    await appendSeedLedger(CLIENT_AGENT.id, -feeAmount, "fee", bountyId, hoursAgo(24 - i * 8));
+    const settledAt = new Date(new Date(hoursAgo(24 - i * 8)).getTime());
+    await appendSeedLedger(CLIENT_AGENT.id, -bidPrice, "bid_lock", bountyId, settledAt.toISOString());
+    await appendSeedLedger(workerAgentId, netAmount, "settlement", bountyId, new Date(settledAt.getTime() + 1).toISOString());
+    await appendSeedLedger(CLIENT_AGENT.id, -feeAmount, "fee", bountyId, new Date(settledAt.getTime() + 2).toISOString());
 
     console.log(
       `  Bounty ${i + 1}: ${bountyDef.goal.substring(0, 40)}... → settled (score: ${score})`,

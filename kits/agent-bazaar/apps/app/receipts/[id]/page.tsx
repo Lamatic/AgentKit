@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase-server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -16,43 +17,26 @@ interface ReceiptRow {
   settled_at: string;
 }
 
-const MOCK_RECEIPT: ReceiptRow = {
-  receipt_id: "receipt-001",
-  escrow_id: "escrow-001",
-  from_agent: "796ff789-0000-4000-8000-000000000000",
-  to_agent: "1ad7d1aa-0000-4000-8000-000000000000",
-  gross_amount: 1500,
-  fee_amount: 150,
-  net_amount: 1350,
-  adapter: "ledger",
-  tx_hash: null,
-  settled_at: "2026-09-14T02:30:00Z",
-};
-
 // Note: in Next.js 15+ route params are a Promise — awaiting them is required.
+/** Render a settlement receipt page. */
 export default async function ReceiptDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  let receipt: ReceiptRow = MOCK_RECEIPT;
-  try {
-    const { data } = await supabase.from("settlement_receipts").select("*").eq("id", id).single();
-    if (data) {
-      receipt = {
-        receipt_id: data.id,
-        escrow_id: data.escrow_id,
-        from_agent: data.from_agent,
-        to_agent: data.to_agent,
-        gross_amount: data.gross_amount,
-        fee_amount: data.fee_amount,
-        net_amount: data.net_amount,
-        adapter: data.adapter,
-        tx_hash: data.tx_hash,
-        settled_at: data.created_at,
-      } as ReceiptRow;
-    }
-  } catch (err) {
-    console.error(`[receipts/${id}] Supabase read failed, falling back to mock data:`, err);
-  }
+  const { data, error } = await supabase.from("settlement_receipts").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(`Failed to load receipt ${id}: ${error.message}`);
+  if (!data) notFound();
+  const receipt: ReceiptRow = {
+    receipt_id: data.id,
+    escrow_id: data.escrow_id,
+    from_agent: data.from_agent,
+    to_agent: data.to_agent,
+    gross_amount: data.gross_amount,
+    fee_amount: data.fee_amount,
+    net_amount: data.net_amount,
+    adapter: data.adapter,
+    tx_hash: data.tx_hash,
+    settled_at: data.created_at,
+  } as ReceiptRow;
 
   const txLink = receipt.adapter === "x402" && receipt.tx_hash
     ? `https://sepolia.basescan.org/tx/${receipt.tx_hash}`

@@ -9,6 +9,7 @@ interface AgentRosterProps {
   activeAgentIds: Set<string>;
 }
 
+/** Render the agent roster panel. */
 export function AgentRoster({ agents, activeAgentIds }: AgentRosterProps) {
   return (
     <section className="rounded-[10px] border border-hairline bg-card p-6">
@@ -76,7 +77,7 @@ export function AgentRoster({ agents, activeAgentIds }: AgentRosterProps) {
                         </span>
                       </div>
                       <span className="block truncate text-[11px] text-neutral-500">
-                        {agent.specialty} ·{" "}
+                        {agent.specialty ? <>{agent.specialty} · </> : null}
                         <span className="font-mono">
                           {agent.wins}W/{agent.losses}L
                         </span>
@@ -112,6 +113,7 @@ export function AgentRoster({ agents, activeAgentIds }: AgentRosterProps) {
   );
 }
 
+/** initials helper. */
 function initials(name: string): string {
   return name
     .split(/[^a-zA-Z0-9]+/)

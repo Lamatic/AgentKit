@@ -11,6 +11,17 @@ import { transition } from "./state-machine.js";
 import { maybePostAutoTask, countLoad } from "./auto-market.js";
 
 const PORT = Number(process.env.ENGINE_PORT || "8787");
+const ENGINE_TOKEN = process.env.ENGINE_TOKEN || "";
+const DASHBOARD_ORIGIN = process.env.DASHBOARD_ORIGIN || "http://localhost:3000";
+
+/** Require a shared Bearer token on mutating routes when ENGINE_TOKEN is set. */
+function requireAuth(req: IncomingMessage): void {
+  if (!ENGINE_TOKEN) return;
+  const header = req.headers.authorization || "";
+  if (header !== `Bearer ${ENGINE_TOKEN}`) {
+    throw new HttpError(401, "Unauthorized");
+  }
+}
 
 let autoRun = true;
 let autoMarket = true;
@@ -19,6 +30,7 @@ let roundStartedAt = 0;
 
 // Ring buffer of recent round failures so stalls are diagnosable.
 const recentErrors: Array<{ at: string; message: string }> = [];
+/** Record a round error in the ring buffer. */
 function noteError(message: string): void {
   recentErrors.push({ at: new Date().toISOString(), message });
   if (recentErrors.length > 20) recentErrors.shift();
@@ -42,6 +54,7 @@ class HttpError extends Error {
   }
 }
 
+/** Read and parse a JSON request body. */
 async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
@@ -56,12 +69,13 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> 
   }
 }
 
+/** Send a JSON response with dashboard CORS headers. */
 function send(res: ServerResponse, status: number, body: unknown): void {
   const headers = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": DASHBOARD_ORIGIN,
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
   if (status === 204) {
     res.writeHead(status, headers);
@@ -72,6 +86,7 @@ function send(res: ServerResponse, status: number, body: unknown): void {
   res.end(JSON.stringify(body));
 }
 
+/** Validate and post a new bounty task. */
 async function postTask(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   const goal = typeof body.goal === "string" ? body.goal.trim() : "";
   const budget = Math.round(Number(body.budget));
@@ -114,6 +129,7 @@ async function postTask(body: Record<string, unknown>): Promise<Record<string, u
   return { bountyId, goal, budget, rubric: FALLBACK_RUBRIC };
 }
 
+/** Build a single-bounty graph snapshot. */
 async function bountySnapshot(bountyId: string): Promise<Record<string, unknown> | null> {
   const { data: bounty } = await supabase
     .from("bounties")
@@ -150,6 +166,7 @@ async function bountySnapshot(bountyId: string): Promise<Record<string, unknown>
   };
 }
 
+/** Build the full dashboard market snapshot. */
 async function marketSnapshot(): Promise<Record<string, unknown>> {
   const [bountiesRes, bidsRes, escrowsRes, deliveriesRes, verdictsRes, receiptsRes, ledgerRes, agentsRes] =
     await Promise.all([
@@ -211,6 +228,7 @@ async function marketSnapshot(): Promise<Record<string, unknown>> {
   };
 }
 
+/** Build the engine stall diagnostics report. */
 async function stallReport(): Promise<Record<string, unknown>> {
   const [bountiesRes, bidsRes] = await Promise.all([
     supabase.from("bounties").select("id,status,created_at,updated_at"),
@@ -281,6 +299,7 @@ async function stallReport(): Promise<Record<string, unknown>> {
   };
 }
 
+/** Run one round for a bounty and snapshot it. */
 async function postRound(body: Record<string, unknown>): Promise<Record<string, unknown>> {  const bountyId = typeof body.bountyId === "string" ? body.bountyId : undefined;
   const result = await runRound({ bountyId, record: false });
   const snapshot = bountyId ? await bountySnapshot(bountyId) : null;
@@ -330,6 +349,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === "POST" && url.pathname === "/task") {
+      requireAuth(req);
       const result = await postTask(await readJson(req));
       send(res, 200, result);
       // Fire-and-forget: trigger a round immediately so bids start processing
@@ -348,6 +368,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === "POST" && url.pathname === "/auto") {
+      requireAuth(req);
       const body = await readJson(req);
       if (typeof body.run === "boolean") autoRun = body.run;
       if (typeof body.market === "boolean") autoMarket = body.market;
@@ -356,17 +377,20 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === "POST" && url.pathname === "/round") {
+      requireAuth(req);
       send(res, 200, await postRound(await readJson(req)));
       return;
     }
 
     if (req.method === "POST" && url.pathname === "/seed") {
+      requireAuth(req);
       await seed();
       send(res, 200, { ok: true });
       return;
     }
 
     if (req.method === "POST" && url.pathname === "/reset") {
+      requireAuth(req);
       const body = await readJson(req);
       await resetEconomy({ reseed: body.reseed !== false });
       send(res, 200, { ok: true });
@@ -375,9 +399,13 @@ const server = createServer(async (req, res) => {
 
     send(res, 404, { error: "Not found" });
   } catch (err) {
-    const status = err instanceof HttpError ? err.status : 500;
-    const message = err instanceof Error ? err.message : String(err);
-    send(res, status, { error: message });
+    if (err instanceof HttpError) {
+      send(res, err.status, { error: err.message });
+      return;
+    }
+    console.error(`[engine] unhandled request error:`, err);
+    noteError(err instanceof Error ? err.message : String(err));
+    send(res, 500, { error: "Internal server error" });
   }
 });
 

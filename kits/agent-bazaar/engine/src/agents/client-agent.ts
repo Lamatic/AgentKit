@@ -6,6 +6,7 @@ export interface ClientAgent {
   postBounty(goal: string, budget: number): Promise<PostBountyOutput>;
 }
 
+/** Create the client agent definition. */
 export function createClientAgent(id: string, name: string): ClientAgent {
   return {
     id,

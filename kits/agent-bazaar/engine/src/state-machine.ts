@@ -51,12 +51,14 @@ const VALID_TRANSITIONS: Record<string, Transition[]> = {
   refunded: [],
 };
 
+/** Check whether a state-machine transition is legal. */
 export function canTransition(from: string, transition: Transition): boolean {
   const allowed = VALID_TRANSITIONS[from];
   if (!allowed) return false;
   return allowed.includes(transition);
 }
 
+/** Apply a validated bounty state transition. */
 export function transition(
   state: BountyStatus,
   t: Transition,
@@ -99,10 +101,13 @@ export function transition(
       return { status: "refunded", reason: "no_bids" };
     case "revise": {
       const qaFail = state as { status: "qa_fail"; revisionOf: number };
+      if (qaFail.revisionOf >= 3) {
+        throw new Error('Cannot revise: max attempts (3) exceeded. Use "refund" instead.');
+      }
       return {
         status: "delivered",
         deliveryId: payload.deliveryId as string,
-        attempt: Math.min(qaFail.revisionOf + 1, 3) as 1 | 2 | 3,
+        attempt: (qaFail.revisionOf + 1) as 1 | 2 | 3,
       };
     }
   }

@@ -2,6 +2,7 @@ import { deterministicUUID } from "../scripts/uuid.js";
 import { createWorkerAgent } from "./worker-agent.js";
 import type { WorkerAgent } from "./worker-agent.js";
 
+/** agentId helper. */
 function agentId(name: string): string {
   return deterministicUUID(`agent-${name.toLowerCase()}`);
 }
@@ -24,10 +25,12 @@ export const ROSTER: WorkerAgent[] = [
   createWorkerAgent(agentId("Datagen-Charlie"), "Datagen-Charlie", "datagen"),
 ];
 
+/** Get a worker by id from the roster. */
 export function getWorker(id: string): WorkerAgent | undefined {
   return ROSTER.find((w) => w.id === id);
 }
 
+/** List workers filtered by specialty. */
 export function getWorkersBySpecialty(specialty: string): WorkerAgent[] {
   return ROSTER.filter((w) => w.specialty === specialty);
 }

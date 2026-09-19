@@ -9,6 +9,7 @@ const ALL_ZERO = "00000000-0000-0000-0000-000000000000";
  * Deletes every row in the economy in FK-safe order. Used by the engine's
  * Reset endpoint and the `reset` CLI. Not part of the state machine.
  */
+/** Clear all marketplace tables (destructive). */
 export async function clearAll(): Promise<void> {
   const tables = [
     "settlement_receipts",
@@ -34,6 +35,7 @@ export interface ResetOptions {
  * Clears the economy and, by default, restores the deterministic settled
  * history so the dashboard is never empty.
  */
+/** Clear and optionally reseed the economy. */
 export async function resetEconomy(opts: ResetOptions = {}): Promise<void> {
   const reseed = opts.reseed ?? true;
   await clearAll();

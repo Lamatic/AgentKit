@@ -5,6 +5,7 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
 
 let client: SupabaseClient | null = null;
 
+/** Get or construct the Lamatic client. */
 function getClient(): SupabaseClient {
   if (!client) {
     // Fail fast on missing credentials: a placeholder networked client would

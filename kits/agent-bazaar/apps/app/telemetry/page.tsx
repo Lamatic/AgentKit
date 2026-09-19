@@ -1,10 +1,14 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
+/** Render the telemetry page. */
 export default async function TelemetryPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">
       <h1 className="mb-6 text-xl font-semibold text-[var(--text-primary)]">Telemetry & Node State</h1>
+      <div className="mb-4 rounded border border-status-amber/30 bg-status-amber-bg px-4 py-2 text-[13px] text-status-amber">
+        Simulated Data — values shown are illustrative fixtures, not live telemetry.
+      </div>
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Protocol Version</p>

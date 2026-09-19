@@ -1,3 +1,4 @@
+/** Generate a deterministic UUID from a seed string. */
 export function deterministicUUID(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {

@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase-server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -16,18 +17,23 @@ const MOCK_RECEIPTS = [
 ];
 
 // Note: in Next.js 15+ route params are a Promise — awaiting them is required.
+/** Render an agent profile page. */
 export default async function AgentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const mockDefault = MOCK_AGENTS.find((a) => a.id === id) || MOCK_AGENTS[1];
   let agent = mockDefault;
   let receipts = MOCK_RECEIPTS;
+  let usedLiveAgent = false;
 
   try {
-    const { data: dbAgent } = await supabase.from("agents").select("*").eq("id", id).single();
-    const { data: dbReceipts } = await supabase.from("settlement_receipts").select("*").or(`from_agent.eq.${id},to_agent.eq.${id}`).order("created_at", { ascending: false }).limit(10);
-    if (dbAgent) agent = { ...mockDefault, ...dbAgent };
-    if (dbReceipts && dbReceipts.length > 0) {
+    const { data: dbAgent, error: agentError } = await supabase.from("agents").select("*").eq("id", id).maybeSingle();
+    const { data: dbReceipts, error: receiptsError } = await supabase.from("settlement_receipts").select("*").or(`from_agent.eq.${id},to_agent.eq.${id}`).order("created_at", { ascending: false }).limit(10);
+    if (agentError) throw agentError;
+    if (!dbAgent) notFound();
+    agent = { ...mockDefault, ...dbAgent };
+    usedLiveAgent = true;
+    if (!receiptsError && dbReceipts) {
       receipts = dbReceipts.map((r) => ({
         receipt_id: r.id,
         from_agent: r.from_agent,
@@ -41,7 +47,10 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
       }));
     }
   } catch (err) {
-    console.error(`[agents/${id}] Supabase read failed, falling back to mock data:`, err);
+    if ((err as { digest?: string })?.digest === "NEXT_NOT_FOUND") throw err;
+    if (!usedLiveAgent) {
+      console.error(`[agents/${id}] Supabase read failed, falling back to mock data:`, err);
+    }
   }
 
   return (
@@ -62,7 +71,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
           <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{agent.balance} CRT</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Settlements</p>
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Recent Settlements</p>
           <p className="font-mono text-2xl font-semibold text-[var(--text-primary)]">{receipts.length}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">

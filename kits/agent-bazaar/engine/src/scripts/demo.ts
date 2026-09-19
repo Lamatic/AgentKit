@@ -6,7 +6,13 @@ import { deterministicUUID } from "./uuid.js";
 
 const ALL_ZERO = "00000000-0000-0000-0000-000000000000";
 
+/** Clear all marketplace tables (destructive). */
 async function clearAll(): Promise<void> {
+  if (process.env.AGENT_BAZAAR_ALLOW_DESTRUCTIVE !== "true") {
+    throw new Error(
+      "Refusing to clear all tables: set AGENT_BAZAAR_ALLOW_DESTRUCTIVE=true to opt in.",
+    );
+  }
   const tables = [
     "settlement_receipts",
     "qa_verdicts",
@@ -22,6 +28,7 @@ async function clearAll(): Promise<void> {
   }
 }
 
+/** Run the end-to-end demo sequence. */
 async function demo(): Promise<void> {
   console.log("=== Agent Bazaar Demo ===\n");
 

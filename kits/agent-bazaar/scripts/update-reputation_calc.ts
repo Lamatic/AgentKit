@@ -1,7 +1,8 @@
 const agentId = {{triggerNode_1.output.agentId}};
 const outcome = {{triggerNode_1.output.outcome}};
 
-const currentReputation = {{triggerNode_1.output.currentReputation}} || 0.5;
+const _rawReputation = {{triggerNode_1.output.currentReputation}};
+const currentReputation = (typeof _rawReputation === 'number' && isFinite(_rawReputation)) ? _rawReputation : 0.5;
 
 let delta = 0;
 if (outcome === "pass") {

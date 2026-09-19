@@ -45,6 +45,7 @@ const STATUS_STYLES: Record<string, PillStyle> = {
   },
 };
 
+/** Render a status pill badge. */
 export function StatusPill({ status, className }: { status: string; className?: string }) {
   const style =
     STATUS_STYLES[status] ?? {
@@ -72,6 +73,7 @@ const REASON_STYLES: Record<string, string> = {
   refund: "bg-status-red-bg text-status-red",
 };
 
+/** Render a reason badge. */
 export function ReasonBadge({ reason }: { reason: string }) {
   return (
     <span

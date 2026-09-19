@@ -18,6 +18,22 @@ interface ActiveJobsProps {
 
 const STEPS = ["draft", "open", "awarded", "in_escrow", "delivered", "qa_pass", "settled"];
 
+/** Explicit workflow position per status; failure states map to their real stage. */
+const STATUS_PROGRESS: Record<string, number> = {
+  draft: 0,
+  open: 1,
+  awarded: 2,
+  in_escrow: 3,
+  delivered: 4,
+  qa_pass: 5,
+  qa_fail: 4,
+  settled: 6,
+  refunded: 6,
+};
+
+const FAILED_STATES = new Set(["qa_fail", "refunded"]);
+
+/** Active jobs rail with per-status progress and failure styling. */
 export function ActiveJobs({ jobs }: ActiveJobsProps) {
   return (
     <Card>
@@ -27,7 +43,8 @@ export function ActiveJobs({ jobs }: ActiveJobsProps) {
       <CardContent>
         <div className="space-y-4">
           {jobs.map((job) => {
-            const currentStep = STEPS.indexOf(job.status);
+            const currentStep = STATUS_PROGRESS[job.status] ?? 0;
+            const failed = FAILED_STATES.has(job.status);
             return (
               <div
                 key={job.id}
@@ -45,7 +62,9 @@ export function ActiveJobs({ jobs }: ActiveJobsProps) {
                       <div
                         className={`h-2 w-8 rounded ${
                           i <= currentStep
-                            ? "bg-[var(--secondary)]"
+                            ? failed
+                              ? "bg-[var(--error)]"
+                              : "bg-[var(--secondary)]"
                             : "bg-[var(--border)]"
                         }`}
                       />

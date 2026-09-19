@@ -20,6 +20,7 @@ interface LedgerTailProps {
   entries: LedgerEntry[];
 }
 
+/** Render the recent ledger tail. */
 export function LedgerTail({ entries }: LedgerTailProps) {
   return (
     <Card>

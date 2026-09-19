@@ -92,7 +92,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"criteria\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"weight\": {\n            \"type\": \"number\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"passCondition\": {\n            \"type\": \"string\"\n          }\n        },\n        \"additionalProperties\": true\n      }\n    },\n    \"maxScore\": {\n      \"type\": \"number\"\n    }\n  }\n}",
+        "schema": "{\n  \"type\": \"object\",\n  \"required\": [\"criteria\", \"maxScore\"],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"criteria\": {\n      \"type\": \"array\",\n      \"minItems\": 3,\n      \"maxItems\": 5,\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\"name\", \"weight\", \"description\", \"passCondition\"],\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"name\": { \"type\": \"string\" },\n          \"weight\": { \"type\": \"number\", \"minimum\": 0, \"maximum\": 1 },\n          \"description\": { \"type\": \"string\" },\n          \"passCondition\": { \"type\": \"string\" }\n        }\n      }\n    },\n    \"maxScore\": { \"type\": \"number\", \"minimum\": 0 }\n  }\n}",
         "prompts": [
           {
             "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b",

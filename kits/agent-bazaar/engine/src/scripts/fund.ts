@@ -1,6 +1,6 @@
-import { createWalletClient, http } from "viem";
-import { baseSepolia } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
 
+/** Print deterministic testnet wallet addresses. */
 async function fund(): Promise<void> {
   console.log("=== Agent Bazaar Fund Generator ===\n");
 
@@ -20,8 +20,9 @@ async function fund(): Promise<void> {
   console.log("========================================");
   for (const wallet of wallets) {
     const entropy = BigInt(`0x${Buffer.from(wallet.name).toString("hex").padStart(64, "0")}`);
-    const pk = `0x${entropy.toString(16).padStart(64, "0")}`;
-    console.log(`${wallet.name} (${wallet.role}): ${pk.slice(0, 10)}...`);
+    const pk = `0x${entropy.toString(16).padStart(64, "0")}` as `0x${string}`;
+    const account = privateKeyToAccount(pk);
+    console.log(`${wallet.name} (${wallet.role}): ${account.address}`);
   }
 
   console.log("\nTo fund these wallets, visit: https://www.alchemy.com/faucets/base-sepolia");

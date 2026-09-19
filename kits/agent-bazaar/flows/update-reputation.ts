@@ -7,7 +7,8 @@ export const meta = {
   "tags": ["marketplace", "reputation", "slashing", "reward"],
   "testInput": {
     "agentId": "agent-worker-1",
-    "outcome": "pass"
+    "outcome": "pass",
+    "currentReputation": 0.5
   },
   "githubUrl": "https://github.com/aalok101singh/AgentKit",
   "documentationUrl": "",
@@ -44,7 +45,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"agentId\": \"string\",\n  \"outcome\": \"string\"\n}"
+        "advance_schema": "{\n  \"agentId\": \"string\",\n  \"outcome\": \"string\",\n  \"currentReputation\": \"number\"\n}"
       }
     }
   },

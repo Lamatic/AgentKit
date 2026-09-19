@@ -1,7 +1,7 @@
 const bounty = {{triggerNode_1.output.bounty}};
 const agentProfile = {{triggerNode_1.output.agentProfile}};
 const openBids = {{triggerNode_1.output.openBids}};
-const bidsList = openBids.bids || [];
+const bidsList = openBids?.bids || [];
 
 if (!bounty || !agentProfile) {
   throw new Error('Missing required input: bounty and agentProfile');

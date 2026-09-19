@@ -12,6 +12,7 @@ export interface WorkerAgent {
   ): Promise<GenerateBidOutput>;
 }
 
+/** Create a worker agent definition. */
 export function createWorkerAgent(
   id: string,
   name: string,

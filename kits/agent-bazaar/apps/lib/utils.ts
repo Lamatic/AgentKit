@@ -1,9 +1,11 @@
 import { type ClassValue, clsx } from "clsx";
 
+/** Merge class names conditionally. */
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
 }
 
+/** Format a currency amount. */
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -12,11 +14,13 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+/** Shorten a hash for display. */
 export function formatHash(hash: string, length: number = 8): string {
   if (!hash) return "—";
   return `${hash.slice(0, length)}...${hash.slice(-length)}`;
 }
 
+/** Format a timestamp as relative time. */
 export function timeAgo(date: string | Date): string {
   const now = new Date();
   const then = new Date(date);
@@ -28,10 +32,12 @@ export function timeAgo(date: string | Date): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
+/** Format a credit amount. */
 export function formatCredits(amount: number): string {
   return `${new Intl.NumberFormat("en-US").format(Math.round(amount))} CRT`;
 }
 
+/** Format a numeric amount. */
 export function formatAmount(amount: number, digits = 2): string {
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: digits,
@@ -39,10 +45,12 @@ export function formatAmount(amount: number, digits = 2): string {
   }).format(amount);
 }
 
+/** Format an integer with grouping. */
 export function formatInt(amount: number): string {
   return new Intl.NumberFormat("en-US").format(Math.round(amount));
 }
 
+/** Format a timestamp as clock time. */
 export function formatClock(date: string | Date): string {
   const value = new Date(date);
   if (Number.isNaN(value.getTime())) return "--:--:--";
@@ -54,11 +62,13 @@ export function formatClock(date: string | Date): string {
   });
 }
 
+/** Shorten an id for display. */
 export function shortId(id: string, length: number = 6): string {
   if (!id) return "—";
   return id.length <= length + 6 ? id : `${id.slice(0, length)}…${id.slice(-4)}`;
 }
 
+/** Format a ratio as percent. */
 export function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }

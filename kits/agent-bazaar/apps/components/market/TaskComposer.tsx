@@ -28,6 +28,7 @@ interface TaskComposerProps {
   error: string | null;
 }
 
+/** Render the task composer form. */
 export function TaskComposer({
   onSubmit,
   autoplay,
@@ -41,6 +42,7 @@ export function TaskComposer({
   const trimmed = goal.trim();
   const valid = trimmed.length >= 20 && trimmed.length <= 500 && budget > 0;
 
+  /** handleSubmit helper. */
   async function handleSubmit() {
     if (!valid || submitting) return;
     setSubmitting(true);
@@ -52,6 +54,7 @@ export function TaskComposer({
     }
   }
 
+  /** handleKeyDown helper. */
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
@@ -88,6 +91,7 @@ export function TaskComposer({
 
       <div className="relative mb-3">
         <textarea
+          aria-label="Task description"
           value={goal}
           onChange={(event) => setGoal(event.target.value)}
           onKeyDown={handleKeyDown}

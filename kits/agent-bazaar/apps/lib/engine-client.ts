@@ -4,6 +4,7 @@ const RAW_ENGINE_URL = process.env.ENGINE_URL || "http://localhost:8787";
 // against anything that isn't an explicit localhost/127.0.0.1 origin, so a
 // misconfigured ENGINE_URL can never redirect server-side fetches at
 // internal services.
+/** Validate the engine URL against SSRF rules. */
 function validateEngineUrl(raw: string): string {
   let parsed: URL;
   try {
@@ -191,6 +192,7 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
     res = await fetch(`${ENGINE_URL}${path}`, {
       ...init,
       cache: "no-store",
+      signal: init?.signal ?? AbortSignal.timeout(10000),
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     });
   } catch {
@@ -201,7 +203,17 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   const text = await res.text();
-  const data = text ? (JSON.parse(text) as unknown) : null;
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text) as unknown;
+    } catch {
+      if (!res.ok) {
+        throw new EngineError(res.status, `Engine error ${res.status}`);
+      }
+      throw new EngineError(502, "Invalid engine response: expected JSON");
+    }
+  }
   if (!res.ok) {
     const message =
       (data as { error?: string } | null)?.error ?? `Engine error ${res.status}`;
@@ -210,10 +222,12 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+/** Fetch the full market snapshot from the engine. */
 export async function readMarket(): Promise<Market> {
   return engineFetch<Market>("/market");
 }
 
+/** Fetch the market snapshot, returning null offline. */
 export async function readMarketSafe(): Promise<Market | null> {
   try {
     return await readMarket();
@@ -222,6 +236,7 @@ export async function readMarketSafe(): Promise<Market | null> {
   }
 }
 
+/** Validate and post a new bounty task. */
 export async function postTask(input: { goal: string; budget: number }): Promise<{ bountyId: string }> {
   const goal = input.goal.trim();
   const budget = Math.round(input.budget);
@@ -237,6 +252,7 @@ export async function postTask(input: { goal: string; budget: number }): Promise
   });
 }
 
+/** Advance one bounty phase via the engine. */
 export async function advanceMarket(bountyId: string): Promise<RoundResult> {
   return engineFetch<RoundResult>("/round", {
     method: "POST",
@@ -244,10 +260,12 @@ export async function advanceMarket(bountyId: string): Promise<RoundResult> {
   });
 }
 
+/** Reset the engine economy via the bridge. */
 export async function resetMarket(): Promise<void> {
   await engineFetch("/reset", { method: "POST", body: JSON.stringify({ reseed: true }) });
 }
 
+/** Toggle engine auto-run and auto-market flags. */
 export async function setAutoMarket(opts: { run?: boolean; market?: boolean }): Promise<{ auto: { run: boolean; market: boolean } }> {
   return engineFetch<{ auto: { run: boolean; market: boolean } }>("/auto", {
     method: "POST",
@@ -255,6 +273,7 @@ export async function setAutoMarket(opts: { run?: boolean; market?: boolean }): 
   });
 }
 
+/** Safely parse a JSON string if shaped as JSON. */
 function tryParseJson(value: string): unknown {
   const trimmed = value.trim();
   if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return undefined;
@@ -265,6 +284,7 @@ function tryParseJson(value: string): unknown {
   }
 }
 
+/** Render a value for artifact display. */
 function renderValue(value: unknown): string {
   if (value == null) return "—";
   if (typeof value === "string") {
@@ -275,6 +295,7 @@ function renderValue(value: unknown): string {
   return String(value);
 }
 
+/** Render a delivery artifact into display text. */
 export function artifactText(artifact: unknown): string {
   if (artifact == null) return "";
   if (typeof artifact === "string") return artifact;

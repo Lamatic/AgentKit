@@ -12,8 +12,9 @@ The kit includes 5 Lamatic flows, a TypeScript orchestration engine, and a Next.
 
 ### 1. Database
 
-Run both files in `engine/migrations/` in the Supabase SQL editor, in order:
-`001_initial_schema.sql`, then `002_client_agent_and_live_source.sql`.
+Run the files in `engine/migrations/` in the Supabase SQL editor, in order:
+`001_initial_schema.sql`, then `002_client_agent_and_live_source.sql`,
+then `003_realtime_publication.sql`, then `004_idempotency.sql`.
 
 ### 2. Engine (write path + HTTP bridge)
 
