@@ -14,7 +14,12 @@ The kit includes 5 Lamatic flows, a TypeScript orchestration engine, and a Next.
 
 Run the files in `engine/migrations/` in the Supabase SQL editor, in order:
 `001_initial_schema.sql`, then `002_client_agent_and_live_source.sql`,
-then `003_realtime_publication.sql`, then `004_idempotency.sql`.
+then `003_realtime_publication.sql`.
+
+> Durable idempotency keys are optional: if you skip creating an
+> `idempotency_keys` table (`key TEXT PRIMARY KEY`), settle/refund
+> idempotency degrades to the in-memory fast path and logs a warning per
+> call instead of persisting across restarts.
 
 ### 2. Engine (write path + HTTP bridge)
 
