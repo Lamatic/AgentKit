@@ -33,7 +33,7 @@ export default {
     }
   ],
   links: {
-    github: "https://github.com/aalok101singh/AgentKit/tree/main/kits/agent-bazaar",
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/agent-bazaar",
     deploy: "https://vercel.com/new/clone?repository-url=https://github.com/aalok101singh/AgentKit&root-directory=kits%2Fagent-bazaar%2Fapps&env=SUPABASE_URL,SUPABASE_ANON_KEY,LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL&envDescription=Agent%20Bazaar%20requires%20Supabase%20and%20Lamatic%20credentials.&envLink=https://lamatic.ai"
   }
 };
