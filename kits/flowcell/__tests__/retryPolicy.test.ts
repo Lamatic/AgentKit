@@ -48,6 +48,17 @@ describe("isRetryable", () => {
     expect(isRetryable({ message: "", retryable: false })).toBe(false);
   });
 
+  it("status is authoritative over message text", () => {
+    // A 400 mentioning "timeout" must NOT retry; a 503 mentioning
+    // "bad request" still must.
+    expect(
+      isRetryable({ message: "request timeout on bad input", retryable: false, httpStatus: 400 }),
+    ).toBe(false);
+    expect(
+      isRetryable({ message: "bad request downstream", retryable: false, httpStatus: 503 }),
+    ).toBe(true);
+  });
+
   it("classifies on HTTP status first: 502 with malformed body is retryable", () => {
     expect(
       isRetryable({ message: "malformed body", retryable: false, httpStatus: 502 }),

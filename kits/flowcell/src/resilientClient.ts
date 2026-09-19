@@ -54,15 +54,25 @@ export function createResilientClient(
 
     // Primary path (only if the breaker allows). The breaker is re-checked
     // before every attempt so a mid-retry trip stops further primary calls.
+    // breakerDenied tracks guard denials explicitly so the fallback reason
+    // reflects whether primary was ever touched.
     let attempts = 0;
-    if (breaker.canAttemptPrimary()) {
+    let breakerDenied = false;
+    if (!breaker.canAttemptPrimary()) {
+      breakerDenied = true;
+    } else {
       for (let i = 1; i <= config.retry.maxAttempts; i++) {
-        if (i > 1 && !breaker.canAttemptPrimary()) break;
+        if (i > 1 && !breaker.canAttemptPrimary()) {
+          breakerDenied = true;
+          break;
+        }
         attempts++;
+        // Reserve up front: every attempt is charged, including failed ones,
+        // so the ledger never understates spend across retries.
+        costTracker.record(estPrimary);
         try {
           const data = await callFlow<T>(config.primaryFlowId, input);
           breaker.recordSuccess();
-          costTracker.record(estPrimary);
           return {
             data,
             path: i === 1 ? "primary" : "retried",
@@ -72,6 +82,9 @@ export function createResilientClient(
           };
         } catch (err) {
           const fErr = toFlowcellError(err);
+          // Every primary-call failure counts toward the breaker, including
+          // 4xx: the live forceFail hook surfaces as HTTP 400 and the
+          // circuit_open path depends on counting it.
           breaker.recordFailure();
           const lastAttempt = i === config.retry.maxAttempts;
           if (!isRetryable(fErr) || lastAttempt) break;
@@ -84,8 +97,10 @@ export function createResilientClient(
     }
 
     // Fallback path. Guard is re-checked: retries already spent estimates.
+    // circuit_open means primary was never touched (breaker denied every
+    // attempt); anything else means primary tried and failed.
     const reason: FallbackReason =
-      breaker.getState() === "OPEN" && attempts === 0
+      breakerDenied && attempts === 0
         ? "circuit_open"
         : "retries_exhausted";
 
@@ -101,8 +116,10 @@ export function createResilientClient(
     }
 
     try {
-      const fallbackData = await callFlow<T>(config.fallbackFlowId, input);
+      // Same reservation rule as primary: the attempt is charged when made,
+      // even if the fallback itself fails below.
       costTracker.record(estFallback);
+      const fallbackData = await callFlow<T>(config.fallbackFlowId, input);
       return {
         data: fallbackData,
         path: "fallback",

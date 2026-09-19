@@ -144,6 +144,21 @@ describe("resilientClient end to end", () => {
     ]);
   });
 
+  it("ledger charges every attempt, including failed ones", async () => {
+    const client = createResilientClient(
+      makeConfig(),
+      mockTransport([
+        { ok: false, value: httpError(500, "boom") },
+        { ok: true, value: { answer: "recovered" } },
+      ]),
+      noSleep,
+    );
+    const res = await client.execute({ query: "q" });
+    expect(res.path).toBe("retried");
+    // Two primary attempts ran: ledger must match the reported estimate.
+    expect(client.getSpentUsd()).toBeCloseTo(res.estimatedCostUsd, 10);
+  });
+
   it("runaway guard refuses before any network call", async () => {
     const seen: string[] = [];
     const client = createResilientClient(

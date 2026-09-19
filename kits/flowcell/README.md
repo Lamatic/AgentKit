@@ -55,7 +55,7 @@ Be precise about what the guard is: your provider bills your API key directly, a
 ```bash
 cd kits/flowcell
 npm install
-npm test     # 26 tests: breaker table, retry table, 4 end-to-end scenarios
+npm test     # 31 tests: breaker table, retry table, transport adapter, end-to-end scenarios
 npm run demo # 4 terminal outputs, each proving one mechanism
 ```
 

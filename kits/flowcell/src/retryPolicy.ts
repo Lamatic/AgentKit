@@ -10,8 +10,11 @@ export const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
  * just pays for the same bad answer again.
  */
 export function isRetryable(error: FlowcellError): boolean {
-  if (error.httpStatus != null && RETRYABLE_STATUSES.has(error.httpStatus)) {
-    return true;
+  // A present HTTP status is authoritative: retry iff it is in the table.
+  // Message matching runs only for statusless (transport-level) errors, so a
+  // non-retryable status like 400 is never overridden by its message text.
+  if (error.httpStatus != null) {
+    return RETRYABLE_STATUSES.has(error.httpStatus);
   }
   const msg = (error.message ?? "").toLowerCase();
   if (msg.includes("timeout")) return true;
