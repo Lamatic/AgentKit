@@ -114,8 +114,8 @@ type FormMode = "return" | "policy";
 const assessmentResultSchema = z.object({
   success: z.boolean(),
   decision: z.enum(VALID_DECISIONS),
-  confidenceScore: z.number().nullable().optional(),
-  fraudRiskScore: z.number().nullable().optional(),
+  confidenceScore: z.union([z.number(), z.string()]).nullable().optional(),
+  fraudRiskScore: z.union([z.number(), z.string()]).nullable().optional(),
   authenticityMatch: z.boolean().nullable().optional(),
   damageType: z.preprocess(
     (val) =>

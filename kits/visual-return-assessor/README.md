@@ -78,12 +78,20 @@ It implements a multi-flow system that routes customer return claims and policy 
 
 #### Node Chain Execution
 
-1. **`API Request (graphqlNode)`**: Receives policy document metadata and text/Base64 stream.
-2. **`Document Extractor (extractFromFileNode)`**: Decodes data and extracts plain text content.
-3. **`Delete Stale Vectors (VectorStoreNode)`**: Purges all existing vector chunks in vector store matching the (documentName, brand, category) metadata tuple to prevent stale chunk retention.
+1. **`API Request (graphqlNode)`**: Receives document metadata (`documentName`, `brand`, `category`) and file `content`.
+
+2. **`Document Extractor (extractFromFileNode)`**: Decodes Base64 data and extracts plain text from incoming `.pdf` or `.txt` content streams.
+
+3. **`Version Generator & Metadata Builder (codeNode)`**: Generates a unique version timestamp (version = Date.now()) for the current ingestion run.
+   Constructs composite primary keys (chunkId) in metadata formatted as [documentName, brand, category, version, chunkIndex] to avoid key collisions.
+
 4. **`Text Chunking & Embedding (EmbeddingNode)`**: Splits policy rules into semantic chunks and generates vector embeddings.
-5. **`Vector Storage Ingestion (VectorStoreNode)`**: Stores embedded chunks tagged with `category` and `brand` metadata.
-6. **`API Response (graphqlResponseNode)`**: Returns vector indexing execution status.
+
+5. **`Vector Storage Ingestion (VectorStoreNode)`**: Stores embedded chunks tagged with `category`, `content`, `brand`, `chunkId`, `version`, `content` metadata for downstream RAG retrieval.
+
+6. **`Delete Stale Vectors (VectorStoreNode)`**: Purges all existing vector chunks in vector store matching the (documentName, brand, category) metadata tuple where version < currentVersion to prevent stale chunk retention.
+
+7. **`API Response (graphqlResponseNode)`**: Returns confirmation status of successful vector indexing.
 
 ---
 

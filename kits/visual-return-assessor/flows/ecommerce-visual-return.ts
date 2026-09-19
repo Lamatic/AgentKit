@@ -24,7 +24,7 @@ export const inputs = {
       type: "model",
     },
   ],
-  RAGNode_330: [
+  RAGNode_455: [
     {
       name: "vectorDB",
       label: "Database",
@@ -60,12 +60,12 @@ export const references = {
       "@prompts/ecommerce-visual-return_instructor-llmnode-560_system_0.md",
     ecommerce_visual_return_instructor_llmnode_560_user_1:
       "@prompts/ecommerce-visual-return_instructor-llmnode-560_user_1.md",
-    ecommerce_visual_return_ragnode_330_system_0:
-      "@prompts/ecommerce-visual-return_ragnode-330_system_0.md",
-    ecommerce_visual_return_ragnode_330_system_1:
-      "@prompts/ecommerce-visual-return_ragnode-330_system_1.md",
-    ecommerce_visual_return_ragnode_330_user_2:
-      "@prompts/ecommerce-visual-return_ragnode-330_user_2.md",
+    ecommerce_visual_return_ragnode_455_system_0:
+      "@prompts/ecommerce-visual-return_ragnode-455_system_0.md",
+    ecommerce_visual_return_ragnode_455_system_1:
+      "@prompts/ecommerce-visual-return_ragnode-455_system_1.md",
+    ecommerce_visual_return_ragnode_455_user_2:
+      "@prompts/ecommerce-visual-return_ragnode-455_user_2.md",
     ecommerce_visual_return_instructor_llmnode_295_system_0:
       "@prompts/ecommerce-visual-return_instructor-llmnode-295_system_0.md",
     ecommerce_visual_return_instructor_llmnode_295_user_1:
@@ -74,10 +74,10 @@ export const references = {
   modelConfigs: {
     ecommerce_visual_return_instructor_llmnode_560_generative_model_name:
       "@model-configs/ecommerce-visual-return_instructor-llmnode-560_generative-model-name.ts",
-    ecommerce_visual_return_ragnode_330_generative_model_name:
-      "@model-configs/ecommerce-visual-return_ragnode-330_generative-model-name.ts",
-    ecommerce_visual_return_ragnode_330_embedding_model_name:
-      "@model-configs/ecommerce-visual-return_ragnode-330_embedding-model-name.ts",
+    ecommerce_visual_return_ragnode_455_generative_model_name:
+      "@model-configs/ecommerce-visual-return_ragnode-455_generative-model-name.ts",
+    ecommerce_visual_return_ragnode_455_embedding_model_name:
+      "@model-configs/ecommerce-visual-return_ragnode-455_embedding-model-name.ts",
     ecommerce_visual_return_instructor_llmnode_295_generative_model_name:
       "@model-configs/ecommerce-visual-return_instructor-llmnode-295_generative-model-name.ts",
   },
@@ -218,7 +218,7 @@ export const nodes = [
     },
   },
   {
-    id: "RAGNode_330",
+    id: "RAGNode_455",
     type: "dynamicNode",
     position: {
       x: 0,
@@ -242,17 +242,17 @@ export const nodes = [
           {
             id: "167aa865-2a1d-4cc5-a026-055670e1cbe5",
             role: "system",
-            content: "@prompts/ecommerce-visual-return_ragnode-330_system_0.md",
+            content: "@prompts/ecommerce-visual-return_ragnode-455_system_0.md",
           },
           {
             id: "187c2f4b-c23d-4545-abef-73dc897d6b7b",
             role: "system",
-            content: "@prompts/ecommerce-visual-return_ragnode-330_system_1.md",
+            content: "@prompts/ecommerce-visual-return_ragnode-455_system_1.md",
           },
           {
             id: "187c2f4b-c23d-4545-abef-73dc897d6b7d",
             role: "user",
-            content: "@prompts/ecommerce-visual-return_ragnode-330_user_2.md",
+            content: "@prompts/ecommerce-visual-return_ragnode-455_user_2.md",
           },
         ],
         memories: "[]",
@@ -272,9 +272,9 @@ export const nodes = [
         queryField:
           "{{triggerNode_1.output.itemCategory}} return and refund policy for {{InstructorLLMNode_560.output.damageType}} damage claim. Issue details: {{triggerNode_1.output.claimReason}}.",
         embeddingModelName:
-          "@model-configs/ecommerce-visual-return_ragnode-330_embedding-model-name.ts",
+          "@model-configs/ecommerce-visual-return_ragnode-455_embedding-model-name.ts",
         generativeModelName:
-          "@model-configs/ecommerce-visual-return_ragnode-330_generative-model-name.ts",
+          "@model-configs/ecommerce-visual-return_ragnode-455_generative-model-name.ts",
       },
     },
   },
@@ -395,7 +395,7 @@ export const edges = [
   {
     id: "conditionNode_212-addNode_242",
     source: "conditionNode_212",
-    target: "RAGNode_330",
+    target: "RAGNode_455",
     sourceHandle: "bottom",
     targetHandle: "top",
     type: "conditionEdge",
@@ -409,8 +409,8 @@ export const edges = [
     type: "conditionEdge",
   },
   {
-    id: "RAGNode_330-InstructorLLMNode_295",
-    source: "RAGNode_330",
+    id: "RAGNode_455-InstructorLLMNode_295",
+    source: "RAGNode_455",
     target: "InstructorLLMNode_295",
     sourceHandle: "bottom",
     targetHandle: "top",

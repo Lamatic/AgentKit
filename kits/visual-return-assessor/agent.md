@@ -118,16 +118,21 @@ Step-by-step walkthrough of the node chain:
 2. `Document Extractor (extractFromFileNode)`
    - Decodes Base64 data and extracts plain text from incoming `.pdf` or `.txt` content streams.
 
-3. `Delete Stale Vectors (VectorStoreNode)`
-   - Purges all existing vector chunks in vector store matching the (documentName, brand, category) metadata tuple to prevent stale chunk retention.
+3. `Version Generator & Metadata Builder (codeNode)`
+   - Generates a unique version timestamp (version = Date.now()) for the current ingestion run.
+
+   - Constructs composite primary keys (chunkId) in metadata formatted as [documentName, brand, category, version, chunkIndex] to avoid key collisions.
 
 4. `Text Chunking & Embedding (EmbeddingNode)`
    - Splits policy rules into semantic chunks and generates vector embeddings.
 
 5. `Vector Storage Ingestion (VectorStoreNode)`
-   - Stores embedded chunks tagged with `category` `content` and `brand` metadata for downstream RAG retrieval.
+   - Stores embedded chunks tagged with `category`, `content`, `brand`, `chunkId`, `version`, `content` metadata for downstream RAG retrieval.
 
-6. `API Response (graphqlResponseNode)`
+6. `Delete Stale Vectors (VectorStoreNode)`
+   - Purges all existing vector chunks in vector store matching the (documentName, brand, category) metadata tuple where version < currentVersion to prevent stale chunk retention.
+
+7. `API Response (graphqlResponseNode)`
    - Returns confirmation status of successful vector indexing.
 
 #### When to use this flow

@@ -8,10 +8,11 @@ const docName = {{triggerNode_1.output.documentName}}
 const brand = {{triggerNode_1.output.brand}}
 const category = {{triggerNode_1.output.category}}
 const content = {{codeNode_281.output}} 
+const currentVersion = Date.now();
 
 for (let i = 0; i < vectorsArray.length; i++){
 
-  const pk = JSON.stringify([docName, brand, category, i]);
+  const pk = JSON.stringify([docName, brand, category, currentVersion, i]);
 
   metaData.push({ 
     "chunkId": pk,
@@ -19,8 +20,9 @@ for (let i = 0; i < vectorsArray.length; i++){
     "brand" : brand,
     "category" : category,
     "content" : content?.[i] || "",
+    "version" : currentVersion
   })
 
 }
 
-  output = [metaData]
+  output = [currentVersion, metaData]

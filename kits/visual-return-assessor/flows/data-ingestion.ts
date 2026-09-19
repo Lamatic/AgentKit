@@ -17,13 +17,6 @@ export const meta = {
 
 // -- Inputs --
 export const inputs = {
-  vectorNode_503: [
-    {
-      name: "vectorDB",
-      label: "Vector DB",
-      type: "select",
-    },
-  ],
   vectorizeNode_850: [
     {
       name: "embeddingModelName",
@@ -32,6 +25,13 @@ export const inputs = {
     },
   ],
   vectorNode_843: [
+    {
+      name: "vectorDB",
+      label: "Vector DB",
+      type: "select",
+    },
+  ],
+  vectorNode_851: [
     {
       name: "vectorDB",
       label: "Vector DB",
@@ -129,30 +129,6 @@ export const nodes = [
     },
   },
   {
-    id: "vectorNode_503",
-    type: "dynamicNode",
-    position: {
-      x: 0,
-      y: 0,
-    },
-    data: {
-      nodeId: "vectorNode",
-      values: {
-        id: "vectorNode_503",
-        limit: "3",
-        action: "delete",
-        filters:
-          '{\n  "operator": "And",\n  "operands": [\n    {\n      "path": [\n        "brand"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.brand}}"\n    },\n    {\n      "path": [\n        "category"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.category}}"\n    },\n    {\n      "path": [\n        "documentName"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.documentName}}"\n    }\n  ]\n}',
-        nodeName: "VectorDB",
-        vectorDB: "ReturnPolicyStore",
-        primaryKeys: "",
-        vectorsField: "",
-        metadataField: "",
-        duplicateOperation: "overwrite",
-      },
-    },
-  },
-  {
     id: "chunkNode_419",
     type: "dynamicNode",
     position: {
@@ -234,11 +210,35 @@ export const nodes = [
         limit: "3",
         action: "index",
         filters: "",
-        nodeName: "VectorDB",
+        nodeName: "VectorDB Index",
         vectorDB: "ReturnPolicyStore",
         primaryKeys: ["chunkId"],
         vectorsField: "{{vectorizeNode_850.output.vectors}}",
-        metadataField: "{{codeNode_869.output.0}}",
+        metadataField: "{{codeNode_869.output.1}}",
+        duplicateOperation: "overwrite",
+      },
+    },
+  },
+  {
+    id: "vectorNode_851",
+    type: "dynamicNode",
+    position: {
+      x: 0,
+      y: 0,
+    },
+    data: {
+      nodeId: "vectorNode",
+      values: {
+        id: "vectorNode_851",
+        limit: "3",
+        action: "delete",
+        filters:
+          '{\n  "operator": "And",\n  "operands": [\n    {\n      "path": [\n        "brand"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.brand}}"\n    },\n    {\n      "path": [\n        "category"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.category}}"\n    },\n    {\n      "path": [\n        "documentName"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.documentName}}"\n    },\n    {\n      "path": [\n        "version"\n      ],\n      "operator": "NotEqual",\n      "valueNumber": "{{codeNode_869.output.0}}"\n    }\n  ]\n}',
+        nodeName: "VectorDB Delete",
+        vectorDB: "ReturnPolicyStore",
+        primaryKeys: "",
+        vectorsField: "",
+        metadataField: "",
         duplicateOperation: "overwrite",
       },
     },
@@ -308,8 +308,16 @@ export const edges = [
     type: "defaultEdge",
   },
   {
-    id: "vectorNode_843-responseNode_triggerNode_1",
+    id: "vectorNode_843-vectorNode_851",
     source: "vectorNode_843",
+    target: "vectorNode_851",
+    sourceHandle: "bottom",
+    targetHandle: "top",
+    type: "defaultEdge",
+  },
+  {
+    id: "vectorNode_851-responseNode_triggerNode_1",
+    source: "vectorNode_851",
     target: "responseNode_triggerNode_1",
     sourceHandle: "bottom",
     targetHandle: "top",
@@ -324,16 +332,8 @@ export const edges = [
     type: "defaultEdge",
   },
   {
-    id: "codeNode_561-vectorNode_503",
+    id: "codeNode_561-chunkNode_419",
     source: "codeNode_561",
-    target: "vectorNode_503",
-    sourceHandle: "bottom",
-    targetHandle: "top",
-    type: "defaultEdge",
-  },
-  {
-    id: "vectorNode_503-chunkNode_419",
-    source: "vectorNode_503",
     target: "chunkNode_419",
     sourceHandle: "bottom",
     targetHandle: "top",
