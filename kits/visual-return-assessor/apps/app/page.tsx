@@ -495,9 +495,11 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
       ? res.confidenceScore
       : null;
 
-    const fraud = isBoundedNumber(res.fraudRiskScore)
-      ? res.fraudRiskScore
-      : null;
+    const parsedFraud =
+      typeof res.fraudRiskScore === "string"
+        ? Number(res.fraudRiskScore)
+        : res.fraudRiskScore;
+    const fraud = isBoundedNumber(parsedFraud) ? parsedFraud : null;
 
     const authenticity =
       typeof res.authenticityMatch === "boolean" ? res.authenticityMatch : null;
