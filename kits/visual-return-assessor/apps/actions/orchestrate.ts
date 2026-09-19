@@ -280,11 +280,14 @@ export const ReturnAssessorPayloadSchema = z.object({
     .min(1, "Claim reason is required.")
     .max(1000, "Claim reason exceeds maximum length."),
   imageBinary: z.string().trim().min(1, "Inspection image is required."),
-  userEmail: z
-    .string()
-    .trim()
-    .email("Invalid user email address.")
-    .max(255, "Email exceeds maximum length."),
+  userEmail: z.union([
+    z.literal(""),
+    z
+      .string()
+      .trim()
+      .email("Invalid user email address.")
+      .max(255, "Email exceeds maximum length."),
+  ]),
 });
 
 export type IngestionPayload = z.infer<typeof IngestionPayloadSchema>;
