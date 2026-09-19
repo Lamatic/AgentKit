@@ -2,7 +2,7 @@ import { supabase } from "./supabase.js";
 import { LedgerAdapter, appendLedger } from "./settlement/ledger-adapter.js";
 import { X402Adapter } from "./settlement/x402-adapter.js";
 import type { SettlementAdapter } from "./settlement/types.js";
-import { idempotencyKey, checkIdempotencyAsync } from "./idempotency.js";
+import { idempotencyKey, checkIdempotencyAsync, releaseIdempotency } from "./idempotency.js";
 import { canSpend, recordSpend, tryReserve, release, getMode } from "./budget-governor.js";
 import * as flows from "./flows-client.js";
 import { transition } from "./state-machine.js";
@@ -288,13 +288,22 @@ async function resumeInEscrow(
 
   if (Date.now() - new Date(escrow.created_at).getTime() > ESCROW_TIMEOUT_MS) {
     const key = idempotencyKey(bountyId, "refund", 1);
-    if (canSpend(1) && (await checkIdempotencyAsync(key))) {
-      await adapter.refund(state.escrowId, poster);
+    // Refunds are never budget-gated: user funds must always be releasable.
+    // Mark refunded only after the refund succeeds; a consumed key with the
+    // escrow still locked means a prior attempt never finished, so leave the
+    // status untouched for reconciliation instead of marking it falsely.
+    if (await checkIdempotencyAsync(key)) {
+      try {
+        await adapter.refund(state.escrowId, poster);
+      } catch (err) {
+        await releaseIdempotency(key);
+        throw err;
+      }
       recordSpend(1);
       ctx.refunds++;
+      const refunded = transition(state, "refund", { reason: "escrow_timeout" });
+      await writeStatus(bountyId, refunded);
     }
-    const refunded = transition(state, "refund", { reason: "escrow_timeout" });
-    await writeStatus(bountyId, refunded);
     return;
   }
 
@@ -449,7 +458,15 @@ async function resumeQaPass(
   const key = idempotencyKey(bountyId, "settle", attempt);
   if (!(await checkIdempotencyAsync(key))) return;
 
-  const receipt = await adapter.settle(escrow.id, workerId);
+  // Release the key on failure so a later round can retry; the escrow
+  // locked -> settled claim still guards against double-processing.
+  let receipt;
+  try {
+    receipt = await adapter.settle(escrow.id, workerId);
+  } catch (err) {
+    await releaseIdempotency(key);
+    throw err;
+  }
   recordSpend(1);
 
   const settled = transition(state, "settle", { receiptId: receipt.receiptId });
@@ -481,14 +498,25 @@ async function refundAndFinish(
   if (escrow && escrow.status !== "refunded") {
     const workerId = await escrowWorkerId(escrow.id);
     const key = idempotencyKey(bountyId, "refund", state.revisionOf);
-    if (canSpend(1) && (await checkIdempotencyAsync(key))) {
-      await adapter.refund(escrow.id, poster);
+    // Refunds are never budget-gated: user funds must always be releasable.
+    // Mark refunded only after the refund succeeds; a consumed key with the
+    // escrow still locked leaves the status untouched for reconciliation.
+    if (await checkIdempotencyAsync(key)) {
+      try {
+        await adapter.refund(escrow.id, poster);
+      } catch (err) {
+        await releaseIdempotency(key);
+        throw err;
+      }
       recordSpend(1);
       ctx.refunds++;
       void applyReputation(workerId, "fail").catch((err) =>
         console.error(`[reputation] background update failed for ${workerId}: ${(err as Error).message}`),
       );
+      const refunded = transition(state, "refund", { reason });
+      await writeStatus(bountyId, refunded);
     }
+    return;
   }
 
   const refunded = transition(state, "refund", { reason });
@@ -642,7 +670,8 @@ async function awardAndDeliver(
 
   const hydrated = await hydrateBids(bids);
 
-  if (!tryReserve(1)) {
+  const reserved = tryReserve(1);
+  if (!reserved) {
     // Degraded mode: budget exhausted. Never stall — fall through and run on
     // replay/fallback outputs so the pipeline keeps settling.
     console.log(`[budget] exhausted — bounty ${bountyId} proceeding on fallbacks`);
@@ -654,13 +683,13 @@ async function awardAndDeliver(
     capability: String(hydrated[0]?.capability || "capabilities/general.md"),
   };
 
-  // Reservation above already counted this attempt; release only if the attempt
-  // throws before consuming budget.
+  // Release only a reservation this attempt actually holds; a failed
+  // reservation consumed nothing, so releasing it would corrupt the count.
   let result: Record<string, unknown>;
   try {
     result = await pipe("execute-task", taskInput, () => flows.executeTask(taskInput) as unknown as Promise<Record<string, unknown>>, ctx);
   } catch (err) {
-    release(1);
+    if (reserved) release(1);
     throw err;
   }
 
@@ -834,12 +863,12 @@ async function callQaJudge(
     },
   };
 
-  tryReserve(1);
+  const reserved = tryReserve(1);
   let result: Record<string, unknown>;
   try {
     result = await pipe("qa-judge", qaInput, () => flows.qaJudge(qaInput) as unknown as Promise<Record<string, unknown>>, ctx);
   } catch (err) {
-    release(1);
+    if (reserved) release(1);
     throw err;
   }
 

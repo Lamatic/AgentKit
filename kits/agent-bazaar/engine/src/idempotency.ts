@@ -64,3 +64,14 @@ export async function checkIdempotencyAsync(key: string): Promise<boolean> {
 export function resetIdempotency(): void {
   seen.clear();
 }
+
+/**
+ * Release a key so a later round can retry after a failed attempt. Safe
+ * because the escrow locked -> settled/refunded claim still guards against
+ * double-processing; the key only suppresses duplicate submissions.
+ */
+export async function releaseIdempotency(key: string): Promise<void> {
+  seen.delete(key);
+  const { error } = await supabase.from("idempotency_keys").delete().eq("key", key);
+  if (error) console.error(`[idempotency] release failed for ${key}: ${error.message}`);
+}

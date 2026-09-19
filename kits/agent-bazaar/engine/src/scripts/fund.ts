@@ -1,3 +1,4 @@
+import { CLIENT_AGENT } from "../agents/roster.js";
 import { workerWalletAddress } from "./uuid.js";
 
 /** Print deterministic testnet wallet addresses. */
@@ -9,17 +10,19 @@ async function fund(): Promise<void> {
     console.log("No X402_PRIVATE_KEY set. Generating deterministic test wallets...\n");
   }
 
+  // The client entry uses the wallet seed.ts persists (CLIENT_AGENT.wallet),
+  // not a derived address, so funded funds land where the engine looks.
   const wallets = [
-    { name: "Client-Alpha", role: "client" },
-    { name: "Summarizer-Alpha", role: "worker" },
-    { name: "Researcher-Bravo", role: "worker" },
-    { name: "Datagen-Charlie", role: "worker" },
+    { name: CLIENT_AGENT.name, role: "client", address: CLIENT_AGENT.wallet },
+    { name: "Summarizer-Alpha", role: "worker", address: workerWalletAddress("Summarizer-Alpha") },
+    { name: "Researcher-Bravo", role: "worker", address: workerWalletAddress("Researcher-Bravo") },
+    { name: "Datagen-Charlie", role: "worker", address: workerWalletAddress("Datagen-Charlie") },
   ];
 
   console.log("Testnet Wallet Addresses (Base Sepolia):");
   console.log("========================================");
   for (const wallet of wallets) {
-    console.log(`${wallet.name} (${wallet.role}): ${workerWalletAddress(wallet.name)}`);
+    console.log(`${wallet.name} (${wallet.role}): ${wallet.address}`);
   }
 
   console.log("\nTo fund these wallets, visit: https://www.alchemy.com/faucets/base-sepolia");

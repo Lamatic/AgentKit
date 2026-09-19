@@ -191,6 +191,16 @@ export class EngineError extends Error {
   }
 }
 
+/**
+ * Deployment contract for engineFetch (ENGINE_URL / ENGINE_TOKEN):
+ * - Loopback (default http://localhost:8787) is the trusted same-host case:
+ *   ENGINE_TOKEN may be omitted and traffic never leaves this machine.
+ * - A non-loopback ENGINE_HOST on the engine side requires ENGINE_TOKEN, and
+ *   the engine refuses to start without it; this client then sends it as a
+ *   Bearer token (server-side only, never NEXT_PUBLIC_).
+ * - Any future cross-host support must add TLS or authenticated IPC; until
+ *   then the loopback default + token behavior above is the whole contract.
+ */
 async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {

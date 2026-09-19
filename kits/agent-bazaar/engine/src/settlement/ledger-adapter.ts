@@ -144,8 +144,11 @@ export class LedgerAdapter implements SettlementAdapter {
       // debit, no phantom platform account).
       await appendLedger(to, Number(netAmount), "settlement", bountyId);
     } catch (err) {
-      // Compensate: release the claim so a retry can process it again instead
-      // of leaving the escrow terminally settled with no receipt/ledger.
+      // Compensate: drop only this attempt's receipt (if it landed) and
+      // release the claim so a retry reprocesses exactly once. Local payout
+      // has no external side effects, so retry is always safe; the orchestrator
+      // also releases the consumed idempotency key on failure.
+      await supabase.from("settlement_receipts").delete().eq("id", receipt.receiptId);
       await supabase
         .from("escrows")
         .update({ status: "locked", settled_at: null })
@@ -222,7 +225,9 @@ export class LedgerAdapter implements SettlementAdapter {
 
       await appendLedger(to, Number(grossAmount), "refund", bountyId);
     } catch (err) {
-      // Compensate: release the claim so a retry can process it again.
+      // Compensate: drop only this attempt's receipt (if it landed) and
+      // release the claim so a retry reprocesses exactly once (see settle).
+      await supabase.from("settlement_receipts").delete().eq("id", receipt.receiptId);
       await supabase
         .from("escrows")
         .update({ status: "locked", settled_at: null })

@@ -5,6 +5,8 @@
   --color-card: #ffffff;
   --color-hairline: #e7e7e2;
   --color-subtle: #f4f4f0;
+  --color-ink: #171717;
+  --color-faint: #a3a3a3;
   --color-primary: #4f46e5;
   --color-primary-hover: #4338ca;
   --color-primary-light: #eef2ff;
@@ -195,6 +197,17 @@ body {
 
 .animate-spin-slow {
   animation: ab-spin 0.9s linear infinite;
+}
+
+/* Reduced motion: disable decorative animation, keep layout unchanged. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .dot-pulse,
+  .animate-pulse-dot,
+  .animate-bar,
+  .animate-spin-slow {
+    animation: none;
+  }
 }
 
 :focus-visible {

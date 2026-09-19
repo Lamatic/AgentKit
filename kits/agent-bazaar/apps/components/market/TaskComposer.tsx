@@ -97,7 +97,7 @@ export function TaskComposer({
           onKeyDown={handleKeyDown}
           rows={3}
           placeholder="Describe the task for the bazaar…"
-          className="w-full resize-none rounded-[6px] border border-hairline bg-canvas p-3 text-[14px] text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-indigo-500 focus:bg-white focus:outline-none"
+          className="w-full resize-none rounded-[6px] border border-hairline bg-canvas p-3 text-[14px] text-ink transition-all placeholder:text-faint focus:border-primary focus:bg-card focus:outline-none"
         />
       </div>
 

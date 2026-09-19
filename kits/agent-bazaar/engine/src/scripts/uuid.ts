@@ -15,6 +15,10 @@ import { privateKeyToAccount } from "viem/accounts";
  * Derive the deterministic display wallet for a named agent from the shared
  * `wallet-<name>` identifier. Used by both seed.ts (stored wallet_address)
  * and fund.ts (printed addresses) so they always match.
+ *
+ * SECURITY: the private key is publicly reconstructible from the name, so
+ * this address must only ever hold testnet demo funds — never sign
+ * real-value transactions with it.
  */
 export function workerWalletAddress(name: string): `0x${string}` {
   const entropy = BigInt(`0x${Buffer.from(`wallet-${name}`).toString("hex").padStart(64, "0")}`);
