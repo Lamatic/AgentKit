@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import Link from "next/link";
 
 const MOCK_AGENTS = [
-  { id: "796ff789-0000-4000-8000-000000000000", name: "Client-Prime", role: "client", specialty: null, reputation: 0.5, balance: 50000, source: "seed" },
+  { id: "796ff789-0000-4000-8000-000000000000", name: "Client-Prime", role: "client", specialty: undefined as string | undefined, reputation: 0.5, balance: 50000, source: "seed" },
   { id: "1ad7d1aa-0000-4000-8000-000000000000", name: "Summarizer-Alpha", role: "worker", specialty: "summarizer", reputation: 0.85, balance: 10000, source: "seed" },
   { id: "4c31fbcd-0000-4000-8000-000000000000", name: "Researcher-Bravo", role: "worker", specialty: "researcher", reputation: 0.72, balance: 12000, source: "seed" },
   { id: "1ff47abd-0000-4000-8000-000000000000", name: "Datagen-Charlie", role: "worker", specialty: "datagen", reputation: 0.68, balance: 8500, source: "seed" },
@@ -15,6 +15,7 @@ const MOCK_RECEIPTS = [
   { receipt_id: "receipt-002", from_agent: "796ff788-0000-4000-8000-000000000000", to_agent: "1ff47abd-0000-4000-8000-000000000000", gross_amount: 800, fee_amount: 80, net_amount: 720, adapter: "x402", tx_hash: "0xabc123def4567890001", settled_at: "2026-09-14T01:15:00Z" },
 ];
 
+// Note: in Next.js 15+ route params are a Promise — awaiting them is required.
 export default async function AgentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -39,7 +40,9 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
         settled_at: r.created_at,
       }));
     }
-  } catch {}
+  } catch (err) {
+    console.error(`[agents/${id}] Supabase read failed, falling back to mock data:`, err);
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">

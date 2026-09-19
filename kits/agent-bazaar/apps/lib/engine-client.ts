@@ -1,4 +1,27 @@
-export const ENGINE_URL = process.env.ENGINE_URL || "http://localhost:8787";
+const RAW_ENGINE_URL = process.env.ENGINE_URL || "http://localhost:8787";
+
+// SSRF guard: the engine bridge is a local companion process. Refuse to run
+// against anything that isn't an explicit localhost/127.0.0.1 origin, so a
+// misconfigured ENGINE_URL can never redirect server-side fetches at
+// internal services.
+function validateEngineUrl(raw: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new Error(`[engine-client] Invalid ENGINE_URL: ${raw}`);
+  }
+  const host = parsed.hostname.toLowerCase();
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error(`[engine-client] ENGINE_URL must be http(s): ${raw}`);
+  }
+  if (host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]") {
+    throw new Error(`[engine-client] ENGINE_URL must point at localhost, got: ${raw}`);
+  }
+  return raw.replace(/\/$/, "");
+}
+
+export const ENGINE_URL = validateEngineUrl(RAW_ENGINE_URL);
 
 export interface RubricCriterion {
   name: string;
@@ -15,7 +38,7 @@ export interface Rubric {
 export interface AgentView {
   id: string;
   name: string;
-  specialty: string;
+  specialty?: string | null;
   reputation: number;
   wins: number;
   losses: number;

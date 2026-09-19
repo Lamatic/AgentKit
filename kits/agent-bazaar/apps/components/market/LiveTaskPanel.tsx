@@ -329,7 +329,7 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
                 <span className="block text-[11px] text-neutral-500">Adapter / Tx Hash</span>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700">
-                    {receipt.adapter === "x402" ? "x402" : "Base L2"}
+                    {receipt.adapter === "x402" ? "x402" : "ledger"}
                   </span>
                   {receipt.tx_hash && (
                     <span className="max-w-[90px] truncate font-mono text-[11px] text-neutral-600">

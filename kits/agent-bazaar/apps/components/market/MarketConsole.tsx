@@ -80,7 +80,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
 
   // Bounded catch-up burst: poll every 2s until condition is met or timeout
   const startCatchUp = useCallback(
-    (check: (m: Market) => boolean, maxMs: number, label: string) => {
+    (check: (m: Market) => boolean, maxMs: number) => {
       if (catchUpTimerRef.current) clearTimeout(catchUpTimerRef.current);
       const startTime = Date.now();
 
@@ -239,7 +239,6 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       startCatchUp(
         (m) => m.bids.some((b) => b.bounty_id === bountyId),
         60_000,
-        "waiting for bids",
       );
       return true;
     },

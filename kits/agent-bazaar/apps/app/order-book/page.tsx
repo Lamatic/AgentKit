@@ -2,6 +2,9 @@ import { supabase } from "@/lib/supabase-server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
+// Live data page: render at request time so builds don't need credentials.
+export const dynamic = "force-dynamic";
+
 const MOCK_OPEN = [
   { id: "bounty-001", goal: "Summarize a 10-page research paper into 3 bullet points", budget: 1000, status: "open", posted_by: "796ff789-0000-4000-8000-000000000000", source: "seed" },
   { id: "bounty-005", goal: "Create a security assessment report for a REST API", budget: 1200, status: "open", posted_by: "796ff788-0000-4000-8000-000000000000", source: "seed" },
@@ -22,7 +25,9 @@ export default async function OrderBookPage() {
     const { data: db2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
     if (db1 && db1.length > 0) openBounties = db1.map((b) => ({ ...b, status: "open" }));
     if (db2 && db2.length > 0) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, from_agent: r.from_agent, to_agent: r.to_agent, settled_at: r.created_at }));
-  } catch {}
+  } catch (err) {
+    console.error("[order-book] Supabase read failed, falling back to mock data:", err);
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">

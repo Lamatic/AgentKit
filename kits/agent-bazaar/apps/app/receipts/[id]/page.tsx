@@ -29,6 +29,7 @@ const MOCK_RECEIPT: ReceiptRow = {
   settled_at: "2026-09-14T02:30:00Z",
 };
 
+// Note: in Next.js 15+ route params are a Promise — awaiting them is required.
 export default async function ReceiptDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -49,7 +50,9 @@ export default async function ReceiptDetailPage({ params }: { params: Promise<{ 
         settled_at: data.created_at,
       } as ReceiptRow;
     }
-  } catch {}
+  } catch (err) {
+    console.error(`[receipts/${id}] Supabase read failed, falling back to mock data:`, err);
+  }
 
   const txLink = receipt.adapter === "x402" && receipt.tx_hash
     ? `https://sepolia.basescan.org/tx/${receipt.tx_hash}`

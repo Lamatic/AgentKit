@@ -2,6 +2,9 @@ import { supabase } from "@/lib/supabase-server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
+// Live data page: render at request time so builds don't need credentials.
+export const dynamic = "force-dynamic";
+
 const MOCK_ESCROWS = [
   { escrow_id: "escrow-001", bounty_id: "bounty-002", agent_id: "4c31fbcd-0000-4000-8000-000000000000", amount: 1600, status: "locked", created_at: "2026-09-14T01:00:00Z" },
   { escrow_id: "escrow-002", bounty_id: "bounty-003", agent_id: "1ff47abd-0000-4000-8000-000000000000", amount: 800, status: "locked", created_at: "2026-09-14T00:30:00Z" },
@@ -30,7 +33,9 @@ export default async function EscrowPage() {
       settled_at: e.settled_at,
     }));
     if (db2 && db2.length > 0) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, to_agent: r.to_agent, from_agent: r.from_agent, settled_at: r.created_at }));
-  } catch {}
+  } catch (err) {
+    console.error("[escrow] Supabase read failed, falling back to mock data:", err);
+  }
 
   const totalTvl = escrows.reduce((sum, e) => sum + (e.amount || 0), 0);
 
