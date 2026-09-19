@@ -631,7 +631,7 @@ async function hydrateBids(bids: Record<string, unknown>[]): Promise<Record<stri
         .from("credit_ledger")
         .select("balance_after")
         .eq("agent_id", agentId)
-        .order("created_at", { ascending: false })
+        .order("seq", { ascending: false })
         .limit(1)
         .maybeSingle(),
     ),
@@ -695,7 +695,7 @@ async function awardAndDeliver(
 
   const winner = resolveWinner(hydrated, result.winnerBidId as unknown);
   const rawEscrowId = existing?.escrowId || (result.escrowId as string) || crypto.randomUUID();
-  const escrowId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawEscrowId)
+  let escrowId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawEscrowId)
     ? rawEscrowId
     : crypto.randomUUID();
   const amountRaw = Number(result.amount);
@@ -707,7 +707,7 @@ async function awardAndDeliver(
   const amount = Number.isFinite(budgetCap) && budgetCap > 0
     ? Math.min(proposal, budgetCap)
     : proposal;
-  const lockRef = existing?.lockRef || (result.lockRef as string) || `lock-${escrowId}`;
+  let lockRef = existing?.lockRef || (result.lockRef as string) || `lock-${escrowId}`;
 
   const { data: existingEscrow } = await supabase
     .from("escrows")
@@ -726,33 +726,37 @@ async function awardAndDeliver(
     });
     if (error) {
       // Uniqueness conflict: a concurrent writer won the race for this
-      // bounty — reload their escrow and continue with it instead of
-      // double-locking funds.
+      // bounty — adopt the winner row's identifiers so the lock_escrow
+      // transition below persists the real escrow, not our failed attempt.
       if (error.code === "23505") {
         const { data: raced, error: reloadError } = await supabase
           .from("escrows")
-          .select("id")
+          .select("id, lock_ref")
           .eq("bounty_id", bountyId)
           .maybeSingle();
         if (reloadError || !raced) throw new Error(`Escrow insert failed: ${error.message}`);
+        escrowId = raced.id as string;
+        lockRef = raced.lock_ref as string;
       } else {
         throw new Error(`Escrow insert failed: ${error.message}`);
       }
     } else {
       // Treat the insert and lock/debit as one claim: a failed lock or debit
       // must not leave a locked row that suppresses retry. Roll back our own
-      // insert, log if the rollback fails, and rethrow the original error.
-      // recordSpend runs only after both operations succeed.
+      // insert, log if the rollback fails, release our budget reservation,
+      // and rethrow the original error. recordSpend runs only for fallback
+      // executions — a held reservation already accounts for this one.
       try {
         const lock = await adapter.lock(escrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
 
         if (adapter instanceof LedgerAdapter) {
           await appendLedger(poster, String(-amount), "bid_lock", bountyId);
         }
-        recordSpend(1);
+        if (!reserved) recordSpend(1);
 
         void lock;
       } catch (err) {
+        if (reserved) release(1);
         const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", escrowId);
         if (rollbackError) {
           console.error(`[escrow] rollback failed for ${escrowId}: ${rollbackError.message} — manual reconciliation required`);

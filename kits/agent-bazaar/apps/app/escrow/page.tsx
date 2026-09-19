@@ -49,8 +49,14 @@ export default async function EscrowPage() {
   try {
     const { count } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true });
     if (typeof count === "number") settledCount = count;
-    const { data: feeRows } = await supabase.from("settlement_receipts").select("fee_amount");
-    if (feeRows) feesCollected = feeRows.reduce((s, r) => s + (Number(r.fee_amount) || 0), 0);
+    // Database-level sum: the JS reduce below is only a fallback, since a
+    // plain select is capped at the PostgREST row limit.
+    const { data: feeTotal, error: feeError } = await supabase.rpc("settlement_fee_total");
+    if (!feeError && feeTotal != null) feesCollected = Number(feeTotal);
+    else {
+      const { data: feeRows } = await supabase.from("settlement_receipts").select("fee_amount");
+      if (feeRows) feesCollected = feeRows.reduce((s, r) => s + (Number(r.fee_amount) || 0), 0);
+    }
   } catch (err) {
     console.error("[escrow] aggregates read failed, using page subset:", err);
   }

@@ -30,6 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_credit_ledger_agent_seq ON credit_ledger (agent_i
 -- their metadata; the signature change requires DROP + CREATE (OR REPLACE
 -- cannot add parameters).
 DROP FUNCTION IF EXISTS append_ledger(uuid, bigint, text, uuid);
+DROP FUNCTION IF EXISTS append_ledger(uuid, bigint, text, uuid, text, timestamptz);
 CREATE FUNCTION append_ledger(
   p_agent_id uuid,
   p_amount bigint,
@@ -68,3 +69,16 @@ $$;
 -- The engine calls this RPC with the service-role key.
 REVOKE ALL ON FUNCTION append_ledger(uuid, bigint, text, uuid, text, timestamptz) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION append_ledger(uuid, bigint, text, uuid, text, timestamptz) TO service_role;
+
+-- Exact total of collected settlement fees over the complete dataset.
+-- Read-only and SECURITY INVOKER so the existing RLS SELECT policies govern
+-- it for every caller; repeatable via OR REPLACE (signature never changes).
+CREATE OR REPLACE FUNCTION settlement_fee_total()
+RETURNS bigint
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = public
+AS $$
+  SELECT COALESCE(SUM(fee_amount), 0)::bigint FROM settlement_receipts;
+$$;

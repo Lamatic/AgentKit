@@ -214,7 +214,7 @@ async function marketSnapshot(): Promise<Record<string, unknown>> {
       supabase.from("deliveries").select("*").order("created_at", { ascending: false }).limit(25),
       supabase.from("qa_verdicts").select("*").order("created_at", { ascending: false }).limit(25),
       supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(40),
-      supabase.from("credit_ledger").select("*").order("created_at", { ascending: false }).limit(150),
+      supabase.from("credit_ledger").select("*").order("seq", { ascending: false }).limit(150),
       supabase.from("agents").select("*"),
     ]);
 
