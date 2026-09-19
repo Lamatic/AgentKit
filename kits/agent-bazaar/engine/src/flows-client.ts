@@ -219,7 +219,7 @@ export async function executeTask(input: {
   return result as unknown as ExecuteTaskOutput;
 }
 
-/** Invoke the QA judge flow with deterministic fallback. */
+/** Invoke the QA judge flow with fail-closed fallback. */
 export async function qaJudge(input: {
   bounty: Record<string, unknown>;
   rubric: Record<string, unknown>;
@@ -227,14 +227,14 @@ export async function qaJudge(input: {
   attempt: number;
   escrow: Record<string, unknown>;
 }): Promise<QaJudgeOutput> {
-  // Deterministic degraded-mode result: fixed pass so budget-exhausted rounds
-  // stay reproducible instead of randomly passing/failing.
-  const score = 0.85;
+  // Fail closed: when the QA flow is unavailable the bounty must NOT settle on
+  // an unreviewed pass. Return a non-settling fail so the pipeline retries the
+  // delivery (and refunds after max attempts) instead of paying out blind.
   const result = await callWithFallback(FLOWS.qaJudge, "qaJudge", input as Record<string, unknown>, {
-    score,
-    verdict: "pass",
-    rationale: "[DEGRADED] QA flow unavailable — automatic pass with fixed score 0.85.",
-    action: "settle",
+    score: 0,
+    verdict: "fail",
+    rationale: "[DEGRADED] QA flow unavailable — automatic fail; bounty retained for retry/review.",
+    action: "retry",
     newAttempt: input.attempt + 1,
     reason: "",
   });

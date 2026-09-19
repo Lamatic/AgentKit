@@ -24,6 +24,11 @@ function validateEngineUrl(raw: string): string {
 
 export const ENGINE_URL = validateEngineUrl(RAW_ENGINE_URL);
 
+// Server-side only: this module runs inside server actions/route handlers, so
+// ENGINE_TOKEN (no NEXT_PUBLIC_ prefix) never reaches the browser. Mutating
+// engine endpoints require it as a Bearer token when the engine sets one.
+const ENGINE_TOKEN = process.env.ENGINE_TOKEN || "";
+
 export interface RubricCriterion {
   name: string;
   weight: number;
@@ -193,7 +198,11 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
       cache: "no-store",
       signal: init?.signal ?? AbortSignal.timeout(10000),
-      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      headers: {
+        "Content-Type": "application/json",
+        ...(ENGINE_TOKEN ? { Authorization: `Bearer ${ENGINE_TOKEN}` } : {}),
+        ...(init?.headers ?? {}),
+      },
     });
   } catch {
     throw new EngineError(

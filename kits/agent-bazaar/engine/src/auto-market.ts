@@ -73,7 +73,7 @@ export async function maybePostAutoTask(): Promise<boolean> {
   // reaches QA, one extra slot opens (up to MAX_TOTAL) so the board keeps
   // draining instead of stalling behind the QA/commit tail.
   const load = await countLoad();
-  const allow = load.early < MAX_EARLY || (load.qa >= 1 && load.total < MAX_TOTAL);
+  const allow = load.total < MAX_TOTAL && (load.early < MAX_EARLY || load.qa >= 1);
   if (!allow) return false;
 
   const available = TASK_POOL.filter((t) => !recentlyUsedGoals.has(t.goal));

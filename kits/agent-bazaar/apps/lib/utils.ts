@@ -17,6 +17,8 @@ export function formatCurrency(amount: number): string {
 /** Shorten a hash for display. */
 export function formatHash(hash: string, length: number = 8): string {
   if (!hash) return "—";
+  // Too short to hold both segments — return unchanged instead of duplicating.
+  if (hash.length <= length * 2) return hash;
   return `${hash.slice(0, length)}...${hash.slice(-length)}`;
 }
 

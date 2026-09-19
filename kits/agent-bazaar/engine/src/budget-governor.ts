@@ -28,6 +28,26 @@ export function recordSpend(amount: number): void {
   spentToday += amount;
 }
 
+/**
+ * Atomically reserve budget before an external attempt begins (check and
+ * increment in one synchronous step, so concurrent rounds cannot both pass
+ * a canSpend check and overspend). Returns false when exhausted — the caller
+ * proceeds on fallbacks without recording. Release only when the attempt did
+ * not consume budget (e.g. it threw before the flow ran).
+ */
+export function tryReserve(amount: number): boolean {
+  resetIfNeeded();
+  if (spentToday + amount > DAILY_BUDGET) return false;
+  spentToday += amount;
+  return true;
+}
+
+/** Release a reservation made by tryReserve. */
+export function release(amount: number): void {
+  resetIfNeeded();
+  spentToday = Math.max(0, spentToday - amount);
+}
+
 /** Return current daily budget spend and remaining. */
 export function getBudgetStatus(): { spent: number; remaining: number; daily: number } {
   resetIfNeeded();

@@ -124,22 +124,34 @@ export class LedgerAdapter implements SettlementAdapter {
       source: "live",
     };
 
-    const { error: receiptError } = await supabase.from("settlement_receipts").insert({
-      id: receipt.receiptId,
-      bounty_id: bountyId,
-      escrow_id: receipt.escrowId,
-      from_agent: receipt.fromAgent,
-      to_agent: receipt.toAgent,
-      gross_amount: Number(receipt.grossAmount),
-      fee_amount: Number(receipt.feeAmount),
-      net_amount: Number(receipt.netAmount),
-      tx_hash: null,
-      adapter: receipt.adapter,
-    });
-    if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
+    try {
+      const { error: receiptError } = await supabase.from("settlement_receipts").insert({
+        id: receipt.receiptId,
+        bounty_id: bountyId,
+        escrow_id: receipt.escrowId,
+        from_agent: receipt.fromAgent,
+        to_agent: receipt.toAgent,
+        gross_amount: Number(receipt.grossAmount),
+        fee_amount: Number(receipt.feeAmount),
+        net_amount: Number(receipt.netAmount),
+        tx_hash: null,
+        adapter: receipt.adapter,
+      });
+      if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
 
-    await appendLedger(to, Number(netAmount), "settlement", bountyId);
-    await appendLedger(fromAgent, -Number(feeAmount), "fee", bountyId);
+      // The lock path already charged the poster the gross amount; the worker
+      // takes net and the fee stays recorded on the receipt (no second poster
+      // debit, no phantom platform account).
+      await appendLedger(to, Number(netAmount), "settlement", bountyId);
+    } catch (err) {
+      // Compensate: release the claim so a retry can process it again instead
+      // of leaving the escrow terminally settled with no receipt/ledger.
+      await supabase
+        .from("escrows")
+        .update({ status: "locked", settled_at: null })
+        .eq("id", escrowId);
+      throw err;
+    }
 
     return receipt;
   }
@@ -193,21 +205,30 @@ export class LedgerAdapter implements SettlementAdapter {
       source: "live",
     };
 
-    const { error: receiptError } = await supabase.from("settlement_receipts").insert({
-      id: receipt.receiptId,
-      bounty_id: bountyId,
-      escrow_id: receipt.escrowId,
-      from_agent: receipt.fromAgent,
-      to_agent: receipt.toAgent,
-      gross_amount: Number(receipt.grossAmount),
-      fee_amount: Number(receipt.feeAmount),
-      net_amount: Number(receipt.netAmount),
-      tx_hash: null,
-      adapter: receipt.adapter,
-    });
-    if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
+    try {
+      const { error: receiptError } = await supabase.from("settlement_receipts").insert({
+        id: receipt.receiptId,
+        bounty_id: bountyId,
+        escrow_id: receipt.escrowId,
+        from_agent: receipt.fromAgent,
+        to_agent: receipt.toAgent,
+        gross_amount: Number(receipt.grossAmount),
+        fee_amount: Number(receipt.feeAmount),
+        net_amount: Number(receipt.netAmount),
+        tx_hash: null,
+        adapter: receipt.adapter,
+      });
+      if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
 
-    await appendLedger(to, Number(grossAmount), "refund", bountyId);
+      await appendLedger(to, Number(grossAmount), "refund", bountyId);
+    } catch (err) {
+      // Compensate: release the claim so a retry can process it again.
+      await supabase
+        .from("escrows")
+        .update({ status: "locked", settled_at: null })
+        .eq("id", escrowId);
+      throw err;
+    }
 
     return receipt;
   }

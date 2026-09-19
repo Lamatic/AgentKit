@@ -1,4 +1,4 @@
-import { privateKeyToAccount } from "viem/accounts";
+import { workerWalletAddress } from "./uuid.js";
 
 /** Print deterministic testnet wallet addresses. */
 async function fund(): Promise<void> {
@@ -10,7 +10,7 @@ async function fund(): Promise<void> {
   }
 
   const wallets = [
-    { name: "Client-Prime", role: "client" },
+    { name: "Client-Alpha", role: "client" },
     { name: "Summarizer-Alpha", role: "worker" },
     { name: "Researcher-Bravo", role: "worker" },
     { name: "Datagen-Charlie", role: "worker" },
@@ -19,10 +19,7 @@ async function fund(): Promise<void> {
   console.log("Testnet Wallet Addresses (Base Sepolia):");
   console.log("========================================");
   for (const wallet of wallets) {
-    const entropy = BigInt(`0x${Buffer.from(wallet.name).toString("hex").padStart(64, "0")}`);
-    const pk = `0x${entropy.toString(16).padStart(64, "0")}` as `0x${string}`;
-    const account = privateKeyToAccount(pk);
-    console.log(`${wallet.name} (${wallet.role}): ${account.address}`);
+    console.log(`${wallet.name} (${wallet.role}): ${workerWalletAddress(wallet.name)}`);
   }
 
   console.log("\nTo fund these wallets, visit: https://www.alchemy.com/faucets/base-sepolia");

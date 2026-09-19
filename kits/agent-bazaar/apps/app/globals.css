@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #fafaf8;
+  --color-card: #ffffff;
+  --color-hairline: #e7e7e2;
+  --color-subtle: #f4f4f0;
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-light: #eef2ff;
+  --color-status-green: #10b981;
+  --color-status-green-bg: #ecfdf5;
+  --color-status-amber: #f59e0b;
+  --color-status-amber-bg: #fffbeb;
+  --color-status-red: #ef4444;
+  --color-status-red-bg: #fef2f2;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* ------------------------------------------------------------------ */
+/* Legacy design tokens (kept so the other dashboard routes keep their */
+/* styling). The main market console uses the @theme tokens above.     */
+/* ------------------------------------------------------------------ */
+:root {
+  --bg-canvas: #fafaf8;
+  --bg-surface: #ffffff;
+  --bg-surface-container: #f4f4f0;
+  --border: #e7e7e2;
+  --outline: #d1d5db;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-muted: #4f46e5;
+  --secondary: #10b981;
+  --secondary-hover: #059669;
+  --secondary-muted: #10b981;
+  --tertiary: #f59e0b;
+  --tertiary-hover: #d97706;
+  --error: #ef4444;
+  --error-hover: #dc2626;
+  --text-primary: #111827;
+  --text-muted: #6b7280;
+  --text-muted-alt: #374151;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Legacy utility helpers -------------------------------------------------- */
+.bg-surface {
+  background-color: var(--bg-surface);
+}
+
+.bg-surface-container {
+  background-color: var(--bg-surface-container);
+}
+
+.border-token {
+  border-color: var(--border);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-muted-alt {
+  color: var(--text-muted-alt);
+}
+
+.text-accent {
+  color: var(--primary);
+}
+
+.text-success {
+  color: var(--secondary);
+}
+
+.text-warning {
+  color: var(--tertiary);
+}
+
+.text-error {
+  color: var(--error);
+}
+
+/* Hairline frames -------------------------------------------------------- */
+.hairline-border {
+  border: 1px solid var(--border);
+}
+
+.hairline-b {
+  border-bottom: 1px solid var(--border);
+}
+
+.hairline-t {
+  border-top: 1px solid var(--border);
+}
+
+.hairline-l {
+  border-left: 1px solid var(--border);
+}
+
+.hairline-r {
+  border-right: 1px solid var(--border);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Scrollbars ------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Animations ------------------------------------------------------------- */
+@keyframes ab-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: ab-rise 0.35s ease-out both;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+.dot-pulse {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ab-bar {
+  from {
+    width: 0;
+  }
+}
+
+.animate-bar {
+  animation: ab-bar 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: ab-spin 0.9s linear infinite;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

@@ -46,10 +46,17 @@ const isEntry =
   process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isEntry) {
-  resetEconomy()
-    .then(() => console.log("Economy reset and reseeded."))
-    .catch((err) => {
-      console.error(err);
-      process.exitCode = 1;
-    });
+  if (process.env.AGENT_BAZAAR_ALLOW_DESTRUCTIVE !== "true") {
+    console.error(
+      "Refusing to reset economy: set AGENT_BAZAAR_ALLOW_DESTRUCTIVE=true to opt in.",
+    );
+    process.exitCode = 1;
+  } else {
+    resetEconomy()
+      .then(() => console.log("Economy reset and reseeded."))
+      .catch((err) => {
+        console.error(err);
+        process.exitCode = 1;
+      });
+  }
 }

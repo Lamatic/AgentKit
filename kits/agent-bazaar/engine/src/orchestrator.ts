@@ -2,8 +2,8 @@ import { supabase } from "./supabase.js";
 import { LedgerAdapter, appendLedger } from "./settlement/ledger-adapter.js";
 import { X402Adapter } from "./settlement/x402-adapter.js";
 import type { SettlementAdapter } from "./settlement/types.js";
-import { idempotencyKey, checkIdempotency } from "./idempotency.js";
-import { canSpend, recordSpend, getMode } from "./budget-governor.js";
+import { idempotencyKey, checkIdempotencyAsync } from "./idempotency.js";
+import { canSpend, recordSpend, tryReserve, release, getMode } from "./budget-governor.js";
 import * as flows from "./flows-client.js";
 import { transition } from "./state-machine.js";
 import type { BountyStatus, QAVerdict } from "./state-machine.js";
@@ -288,7 +288,7 @@ async function resumeInEscrow(
 
   if (Date.now() - new Date(escrow.created_at).getTime() > ESCROW_TIMEOUT_MS) {
     const key = idempotencyKey(bountyId, "refund", 1);
-    if (canSpend(1) && checkIdempotency(key)) {
+    if (canSpend(1) && (await checkIdempotencyAsync(key))) {
       await adapter.refund(state.escrowId, poster);
       recordSpend(1);
       ctx.refunds++;
@@ -447,7 +447,7 @@ async function resumeQaPass(
   }
 
   const key = idempotencyKey(bountyId, "settle", attempt);
-  if (!checkIdempotency(key)) return;
+  if (!(await checkIdempotencyAsync(key))) return;
 
   const receipt = await adapter.settle(escrow.id, workerId);
   recordSpend(1);
@@ -481,7 +481,7 @@ async function refundAndFinish(
   if (escrow && escrow.status !== "refunded") {
     const workerId = await escrowWorkerId(escrow.id);
     const key = idempotencyKey(bountyId, "refund", state.revisionOf);
-    if (canSpend(1) && checkIdempotency(key)) {
+    if (canSpend(1) && (await checkIdempotencyAsync(key))) {
       await adapter.refund(escrow.id, poster);
       recordSpend(1);
       ctx.refunds++;
@@ -534,6 +534,9 @@ async function ensureBids(
       openBids: { bids: [] as Record<string, unknown>[] },
     };
 
+    // Reserve up front (atomic check+increment); the fallback path below still
+    // counts as consumed, matching the previous finally-recordSpend accounting.
+    tryReserve(1);
     let bidResult: Record<string, unknown>;
     try {
       bidResult = await pipe("generate-bid", bidInput, () =>
@@ -543,8 +546,6 @@ async function ensureBids(
         `[ensureBids] generate-bid failed for ${worker.name} on bounty ${bountyId}: ${(err as Error).message}. Falling back.`,
       );
       bidResult = { price: null, eta_hours: null, pitch: null };
-    } finally {
-      recordSpend(1);
     }
 
     let price = Number(bidResult.price as unknown);
@@ -641,7 +642,7 @@ async function awardAndDeliver(
 
   const hydrated = await hydrateBids(bids);
 
-  if (!canSpend(1)) {
+  if (!tryReserve(1)) {
     // Degraded mode: budget exhausted. Never stall — fall through and run on
     // replay/fallback outputs so the pipeline keeps settling.
     console.log(`[budget] exhausted — bounty ${bountyId} proceeding on fallbacks`);
@@ -653,8 +654,15 @@ async function awardAndDeliver(
     capability: String(hydrated[0]?.capability || "capabilities/general.md"),
   };
 
-  const result = await pipe("execute-task", taskInput, () => flows.executeTask(taskInput) as unknown as Promise<Record<string, unknown>>, ctx);
-  recordSpend(1);
+  // Reservation above already counted this attempt; release only if the attempt
+  // throws before consuming budget.
+  let result: Record<string, unknown>;
+  try {
+    result = await pipe("execute-task", taskInput, () => flows.executeTask(taskInput) as unknown as Promise<Record<string, unknown>>, ctx);
+  } catch (err) {
+    release(1);
+    throw err;
+  }
 
   const winner = resolveWinner(hydrated, result.winnerBidId as unknown);
   const rawEscrowId = existing?.escrowId || (result.escrowId as string) || crypto.randomUUID();
@@ -826,12 +834,19 @@ async function callQaJudge(
     },
   };
 
-  const result = await pipe("qa-judge", qaInput, () => flows.qaJudge(qaInput) as unknown as Promise<Record<string, unknown>>, ctx);
-  recordSpend(1);
+  tryReserve(1);
+  let result: Record<string, unknown>;
+  try {
+    result = await pipe("qa-judge", qaInput, () => flows.qaJudge(qaInput) as unknown as Promise<Record<string, unknown>>, ctx);
+  } catch (err) {
+    release(1);
+    throw err;
+  }
 
   const parsedScore = Number(result.score);
   const score = Number.isFinite(parsedScore) ? Math.max(0, Math.min(1, parsedScore)) : 0.75;
-  const verdict: "pass" | "fail" = String(result.verdict) === "fail" ? "fail" : "pass";
+  // Fail closed: only an explicit "pass" settles; anything unexpected retries.
+  const verdict: "pass" | "fail" = String(result.verdict) === "pass" ? "pass" : "fail";
 
   return {
     score,

@@ -11,8 +11,25 @@ import { transition } from "./state-machine.js";
 import { maybePostAutoTask, countLoad } from "./auto-market.js";
 
 const PORT = Number(process.env.ENGINE_PORT || "8787");
+const HOST = process.env.ENGINE_HOST || "127.0.0.1";
 const ENGINE_TOKEN = process.env.ENGINE_TOKEN || "";
 const DASHBOARD_ORIGIN = process.env.DASHBOARD_ORIGIN || "http://localhost:3000";
+
+/** Check whether a listener host is loopback-only. */
+function isLoopback(host: string): boolean {
+  const h = host.toLowerCase().replace(/^\[(.*)\]$/, "$1");
+  return h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "::ffff:127.0.0.1";
+}
+
+// A non-loopback listener exposes mutating routes to the network: require the
+// shared token in that case and fail startup loudly when it is absent. CORS
+// stays restricted to the dashboard origin but is not authorization.
+if (!isLoopback(HOST) && !ENGINE_TOKEN) {
+  console.error(
+    `[engine] refusing to listen on non-loopback ${HOST} without ENGINE_TOKEN set`,
+  );
+  process.exit(1);
+}
 
 /** Require a shared Bearer token on mutating routes when ENGINE_TOKEN is set. */
 function requireAuth(req: IncomingMessage): void {
@@ -409,8 +426,8 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, async () => {
-  console.log(`Agent Bazaar engine listening on http://localhost:${PORT}`);
+server.listen(PORT, HOST, async () => {
+  console.log(`Agent Bazaar engine listening on http://${HOST}:${PORT}`);
 
   // Auto-seed agents on startup
   try {

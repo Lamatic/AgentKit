@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { artifactText, type BountyView, type Market } from "@/lib/engine-client";
 import { cn, formatAmount, formatPercent, shortId, timeAgo } from "@/lib/utils";
 
@@ -408,7 +408,7 @@ function ProgressStep({
   const labelClass = settledAll
     ? "text-status-green"
     : index < activeIndex
-      ? "text-[#4F46E5]"
+      ? "text-primary"
       : isActive
         ? "text-status-amber"
         : "text-neutral-400";
@@ -450,12 +450,37 @@ function ProgressStep({
 function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: number }) {
   const [open, setOpen] = useState(false);
   const text = artifactText(artifact);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    // Move focus into the dialog on open; trap Tab inside while open and
+    // restore focus to the trigger on close. Escape/overlay-click behavior kept.
+    panelRef.current?.focus();
     /** onKey helper. */
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !panelRef.current) return;
+      const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusables.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
@@ -463,13 +488,15 @@ function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: num
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
+      triggerRef.current?.focus();
     };
-  }, [open ]);
+  }, [open]);
 
   return (
     <div className="mt-2">
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 rounded-[6px] border border-hairline bg-white px-2.5 py-1 text-[12px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
       >
@@ -498,6 +525,8 @@ function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: num
           className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/50 p-4"
         >
           <div
+            ref={panelRef}
+            tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
             className="flex max-h-[70vh] w-[40vw] min-w-[320px] max-w-[720px] flex-col overflow-hidden rounded-[10px] border border-neutral-800 bg-neutral-900 shadow-2xl"
           >

@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 import { supabase } from "../supabase.js";
 import { transition } from "../state-machine.js";
 import type { Bid, BountyStatus } from "../state-machine.js";
-import { deterministicUUID } from "./uuid.js";
+import { deterministicUUID, workerWalletAddress } from "./uuid.js";
 import { CLIENT_AGENT, ROSTER } from "../agents/roster.js";
 
 const SEED_AGENTS: Array<{ name: string; specialty: string }> = [
@@ -82,7 +82,7 @@ export async function ensureAgents(): Promise<void> {
     id: agentId(a.name),
     name: a.name,
     specialty: a.specialty,
-    wallet_address: `0x${deterministicUUID(`wallet-${a.name}`).replace(/-/g, "").slice(0, 40)}`,
+    wallet_address: workerWalletAddress(a.name),
   }));
   const clientRow = {
     id: CLIENT_AGENT.id,
@@ -334,9 +334,10 @@ export async function seed(): Promise<void> {
       .eq("id", bountyId);
 
     const settledAt = new Date(new Date(hoursAgo(24 - i * 8)).getTime());
+    // Poster pays exactly the gross bid (locked once); worker takes net and
+    // the fee lives on the receipt — no second poster debit.
     await appendSeedLedger(CLIENT_AGENT.id, -bidPrice, "bid_lock", bountyId, settledAt.toISOString());
     await appendSeedLedger(workerAgentId, netAmount, "settlement", bountyId, new Date(settledAt.getTime() + 1).toISOString());
-    await appendSeedLedger(CLIENT_AGENT.id, -feeAmount, "fee", bountyId, new Date(settledAt.getTime() + 2).toISOString());
 
     console.log(
       `  Bounty ${i + 1}: ${bountyDef.goal.substring(0, 40)}... → settled (score: ${score})`,

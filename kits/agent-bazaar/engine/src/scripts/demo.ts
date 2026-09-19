@@ -24,7 +24,8 @@ async function clearAll(): Promise<void> {
     "agents",
   ];
   for (const table of tables) {
-    await supabase.from(table).delete().neq("id", ALL_ZERO);
+    const { error } = await supabase.from(table).delete().neq("id", ALL_ZERO);
+    if (error) throw new Error(`clearAll(${table}): ${error.message}`);
   }
 }
 
