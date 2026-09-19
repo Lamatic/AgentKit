@@ -23,15 +23,20 @@ ALTER TABLE credit_ledger
 ALTER TABLE credit_ledger ADD COLUMN IF NOT EXISTS seq bigint GENERATED ALWAYS AS IDENTITY;
 CREATE INDEX IF NOT EXISTS idx_credit_ledger_agent_seq ON credit_ledger (agent_id, seq DESC);
 
--- Atomically append a live ledger entry: balance_after is computed and the
+-- Atomically append a ledger entry: balance_after is computed and the
 -- row inserted in a single statement, serialized per agent via a
 -- transaction-scoped advisory lock so concurrent writers cannot compute
--- the same running balance.
-CREATE OR REPLACE FUNCTION append_ledger(
+-- the same running balance. p_source/p_created_at let seed flows preserve
+-- their metadata; the signature change requires DROP + CREATE (OR REPLACE
+-- cannot add parameters).
+DROP FUNCTION IF EXISTS append_ledger(uuid, bigint, text, uuid);
+CREATE FUNCTION append_ledger(
   p_agent_id uuid,
   p_amount bigint,
   p_reason text,
-  p_ref_id uuid DEFAULT NULL
+  p_ref_id uuid DEFAULT NULL,
+  p_source text DEFAULT 'live',
+  p_created_at timestamptz DEFAULT NULL
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -40,7 +45,7 @@ SET search_path = public
 AS $$
 BEGIN
   PERFORM pg_advisory_xact_lock(hashtext(p_agent_id::text));
-  INSERT INTO credit_ledger (agent_id, amount, balance_after, reason, ref_id, source)
+  INSERT INTO credit_ledger (agent_id, amount, balance_after, reason, ref_id, source, created_at)
   SELECT p_agent_id,
          p_amount,
          COALESCE(
@@ -53,12 +58,13 @@ BEGIN
          ) + p_amount,
          p_reason,
          p_ref_id,
-         'live';
+         p_source,
+         COALESCE(p_created_at, now());
 END;
 $$;
 
 -- SECURITY DEFINER functions are executable by PUBLIC by default: revoke
 -- first so anon/authenticated cannot append ledger entries directly.
 -- The engine calls this RPC with the service-role key.
-REVOKE ALL ON FUNCTION append_ledger(uuid, bigint, text, uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION append_ledger(uuid, bigint, text, uuid) TO service_role;
+REVOKE ALL ON FUNCTION append_ledger(uuid, bigint, text, uuid, text, timestamptz) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION append_ledger(uuid, bigint, text, uuid, text, timestamptz) TO service_role;

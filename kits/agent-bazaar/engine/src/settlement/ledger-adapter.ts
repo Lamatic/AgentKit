@@ -10,12 +10,14 @@ interface LockExtra {
  * atomically by the append_ledger database RPC (see 002 migration).
  * Amounts cross the TypeScript boundary as canonical decimal strings so
  * bigint values survive past Number.MAX_SAFE_INTEGER; PostgREST casts the
- * string to the RPC's bigint parameter. */
+ * string to the RPC's bigint parameter. opts lets seed flows preserve
+ * their source/created_at metadata through the same atomic path. */
 export async function appendLedger(
   agentId: string,
   amount: string,
   reason: string,
   refId: string | undefined,
+  opts?: { source?: string; createdAt?: string },
 ): Promise<void> {
   if (!/^-?\d+$/.test(amount)) {
     throw new Error(`Ledger append failed: amount "${amount}" is not a canonical decimal integer`);
@@ -25,6 +27,8 @@ export async function appendLedger(
     p_amount: amount,
     p_reason: reason,
     p_ref_id: refId ?? null,
+    p_source: opts?.source ?? "live",
+    p_created_at: opts?.createdAt ?? null,
   });
   if (error) throw new Error(`Ledger append failed: ${error.message}`);
 }
@@ -121,9 +125,9 @@ export class LedgerAdapter implements SettlementAdapter {
         escrow_id: receipt.escrowId,
         from_agent: receipt.fromAgent,
         to_agent: receipt.toAgent,
-        gross_amount: Number(receipt.grossAmount),
-        fee_amount: Number(receipt.feeAmount),
-        net_amount: Number(receipt.netAmount),
+        gross_amount: receipt.grossAmount.toString(),
+        fee_amount: receipt.feeAmount.toString(),
+        net_amount: receipt.netAmount.toString(),
         tx_hash: null,
         adapter: receipt.adapter,
       });
@@ -215,9 +219,9 @@ export class LedgerAdapter implements SettlementAdapter {
         escrow_id: receipt.escrowId,
         from_agent: receipt.fromAgent,
         to_agent: receipt.toAgent,
-        gross_amount: Number(receipt.grossAmount),
-        fee_amount: Number(receipt.feeAmount),
-        net_amount: Number(receipt.netAmount),
+        gross_amount: receipt.grossAmount.toString(),
+        fee_amount: receipt.feeAmount.toString(),
+        net_amount: receipt.netAmount.toString(),
         tx_hash: null,
         adapter: receipt.adapter,
       });

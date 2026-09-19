@@ -3,6 +3,7 @@ import { resetIdempotency } from "../idempotency.js";
 import { supabase } from "../supabase.js";
 import { seed } from "./seed.js";
 import { deterministicUUID } from "./uuid.js";
+import { CLIENT_AGENT } from "../agents/roster.js";
 
 const ALL_ZERO = "00000000-0000-0000-0000-000000000000";
 
@@ -42,13 +43,9 @@ async function demo(): Promise<void> {
 
   console.log("\nStep 3: Posting a live bounty...");
 
-  const { data: agent } = await supabase
-    .from("agents")
-    .select("id")
-    .eq("name", "Summarizer-Alpha")
-    .single();
-
-  const posterId = agent?.id || deterministicUUID("agent-summarizer-alpha");
+  // The live bounty is posted by the dedicated client agent, matching every
+  // other bounty-posting flow (never a worker).
+  const posterId = CLIENT_AGENT.id;
   const liveBountyId = deterministicUUID("live-bounty-demo");
 
   const { error: liveErr } = await supabase.from("bounties").insert({

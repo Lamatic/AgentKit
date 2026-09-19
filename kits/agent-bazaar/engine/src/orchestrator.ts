@@ -724,16 +724,42 @@ async function awardAndDeliver(
       lock_ref: lockRef,
       status: "locked",
     });
-    if (error) throw new Error(`Escrow insert failed: ${error.message}`);
+    if (error) {
+      // Uniqueness conflict: a concurrent writer won the race for this
+      // bounty — reload their escrow and continue with it instead of
+      // double-locking funds.
+      if (error.code === "23505") {
+        const { data: raced, error: reloadError } = await supabase
+          .from("escrows")
+          .select("id")
+          .eq("bounty_id", bountyId)
+          .maybeSingle();
+        if (reloadError || !raced) throw new Error(`Escrow insert failed: ${error.message}`);
+      } else {
+        throw new Error(`Escrow insert failed: ${error.message}`);
+      }
+    } else {
+      // Treat the insert and lock/debit as one claim: a failed lock or debit
+      // must not leave a locked row that suppresses retry. Roll back our own
+      // insert, log if the rollback fails, and rethrow the original error.
+      // recordSpend runs only after both operations succeed.
+      try {
+        const lock = await adapter.lock(escrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
 
-    const lock = await adapter.lock(escrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
-    recordSpend(1);
+        if (adapter instanceof LedgerAdapter) {
+          await appendLedger(poster, String(-amount), "bid_lock", bountyId);
+        }
+        recordSpend(1);
 
-    if (adapter instanceof LedgerAdapter) {
-      await appendLedger(poster, String(-amount), "bid_lock", bountyId);
+        void lock;
+      } catch (err) {
+        const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", escrowId);
+        if (rollbackError) {
+          console.error(`[escrow] rollback failed for ${escrowId}: ${rollbackError.message} — manual reconciliation required`);
+        }
+        throw err;
+      }
     }
-
-    void lock;
   }
 
   let next: BountyStatus = current;
@@ -751,9 +777,16 @@ async function awardAndDeliver(
   // Persist the FULL execute-task output as an envelope so the dashboard can
   // show the complete deliverable. Previously only `result.artifact` was kept
   // and summary/scores/reason were silently discarded.
+  const deliverable = normalizeDeliverable(result.artifact, bounty.goal);
+  // The flow's outputMapping assigns the whole serialized worker response to
+  // artifact and never maps summary: recover it from the parsed worker JSON
+  // so the expected result.summary value survives the boundary.
+  const summary = String(
+    result.summary || (typeof deliverable.summary === "string" ? deliverable.summary : "") || "",
+  );
   const artifact = {
-    deliverable: normalizeDeliverable(result.artifact, bounty.goal),
-    summary: String(result.summary || ""),
+    deliverable,
+    summary,
     scores: (result.scores as Record<string, unknown> | null) ?? null,
     reason: String(result.reason || ""),
     winnerBidId: winner.id,
@@ -765,7 +798,7 @@ async function awardAndDeliver(
     bounty_id: bountyId,
     attempt: 1,
     artifact,
-    summary: String(result.summary || "Delivered artifact"),
+    summary: summary || "Delivered artifact",
   });
   if (error) throw new Error(`Delivery insert failed: ${error.message}`);
 
@@ -874,8 +907,14 @@ async function callQaJudge(
 
   const parsedScore = Number(result.score);
   const score = Number.isFinite(parsedScore) ? Math.max(0, Math.min(1, parsedScore)) : 0.75;
+  // Hold verdict from a degraded breaker: leave the delivery unchanged.
+  if (String(result.action) === "hold") {
+    if (reserved) release(1);
+    return null;
+  }
   // Fail closed: only an explicit "pass" settles; anything unexpected retries.
-  const verdict: "pass" | "fail" = String(result.verdict) === "pass" ? "pass" : "fail";
+  // Verdict supremacy with teeth: a pass below the 0.7 threshold cannot settle.
+  const verdict: "pass" | "fail" = String(result.verdict) === "pass" && score >= 0.7 ? "pass" : "fail";
 
   return {
     score,

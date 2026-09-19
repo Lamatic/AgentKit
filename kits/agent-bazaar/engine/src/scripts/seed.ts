@@ -4,6 +4,7 @@ import { supabase } from "../supabase.js";
 import { transition } from "../state-machine.js";
 import type { Bid, BountyStatus } from "../state-machine.js";
 import { deterministicUUID, workerWalletAddress } from "./uuid.js";
+import { appendLedger } from "../settlement/ledger-adapter.js";
 import { CLIENT_AGENT, ROSTER } from "../agents/roster.js";
 
 const SEED_AGENTS: Array<{ name: string; specialty: string }> = [
@@ -131,32 +132,19 @@ async function ensureInitialGrant(agentIdValue: string, amount: number): Promise
   if (error) throw new Error(`seed grant lookup: ${error.message}`);
   if (data && data.length > 0) return;
 
-  const { error: insertErr } = await supabase.from("credit_ledger").insert({
-    agent_id: agentIdValue,
-    amount,
-    balance_after: amount,
-    reason: "initial_grant",
-    ref_id: null,
-    source: "seed",
-    created_at: hoursAgo(72),
-  });
-  if (insertErr) throw new Error(`seed grant insert: ${insertErr.message}`);
+  try {
+    await appendLedger(agentIdValue, String(amount), "initial_grant", undefined, {
+      source: "seed",
+      createdAt: hoursAgo(72),
+    });
+  } catch (err) {
+    throw new Error(`seed grant insert: ${(err as Error).message}`);
+  }
 }
 
-/** Fetch the latest ledger balance for an agent. */
-async function lastBalance(agentIdValue: string): Promise<number> {
-  const { data, error } = await supabase
-    .from("credit_ledger")
-    .select("balance_after")
-    .eq("agent_id", agentIdValue)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw new Error(`seed balance lookup: ${error.message}`);
-  return data ? Number(data.balance_after) : 0;
-}
-
-/** appendSeedLedger helper. */
+/** appendSeedLedger helper: seed writes go through the shared atomic RPC so
+ * history balances follow real append order; source/created_at metadata is
+ * preserved via the RPC's supported parameters. */
 async function appendSeedLedger(
   agentIdValue: string,
   amount: number,
@@ -164,17 +152,14 @@ async function appendSeedLedger(
   refId: string,
   createdAt: string,
 ): Promise<void> {
-  const balance = await lastBalance(agentIdValue);
-  const { error } = await supabase.from("credit_ledger").insert({
-    agent_id: agentIdValue,
-    amount,
-    balance_after: balance + amount,
-    reason,
-    ref_id: refId,
-    source: "seed",
-    created_at: createdAt,
-  });
-  if (error) throw new Error(`seed ledger append: ${error.message}`);
+  try {
+    await appendLedger(agentIdValue, String(amount), reason, refId, {
+      source: "seed",
+      createdAt,
+    });
+  } catch (err) {
+    throw new Error(`seed ledger append: ${(err as Error).message}`);
+  }
 }
 
 /** Seed deterministic marketplace history. */

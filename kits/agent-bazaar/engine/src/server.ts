@@ -31,8 +31,29 @@ if (!isLoopback(HOST) && !ENGINE_TOKEN) {
   process.exit(1);
 }
 
-/** Require a shared Bearer token on mutating routes when ENGINE_TOKEN is set. */
+/** Guard mutating routes: reject unapproved origins and non-JSON bodies even
+ * when ENGINE_TOKEN is empty; Bearer-token validation still applies when it
+ * is set. Non-mutating requests are unaffected. */
 function requireAuth(req: IncomingMessage): void {
+  const method = (req.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+    // Dashboard server-actions and curl send no Origin: only a
+    // present-but-foreign Origin (browser cross-origin write) is rejected.
+    const origin = req.headers.origin;
+    if (origin && origin !== DASHBOARD_ORIGIN) {
+      throw new HttpError(403, "Forbidden origin");
+    }
+    const contentLength = req.headers["content-length"];
+    const hasBody =
+      (typeof contentLength === "string" && contentLength !== "" && contentLength !== "0") ||
+      !!req.headers["transfer-encoding"];
+    if (hasBody) {
+      const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
+      if (contentType !== "application/json") {
+        throw new HttpError(415, "Content-Type must be application/json");
+      }
+    }
+  }
   if (!ENGINE_TOKEN) return;
   const header = req.headers.authorization || "";
   if (header !== `Bearer ${ENGINE_TOKEN}`) {

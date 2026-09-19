@@ -230,6 +230,18 @@ export async function qaJudge(input: {
   // Fail closed: when the QA flow is unavailable the bounty must NOT settle on
   // an unreviewed pass. Return a non-settling fail so the pipeline retries the
   // delivery (and refunds after max attempts) instead of paying out blind.
+  // Open breaker: hold the delivery without consuming a QA attempt so the
+  // pipeline waits instead of burning retries on never-judged work.
+  if (getLlmStatus().degraded) {
+    return {
+      score: 0,
+      verdict: "fail",
+      rationale: "[DEGRADED] LLM breaker open — QA on hold; delivery retained without consuming an attempt.",
+      action: "hold",
+      newAttempt: input.attempt,
+      reason: "",
+    };
+  }
   const result = await callWithFallback(FLOWS.qaJudge, "qaJudge", input as Record<string, unknown>, {
     score: 0,
     verdict: "fail",

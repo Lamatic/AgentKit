@@ -38,9 +38,19 @@ export async function recordOutputs(
 /** Load the most recent replay recording. */
 export async function loadLatestRecording(): Promise<RecordedFlowOutput[] | null> {
   ensureDir();
-  const files = readdirSync(RECORDINGS_DIR)
+  // Precompute mtimes once, guarded: a file that disappears mid-scan sorts
+  // last instead of throwing out of the comparator and breaking runRound.
+  const entries = readdirSync(RECORDINGS_DIR)
     .filter((f) => f.endsWith(".json"))
-    .sort((a, b) => statSync(join(RECORDINGS_DIR, b)).mtimeMs - statSync(join(RECORDINGS_DIR, a)).mtimeMs);
+    .map((f) => {
+      try {
+        return { file: f, mtime: statSync(join(RECORDINGS_DIR, f)).mtimeMs };
+      } catch {
+        return { file: f, mtime: -1 };
+      }
+    })
+    .sort((a, b) => b.mtime - a.mtime);
+  const files = entries.map((e) => e.file);
 
   if (files.length === 0) return null;
 

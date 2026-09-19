@@ -186,8 +186,25 @@ export class X402Adapter implements SettlementAdapter {
       throw new Error(`x402 settle failed: ${text}`);
     }
 
-    const data = await response.json() as { amount: string; txHash?: string };
-    const grossAmount = BigInt(data.amount);
+    // Validate the facilitator body before receipt creation: read as text so
+    // a malformed payload is preserved (bounded) for manual reconciliation.
+    const settleBody = await response.text();
+    let settleData: { amount?: unknown; txHash?: unknown };
+    try {
+      settleData = JSON.parse(settleBody) as { amount?: unknown; txHash?: unknown };
+    } catch {
+      console.error(`[x402] settle invalid facilitator JSON for escrow ${escrowId}: ${settleBody.slice(0, 500)} — manual reconciliation required`);
+      throw new Error(`x402 settle failed: invalid facilitator response`);
+    }
+    // A facilitator that only confirms transfer may omit the amount: derive
+    // it from the locked escrow instead of failing the settlement.
+    let grossAmount: bigint;
+    try {
+      grossAmount = settleData.amount != null ? BigInt(String(settleData.amount)) : BigInt(escrow.amount);
+    } catch {
+      console.error(`[x402] settle invalid facilitator amount for escrow ${escrowId}: ${settleBody.slice(0, 500)} — manual reconciliation required`);
+      throw new Error(`x402 settle failed: invalid facilitator amount`);
+    }
     const feeAmount = (grossAmount * 10n) / 100n;
     const netAmount = grossAmount - feeAmount;
 
@@ -197,7 +214,7 @@ export class X402Adapter implements SettlementAdapter {
     const receipt: SettlementReceipt = {
       receiptId: crypto.randomUUID(),
       escrowId,
-      txHash: data.txHash || null,
+      txHash: typeof settleData.txHash === "string" ? settleData.txHash : null,
       fromAgent,
       toAgent: to,
       grossAmount,
@@ -214,9 +231,9 @@ export class X402Adapter implements SettlementAdapter {
       escrow_id: receipt.escrowId,
       from_agent: receipt.fromAgent,
       to_agent: receipt.toAgent,
-      gross_amount: Number(receipt.grossAmount),
-      fee_amount: Number(receipt.feeAmount),
-      net_amount: Number(receipt.netAmount),
+        gross_amount: receipt.grossAmount.toString(),
+        fee_amount: receipt.feeAmount.toString(),
+        net_amount: receipt.netAmount.toString(),
       tx_hash: receipt.txHash,
       adapter: receipt.adapter,
     });
@@ -284,8 +301,23 @@ export class X402Adapter implements SettlementAdapter {
       throw new Error(`x402 refund failed: ${text}`);
     }
 
-    const data = await response.json() as { amount: string; txHash?: string };
-    const grossAmount = BigInt(data.amount);
+    // Validate the facilitator body before receipt creation (see settle).
+    const refundBody = await response.text();
+    let refundData: { amount?: unknown; txHash?: unknown };
+    try {
+      refundData = JSON.parse(refundBody) as { amount?: unknown; txHash?: unknown };
+    } catch {
+      console.error(`[x402] refund invalid facilitator JSON for escrow ${escrowId}: ${refundBody.slice(0, 500)} — manual reconciliation required`);
+      throw new Error(`x402 refund failed: invalid facilitator response`);
+    }
+    let refundGross: bigint;
+    try {
+      refundGross = refundData.amount != null ? BigInt(String(refundData.amount)) : BigInt(escrow.amount);
+    } catch {
+      console.error(`[x402] refund invalid facilitator amount for escrow ${escrowId}: ${refundBody.slice(0, 500)} — manual reconciliation required`);
+      throw new Error(`x402 refund failed: invalid facilitator amount`);
+    }
+    const grossAmount = refundGross;
 
     const bountyId = escrow.bounty_id;
     const fromAgent = await lookupPoster(bountyId);
@@ -293,7 +325,7 @@ export class X402Adapter implements SettlementAdapter {
     const receipt: SettlementReceipt = {
       receiptId: crypto.randomUUID(),
       escrowId,
-      txHash: data.txHash || null,
+      txHash: typeof refundData.txHash === "string" ? refundData.txHash : null,
       fromAgent,
       toAgent: to,
       grossAmount,
@@ -310,9 +342,9 @@ export class X402Adapter implements SettlementAdapter {
       escrow_id: receipt.escrowId,
       from_agent: receipt.fromAgent,
       to_agent: receipt.toAgent,
-      gross_amount: Number(receipt.grossAmount),
-      fee_amount: Number(receipt.feeAmount),
-      net_amount: Number(receipt.netAmount),
+        gross_amount: receipt.grossAmount.toString(),
+        fee_amount: receipt.feeAmount.toString(),
+        net_amount: receipt.netAmount.toString(),
       tx_hash: receipt.txHash,
       adapter: receipt.adapter,
     });

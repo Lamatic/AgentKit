@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS bids (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS escrows (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  bounty_id uuid NOT NULL REFERENCES bounties(id) ON DELETE CASCADE,
+  bounty_id uuid NOT NULL UNIQUE REFERENCES bounties(id) ON DELETE CASCADE,
   bid_id uuid NOT NULL REFERENCES bids(id),
   amount bigint NOT NULL CHECK (amount > 0),
   lock_ref text NOT NULL,

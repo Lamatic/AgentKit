@@ -42,6 +42,19 @@ export default async function EscrowPage() {
 
   const totalTvl = escrows.filter((e) => e.status === "locked").reduce((sum, e) => sum + (e.amount || 0), 0);
 
+  // Exact aggregates over the complete dataset (the receipt list above stays
+  // limited to the latest 10). Fall back to the page subset when unavailable.
+  let settledCount = receipts.length;
+  let feesCollected = receipts.reduce((s, r) => s + (r.fee_amount || 0), 0);
+  try {
+    const { count } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true });
+    if (typeof count === "number") settledCount = count;
+    const { data: feeRows } = await supabase.from("settlement_receipts").select("fee_amount");
+    if (feeRows) feesCollected = feeRows.reduce((s, r) => s + (Number(r.fee_amount) || 0), 0);
+  } catch (err) {
+    console.error("[escrow] aggregates read failed, using page subset:", err);
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">
       <h1 className="mb-6 text-xl font-semibold text-[var(--text-primary)]">Escrow & Settled Explorer</h1>
@@ -56,11 +69,11 @@ export default async function EscrowPage() {
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Settled</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--secondary)]">{receipts.length}</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--secondary)]">{settledCount}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Fees Collected</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--tertiary)]">{receipts.reduce((s, r) => s + (r.fee_amount || 0), 0)} CRT</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--tertiary)]">{feesCollected} CRT</p>
         </CardContent></Card>
       </div>
       <Card>

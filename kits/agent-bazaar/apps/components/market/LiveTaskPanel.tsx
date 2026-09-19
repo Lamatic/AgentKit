@@ -79,6 +79,7 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
 
   const activeIndex = phaseIndex(bounty.status);
   const settledAll = bounty.status === "settled" || bounty.status === "refunded";
+  const failedAll = bounty.status === "refunded";
   const winnerAgentId = bids.find((bid) => bid.id === escrow?.bid_id)?.agent_id;
   const pill = statusPillFor(bounty.status);
 
@@ -127,6 +128,7 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
                 index={index}
                 activeIndex={activeIndex}
                 settledAll={settledAll}
+                failedAll={failedAll}
               />
             ))}
           </div>
@@ -386,32 +388,40 @@ function ProgressStep({
   index,
   activeIndex,
   settledAll,
+  failedAll,
 }: {
   label: string;
   index: number;
   activeIndex: number;
   settledAll: boolean;
+  failedAll: boolean;
 }) {
-  const lineColor = settledAll ? "bg-status-green" : "bg-primary";
+  // A refunded bounty is terminal but a failure, never a success: render the
+  // complete rail with failure styling instead of the settled success theme.
+  const lineColor = failedAll ? "bg-status-red" : settledAll ? "bg-status-green" : "bg-primary";
   const leftComplete = settledAll || index <= activeIndex;
   const rightComplete = settledAll || index < activeIndex;
   const isActive = !settledAll && index === activeIndex;
 
-  const dotClass = settledAll
-    ? "bg-status-green ring-4 ring-emerald-50"
-    : index < activeIndex
-      ? "bg-primary ring-4 ring-indigo-50"
-      : isActive
-        ? "bg-status-amber dot-pulse ring-4 ring-amber-50"
-        : "bg-neutral-300";
+  const dotClass = failedAll
+    ? "bg-status-red ring-4 ring-red-50"
+    : settledAll
+      ? "bg-status-green ring-4 ring-emerald-50"
+      : index < activeIndex
+        ? "bg-primary ring-4 ring-indigo-50"
+        : isActive
+          ? "bg-status-amber dot-pulse ring-4 ring-amber-50"
+          : "bg-neutral-300";
 
-  const labelClass = settledAll
-    ? "text-status-green"
-    : index < activeIndex
-      ? "text-primary"
-      : isActive
-        ? "text-status-amber"
-        : "text-neutral-400";
+  const labelClass = failedAll
+    ? "text-status-red"
+    : settledAll
+      ? "text-status-green"
+      : index < activeIndex
+        ? "text-primary"
+        : isActive
+          ? "text-status-amber"
+          : "text-neutral-400";
 
   return (
     <div className="flex flex-col items-center text-center">

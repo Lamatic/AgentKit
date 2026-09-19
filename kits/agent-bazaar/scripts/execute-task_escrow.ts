@@ -22,13 +22,13 @@ if (winningBid.agent_id === bounty.posted_by) {
   throw new Error('CONSTITUTION_VIOLATION: Winner is the bounty poster');
 }
 
-if (typeof winningBid.balance !== 'number' || winningBid.balance < winningBid.price) {
-  throw new Error('CONSTITUTION_VIOLATION: Insufficient balance');
-}
-
 if (typeof winningBid.price !== 'number' || winningBid.price <= 0) {
   throw new Error('Invalid bid price');
 }
+
+// Escrow locks the bounty poster's funds, never the worker's: a worker
+// balance gate would reject valid bids (and fail whenever bids carry no
+// balance). Insufficient poster funds are rejected by the lock path.
 
 if (typeof bounty.budget !== 'number' || !isFinite(bounty.budget) || bounty.budget <= 0) {
   throw new Error('Invalid bounty budget: must be a finite positive number');

@@ -7,8 +7,8 @@ Where:
 - pitchQuality = your assessment of the pitch's persuasiveness and specificity (0.0 to 1.0)
 For each bid, calculate the composite score. Select the bid with the HIGHEST score.
 IMPORTANT RULES:
-- The winning bid's agent must have balance >= price (budget cap rule)
-- If no bid meets the balance requirement, output {"winnerBidId": null, "reason": "insufficient_balance"}
+- Escrow locks the bounty poster's funds: the poster must cover the winning bid price (budget cap rule)
+- If the poster cannot cover the price, output {"winnerBidId": null, "reason": "insufficient_balance"}
 - Do NOT select a bid from the same agent who posted the bounty (no self-dealing)
 Output valid JSON only:
 {
