@@ -257,7 +257,8 @@ export const nodes = [
           proposed_innovation: "{{InstructorLLMNode_572.output.proposed_innovation}}",
           evaluation:
             "{{InstructorLLMNode_952.output.eureka_moment}},{{InstructorLLMNode_952.output.novelty_score}},{{InstructorLLMNode_952.output.feasibility_score}},{{InstructorLLMNode_952.output.critique}},{{InstructorLLMNode_952.output.verdict}}",
-          final_summary: "{{LLMNode_400.output.generatedResponse}}{{LLMNode_743.output.generatedResponse}}"
+          success_summary: "{{LLMNode_400.output.generatedResponse}}",
+          caveat_summary: "{{LLMNode_743.output.generatedResponse}}"
         }
       }
     }
