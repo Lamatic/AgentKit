@@ -148,11 +148,21 @@ export class LedgerAdapter implements SettlementAdapter {
       // release the claim so a retry reprocesses exactly once. Local payout
       // has no external side effects, so retry is always safe; the orchestrator
       // also releases the consumed idempotency key on failure.
-      await supabase.from("settlement_receipts").delete().eq("id", receipt.receiptId);
-      await supabase
+      const { error: cleanupError } = await supabase
+        .from("settlement_receipts")
+        .delete()
+        .eq("id", receipt.receiptId);
+      const { error: releaseError } = await supabase
         .from("escrows")
         .update({ status: "locked", settled_at: null })
         .eq("id", escrowId);
+      if (cleanupError || releaseError) {
+        console.error(
+          `[reconcile] settle compensation failed for escrow ${escrowId}: ` +
+            `receipt cleanup ${cleanupError ? `failed (${cleanupError.message})` : "ok"}, ` +
+            `escrow release ${releaseError ? `failed (${releaseError.message})` : "ok"} — manual reconciliation required`,
+        );
+      }
       throw err;
     }
 
@@ -227,11 +237,21 @@ export class LedgerAdapter implements SettlementAdapter {
     } catch (err) {
       // Compensate: drop only this attempt's receipt (if it landed) and
       // release the claim so a retry reprocesses exactly once (see settle).
-      await supabase.from("settlement_receipts").delete().eq("id", receipt.receiptId);
-      await supabase
+      const { error: cleanupError } = await supabase
+        .from("settlement_receipts")
+        .delete()
+        .eq("id", receipt.receiptId);
+      const { error: releaseError } = await supabase
         .from("escrows")
         .update({ status: "locked", settled_at: null })
         .eq("id", escrowId);
+      if (cleanupError || releaseError) {
+        console.error(
+          `[reconcile] refund compensation failed for escrow ${escrowId}: ` +
+            `receipt cleanup ${cleanupError ? `failed (${cleanupError.message})` : "ok"}, ` +
+            `escrow release ${releaseError ? `failed (${releaseError.message})` : "ok"} — manual reconciliation required`,
+        );
+      }
       throw err;
     }
 

@@ -897,7 +897,10 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
 
   if (!agent) return;
 
-  const current = Number(agent.reputation) || 0.5;
+  // A persisted reputation of 0 is valid — fall back to 0.5 only when the
+  // stored value is non-numeric or otherwise invalid.
+  const stored = Number(agent.reputation);
+  const current = Number.isFinite(stored) ? stored : 0.5;
   await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
   recordSpend(1);
 

@@ -114,7 +114,7 @@ export function TaskComposer({
               step={1}
               value={budget}
               onChange={(event) => setBudget(Number(event.target.value))}
-              className="w-24 rounded-[6px] border border-hairline bg-white px-2.5 py-1 pr-9 text-right font-mono text-[13px] text-neutral-900 focus:border-indigo-500 focus:outline-none"
+              className="w-24 rounded-[6px] border border-hairline bg-card px-2.5 py-1 pr-9 text-right font-mono text-[13px] text-ink focus:border-primary focus:outline-none"
             />
             <span className="pointer-events-none absolute right-2.5 font-mono text-[11px] text-neutral-500">
               CRT
