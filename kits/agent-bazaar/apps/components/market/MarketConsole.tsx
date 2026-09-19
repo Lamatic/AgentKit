@@ -72,9 +72,17 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     }
   }, []);
 
+  // Monotonic request sequence: refresh() is fired from the watchdog,
+  // realtime debounce, catch-up polls, and handlers, so concurrent requests
+  // can resolve out of order. Only the latest request may write market state.
+  const requestSeqRef = useRef(0);
+
   const refresh = useCallback(async () => {
+    const seq = ++requestSeqRef.current;
     try {
       const res = await getMarketState();
+      // Stale response: return it for the caller but don't touch state.
+      if (seq !== requestSeqRef.current) return res;
       if (res.ok) {
         setMarket(res.data);
         setOnline(true);
@@ -86,8 +94,10 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       return res;
     } catch (err) {
       const failure = { ok: false as const, error: err instanceof Error ? err.message : "Market refresh failed" };
-      setOnline(false);
-      setError(failure.error);
+      if (seq === requestSeqRef.current) {
+        setOnline(false);
+        setError(failure.error);
+      }
       return failure;
     }
   }, []);

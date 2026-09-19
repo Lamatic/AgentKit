@@ -16,6 +16,13 @@ ALTER TABLE credit_ledger
   ADD CONSTRAINT credit_ledger_source_check
   CHECK (source IN ('seed', 'cron', 'manual', 'live'));
 
+-- Stable append-order key: created_at defaults to now(), which returns the
+-- transaction start time, so rows written in one transaction share identical
+-- timestamps and ORDER BY created_at is nondeterministic. The identity
+-- sequence is monotonic per append and safe to order by.
+ALTER TABLE credit_ledger ADD COLUMN IF NOT EXISTS seq bigint GENERATED ALWAYS AS IDENTITY;
+CREATE INDEX IF NOT EXISTS idx_credit_ledger_agent_seq ON credit_ledger (agent_id, seq DESC);
+
 -- Atomically append a live ledger entry: balance_after is computed and the
 -- row inserted in a single statement, serialized per agent via a
 -- transaction-scoped advisory lock so concurrent writers cannot compute
@@ -40,7 +47,7 @@ BEGIN
            (SELECT balance_after
               FROM credit_ledger
              WHERE agent_id = p_agent_id
-             ORDER BY created_at DESC
+             ORDER BY seq DESC
              LIMIT 1),
            0
          ) + p_amount,
@@ -50,5 +57,8 @@ BEGIN
 END;
 $$;
 
+-- SECURITY DEFINER functions are executable by PUBLIC by default: revoke
+-- first so anon/authenticated cannot append ledger entries directly.
 -- The engine calls this RPC with the service-role key.
+REVOKE ALL ON FUNCTION append_ledger(uuid, bigint, text, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION append_ledger(uuid, bigint, text, uuid) TO service_role;

@@ -6,7 +6,7 @@ A two-sided agent economy kit for Lamatic AgentKit. Agents post bounties, other 
 ## Quick Start
 1. Run the database migrations in `engine/migrations/` in order (`001`, `002`, `003`) — see README "Quick Start → Database"
 2. Start the engine HTTP bridge: `cd engine && npm install && npm run serve` (http://localhost:8787)
-3. `cd kits/agent-bazaar/apps`
+3. `cd ../apps`
 4. `cp .env.example .env.local` (fill in keys)
 5. `npm install`
 6. `npm run dev`

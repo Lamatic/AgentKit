@@ -730,7 +730,7 @@ async function awardAndDeliver(
     recordSpend(1);
 
     if (adapter instanceof LedgerAdapter) {
-      await appendLedger(poster, -amount, "bid_lock", bountyId);
+      await appendLedger(poster, String(-amount), "bid_lock", bountyId);
     }
 
     void lock;

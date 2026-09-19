@@ -7,13 +7,19 @@ interface LockExtra {
 }
 
 /** Append a credit-ledger entry. balance_after is computed and inserted
- * atomically by the append_ledger database RPC (see 002 migration). */
+ * atomically by the append_ledger database RPC (see 002 migration).
+ * Amounts cross the TypeScript boundary as canonical decimal strings so
+ * bigint values survive past Number.MAX_SAFE_INTEGER; PostgREST casts the
+ * string to the RPC's bigint parameter. */
 export async function appendLedger(
   agentId: string,
-  amount: number,
+  amount: string,
   reason: string,
   refId: string | undefined,
 ): Promise<void> {
+  if (!/^-?\d+$/.test(amount)) {
+    throw new Error(`Ledger append failed: amount "${amount}" is not a canonical decimal integer`);
+  }
   const { error } = await supabase.rpc("append_ledger", {
     p_agent_id: agentId,
     p_amount: amount,
@@ -126,7 +132,7 @@ export class LedgerAdapter implements SettlementAdapter {
       // The lock path already charged the poster the gross amount; the worker
       // takes net and the fee stays recorded on the receipt (no second poster
       // debit, no phantom platform account).
-      await appendLedger(to, Number(netAmount), "settlement", bountyId);
+      await appendLedger(to, netAmount.toString(), "settlement", bountyId);
     } catch (err) {
       // Compensate: drop only this attempt's receipt (if it landed) and
       // release the claim so a retry reprocesses exactly once. Local payout
@@ -217,7 +223,7 @@ export class LedgerAdapter implements SettlementAdapter {
       });
       if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
 
-      await appendLedger(to, Number(grossAmount), "refund", bountyId);
+      await appendLedger(to, grossAmount.toString(), "refund", bountyId);
     } catch (err) {
       // Compensate: drop only this attempt's receipt (if it landed) and
       // release the claim so a retry reprocesses exactly once (see settle).
