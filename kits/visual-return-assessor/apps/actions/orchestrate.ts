@@ -244,7 +244,7 @@ const ingestionWorkflowId =
 
 // --- ZOD SCHEMAS & DERIVED TYPES ---
 
-export const IngestionPayloadSchema = z.object({
+const IngestionPayloadSchema = z.object({
   documentName: z
     .string()
     .trim()
@@ -263,7 +263,7 @@ export const IngestionPayloadSchema = z.object({
   content: z.string().trim().min(1, "Document content is required."),
 });
 
-export const ReturnAssessorPayloadSchema = z.object({
+const ReturnAssessorPayloadSchema = z.object({
   orderId: z
     .string()
     .trim()
