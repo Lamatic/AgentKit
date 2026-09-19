@@ -1,0 +1,1 @@
+Given this task: {{triggerNode_1.output.goal}} with budget {{triggerNode_1.output.budget}}, generate a rubric with 3-5 criteria for evaluating the quality of completed work.
