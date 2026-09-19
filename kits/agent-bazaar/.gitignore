@@ -34,3 +34,10 @@ supabase/.temp/
 
 # Replay recordings (generated at runtime)
 engine/replay/recordings/*.json
+
+# Override the root .gitignore blanket "scripts" rule — the kit's flow
+# code-nodes and the engine's CLI scripts are required source files.
+!scripts/
+!scripts/**
+!engine/src/scripts/
+!engine/src/scripts/**

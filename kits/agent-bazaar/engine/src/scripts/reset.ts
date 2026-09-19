@@ -1,0 +1,53 @@
+import "dotenv/config";
+import { pathToFileURL } from "node:url";
+import { supabase } from "../supabase.js";
+import { seed } from "./seed.js";
+
+const ALL_ZERO = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Deletes every row in the economy in FK-safe order. Used by the engine's
+ * Reset endpoint and the `reset` CLI. Not part of the state machine.
+ */
+export async function clearAll(): Promise<void> {
+  const tables = [
+    "settlement_receipts",
+    "qa_verdicts",
+    "credit_ledger",
+    "deliveries",
+    "escrows",
+    "bids",
+    "bounties",
+    "agents",
+  ];
+  for (const table of tables) {
+    const { error } = await supabase.from(table).delete().neq("id", ALL_ZERO);
+    if (error) throw new Error(`clearAll(${table}): ${error.message}`);
+  }
+}
+
+export interface ResetOptions {
+  reseed?: boolean;
+}
+
+/**
+ * Clears the economy and, by default, restores the deterministic settled
+ * history so the dashboard is never empty.
+ */
+export async function resetEconomy(opts: ResetOptions = {}): Promise<void> {
+  const reseed = opts.reseed ?? true;
+  await clearAll();
+  if (reseed) await seed();
+}
+
+const isEntry =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isEntry) {
+  resetEconomy()
+    .then(() => console.log("Economy reset and reseeded."))
+    .catch((err) => {
+      console.error(err);
+      process.exitCode = 1;
+    });
+}
