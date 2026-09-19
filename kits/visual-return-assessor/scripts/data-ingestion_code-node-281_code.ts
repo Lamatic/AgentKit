@@ -1,6 +1,10 @@
 // Assign the value you want to return from this code node to `output`. 
 // The `output` variable is already declared.
 
-output={{chunkNode_419.output.chunks}}.map((x) => x.pageContent)
+const chunks = {{chunkNode_419.output.chunks}}
 
-// add the script files
+if(!Array.isArray(chunks) || chunks.length === 0){
+  throw new Error("Policy chunks are empty")
+}
+
+output = chunks.map((x) => x.pageContent)

@@ -233,7 +233,7 @@ export const nodes = [
         limit: "3",
         action: "delete",
         filters:
-          '{\n  "operator": "And",\n  "operands": [\n    {\n      "path": [\n        "brand"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.brand}}"\n    },\n    {\n      "path": [\n        "category"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.category}}"\n    },\n    {\n      "path": [\n        "documentName"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.documentName}}"\n    },\n    {\n      "path": [\n        "version"\n      ],\n      "operator": "NotEqual",\n      "valueNumber": "{{codeNode_869.output.0}}"\n    }\n  ]\n}',
+          '{\n  "operator": "And",\n  "operands": [\n    {\n      "path": [\n        "brand"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.brand}}"\n    },\n    {\n      "path": [\n        "category"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.category}}"\n    },\n    {\n      "path": [\n        "documentName"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.documentName}}"\n    },\n    {\n      "path": [\n        "version"\n      ],\n      "operator": "LessThan",\n      "valueNumber": "{{codeNode_869.output.0}}"\n    }\n  ]\n}',
         nodeName: "VectorDB Delete",
         vectorDB: "ReturnPolicyStore",
         primaryKeys: "",

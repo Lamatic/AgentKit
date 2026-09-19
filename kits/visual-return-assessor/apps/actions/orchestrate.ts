@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { config, lamaticClient } from "@/lib/lamatic-client";
 import lamaticConfig from "../../lamatic.config";
 
@@ -241,22 +242,54 @@ const visualWorkflowId =
 const ingestionWorkflowId =
   (ingestionEnvKey && process.env[ingestionEnvKey]) || config?.ingestion;
 
-// --- TYPES & INTERFACES ---
+// --- ZOD SCHEMAS & DERIVED TYPES ---
 
-export interface IngestionPayload {
-  documentName: string;
-  brand: string;
-  category: string;
-  content: string;
-}
+export const IngestionPayloadSchema = z.object({
+  documentName: z
+    .string()
+    .trim()
+    .min(1, "Document name is required.")
+    .max(255, "Document name exceeds maximum length."),
+  brand: z
+    .string()
+    .trim()
+    .min(1, "Brand is required.")
+    .max(100, "Brand exceeds maximum length."),
+  category: z
+    .string()
+    .trim()
+    .min(1, "Category is required.")
+    .max(100, "Category exceeds maximum length."),
+  content: z.string().trim().min(1, "Document content is required."),
+});
 
-export interface ReturnAssessorPayload {
-  orderId: string;
-  itemCategory: string;
-  claimReason: string;
-  imageBinary: string; // Base64 string or Data URL of the damaged/returned item photo
-  userEmail: string; // Customer email address
-}
+export const ReturnAssessorPayloadSchema = z.object({
+  orderId: z
+    .string()
+    .trim()
+    .min(1, "Order ID is required.")
+    .max(100, "Order ID exceeds maximum length."),
+  itemCategory: z
+    .string()
+    .trim()
+    .min(1, "Item category is required.")
+    .max(100, "Item category exceeds maximum length."),
+  claimReason: z
+    .string()
+    .trim()
+    .min(1, "Claim reason is required.")
+    .max(1000, "Claim reason exceeds maximum length."),
+  imageBinary: z.string().trim().min(1, "Inspection image is required."),
+  userEmail: z
+    .string()
+    .trim()
+    .email("Invalid user email address.")
+    .max(255, "Email exceeds maximum length."),
+});
+
+export type IngestionPayload = z.infer<typeof IngestionPayloadSchema>;
+
+export type ReturnAssessorPayload = z.infer<typeof ReturnAssessorPayloadSchema>;
 
 export interface AssessmentResult {
   success: boolean;
@@ -287,13 +320,12 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
   if (!payload) {
     throw new Error("Invalid payload provided for upload.");
   }
-  if (typeof payload?.content !== "string" || !payload?.content) {
-    throw new Error("No file provided for policy document upload.");
-  }
+
+  const parsedPayload = IngestionPayloadSchema.parse(payload);
 
   // Enforce 10 MB character cap, 7 MiB binary size, AND policy format contract validation (PDF/TXT)
   const sanitizedContent = sanitizeAndValidateBase64Payload(
-    payload?.content,
+    parsedPayload?.content,
     "policy document",
     MAX_FILE_SIZE_BYTES,
     "document",
@@ -301,9 +333,9 @@ export async function uploadPolicyDocument(payload: IngestionPayload) {
 
   try {
     const response = await lamaticClient.executeFlow(ingestionWorkflowId, {
-      documentName: payload?.documentName,
-      brand: payload?.brand,
-      category: payload?.category,
+      documentName: parsedPayload?.documentName,
+      brand: parsedPayload?.brand,
+      category: parsedPayload?.category,
       content: sanitizedContent,
     });
 
@@ -333,16 +365,12 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
   if (!visualWorkflowId) {
     throw new Error("VISUAL_RETURN_ASSESSOR environment variable is missing.");
   }
-  if (!payload) {
-    throw new Error("Invalid payload provided for assessment.");
-  }
-  if (typeof payload?.imageBinary !== "string" || !payload?.imageBinary) {
-    throw new Error("No inspection image provided for assessment.");
-  }
+
+  const parsedPayload = ReturnAssessorPayloadSchema.parse(payload);
 
   // Enforce 10 MB character cap, 7 MiB binary limit, AND magic-byte PNG/JPEG validation
   const sanitizedImageBinary = sanitizeAndValidateBase64Payload(
-    payload?.imageBinary,
+    parsedPayload?.imageBinary,
     "inspection image",
     MAX_FILE_SIZE_BYTES,
     "image",
@@ -350,11 +378,11 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
 
   try {
     const response = await lamaticClient.executeFlow(visualWorkflowId, {
-      orderId: payload?.orderId,
-      itemCategory: payload?.itemCategory,
-      claimReason: payload?.claimReason,
+      orderId: parsedPayload?.orderId,
+      itemCategory: parsedPayload?.itemCategory,
+      claimReason: parsedPayload?.claimReason,
       imageBinary: sanitizedImageBinary,
-      userEmail: payload?.userEmail,
+      userEmail: parsedPayload?.userEmail,
     });
 
     return response;
