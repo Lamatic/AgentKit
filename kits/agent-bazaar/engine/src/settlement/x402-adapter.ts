@@ -28,7 +28,7 @@ const USDC_DECIMALS = 6;
 const X402_TIMEOUT_MS = Number(process.env.X402_TIMEOUT_MS || "15000");
 
 /** Facilitator timeout: the payout may or may not have executed server-side. */
-class FacilitatorTimeoutError extends Error {
+export class FacilitatorTimeoutError extends Error {
   constructor(op: string) {
     super(`x402 ${op} timed out after ${X402_TIMEOUT_MS}ms`);
     this.name = "FacilitatorTimeoutError";
@@ -105,13 +105,21 @@ export class X402Adapter implements SettlementAdapter {
 
   /** Lock escrow funds for a bounty. */
   async lock(escrowId: string, amount: bigint, extra?: LockExtra): Promise<LockRef> {
-    const response = await facilitatorPost("lock", {
-      escrowId,
-      amount: amount.toString(),
-      chain: "base-sepolia",
-      token: "USDC",
-      decimals: USDC_DECIMALS,
-    });
+    let response: Response;
+    try {
+      response = await facilitatorPost("lock", {
+        escrowId,
+        amount: amount.toString(),
+        chain: "base-sepolia",
+        token: "USDC",
+        decimals: USDC_DECIMALS,
+      });
+    } catch (err) {
+      if (err instanceof FacilitatorTimeoutError) {
+        console.error(`[x402] lock timed out for escrow ${escrowId}: lock may have executed — manual reconciliation required`);
+      }
+      throw err;
+    }
 
     if (!response.ok) {
       const text = await response.text();

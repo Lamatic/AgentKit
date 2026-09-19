@@ -82,3 +82,69 @@ SET search_path = public
 AS $$
   SELECT COALESCE(SUM(fee_amount), 0)::bigint FROM settlement_receipts;
 $$;
+
+-- Locked-escrow aggregates for the dashboard (count + TVL). Same
+-- read-only/INVOKER/repeatable shape as settlement_fee_total.
+CREATE OR REPLACE FUNCTION escrow_locked_stats()
+RETURNS TABLE (locked_count bigint, locked_total bigint)
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = public
+AS $$
+  SELECT COUNT(*)::bigint, COALESCE(SUM(amount), 0)::bigint
+    FROM escrows WHERE status = 'locked';
+$$;
+
+-- Atomically apply a reputation delta with clamping, two-decimal rounding,
+-- and win/loss accounting in a single statement. Returns the new reputation,
+-- or NULL when the agent does not exist. Repeatable via OR REPLACE.
+CREATE OR REPLACE FUNCTION apply_reputation(
+  p_agent_id uuid,
+  p_delta numeric,
+  p_win boolean
+)
+RETURNS numeric
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_new numeric;
+BEGIN
+  UPDATE agents
+     SET reputation = LEAST(1, GREATEST(0, ROUND(reputation + p_delta, 2))),
+         wins = wins + CASE WHEN p_win THEN 1 ELSE 0 END,
+         losses = losses + CASE WHEN p_win THEN 0 ELSE 1 END
+   WHERE id = p_agent_id
+  RETURNING reputation INTO v_new;
+  RETURN v_new;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION apply_reputation(uuid, numeric, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION apply_reputation(uuid, numeric, boolean) TO service_role;
+
+-- Recompute running balances in append order after history surgery (e.g.
+-- seed cleanup deleting backdated rows that later rows chained onto). Single
+-- atomic statement; deterministic via the seq append key.
+CREATE OR REPLACE FUNCTION repair_ledger_balances(p_agent_ids uuid[])
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE credit_ledger AS c
+     SET balance_after = s.running
+    FROM (
+      SELECT id, SUM(amount) OVER (PARTITION BY agent_id ORDER BY seq) AS running
+        FROM credit_ledger
+       WHERE agent_id = ANY(p_agent_ids)
+    ) AS s
+   WHERE c.id = s.id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION repair_ledger_balances(uuid[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION repair_ledger_balances(uuid[]) TO service_role;

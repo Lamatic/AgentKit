@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS credit_ledger (
 CREATE TABLE IF NOT EXISTS settlement_receipts (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   bounty_id uuid NOT NULL REFERENCES bounties(id) ON DELETE CASCADE,
-  escrow_id uuid NOT NULL REFERENCES escrows(id),
+  escrow_id uuid NOT NULL UNIQUE REFERENCES escrows(id),
   from_agent uuid NOT NULL REFERENCES agents(id),
   to_agent uuid NOT NULL REFERENCES agents(id),
   gross_amount bigint NOT NULL,
@@ -114,6 +114,14 @@ CREATE TABLE IF NOT EXISTS settlement_receipts (
   net_amount bigint NOT NULL,
   tx_hash text,
   adapter text NOT NULL CHECK (adapter IN ('ledger', 'x402')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
+-- TABLE: idempotency_keys
+-- ============================================================
+CREATE TABLE IF NOT EXISTS idempotency_keys (
+  key text PRIMARY KEY,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -142,6 +150,7 @@ ALTER TABLE deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE qa_verdicts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE credit_ledger ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settlement_receipts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE idempotency_keys ENABLE ROW LEVEL SECURITY;
 
 -- Anon can read public tables (dashboard)
 CREATE POLICY "anon_read_agents" ON agents FOR SELECT USING (true);
@@ -162,3 +171,4 @@ CREATE POLICY "service_all_deliveries" ON deliveries FOR ALL USING (auth.role() 
 CREATE POLICY "service_all_qa_verdicts" ON qa_verdicts FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "service_all_credit_ledger" ON credit_ledger FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "service_all_receipts" ON settlement_receipts FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "service_all_idempotency_keys" ON idempotency_keys FOR ALL USING (auth.role() = 'service_role');

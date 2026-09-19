@@ -75,6 +75,15 @@ async function cleanupSeed(): Promise<void> {
     .delete()
     .in("ref_id", SEED_BOUNTY_IDS);
   if (ledgerErr) throw new Error(`seed cleanup credit_ledger: ${ledgerErr.message}`);
+
+  // Deleting backdated seed rows orphans the running balances chained onto
+  // them: recompute every affected agent's balances in append order so later
+  // live rows and market snapshots stay correct. Grants survive (ref_id is
+  // null) and are included in the recompute via ALL_AGENT_IDS.
+  const { error: repairErr } = await supabase.rpc("repair_ledger_balances", {
+    p_agent_ids: ALL_AGENT_IDS,
+  });
+  if (repairErr) throw new Error(`seed repair credit_ledger: ${repairErr.message}`);
 }
 
 /** Ensure seed agents exist in the database. */

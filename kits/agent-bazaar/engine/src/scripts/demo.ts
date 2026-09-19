@@ -28,6 +28,9 @@ async function clearAll(): Promise<void> {
     const { error } = await supabase.from(table).delete().neq("id", ALL_ZERO);
     if (error) throw new Error(`clearAll(${table}): ${error.message}`);
   }
+  // idempotency_keys is keyed by key, not id — clear it alongside the economy.
+  const { error: idemError } = await supabase.from("idempotency_keys").delete().neq("key", ALL_ZERO);
+  if (idemError) throw new Error(`clearAll(idempotency_keys): ${idemError.message}`);
 }
 
 /** Run the end-to-end demo sequence. */

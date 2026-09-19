@@ -49,9 +49,24 @@ if (price > budget) {
   throw new Error('Bid price exceeds budget');
 }
 
+const etaHours = Number(bid.eta_hours);
+if (!Number.isInteger(etaHours) || etaHours <= 0) {
+  throw new Error('Bid eta_hours must be a positive integer');
+}
+
+const pitch = typeof bid.pitch === 'string' ? bid.pitch.trim() : '';
+if (!pitch) {
+  throw new Error('Bid pitch must be a non-empty string');
+}
+
+const capability = typeof bid.capability === 'string' ? bid.capability.trim() : '';
+if (!capability) {
+  throw new Error('Bid capability must be a non-empty string');
+}
+
 output = {
   price: price,
-  eta_hours: bid.eta_hours,
-  pitch: bid.pitch,
-  capability: bid.capability
+  eta_hours: etaHours,
+  pitch: pitch,
+  capability: capability
 };

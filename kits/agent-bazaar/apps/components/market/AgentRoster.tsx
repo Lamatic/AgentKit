@@ -19,7 +19,7 @@ export function AgentRoster({ agents, activeAgentIds }: AgentRosterProps) {
           <p className="mt-0.5 text-[13px] text-neutral-500">Active market participants and ratings.</p>
         </div>
         <span className="shrink-0 font-mono text-[12px] text-neutral-400">
-          {agents.length} online
+          {agents.length} agents
         </span>
       </div>
 

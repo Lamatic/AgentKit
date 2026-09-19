@@ -33,6 +33,58 @@ export async function appendLedger(
   if (error) throw new Error(`Ledger append failed: ${error.message}`);
 }
 
+/**
+ * Reconcile a 23505 receipt conflict: a duplicate submission carries a fresh
+ * random id, so the conflict is on escrow_id — meaning a receipt for this
+ * escrow already exists. Return it only after confirming the matching ledger
+ * leg actually landed; otherwise the conflict is someone else's partial state
+ * and must surface as an error, never a blind return.
+ */
+async function reconcileReceipt(
+  receipt: SettlementReceipt,
+  reason: string,
+  legAmount: bigint,
+  bountyId: string,
+): Promise<SettlementReceipt> {
+  const { data: leg } = await supabase
+    .from("credit_ledger")
+    .select("id")
+    .eq("agent_id", receipt.toAgent)
+    .eq("reason", reason)
+    .eq("ref_id", bountyId)
+    .eq("amount", legAmount.toString())
+    .limit(1)
+    .maybeSingle();
+  if (!leg) {
+    throw new Error(
+      `Receipt insert failed: duplicate receipt for escrow ${receipt.escrowId} with no matching ledger entry — manual reconciliation required`,
+    );
+  }
+  const { data: existing, error } = await supabase
+    .from("settlement_receipts")
+    .select("*")
+    .eq("escrow_id", receipt.escrowId)
+    .maybeSingle();
+  if (error || !existing) {
+    throw new Error(
+      `Receipt insert failed: duplicate receipt for escrow ${receipt.escrowId}, existing receipt unreadable — manual reconciliation required`,
+    );
+  }
+  return {
+    receiptId: existing.id,
+    escrowId: receipt.escrowId,
+    txHash: existing.tx_hash,
+    fromAgent: existing.from_agent,
+    toAgent: existing.to_agent,
+    grossAmount: BigInt(existing.gross_amount),
+    feeAmount: BigInt(existing.fee_amount),
+    netAmount: BigInt(existing.net_amount),
+    adapter: receipt.adapter,
+    settledAt: new Date(existing.created_at).getTime(),
+    source: "live",
+  };
+}
+
 export class LedgerAdapter implements SettlementAdapter {
   async quote(amount: bigint): Promise<Quote> {
     const fee = (amount * 10n) / 100n;
@@ -52,7 +104,7 @@ export class LedgerAdapter implements SettlementAdapter {
         id: escrowId,
         bounty_id: extra?.bountyId,
         bid_id: extra?.bidId,
-        amount: Number(amount),
+        amount: amount.toString(),
         lock_ref: `ledger-${escrowId}`,
         status: "locked",
       });
@@ -131,7 +183,12 @@ export class LedgerAdapter implements SettlementAdapter {
         tx_hash: null,
         adapter: receipt.adapter,
       });
-      if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
+      if (receiptError) {
+        if (receiptError.code === "23505") {
+          return reconcileReceipt(receipt, "settlement", netAmount, bountyId);
+        }
+        throw new Error(`Receipt insert failed: ${receiptError.message}`);
+      }
 
       // The lock path already charged the poster the gross amount; the worker
       // takes net and the fee stays recorded on the receipt (no second poster
@@ -225,7 +282,12 @@ export class LedgerAdapter implements SettlementAdapter {
         tx_hash: null,
         adapter: receipt.adapter,
       });
-      if (receiptError) throw new Error(`Receipt insert failed: ${receiptError.message}`);
+      if (receiptError) {
+        if (receiptError.code === "23505") {
+          return reconcileReceipt(receipt, "refund", grossAmount, bountyId);
+        }
+        throw new Error(`Receipt insert failed: ${receiptError.message}`);
+      }
 
       await appendLedger(to, grossAmount.toString(), "refund", bountyId);
     } catch (err) {

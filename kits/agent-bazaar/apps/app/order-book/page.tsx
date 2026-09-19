@@ -20,21 +20,41 @@ const MOCK_LEDGER = [
 export default async function OrderBookPage() {
   let openBounties = MOCK_OPEN;
   let receipts = MOCK_LEDGER;
+  let bountiesFailed = false;
+  let receiptsFailed = false;
 
   try {
     const { data: db1, error: err1 } = await supabase.from("bounties").select("*").eq("status->>status", "open").order("budget", { ascending: false });
     const { data: db2, error: err2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
     if (!err1 && db1) openBounties = db1.map((b) => ({ ...b, status: "open" }));
-    else if (err1) console.error("[order-book] bounties read failed, using fixtures:", err1.message);
+    else {
+      bountiesFailed = true;
+      if (err1) console.error("[order-book] bounties read failed, using fixtures:", err1.message);
+    }
     if (!err2 && db2) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, from_agent: r.from_agent, to_agent: r.to_agent, settled_at: r.created_at }));
-    else if (err2) console.error("[order-book] receipts read failed, using fixtures:", err2.message);
+    else {
+      receiptsFailed = true;
+      if (err2) console.error("[order-book] receipts read failed, using fixtures:", err2.message);
+    }
   } catch (err) {
+    bountiesFailed = true;
+    receiptsFailed = true;
     console.error("[order-book] Supabase read failed, falling back to mock data:", err);
   }
+
+  const demoSections = [
+    bountiesFailed ? "bounties" : null,
+    receiptsFailed ? "receipts" : null,
+  ].filter(Boolean);
 
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">
       <h1 className="mb-6 text-xl font-semibold text-[var(--text-primary)]">Order Book & Ledger</h1>
+      {demoSections.length > 0 && (
+        <p role="status" className="mb-4 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Demo data — live database unavailable for: {demoSections.join(", ")}.
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Open Bounties (BUY)</CardTitle></CardHeader>

@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import { LedgerAdapter, appendLedger } from "./settlement/ledger-adapter.js";
-import { X402Adapter } from "./settlement/x402-adapter.js";
+import { X402Adapter, FacilitatorTimeoutError } from "./settlement/x402-adapter.js";
 import type { SettlementAdapter } from "./settlement/types.js";
 import { idempotencyKey, checkIdempotencyAsync, releaseIdempotency } from "./idempotency.js";
 import { canSpend, recordSpend, tryReserve, release, getMode } from "./budget-governor.js";
@@ -756,6 +756,14 @@ async function awardAndDeliver(
 
         void lock;
       } catch (err) {
+        // A facilitator timeout means the lock may have executed: the escrow
+        // row is the claim record, so preserve it for manual reconciliation
+        // instead of deleting it. All other failures keep existing cleanup.
+        if (err instanceof FacilitatorTimeoutError) {
+          if (reserved) release(1);
+          console.error(`[escrow] lock timed out for ${escrowId}: escrow row preserved — manual reconciliation required`);
+          throw err;
+        }
         if (reserved) release(1);
         const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", escrowId);
         if (rollbackError) {
@@ -934,30 +942,37 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
 
   const { data: agent } = await supabase
     .from("agents")
-    .select("*")
+    .select("id, reputation")
     .eq("id", agentId)
     .maybeSingle();
 
   if (!agent) return;
 
   // A persisted reputation of 0 is valid — fall back to 0.5 only when the
-  // stored value is non-numeric or otherwise invalid.
+  // stored value is non-numeric or otherwise invalid. Used for the flow input
+  // only; the write below never relies on in-memory values.
   const stored = Number(agent.reputation);
   const current = Number.isFinite(stored) ? stored : 0.5;
-  await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
-  recordSpend(1);
+  // Reserve budget before the paid flow instead of post-call charging; a held
+  // reservation already accounts for this execution. Release on throw.
+  const reserved = tryReserve(1);
+  try {
+    await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
+  } catch (err) {
+    if (reserved) release(1);
+    throw err;
+  }
 
-  const updated = Math.max(0, Math.min(1, current + delta));
-  const reputation = Math.round(updated * 100) / 100;
-
-  await supabase
-    .from("agents")
-    .update({
-      reputation,
-      wins: outcome === "pass" ? Number(agent.wins) + 1 : Number(agent.wins),
-      losses: outcome === "fail" ? Number(agent.losses) + 1 : Number(agent.losses),
-    })
-    .eq("id", agentId);
+  // Single atomic write: clamping, two-decimal rounding, and win/loss
+  // accounting happen server-side, so concurrent settlements cannot interleave
+  // a read-modify-write. NULL means the agent vanished mid-flight.
+  const { data: updated, error } = await supabase.rpc("apply_reputation", {
+    p_agent_id: agentId,
+    p_delta: delta,
+    p_win: outcome === "pass",
+  });
+  if (error) throw new Error(`Reputation update failed: ${error.message}`);
+  void updated;
 }
 
 /** Persist a bounty status transition. */

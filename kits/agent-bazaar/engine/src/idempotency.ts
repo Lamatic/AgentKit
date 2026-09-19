@@ -1,6 +1,20 @@
 import { supabase } from "./supabase.js";
 
+// Bounded fast path: evict the oldest insertion-ordered entries past the cap
+// so long-lived processes cannot grow memory without bound. Eviction can only
+// re-admit a duplicate check in-process; the durable table below stays the
+// source of truth.
+const MAX_SEEN = 1000;
 const seen = new Map<string, boolean>();
+
+/** Mark a key seen, evicting the oldest entry past the cap. */
+function markSeen(key: string): void {
+  if (seen.size >= MAX_SEEN) {
+    const oldest = seen.keys().next().value;
+    if (oldest !== undefined) seen.delete(oldest);
+  }
+  seen.set(key, true);
+}
 
 /** Build a deterministic idempotency key for a bounty transition. */
 export function idempotencyKey(
@@ -22,7 +36,7 @@ export function checkIdempotency(key: string): boolean {
   // Optimistic fast path — the durable insert below is authoritative.
   // Fire-and-forget persistence is handled by checkIdempotencyAsync; this sync
   // wrapper preserves the existing call surface for hot paths.
-  seen.set(key, true);
+  markSeen(key);
   void persistKey(key).catch(() => {
     // Persistence failures are logged inside persistKey; the in-memory mark
     // still protects this process instance.
@@ -56,7 +70,7 @@ export async function checkIdempotencyAsync(key: string): Promise<boolean> {
   if (seen.has(key)) return false;
   const persisted = await persistKey(key);
   if (!persisted) return false;
-  seen.set(key, true);
+  markSeen(key);
   return true;
 }
 

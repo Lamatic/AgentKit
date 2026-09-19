@@ -5,9 +5,16 @@ import { postBounty } from "./flows-client.js";
 import { canSpend, recordSpend } from "./budget-governor.js";
 import { parseStatus } from "./orchestrator.js";
 
-const MAX_EARLY = Number(process.env.AUTO_MARKET_MAX_EARLY || process.env.AUTO_MARKET_MAX_ACTIVE || "2");
-const MAX_TOTAL = Number(process.env.AUTO_MARKET_MAX_TOTAL || "3");
-const COOLDOWN_MS = Number(process.env.AUTO_MARKET_COOLDOWN_MS || "15000");
+/** Parse a non-negative finite env number, falling back on invalid input. */
+function envNumber(raw: string | undefined, fallback: number): number {
+  if (raw === undefined || raw === "") return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+const MAX_EARLY = envNumber(process.env.AUTO_MARKET_MAX_EARLY || process.env.AUTO_MARKET_MAX_ACTIVE, 2);
+const MAX_TOTAL = envNumber(process.env.AUTO_MARKET_MAX_TOTAL, 3);
+const COOLDOWN_MS = envNumber(process.env.AUTO_MARKET_COOLDOWN_MS, 15000);
 
 const TERMINAL_STATES = new Set(["settled", "refunded"]);
 const QA_STATES = new Set(["qa_pass", "qa_fail"]);

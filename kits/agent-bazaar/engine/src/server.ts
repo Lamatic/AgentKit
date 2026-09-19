@@ -370,6 +370,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url.pathname === "/debug/stall") {
+      requireAuth(req);
       send(res, 200, await stallReport());
       return;
     }
