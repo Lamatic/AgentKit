@@ -1,23 +1,46 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { orchestrate, type OrchestrateResponse } from "@/actions/orchestrate";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+const formSchema = z.object({
+  domainA: z.string().trim().min(1, "Domain A is required"),
+  domainB: z.string().trim().min(1, "Domain B is required")
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function Home() {
-  const [domainA, setDomainA] = useState("");
-  const [domainB, setDomainB] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OrchestrateResponse | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema)
+  });
+
+  async function onSubmit(values: FormValues) {
     setLoading(true);
     setResult(null);
-    const response = await orchestrate(domainA, domainB);
-    setResult(response);
-    setLoading(false);
+    try {
+      const response = await orchestrate(values.domainA, values.domainB);
+      setResult(response);
+    } catch (err) {
+      setResult({
+        success: false,
+        error: err instanceof Error ? err.message : "Something went wrong while running the flow."
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -30,28 +53,30 @@ export default function Home() {
           is genuinely novel — honestly, not just enthusiastically.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
           <div>
             <label htmlFor="domainA" className="block text-sm font-medium text-foreground">Domain A</label>
             <input
               id="domainA"
-              value={domainA}
-              onChange={(e) => setDomainA(e.target.value)}
+              {...register("domainA")}
               placeholder="e.g. bee colony behavior"
               className="mt-1 w-full rounded-md border border-card-border bg-card px-3 py-2 text-sm focus:border-foreground focus:outline-none"
-              required
             />
+            {errors.domainA && (
+              <p className="mt-1 text-sm text-red-400">{errors.domainA.message}</p>
+            )}
           </div>
           <div>
             <label htmlFor="domainB" className="block text-sm font-medium text-foreground">Domain B</label>
             <input
               id="domainB"
-              value={domainB}
-              onChange={(e) => setDomainB(e.target.value)}
+              {...register("domainB")}
               placeholder="e.g. stock market crashes"
               className="mt-1 w-full rounded-md border border-card-border bg-card px-3 py-2 text-sm focus:border-foreground focus:outline-none"
-              required
             />
+            {errors.domainB && (
+              <p className="mt-1 text-sm text-red-400">{errors.domainB.message}</p>
+            )}
           </div>
           <button
             type="submit"
