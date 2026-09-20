@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 import { CLIENT_AGENT } from "./agents/roster.js";
 import { transition } from "./state-machine.js";
-import { postBounty } from "./flows-client.js";
+import { postBounty, fallbackRubric } from "./flows-client.js";
 import { canSpend, recordSpend } from "./budget-governor.js";
 import { parseStatus } from "./orchestrator.js";
 
@@ -41,14 +41,7 @@ export async function countLoad(): Promise<MarketLoad> {
   return { early, qa, total: early + qa };
 }
 
-const FALLBACK_RUBRIC = {
-  criteria: [
-    { name: "Completeness", weight: 0.4, description: "Covers all requirements" },
-    { name: "Accuracy", weight: 0.3, description: "Factually correct" },
-    { name: "Quality", weight: 0.3, description: "Meets professional standards" },
-  ],
-  maxScore: 1.0,
-};
+const FALLBACK_RUBRIC = fallbackRubric();
 
 const TASK_POOL: Array<{ goal: string; budget: number }> = [
   { goal: "Analyze the latest Q2 earnings report for NVIDIA and summarize key metrics", budget: 800 },

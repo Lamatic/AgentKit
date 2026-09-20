@@ -299,7 +299,6 @@ async function resumeInEscrow(
         await releaseIdempotency(key);
         throw err;
       }
-      recordSpend(1);
       ctx.refunds++;
       const refunded = transition(state, "refund", { reason: "escrow_timeout" });
       await writeStatus(bountyId, refunded);
@@ -467,8 +466,6 @@ async function resumeQaPass(
     await releaseIdempotency(key);
     throw err;
   }
-  recordSpend(1);
-
   const settled = transition(state, "settle", { receiptId: receipt.receiptId });
   await writeStatus(bountyId, settled);
 
@@ -508,7 +505,6 @@ async function refundAndFinish(
         await releaseIdempotency(key);
         throw err;
       }
-      recordSpend(1);
       ctx.refunds++;
       void applyReputation(workerId, "fail").catch((err) =>
         console.error(`[reputation] background update failed for ${workerId}: ${(err as Error).message}`),
@@ -562,18 +558,23 @@ async function ensureBids(
       openBids: { bids: [] as Record<string, unknown>[] },
     };
 
-    // Reserve up front (atomic check+increment); the fallback path below still
-    // counts as consumed, matching the previous finally-recordSpend accounting.
-    tryReserve(1);
+    // Reserve up front (atomic check+increment). When the budget is exhausted
+    // outside replay, skip the provider call: the deterministic derivation
+    // below already handles null fields.
+    const reserved = tryReserve(1);
     let bidResult: Record<string, unknown>;
-    try {
-      bidResult = await pipe("generate-bid", bidInput, () =>
-        flows.generateBid(bidInput) as unknown as Promise<Record<string, unknown>>, ctx);
-    } catch (err) {
-      console.error(
-        `[ensureBids] generate-bid failed for ${worker.name} on bounty ${bountyId}: ${(err as Error).message}. Falling back.`,
-      );
+    if (!reserved && ctx.mode !== "replay") {
       bidResult = { price: null, eta_hours: null, pitch: null };
+    } else {
+      try {
+        bidResult = await pipe("generate-bid", bidInput, () =>
+          flows.generateBid(bidInput) as unknown as Promise<Record<string, unknown>>, ctx);
+      } catch (err) {
+        console.error(
+          `[ensureBids] generate-bid failed for ${worker.name} on bounty ${bountyId}: ${(err as Error).message}. Falling back.`,
+        );
+        bidResult = { price: null, eta_hours: null, pitch: null };
+      }
     }
 
     let price = Number(bidResult.price as unknown);
@@ -644,7 +645,12 @@ async function hydrateBids(bids: Record<string, unknown>[]): Promise<Record<stri
     if (entry) balances.set(agentIds[i], Number(entry.balance_after));
   }
 
-  const agentRep = new Map((agents ?? []).map((a) => [a.id, Number(a.reputation) || 0.5]));
+  const agentRep = new Map((agents ?? []).map((a) => {
+    // A persisted reputation of 0 is valid — fall back to 0.5 only for
+    // non-finite values.
+    const rep = Number(a.reputation);
+    return [a.id, Number.isFinite(rep) ? rep : 0.5];
+  }));
 
   return bids.map((b) => {
     const agentId = b.agent_id as string;
@@ -685,12 +691,20 @@ async function awardAndDeliver(
 
   // Release only a reservation this attempt actually holds; a failed
   // reservation consumed nothing, so releasing it would corrupt the count.
+  // With no reservation outside replay, run deterministically: empty fields
+  // engage the existing fallbacks below (deterministic winner pick,
+  // budget-capped price, fresh escrow ids, wrapped artifact).
   let result: Record<string, unknown>;
-  try {
-    result = await pipe("execute-task", taskInput, () => flows.executeTask(taskInput) as unknown as Promise<Record<string, unknown>>, ctx);
-  } catch (err) {
-    if (reserved) release(1);
-    throw err;
+  if (!reserved && ctx.mode !== "replay") {
+    console.log(`[budget] exhausted — bounty ${bountyId} proceeding on deterministic fallback`);
+    result = {};
+  } else {
+    try {
+      result = await pipe("execute-task", taskInput, () => flows.executeTask(taskInput) as unknown as Promise<Record<string, unknown>>, ctx);
+    } catch (err) {
+      if (reserved) release(1);
+      throw err;
+    }
   }
 
   const winner = resolveWinner(hydrated, result.winnerBidId as unknown);
@@ -879,14 +893,7 @@ async function callQaJudge(
   // via replay/fallback instead of stalling the bounty forever.
   if (!escrow) return null;
 
-  const rubric = (bounty.rubric as Record<string, unknown>) || {
-    criteria: [
-      { name: "Completeness", weight: 0.4, description: "Covers all requirements" },
-      { name: "Accuracy", weight: 0.3, description: "Factually correct" },
-      { name: "Quality", weight: 0.3, description: "Meets professional standards" },
-    ],
-    maxScore: 1.0,
-  };
+  const rubric = (bounty.rubric as Record<string, unknown>) || flows.fallbackRubric();
 
   const artifact =
     delivery?.artifact == null
@@ -909,6 +916,10 @@ async function callQaJudge(
   };
 
   const reserved = tryReserve(1);
+  if (!reserved && ctx.mode !== "replay") {
+    // Budget exhausted: hold the delivery without consuming a QA attempt.
+    return null;
+  }
   let result: Record<string, unknown>;
   try {
     result = await pipe("qa-judge", qaInput, () => flows.qaJudge(qaInput) as unknown as Promise<Record<string, unknown>>, ctx);
@@ -955,7 +966,12 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
   const current = Number.isFinite(stored) ? stored : 0.5;
   // Reserve budget before the paid flow instead of post-call charging; a held
   // reservation already accounts for this execution. Release on throw.
+  // Without a reservation the update is skipped rather than overspending.
   const reserved = tryReserve(1);
+  if (!reserved) {
+    console.log(`[budget] exhausted — skipping reputation update for ${agentId}`);
+    return;
+  }
   try {
     await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
   } catch (err) {

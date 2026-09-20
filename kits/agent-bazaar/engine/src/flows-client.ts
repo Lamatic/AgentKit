@@ -149,6 +149,20 @@ export interface UpdateReputationOutput {
   outcome: string;
 }
 
+/** Shared fallback rubric: every criterion carries a passCondition so judge
+ * prompts and validators see the complete definition. Reused by postBounty,
+ * auto-market, and the orchestrator's QA input. */
+export function fallbackRubric(): Record<string, unknown> {
+  return {
+    criteria: [
+      { name: "Completeness", weight: 0.4, description: "Covers all requirements", passCondition: "All main requirements are addressed" },
+      { name: "Accuracy", weight: 0.3, description: "Factually correct", passCondition: "No factual errors" },
+      { name: "Quality", weight: 0.3, description: "Meets professional standards", passCondition: "Professional quality throughout" },
+    ],
+    maxScore: 1.0,
+  };
+}
+
 /** Invoke the post-bounty flow with fallback rubric. */
 export async function postBounty(input: {
   goal: string;
@@ -157,14 +171,7 @@ export async function postBounty(input: {
   const result = await callWithFallback(FLOWS.postBounty, "postBounty", input as Record<string, unknown>, {
     goal: input.goal,
     budget: input.budget,
-    rubric: {
-      criteria: [
-        { name: "Completeness", weight: 0.4, description: "Covers all requirements" },
-        { name: "Accuracy", weight: 0.3, description: "Factually correct" },
-        { name: "Quality", weight: 0.3, description: "Professional standard" },
-      ],
-      maxScore: 1.0,
-    },
+    rubric: fallbackRubric(),
   });
   return result as unknown as PostBountyOutput;
 }

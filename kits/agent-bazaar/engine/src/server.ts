@@ -9,6 +9,7 @@ import { CLIENT_AGENT } from "./agents/roster.js";
 import { postBounty, getLlmStatus } from "./flows-client.js";
 import { transition } from "./state-machine.js";
 import { maybePostAutoTask, countLoad } from "./auto-market.js";
+import { checkIdempotencyAsync } from "./idempotency.js";
 
 const PORT = Number(process.env.ENGINE_PORT || "8787");
 const HOST = process.env.ENGINE_HOST || "127.0.0.1";
@@ -31,6 +32,17 @@ if (!isLoopback(HOST) && !ENGINE_TOKEN) {
   process.exit(1);
 }
 
+/** Enforce request-level idempotency for bridge mutations: a retried request
+ * carrying an already-seen key is rejected so /task, /round, and /reset never
+ * execute twice. Requests without a key pass through unchanged. */
+async function requireBridgeKey(req: IncomingMessage, route: string): Promise<void> {
+  const header = req.headers["idempotency-key"];
+  const key = Array.isArray(header) ? header[0] : header;
+  if (!key) return;
+  if (!(await checkIdempotencyAsync(`bridge:${route}:${key}`))) {
+    throw new HttpError(409, "Duplicate request — already received; check state before retrying");
+  }
+}
 /** Guard mutating routes: reject unapproved origins and non-JSON bodies even
  * when ENGINE_TOKEN is empty; Bearer-token validation still applies when it
  * is set. Non-mutating requests are unaffected. */
@@ -389,6 +401,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/task") {
       requireAuth(req);
+      await requireBridgeKey(req, "task");
       const result = await postTask(await readJson(req));
       send(res, 200, result);
       // Fire-and-forget: trigger a round immediately so bids start processing
@@ -417,6 +430,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/round") {
       requireAuth(req);
+      await requireBridgeKey(req, "round");
       send(res, 200, await postRound(await readJson(req)));
       return;
     }
@@ -430,6 +444,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/reset") {
       requireAuth(req);
+      await requireBridgeKey(req, "reset");
       const body = await readJson(req);
       await resetEconomy({ reseed: body.reseed !== false });
       send(res, 200, { ok: true });

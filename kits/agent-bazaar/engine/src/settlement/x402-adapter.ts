@@ -23,9 +23,19 @@ function resolveFacilitatorUrl(): string {
 }
 
 const X402_FACILITATOR = resolveFacilitatorUrl();
-const X402_PRIVATE_KEY = process.env.X402_PRIVATE_KEY || "";
 const USDC_DECIMALS = 6;
-const X402_TIMEOUT_MS = Number(process.env.X402_TIMEOUT_MS || "15000");
+// Wallet key: local signing material only — never transmitted. The
+// facilitator endpoint is unauthenticated; if an authenticated facilitator is
+// ever used, send a dedicated API credential in its documented header.
+const X402_PRIVATE_KEY = process.env.X402_PRIVATE_KEY || "";
+void X402_PRIVATE_KEY;
+
+/** Validate the facilitator timeout: integer milliseconds in (0, 2^32). */
+function x402TimeoutMs(): number {
+  const parsed = Number(process.env.X402_TIMEOUT_MS || "15000");
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 4294967295 ? parsed : 15000;
+}
+const X402_TIMEOUT_MS = x402TimeoutMs();
 
 /** Facilitator timeout: the payout may or may not have executed server-side. */
 export class FacilitatorTimeoutError extends Error {
@@ -45,7 +55,6 @@ async function facilitatorPost(op: string, body: Record<string, unknown>): Promi
       signal: AbortSignal.timeout(X402_TIMEOUT_MS),
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${X402_PRIVATE_KEY}`,
       },
       body: JSON.stringify(body),
     });

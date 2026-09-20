@@ -44,19 +44,28 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_current bigint;
 BEGIN
   PERFORM pg_advisory_xact_lock(hashtext(p_agent_id::text));
+  SELECT COALESCE(
+    (SELECT balance_after
+       FROM credit_ledger
+      WHERE agent_id = p_agent_id
+      ORDER BY seq DESC
+      LIMIT 1),
+    0
+  ) INTO v_current;
+  -- No negative balances: a debit that would overdraw is rejected before any
+  -- row is written, so LedgerAdapter.lock can never create an unfunded escrow
+  -- (awardAndDeliver rolls its escrow row back on this error).
+  IF v_current + p_amount < 0 THEN
+    RAISE EXCEPTION 'insufficient funds for agent %: balance %, delta %', p_agent_id, v_current, p_amount;
+  END IF;
   INSERT INTO credit_ledger (agent_id, amount, balance_after, reason, ref_id, source, created_at)
   SELECT p_agent_id,
          p_amount,
-         COALESCE(
-           (SELECT balance_after
-              FROM credit_ledger
-             WHERE agent_id = p_agent_id
-             ORDER BY seq DESC
-             LIMIT 1),
-           0
-         ) + p_amount,
+         v_current + p_amount,
          p_reason,
          p_ref_id,
          p_source,
@@ -69,6 +78,12 @@ $$;
 -- The engine calls this RPC with the service-role key.
 REVOKE ALL ON FUNCTION append_ledger(uuid, bigint, text, uuid, text, timestamptz) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION append_ledger(uuid, bigint, text, uuid, text, timestamptz) TO service_role;
+
+-- Identity for idempotent ledger writes: one settlement/refund leg per
+-- (agent, reason, reference). NULL ref_id rows (e.g. initial grants) are
+-- excluded so they never collide. Repeatable via IF NOT EXISTS.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_credit_ledger_agent_reason_ref
+  ON credit_ledger (agent_id, reason, ref_id) WHERE ref_id IS NOT NULL;
 
 -- Exact total of collected settlement fees over the complete dataset.
 -- Read-only and SECURITY INVOKER so the existing RLS SELECT policies govern

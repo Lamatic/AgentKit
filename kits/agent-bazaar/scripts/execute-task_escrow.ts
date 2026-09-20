@@ -45,6 +45,7 @@ output = {
   winnerBidId: winningBid.id,
   escrowId: escrowId,
   amount: winningBid.price,
+  capability: winningBid.capability,
   lockRef: lockRef,
   scores: decision.scores || [],
   reason: decision.reason || `Bid ${winningBid.id} selected with score ${decision.scores?.[0]?.score || 'N/A'}`

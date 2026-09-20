@@ -67,6 +67,18 @@ async function persistKey(key: string): Promise<boolean> {
  */
 /** Durably check an idempotency key via the database. */
 export async function checkIdempotencyAsync(key: string): Promise<boolean> {
+  if (pendingRelease.has(key)) {
+    // A previous release never reached the table: retry it now. Success
+    // unmarks the key everywhere and the claim below proceeds; another
+    // failure keeps it applied.
+    const { error } = await supabase.from("idempotency_keys").delete().eq("key", key);
+    if (error) {
+      console.error(`[idempotency] pending release retry failed for ${key}: ${error.message}`);
+      return false;
+    }
+    pendingRelease.delete(key);
+    seen.delete(key);
+  }
   if (seen.has(key)) return false;
   const persisted = await persistKey(key);
   if (!persisted) return false;
@@ -77,7 +89,13 @@ export async function checkIdempotencyAsync(key: string): Promise<boolean> {
 /** Clear the in-memory fast path (DB keys persist across restarts). */
 export function resetIdempotency(): void {
   seen.clear();
+  pendingRelease.clear();
 }
+
+// Keys whose durable deletion failed: the in-memory mark stays (safe: the
+// table still holds the key), and the next claim for the key retries the
+// deletion first so a failed release never permanently blocks retry.
+const pendingRelease = new Set<string>();
 
 /**
  * Release a key so a later round can retry after a failed attempt. Safe
@@ -87,5 +105,12 @@ export function resetIdempotency(): void {
 export async function releaseIdempotency(key: string): Promise<void> {
   seen.delete(key);
   const { error } = await supabase.from("idempotency_keys").delete().eq("key", key);
-  if (error) console.error(`[idempotency] release failed for ${key}: ${error.message}`);
+  if (error) {
+    // Durable deletion failed: re-mark in-memory (the table still holds the
+    // key, so staying applied is the safe side) and record a pending release
+    // that the next claim for this key will retry.
+    console.error(`[idempotency] release failed for ${key}: ${error.message} — will retry on next claim`);
+    markSeen(key);
+    pendingRelease.add(key);
+  }
 }

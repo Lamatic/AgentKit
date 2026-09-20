@@ -36,7 +36,7 @@ Illegal states unrepresentable. Crash recovery tested.
 ## Architecture
 - `flows/` — 5 Lamatic flows (business logic, consolidated from 7 operations)
 - `engine/` — TypeScript orchestration (write path, custom addition)
-- `apps/` — Next.js dashboard (read-only)
+- `apps/` — Next.js dashboard (reads market state, sends commands via server actions)
 - `constitutions/` — 5 rules the agents enforce on themselves
 
 ## Constitution

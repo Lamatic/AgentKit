@@ -30,7 +30,15 @@ export async function appendLedger(
     p_source: opts?.source ?? "live",
     p_created_at: opts?.createdAt ?? null,
   });
-  if (error) throw new Error(`Ledger append failed: ${error.message}`);
+  if (error) {
+    // A conflict on the (agent_id, reason, ref_id) identity means this exact
+    // leg already applied — treat as a no-op without touching balances again.
+    // Every other error (including unrelated 23505s) still throws.
+    if (error.code === "23505" && error.message.includes("uq_credit_ledger_agent_reason_ref")) {
+      return;
+    }
+    throw new Error(`Ledger append failed: ${error.message}`);
+  }
 }
 
 /**

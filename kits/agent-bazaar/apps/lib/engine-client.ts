@@ -185,6 +185,9 @@ export class EngineError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** True when the request may have executed server-side (e.g. timeout):
+     * the outcome is unknown — refresh state to reconcile before retrying. */
+    public uncertain = false,
   ) {
     super(message);
     this.name = "EngineError";
@@ -217,7 +220,8 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new EngineError(
       503,
-      `Engine unreachable at ${ENGINE_URL}. Start it with: cd engine && npm run serve`,
+      `Engine unreachable at ${ENGINE_URL}. Outcome unknown — refresh to verify state before retrying. Start it with: cd engine && npm run serve`,
+      true,
     );
   }
 
@@ -267,6 +271,7 @@ export async function postTask(input: { goal: string; budget: number }): Promise
   }
   return engineFetch<{ bountyId: string }>("/task", {
     method: "POST",
+    headers: { "idempotency-key": crypto.randomUUID() },
     body: JSON.stringify({ goal, budget }),
   });
 }
@@ -275,13 +280,18 @@ export async function postTask(input: { goal: string; budget: number }): Promise
 export async function advanceMarket(bountyId: string): Promise<RoundResult> {
   return engineFetch<RoundResult>("/round", {
     method: "POST",
+    headers: { "idempotency-key": crypto.randomUUID() },
     body: JSON.stringify({ bountyId }),
   });
 }
 
 /** Reset the engine economy via the bridge. */
 export async function resetMarket(): Promise<void> {
-  await engineFetch("/reset", { method: "POST", body: JSON.stringify({ reseed: true }) });
+  await engineFetch("/reset", {
+    method: "POST",
+    headers: { "idempotency-key": crypto.randomUUID() },
+    body: JSON.stringify({ reseed: true }),
+  });
 }
 
 /** Toggle engine auto-run and auto-market flags. */
