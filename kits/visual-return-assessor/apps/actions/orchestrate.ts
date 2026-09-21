@@ -16,15 +16,16 @@ const MAX_SERIALIZED_CHAR_LIMIT = 10 * 1024 * 1024;
 const ALLOWED_DOC_DATA_URL_PREFIX =
   /^data:(?:application\/pdf|text\/plain);base64,/i;
 
-// Strict whitelist regex for allowed Data URL prefixes (JPEG and PNG only for images)
-const ALLOWED_IMAGE_DATA_URL_PREFIX = /^data:(?:image\/(?:png|jpeg));base64,/i;
+// Strict whitelist regex for allowed Data URL prefixes (JPEG, JPG, and PNG for images)
+const ALLOWED_IMAGE_DATA_URL_PREFIX =
+  /^data:(?:image\/(?:png|jpeg|jpg));base64,/i;
 
 /**
  * Validates the decoded binary buffer against magic byte signatures for supported image formats
  * and returns the normalized image MIME type.
  *
  * @param buffer - The decoded binary buffer of the image.
- * @returns {string} The detected image MIME type ("image/jpeg" or "image/png").
+ * @returns {string} The detected image MIME type ("image/jpeg", "image/jpg", or "image/png").
  * @throws {Error} If the binary signature does not match JPEG or PNG.
  */
 function validateImageMagicBytes(buffer: Buffer): string {
@@ -55,7 +56,7 @@ function validateImageMagicBytes(buffer: Buffer): string {
   }
 
   throw new Error(
-    "Invalid or unsupported image file signature. Payloads must be valid PNG or JPEG binary images.",
+    "Invalid or unsupported image file signature. Payloads must be valid PNG, JPEG, or JPG binary images.",
   );
 }
 
@@ -123,13 +124,13 @@ function validateDocumentFormat(
  * Validates, caps, sanitizes, and normalizes Base64 or Data URL input payloads before workflow execution.
  *
  * Enforces security boundaries by capping payload character length, validating Base64 encoding structure,
- * checking decoded byte limits, and inspecting binary file signatures for images (PNG/JPEG) and
+ * checking decoded byte limits, and inspecting binary file signatures for images (PNG/JPEG/JPG) and
  * policy documents (PDF/UTF-8 text).
  *
  * @param rawInput - The raw Base64 or Data URL string supplied by the client.
  * @param fieldName - A friendly descriptive field name used for error reporting (e.g. "inspection image").
  * @param maxBytes - Maximum allowed size in bytes after Base64 decoding (defaults to 7 MiB).
- * @param mode - Validation strategy: `"image"` (JPEG/PNG magic bytes check), `"document"` (PDF/UTF-8 check), or `"raw"` (Base64/size check only).
+ * @param mode - Validation strategy: `"image"` (JPEG/JPG/PNG magic bytes check), `"document"` (PDF/UTF-8 check), or `"raw"` (Base64/size check only).
  * @returns {string} The normalized Data URL (or Base64 string) ready for Lamatic workflow execution.
  * @throws {Error} If payload exceeds character/byte limits, contains invalid encoding, or fails file format signature validation.
  */
