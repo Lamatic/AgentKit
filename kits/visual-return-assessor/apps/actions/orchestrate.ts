@@ -392,9 +392,19 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
     const result = response?.result;
     if (result) {
       result.success = result.success === true || result.success === "true";
-      result.authenticityMatch =
+      if (
         result.authenticityMatch === true ||
-        result.authenticityMatch === "true";
+        result.authenticityMatch === "true"
+      ) {
+        result.authenticityMatch = true;
+      } else if (
+        result.authenticityMatch === false ||
+        result.authenticityMatch === "false"
+      ) {
+        result.authenticityMatch = false;
+      } else {
+        delete result.authenticityMatch;
+      }
     }
     return response;
   } catch (error: any) {
