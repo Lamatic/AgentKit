@@ -25,22 +25,22 @@ export const inputs = {
 
 export const references = {
   prompts: {
-    analysisSystem: "@prompts/analysis-system.md",
-    domainAUser: "@prompts/domain-a-user.md",
-    domainBUser: "@prompts/domain-b-user.md",
-    findParallelsSystem: "@prompts/find-parallels-system.md",
-    findParallelsUser: "@prompts/find-parallels-user.md",
-    transferMechanismSystem: "@prompts/transfer-mechanism-system.md",
-    transferMechanismUser: "@prompts/transfer-mechanism-user.md",
-    evaluateInnovationSystem: "@prompts/evaluate-innovation-system.md",
-    evaluateInnovationUser: "@prompts/evaluate-innovation-user.md",
-    presentSuccessSystem: "@prompts/present-success-system.md",
-    presentSuccessUser: "@prompts/present-success-user.md",
-    presentCaveatSystem: "@prompts/present-caveat-system.md",
-    presentCaveatUser: "@prompts/present-caveat-user.md"
+    analysisSystem: "@prompts/neural-cross-pollinator_analyze-domain-a_system.md",
+    domainAUser: "@prompts/neural-cross-pollinator_analyze-domain-a_user.md",
+    domainBUser: "@prompts/neural-cross-pollinator_analyze-domain-b_user.md",
+    findParallelsSystem: "@prompts/neural-cross-pollinator_find-structural-parallels_system.md",
+    findParallelsUser: "@prompts/neural-cross-pollinator_find-structural-parallels_user.md",
+    transferMechanismSystem: "@prompts/neural-cross-pollinator_transfer-mechanism_system.md",
+    transferMechanismUser: "@prompts/neural-cross-pollinator_transfer-mechanism_user.md",
+    evaluateInnovationSystem: "@prompts/neural-cross-pollinator_evaluate-innovation_system.md",
+    evaluateInnovationUser: "@prompts/neural-cross-pollinator_evaluate-innovation_user.md",
+    presentSuccessSystem: "@prompts/neural-cross-pollinator_present-success_system.md",
+    presentSuccessUser: "@prompts/neural-cross-pollinator_present-success_user.md",
+    presentCaveatSystem: "@prompts/neural-cross-pollinator_present-caveat_system.md",
+    presentCaveatUser: "@prompts/neural-cross-pollinator_present-caveat_user.md"
   },
   modelConfigs: {
-    groq: "@model-configs/groq.ts"
+    groq: "@model-configs/neural-cross-pollinator_groq.ts"
   },
   constitutions: { default: "@constitutions/default.md" }
 };
@@ -81,7 +81,7 @@ export const nodes = [
           { role: "system", content: "@prompts/analysis-system.md" },
           { role: "user", content: "@prompts/domain-a-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
@@ -97,7 +97,7 @@ export const nodes = [
           { role: "system", content: "@prompts/analysis-system.md" },
           { role: "user", content: "@prompts/domain-b-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
@@ -129,7 +129,7 @@ export const nodes = [
           { role: "system", content: "@prompts/find-parallels-system.md" },
           { role: "user", content: "@prompts/find-parallels-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
@@ -160,7 +160,7 @@ export const nodes = [
           { role: "system", content: "@prompts/transfer-mechanism-system.md" },
           { role: "user", content: "@prompts/transfer-mechanism-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
@@ -185,7 +185,7 @@ export const nodes = [
           { role: "system", content: "@prompts/evaluate-innovation-system.md" },
           { role: "user", content: "@prompts/evaluate-innovation-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
@@ -222,7 +222,7 @@ export const nodes = [
           { role: "system", content: "@prompts/present-success-system.md" },
           { role: "user", content: "@prompts/present-success-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
@@ -237,7 +237,7 @@ export const nodes = [
           { role: "system", content: "@prompts/present-caveat-system.md" },
           { role: "user", content: "@prompts/present-caveat-user.md" }
         ],
-        generativeModelName: ["@model-configs/groq.ts"]
+        generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
     }
   },
