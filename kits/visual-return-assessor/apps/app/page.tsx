@@ -60,7 +60,7 @@ const returnFormSchema = z.object({
   claimReason: z
     .string()
     .min(5, "Claim reason must be at least 5 characters")
-    .max(2000, "Claim reason must not exceed 2000 characters"),
+    .max(1000, "Claim reason must not exceed 1000 characters"),
   imageFile: z
     .custom<FileList>()
     .refine(
@@ -840,7 +840,7 @@ export default function ReturnAssessorDashboard(): React.ReactElement {
                     <textarea
                       id="claimReason"
                       rows={2}
-                      maxLength={2000}
+                      maxLength={1000}
                       required
                       disabled={loading || !!result}
                       aria-disabled={loading || !!result}

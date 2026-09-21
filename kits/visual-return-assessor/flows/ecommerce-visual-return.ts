@@ -125,14 +125,7 @@ export const nodes = [
         "memories": "[]",
         "messages": "[]",
         "nodeName": "Vision Inspection Node",
-        "modelLogic": [
-          {
-            "type": "fallback",
-            "config": "configA",
-            "onTimeout": false,
-            "fallbackConfig": "configB"
-          }
-        ],
+        "modelLogic": [],
         "attachments": "",
         "generativeModelName": "@model-configs/ecommerce-visual-return_instructor-llmnode-560_generative-model-name.ts"
       }
@@ -232,15 +225,7 @@ export const nodes = [
           "ReturnPolicyStore"
         ],
         "certainty": "0.7",
-        "modelLogic": [
-          {
-            "type": "fallback",
-            "config": "configA",
-            "timeout": 10000,
-            "onTimeout": true,
-            "fallbackConfig": "configB"
-          }
-        ],
+        "modelLogic": [],
         "queryField": "{{triggerNode_1.output.itemCategory}} return and refund policy for {{InstructorLLMNode_560.output.damageType}} damage claim. Issue details: {{triggerNode_1.output.claimReason}}.",
         "embeddingModelName": "@model-configs/ecommerce-visual-return_ragnode-455_embedding-model-name.ts",
         "generativeModelName": "@model-configs/ecommerce-visual-return_ragnode-455_generative-model-name.ts"
