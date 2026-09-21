@@ -661,7 +661,8 @@ async function hydrateBids(bids: Record<string, unknown>[]): Promise<Record<stri
         .maybeSingle(),
     ),
   ]);
-  const { data: agents } = agentsRes;
+  const { data: agents, error: agentsError } = agentsRes;
+  if (agentsError) throw new Error(`Agents read failed: ${agentsError.message}`);
 
   const balances = new Map<string, number>();
   for (let i = 0; i < agentIds.length; i++) {

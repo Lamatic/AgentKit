@@ -260,7 +260,7 @@ export async function readMarketSafe(): Promise<Market | null> {
 }
 
 /** Validate and post a new bounty task. */
-export async function postTask(input: { goal: string; budget: number }): Promise<{ bountyId: string }> {
+export async function postTask(input: { goal: string; budget: number }, opts?: { idempotencyKey?: string }): Promise<{ bountyId: string }> {
   const goal = input.goal.trim();
   const budget = Math.round(input.budget);
   if (goal.length < 20 || goal.length > 500) {
@@ -271,7 +271,9 @@ export async function postTask(input: { goal: string; budget: number }): Promise
   }
   return engineFetch<{ bountyId: string }>("/task", {
     method: "POST",
-    headers: { "idempotency-key": crypto.randomUUID() },
+    // Caller-supplied key is reused across retries of the same intent so a
+    // retried POST de-duplicates (409) instead of posting twice.
+    headers: { "idempotency-key": opts?.idempotencyKey ?? crypto.randomUUID() },
     body: JSON.stringify({ goal, budget }),
   });
 }
@@ -286,10 +288,10 @@ export async function advanceMarket(bountyId: string): Promise<RoundResult> {
 }
 
 /** Reset the engine economy via the bridge. */
-export async function resetMarket(): Promise<void> {
+export async function resetMarket(opts?: { idempotencyKey?: string }): Promise<void> {
   await engineFetch("/reset", {
     method: "POST",
-    headers: { "idempotency-key": crypto.randomUUID() },
+    headers: { "idempotency-key": opts?.idempotencyKey ?? crypto.randomUUID() },
     body: JSON.stringify({ reseed: true }),
   });
 }

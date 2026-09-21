@@ -26,6 +26,7 @@ interface TaskComposerProps {
   autoplay: boolean;
   onAutoplayChange: (value: boolean) => void;
   error: string | null;
+  disabled?: boolean;
 }
 
 /** Render the task composer form. */
@@ -34,6 +35,7 @@ export function TaskComposer({
   autoplay,
   onAutoplayChange,
   error,
+  disabled = false,
 }: TaskComposerProps) {
   const [goal, setGoal] = useState(EXAMPLES[1].goal);
   const [budget, setBudget] = useState(EXAMPLES[1].budget);
@@ -44,7 +46,7 @@ export function TaskComposer({
 
   /** handleSubmit helper. */
   async function handleSubmit() {
-    if (!valid || submitting) return;
+    if (!valid || submitting || disabled) return;
     setSubmitting(true);
     try {
       const ok = await onSubmit(trimmed, budget);
@@ -147,10 +149,10 @@ export function TaskComposer({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!valid || submitting}
+          disabled={!valid || submitting || disabled}
           className="flex items-center gap-1.5 rounded-[6px] bg-primary px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span>{submitting ? "Posting…" : "Post & run"}</span>
+          <span>{disabled ? "Confirming…" : submitting ? "Posting…" : "Post & run"}</span>
           <span className="font-mono text-[11px] opacity-80">(⌘↵)</span>
         </button>
       </div>

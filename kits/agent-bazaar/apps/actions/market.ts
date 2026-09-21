@@ -55,10 +55,12 @@ export async function getMarketState(): Promise<ActionResult<Market>> {
 export async function postTask(input: {
   goal: string;
   budget: number;
+}, opts?: {
+  idempotencyKey?: string;
 }): Promise<ActionResult<{ bountyId: string }>> {
   try {
     requireLocalAccess();
-    return { ok: true, data: await postTaskRequest(input) };
+    return { ok: true, data: await postTaskRequest(input, opts) };
   } catch (err) {
     return toError(err);
   }
@@ -77,10 +79,12 @@ export async function advanceMarket(
 }
 
 /** Reset the engine economy via the bridge. */
-export async function resetMarket(): Promise<ActionResult<null>> {
+export async function resetMarket(opts?: {
+  idempotencyKey?: string;
+}): Promise<ActionResult<null>> {
   try {
     requireLocalAccess();
-    await resetMarketRequest();
+    await resetMarketRequest(opts);
     return { ok: true, data: null };
   } catch (err) {
     return toError(err);

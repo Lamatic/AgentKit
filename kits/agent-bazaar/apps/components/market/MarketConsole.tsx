@@ -34,10 +34,18 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   const [error, setError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>("offline");
+  // Uncertain mutation outcome: while true, the original POST /task or POST
+  // /reset may have executed server-side. Retries stay blocked (same
+  // idempotency key is reused) until reconciliation proves the outcome.
+  const [postUnconfirmed, setPostUnconfirmed] = useState(false);
+  const [resetUnconfirmed, setResetUnconfirmed] = useState(false);
 
   const marketRef = useRef(market);
   const autoplayRef = useRef(autoplay);
   const catchUpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const postKeyRef = useRef<string | null>(null);
+  const resetKeyRef = useRef<string | null>(null);
+  const pendingPostRef = useRef<{ goal: string; budget: number; beforeIds: Set<string> } | null>(null);
   // Status of the selected bounty in the previous market snapshot — used to detect
   // a live → terminal *transition* (auto-advance) vs a deliberate user selection
   // of an already-settled bounty (leave it alone).
@@ -258,20 +266,68 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
 
   const handlePost = useCallback(
     async (goal: string, budget: number) => {
+      // Block new submissions while a prior POST outcome is still unconfirmed.
+      // The pending idempotency key is preserved in postKeyRef so any future
+      // retry of the same intent reuses it instead of minting a duplicate.
+      if (postUnconfirmed) {
+        setError("Task submission unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
+        return false;
+      }
       setError(null);
+      const trimmedGoal = goal.trim();
+      const beforeIds = new Set(marketRef.current?.bounties.map((b) => b.id) ?? []);
+      // One key per user intent: generated once, reused if this same
+      // goal/budget is ever retried after an uncertain outcome.
+      const idempotencyKey = crypto.randomUUID();
+      postKeyRef.current = idempotencyKey;
+      pendingPostRef.current = { goal: trimmedGoal, budget, beforeIds };
       let res;
       try {
-        res = await postTask({ goal, budget });
+        res = await postTask({ goal, budget }, { idempotencyKey });
       } catch (err) {
+        postKeyRef.current = null;
+        pendingPostRef.current = null;
         setError(err instanceof Error ? err.message : "Post task failed");
         return false;
       }
       if (!res.ok) {
+        // Uncertain outcome: the POST may have executed. Keep the submission
+        // blocked and reconcile with polling — a single refresh can return
+        // before the engine's write lands. Only clear the unconfirmed state
+        // once a fresh snapshot proves the new bounty exists.
+        if (res.uncertain) {
+          setPostUnconfirmed(true);
+          setError("Task submission unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
+          for (let attempt = 0; attempt < 5; attempt++) {
+            await new Promise((r) => setTimeout(r, 2000));
+            const ref = await refresh();
+            if (ref.ok) {
+              const found = ref.data.bounties.find(
+                (b) => b.goal === trimmedGoal && !beforeIds.has(b.id),
+              ) ?? ref.data.bounties.find((b) => !beforeIds.has(b.id));
+              if (found) {
+                pendingPostRef.current = null;
+                postKeyRef.current = null;
+                setPostUnconfirmed(false);
+                setError(null);
+                setActiveId(found.id);
+                startCatchUp(
+                  (m) => m.bids.some((b) => b.bounty_id === found.id),
+                  60_000,
+                );
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+        postKeyRef.current = null;
+        pendingPostRef.current = null;
         setError(res.error);
-        // Uncertain outcome: reconcile state before any retry is allowed.
-        if (res.uncertain) await refresh();
         return false;
       }
+      pendingPostRef.current = null;
+      postKeyRef.current = null;
       const bountyId = res.data.bountyId;
       setActiveId(bountyId);
       await refresh();
@@ -283,28 +339,75 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       );
       return true;
     },
-    [refresh, startCatchUp],
+    [refresh, startCatchUp, postUnconfirmed],
   );
 
+  // Late proof: a realtime event or watchdog refresh may land the previously
+  // unconfirmed bounty after the bounded reconcile burst above gave up.
+  // Clear the blocked state only when the original operation's bounty is
+  // visible — never on a timer alone.
+  useEffect(() => {
+    if (!postUnconfirmed || !pendingPostRef.current || !market) return;
+    const pending = pendingPostRef.current;
+    const found = market.bounties.find(
+      (b) => b.goal === pending.goal && !pending.beforeIds.has(b.id),
+    ) ?? market.bounties.find((b) => !pending.beforeIds.has(b.id));
+    if (found) {
+      pendingPostRef.current = null;
+      postKeyRef.current = null;
+      setPostUnconfirmed(false);
+      setError(null);
+      setActiveId(found.id);
+    }
+  }, [market, postUnconfirmed]);
+
   const handleReset = useCallback(async () => {
+    // Block concurrent resets while a prior reset outcome is unconfirmed.
+    if (resetUnconfirmed) {
+      setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
+      return;
+    }
     setResetting(true);
     setError(null);
+    const beforeTime = marketRef.current?.serverTime ?? null;
+    const idempotencyKey = crypto.randomUUID();
+    resetKeyRef.current = idempotencyKey;
     try {
-      const res = await resetMarket();
+      const res = await resetMarket({ idempotencyKey });
       if (!res.ok) {
+        // Uncertain outcome: poll for a fresh post-reset snapshot instead of
+        // trusting a single refresh. Only clear once a newer snapshot proves
+        // the engine answered after the reset attempt.
+        if (res.uncertain) {
+          setResetUnconfirmed(true);
+          setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
+          for (let attempt = 0; attempt < 4; attempt++) {
+            await new Promise((r) => setTimeout(r, 2000));
+            const ref = await refresh();
+            if (ref.ok && (!beforeTime || ref.data.serverTime > beforeTime)) {
+              resetKeyRef.current = null;
+              setResetUnconfirmed(false);
+              setError(null);
+              setActiveId(null);
+              return;
+            }
+          }
+          return;
+        }
+        resetKeyRef.current = null;
         setError(res.error);
-        // Uncertain outcome: reconcile state before any retry is allowed.
-        if (res.uncertain) await refresh();
         return;
       }
+      resetKeyRef.current = null;
       setActiveId(null);
       await refresh();
     } catch (err) {
+      resetKeyRef.current = null;
       setError(err instanceof Error ? err.message : "Reset failed");
     } finally {
       setResetting(false);
     }
-  }, [refresh]);
+  }, [refresh, resetUnconfirmed]);
 
   const activeBounty = useMemo(
     () => market?.bounties.find((bounty) => bounty.id === activeId) ?? null,
@@ -418,10 +521,10 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
           <button
             type="button"
             onClick={handleReset}
-            disabled={resetting}
+            disabled={resetting || resetUnconfirmed}
             className="rounded-[6px] border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50"
           >
-            {resetting ? "Resetting…" : "Reset"}
+            {resetUnconfirmed ? "Confirming reset…" : resetting ? "Resetting…" : "Reset"}
           </button>
         </div>
       </header>
@@ -432,6 +535,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
           autoplay={autoplay}
           onAutoplayChange={handleAutoplayToggle}
           error={error}
+          disabled={postUnconfirmed}
         />
 
         <div className="grid grid-cols-12 items-start gap-6">

@@ -58,7 +58,7 @@ draft → open → awarded → in_escrow → delivered → qa_pass → settled
 |---|------|---------|
 | 1 | `post-bounty` | Validates scope + budget, generates 3-5 criterion rubric |
 | 2 | `generate-bid` | Workers price themselves with strategy reasoning |
-| 3 | `execute-task` | Selects winner (reputation-weighted scoring), locks escrow, executes |
+| 3 | `execute-task` | Selects winner (reputation-weighted scoring), validates winning price against bounty budget, locks escrow, executes |
 | 4 | `qa-judge` | Scores artifact against rubric, decides settle/revise/refund |
 | 5 | `update-reputation` | Pass = +0.05, Fail = -0.1, clamped to [0, 1] |
 
@@ -83,7 +83,7 @@ The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://
 
 Type a task and the client agent posts it; three workers bid; the engine awards, escrows, executes, judges with QA, and settles. The dashboard polls the bridge and animates each phase. **Autoplay** advances phases automatically at 1x/2x/4x; **Advance one round** steps manually; **Reset** restores the deterministic seed.
 
-Daily LLM budget reservations persist in Supabase (`daily_budget` table) so the cap holds across engine restarts and instances. `POST /task` reserves budget before the rubric flow — when exhausted it keeps the stored fallback rubric and skips the Lamatic call. Mutation routes accept an `Idempotency-Key` header and reject replays with `409`; transport failures are reported as uncertain — refresh state to reconcile before retrying. A shared lifecycle mutex covers the timer auto-round plus `POST /task` kick, `/round`, `/seed`, and `/reset`: concurrent lifecycle requests get `409` so a reset can never overlap with late writes from an older round.
+Daily LLM budget reservations persist in Supabase (`daily_budget` table) so the cap holds across engine restarts and instances. `POST /task` reserves budget before the rubric flow — when exhausted it keeps the stored fallback rubric and skips the Lamatic call. Mutation routes accept an `Idempotency-Key` header and reject replays with `409`; transport failures are reported as uncertain — the dashboard keeps the submission blocked, reuses the same idempotency key across retries, and polls `GET /market` until a fresh snapshot proves the outcome before clearing the unconfirmed state. A shared lifecycle mutex covers the timer auto-round plus `POST /task` kick, `/round`, `/seed`, and `/reset`: concurrent lifecycle requests get `409` so a reset can never overlap with late writes from an older round. Bid hydration fails closed on agents-read errors (no silent reputation fallback), and the Escrow Explorer marks `TVL` / `Active Escrows` / `Settled` / `Fees` with `~ (approx.)` when their aggregate queries fail, preserving successful aggregates.
 
 Idempotency is fail-closed: only `23505` unique violations mean already-applied (`false`); any other persist failure throws so callers never mark keys seen without a durable insert. Escrow award uses engine-owned ids (flow `escrowId` output is ignored) and verifies `bounty_id` before reuse; a lost `23505` race reloads the bounty and stops the attempt. x402 `settle`/`refund` transport failures preserve the escrow claim for manual reconciliation (only explicit facilitator rejections release it). QA preserves the judge-generated `rubric_hash` through the release script and flow output mapping.
 
@@ -112,7 +112,7 @@ Built with Next.js 15 + React 18 + Tailwind CSS using the "Autonomous Terminal P
 **6 pages:**
 - **Main Dashboard** — Task composer + live task pipeline (bids → escrow → delivery → QA → settlement), agent roster, credit ledger, bounty board
 - **Order Book** — Bid/ask depth, capability filters, settlement ledger stream
-- **Escrow Explorer** — TVL, vault table, settlement velocity, dispute sandbox
+- **Escrow Explorer** — TVL, vault table, settlement velocity, dispute sandbox (totals show `~ approx.` from the page subset when aggregate queries fail)
 - **Telemetry** — Node cluster topology, x402 gateway, QA oracle performance
 - **Receipt Detail** — Full settlement proof with 6-step audit timeline
 - **Agent Profile** — Reputation, capability matrix, escrow receipts, sparklines

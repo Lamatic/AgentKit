@@ -51,27 +51,57 @@ export default async function EscrowPage() {
   }
 
   // Exact aggregates over the complete dataset (the lists above stay limited
-  // to the latest 10). Fall back to the page subset when unavailable.
+  // to the latest 10). Each aggregate is reconciled independently: a failed
+  // query leaves its metric marked approximate (page-subset derived) while
+  // successful aggregates still overwrite their subset values.
   let lockedTotal = escrows.filter((e) => e.status === "locked").reduce((sum, e) => sum + (e.amount || 0), 0);
   let lockedCount = escrows.filter((e) => e.status === "locked").length;
   let settledCount = receipts.length;
   let feesCollected = receipts.reduce((s, r) => s + (r.fee_amount || 0), 0);
+  let lockedApproximate = true;
+  let settledApproximate = true;
+  let feesApproximate = true;
   try {
-    const { data: statsRows } = await supabase.rpc("escrow_locked_stats");
-    const stats = Array.isArray(statsRows) ? statsRows[0] : statsRows;
-    if (stats) {
-      lockedCount = Number(stats.locked_count);
-      lockedTotal = Number(stats.locked_total);
+    const { data: statsRows, error: statsError } = await supabase.rpc("escrow_locked_stats");
+    if (statsError) {
+      console.error("[escrow] escrow_locked_stats failed, using page subset:", statsError.message);
+    } else {
+      const stats = Array.isArray(statsRows) ? statsRows[0] : statsRows;
+      const parsedCount = Number(stats?.locked_count);
+      const parsedTotal = Number(stats?.locked_total);
+      if (stats && Number.isFinite(parsedCount) && Number.isFinite(parsedTotal)) {
+        lockedCount = parsedCount;
+        lockedTotal = parsedTotal;
+        lockedApproximate = false;
+      } else if (stats) {
+        console.error("[escrow] escrow_locked_stats returned non-numeric stats, using page subset");
+      } else {
+        // No stats row: locked set is empty, so the subset total is exact.
+        lockedApproximate = false;
+      }
     }
-    const { count } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true });
-    if (typeof count === "number") settledCount = count;
+    const { count, error: countError } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true });
+    if (countError) {
+      console.error("[escrow] settlement_receipts count failed, using page subset:", countError.message);
+    } else if (typeof count === "number") {
+      settledCount = count;
+      settledApproximate = false;
+    }
     // Database-level sum: the JS reduce below is only a fallback, since a
     // plain select is capped at the PostgREST row limit.
     const { data: feeTotal, error: feeError } = await supabase.rpc("settlement_fee_total");
-    if (!feeError && feeTotal != null) feesCollected = Number(feeTotal);
-    else {
-      const { data: feeRows } = await supabase.from("settlement_receipts").select("fee_amount");
-      if (feeRows) feesCollected = feeRows.reduce((s, r) => s + (Number(r.fee_amount) || 0), 0);
+    if (!feeError && feeTotal != null && Number.isFinite(Number(feeTotal))) {
+      feesCollected = Number(feeTotal);
+      feesApproximate = false;
+    } else {
+      if (feeError) console.error("[escrow] settlement_fee_total failed, using page subset:", feeError.message);
+      const { data: feeRows, error: feeRowsError } = await supabase.from("settlement_receipts").select("fee_amount");
+      if (feeRowsError) {
+        console.error("[escrow] fee_amount fallback read failed, using page subset:", feeRowsError.message);
+      } else if (feeRows) {
+        feesCollected = feeRows.reduce((s, r) => s + (Number(r.fee_amount) || 0), 0);
+      }
+      // Fallback select is row-capped, so it stays marked approximate.
     }
   } catch (err) {
     console.error("[escrow] aggregates read failed, using page subset:", err);
@@ -80,6 +110,11 @@ export default async function EscrowPage() {
   const demoSections = [
     escrowsFailed ? "escrows" : null,
     receiptsFailed ? "receipts" : null,
+  ].filter(Boolean);
+  const approximateSections = [
+    lockedApproximate ? "locked totals" : null,
+    settledApproximate ? "settled count" : null,
+    feesApproximate ? "fees" : null,
   ].filter(Boolean);
 
   return (
@@ -90,22 +125,27 @@ export default async function EscrowPage() {
           Demo data — live database unavailable for: {demoSections.join(", ")}.
         </p>
       )}
+      {approximateSections.length > 0 && (
+        <p role="status" className="mb-4 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Approximate totals — aggregate query unavailable for: {approximateSections.join(", ")}. Values marked with ~ are derived from the visible page subset.
+        </p>
+      )}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card><CardContent className="pt-4">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">TVL</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{lockedTotal} CRT</p>
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">TVL{lockedApproximate ? " (approx.)" : ""}</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{lockedApproximate ? `~${lockedTotal}` : lockedTotal} CRT</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Active Escrows</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--secondary)]">{lockedCount}</p>
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Active Escrows{lockedApproximate ? " (approx.)" : ""}</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--secondary)]">{lockedApproximate ? `~${lockedCount}` : lockedCount}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Settled</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--secondary)]">{settledCount}</p>
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Settled{settledApproximate ? " (approx.)" : ""}</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--secondary)]">{settledApproximate ? `~${settledCount}` : settledCount}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Fees Collected</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--tertiary)]">{feesCollected} CRT</p>
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Fees Collected{feesApproximate ? " (approx.)" : ""}</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--tertiary)]">{feesApproximate ? `~${feesCollected}` : feesCollected} CRT</p>
         </CardContent></Card>
       </div>
       <Card>
