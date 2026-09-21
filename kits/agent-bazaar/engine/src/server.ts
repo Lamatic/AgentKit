@@ -4,14 +4,19 @@ import { supabase } from "./supabase.js";
 import { seed, ensureAgents } from "./scripts/seed.js";
 import { resetEconomy } from "./scripts/reset.js";
 import { runRound, parseStatus } from "./orchestrator.js";
-import { getBudgetStatus, getMode } from "./budget-governor.js";
+import { getBudgetStatus, getMode, tryReserve } from "./budget-governor.js";
 import { CLIENT_AGENT } from "./agents/roster.js";
 import { postBounty, getLlmStatus, fallbackRubric } from "./flows-client.js";
 import { transition } from "./state-machine.js";
 import { maybePostAutoTask, countLoad } from "./auto-market.js";
 import { checkIdempotencyAsync, releaseIdempotency } from "./idempotency.js";
 
-const PORT = Number(process.env.ENGINE_PORT || "8787");
+/** Parse ENGINE_PORT: integer TCP port 1-65535, else documented default 8787. */
+function parsePort(raw: string | undefined): number {
+  const n = Number(raw ?? "8787");
+  return Number.isInteger(n) && n >= 1 && n <= 65535 ? n : 8787;
+}
+const PORT = parsePort(process.env.ENGINE_PORT);
 const HOST = process.env.ENGINE_HOST || "127.0.0.1";
 const ENGINE_TOKEN = process.env.ENGINE_TOKEN || "";
 const DASHBOARD_ORIGIN = process.env.DASHBOARD_ORIGIN || "http://localhost:3000";
@@ -86,6 +91,21 @@ let autoRun = true;
 let autoMarket = true;
 let roundInFlight = false;
 let roundStartedAt = 0;
+// Shared lifecycle mutex: one holder across the timer auto-round and all
+// mutation routes (POST /round, /seed, /reset, /task kick) so a reset can
+// never overlap with late writes from an older round. Reuses the round flag
+// family — no new module, single boolean source.
+let lifecycleInFlight = false;
+/** Try to acquire the shared lifecycle mutex; false when busy. */
+function acquireLifecycle(): boolean {
+  if (lifecycleInFlight) return false;
+  lifecycleInFlight = true;
+  return true;
+}
+/** Release the shared lifecycle mutex. */
+function releaseLifecycle(): void {
+  lifecycleInFlight = false;
+}
 
 // Ring buffer of recent round failures so stalls are diagnosable.
 const recentErrors: Array<{ at: string; message: string }> = [];
@@ -174,15 +194,22 @@ async function postTask(body: Record<string, unknown>): Promise<Record<string, u
     throw new HttpError(500, "Failed to post bounty");
   }
 
-  void postBounty({ goal, budget })
-    .then(async (posted) => {
-      if (posted.rubric) {
-        await supabase.from("bounties").update({ rubric: posted.rubric }).eq("id", bountyId);
-      }
-    })
-    .catch(() => {
-      // Flow unavailable — fallback rubric already stored keeps things moving.
-    });
+  // Reserve budget before the manual rubric flow; when exhausted, keep the
+  // already-stored fallback rubric and skip the Lamatic call entirely.
+  const rubricReserved = await tryReserve(1);
+  if (rubricReserved) {
+    void postBounty({ goal, budget })
+      .then(async (posted) => {
+        if (posted.rubric) {
+          await supabase.from("bounties").update({ rubric: posted.rubric }).eq("id", bountyId);
+        }
+      })
+      .catch(() => {
+        // Flow unavailable — fallback rubric already stored keeps things moving.
+      });
+  } else {
+    console.log(`[budget] exhausted — bounty ${bountyId} keeping fallback rubric, skipping postBounty flow`);
+  }
 
   return { bountyId, goal, budget, rubric: FALLBACK_RUBRIC };
 }
@@ -346,8 +373,8 @@ async function stallReport(): Promise<Record<string, unknown>> {
     mode: getMode(),
     llm: getLlmStatus(),
     auto: { run: autoRun, market: autoMarket },
-    roundInFlight,
-    roundAgeMs: roundInFlight ? Date.now() - roundStartedAt : 0,
+    roundInFlight: roundInFlight || lifecycleInFlight,
+    roundAgeMs: roundInFlight || lifecycleInFlight ? Date.now() - roundStartedAt : 0,
     load: await countLoad(),
     histogram,
     openWithBids,
@@ -409,10 +436,17 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/task") {
       requireAuth(req);
-      const result = await withBridgeKey(req, "task", async () => postTask(await readJson(req)));
+      if (!acquireLifecycle()) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
+      let result: Record<string, unknown>;
+      try {
+        result = await withBridgeKey(req, "task", async () => postTask(await readJson(req)));
+      } finally {
+        releaseLifecycle();
+      }
       send(res, 200, result);
       // Fire-and-forget: trigger a round immediately so bids start processing
-      if (!roundInFlight) {
+      if (!lifecycleInFlight && !roundInFlight) {
+        if (!acquireLifecycle()) return;
         roundInFlight = true;
         roundStartedAt = Date.now();
         void runRound({ bountyId: result.bountyId as string, record: false })
@@ -421,7 +455,7 @@ const server = createServer(async (req, res) => {
             console.error(`[engine] ${msg}`);
             noteError(msg);
           })
-          .finally(() => { roundInFlight = false; });
+          .finally(() => { roundInFlight = false; releaseLifecycle(); });
       }
       return;
     }
@@ -437,23 +471,38 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/round") {
       requireAuth(req);
-      send(res, 200, await withBridgeKey(req, "round", async () => postRound(await readJson(req))));
+      if (!acquireLifecycle()) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
+      try {
+        send(res, 200, await withBridgeKey(req, "round", async () => postRound(await readJson(req))));
+      } finally {
+        releaseLifecycle();
+      }
       return;
     }
 
     if (req.method === "POST" && url.pathname === "/seed") {
       requireAuth(req);
-      await seed();
+      if (!acquireLifecycle()) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
+      try {
+        await seed();
+      } finally {
+        releaseLifecycle();
+      }
       send(res, 200, { ok: true });
       return;
     }
 
     if (req.method === "POST" && url.pathname === "/reset") {
       requireAuth(req);
-      await withBridgeKey(req, "reset", async () => {
-        const body = await readJson(req);
-        await resetEconomy({ reseed: body.reseed !== false });
-      });
+      if (!acquireLifecycle()) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
+      try {
+        await withBridgeKey(req, "reset", async () => {
+          const body = await readJson(req);
+          await resetEconomy({ reseed: body.reseed !== false });
+        });
+      } finally {
+        releaseLifecycle();
+      }
       send(res, 200, { ok: true });
       return;
     }
@@ -481,16 +530,17 @@ server.listen(PORT, HOST, async () => {
     console.error("  Agent seeding failed:", (err as Error).message);
   }
 
-  // Auto-run: process bounties every second (guarded by roundInFlight)
+  // Auto-run: process bounties every second (guarded by shared lifecycle mutex)
   let round = 0;
   setInterval(async () => {
-    if (roundInFlight) {
+    if (lifecycleInFlight || roundInFlight) {
       const ageS = Math.round((Date.now() - roundStartedAt) / 1000);
       if (ageS >= 60) {
         console.error(`[watchdog] round stuck for ${ageS}s — ticks skipping, check hung flow/DB call`);
       }
       return;
     }
+    if (!acquireLifecycle()) return;
     roundInFlight = true;
     roundStartedAt = Date.now();
     try {
@@ -517,6 +567,7 @@ server.listen(PORT, HOST, async () => {
       noteError(msg);
     } finally {
       roundInFlight = false;
+      releaseLifecycle();
     }
   }, 1000);
 

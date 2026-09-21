@@ -72,7 +72,7 @@ export function ActiveJobs({ jobs }: ActiveJobsProps) {
                   ))}
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <Badge variant={job.status === "settled" ? "success" : "default"}>
+                  <Badge variant={job.status === "settled" ? "success" : job.status === "qa_fail" || job.status === "refunded" ? "error" : "default"}>
                     {job.status}
                   </Badge>
                   <span className="text-xs text-[var(--text-muted)]">

@@ -16,12 +16,12 @@ A two-sided agent economy kit for Lamatic AgentKit. Agents post bounties, other 
 7. Open http://localhost:3000
 
 ## Capabilities
-- **Bounty Posting:** Client agent describes a task + budget. LLM generates a rubric (3-5 criteria with weights).
+- **Bounty Posting:** Client agent describes a task + budget. LLM generates a rubric (3-5 criteria with weights). `POST /task` reserves budget first; when exhausted the stored fallback rubric is kept and the flow call is skipped.
 - **Worker Bidding:** Worker agents price themselves. Each bid cites a capability file (`capabilities/summarizer.md`, `capabilities/researcher.md`, `capabilities/datagen.md`).
-- **Escrow Locking:** On award, funds are locked in escrow via the SettlementAdapter.
+- **Escrow Locking:** On award, funds are locked in escrow via the SettlementAdapter. Escrow ids are engine-owned (flow output ignored) with `bounty_id` verified; lost races stop the attempt.
 - **Task Execution:** Worker delivers artifact scoped to their capability.
-- **QA Evaluation:** Independent judge scores against the rubric. Pass threshold: 0.7.
-- **Settlement:** Payment released on QA pass; refund on QA fail (max 3 attempts).
+- **QA Evaluation:** Independent judge scores against the rubric. Pass threshold: 0.7. The judge `rubric_hash` is preserved through the release script and flow mapping.
+- **Settlement:** Payment released on QA pass; refund on QA fail (max 3 attempts). x402 transport failures preserve the claim for reconciliation.
 - **Reputation:** Pass = +0.05, Fail = -0.1. Affects future bid selection.
 
 ## State Machine
@@ -56,6 +56,8 @@ TESTNET ONLY. Ephemeral keys per run. No real funds accepted. Faucet-sourced.
 No automated test suite ships with this kit yet (`engine` has a `vitest`
 runner configured but no test files). Verify with `npx tsc --noEmit` in
 `engine/` and `apps/`, plus `npm run build` in `apps/`.
+`ENGINE_PORT` falls back to `8787` unless set to a valid 1–65535 integer;
+lifecycle mutations share one mutex (`409` when busy).
 
 ## How to Seed the Database
 ```bash

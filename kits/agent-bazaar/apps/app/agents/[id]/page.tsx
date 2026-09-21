@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, unstable_rethrow } from "next/navigation";
 import { supabase } from "@/lib/supabase-server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -75,7 +75,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
       if (receiptsError) console.error(`[agents/${id}] receipts read failed, using fixtures:`, receiptsError.message);
     }
   } catch (err) {
-    if ((err as { digest?: string })?.digest === "NEXT_NOT_FOUND") throw err;
+    unstable_rethrow(err);
     demoMode = true;
     console.error(`[agents/${id}] Supabase read failed, falling back to mock data:`, err);
   }

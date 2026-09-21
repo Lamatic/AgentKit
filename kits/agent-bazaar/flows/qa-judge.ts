@@ -129,7 +129,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"score\": \"{{codeNode_757.output.score}}\",\n  \"verdict\": \"{{codeNode_757.output.verdict}}\",\n  \"rationale\": \"{{codeNode_757.output.rationale}}\",\n  \"action\": \"{{codeNode_757.output.action}}\",\n  \"receiptId\": \"{{codeNode_757.output.receiptId}}\",\n  \"newAttempt\": \"{{codeNode_757.output.newAttempt}}\",\n  \"reason\": \"{{codeNode_757.output.reason}}\"\n}"
+        "outputMapping": "{\n  \"score\": \"{{codeNode_757.output.score}}\",\n  \"verdict\": \"{{codeNode_757.output.verdict}}\",\n  \"rationale\": \"{{codeNode_757.output.rationale}}\",\n  \"rubric_hash\": \"{{codeNode_757.output.rubric_hash}}\",\n  \"action\": \"{{codeNode_757.output.action}}\",\n  \"receiptId\": \"{{codeNode_757.output.receiptId}}\",\n  \"newAttempt\": \"{{codeNode_757.output.newAttempt}}\",\n  \"reason\": \"{{codeNode_757.output.reason}}\"\n}"
       }
     }
   }

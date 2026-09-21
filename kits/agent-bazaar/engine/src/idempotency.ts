@@ -38,13 +38,15 @@ async function persistKey(key: string): Promise<boolean> {
     if (error) {
       // 23505 = unique violation → already applied by another instance/restart.
       if (error.code === "23505") return false;
-      console.error(`[idempotency] persist failed for ${key}: ${error.message}`);
-      return true;
+      throw new Error(`[idempotency] persist failed for ${key}: ${error.message}`);
     }
     return true;
   } catch (err) {
-    console.error(`[idempotency] persist failed for ${key}: ${(err as Error).message}`);
-    return true;
+    // A 23505 mapped above already returned false; anything else means the
+    // durable write is unknown — callers must not markSeen or proceed.
+    if ((err as { code?: string })?.code === "23505") return false;
+    if ((err as Error)?.message?.startsWith("[idempotency] persist failed")) throw err;
+    throw new Error(`[idempotency] persist failed for ${key}: ${(err as Error).message}`);
   }
 }
 

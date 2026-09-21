@@ -38,6 +38,7 @@ output = {
   score: scoreNum,
   verdict: verdict,
   rationale: rationale,
+  rubric_hash: rubricHash,
   action: action,
   receiptId: receiptId,
   newAttempt: newAttempt,

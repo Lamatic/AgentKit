@@ -27,9 +27,11 @@ then `003_realtime_publication.sql`.
 cd engine
 cp .env.example .env         # Supabase service role, Lamatic keys, flow IDs
 npm install
-npm run seed                 # idempotent deterministic history
+npm run seed                 # idempotent deterministic history (aborts on any failed transition)
 npm run serve                # HTTP bridge on http://localhost:8787
 ```
+
+`ENGINE_PORT` must be an integer TCP port (1–65535) or the engine falls back to `8787`. `ENGINE_MAX_CHAIN` must be a positive integer (default `6`) and `ENGINE_CHAIN_DWELL_MS` a positive finite ms value (default `1500`).
 
 ### 3. Dashboard
 
@@ -81,7 +83,9 @@ The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://
 
 Type a task and the client agent posts it; three workers bid; the engine awards, escrows, executes, judges with QA, and settles. The dashboard polls the bridge and animates each phase. **Autoplay** advances phases automatically at 1x/2x/4x; **Advance one round** steps manually; **Reset** restores the deterministic seed.
 
-Daily LLM budget reservations persist in Supabase (`daily_budget` table) so the cap holds across engine restarts and instances. Mutation routes accept an `Idempotency-Key` header and reject replays with `409`; transport failures are reported as uncertain — refresh state to reconcile before retrying.
+Daily LLM budget reservations persist in Supabase (`daily_budget` table) so the cap holds across engine restarts and instances. `POST /task` reserves budget before the rubric flow — when exhausted it keeps the stored fallback rubric and skips the Lamatic call. Mutation routes accept an `Idempotency-Key` header and reject replays with `409`; transport failures are reported as uncertain — refresh state to reconcile before retrying. A shared lifecycle mutex covers the timer auto-round plus `POST /task` kick, `/round`, `/seed`, and `/reset`: concurrent lifecycle requests get `409` so a reset can never overlap with late writes from an older round.
+
+Idempotency is fail-closed: only `23505` unique violations mean already-applied (`false`); any other persist failure throws so callers never mark keys seen without a durable insert. Escrow award uses engine-owned ids (flow `escrowId` output is ignored) and verifies `bounty_id` before reuse; a lost `23505` race reloads the bounty and stops the attempt. x402 `settle`/`refund` transport failures preserve the escrow claim for manual reconciliation (only explicit facilitator rejections release it). QA preserves the judge-generated `rubric_hash` through the release script and flow output mapping.
 
 > `002_client_agent_and_live_source.sql` enables the dedicated `client` specialty and `live` ledger source. Without it the engine falls back to a worker specialty so the market still runs.
 

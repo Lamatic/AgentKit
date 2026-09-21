@@ -143,6 +143,7 @@ export interface QaJudgeOutput {
   score: number;
   verdict: string;
   rationale: string;
+  rubric_hash?: string;
   action: string;
   receiptId?: string;
   newAttempt: number;

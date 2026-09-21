@@ -120,7 +120,7 @@ export default async function EscrowPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm font-medium text-[var(--primary)]">{e.amount} CRT</span>
-                  <Badge variant={e.status === "locked" ? "warning" : "success"}>{e.status}</Badge>
+                  <Badge variant={e.status === "settled" ? "success" : e.status === "locked" ? "warning" : e.status === "refunded" ? "error" : "default"}>{e.status}</Badge>
                 </div>
               </div>
             ))}

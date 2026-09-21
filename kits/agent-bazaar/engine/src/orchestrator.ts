@@ -15,8 +15,18 @@ const ESCROW_TIMEOUT_MS = 3600_000;
 
 // Max consecutive phases one bounty may advance inside a single round, and the
 // pause between chained phases so each stays visible on the dashboard.
-const MAX_CHAIN_STEPS = Number(process.env.ENGINE_MAX_CHAIN || "6");
-const CHAIN_DWELL_MS = Number(process.env.ENGINE_CHAIN_DWELL_MS || "1500");
+/** Parse chain-step limit: positive integer, else documented default 6. */
+function parseChainSteps(raw: string | undefined): number {
+  const n = Number(raw ?? "6");
+  return Number.isInteger(n) && n > 0 ? n : 6;
+}
+/** Parse chain dwell: positive finite ms, else documented default 1500. */
+function parseChainDwellMs(raw: string | undefined): number {
+  const n = Number(raw ?? "1500");
+  return Number.isFinite(n) && n > 0 ? n : 1500;
+}
+const MAX_CHAIN_STEPS = parseChainSteps(process.env.ENGINE_MAX_CHAIN);
+const CHAIN_DWELL_MS = parseChainDwellMs(process.env.ENGINE_CHAIN_DWELL_MS);
 
 /** sleep helper. */
 function sleep(ms: number): Promise<void> {
@@ -112,11 +122,12 @@ export async function runRound(opts: RunOptions = {}): Promise<RoundResult> {
         const before = JSON.stringify(bounty.status);
         await processBounty(bounty, state, ctx);
         processed = true;
-        const { data: fresh } = await supabase
+        const { data: fresh, error: freshError } = await supabase
           .from("bounties")
           .select("*")
           .eq("id", bounty.id as string)
           .maybeSingle();
+        if (freshError) throw new Error(`Bounty reload failed for ${bounty.id}: ${freshError.message}`);
         if (!fresh) break;
         const next = parseStatus(fresh.status);
         if (!next || !involvedStates.has(next.status)) break;
@@ -201,10 +212,11 @@ async function resumeOpen(
   const bountyId = bounty.id as string;
 
   if (state.closeAt < Date.now()) {
-    const { data: existingBids } = await supabase
+    const { data: existingBids, error: existingBidsError } = await supabase
       .from("bids")
       .select("id")
       .eq("bounty_id", bountyId);
+    if (existingBidsError) throw new Error(`Bids read failed for bounty ${bountyId}: ${existingBidsError.message}`);
     if (!existingBids || existingBids.length === 0) {
       const expired = transition(state, "expire", {});
       await writeStatus(bountyId, expired);
@@ -215,10 +227,11 @@ async function resumeOpen(
   // Check if bids already exist before generating (two-tick split: tick 1 inserts,
   // tick 2 sees existing bids and proceeds to award). This makes the bidding phase
   // visible on the dashboard for at least one tick.
-  const { data: priorBids } = await supabase
+  const { data: priorBids, error: priorBidsError } = await supabase
     .from("bids")
     .select("id")
     .eq("bounty_id", bountyId);
+  if (priorBidsError) throw new Error(`Bids read failed for bounty ${bountyId}: ${priorBidsError.message}`);
   const hadBids = priorBids && priorBids.length > 0;
 
   const bids = await ensureBids(bounty, ctx);
@@ -237,10 +250,11 @@ async function resumeAwarded(
   ctx: RoundContext,
 ): Promise<void> {
   const bountyId = bounty.id as string;
-  const { data: existingBids } = await supabase
+  const { data: existingBids, error: existingBidsError } = await supabase
     .from("bids")
     .select("*")
     .eq("bounty_id", bountyId);
+  if (existingBidsError) throw new Error(`Bids read failed for bounty ${bountyId}: ${existingBidsError.message}`);
   const bids = (existingBids ?? []) as Record<string, unknown>[];
   if (bids.length > 0) {
     const awarded: BountyStatus = { status: "awarded", bidId: "" };
@@ -268,8 +282,10 @@ async function resumeInEscrow(
       .limit(1)
       .maybeSingle(),
   ]);
-  const { data: escrow } = escrowRes;
-  const { data: prefetchedDelivery } = deliveryRes;
+  const { data: escrow, error: escrowError } = escrowRes;
+  const { data: prefetchedDelivery, error: deliveryError } = deliveryRes;
+  if (escrowError) throw new Error(`Escrow read failed for bounty ${bountyId}: ${escrowError.message}`);
+  if (deliveryError) throw new Error(`Delivery read failed for bounty ${bountyId}: ${deliveryError.message}`);
 
   if (!escrow) {
     await resumeAwarded(bounty, ctx);
@@ -317,10 +333,11 @@ async function resumeInEscrow(
     return;
   }
 
-  const { data: existingBids } = await supabase
+  const { data: existingBids, error: existingBidsError } = await supabase
     .from("bids")
     .select("*")
     .eq("bounty_id", bountyId);
+  if (existingBidsError) throw new Error(`Bids read failed for bounty ${bountyId}: ${existingBidsError.message}`);
   const bids = (existingBids ?? []) as Record<string, unknown>[];
   if (bids.length === 0) return;
 
@@ -339,12 +356,13 @@ async function resumeDelivered(
   const bountyId = bounty.id as string;
   const attempt = state.attempt;
 
-  const { data: delivery } = await supabase
+  const { data: delivery, error: deliveryError } = await supabase
     .from("deliveries")
     .select("*")
     .eq("bounty_id", bountyId)
     .eq("attempt", attempt)
     .maybeSingle();
+  if (deliveryError) throw new Error(`Delivery read failed for bounty ${bountyId}: ${deliveryError.message}`);
 
   const verdict = await callQaJudge(bounty, delivery, attempt, ctx);
   if (!verdict) return;
@@ -385,21 +403,23 @@ async function resumeQaFail(
   }
 
   const nextAttempt = revisionOf + 1;
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("deliveries")
     .select("id")
     .eq("bounty_id", bountyId)
     .eq("attempt", nextAttempt)
     .maybeSingle();
+  if (existingError) throw new Error(`Delivery read failed for bounty ${bountyId}: ${existingError.message}`);
 
   let deliveryId = existing?.id as string | undefined;
   if (!deliveryId) {
-    const { data: last } = await supabase
+    const { data: last, error: lastError } = await supabase
       .from("deliveries")
       .select("artifact")
       .eq("bounty_id", bountyId)
       .eq("attempt", revisionOf)
       .maybeSingle();
+    if (lastError) throw new Error(`Delivery read failed for bounty ${bountyId}: ${lastError.message}`);
 
     deliveryId = crypto.randomUUID();
     const { error } = await supabase.from("deliveries").insert({
@@ -424,11 +444,12 @@ async function resumeQaPass(
 ): Promise<void> {
   const bountyId = bounty.id as string;
 
-  const { data: escrow } = await supabase
+  const { data: escrow, error: escrowError } = await supabase
     .from("escrows")
     .select("*")
     .eq("bounty_id", bountyId)
     .maybeSingle();
+  if (escrowError) throw new Error(`Escrow read failed for bounty ${bountyId}: ${escrowError.message}`);
 
   if (!escrow) throw new Error(`No escrow found for bounty ${bountyId}`);
 
@@ -438,11 +459,12 @@ async function resumeQaPass(
   ]);
 
   if (escrow.status === "settled") {
-    const { data: receipt } = await supabase
+    const { data: receipt, error: receiptError } = await supabase
       .from("settlement_receipts")
       .select("*")
       .eq("escrow_id", escrow.id)
       .maybeSingle();
+    if (receiptError) throw new Error(`Receipt read failed for escrow ${escrow.id}: ${receiptError.message}`);
     if (receipt) {
       const settled = transition(state, "settle", { receiptId: receipt.id });
       await writeStatus(bountyId, settled);
@@ -486,11 +508,12 @@ async function refundAndFinish(
   const bountyId = bounty.id as string;
   const poster = bounty.posted_by as string;
 
-  const { data: escrow } = await supabase
+  const { data: escrow, error: escrowError } = await supabase
     .from("escrows")
     .select("*")
     .eq("bounty_id", bountyId)
     .maybeSingle();
+  if (escrowError) throw new Error(`Escrow read failed for bounty ${bountyId}: ${escrowError.message}`);
 
   if (escrow && escrow.status !== "refunded") {
     const workerId = await escrowWorkerId(escrow.id);
@@ -527,10 +550,11 @@ async function ensureBids(
   const bountyId = bounty.id as string;
   const poster = bounty.posted_by as string;
 
-  const { data: existingBids } = await supabase
+  const { data: existingBids, error: existingBidsError } = await supabase
     .from("bids")
     .select("*")
     .eq("bounty_id", bountyId);
+  if (existingBidsError) throw new Error(`Bids read failed for bounty ${bountyId}: ${existingBidsError.message}`);
 
   if (existingBids && existingBids.length > 0) return existingBids;
 
@@ -708,7 +732,10 @@ async function awardAndDeliver(
   }
 
   const winner = resolveWinner(hydrated, result.winnerBidId as unknown);
-  const rawEscrowId = existing?.escrowId || (result.escrowId as string) || crypto.randomUUID();
+  // Engine-owned escrow identity: never trust result.escrowId from the flow
+  // (LLM output). Only the resume path (existing) may reuse an id, and only
+  // after the bounty_id check below.
+  const rawEscrowId = existing?.escrowId || crypto.randomUUID();
   let escrowId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawEscrowId)
     ? rawEscrowId
     : crypto.randomUUID();
@@ -721,13 +748,22 @@ async function awardAndDeliver(
   const amount = Number.isFinite(budgetCap) && budgetCap > 0
     ? Math.min(proposal, budgetCap)
     : proposal;
-  let lockRef = existing?.lockRef || (result.lockRef as string) || `lock-${escrowId}`;
+  let lockRef = existing?.lockRef || `lock-${escrowId}`;
 
-  const { data: existingEscrow } = await supabase
+  const { data: existingEscrow, error: existingEscrowError } = await supabase
     .from("escrows")
-    .select("id")
+    .select("id, bounty_id")
     .eq("id", escrowId)
     .maybeSingle();
+  if (existingEscrowError) throw new Error(`Escrow read failed for ${escrowId}: ${existingEscrowError.message}`);
+  if (existingEscrow) {
+    // A row already claims this id: only reuse it when it belongs to this
+    // bounty, otherwise reject — a foreign escrow must never be locked or
+    // associated with the current bounty.
+    if ((existingEscrow as Record<string, unknown>).bounty_id !== bountyId) {
+      throw new Error(`Escrow ${escrowId} belongs to another bounty — refusing to reuse`);
+    }
+  }
 
   if (!existingEscrow) {
     const { error } = await supabase.from("escrows").insert({
@@ -740,8 +776,9 @@ async function awardAndDeliver(
     });
     if (error) {
       // Uniqueness conflict: a concurrent writer won the race for this
-      // bounty — adopt the winner row's identifiers so the lock_escrow
-      // transition below persists the real escrow, not our failed attempt.
+      // bounty — stop this attempt immediately. Do not adopt raced ids or
+      // continue with local winner/amount/artifact data; reload and let the
+      // next round resume from the winner row.
       if (error.code === "23505") {
         const { data: raced, error: reloadError } = await supabase
           .from("escrows")
@@ -749,17 +786,26 @@ async function awardAndDeliver(
           .eq("bounty_id", bountyId)
           .maybeSingle();
         if (reloadError || !raced) throw new Error(`Escrow insert failed: ${error.message}`);
-        escrowId = raced.id as string;
-        lockRef = raced.lock_ref as string;
+        const { data: freshBounty, error: bountyReloadError } = await supabase
+          .from("bounties")
+          .select("*")
+          .eq("id", bountyId)
+          .maybeSingle();
+        if (bountyReloadError) throw new Error(`Escrow race reload failed for bounty ${bountyId}: ${bountyReloadError.message}`);
+        void freshBounty;
+        void raced;
+        return;
       } else {
         throw new Error(`Escrow insert failed: ${error.message}`);
       }
     } else {
       // Treat the insert and lock/debit as one claim: a failed lock or debit
       // must not leave a locked row that suppresses retry. Roll back our own
-      // insert, log if the rollback fails, release our budget reservation,
-      // and rethrow the original error. The held reservation already accounts
-      // for this execution, so no post-call spend is recorded.
+      // insert, log if the rollback fails, and rethrow the original error.
+      // The held reservation already accounts for this execution (the
+      // execute-task result was produced), so it is preserved for both
+      // timeout and confirmed failures — only a pipe failure before a result
+      // releases (see above).
       try {
         const lock = await adapter.lock(escrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
 
@@ -772,12 +818,11 @@ async function awardAndDeliver(
         // A facilitator timeout means the lock may have executed: the escrow
         // row is the claim record, so preserve it for manual reconciliation
         // instead of deleting it. All other failures keep existing cleanup.
+        // Reservation is preserved in both cases (see above).
         if (err instanceof FacilitatorTimeoutError) {
-          if (reserved) await release(1);
           console.error(`[escrow] lock timed out for ${escrowId}: escrow row preserved — manual reconciliation required`);
           throw err;
         }
-        if (reserved) await release(1);
         const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", escrowId);
         if (rollbackError) {
           console.error(`[escrow] rollback failed for ${escrowId}: ${rollbackError.message} — manual reconciliation required`);
@@ -882,11 +927,12 @@ async function callQaJudge(
 ): Promise<QAVerdict | null> {
   const bountyId = bounty.id as string;
 
-  const { data: escrow } = await supabase
+  const { data: escrow, error: escrowError } = await supabase
     .from("escrows")
     .select("*")
     .eq("bounty_id", bountyId)
     .maybeSingle();
+  if (escrowError) throw new Error(`Escrow read failed for bounty ${bountyId}: ${escrowError.message}`);
 
   // No canSpend gate here: when the budget is exhausted the QA flow resolves
   // via replay/fallback instead of stalling the bounty forever.
@@ -949,7 +995,9 @@ async function callQaJudge(
     score,
     verdict,
     rationale: String(result.rationale || "No rationale provided."),
-    rubric_hash: sha1ish(JSON.stringify(rubric)),
+    rubric_hash: typeof result.rubric_hash === "string" && result.rubric_hash.length > 0
+      ? String(result.rubric_hash)
+      : sha1ish(JSON.stringify(rubric)),
   };
 }
 
@@ -1053,29 +1101,32 @@ async function pipe(
 
 /** Fetch the latest delivery attempt number. */
 async function latestDeliveryAttempt(bountyId: string): Promise<number> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("deliveries")
     .select("attempt")
     .eq("bounty_id", bountyId)
     .order("attempt", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (error) throw new Error(`Delivery read failed for bounty ${bountyId}: ${error.message}`);
   return data ? Number(data.attempt) : 1;
 }
 
 /** Resolve the worker behind an escrow. */
 async function escrowWorkerId(escrowId: string): Promise<string> {
-  const { data: escrow } = await supabase
+  const { data: escrow, error: escrowError } = await supabase
     .from("escrows")
     .select("bid_id")
     .eq("id", escrowId)
     .maybeSingle();
+  if (escrowError) throw new Error(`Escrow read failed for ${escrowId}: ${escrowError.message}`);
   if (!escrow?.bid_id) return "";
-  const { data: bid } = await supabase
+  const { data: bid, error: bidError } = await supabase
     .from("bids")
     .select("agent_id")
     .eq("id", escrow.bid_id)
     .maybeSingle();
+  if (bidError) throw new Error(`Bid read failed for escrow ${escrowId}: ${bidError.message}`);
   return bid?.agent_id || "";
 }
 

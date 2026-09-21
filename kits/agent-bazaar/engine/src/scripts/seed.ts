@@ -245,16 +245,22 @@ export async function seed(): Promise<void> {
 
     let st: BountyStatus = openState;
     st = transition(st, "award", { bidId });
-    await supabase
-      .from("bounties")
-      .update({ status: st, updated_at: hoursAgo(36 - i * 8) })
-      .eq("id", bountyId);
+    {
+      const { error: awardErr } = await supabase
+        .from("bounties")
+        .update({ status: st, updated_at: hoursAgo(36 - i * 8) })
+        .eq("id", bountyId);
+      if (awardErr) throw new Error(`seed bounty award ${bountyId}: ${awardErr.message}`);
+    }
 
     st = transition(st, "lock_escrow", { escrowId, lockRef });
-    await supabase
-      .from("bounties")
-      .update({ status: st, updated_at: hoursAgo(36 - i * 8) })
-      .eq("id", bountyId);
+    {
+      const { error: lockErr } = await supabase
+        .from("bounties")
+        .update({ status: st, updated_at: hoursAgo(36 - i * 8) })
+        .eq("id", bountyId);
+      if (lockErr) throw new Error(`seed bounty lock_escrow ${bountyId}: ${lockErr.message}`);
+    }
 
     const deliveryId = deterministicUUID(`delivery-${i}`);
     const { error: delErr } = await supabase.from("deliveries").insert({
@@ -268,10 +274,13 @@ export async function seed(): Promise<void> {
     if (delErr) throw delErr;
 
     st = transition(st, "deliver", { deliveryId, attempt: 1 });
-    await supabase
-      .from("bounties")
-      .update({ status: st, updated_at: hoursAgo(32 - i * 8) })
-      .eq("id", bountyId);
+    {
+      const { error: deliverErr } = await supabase
+        .from("bounties")
+        .update({ status: st, updated_at: hoursAgo(32 - i * 8) })
+        .eq("id", bountyId);
+      if (deliverErr) throw new Error(`seed bounty deliver ${bountyId}: ${deliverErr.message}`);
+    }
 
     const score = 0.85 + i * 0.05;
     const verdictId = deterministicUUID(`verdict-${i}`);
@@ -295,10 +304,13 @@ export async function seed(): Promise<void> {
         rubric_hash: `seed-rubric-${i}`,
       },
     });
-    await supabase
-      .from("bounties")
-      .update({ status: st, updated_at: hoursAgo(28 - i * 8) })
-      .eq("id", bountyId);
+    {
+      const { error: qaPassErr } = await supabase
+        .from("bounties")
+        .update({ status: st, updated_at: hoursAgo(28 - i * 8) })
+        .eq("id", bountyId);
+      if (qaPassErr) throw new Error(`seed bounty qa_pass ${bountyId}: ${qaPassErr.message}`);
+    }
 
     const feeAmount = Math.round(bidPrice * 0.1);
     const netAmount = bidPrice - feeAmount;
@@ -318,16 +330,22 @@ export async function seed(): Promise<void> {
     });
     if (receiptErr) throw receiptErr;
 
-    await supabase
-      .from("escrows")
-      .update({ status: "settled", settled_at: hoursAgo(24 - i * 8) })
-      .eq("id", escrowId);
+    {
+      const { error: settleEscrowErr } = await supabase
+        .from("escrows")
+        .update({ status: "settled", settled_at: hoursAgo(24 - i * 8) })
+        .eq("id", escrowId);
+      if (settleEscrowErr) throw new Error(`seed escrow settle ${escrowId}: ${settleEscrowErr.message}`);
+    }
 
     st = transition(st, "settle", { receiptId });
-    await supabase
-      .from("bounties")
-      .update({ status: st, updated_at: hoursAgo(24 - i * 8) })
-      .eq("id", bountyId);
+    {
+      const { error: settleErr } = await supabase
+        .from("bounties")
+        .update({ status: st, updated_at: hoursAgo(24 - i * 8) })
+        .eq("id", bountyId);
+      if (settleErr) throw new Error(`seed bounty settle ${bountyId}: ${settleErr.message}`);
+    }
 
     const settledAt = new Date(new Date(hoursAgo(24 - i * 8)).getTime());
     // Poster pays exactly the gross bid (locked once); worker takes net and

@@ -206,8 +206,13 @@ export class X402Adapter implements SettlementAdapter {
         );
         throw err;
       }
-      // Connection-level failure: confirmed nothing executed — safe to retry.
-      await releaseClaim(escrowId);
+      // Non-timeout transport failure is still uncertain (the payout may have
+      // executed before the connection dropped) and the facilitator offers no
+      // durable deduplication guarantee — preserve the claim for manual
+      // reconciliation so a retry can never pay twice.
+      console.error(
+        `[x402] settle transport failed for escrow ${escrowId}: payout uncertain — manual reconciliation required: ${(err as Error).message}`,
+      );
       throw err;
     }
 
@@ -314,7 +319,8 @@ export class X402Adapter implements SettlementAdapter {
       throw new Error(`Escrow ${escrowId} is no longer locked — already processed`);
     }
 
-    // Same release-only-on-confirmed-pre-payout-failure contract as settle.
+    // Same uncertain-failure contract as settle: only an explicit
+    // facilitator rejection releases the claim; transport failures preserve it.
     let response: Response;
     try {
       response = await facilitatorPost("refund", {
@@ -329,7 +335,9 @@ export class X402Adapter implements SettlementAdapter {
         );
         throw err;
       }
-      await releaseClaim(escrowId);
+      console.error(
+        `[x402] refund transport failed for escrow ${escrowId}: payout uncertain — manual reconciliation required: ${(err as Error).message}`,
+      );
       throw err;
     }
 
