@@ -50,9 +50,9 @@ Illegal states unrepresentable. Crash recovery tested.
 TESTNET ONLY. Ephemeral keys per run. No real funds accepted. Faucet-sourced.
 
 ## How to Run Tests
-```bash
-cd engine && npm test
-```
+No automated test suite ships with this kit yet (`engine` has a `vitest`
+runner configured but no test files). Verify with `npx tsc --noEmit` in
+`engine/` and `apps/`, plus `npm run build` in `apps/`.
 
 ## How to Seed the Database
 ```bash

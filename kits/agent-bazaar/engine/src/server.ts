@@ -6,7 +6,7 @@ import { resetEconomy } from "./scripts/reset.js";
 import { runRound, parseStatus } from "./orchestrator.js";
 import { getBudgetStatus, getMode } from "./budget-governor.js";
 import { CLIENT_AGENT } from "./agents/roster.js";
-import { postBounty, getLlmStatus } from "./flows-client.js";
+import { postBounty, getLlmStatus, fallbackRubric } from "./flows-client.js";
 import { transition } from "./state-machine.js";
 import { maybePostAutoTask, countLoad } from "./auto-market.js";
 import { checkIdempotencyAsync } from "./idempotency.js";
@@ -86,14 +86,8 @@ function noteError(message: string): void {
   if (recentErrors.length > 20) recentErrors.shift();
 }
 
-const FALLBACK_RUBRIC = {
-  criteria: [
-    { name: "Completeness", weight: 0.4, description: "Covers all requirements" },
-    { name: "Accuracy", weight: 0.3, description: "Factually correct" },
-    { name: "Quality", weight: 0.3, description: "Meets professional standards" },
-  ],
-  maxScore: 1.0,
-};
+/** Shared fallback rubric (with passCondition criteria) for posted bounties. */
+const FALLBACK_RUBRIC = fallbackRubric();
 
 class HttpError extends Error {
   constructor(

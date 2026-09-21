@@ -966,17 +966,18 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
   const current = Number.isFinite(stored) ? stored : 0.5;
   // Reserve budget before the paid flow instead of post-call charging; a held
   // reservation already accounts for this execution. Release on throw.
-  // Without a reservation the update is skipped rather than overspending.
+  // Budget exhaustion skips only the paid flow: the database write below is
+  // free, so degraded mode still records the outcome.
   const reserved = tryReserve(1);
-  if (!reserved) {
-    console.log(`[budget] exhausted — skipping reputation update for ${agentId}`);
-    return;
-  }
-  try {
-    await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
-  } catch (err) {
-    if (reserved) release(1);
-    throw err;
+  if (reserved) {
+    try {
+      await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
+    } catch (err) {
+      release(1);
+      throw err;
+    }
+  } else {
+    console.log(`[budget] exhausted — recording reputation without paid flow for ${agentId}`);
   }
 
   // Single atomic write: clamping, two-decimal rounding, and win/loss

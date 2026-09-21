@@ -136,17 +136,6 @@ Supabase tables  ←────────────────────
 - `apps/` — Next.js dashboard. Talks to the engine via server actions; never imports engine code.
 - Shared contract: the HTTP bridge and the Supabase table schema.
 
-## Testing
-
-```bash
-cd engine && npm install && npm test
-```
-
-15 tests across 3 files:
-- State machine: 4 tests (legal/illegal transitions, revise limit, idempotency)
-- Settlement adapters: 4 tests (lock idempotency, settle receipt, x402 lock/settle)
-- Golden path: 7 tests (full round, crash recovery, budget governor, flow outputs, dashboard render, constitution)
-
 ## Tradeoffs
 
 - **No per-call metering** — LLM costs are budget-capped but not tracked per-flow

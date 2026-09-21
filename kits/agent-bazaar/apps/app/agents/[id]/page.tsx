@@ -16,23 +16,48 @@ const MOCK_RECEIPTS = [
   { receipt_id: "receipt-002", from_agent: "796ff788-0000-4000-8000-000000000000", to_agent: "1ff47abd-0000-4000-8000-000000000000", gross_amount: 800, fee_amount: 80, net_amount: 720, adapter: "x402", tx_hash: "0xabc123def4567890001", settled_at: "2026-09-14T01:15:00Z" },
 ];
 
+// Client-agent id mirror (apps must never import engine code): the deterministic
+// id of "Client-Alpha" from engine/src/agents/roster.ts, used only to derive role.
+const CLIENT_AGENT_ID = "38b026a4-0000-4000-8000-000000000000";
+
+interface AgentView {
+  id: string;
+  name: string;
+  role: string;
+  specialty?: string | null;
+  reputation: number;
+  balance: number | null;
+  source?: string;
+}
+
 // Note: in Next.js 15+ route params are a Promise — awaiting them is required.
 /** Render an agent profile page. */
 export default async function AgentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const mockDefault = MOCK_AGENTS.find((a) => a.id === id) || MOCK_AGENTS[1];
-  let agent = mockDefault;
+  let agent: AgentView = { ...mockDefault };
   let receipts = MOCK_RECEIPTS;
-  let usedLiveAgent = false;
+  let demoMode = false;
 
   try {
     const { data: dbAgent, error: agentError } = await supabase.from("agents").select("*").eq("id", id).maybeSingle();
     const { data: dbReceipts, error: receiptsError } = await supabase.from("settlement_receipts").select("*").or(`from_agent.eq.${id},to_agent.eq.${id}`).order("created_at", { ascending: false }).limit(10);
     if (agentError) throw agentError;
     if (!dbAgent) notFound();
-    agent = { ...mockDefault, ...dbAgent };
-    usedLiveAgent = true;
+    // Live agents must not inherit fixture-only fields: the agents table has
+    // no balance/role/source columns, so read the balance from the ledger
+    // (latest by append order), derive the role from the client id, and leave
+    // source unset. Em dash renders when the balance is unavailable.
+    const { data: ledgerRow } = await supabase.from("credit_ledger").select("balance_after").eq("agent_id", id).order("seq", { ascending: false }).limit(1).maybeSingle();
+    agent = {
+      id: dbAgent.id,
+      name: dbAgent.name,
+      role: dbAgent.id === CLIENT_AGENT_ID ? "client" : "worker",
+      specialty: dbAgent.specialty ?? undefined,
+      reputation: Number(dbAgent.reputation) || 0,
+      balance: ledgerRow ? Number(ledgerRow.balance_after) : null,
+    };
     if (!receiptsError && dbReceipts) {
       receipts = dbReceipts.map((r) => ({
         receipt_id: r.id,
@@ -45,17 +70,24 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
         tx_hash: r.tx_hash,
         settled_at: r.created_at,
       }));
+    } else {
+      demoMode = true;
+      if (receiptsError) console.error(`[agents/${id}] receipts read failed, using fixtures:`, receiptsError.message);
     }
   } catch (err) {
     if ((err as { digest?: string })?.digest === "NEXT_NOT_FOUND") throw err;
-    if (!usedLiveAgent) {
-      console.error(`[agents/${id}] Supabase read failed, falling back to mock data:`, err);
-    }
+    demoMode = true;
+    console.error(`[agents/${id}] Supabase read failed, falling back to mock data:`, err);
   }
 
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] p-6">
       <Link href="/" className="mb-4 inline-block text-sm text-[var(--primary)] hover:underline">← Back to Dashboard</Link>
+      {demoMode && (
+        <p role="status" className="mb-4 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Demo data — live database unavailable.
+        </p>
+      )}
       <div className="mb-6 flex items-center gap-3">
         <h1 className="text-xl font-semibold text-[var(--text-primary)]">{agent.name}</h1>
         <Badge variant={agent.role === "client" ? "default" : "success"}>{agent.role}</Badge>
@@ -68,7 +100,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Balance</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{agent.balance} CRT</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{agent.balance ?? "—"}{agent.balance != null ? " CRT" : ""}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Recent Settlements</p>

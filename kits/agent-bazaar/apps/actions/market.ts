@@ -6,6 +6,7 @@ import {
   readMarket,
   resetMarket as resetMarketRequest,
   setAutoMarket as setAutoMarketRequest,
+  ENGINE_URL,
   type Market,
   type RoundResult,
 } from "@/lib/engine-client";
@@ -21,8 +22,16 @@ function toError(err: unknown): { ok: false; error: string } {
 
 /** Mutating actions only run against a local engine companion process. */
 function requireLocalAccess(): void {
-  const engineUrl = process.env.ENGINE_URL || "http://localhost:8787";
-  if (!engineUrl.includes("localhost") && !engineUrl.includes("127.0.0.1")) {
+  // Reuse the validated ENGINE_URL export (already SSRF-guarded at module
+  // load); substring matching on the raw env is bypassable, so parse the
+  // hostname and allow loopback only.
+  let host: string;
+  try {
+    host = new URL(ENGINE_URL).hostname.toLowerCase();
+  } catch {
+    throw new Error("Mutating actions only available in local development");
+  }
+  if (host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]") {
     throw new Error("Mutating actions only available in local development");
   }
 }
