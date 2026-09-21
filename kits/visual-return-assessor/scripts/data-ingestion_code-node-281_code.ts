@@ -7,4 +7,4 @@ if(!Array.isArray(chunks) || chunks.length === 0){
   throw new Error("Policy chunks are empty")
 }
 
-output = chunks.map((x) => x.pageContent)
+output= chunks.map((x) => x.pageContent)

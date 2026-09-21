@@ -11,8 +11,8 @@ export const meta = {
   "deployUrl": "",
   "author": {
     "name": "Dhruv Bakshi",
-    "email": "dhruvbakshi0803@gmail.com",
-  },
+    "email": "dhruvbakshi0803@gmail.com"
+  }
 };
 
 // -- Inputs --
@@ -21,42 +21,38 @@ export const inputs = {
     {
       "name": "embeddingModelName",
       "label": "Embedding Model Name",
-      "type": "model",
-    },
+      "type": "model"
+    }
   ],
   "vectorNode_843": [
     {
       "name": "vectorDB",
       "label": "Vector DB",
-      "type": "select",
-    },
+      "type": "select"
+    }
   ],
   "vectorNode_851": [
     {
       "name": "vectorDB",
       "label": "Vector DB",
-      "type": "select",
-    },
-  ],
+      "type": "select"
+    }
+  ]
 };
 
 // -- References --
 export const references = {
   "constitutions": {
-    "default": "@constitutions/default.md",
+    "default": "@constitutions/default.md"
   },
   "modelConfigs": {
-    "data_ingestion_vectorize_node_850_embedding_model_name":
-      "@model-configs/data-ingestion_vectorize-node-850_embedding-model-name.ts",
+    "data_ingestion_vectorize_node_850_embedding_model_name": "@model-configs/data-ingestion_vectorize-node-850_embedding-model-name.ts"
   },
   "scripts": {
-    "data_ingestion_code_node_561_code":
-      "@scripts/data-ingestion_code-node-561_code.ts",
-    "data_ingestion_code_node_281_code":
-      "@scripts/data-ingestion_code-node-281_code.ts",
-    "data_ingestion_code_node_869_code":
-      "@scripts/data-ingestion_code-node-869_code.ts",
-  },
+    "data_ingestion_code_node_561_code": "@scripts/data-ingestion_code-node-561_code.ts",
+    "data_ingestion_code_node_281_code": "@scripts/data-ingestion_code-node-281_code.ts",
+    "data_ingestion_code_node_869_code": "@scripts/data-ingestion_code-node-869_code.ts"
+  }
 };
 
 // -- Nodes & Edges --
@@ -66,7 +62,7 @@ export const nodes = [
     "type": "triggerNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "graphqlNode",
@@ -75,17 +71,16 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema":
-          '{\n  "documentName": "string",\n  "brand": "string",\n  "category": "string",\n  "content": "string"\n}',
-      },
-    },
+        "advance_schema": "{\n  \"documentName\": \"string\",\n  \"brand\": \"string\",\n  \"category\": \"string\",\n  \"content\": \"string\"\n}"
+      }
+    }
   },
   {
     "id": "extractFromFileNode_996",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "extractFromFileNode",
@@ -93,7 +88,7 @@ export const nodes = [
         "id": "extractFromFileNode_996",
         "trim": false,
         "ltrim": false,
-        "quote": '"',
+        "quote": "\"",
         "rtrim": false,
         "format": "auto",
         "comment": "null",
@@ -109,31 +104,31 @@ export const nodes = [
         "ignoreEmpty": false,
         "returnRawText": false,
         "encodeAsBase64": false,
-        "discardUnmappedColumns": false,
-      },
-    },
+        "discardUnmappedColumns": false
+      }
+    }
   },
   {
     "id": "codeNode_561",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "codeNode",
       "values": {
         "code": "@scripts/data-ingestion_code-node-561_code.ts",
-        "nodeName": "Raw Text Code",
-      },
-    },
+        "nodeName": "Raw Text Code"
+      }
+    }
   },
   {
     "id": "chunkNode_419",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "chunkNode",
@@ -142,33 +137,37 @@ export const nodes = [
         "nodeName": "Chunking",
         "chunkField": "{{codeNode_561.output}}",
         "numOfChars": 400,
-        "separators": ["\n\n", "\n", ""],
+        "separators": [
+          "\n\n",
+          "\n",
+          ""
+        ],
         "chunkingType": "recursiveCharacterTextSplitter",
-        "overlapChars": 150,
-      },
-    },
+        "overlapChars": 150
+      }
+    }
   },
   {
     "id": "codeNode_281",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "codeNode",
       "values": {
         "code": "@scripts/data-ingestion_code-node-281_code.ts",
-        "nodeName": "Code",
-      },
-    },
+        "nodeName": "Code"
+      }
+    }
   },
   {
     "id": "vectorizeNode_850",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "vectorizeNode",
@@ -176,32 +175,31 @@ export const nodes = [
         "id": "vectorizeNode_850",
         "nodeName": "Vectorize",
         "inputText": "{{codeNode_281.output}}",
-        "embeddingModelName":
-          "@model-configs/data-ingestion_vectorize-node-850_embedding-model-name.ts",
-      },
-    },
+        "embeddingModelName": "@model-configs/data-ingestion_vectorize-node-850_embedding-model-name.ts"
+      }
+    }
   },
   {
     "id": "codeNode_869",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "codeNode",
       "values": {
         "code": "@scripts/data-ingestion_code-node-869_code.ts",
-        "nodeName": "Code",
-      },
-    },
+        "nodeName": "Code"
+      }
+    }
   },
   {
     "id": "vectorNode_843",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "vectorNode",
@@ -212,19 +210,21 @@ export const nodes = [
         "filters": "",
         "nodeName": "VectorDB Index",
         "vectorDB": "ReturnPolicyStore",
-        "primaryKeys": ["chunkId"],
+        "primaryKeys": [
+          "chunkId"
+        ],
         "vectorsField": "{{vectorizeNode_850.output.vectors}}",
         "metadataField": "{{codeNode_869.output.1}}",
-        "duplicateOperation": "overwrite",
-      },
-    },
+        "duplicateOperation": "overwrite"
+      }
+    }
   },
   {
     "id": "vectorNode_851",
     "type": "dynamicNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "vectorNode",
@@ -232,38 +232,36 @@ export const nodes = [
         "id": "vectorNode_851",
         "limit": "3",
         "action": "delete",
-        "filters":
-          '{\n  "operator": "And",\n  "operands": [\n    {\n      "path": [\n        "brand"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.brand}}"\n    },\n    {\n      "path": [\n        "category"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.category}}"\n    },\n    {\n      "path": [\n        "documentName"\n      ],\n      "operator": "Equal",\n      "valueText": "{{triggerNode_1.output.documentName}}"\n    },\n    {\n      "path": [\n        "version"\n      ],\n      "operator": "NotEqual",\n      "valueNumber": "{{codeNode_869.output.0}}"\n    }\n  ]\n}',
+        "filters": "{\n  \"operator\": \"And\",\n  \"operands\": [\n    {\n      \"path\": [\n        \"brand\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.brand}}\"\n    },\n    {\n      \"path\": [\n        \"category\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.category}}\"\n    },\n    {\n      \"path\": [\n        \"documentName\"\n      ],\n      \"operator\": \"Equal\",\n      \"valueText\": \"{{triggerNode_1.output.documentName}}\"\n    },\n    {\n      \"path\": [\n        \"version\"\n      ],\n      \"operator\": \"NotEqual\",\n      \"valueNumber\": \"{{codeNode_869.output.0}}\"\n    }\n  ]\n}",
         "nodeName": "VectorDB Delete",
         "vectorDB": "ReturnPolicyStore",
         "primaryKeys": "",
         "vectorsField": "",
         "metadataField": "",
-        "duplicateOperation": "overwrite",
-      },
-    },
+        "duplicateOperation": "overwrite"
+      }
+    }
   },
   {
     "id": "responseNode_triggerNode_1",
     "type": "responseNode",
     "position": {
       "x": 0,
-      "y": 0,
+      "y": 0
     },
     "data": {
       "nodeId": "graphqlResponseNode",
       "values": {
         "id": "responseNode_triggerNode_1",
-        "headers": '{"content-type":"application/json"}',
+        "headers": "{\"content-type\":\"application/json\"}",
         "retries": "0",
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping":
-          '{\n  "success": "true",\n  "data": "File uploaded in vector store"\n}',
-      },
-    },
-  },
+        "outputMapping": "{\n  \"success\": \"true\",\n  \"data\": \"File uploaded in vector store\"\n}"
+      }
+    }
+  }
 ];
 
 export const edges = [
@@ -273,7 +271,7 @@ export const edges = [
     "target": "extractFromFileNode_996",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "chunkNode_419-codeNode_281",
@@ -281,7 +279,7 @@ export const edges = [
     "target": "codeNode_281",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "codeNode_281-vectorizeNode_850",
@@ -289,7 +287,7 @@ export const edges = [
     "target": "vectorizeNode_850",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "vectorizeNode_850-codeNode_869",
@@ -297,7 +295,7 @@ export const edges = [
     "target": "codeNode_869",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "codeNode_869-vectorNode_843",
@@ -305,7 +303,7 @@ export const edges = [
     "target": "vectorNode_843",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "vectorNode_843-vectorNode_851",
@@ -313,7 +311,7 @@ export const edges = [
     "target": "vectorNode_851",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "vectorNode_851-responseNode_triggerNode_1",
@@ -321,7 +319,7 @@ export const edges = [
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "extractFromFileNode_996-codeNode_561",
@@ -329,7 +327,7 @@ export const edges = [
     "target": "codeNode_561",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "codeNode_561-chunkNode_419",
@@ -337,7 +335,7 @@ export const edges = [
     "target": "chunkNode_419",
     "sourceHandle": "bottom",
     "targetHandle": "top",
-    "type": "defaultEdge",
+    "type": "defaultEdge"
   },
   {
     "id": "response-trigger_triggerNode_1",
@@ -345,8 +343,8 @@ export const edges = [
     "target": "responseNode_triggerNode_1",
     "sourceHandle": "to-response",
     "targetHandle": "from-trigger",
-    "type": "responseEdge",
-  },
+    "type": "responseEdge"
+  }
 ];
 
 export default { meta, inputs, references, nodes, edges };
