@@ -163,6 +163,31 @@ export function fallbackRubric(): Record<string, unknown> {
   };
 }
 
+/**
+ * Enforce the rubric weight invariant (weights total exactly 1.0) at the
+ * engine boundary: valid criteria weights are scaled to sum to 1.0, and
+ * anything malformed falls back to the shared rubric. Hand-editing the
+ * Studio-exported flow graph is off-limits, so this is the enforcement point
+ * every downstream consumer (dashboard, QA eligibility) funnels through.
+ */
+export function normalizeRubric(raw: unknown): Record<string, unknown> {
+  const fallback = fallbackRubric();
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return fallback;
+  const criteria = (raw as Record<string, unknown>).criteria;
+  if (!Array.isArray(criteria) || criteria.length === 0) return fallback;
+  const weights = criteria.map((c) =>
+    c !== null && typeof c === "object" ? Number((c as Record<string, unknown>).weight) : NaN,
+  );
+  if (weights.some((w) => !Number.isFinite(w) || w < 0)) return fallback;
+  const sum = weights.reduce((s, w) => s + w, 0);
+  if (!(sum > 0)) return fallback;
+  return {
+    ...(raw as Record<string, unknown>),
+    criteria: criteria.map((c, i) => ({ ...(c as Record<string, unknown>), weight: weights[i] / sum })),
+    maxScore: 1.0,
+  };
+}
+
 /** Invoke the post-bounty flow with fallback rubric. */
 export async function postBounty(input: {
   goal: string;
@@ -173,6 +198,10 @@ export async function postBounty(input: {
     budget: input.budget,
     rubric: fallbackRubric(),
   });
+  // Live LLM rubrics are untrusted: normalize weights before any consumer.
+  (result as Record<string, unknown>).rubric = normalizeRubric(
+    (result as Record<string, unknown>).rubric,
+  );
   return result as unknown as PostBountyOutput;
 }
 

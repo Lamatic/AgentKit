@@ -9,7 +9,7 @@ import { CLIENT_AGENT } from "./agents/roster.js";
 import { postBounty, getLlmStatus, fallbackRubric } from "./flows-client.js";
 import { transition } from "./state-machine.js";
 import { maybePostAutoTask, countLoad } from "./auto-market.js";
-import { checkIdempotencyAsync } from "./idempotency.js";
+import { checkIdempotencyAsync, releaseIdempotency } from "./idempotency.js";
 
 const PORT = Number(process.env.ENGINE_PORT || "8787");
 const HOST = process.env.ENGINE_HOST || "127.0.0.1";
@@ -32,15 +32,24 @@ if (!isLoopback(HOST) && !ENGINE_TOKEN) {
   process.exit(1);
 }
 
-/** Enforce request-level idempotency for bridge mutations: a retried request
- * carrying an already-seen key is rejected so /task, /round, and /reset never
- * execute twice. Requests without a key pass through unchanged. */
-async function requireBridgeKey(req: IncomingMessage, route: string): Promise<void> {
+/** Execute a bridge mutation under a request idempotency key: a retried
+ * request carrying an already-seen key is rejected (409) so /task, /round,
+ * and /reset never execute twice; requests without a key run directly. A
+ * failed operation releases its key before rethrowing, so legitimate retries
+ * are not blocked forever. */
+async function withBridgeKey<T>(req: IncomingMessage, route: string, op: () => Promise<T>): Promise<T> {
   const header = req.headers["idempotency-key"];
   const key = Array.isArray(header) ? header[0] : header;
-  if (!key) return;
-  if (!(await checkIdempotencyAsync(`bridge:${route}:${key}`))) {
+  if (!key) return op();
+  const scoped = `bridge:${route}:${key}`;
+  if (!(await checkIdempotencyAsync(scoped))) {
     throw new HttpError(409, "Duplicate request — already received; check state before retrying");
+  }
+  try {
+    return await op();
+  } catch (err) {
+    await releaseIdempotency(scoped);
+    throw err;
   }
 }
 /** Guard mutating routes: reject unapproved origins and non-JSON bodies even
@@ -158,7 +167,12 @@ async function postTask(body: Record<string, unknown>): Promise<Record<string, u
     rubric: FALLBACK_RUBRIC,
     posted_by: CLIENT_AGENT.id,
   });
-  if (error) throw new HttpError(500, `Failed to post bounty: ${error.message}`);
+  if (error) {
+    // Log details server-side only; callers get a fixed message so raw
+    // database internals never leak to POST /task.
+    noteError(`postTask bounty insert: ${error.message}`);
+    throw new HttpError(500, "Failed to post bounty");
+  }
 
   void postBounty({ goal, budget })
     .then(async (posted) => {
@@ -395,8 +409,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/task") {
       requireAuth(req);
-      await requireBridgeKey(req, "task");
-      const result = await postTask(await readJson(req));
+      const result = await withBridgeKey(req, "task", async () => postTask(await readJson(req)));
       send(res, 200, result);
       // Fire-and-forget: trigger a round immediately so bids start processing
       if (!roundInFlight) {
@@ -424,8 +437,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/round") {
       requireAuth(req);
-      await requireBridgeKey(req, "round");
-      send(res, 200, await postRound(await readJson(req)));
+      send(res, 200, await withBridgeKey(req, "round", async () => postRound(await readJson(req))));
       return;
     }
 
@@ -438,9 +450,10 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/reset") {
       requireAuth(req);
-      await requireBridgeKey(req, "reset");
-      const body = await readJson(req);
-      await resetEconomy({ reseed: body.reseed !== false });
+      await withBridgeKey(req, "reset", async () => {
+        const body = await readJson(req);
+        await resetEconomy({ reseed: body.reseed !== false });
+      });
       send(res, 200, { ok: true });
       return;
     }

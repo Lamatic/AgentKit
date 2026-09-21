@@ -30,19 +30,6 @@ export function idempotencyKey(
  * The in-memory map is a fast path; the unique constraint is the source of truth
  * across restarts and engine instances. Returns false when already applied.
  */
-/** Check and mark an idempotency key (fast path). */
-export function checkIdempotency(key: string): boolean {
-  if (seen.has(key)) return false;
-  // Optimistic fast path — the durable insert below is authoritative.
-  // Fire-and-forget persistence is handled by checkIdempotencyAsync; this sync
-  // wrapper preserves the existing call surface for hot paths.
-  markSeen(key);
-  void persistKey(key).catch(() => {
-    // Persistence failures are logged inside persistKey; the in-memory mark
-    // still protects this process instance.
-  });
-  return true;
-}
 
 /** Persist an idempotency key; unique violations mean already applied. */
 async function persistKey(key: string): Promise<boolean> {

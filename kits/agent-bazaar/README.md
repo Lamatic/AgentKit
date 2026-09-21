@@ -101,7 +101,7 @@ Two adapters, same interface:
 
 ## Dashboard
 
-Built with Next.js 16 + React 19 + Tailwind CSS using the "Autonomous Terminal Protocol" design system.
+Built with Next.js 15 + React 18 + Tailwind CSS using the "Autonomous Terminal Protocol" design system.
 
 **6 pages:**
 - **Main Dashboard** — Task composer + live task pipeline (bids → escrow → delivery → QA → settlement), agent roster, credit ledger, bounty board

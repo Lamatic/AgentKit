@@ -109,7 +109,7 @@ export class X402Adapter implements SettlementAdapter {
   /** Quote settlement amount and platform fee. */
   async quote(amount: bigint): Promise<Quote> {
     const fee = (amount * 10n) / 100n;
-    return { amount, fee, total: amount + fee, currency: "USDC" };
+    return { amount, fee, total: amount, currency: "USDC" };
   }
 
   /** Lock escrow funds for a bounty. */
@@ -214,13 +214,19 @@ export class X402Adapter implements SettlementAdapter {
       throw new Error(`x402 settle failed: invalid facilitator response`);
     }
     // A facilitator that only confirms transfer may omit the amount: derive
-    // it from the locked escrow instead of failing the settlement.
+    // it from the locked escrow instead of failing the settlement. Any other
+    // value must equal the authoritative escrow amount exactly — a negative
+    // or divergent facilitator amount can never mint a receipt.
     let grossAmount: bigint;
     try {
       grossAmount = settleData.amount != null ? BigInt(String(settleData.amount)) : BigInt(escrow.amount);
     } catch {
       console.error(`[x402] settle invalid facilitator amount for escrow ${escrowId}: ${settleBody.slice(0, 500)} — manual reconciliation required`);
       throw new Error(`x402 settle failed: invalid facilitator amount`);
+    }
+    if (grossAmount < 0n || grossAmount !== BigInt(escrow.amount)) {
+      console.error(`[x402] settle amount mismatch for escrow ${escrowId}: facilitator=${grossAmount} escrow=${escrow.amount} — manual reconciliation required`);
+      throw new Error(`x402 settle failed: facilitator amount does not match escrow`);
     }
     const feeAmount = (grossAmount * 10n) / 100n;
     const netAmount = grossAmount - feeAmount;
@@ -333,6 +339,10 @@ export class X402Adapter implements SettlementAdapter {
     } catch {
       console.error(`[x402] refund invalid facilitator amount for escrow ${escrowId}: ${refundBody.slice(0, 500)} — manual reconciliation required`);
       throw new Error(`x402 refund failed: invalid facilitator amount`);
+    }
+    if (refundGross < 0n || refundGross !== BigInt(escrow.amount)) {
+      console.error(`[x402] refund amount mismatch for escrow ${escrowId}: facilitator=${refundGross} escrow=${escrow.amount} — manual reconciliation required`);
+      throw new Error(`x402 refund failed: facilitator amount does not match escrow`);
     }
     const grossAmount = refundGross;
 

@@ -1,4 +1,4 @@
-import { CLIENT_AGENT } from "../agents/roster.js";
+import { CLIENT_AGENT, ROSTER } from "../agents/roster.js";
 import { workerWalletAddress } from "./uuid.js";
 
 /** Print deterministic testnet wallet addresses. */
@@ -12,11 +12,10 @@ async function fund(): Promise<void> {
 
   // The client entry uses the wallet seed.ts persists (CLIENT_AGENT.wallet),
   // not a derived address, so funded funds land where the engine looks.
+  // Worker entries derive from the ROSTER source so names never drift.
   const wallets = [
     { name: CLIENT_AGENT.name, role: "client", address: CLIENT_AGENT.wallet },
-    { name: "Summarizer-Alpha", role: "worker", address: workerWalletAddress("Summarizer-Alpha") },
-    { name: "Researcher-Bravo", role: "worker", address: workerWalletAddress("Researcher-Bravo") },
-    { name: "Datagen-Charlie", role: "worker", address: workerWalletAddress("Datagen-Charlie") },
+    ...ROSTER.map((w) => ({ name: w.name, role: "worker", address: workerWalletAddress(w.name) })),
   ];
 
   console.log("Testnet Wallet Addresses (Base Sepolia):");

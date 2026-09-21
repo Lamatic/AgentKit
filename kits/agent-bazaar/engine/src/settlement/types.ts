@@ -1,6 +1,11 @@
 export interface Quote {
   amount: bigint;
   fee: bigint;
+  /**
+   * Gross amount charged/collected for the settlement, EXCLUDING the platform
+   * fee (the fee is reported separately and never added to the total). Both
+   * adapters honor this contract so callers get identical semantics.
+   */
   total: bigint;
   currency: string;
 }

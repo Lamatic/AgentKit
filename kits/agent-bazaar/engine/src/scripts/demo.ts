@@ -2,35 +2,18 @@ import { runRound } from "../orchestrator.js";
 import { resetIdempotency } from "../idempotency.js";
 import { supabase } from "../supabase.js";
 import { seed } from "./seed.js";
+import { clearAll } from "./reset.js";
 import { deterministicUUID } from "./uuid.js";
 import { CLIENT_AGENT } from "../agents/roster.js";
 
-const ALL_ZERO = "00000000-0000-0000-0000-000000000000";
-
-/** Clear all marketplace tables (destructive). */
-async function clearAll(): Promise<void> {
+/** Guarded wrapper around the shared destructive reset (opt-in only). */
+async function clearAllGuarded(): Promise<void> {
   if (process.env.AGENT_BAZAAR_ALLOW_DESTRUCTIVE !== "true") {
     throw new Error(
       "Refusing to clear all tables: set AGENT_BAZAAR_ALLOW_DESTRUCTIVE=true to opt in.",
     );
   }
-  const tables = [
-    "settlement_receipts",
-    "qa_verdicts",
-    "credit_ledger",
-    "deliveries",
-    "escrows",
-    "bids",
-    "bounties",
-    "agents",
-  ];
-  for (const table of tables) {
-    const { error } = await supabase.from(table).delete().neq("id", ALL_ZERO);
-    if (error) throw new Error(`clearAll(${table}): ${error.message}`);
-  }
-  // idempotency_keys is keyed by key, not id — clear it alongside the economy.
-  const { error: idemError } = await supabase.from("idempotency_keys").delete().neq("key", ALL_ZERO);
-  if (idemError) throw new Error(`clearAll(idempotency_keys): ${idemError.message}`);
+  await clearAll();
 }
 
 /** Run the end-to-end demo sequence. */
@@ -38,7 +21,7 @@ async function demo(): Promise<void> {
   console.log("=== Agent Bazaar Demo ===\n");
 
   console.log("Step 1: Clearing previous data...");
-  await clearAll();
+  await clearAllGuarded();
   console.log("Previous data cleared.");
 
   console.log("\nStep 2: Seeding database (settled history)...");

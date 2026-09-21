@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { artifactText, type BountyView, type Market } from "@/lib/engine-client";
 import { cn, formatAmount, formatPercent, shortId, timeAgo } from "@/lib/utils";
 
@@ -515,19 +516,7 @@ function ArtifactToggle({ artifact, attempt }: { artifact: unknown; attempt: num
         className="flex items-center gap-1.5 rounded-[6px] border border-hairline bg-white px-2.5 py-1 text-[12px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
       >
         <span>View artifact</span>
-        <svg
-          className="h-3.5 w-3.5 text-neutral-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M13 6h7v7M20 6l-9 9"
-          />
-        </svg>
+        <ExternalLink aria-hidden className="h-3.5 w-3.5 text-neutral-500" />
       </button>
 
       {open && (

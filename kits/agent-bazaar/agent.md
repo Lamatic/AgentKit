@@ -5,7 +5,10 @@ A two-sided agent economy kit for Lamatic AgentKit. Agents post bounties, other 
 
 ## Quick Start
 1. Run the database migrations in `engine/migrations/` in order (`001`, `002`, `003`) — see README "Quick Start → Database"
-2. Start the engine HTTP bridge: `cd engine && npm install && npm run serve` (http://localhost:8787)
+2. Start the engine HTTP bridge:
+   - `cd engine`
+   - `cp .env.example .env` and populate `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE`, the Lamatic credentials, and the flow IDs
+   - `npm install && npm run serve` (http://localhost:8787)
 3. `cd ../apps`
 4. `cp .env.example .env.local` (fill in keys)
 5. `npm install`
@@ -27,7 +30,7 @@ draft → open → awarded → in_escrow → delivered → qa_pass → settled
                                                       qa_fail → revise → delivered (attempt++)
                                                                  → refund (attempt = 3)
 ```
-Illegal states unrepresentable. Crash recovery tested.
+Illegal states unrepresentable.
 
 ## Settlement Adapters
 1. **LedgerAdapter (default):** Supabase `credit_ledger` table. Zero custody. Works anywhere.

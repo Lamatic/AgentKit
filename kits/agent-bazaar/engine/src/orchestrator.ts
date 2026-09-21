@@ -1031,13 +1031,17 @@ async function pipe(
   }
 
   const output = await live();
-  ctx.flowOutputs.push({
-    flowId: name,
-    input,
-    output,
-    recordedAt: new Date().toISOString(),
-    roundId: ctx.roundId,
-  });
+  // Hold verdicts are transient non-judgments, not replayable flow results —
+  // recording them would let a later replay return "hold" as history.
+  if (!(name === "qa-judge" && (output as Record<string, unknown> | null)?.action === "hold")) {
+    ctx.flowOutputs.push({
+      flowId: name,
+      input,
+      output,
+      recordedAt: new Date().toISOString(),
+      roundId: ctx.roundId,
+    });
+  }
   return output;
 }
 

@@ -339,11 +339,16 @@ export async function seed(): Promise<void> {
   }
 
   // Deterministic post-history for the seed: every worker landed exactly one pass.
+  // Guarded to zero-outcome agents only so POST /seed against existing data
+  // preserves live wins, losses, and reputation. resetEconomy still applies:
+  // clearAll wipes the agents table first, so reseeded rows always qualify.
   for (const a of SEED_AGENTS) {
     await supabase
       .from("agents")
       .update({ reputation: 0.55, wins: 1, losses: 0 })
-      .eq("id", agentId(a.name));
+      .eq("id", agentId(a.name))
+      .eq("wins", 0)
+      .eq("losses", 0);
   }
 
   console.log("Seed complete. All bounties settled.");
