@@ -388,6 +388,13 @@ export async function processReturnAssessment(payload: ReturnAssessorPayload) {
       userEmail: parsedPayload?.userEmail,
     });
 
+    const result = response?.result;
+    if (result) {
+      result.success = result.success === true || result.success === "true";
+      result.authenticityMatch =
+        result.authenticityMatch === true ||
+        result.authenticityMatch === "true";
+    }
     return response;
   } catch (error: any) {
     console.error("Lamatic Return Assessor Execution Error:", error);
