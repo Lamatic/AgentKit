@@ -13,6 +13,7 @@ export class CircuitBreaker {
   private openedAt: number | null = null;
   private probeInFlight = false;
 
+  /** Create a breaker that opens after failureThreshold failures and cools down for cooldownMs. */
   constructor(
     private failureThreshold: number,
     private cooldownMs: number,
@@ -21,6 +22,7 @@ export class CircuitBreaker {
     if (cooldownMs < 0) throw new Error("cooldownMs must be >= 0");
   }
 
+  /** Whether a primary attempt is allowed now; admits exactly one HALF_OPEN probe. */
   canAttemptPrimary(now: number = Date.now()): boolean {
     if (this.state === "CLOSED") return true;
     if (this.state === "OPEN") {
@@ -42,6 +44,7 @@ export class CircuitBreaker {
     if (this.state === "HALF_OPEN") this.probeInFlight = false;
   }
 
+  /** Record a primary success: close the breaker and reset all counters. */
   recordSuccess(): void {
     this.state = "CLOSED";
     this.failureCount = 0;
@@ -49,6 +52,7 @@ export class CircuitBreaker {
     this.probeInFlight = false;
   }
 
+  /** Record a primary failure: count it, opening the breaker at threshold. */
   recordFailure(now: number = Date.now()): void {
     if (this.state === "HALF_OPEN") {
       this.state = "OPEN";
@@ -63,10 +67,12 @@ export class CircuitBreaker {
     }
   }
 
+  /** Current breaker state. */
   getState(): BreakerState {
     return this.state;
   }
 
+  /** Consecutive failures counted toward the threshold. */
   getFailureCount(): number {
     return this.failureCount;
   }

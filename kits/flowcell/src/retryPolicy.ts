@@ -93,6 +93,7 @@ export function parseRetryAfter(err: unknown): number | undefined {
   return undefined;
 }
 
+/** Promise-based sleep for backoff delays (injectable in tests). */
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

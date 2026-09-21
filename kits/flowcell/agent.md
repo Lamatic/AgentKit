@@ -92,7 +92,7 @@ The resilient client (`src/resilientClient.ts`) is the only orchestrator: runawa
 
 1. Clone the kit from `https://github.com/Lamatic/AgentKit/tree/main/kits/flowcell`.
 2. `cd kits/flowcell && npm install`.
-3. `npm test` — 31 tests, all local mocks, no credentials needed.
+3. `npm test` — 33 tests, all local mocks, no credentials needed.
 4. `npm run demo` — four scenarios print their `ExecutionResult` JSON.
 5. To call live flows: copy `.env.example` to `.env`, fill in real IDs/keys, and pass `lamaticTransport(lamaticClient)` as the `callFlow` into `createResilientClient` (raw `executeFlow` resolves failures as `{ status: "error" }` envelopes; the adapter converts them to throws).
 6. To adopt in your kit: copy `src/` next to your `lamatic-client.ts` and wrap `executeFlow` as shown in the README.

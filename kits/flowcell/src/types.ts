@@ -52,6 +52,7 @@ export type CallFlowFn = <T>(flowId: string, input: unknown) => Promise<T>;
 
 export class FlowcellExhaustedError extends Error {
   readonly httpStatus?: number;
+  /** Error thrown when the fallback flow fails after the primary is exhausted. */
   constructor(message: string, httpStatus?: number) {
     super(message);
     this.name = "FlowcellExhaustedError";
@@ -60,6 +61,7 @@ export class FlowcellExhaustedError extends Error {
 }
 
 export class RunawayGuardExceededError extends Error {
+  /** Error for callers that prefer throwing over the capped ExecutionResult. */
   constructor(message = "Runaway guard exceeded: estimated session spend cap reached") {
     super(message);
     this.name = "RunawayGuardExceededError";

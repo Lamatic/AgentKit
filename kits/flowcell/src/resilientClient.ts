@@ -18,6 +18,10 @@ import { FlowcellExhaustedError } from "./types";
 
 export type { CallFlowFn, ExecutionResult, ResilientClientConfig };
 
+/**
+ * Build a resilient flow client: budget-guarded, retried, breaker-isolated,
+ * fallback-routed execution of any Lamatic flow.
+ */
 export function createResilientClient(
   config: ResilientClientConfig,
   callFlow: CallFlowFn,
@@ -29,14 +33,17 @@ export function createResilientClient(
   );
   const costTracker = new CostTracker(config.runawayGuard.maxEstimatedUsd);
 
+  /** Estimated cost of one primary attempt for this input. */
   function estimatePrimaryCost(input: unknown): number {
     return estimateCallCost(input);
   }
 
+  /** Estimated cost of the cheaper fallback call for this input. */
   function estimateFallbackCost(input: unknown): number {
     return estimateCallCost(input, FALLBACK_MODEL_KEY);
   }
 
+  /** Execute one input through guard → primary (+retry) → fallback. */
   async function execute<T>(input: unknown): Promise<ExecutionResult<T>> {
     const start = Date.now();
 
@@ -145,6 +152,7 @@ export function createResilientClient(
   };
 }
 
+/** Round to micro-dollars to keep reported costs stable. */
 function round6(n: number): number {
   return Math.round(n * 1e6) / 1e6;
 }

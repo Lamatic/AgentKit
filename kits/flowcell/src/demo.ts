@@ -5,6 +5,7 @@
 import { createResilientClient } from "./resilientClient";
 import type { CallFlowFn, ResilientClientConfig } from "./types";
 
+/** Default client config for the demo scenarios (no sleeping between retries). */
 function makeConfig(overrides: Partial<ResilientClientConfig> = {}): ResilientClientConfig {
   return {
     primaryFlowId: "demo-primary",
@@ -33,12 +34,15 @@ function mockTransport(queue: Array<{ ok: boolean; value: unknown }>): CallFlowF
   };
 }
 
+/** Build a throwable HTTP error for the mock transport queue. */
 function httpError(status: number, message: string) {
   return Object.assign(new Error(message), { httpStatus: status });
 }
 
+/** No-op sleeper so the demo runs instantly. */
 const noSleep = () => Promise.resolve();
 
+/** Scenario 1: transient 500s followed by success. */
 async function scenario1() {
   console.log("--- 1. Retry recovers a transient failure ---");
   const client = createResilientClient(
@@ -53,6 +57,7 @@ async function scenario1() {
   console.log(JSON.stringify(await client.execute({ query: "What is a circuit breaker?" }), null, 2));
 }
 
+/** Scenario 2: failures trip the breaker; next call skips primary. */
 async function scenario2() {
   console.log("--- 2. Circuit opens → fallback (circuit_open) ---");
   const client = createResilientClient(
@@ -73,6 +78,7 @@ async function scenario2() {
   console.log(JSON.stringify(result, null, 2));
 }
 
+/** Scenario 3: all primary attempts fail within one call. */
 async function scenario3() {
   console.log("--- 3. Retries exhausted → fallback (retries_exhausted) ---");
   const client = createResilientClient(
@@ -88,6 +94,7 @@ async function scenario3() {
   console.log(JSON.stringify(await client.execute({ query: "q" }), null, 2));
 }
 
+/** Scenario 4: estimated spend ceiling refuses the call up front. */
 async function scenario4() {
   console.log("--- 4. Runaway guard refuses the call ---");
   const client = createResilientClient(

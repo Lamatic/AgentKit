@@ -21,6 +21,7 @@ interface ErrorEnvelope {
   statusCode?: unknown;
 }
 
+/** Type-guard for Lamatic `{ status: "error", ... }` failure envelopes. */
 function isErrorEnvelope(res: unknown): res is ErrorEnvelope {
   return (
     typeof res === "object" &&
@@ -29,6 +30,11 @@ function isErrorEnvelope(res: unknown): res is ErrorEnvelope {
   );
 }
 
+/**
+ * Wrap a Lamatic SDK client into a throw-on-failure CallFlowFn.
+ * Error envelopes become thrown errors (with httpStatus); success
+ * envelopes are unwrapped to their result payload.
+ */
 export function lamaticTransport(client: LamaticLikeClient): CallFlowFn {
   return async <T>(flowId: string, input: unknown): Promise<T> => {
     const res = await client.executeFlow(flowId, input);
