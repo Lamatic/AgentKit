@@ -10,7 +10,7 @@ export const meta = {
     "outcome": "pass",
     "currentReputation": 0.5
   },
-  "githubUrl": "https://github.com/aalok101singh/AgentKit",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agent-bazaar",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {
@@ -45,7 +45,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"agentId\": \"string\",\n  \"outcome\": \"string\",\n  \"currentReputation\": \"number\"\n}"
+        "advance_schema": "{\n  \"agentId\": \"string\",\n  \"outcome\": {\"type\": \"string\", \"enum\": [\"pass\", \"fail\"]},\n  \"currentReputation\": \"number\"\n}"
       }
     }
   },

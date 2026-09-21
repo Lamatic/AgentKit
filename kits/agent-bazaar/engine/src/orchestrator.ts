@@ -561,7 +561,7 @@ async function ensureBids(
     // Reserve up front (atomic check+increment). When the budget is exhausted
     // outside replay, skip the provider call: the deterministic derivation
     // below already handles null fields.
-    const reserved = tryReserve(1);
+    const reserved = await tryReserve(1);
     let bidResult: Record<string, unknown>;
     if (!reserved && ctx.mode !== "replay") {
       bidResult = { price: null, eta_hours: null, pitch: null };
@@ -676,7 +676,7 @@ async function awardAndDeliver(
 
   const hydrated = await hydrateBids(bids);
 
-  const reserved = tryReserve(1);
+  const reserved = await tryReserve(1);
   if (!reserved) {
     // Degraded mode: budget exhausted. Never stall — fall through and run on
     // replay/fallback outputs so the pipeline keeps settling.
@@ -702,7 +702,7 @@ async function awardAndDeliver(
     try {
       result = await pipe("execute-task", taskInput, () => flows.executeTask(taskInput) as unknown as Promise<Record<string, unknown>>, ctx);
     } catch (err) {
-      if (reserved) release(1);
+      if (reserved) await release(1);
       throw err;
     }
   }
@@ -758,15 +758,14 @@ async function awardAndDeliver(
       // Treat the insert and lock/debit as one claim: a failed lock or debit
       // must not leave a locked row that suppresses retry. Roll back our own
       // insert, log if the rollback fails, release our budget reservation,
-      // and rethrow the original error. recordSpend runs only for fallback
-      // executions — a held reservation already accounts for this one.
+      // and rethrow the original error. The held reservation already accounts
+      // for this execution, so no post-call spend is recorded.
       try {
         const lock = await adapter.lock(escrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
 
         if (adapter instanceof LedgerAdapter) {
           await appendLedger(poster, String(-amount), "bid_lock", bountyId);
         }
-        if (!reserved) recordSpend(1);
 
         void lock;
       } catch (err) {
@@ -774,11 +773,11 @@ async function awardAndDeliver(
         // row is the claim record, so preserve it for manual reconciliation
         // instead of deleting it. All other failures keep existing cleanup.
         if (err instanceof FacilitatorTimeoutError) {
-          if (reserved) release(1);
+          if (reserved) await release(1);
           console.error(`[escrow] lock timed out for ${escrowId}: escrow row preserved — manual reconciliation required`);
           throw err;
         }
-        if (reserved) release(1);
+        if (reserved) await release(1);
         const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", escrowId);
         if (rollbackError) {
           console.error(`[escrow] rollback failed for ${escrowId}: ${rollbackError.message} — manual reconciliation required`);
@@ -915,7 +914,7 @@ async function callQaJudge(
     },
   };
 
-  const reserved = tryReserve(1);
+  const reserved = await tryReserve(1);
   if (!reserved && ctx.mode !== "replay") {
     // Budget exhausted: hold the delivery without consuming a QA attempt.
     return null;
@@ -924,15 +923,22 @@ async function callQaJudge(
   try {
     result = await pipe("qa-judge", qaInput, () => flows.qaJudge(qaInput) as unknown as Promise<Record<string, unknown>>, ctx);
   } catch (err) {
-    if (reserved) release(1);
+    if (reserved) await release(1);
     throw err;
   }
 
   const parsedScore = Number(result.score);
   const score = Number.isFinite(parsedScore) ? Math.max(0, Math.min(1, parsedScore)) : 0.75;
+  // Replay miss (empty recording): no judgment exists. Treat as unavailable —
+  // release any reservation and hold without resolving a failure or consuming
+  // a QA attempt. Live and fallback results always carry verdict or action.
+  if (result.verdict == null && result.action == null) {
+    if (reserved) await release(1);
+    return null;
+  }
   // Hold verdict from a degraded breaker: leave the delivery unchanged.
   if (String(result.action) === "hold") {
-    if (reserved) release(1);
+    if (reserved) await release(1);
     return null;
   }
   // Fail closed: only an explicit "pass" settles; anything unexpected retries.
@@ -968,12 +974,12 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
   // reservation already accounts for this execution. Release on throw.
   // Budget exhaustion skips only the paid flow: the database write below is
   // free, so degraded mode still records the outcome.
-  const reserved = tryReserve(1);
+  const reserved = await tryReserve(1);
   if (reserved) {
     try {
       await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
     } catch (err) {
-      release(1);
+      await release(1);
       throw err;
     }
   } else {

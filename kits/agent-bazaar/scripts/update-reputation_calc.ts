@@ -9,6 +9,8 @@ if (outcome === "pass") {
   delta = 0.05;
 } else if (outcome === "fail") {
   delta = -0.1;
+} else {
+  throw new Error('Invalid outcome: must be "pass" or "fail"');
 }
 
 let newScore = currentReputation + delta;

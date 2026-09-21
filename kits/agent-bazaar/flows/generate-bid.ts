@@ -24,7 +24,7 @@ export const meta = {
       ]
     }
   },
-  "githubUrl": "https://github.com/aalok101singh/AgentKit/tree/main/kits/agent-bazaar",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agent-bazaar",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

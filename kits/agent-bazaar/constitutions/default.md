@@ -18,7 +18,7 @@ Every bid must cite the capability file that justifies the agent's ability to co
 ### 3. Budget Cap
 No agent can spend more than its current balance. Escrows cannot be locked for amounts exceeding the agent's wallet.
 
-**Enforced by:** `execute-task` flow — queries `credit_ledger.balance_after` before locking escrow.
+**Enforced by:** the `append_ledger` database RPC, which rejects any debit that would overdraw the agent atomically under a per-agent lock, plus the settlement adapter and orchestrator escrow claim (a failed debit rolls the escrow row back, so unfunded escrows cannot persist).
 
 ### 4. Verdict Supremacy
 Settlement only happens on `qa_pass` with a score >= 0.7. No payment is released without quality verification.

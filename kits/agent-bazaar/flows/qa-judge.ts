@@ -29,7 +29,7 @@ export const meta = {
       "agent_id": "agent-worker-1"
     }
   },
-  "githubUrl": "https://github.com/aalok101singh/AgentKit",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agent-bazaar",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

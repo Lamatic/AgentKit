@@ -261,6 +261,8 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       }
       if (!res.ok) {
         setError(res.error);
+        // Uncertain outcome: reconcile state before any retry is allowed.
+        if (res.uncertain) await refresh();
         return false;
       }
       const bountyId = res.data.bountyId;
@@ -284,6 +286,8 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       const res = await resetMarket();
       if (!res.ok) {
         setError(res.error);
+        // Uncertain outcome: reconcile state before any retry is allowed.
+        if (res.uncertain) await refresh();
         return;
       }
       setActiveId(null);

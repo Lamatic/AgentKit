@@ -7,16 +7,22 @@ import {
   resetMarket as resetMarketRequest,
   setAutoMarket as setAutoMarketRequest,
   ENGINE_URL,
+  EngineError,
   type Market,
   type RoundResult,
 } from "@/lib/engine-client";
 
-export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
+export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string; uncertain?: boolean };
 
 /** Log server error and return a safe client message. */
-function toError(err: unknown): { ok: false; error: string } {
+function toError(err: unknown): { ok: false; error: string; uncertain?: boolean } {
   const message = err instanceof Error ? err.message : String(err);
   console.error(`[market action] ${message}`);
+  // Uncertain mutations (timeout/network) may already have executed: preserve
+  // the flag and say so instead of presenting a safely-retryable error.
+  if (err instanceof EngineError && err.uncertain) {
+    return { ok: false, error: "Request may have executed — state refreshed; verify before retrying.", uncertain: true };
+  }
   return { ok: false, error: "An internal error occurred. Please try again." };
 }
 

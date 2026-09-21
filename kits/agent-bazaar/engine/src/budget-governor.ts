@@ -1,3 +1,4 @@
+import { supabase } from "./supabase.js";
 import { recordOutputs, loadLatestRecording } from "./replay-store.js";
 import type { RecordedFlowOutput } from "./replay-store.js";
 
@@ -23,28 +24,61 @@ export function canSpend(amount: number): boolean {
 }
 
 /** Record LLM spend against the daily budget. */
-export function recordSpend(amount: number): void {
+export async function recordSpend(amount: number): Promise<void> {
   resetIfNeeded();
+  try {
+    const { error } = await supabase.rpc("spend_budget", { p_day: budgetDay(), p_amount: amount });
+    if (error) throw error;
+  } catch (err) {
+    console.error(`[budget] durable spend unreachable: ${(err as Error).message}`);
+  }
   spentToday += amount;
 }
 
+/** Budget date key shared with the durable daily_budget table. */
+function budgetDay(): string {
+  return new Date().toDateString();
+}
+
 /**
- * Atomically reserve budget before an external attempt begins (check and
- * increment in one synchronous step, so concurrent rounds cannot both pass
- * a canSpend check and overspend). Returns false when exhausted — the caller
- * proceeds on fallbacks without recording. Release only when the attempt did
- * not consume budget (e.g. it threw before the flow ran).
+ * Atomically reserve budget in shared durable storage (check and increment
+ * in one statement, so restarts and concurrent engine instances cannot
+ * overspend). Falls back to the in-memory snapshot when the database is
+ * unreachable. Returns false when exhausted.
  */
-export function tryReserve(amount: number): boolean {
+export async function tryReserve(amount: number): Promise<boolean> {
   resetIfNeeded();
+  let durable: boolean | null;
+  try {
+    const { data, error } = await supabase.rpc("reserve_budget", {
+      p_day: budgetDay(),
+      p_amount: amount,
+      p_cap: DAILY_BUDGET,
+    });
+    if (error) throw error;
+    durable = data === true;
+  } catch (err) {
+    console.error(`[budget] durable reserve unreachable, using in-memory snapshot: ${(err as Error).message}`);
+    durable = null;
+  }
+  if (durable !== null) {
+    if (durable) spentToday += amount;
+    return durable;
+  }
   if (spentToday + amount > DAILY_BUDGET) return false;
   spentToday += amount;
   return true;
 }
 
 /** Release a reservation made by tryReserve. */
-export function release(amount: number): void {
+export async function release(amount: number): Promise<void> {
   resetIfNeeded();
+  try {
+    const { error } = await supabase.rpc("release_budget", { p_day: budgetDay(), p_amount: amount });
+    if (error) throw error;
+  } catch (err) {
+    console.error(`[budget] durable release unreachable: ${(err as Error).message}`);
+  }
   spentToday = Math.max(0, spentToday - amount);
 }
 

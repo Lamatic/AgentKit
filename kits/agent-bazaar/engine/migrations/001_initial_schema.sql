@@ -126,6 +126,15 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 );
 
 -- ============================================================
+-- TABLE: daily_budget
+-- ============================================================
+CREATE TABLE IF NOT EXISTS daily_budget (
+  day text PRIMARY KEY,
+  spent integer NOT NULL DEFAULT 0,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
 -- INDEXES (performance)
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_bounties_status ON bounties USING gin (status);
@@ -151,6 +160,7 @@ ALTER TABLE qa_verdicts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE credit_ledger ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settlement_receipts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE idempotency_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE daily_budget ENABLE ROW LEVEL SECURITY;
 
 -- Anon can read public tables (dashboard)
 CREATE POLICY "anon_read_agents" ON agents FOR SELECT USING (true);
@@ -172,3 +182,4 @@ CREATE POLICY "service_all_qa_verdicts" ON qa_verdicts FOR ALL USING (auth.role(
 CREATE POLICY "service_all_credit_ledger" ON credit_ledger FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "service_all_receipts" ON settlement_receipts FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "service_all_idempotency_keys" ON idempotency_keys FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "service_all_daily_budget" ON daily_budget FOR ALL USING (auth.role() = 'service_role');

@@ -29,7 +29,14 @@ export interface MarketLoad {
  *  DB-side filter can't be trusted — count parsed statuses in JS instead. */
 /** Count live market load by pipeline stage. */
 export async function countLoad(): Promise<MarketLoad> {
-  const { data } = await supabase.from("bounties").select("id,status");
+  const { data, error } = await supabase.from("bounties").select("id,status");
+  if (error) {
+    // Fail closed: missing data must never read as zero load (which would
+    // trigger postings into an unknown market). Report full capacity so the
+    // auto-market stands down until reads succeed.
+    console.error(`[auto-market] load query failed, assuming full capacity: ${error.message}`);
+    return { early: MAX_EARLY, qa: 0, total: MAX_TOTAL };
+  }
   let early = 0;
   let qa = 0;
   for (const row of data ?? []) {
@@ -106,7 +113,7 @@ export async function maybePostAutoTask(): Promise<boolean> {
   }
 
   if (canSpend(1)) {
-    recordSpend(1);
+    await recordSpend(1);
     void postBounty({ goal: candidate.goal, budget: candidate.budget })
       .then(async (posted) => {
         if (posted.rubric) {

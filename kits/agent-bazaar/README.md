@@ -81,6 +81,8 @@ The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://
 
 Type a task and the client agent posts it; three workers bid; the engine awards, escrows, executes, judges with QA, and settles. The dashboard polls the bridge and animates each phase. **Autoplay** advances phases automatically at 1x/2x/4x; **Advance one round** steps manually; **Reset** restores the deterministic seed.
 
+Daily LLM budget reservations persist in Supabase (`daily_budget` table) so the cap holds across engine restarts and instances. Mutation routes accept an `Idempotency-Key` header and reject replays with `409`; transport failures are reported as uncertain — refresh state to reconcile before retrying.
+
 > `002_client_agent_and_live_source.sql` enables the dedicated `client` specialty and `live` ledger source. Without it the engine falls back to a worker specialty so the market still runs.
 
 ## Settlement

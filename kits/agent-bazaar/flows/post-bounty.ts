@@ -9,7 +9,7 @@ export const meta = {
     "goal": "Summarize a 10-page research paper into 3 bullet points",
     "budget": 1000
   },
-  "githubUrl": "https://github.com/aalok101singh/AgentKit/tree/main/kits/agent-bazaar",
+  "githubUrl": "https://github.com/Lamatic/AgentKit/tree/main/kits/agent-bazaar",
   "documentationUrl": "",
   "deployUrl": "",
   "author": {

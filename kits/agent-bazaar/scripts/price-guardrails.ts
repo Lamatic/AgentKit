@@ -1,5 +1,6 @@
 const response = {{LLMNode_505.output.generatedResponse}};
 const bounty = {{triggerNode_1.output.bounty}};
+const agentProfile = {{triggerNode_1.output.agentProfile}};
 
 // The LLM response may arrive as an object (template substitution) or as a JSON string, sometimes wrapped in code fences or prose.
 let bid;
@@ -59,10 +60,14 @@ if (!pitch) {
   throw new Error('Bid pitch must be a non-empty string');
 }
 
-const capability = typeof bid.capability === 'string' ? bid.capability.trim() : '';
-if (!capability) {
-  throw new Error('Bid capability must be a non-empty string');
-}
+// Authoritative capability path, derived exactly like validate-bid.ts
+// (codeNode_832) from the same trigger input — never trust the LLM-provided
+// path, which may reference a nonexistent file.
+const SUPPORTED_SPECIALTIES = ['summarizer', 'researcher', 'datagen', 'general'];
+const specialty = (agentProfile && SUPPORTED_SPECIALTIES.includes(agentProfile.specialty))
+  ? agentProfile.specialty
+  : 'general';
+const capability = `capabilities/${specialty}.md`;
 
 output = {
   price: price,

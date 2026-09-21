@@ -163,3 +163,60 @@ $$;
 
 REVOKE ALL ON FUNCTION repair_ledger_balances(uuid[]) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION repair_ledger_balances(uuid[]) TO service_role;
+
+-- Durable daily LLM budget: atomic reservation against a shared per-day total
+-- so enforcement survives restarts and holds across engine instances.
+-- reserve_budget returns false (no write) when the cap is exhausted.
+CREATE OR REPLACE FUNCTION reserve_budget(p_day text, p_amount integer, p_cap integer)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_spent integer;
+BEGIN
+  INSERT INTO daily_budget (day, spent) VALUES (p_day, 0) ON CONFLICT (day) DO NOTHING;
+  UPDATE daily_budget SET spent = spent + p_amount, updated_at = now()
+   WHERE day = p_day AND spent + p_amount <= p_cap
+  RETURNING spent INTO v_spent;
+  IF NOT FOUND THEN RETURN FALSE; END IF;
+  RETURN TRUE;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION reserve_budget(text, integer, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION reserve_budget(text, integer, integer) TO service_role;
+
+-- Unconditional charge for fallback executions (no cap check).
+CREATE OR REPLACE FUNCTION spend_budget(p_day text, p_amount integer)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO daily_budget (day, spent) VALUES (p_day, 0) ON CONFLICT (day) DO NOTHING;
+  UPDATE daily_budget SET spent = spent + p_amount, updated_at = now() WHERE day = p_day;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION spend_budget(text, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION spend_budget(text, integer) TO service_role;
+
+-- Release a prior reservation (clamped at zero).
+CREATE OR REPLACE FUNCTION release_budget(p_day text, p_amount integer)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE daily_budget
+     SET spent = GREATEST(0, spent - p_amount), updated_at = now()
+   WHERE day = p_day;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION release_budget(text, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION release_budget(text, integer) TO service_role;
