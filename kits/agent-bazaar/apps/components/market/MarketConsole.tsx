@@ -63,8 +63,15 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     try {
       const res = await setAutoMarket({ run: value, market: value });
       if (!res.ok) {
-        setAutoplay(prev);
-        setError(res.error);
+        if (res.uncertain) {
+          // Outcome unknown: the assignment is idempotent, so keep the
+          // optimistic value and let a retry confirm it — restoring prev
+          // would assert a state nobody verified.
+          setError("Auto-market change unconfirmed — toggle again to confirm.");
+        } else {
+          setAutoplay(prev);
+          setError(res.error);
+        }
       }
     } catch (err) {
       setAutoplay(prev);

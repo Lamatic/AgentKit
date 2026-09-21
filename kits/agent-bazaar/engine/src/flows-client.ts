@@ -31,16 +31,23 @@ const FLOWS = {
   updateReputation: process.env.FLOW_UPDATE_REPUTATION || "",
 };
 
-const DEFAULT_TIMEOUT_MS = Number(process.env.FLOW_TIMEOUT_MS || "10000");
+/** Parse an env timeout as finite positive milliseconds, else the fallback. */
+function timeoutMs(raw: string | undefined, fallback: number): number {
+  if (raw === undefined || raw === "") return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+const DEFAULT_TIMEOUT_MS = timeoutMs(process.env.FLOW_TIMEOUT_MS, 10000);
 
 // Per-flow deadlines: bids and QA must resolve fast so the pipeline keeps
 // moving; artifact generation gets room since quality matters most there.
 const FLOW_TIMEOUTS: Record<string, number> = {
-  generateBid: Number(process.env.FLOW_TIMEOUT_BIDS || "6000"),
-  qaJudge: Number(process.env.FLOW_TIMEOUT_QA || "6000"),
-  executeTask: Number(process.env.FLOW_TIMEOUT_EXECUTE || "20000"),
-  postBounty: Number(process.env.FLOW_TIMEOUT_POST || "8000"),
-  updateReputation: Number(process.env.FLOW_TIMEOUT_REPUTATION || "8000"),
+  generateBid: timeoutMs(process.env.FLOW_TIMEOUT_BIDS, 6000),
+  qaJudge: timeoutMs(process.env.FLOW_TIMEOUT_QA, 6000),
+  executeTask: timeoutMs(process.env.FLOW_TIMEOUT_EXECUTE, 20000),
+  postBounty: timeoutMs(process.env.FLOW_TIMEOUT_POST, 8000),
+  updateReputation: timeoutMs(process.env.FLOW_TIMEOUT_REPUTATION, 8000),
 };
 
 async function withTimeout<T>(promise: Promise<T>, label: string, ms: number): Promise<T> {

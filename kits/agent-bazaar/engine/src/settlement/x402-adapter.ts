@@ -135,10 +135,25 @@ export class X402Adapter implements SettlementAdapter {
       throw new Error(`x402 lock failed: ${text}`);
     }
 
-    const data = await response.json() as { lockId: string };
+    // A malformed body (or missing lockId) on a successful response leaves the
+    // lock outcome uncertain — the lock may have executed. Throw the timeout
+    // error so the orchestrator preserves the escrow row for reconciliation
+    // instead of deleting it as a confirmed failure.
+    const lockBody = await response.text();
+    let lockData: { lockId?: unknown };
+    try {
+      lockData = JSON.parse(lockBody) as { lockId?: unknown };
+    } catch {
+      console.error(`[x402] lock invalid facilitator JSON for escrow ${escrowId}: ${lockBody.slice(0, 500)} — manual reconciliation required`);
+      throw new FacilitatorTimeoutError("lock");
+    }
+    if (typeof lockData.lockId !== "string" || lockData.lockId.length === 0) {
+      console.error(`[x402] lock missing lockId for escrow ${escrowId}: ${lockBody.slice(0, 500)} — manual reconciliation required`);
+      throw new FacilitatorTimeoutError("lock");
+    }
     return {
       escrowId,
-      lockId: data.lockId,
+      lockId: lockData.lockId,
       amount,
       lockedAt: Date.now(),
     };

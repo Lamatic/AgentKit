@@ -2,7 +2,7 @@ import { supabase } from "./supabase.js";
 import { CLIENT_AGENT } from "./agents/roster.js";
 import { transition } from "./state-machine.js";
 import { postBounty, fallbackRubric } from "./flows-client.js";
-import { canSpend, recordSpend } from "./budget-governor.js";
+import { tryReserve } from "./budget-governor.js";
 import { parseStatus } from "./orchestrator.js";
 
 /** Parse a non-negative finite env number, falling back on invalid input. */
@@ -112,8 +112,10 @@ export async function maybePostAutoTask(): Promise<boolean> {
     return false;
   }
 
-  if (canSpend(1)) {
-    await recordSpend(1);
+  // Atomic budget gate: invoke the rubric flow only when the reservation
+  // succeeds, so concurrent instances cannot overspend through a
+  // check-then-act split. The reservation stands if the flow fails.
+  if (await tryReserve(1)) {
     void postBounty({ goal: candidate.goal, budget: candidate.budget })
       .then(async (posted) => {
         if (posted.rubric) {

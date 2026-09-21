@@ -142,7 +142,9 @@ async function ensureInitialGrant(agentIdValue: string, amount: number): Promise
   if (data && data.length > 0) return;
 
   try {
-    await appendLedger(agentIdValue, String(amount), "initial_grant", undefined, {
+    // ref_id carries the agent id so the (agent_id, reason, ref_id) identity
+    // rejects concurrent duplicate grants instead of double-counting funds.
+    await appendLedger(agentIdValue, String(amount), "initial_grant", agentIdValue, {
       source: "seed",
       createdAt: hoursAgo(72),
     });
