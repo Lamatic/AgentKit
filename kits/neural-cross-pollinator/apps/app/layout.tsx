@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,11 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Neural Cross-Pollinator",
-  description: "Find structural parallels between unrelated domains and evaluate cross-domain innovations.",
+  title: "Neural Cross-Pollinator",
+  description:
+    "Find structural parallels between unrelated domains and evaluate cross-domain innovations.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
