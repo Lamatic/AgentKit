@@ -6,6 +6,7 @@ const rejectData = {{codeNode_131.output}} || null;
 const activeData = successData || rejectData || {};
 
 let finalDecision = activeData.decision || "MANUAL_REVIEW";
+let finalSuccess = activeData.success ?? false;
 const rawFraudScore = activeData.fraudRiskScore;
 
 const numericFraudScore = typeof rawFraudScore === "number"
@@ -15,10 +16,11 @@ const numericFraudScore = typeof rawFraudScore === "number"
 // Deterministic Guardrail: Escalate to MANUAL_REVIEW if fraud risk exceeds 0.50
 if (!isNaN(numericFraudScore) && numericFraudScore > 0.50) {
   finalDecision = "MANUAL_REVIEW";
+  finalSuccess = true;
 }
 
 output = {
-  success: activeData.success ?? false,
+  success: finalSuccess,
   decision: finalDecision,
   confidenceScore: activeData.confidenceScore ?? 0,
   fraudRiskScore: rawFraudScore ?? "UNKNOWN",
