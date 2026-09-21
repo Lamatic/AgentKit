@@ -303,10 +303,17 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
           <div className="animate-rise border-t border-hairline pt-4">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-[12px] font-semibold uppercase tracking-wider text-neutral-500">
-                Settlement Ledger
+                {failedAll ? "Refund Ledger" : "Settlement Ledger"}
               </span>
-              <span className="rounded-full border border-status-green/30 bg-status-green-bg px-2 py-0.5 text-[10px] font-semibold text-status-green">
-                Settled &amp; Finalized
+              <span
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  failedAll
+                    ? "border-status-red/30 bg-status-red-bg text-status-red"
+                    : "border-status-green/30 bg-status-green-bg text-status-green",
+                )}
+              >
+                {failedAll ? "Refunded" : "Settled & Finalized"}
               </span>
             </div>
             <div className="grid grid-cols-4 gap-4 rounded-[8px] border border-hairline bg-subtle/60 p-3.5 text-[12px]">
@@ -317,8 +324,15 @@ export function LiveTaskPanel({ market, bounty }: LiveTaskPanelProps) {
                 </span>
               </div>
               <div>
-                <span className="block text-[11px] text-neutral-500">Net / Gross</span>
-                <span className="font-mono font-semibold text-status-green">
+                <span className="block text-[11px] text-neutral-500">
+                  {failedAll ? "Refunded / Gross" : "Net / Gross"}
+                </span>
+                <span
+                  className={cn(
+                    "font-mono font-semibold",
+                    failedAll ? "text-status-red" : "text-status-green",
+                  )}
+                >
                   {formatAmount(receipt.net_amount)}{" "}
                   <span className="text-[10px] font-normal text-neutral-500">
                     / {formatAmount(receipt.gross_amount)} CRT

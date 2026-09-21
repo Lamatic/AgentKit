@@ -60,14 +60,14 @@ if (!pitch) {
   throw new Error('Bid pitch must be a non-empty string');
 }
 
-// Authoritative capability path, derived exactly like validate-bid.ts
+// Authoritative capability path, validated exactly like validate-bid.ts
 // (codeNode_832) from the same trigger input — never trust the LLM-provided
-// path, which may reference a nonexistent file.
-const SUPPORTED_SPECIALTIES = ['summarizer', 'researcher', 'datagen', 'general'];
-const specialty = (agentProfile && SUPPORTED_SPECIALTIES.includes(agentProfile.specialty))
-  ? agentProfile.specialty
-  : 'general';
-const capability = `capabilities/${specialty}.md`;
+// path, which may reference a nonexistent file, and never fall back to one.
+const SUPPORTED_SPECIALTIES = ['summarizer', 'researcher', 'datagen'];
+if (!agentProfile || !SUPPORTED_SPECIALTIES.includes(agentProfile.specialty)) {
+  throw new Error(`Unsupported specialty: ${agentProfile?.specialty}`);
+}
+const capability = `capabilities/${agentProfile.specialty}.md`;
 
 output = {
   price: price,

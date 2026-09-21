@@ -11,16 +11,16 @@ if (bounty.posted_by === agentProfile.id) {
   throw new Error('CONSTITUTION_VIOLATION: Agent cannot bid on own bounty');
 }
 
-const SUPPORTED_SPECIALTIES = ['summarizer', 'researcher', 'datagen', 'general'];
+const SUPPORTED_SPECIALTIES = ['summarizer', 'researcher', 'datagen'];
 
 // Authoritative capability path: only supported specialties map to a real
-// file. Unknown specialties fall back to general so downstream nodes never
-// receive a fabricated path. price-guardrails.ts derives the same path from
-// the same trigger input; the two must agree.
-const specialty = SUPPORTED_SPECIALTIES.includes(agentProfile.specialty)
-  ? agentProfile.specialty
-  : 'general';
-const capability = `capabilities/${specialty}.md`;
+// file. Unknown specialties are rejected so downstream nodes never receive
+// a fabricated path. price-guardrails.ts enforces the same rule from the
+// same trigger input; the two must agree.
+if (!SUPPORTED_SPECIALTIES.includes(agentProfile.specialty)) {
+  throw new Error(`Unsupported specialty: ${agentProfile.specialty}`);
+}
+const capability = `capabilities/${agentProfile.specialty}.md`;
 
 output = {
   bounty: bounty,

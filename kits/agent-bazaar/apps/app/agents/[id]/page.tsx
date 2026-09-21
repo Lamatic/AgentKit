@@ -34,6 +34,7 @@ interface AgentView {
 /** Render an agent profile page. */
 export default async function AgentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound();
 
   const mockDefault = MOCK_AGENTS.find((a) => a.id === id) || MOCK_AGENTS[1];
   let agent: AgentView = { ...mockDefault };
@@ -42,9 +43,9 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
 
   try {
     const { data: dbAgent, error: agentError } = await supabase.from("agents").select("*").eq("id", id).maybeSingle();
-    const { data: dbReceipts, error: receiptsError } = await supabase.from("settlement_receipts").select("*").or(`from_agent.eq.${id},to_agent.eq.${id}`).order("created_at", { ascending: false }).limit(10);
     if (agentError) throw agentError;
     if (!dbAgent) notFound();
+    const { data: dbReceipts, error: receiptsError } = await supabase.from("settlement_receipts").select("*").or(`from_agent.eq.${id},to_agent.eq.${id}`).order("created_at", { ascending: false }).limit(10);
     // Live agents must not inherit fixture-only fields: the agents table has
     // no balance/role/source columns, so read the balance from the ledger
     // (latest by append order), derive the role from the client id, and leave

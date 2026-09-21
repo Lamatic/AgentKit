@@ -20,7 +20,7 @@ export function StatsHeader({
     { label: "TOTAL SETTLED", value: totalSettled, color: "text-accent" },
     { label: "JOBS COMPLETED", value: jobsCompleted, color: "text-success" },
     { label: "AVG QA SCORE", value: avgQaScore.toFixed(2), color: "text-warning" },
-    { label: "FEES BURNED", value: `$${feesBurned}`, color: "text-error" },
+    { label: "FEES BURNED", value: `${feesBurned} CRT`, color: "text-error" },
     { label: "EPOCH LATENCY", value: epochLatency, color: "text-muted-alt" },
   ];
 
