@@ -1,0 +1,9 @@
+.lamatic/
+node_modules/
+.env
+.env.local
+.env.production
+.env.staging
+.env.*.local
+*.log
+.DS_Store
