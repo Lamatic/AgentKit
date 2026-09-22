@@ -27,6 +27,18 @@ export const meta = {
 export const inputs = {
   "triggerNode_1": [
     { "name": "question", "label": "Question", "type": "string", "required": true }
+  ],
+  "mssqlNode_execute": [
+    {
+      "name": "credentials",
+      "label": "Credentials",
+      "type": "select",
+      "required": true,
+      "isPrivate": true,
+      "description": "Select the credentials for Microsoft SQL Server authentication.",
+      "defaultValue": "",
+      "isCredential": true
+    }
   ]
 };
 
@@ -144,7 +156,9 @@ export const nodes = [
       "nodeId": "mssqlNode",
       "values": {
         "nodeName": "Execute SQL",
-        "query": "{{codeNode_validate.output.safeSql}}"
+        "action": "run query",
+        "query": "{{codeNode_validate.output.safeSql}}",
+        "credentials": ""
       }
     }
   },
