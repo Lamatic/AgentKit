@@ -1049,7 +1049,9 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
       await flows.updateReputation({ agentId, outcome, currentReputation: current } as unknown as { agentId: string; outcome: "pass" | "fail" });
     } catch (err) {
       await release(1);
-      throw err;
+      // Non-fatal: the paid flow is advisory. Log and fall through to the
+      // durable apply_reputation RPC below so the outcome is always recorded.
+      console.error(`[reputation] updateReputation flow failed for ${agentId}, recording outcome via apply_reputation: ${(err as Error).message}`);
     }
   } else {
     console.log(`[budget] exhausted — recording reputation without paid flow for ${agentId}`);

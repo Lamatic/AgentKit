@@ -40,6 +40,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
   let agent: AgentView = { ...mockDefault };
   let receipts = MOCK_RECEIPTS;
   let demoMode = false;
+  let balanceFailed = false;
 
   try {
     const { data: dbAgent, error: agentError } = await supabase.from("agents").select("*").eq("id", id).maybeSingle();
@@ -50,7 +51,13 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
     // no balance/role/source columns, so read the balance from the ledger
     // (latest by append order), derive the role from the client id, and leave
     // source unset. Em dash renders when the balance is unavailable.
-    const { data: ledgerRow } = await supabase.from("credit_ledger").select("balance_after").eq("agent_id", id).order("seq", { ascending: false }).limit(1).maybeSingle();
+    const { data: ledgerRow, error: ledgerError } = await supabase.from("credit_ledger").select("balance_after").eq("agent_id", id).order("seq", { ascending: false }).limit(1).maybeSingle();
+    if (ledgerError) {
+      // Partial failure: agent + receipts may be live, but the balance is
+      // unknown — flag it so the UI renders an error state, never "—".
+      balanceFailed = true;
+      console.error(`[agents/${id}] balance read failed:`, ledgerError.message);
+    }
     agent = {
       id: dbAgent.id,
       name: dbAgent.name,
@@ -89,6 +96,11 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
           Demo data — live database unavailable.
         </p>
       )}
+      {balanceFailed && (
+        <p role="status" className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">
+          Balance unavailable — ledger query failed. Other sections may still be live.
+        </p>
+      )}
       <div className="mb-6 flex items-center gap-3">
         <h1 className="text-xl font-semibold text-[var(--text-primary)]">{agent.name}</h1>
         <Badge variant={agent.role === "client" ? "default" : "success"}>{agent.role}</Badge>
@@ -101,7 +113,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Balance</p>
-          <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{agent.balance ?? "—"}{agent.balance != null ? " CRT" : ""}</p>
+          <p className="font-mono text-2xl font-semibold text-[var(--primary)]">{balanceFailed ? "error" : (agent.balance ?? "—")}{!balanceFailed && agent.balance != null ? " CRT" : ""}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Recent Settlements</p>

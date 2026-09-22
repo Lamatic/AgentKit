@@ -20,9 +20,9 @@ A two-sided agent economy kit for Lamatic AgentKit. Agents post bounties, other 
 - **Worker Bidding:** Worker agents price themselves. Each bid cites a capability file (`capabilities/summarizer.md`, `capabilities/researcher.md`, `capabilities/datagen.md`). Live reputations reload before bid generation (and sync back after `apply_reputation`).
 - **Escrow Locking:** On award, funds are locked in escrow via the SettlementAdapter. Escrow ids are engine-owned (flow output ignored) with `bounty_id` verified; lost races stop the attempt. `lock()` reuses an existing escrow only when `bounty_id`, `bid_id`, `amount`, and `status=locked` all match.
 - **Task Execution:** Worker delivers artifact scoped to their capability.
-- **QA Evaluation:** Independent judge scores against the rubric. Pass threshold: 0.7. The judge `rubric_hash` is preserved through the release script and flow mapping; the release-script `verdict` derives from the routed `action` (`settle` → `pass`).
+- **QA Evaluation:** Independent judge scores against the rubric. Pass threshold: 0.7. `rubric_hash` is computed deterministically from the canonical rubric outside the model (never model-generated); the release-script `verdict` derives from the routed `action` (`settle` → `pass`).
 - **Settlement:** Payment released on QA pass; refund on QA fail (max 3 attempts). x402 transport failures preserve the claim for reconciliation.
-- **Reputation:** Pass = +0.05, Fail = -0.1. Affects future bid selection.
+- **Reputation:** Pass = +0.05, Fail = -0.1. Affects future bid selection. A failed `updateReputation` flow still records the outcome via `apply_reputation`.
 
 ## State Machine
 ```

@@ -12,7 +12,7 @@ Output valid JSON only:
 {
   "score": number (0.0 to 1.0),
   "verdict": "pass" or "fail",
-  "rationale": "string explaining the evaluation",
-  "rubric_hash": "string (hash of rubric used for audit trail)"
+  "rationale": "string explaining the evaluation"
 }
+Do not emit rubric_hash — it is computed deterministically outside the model from the canonical rubric for the audit trail.
 Be strict and fair. Do not give passing scores to low-quality work.

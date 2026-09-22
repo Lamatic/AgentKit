@@ -379,29 +379,23 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     }
     setResetting(true);
     setError(null);
-    const beforeTime = marketRef.current?.serverTime ?? null;
+    // One key per reset intent: preserved in resetKeyRef so a retry of the
+    // same intent reuses it. No reset-specific invariant exists in /market
+    // snapshots — serverTime advances on every engine tick — so ordinary
+    // responses must never confirm a reset. On an uncertain outcome stay
+    // blocked until an explicit retry succeeds; clearAll+seed is idempotent,
+    // so a same-key retry safely re-runs instead of falsely confirming.
     const idempotencyKey = crypto.randomUUID();
     resetKeyRef.current = idempotencyKey;
     try {
       const res = await resetMarket({ idempotencyKey });
       if (!res.ok) {
-        // Uncertain outcome: poll for a fresh post-reset snapshot instead of
-        // trusting a single refresh. Only clear once a newer snapshot proves
-        // the engine answered after the reset attempt.
+        // Uncertain outcome: the reset may have executed. Keep the retry
+        // blocked under the same idempotency key; only an explicit
+        // successful retry clears the unconfirmed state.
         if (res.uncertain) {
           setResetUnconfirmed(true);
           setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
-          for (let attempt = 0; attempt < 4; attempt++) {
-            await new Promise((r) => setTimeout(r, 2000));
-            const ref = await refresh();
-            if (ref.ok && (!beforeTime || ref.data.serverTime > beforeTime)) {
-              resetKeyRef.current = null;
-              setResetUnconfirmed(false);
-              setError(null);
-              setActiveId(null);
-              return;
-            }
-          }
           return;
         }
         resetKeyRef.current = null;

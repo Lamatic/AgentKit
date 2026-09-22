@@ -76,7 +76,10 @@ export default async function EscrowPage() {
       } else if (stats) {
         console.error("[escrow] escrow_locked_stats returned non-numeric stats, using page subset");
       } else {
-        // No stats row: locked set is empty, so the subset total is exact.
+        // No stats row: report a true empty locked set, never the page-subset
+        // or fixture values derived above.
+        lockedCount = 0;
+        lockedTotal = 0;
         lockedApproximate = false;
       }
     }

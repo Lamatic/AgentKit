@@ -1,12 +1,32 @@
 const score = {{InstructorLLMNode_577.output.score}};
 const verdict = {{InstructorLLMNode_577.output.verdict}};
 const rationale = {{InstructorLLMNode_577.output.rationale}};
-const rubricHash = {{InstructorLLMNode_577.output.rubric_hash}};
 const attempt = {{triggerNode_1.output.attempt}};
 const escrow = {{triggerNode_1.output.escrow}};
 const bounty = {{triggerNode_1.output.bounty}};
+const rubric = {{triggerNode_1.output.rubric}};
 
 const scoreNum = typeof score === 'string' ? parseFloat(score) : Number(score);
+
+// Deterministic rubric hash: never trust model output for the audit trail.
+// Canonical serialization (sorted keys) of the trigger rubric, falling back
+// to the bounty-embedded rubric, then FNV-1a hashed to hex.
+function stableStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+  const keys = Object.keys(value).sort();
+  return '{' + keys.map((k) => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',') + '}';
+}
+function fnv1aHex(str) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return ('0000000' + (hash >>> 0).toString(16)).slice(-8);
+}
+const rubricSource = (typeof rubric !== 'undefined' && rubric !== null) ? rubric : bounty.rubric;
+const rubricHash = 'rubric-' + fnv1aHex(stableStringify(rubricSource ?? null));
 
 let action = "";
 let receiptId = "";

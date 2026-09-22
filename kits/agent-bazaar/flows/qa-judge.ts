@@ -91,7 +91,7 @@ export const nodes = [
       "nodeId": "InstructorLLMNode",
       "values": {
         "tools": [],
-        "schema": "{\n  \"type\": \"object\",\n  \"required\": [\"score\", \"verdict\", \"rationale\", \"rubric_hash\"],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"score\": { \"type\": \"number\", \"minimum\": 0, \"maximum\": 1 },\n    \"verdict\": { \"type\": \"string\", \"enum\": [\"pass\", \"fail\"] },\n    \"rationale\": { \"type\": \"string\" },\n    \"rubric_hash\": { \"type\": \"string\" }\n  }\n}",
+          "schema": "{\n  \"type\": \"object\",\n  \"required\": [\"score\", \"verdict\", \"rationale\"],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"score\": { \"type\": \"number\", \"minimum\": 0, \"maximum\": 1 },\n    \"verdict\": { \"type\": \"string\", \"enum\": [\"pass\", \"fail\"] },\n    \"rationale\": { \"type\": \"string\" }\n  }\n}",
         "prompts": [
           { "id": "187c2f4b-c23d-4545-abef-73dc897d6b7b", "role": "system", "content": "@prompts/qa-judge_judge_system.md" },
           { "id": "187c2f4b-c23d-4545-abef-73dc897d6b7d", "role": "user", "content": "@prompts/qa-judge_judge_user.md" }
