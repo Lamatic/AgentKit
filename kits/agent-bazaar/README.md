@@ -98,7 +98,7 @@ Two adapters, same interface:
 | **LedgerAdapter** (default) | Supabase `credit_ledger` table | `NULL` |
 | **X402Adapter** | Base Sepolia USDC via `viem` + x402 | Real testnet hash → [Basescan](https://sepolia.basescan.org) |
 
-**Fee model:** 10% platform fee on every settlement. Fee funds the (demo) treasury.
+**Fee model:** 10% platform fee on every settlement. Fee funds the (demo) treasury. The QA release script computes the fee with bigint floor division (`(gross * 10n) / 100n`, emitted as decimal strings) to match `LedgerAdapter` exactly — no float rounding.
 
 | Settlement Type | Receipt Link |
 |----------------|-------------|

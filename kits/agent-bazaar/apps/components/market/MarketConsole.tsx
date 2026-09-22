@@ -372,8 +372,11 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   }, [market, postUnconfirmed]);
 
   const handleReset = useCallback(async () => {
-    // Block concurrent resets while a prior reset outcome is unconfirmed.
-    if (resetUnconfirmed) {
+    // Block concurrent resets while a prior reset outcome is unconfirmed and
+    // no idempotency key is available for reconciliation. When
+    // resetKeyRef.current holds the pending intent's key, an explicit retry
+    // of the same intent is allowed to reconcile under that same key.
+    if (resetUnconfirmed && !resetKeyRef.current) {
       setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
       return;
     }
@@ -385,7 +388,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     // responses must never confirm a reset. On an uncertain outcome stay
     // blocked until an explicit retry succeeds; clearAll+seed is idempotent,
     // so a same-key retry safely re-runs instead of falsely confirming.
-    const idempotencyKey = crypto.randomUUID();
+    const idempotencyKey = resetKeyRef.current ?? crypto.randomUUID();
     resetKeyRef.current = idempotencyKey;
     try {
       const res = await resetMarket({ idempotencyKey });
@@ -403,6 +406,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
         return;
       }
       resetKeyRef.current = null;
+      setResetUnconfirmed(false);
       setActiveId(null);
       await refresh();
     } catch (err) {

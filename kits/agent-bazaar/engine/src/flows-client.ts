@@ -220,7 +220,9 @@ export async function generateBid(input: {
   openBids: Record<string, unknown>;
 }): Promise<GenerateBidOutput> {
   const budget = (input.bounty.budget as number) || 1000;
-  const rep = (input.agentProfile.reputation as number) || 0.5;
+  // A persisted reputation of 0 is valid — only fall back for non-finite values.
+  const repRaw = Number(input.agentProfile.reputation);
+  const rep = Number.isFinite(repRaw) ? repRaw : 0.5;
   const fallbackPrice = Math.round(budget * (0.5 + (1 - rep) * 0.4));
   const result = await callWithFallback(FLOWS.generateBid, "generateBid", input as Record<string, unknown>, {
     price: fallbackPrice,

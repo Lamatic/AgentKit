@@ -89,10 +89,15 @@ async function reconcileEntry(escrowId: string, status: string, op: string): Pro
 
 /** Release an escrow claim so a retry can process it again. */
 async function releaseClaim(escrowId: string): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from("escrows")
     .update({ status: "locked", settled_at: null })
     .eq("id", escrowId);
+  if (error) {
+    console.error(
+      `[x402] releaseClaim failed for escrow ${escrowId}: ${error.message} — claimed escrow has no receipt, manual reconciliation required`,
+    );
+  }
 }
 
 interface LockExtra {

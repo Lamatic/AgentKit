@@ -75,6 +75,9 @@ const recentlyUsedGoals = new Set<string>();
 export async function maybePostAutoTask(): Promise<boolean> {
   const now = Date.now();
   if (now - lastAutoPostAt < COOLDOWN_MS) return false;
+  // Claim the cooldown slot before awaiting countLoad so concurrent callers
+  // cannot both pass the check and post duplicate bounties.
+  lastAutoPostAt = now;
 
   // Cap policy: at most MAX_EARLY pre-QA bounties in flight. Once something
   // reaches QA, one extra slot opens (up to MAX_TOTAL) so the board keeps
@@ -127,7 +130,6 @@ export async function maybePostAutoTask(): Promise<boolean> {
       });
   }
 
-  lastAutoPostAt = now;
   console.log(`[auto-market] posted ${bountyId} — "${candidate.goal.slice(0, 60)}…" (${candidate.budget} CRT)`);
   return true;
 }

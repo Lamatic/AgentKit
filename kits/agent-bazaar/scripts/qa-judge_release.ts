@@ -39,8 +39,12 @@ if (scoreNum >= 0.7 && verdict === "pass") {
   // SETTLE
   action = "settle";
   receiptId = `receipt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  feeAmount = Math.round(escrow.amount * 0.1);
-  netAmount = escrow.amount - feeAmount;
+  // Bigint fee math matches LedgerAdapter's floor division exactly — no
+  // float rounding. Amounts cross as decimal strings past MAX_SAFE_INTEGER.
+  const gross = BigInt(String(escrow.amount));
+  const fee = (gross * 10n) / 100n;
+  feeAmount = fee.toString();
+  netAmount = (gross - fee).toString();
 } else if (attempt < 3) {
   // REVISE — fail closed: any non-pass combination still gets revision attempts
   action = "revise";
