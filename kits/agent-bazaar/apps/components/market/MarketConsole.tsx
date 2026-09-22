@@ -82,6 +82,13 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
         }
       }
     } catch (err) {
+      // Network/timeout errors leave the outcome uncertain — the mutation may
+      // have executed server-side. Keep the optimistic value and use the
+      // existing unconfirmed error behavior.
+      if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
+        setError("Auto-market change unconfirmed — toggle again to confirm.");
+        return;
+      }
       setAutoplay(prev);
       setError(err instanceof Error ? err.message : "Auto-market toggle failed");
     }
@@ -287,6 +294,14 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       try {
         res = await postTask({ goal, budget }, { idempotencyKey });
       } catch (err) {
+        // Network/timeout errors leave the outcome uncertain — the mutation
+        // may have executed server-side. Preserve the idempotency key for
+        // reconciliation instead of clearing it.
+        if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
+          setPostUnconfirmed(true);
+          setError("Task submission unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
+          return false;
+        }
         postKeyRef.current = null;
         pendingPostRef.current = null;
         setError(err instanceof Error ? err.message : "Post task failed");
@@ -410,6 +425,14 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       setActiveId(null);
       await refresh();
     } catch (err) {
+      // Network/timeout errors leave the outcome uncertain — the mutation may
+      // have executed server-side. Preserve the idempotency key for
+      // reconciliation instead of clearing it.
+      if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
+        setResetUnconfirmed(true);
+        setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
+        return;
+      }
       resetKeyRef.current = null;
       setError(err instanceof Error ? err.message : "Reset failed");
     } finally {

@@ -727,10 +727,12 @@ async function awardAndDeliver(
     console.log(`[budget] exhausted — bounty ${bountyId} proceeding on fallbacks`);
   }
 
+  // Derive capability from the scoring winner, not the first bid.
+  const earlyWinner = resolveWinner(hydrated, undefined);
   const taskInput = {
     bounty,
     bids: { bids: hydrated },
-    capability: String(hydrated[0]?.capability || "capabilities/general.md"),
+    capability: String(earlyWinner?.capability ?? ""),
   };
 
   // Release only a reservation this attempt actually holds; a failed

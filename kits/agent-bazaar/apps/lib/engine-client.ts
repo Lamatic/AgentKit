@@ -218,10 +218,16 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
       },
     });
   } catch {
+    // GET/HEAD failures are deterministic — the request didn't execute.
+    // Only non-idempotent methods (POST etc.) have uncertain outcomes.
+    const method = (init?.method ?? "GET").toUpperCase();
+    const uncertain = method !== "GET" && method !== "HEAD";
     throw new EngineError(
       503,
-      `Engine unreachable at ${ENGINE_URL}. Outcome unknown — refresh to verify state before retrying. Start it with: cd engine && npm run serve`,
-      true,
+      uncertain
+        ? `Engine unreachable at ${ENGINE_URL}. Outcome unknown — refresh to verify state before retrying. Start it with: cd engine && npm run serve`
+        : `Engine unreachable at ${ENGINE_URL}. Start it with: cd engine && npm run serve`,
+      uncertain,
     );
   }
 

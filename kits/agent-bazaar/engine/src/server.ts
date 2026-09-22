@@ -271,10 +271,20 @@ async function marketSnapshot(): Promise<Record<string, unknown>> {
   }));
 
   const ledger = ledgerRes.data ?? [];
+  // Derive balances from each agent's latest ledger entry, not the 150-row
+  // display window — agents with many transactions beyond the window no
+  // longer default to 0.
+  const agentIds = [...new Set((agentsRes.data ?? []).map((a) => a.id as string))];
   const balances = new Map<string, number>();
-  for (const entry of ledger) {
-    const id = entry.agent_id as string;
-    if (!balances.has(id)) balances.set(id, Number(entry.balance_after));
+  for (const id of agentIds) {
+    const { data: latest } = await supabase
+      .from("credit_ledger")
+      .select("balance_after")
+      .eq("agent_id", id)
+      .order("seq", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (latest) balances.set(id, Number(latest.balance_after));
   }
   const agents = (agentsRes.data ?? [])
     .map((a) => ({

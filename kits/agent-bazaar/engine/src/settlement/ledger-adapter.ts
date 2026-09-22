@@ -103,7 +103,7 @@ export class LedgerAdapter implements SettlementAdapter {
   async lock(escrowId: string, amount: bigint, extra?: LockExtra): Promise<LockRef> {
     const { data: existing, error: lookupError } = await supabase
       .from("escrows")
-      .select("*")
+      .select("*, amount::text")
       .eq("id", escrowId)
       .maybeSingle();
     if (lookupError) throw new Error(`Escrow lookup failed: ${lookupError.message}`);
