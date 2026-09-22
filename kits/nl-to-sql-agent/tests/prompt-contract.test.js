@@ -70,6 +70,18 @@ const promptChecks = [
     name: 'Combined prompt contains no JSON-output instruction',
     check: () => !/\boutput\b[^\n]*\{/i.test(combinedPrompt),
   },
+  {
+    name: 'System prompt embeds the approved database schema JSON',
+    check: () =>
+      /APPROVED DATABASE SCHEMA/.test(systemPrompt) &&
+      /"name": "nl_to_sql_customers_10000"/.test(systemPrompt) &&
+      /"name": "customer_id"/.test(systemPrompt) &&
+      /"name": "data_usage_gb"/.test(systemPrompt),
+  },
+  {
+    name: 'Schema instructs SQL grounding in declared tables and columns only',
+    check: () => /use only the tables and columns defined in the schema/i.test(systemPrompt),
+  },
 ];
 
 // ============================================================================

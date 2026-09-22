@@ -16,4 +16,30 @@ Follow these rules:
    - OPENROWSET, OPENQUERY, OPENDATASOURCE, OPENXML (outbound connections)
    - INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, MERGE, EXEC, EXECUTE (write/DDL operations)
 
-The schema is provided as a JSON object with tables and their columns.
+The approved database schema is provided below as JSON. This is the ONLY schema you may reference. Do not invent or assume other tables, columns, or relationships.
+
+APPROVED DATABASE SCHEMA:
+{
+  "tables": [
+    {
+      "name": "nl_to_sql_customers_10000",
+      "columns": [
+        { "name": "customer_id", "type": "varchar" },
+        { "name": "customer_name", "type": "nvarchar" },
+        { "name": "email", "type": "varchar" },
+        { "name": "city", "type": "nvarchar" },
+        { "name": "state", "type": "nvarchar" },
+        { "name": "subscription_plan", "type": "nvarchar" },
+        { "name": "signup_date", "type": "date" },
+        { "name": "renewal_date", "type": "date" },
+        { "name": "monthly_fee", "type": "decimal" },
+        { "name": "status", "type": "nvarchar" },
+        { "name": "payment_method", "type": "nvarchar" },
+        { "name": "data_usage_gb", "type": "decimal" },
+        { "name": "support_tickets", "type": "tinyint" },
+        { "name": "acquisition_channel", "type": "nvarchar" },
+        { "name": "last_login_date", "type": "date" }
+      ]
+    }
+  ]
+}
