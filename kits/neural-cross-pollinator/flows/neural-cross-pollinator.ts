@@ -45,17 +45,6 @@ export const references = {
   constitutions: { default: "@constitutions/default.md" }
 };
 
-const analysisSchema = {
-  type: "object",
-  properties: {
-    entities: { type: "array", items: { type: "string" } },
-    mechanisms: { type: "array", items: { type: "string" } },
-    constraints: { type: "array", items: { type: "string" } },
-    feedback_loops: { type: "array", items: { type: "string" } },
-    adaptation_patterns: { type: "array", items: { type: "string" } }
-  }
-};
-
 export const nodes = [
   {
     id: "APIRequest",
@@ -76,10 +65,19 @@ export const nodes = [
       nodeId: "instructorLLMNode",
       values: {
         nodeName: "Analyze Domain A",
-        schema: analysisSchema,
+        schema: {
+          type: "object",
+          properties: {
+            entities: { type: "array", items: { type: "string" } },
+            mechanisms: { type: "array", items: { type: "string" } },
+            constraints: { type: "array", items: { type: "string" } },
+            feedback_loops: { type: "array", items: { type: "string" } },
+            adaptation_patterns: { type: "array", items: { type: "string" } }
+          }
+        },
         prompts: [
-          { role: "system", content: "@prompts/analysis-system.md" },
-          { role: "user", content: "@prompts/domain-a-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_analyze-domain-a_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_analyze-domain-a_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
@@ -92,10 +90,19 @@ export const nodes = [
       nodeId: "instructorLLMNode",
       values: {
         nodeName: "Analyze Domain B",
-        schema: analysisSchema,
+        schema: {
+          type: "object",
+          properties: {
+            entities: { type: "array", items: { type: "string" } },
+            mechanisms: { type: "array", items: { type: "string" } },
+            constraints: { type: "array", items: { type: "string" } },
+            feedback_loops: { type: "array", items: { type: "string" } },
+            adaptation_patterns: { type: "array", items: { type: "string" } }
+          }
+        },
         prompts: [
-          { role: "system", content: "@prompts/analysis-system.md" },
-          { role: "user", content: "@prompts/domain-b-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_analyze-domain-b_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_analyze-domain-b_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
@@ -126,8 +133,8 @@ export const nodes = [
           }
         },
         prompts: [
-          { role: "system", content: "@prompts/find-parallels-system.md" },
-          { role: "user", content: "@prompts/find-parallels-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_find-structural-parallels_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_find-structural-parallels_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
@@ -157,8 +164,8 @@ export const nodes = [
           }
         },
         prompts: [
-          { role: "system", content: "@prompts/transfer-mechanism-system.md" },
-          { role: "user", content: "@prompts/transfer-mechanism-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_transfer-mechanism_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_transfer-mechanism_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
@@ -182,8 +189,8 @@ export const nodes = [
           }
         },
         prompts: [
-          { role: "system", content: "@prompts/evaluate-innovation-system.md" },
-          { role: "user", content: "@prompts/evaluate-innovation-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_evaluate-innovation_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_evaluate-innovation_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
@@ -219,8 +226,8 @@ export const nodes = [
       values: {
         nodeName: "Present Success",
         prompts: [
-          { role: "system", content: "@prompts/present-success-system.md" },
-          { role: "user", content: "@prompts/present-success-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_present-success_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_present-success_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
@@ -234,8 +241,8 @@ export const nodes = [
       values: {
         nodeName: "Present Caveat",
         prompts: [
-          { role: "system", content: "@prompts/present-caveat-system.md" },
-          { role: "user", content: "@prompts/present-caveat-user.md" }
+          { role: "system", content: "@prompts/neural-cross-pollinator_present-caveat_system.md" },
+          { role: "user", content: "@prompts/neural-cross-pollinator_present-caveat_user.md" }
         ],
         generativeModelName: ["@model-configs/neural-cross-pollinator_groq.ts"]
       }
