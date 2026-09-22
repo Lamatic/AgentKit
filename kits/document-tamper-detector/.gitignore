@@ -1,0 +1,9 @@
+.env*
+!.env.example
+node_modules/
+.next/
+out/
+dist/
+*.log
+!scripts/
+!scripts/**
