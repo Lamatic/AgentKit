@@ -210,7 +210,7 @@ export class LedgerAdapter implements SettlementAdapter {
       });
       if (receiptError) {
         if (receiptError.code === "23505") {
-          return reconcileReceipt(receipt, "settlement", netAmount, bountyId);
+          return await reconcileReceipt(receipt, "settlement", netAmount, bountyId);
         }
         throw new Error(`Receipt insert failed: ${receiptError.message}`);
       }
@@ -309,7 +309,7 @@ export class LedgerAdapter implements SettlementAdapter {
       });
       if (receiptError) {
         if (receiptError.code === "23505") {
-          return reconcileReceipt(receipt, "refund", grossAmount, bountyId);
+          return await reconcileReceipt(receipt, "refund", grossAmount, bountyId);
         }
         throw new Error(`Receipt insert failed: ${receiptError.message}`);
       }

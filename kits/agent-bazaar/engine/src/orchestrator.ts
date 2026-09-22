@@ -294,8 +294,18 @@ async function resumeInEscrow(
   }
 
   if (escrow.status === "refunded") {
-    const refunded = transition(state, "refund", { reason: "refunded" });
-    await writeStatus(bountyId, refunded);
+    // Only mark the bounty refunded when a receipt proves the refund landed;
+    // otherwise preserve the status so reconciliation can retry — matching
+    // the receipt-gated behavior in the settle path.
+    const { data: receipt } = await supabase
+      .from("settlement_receipts")
+      .select("id")
+      .eq("escrow_id", escrow.id)
+      .maybeSingle();
+    if (receipt) {
+      const refunded = transition(state, "refund", { reason: "refunded" });
+      await writeStatus(bountyId, refunded);
+    }
     return;
   }
 
@@ -479,7 +489,23 @@ async function resumeQaPass(
   }
 
   const key = idempotencyKey(bountyId, "settle", attempt);
-  if (!(await checkIdempotencyAsync(key))) return;
+  if (!(await checkIdempotencyAsync(key))) {
+    // Key exists — check if it's stale (prior failed attempt) and the escrow
+    // is still locked. If so, reclaim the key so this attempt can proceed.
+    const { data: keyEscrow } = await supabase
+      .from("escrows")
+      .select("status,created_at")
+      .eq("id", escrow.id)
+      .maybeSingle();
+    if (keyEscrow?.status === "locked" &&
+        Date.now() - new Date(keyEscrow.created_at).getTime() > 60_000) {
+      await releaseIdempotency(key);
+      // Re-check: if another caller reclaimed concurrently, back off.
+      if (!(await checkIdempotencyAsync(key))) return;
+    } else {
+      return;
+    }
+  }
 
   // Release the key on failure so a later round can retry; the escrow
   // locked -> settled claim still guards against double-processing.
@@ -727,8 +753,31 @@ async function awardAndDeliver(
     console.log(`[budget] exhausted — bounty ${bountyId} proceeding on fallbacks`);
   }
 
-  // Derive capability from the scoring winner, not the first bid.
-  const earlyWinner = resolveWinner(hydrated, undefined);
+  // Check for an existing escrow before building taskInput so the
+  // escrow-selected bid drives capability, not a recomputed winner.
+  let lockRef = existing?.lockRef || "";
+  const escrowId = existing?.escrowId || crypto.randomUUID();
+  let rawEscrowId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(escrowId)
+    ? escrowId
+    : crypto.randomUUID();
+  const { data: existingEscrow, error: existingEscrowError } = await supabase
+    .from("escrows")
+    .select("id, bounty_id, bid_id")
+    .eq("id", rawEscrowId)
+    .maybeSingle();
+  if (existingEscrowError) throw new Error(`Escrow read failed for ${rawEscrowId}: ${existingEscrowError.message}`);
+  if (existingEscrow) {
+    if ((existingEscrow as Record<string, unknown>).bounty_id !== bountyId) {
+      throw new Error(`Escrow ${rawEscrowId} belongs to another bounty — refusing to reuse`);
+    }
+  }
+
+  // Derive capability from the escrow's original bid when available,
+  // otherwise from the scoring winner — never from hydrated[0].
+  const escrowBidId = existingEscrow ? (existingEscrow as Record<string, unknown>).bid_id as string | undefined : undefined;
+  const earlyWinner = escrowBidId
+    ? hydrated.find((b) => b.id === escrowBidId) ?? resolveWinner(hydrated, undefined)
+    : resolveWinner(hydrated, undefined);
   const taskInput = {
     bounty,
     bids: { bids: hydrated },
@@ -757,10 +806,6 @@ async function awardAndDeliver(
   // Engine-owned escrow identity: never trust result.escrowId from the flow
   // (LLM output). Only the resume path (existing) may reuse an id, and only
   // after the bounty_id check below.
-  const rawEscrowId = existing?.escrowId || crypto.randomUUID();
-  let escrowId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawEscrowId)
-    ? rawEscrowId
-    : crypto.randomUUID();
   const amountRaw = Number(result.amount);
   const winnerPrice = Math.round(Number(winner.price));
   const proposal = Number.isFinite(amountRaw) && amountRaw > 0
@@ -770,26 +815,35 @@ async function awardAndDeliver(
   const amount = Number.isFinite(budgetCap) && budgetCap > 0
     ? Math.min(proposal, budgetCap)
     : proposal;
-  let lockRef = existing?.lockRef || `lock-${escrowId}`;
+  if (!lockRef) lockRef = `lock-${rawEscrowId}`;
 
-  const { data: existingEscrow, error: existingEscrowError } = await supabase
-    .from("escrows")
-    .select("id, bounty_id")
-    .eq("id", escrowId)
-    .maybeSingle();
-  if (existingEscrowError) throw new Error(`Escrow read failed for ${escrowId}: ${existingEscrowError.message}`);
-  if (existingEscrow) {
-    // A row already claims this id: only reuse it when it belongs to this
-    // bounty, otherwise reject — a foreign escrow must never be locked or
-    // associated with the current bounty.
-    if ((existingEscrow as Record<string, unknown>).bounty_id !== bountyId) {
-      throw new Error(`Escrow ${escrowId} belongs to another bounty — refusing to reuse`);
+  // When no existing escrow was supplied and the status is open or awarded,
+  // check for a prior escrow from a failed attempt. Adopt it instead of
+  // inserting a duplicate.
+  if (!existing && !existingEscrow && (current.status === "open" || current.status === "awarded")) {
+    const { data: priorEscrow } = await supabase
+      .from("escrows")
+      .select("id,bid_id,lock_ref")
+      .eq("bounty_id", bountyId)
+      .maybeSingle();
+    if (priorEscrow) {
+      if (current.status === "open") {
+        const awarded = transition(current, "award", { bidId: priorEscrow.bid_id });
+        await writeStatus(bountyId, awarded);
+        current = awarded;
+      }
+      const locked = transition(current, "lock_escrow", {
+        escrowId: priorEscrow.id,
+        lockRef: priorEscrow.lock_ref,
+      });
+      await writeStatus(bountyId, locked);
+      return; // delivery continues in the next in-escrow round
     }
   }
 
   if (!existingEscrow) {
     const { error } = await supabase.from("escrows").insert({
-      id: escrowId,
+      id: rawEscrowId,
       bounty_id: bountyId,
       bid_id: winner.id,
       amount,
@@ -829,7 +883,7 @@ async function awardAndDeliver(
       // timeout and confirmed failures — only a pipe failure before a result
       // releases (see above).
       try {
-        const lock = await adapter.lock(escrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
+        const lock = await adapter.lock(rawEscrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
 
         if (adapter instanceof LedgerAdapter) {
           await appendLedger(poster, String(-amount), "bid_lock", bountyId);
@@ -842,12 +896,12 @@ async function awardAndDeliver(
         // instead of deleting it. All other failures keep existing cleanup.
         // Reservation is preserved in both cases (see above).
         if (err instanceof FacilitatorTimeoutError) {
-          console.error(`[escrow] lock timed out for ${escrowId}: escrow row preserved — manual reconciliation required`);
+          console.error(`[escrow] lock timed out for ${rawEscrowId}: escrow row preserved — manual reconciliation required`);
           throw err;
         }
-        const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", escrowId);
+        const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", rawEscrowId);
         if (rollbackError) {
-          console.error(`[escrow] rollback failed for ${escrowId}: ${rollbackError.message} — manual reconciliation required`);
+          console.error(`[escrow] rollback failed for ${rawEscrowId}: ${rollbackError.message} — manual reconciliation required`);
         }
         throw err;
       }
@@ -861,7 +915,7 @@ async function awardAndDeliver(
   }
 
   if (current.status === "open" || current.status === "awarded") {
-    next = transition(next, "lock_escrow", { escrowId, lockRef });
+    next = transition(next, "lock_escrow", { escrowId: rawEscrowId, lockRef });
     await writeStatus(bountyId, next);
   }
 

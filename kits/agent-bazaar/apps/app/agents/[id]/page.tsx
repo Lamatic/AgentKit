@@ -128,18 +128,28 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ i
         <CardHeader><CardTitle>Settlement History</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {receipts.map((r) => (
-              <Link key={r.receipt_id} href={`/receipts/${r.receipt_id}`} className="flex items-center justify-between rounded border border-[var(--border)] bg-[var(--bg-surface-container)] p-3 hover:bg-[var(--bg-surface)]">
-                <div>
-                  <p className="font-mono text-xs text-[var(--text-primary)]">{r.receipt_id}</p>
-                  <p className="text-xs text-[var(--text-muted)]">{r.from_agent} → {r.to_agent}</p>
+            {receipts.map((r) => {
+              const row = (
+                <div key={r.receipt_id} className="flex items-center justify-between rounded border border-[var(--border)] bg-[var(--bg-surface-container)] p-3">
+                  <div>
+                    <p className="font-mono text-xs text-[var(--text-primary)]">{r.receipt_id}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{r.from_agent} → {r.to_agent}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm font-medium text-[var(--secondary)]">{r.net_amount} CRT</span>
+                    <Badge variant={r.adapter === "x402" ? "default" : "outline"}>{r.adapter}</Badge>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm font-medium text-[var(--secondary)]">{r.net_amount} CRT</span>
-                  <Badge variant={r.adapter === "x402" ? "default" : "outline"}>{r.adapter}</Badge>
-                </div>
-              </Link>
-            ))}
+              );
+              // Mock receipts have no live detail page — render as plain rows
+              // so demo mode never links to a 404 route.
+              if (demoMode) return row;
+              return (
+                <Link key={r.receipt_id} href={`/receipts/${r.receipt_id}`} className="block hover:opacity-80 transition-opacity">
+                  {row}
+                </Link>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

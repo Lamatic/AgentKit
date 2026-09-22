@@ -552,7 +552,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
           <button
             type="button"
             onClick={handleReset}
-            disabled={resetting || resetUnconfirmed}
+            disabled={resetting || (resetUnconfirmed && !resetKeyRef.current)}
             className="rounded-[6px] border border-hairline bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50"
           >
             {resetUnconfirmed ? "Confirming reset…" : resetting ? "Resetting…" : "Reset"}

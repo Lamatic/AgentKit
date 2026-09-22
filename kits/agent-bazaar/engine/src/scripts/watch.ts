@@ -7,6 +7,7 @@ async function watch(): Promise<void> {
 
   let round = 0;
   let stopped = false;
+  let inFlight: Promise<void> | null = null;
 
   /** tick helper. */
   async function tick(): Promise<void> {
@@ -27,16 +28,22 @@ async function watch(): Promise<void> {
     } catch (err) {
       console.error(`Round failed: ${(err as Error).message}`);
     }
-    if (!stopped) setTimeout(() => void tick(), 10000);
+    if (!stopped) {
+      inFlight = new Promise<void>((resolve) => {
+        setTimeout(() => void tick().then(resolve), 10000);
+      });
+    }
   }
 
   process.on("SIGINT", () => {
+    if (stopped) process.exit(0); // second SIGINT — force exit
     stopped = true;
-    console.log("\nWatch stopped.");
-    process.exit(0);
+    console.log("\nWatch stopping after current tick...");
+    void inFlight?.finally(() => process.exit(0));
   });
 
-  await tick();
+  inFlight = tick();
+  await inFlight;
 }
 
 watch().catch(console.error);
