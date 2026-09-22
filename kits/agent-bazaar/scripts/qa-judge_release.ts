@@ -36,7 +36,10 @@ if (scoreNum >= 0.7 && verdict === "pass") {
 
 output = {
   score: scoreNum,
-  verdict: verdict,
+  // Derive verdict from the routed action so a sub-threshold score can never
+  // emit a passing verdict: only settle passes, revise/refund fail. Action
+  // routing above is unchanged.
+  verdict: action === "settle" ? "pass" : "fail",
   rationale: rationale,
   rubric_hash: rubricHash,
   action: action,

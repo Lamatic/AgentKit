@@ -8,6 +8,7 @@ import * as flows from "./flows-client.js";
 import { transition } from "./state-machine.js";
 import type { BountyStatus, QAVerdict } from "./state-machine.js";
 import { ROSTER } from "./agents/roster.js";
+import { syncWorkerReputation } from "./agents/worker-agent.js";
 import { loadLatestRecording, recordOutputs } from "./replay-store.js";
 import type { RecordedFlowOutput } from "./replay-store.js";
 
@@ -368,7 +369,7 @@ async function resumeDelivered(
   if (!verdict) return;
 
   if (delivery) {
-    await supabase.from("qa_verdicts").insert({
+    const { error: qaInsertError } = await supabase.from("qa_verdicts").insert({
       id: crypto.randomUUID(),
       bounty_id: bountyId,
       delivery_id: delivery.id,
@@ -377,6 +378,7 @@ async function resumeDelivered(
       rationale: verdict.rationale,
       rubric_hash: verdict.rubric_hash,
     });
+    if (qaInsertError) throw new Error(`QA verdict write failed for bounty ${bountyId}: ${qaInsertError.message}`);
   }
 
   if (verdict.verdict === "pass") {
@@ -557,6 +559,23 @@ async function ensureBids(
   if (existingBidsError) throw new Error(`Bids read failed for bounty ${bountyId}: ${existingBidsError.message}`);
 
   if (existingBids && existingBids.length > 0) return existingBids;
+
+  // Load live reputations before agentProfile/fallback pricing reads them:
+  // ROSTER is in-memory (0.5 at boot) while apply_reputation updates the DB.
+  // Sync here so bids price off the current recorded value. Hydration for
+  // award decisions still happens later in hydrateBids.
+  const workerIds = ROSTER.filter((w) => w.id !== poster).map((w) => w.id);
+  if (workerIds.length > 0) {
+    const { data: liveAgents, error: liveAgentsError } = await supabase
+      .from("agents")
+      .select("id, reputation")
+      .in("id", workerIds);
+    if (liveAgentsError) throw new Error(`Agents read failed for bounty ${bountyId}: ${liveAgentsError.message}`);
+    const liveById = new Map((liveAgents ?? []).map((a) => [a.id as string, a.reputation]));
+    for (const w of ROSTER) {
+      if (liveById.has(w.id)) syncWorkerReputation(w, liveById.get(w.id));
+    }
+  }
 
   const budget = Number(bounty.budget);
   const workers = ROSTER.filter((w) => w.id !== poster);
@@ -1006,11 +1025,12 @@ async function callQaJudge(
 async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promise<void> {
   const delta = outcome === "pass" ? 0.05 : -0.1;
 
-  const { data: agent } = await supabase
+  const { data: agent, error: agentReadError } = await supabase
     .from("agents")
     .select("id, reputation")
     .eq("id", agentId)
     .maybeSingle();
+  if (agentReadError) throw new Error(`Agent read failed for ${agentId}: ${agentReadError.message}`);
 
   if (!agent) return;
 
@@ -1044,6 +1064,19 @@ async function applyReputation(agentId: string, outcome: "pass" | "fail"): Promi
     p_win: outcome === "pass",
   });
   if (error) throw new Error(`Reputation update failed: ${error.message}`);
+  // Keep the in-memory roster consistent so the next ensureBids prices off
+  // the fresh value even before its own live reload. The RPC returns the new
+  // reputation as numeric (NULL when the agent vanished). A 0 stays 0.
+  const rosterEntry = ROSTER.find((w) => w.id === agentId);
+  if (rosterEntry && updated !== null && updated !== undefined) {
+    const fresh = Array.isArray(updated)
+      ? (updated[0] as Record<string, unknown> | number)
+      : updated;
+    const rep = typeof fresh === "object" && fresh !== null && "reputation" in (fresh as Record<string, unknown>)
+      ? (fresh as Record<string, unknown>).reputation
+      : fresh;
+    if (rep !== null && rep !== undefined) syncWorkerReputation(rosterEntry, rep);
+  }
   void updated;
 }
 

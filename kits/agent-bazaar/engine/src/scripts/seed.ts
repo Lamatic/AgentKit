@@ -363,12 +363,13 @@ export async function seed(): Promise<void> {
   // preserves live wins, losses, and reputation. resetEconomy still applies:
   // clearAll wipes the agents table first, so reseeded rows always qualify.
   for (const a of SEED_AGENTS) {
-    await supabase
+    const { error: seedHistoryError } = await supabase
       .from("agents")
       .update({ reputation: 0.55, wins: 1, losses: 0 })
       .eq("id", agentId(a.name))
       .eq("wins", 0)
       .eq("losses", 0);
+    if (seedHistoryError) throw new Error(`seed post-history update failed for ${a.name}: ${seedHistoryError.message}`);
   }
 
   console.log("Seed complete. All bounties settled.");

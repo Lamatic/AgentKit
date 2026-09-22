@@ -101,13 +101,30 @@ export class LedgerAdapter implements SettlementAdapter {
 
   /** Lock escrow funds for a bounty. */
   async lock(escrowId: string, amount: bigint, extra?: LockExtra): Promise<LockRef> {
-    const { data: existing } = await supabase
+    const { data: existing, error: lookupError } = await supabase
       .from("escrows")
       .select("*")
       .eq("id", escrowId)
       .maybeSingle();
+    if (lookupError) throw new Error(`Escrow lookup failed: ${lookupError.message}`);
 
-    if (!existing) {
+    if (existing) {
+      // Reuse only when the recorded lock is identical and still locked;
+      // every mismatch is a foreign or already-processed escrow and must
+      // surface instead of returning a false success.
+      if (
+        existing.bounty_id !== extra?.bountyId ||
+        existing.bid_id !== extra?.bidId ||
+        existing.amount !== amount.toString() ||
+        existing.status !== "locked"
+      ) {
+        throw new Error(
+          `Escrow ${escrowId} mismatch (bounty ${String(existing.bounty_id)} vs ${String(extra?.bountyId)}, ` +
+            `bid ${String(existing.bid_id)} vs ${String(extra?.bidId)}, amount ${String(existing.amount)} vs ${amount.toString()}, ` +
+            `status ${String(existing.status)}) — manual reconciliation required`,
+        );
+      }
+    } else {
       const { error } = await supabase.from("escrows").insert({
         id: escrowId,
         bounty_id: extra?.bountyId,

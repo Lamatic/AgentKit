@@ -45,7 +45,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   const catchUpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const postKeyRef = useRef<string | null>(null);
   const resetKeyRef = useRef<string | null>(null);
-  const pendingPostRef = useRef<{ goal: string; budget: number; beforeIds: Set<string> } | null>(null);
+  const pendingPostRef = useRef<{ goal: string; budget: number; beforeIds: Set<string>; idempotencyKey: string } | null>(null);
   // Status of the selected bounty in the previous market snapshot — used to detect
   // a live → terminal *transition* (auto-advance) vs a deliberate user selection
   // of an already-settled bounty (leave it alone).
@@ -277,10 +277,12 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       const trimmedGoal = goal.trim();
       const beforeIds = new Set(marketRef.current?.bounties.map((b) => b.id) ?? []);
       // One key per user intent: generated once, reused if this same
-      // goal/budget is ever retried after an uncertain outcome.
+      // goal/budget is ever retried after an uncertain outcome. The key
+      // identifies this submission during reconciliation — postUnconfirmed
+      // stays set until the matching operation's bounty is observed.
       const idempotencyKey = crypto.randomUUID();
       postKeyRef.current = idempotencyKey;
-      pendingPostRef.current = { goal: trimmedGoal, budget, beforeIds };
+      pendingPostRef.current = { goal: trimmedGoal, budget, beforeIds, idempotencyKey };
       let res;
       try {
         res = await postTask({ goal, budget }, { idempotencyKey });
@@ -302,10 +304,16 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
             await new Promise((r) => setTimeout(r, 2000));
             const ref = await refresh();
             if (ref.ok) {
+              // Identify this submission by its idempotency key: only the
+              // pending operation captured above may confirm. Match the new
+              // bounty by goal + unseen ID and require the key to still be
+              // current — never confirm an unrelated bounty, and keep
+              // postUnconfirmed set until the matching bounty appears.
+              if (postKeyRef.current !== pendingPostRef.current?.idempotencyKey) return false;
               const found = ref.data.bounties.find(
                 (b) => b.goal === trimmedGoal && !beforeIds.has(b.id),
-              ) ?? ref.data.bounties.find((b) => !beforeIds.has(b.id));
-              if (found) {
+              );
+              if (found && postKeyRef.current === pendingPostRef.current?.idempotencyKey) {
                 pendingPostRef.current = null;
                 postKeyRef.current = null;
                 setPostUnconfirmed(false);
@@ -345,14 +353,16 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   // Late proof: a realtime event or watchdog refresh may land the previously
   // unconfirmed bounty after the bounded reconcile burst above gave up.
   // Clear the blocked state only when the original operation's bounty is
-  // visible — never on a timer alone.
+  // visible — identified by its idempotency key, never on a timer alone and
+  // never for an unrelated bounty.
   useEffect(() => {
     if (!postUnconfirmed || !pendingPostRef.current || !market) return;
     const pending = pendingPostRef.current;
+    if (postKeyRef.current !== pending.idempotencyKey) return;
     const found = market.bounties.find(
       (b) => b.goal === pending.goal && !pending.beforeIds.has(b.id),
-    ) ?? market.bounties.find((b) => !pending.beforeIds.has(b.id));
-    if (found) {
+    );
+    if (found && postKeyRef.current === pending.idempotencyKey) {
       pendingPostRef.current = null;
       postKeyRef.current = null;
       setPostUnconfirmed(false);
