@@ -1,0 +1,93 @@
+# Drop this into .github/workflows/ of the repository that holds your Terraform.
+# On every pull request it runs `terraform plan`, sends the change facts (never
+# secrets) to the deployed tf-plan-review flow, posts the review comment on the
+# PR, and fails the job when the verdict is `block`. `needs-approval` passes
+# the job but leaves the comment, so a human still has to sign off.
+#
+# Secrets to add to the repository: LAMATIC_API_KEY, LAMATIC_PROJECT_ID,
+# LAMATIC_API_URL, LAMATIC_TERRAFORM_PLAN_REVIEW_FLOW_ID (see apps/.env.example).
+#
+# Pull requests from forks get a read-only GITHUB_TOKEN under `pull_request`,
+# so the comment step cannot post there. For a repository that takes fork PRs,
+# run the plan from a trusted checkout under `pull_request_target`, or use a
+# token with pull-requests: write stored as a secret.
+
+name: Terraform plan gate
+
+on:
+  pull_request:
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    env:
+      TF_DIR: infra          # adjust
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Plan
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -input=false
+          terraform plan -input=false -out=tfplan
+          terraform show -json tfplan > "$GITHUB_WORKSPACE/plan.json"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch the gate
+        # A full commit SHA, so the code that receives the Lamatic credentials is
+        # the code you reviewed. Move it forward deliberately, like any dependency.
+        # Set it to a commit that contains kits/terraform-plan-gate (the merge
+        # commit of this kit or later).
+        env:
+          AGENTKIT_SHA: 67cbdc4aafbc1e4ab259df3201c37238fe995733
+        run: |
+          mkdir -p /tmp/agentkit && cd /tmp/agentkit
+          git init -q
+          git fetch -q --depth 1 https://github.com/Lamatic/AgentKit.git "$AGENTKIT_SHA"
+          git checkout -q FETCH_HEAD
+          cd kits/terraform-plan-gate/apps && npm ci
+
+      - name: Review the plan
+        id: gate
+        working-directory: /tmp/agentkit/kits/terraform-plan-gate/apps
+        env:
+          LAMATIC_API_KEY: ${{ secrets.LAMATIC_API_KEY }}
+          LAMATIC_PROJECT_ID: ${{ secrets.LAMATIC_PROJECT_ID }}
+          LAMATIC_API_URL: ${{ secrets.LAMATIC_API_URL }}
+          LAMATIC_TERRAFORM_PLAN_REVIEW_FLOW_ID: ${{ secrets.LAMATIC_TERRAFORM_PLAN_REVIEW_FLOW_ID }}
+        run: |
+          set +e
+          npm run -s gate -- "$GITHUB_WORKSPACE/plan.json" --comment > "$GITHUB_WORKSPACE/gate.out"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          head -1 "$GITHUB_WORKSPACE/gate.out"
+
+      - name: Post the review comment
+        if: steps.gate.outputs.code != '3'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          tail -n +3 "$GITHUB_WORKSPACE/gate.out" > comment.md
+          if [ -s comment.md ]; then
+            gh pr comment "$PR_NUMBER" --body-file comment.md
+          fi
+
+      - name: Fail on block
+        if: steps.gate.outputs.code == '1' || steps.gate.outputs.code == '3'
+        env:
+          GATE_CODE: ${{ steps.gate.outputs.code }}
+        run: |
+          echo "Plan gate returned exit code $GATE_CODE (1 = block, 3 = configuration error)."
+          exit 1

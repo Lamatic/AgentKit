@@ -1,0 +1,49 @@
+{
+  "why": "Replacing an instance is a rollout with downtime (POL-06); it needs a note, not a block.",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_instance.api": {
+        "riskAtLeast": "medium",
+        "policyIds": [
+          "POL-06"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_instance.api",
+        "mode": "managed",
+        "type": "aws_instance",
+        "name": "api",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "delete",
+            "create"
+          ],
+          "before": {
+            "instance_type": "t3.small",
+            "ami": "ami-1"
+          },
+          "after": {
+            "instance_type": "t3.small",
+            "ami": "ami-2"
+          },
+          "after_unknown": {},
+          "before_sensitive": {},
+          "after_sensitive": {}
+        },
+        "action_reason": "replace_because_cannot_update"
+      }
+    ]
+  }
+}

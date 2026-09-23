@@ -1,0 +1,25 @@
+{
+  "why": "The bundled sample; its verdict is what the README promises.",
+  "planFile": "../../public/samples/risky-plan.json",
+  "expect": {
+    "verdict": "block",
+    "changes": {
+      "module.orders_db.aws_db_instance.primary": {
+        "riskAtLeast": "critical",
+        "policyIds": [
+          "POL-01",
+          "POL-02"
+        ]
+      },
+      "aws_security_group_rule.bastion_ssh": {
+        "riskAtLeast": "high"
+      },
+      "aws_s3_bucket_public_access_block.exports": {
+        "riskAtLeast": "high"
+      },
+      "aws_iam_policy.ci_deploy": {
+        "riskAtLeast": "high"
+      }
+    }
+  }
+}

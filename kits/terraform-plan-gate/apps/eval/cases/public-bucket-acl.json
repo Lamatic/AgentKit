@@ -1,0 +1,47 @@
+{
+  "why": "A bucket ACL going from private to public-read breaks POL-03 and must at least need approval.",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_s3_bucket_acl.exports": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-03"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_s3_bucket_acl.exports",
+        "mode": "managed",
+        "type": "aws_s3_bucket_acl",
+        "name": "exports",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "update"
+          ],
+          "before": {
+            "acl": "private",
+            "bucket": "exports"
+          },
+          "after": {
+            "acl": "public-read",
+            "bucket": "exports"
+          },
+          "after_unknown": {},
+          "before_sensitive": {},
+          "after_sensitive": {}
+        }
+      }
+    ]
+  }
+}

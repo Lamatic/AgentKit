@@ -1,0 +1,44 @@
+{
+  "why": "Attaching AdministratorAccess is the privilege escalation POL-05 forbids.",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_iam_role_policy_attachment.ci_admin": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-05"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_iam_role_policy_attachment.ci_admin",
+        "mode": "managed",
+        "type": "aws_iam_role_policy_attachment",
+        "name": "ci_admin",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "create"
+          ],
+          "before": null,
+          "after": {
+            "role": "ci-deploy",
+            "policy_arn": "arn:aws:iam::aws:policy/AdministratorAccess"
+          },
+          "after_unknown": {},
+          "before_sensitive": false,
+          "after_sensitive": {}
+        }
+      }
+    ]
+  }
+}

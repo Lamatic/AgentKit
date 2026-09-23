@@ -1,0 +1,46 @@
+{
+  "why": "A tag-only update is routine and must not need approval.",
+  "expect": {
+    "verdict": "allow",
+    "changes": {
+      "aws_instance.web": {
+        "riskAtMost": "low"
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_instance.web",
+        "mode": "managed",
+        "type": "aws_instance",
+        "name": "web",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "update"
+          ],
+          "before": {
+            "instance_type": "t3.small",
+            "tags": {
+              "team": "web"
+            }
+          },
+          "after": {
+            "instance_type": "t3.small",
+            "tags": {
+              "team": "web",
+              "cost-center": "1234"
+            }
+          },
+          "after_unknown": {},
+          "before_sensitive": {},
+          "after_sensitive": {}
+        }
+      }
+    ]
+  }
+}

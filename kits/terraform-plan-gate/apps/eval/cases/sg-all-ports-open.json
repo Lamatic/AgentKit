@@ -1,0 +1,50 @@
+{
+  "why": "An all-ports rule open to the internet is the worst network exposure POL-04 describes.",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_security_group_rule.everything": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-04"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_security_group_rule.everything",
+        "mode": "managed",
+        "type": "aws_security_group_rule",
+        "name": "everything",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "create"
+          ],
+          "before": null,
+          "after": {
+            "type": "ingress",
+            "from_port": 0,
+            "to_port": 0,
+            "protocol": "-1",
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "security_group_id": "sg-0123"
+          },
+          "after_unknown": {},
+          "before_sensitive": false,
+          "after_sensitive": {}
+        }
+      }
+    ]
+  }
+}

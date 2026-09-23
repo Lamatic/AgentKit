@@ -1,0 +1,62 @@
+[
+  {
+    "policy_id": "POL-01",
+    "title": "Destroying stateful resources needs explicit approval",
+    "text": "Any plan that deletes or replaces a database instance, cluster, storage bucket, table, disk or volume, queue, or secret must be approved by a human who has confirmed a backup or snapshot exists. Resource types include aws_db_instance, aws_rds_cluster, aws_dynamodb_table, aws_s3_bucket, aws_ebs_volume, aws_efs_file_system, aws_secretsmanager_secret, google_sql_database_instance, google_storage_bucket, azurerm_storage_account, azurerm_mssql_database.",
+    "minimum_risk": "high"
+  },
+  {
+    "policy_id": "POL-02",
+    "title": "Never remove deletion protection or final snapshots in the same change that deletes",
+    "text": "Turning deletion_protection off, setting skip_final_snapshot to true, or setting force_destroy to true is only allowed in a dedicated change that a reviewer approves first. Doing it in the same plan as a delete or replace is a critical finding.",
+    "minimum_risk": "critical"
+  },
+  {
+    "policy_id": "POL-03",
+    "title": "No public data stores",
+    "text": "Storage buckets, databases and caches must not be publicly readable or reachable. Flags: acl of public-read or public-read-write, publicly_accessible true, block_public_acls false, restrict_public_buckets false, a database or cache security group open to 0.0.0.0/0.",
+    "minimum_risk": "high"
+  },
+  {
+    "policy_id": "POL-04",
+    "title": "Administrative ports are never open to the internet",
+    "text": "Security group or firewall rules must not allow 0.0.0.0/0 or ::/0 on ports 22, 3389, 5432, 3306, 6379, 27017, 9200. An all-ports rule (from_port 0, to_port 0 or 65535, protocol -1) open to the internet is critical.",
+    "minimum_risk": "high"
+  },
+  {
+    "policy_id": "POL-05",
+    "title": "IAM policies must not grant wildcard actions or resources",
+    "text": "IAM policies, roles and bindings must not use Action \"*\" or Resource \"*\" together, must not attach AdministratorAccess, and must not add trust relationships to unknown accounts. Service-linked roles created by providers are exempt.",
+    "minimum_risk": "high"
+  },
+  {
+    "policy_id": "POL-06",
+    "title": "Replacements of long-lived compute are a rollout, not an update",
+    "text": "Replacing (delete then create, or create then delete) an instance, node group, autoscaling group, load balancer, or Kubernetes cluster causes downtime unless done create-before-destroy. Treat as high risk and require a rollout note.",
+    "minimum_risk": "high"
+  },
+  {
+    "policy_id": "POL-07",
+    "title": "Secrets and credentials never appear in plan text",
+    "text": "Attributes marked sensitive must never be printed or sent to external tools. Password, secret, token, private_key and connection string attributes are redacted before review. Any plan that sets a secret to a literal value is a medium finding (use a secret manager).",
+    "minimum_risk": "medium"
+  },
+  {
+    "policy_id": "POL-08",
+    "title": "Encryption must not be weakened",
+    "text": "Disabling encryption at rest or in transit, removing a KMS key from a resource, or switching to a default-managed key on a resource that used a customer-managed key is a high finding.",
+    "minimum_risk": "high"
+  },
+  {
+    "policy_id": "POL-09",
+    "title": "Production changes need a change window",
+    "text": "Resources tagged environment=production or with prod in the address that are deleted or replaced must reference a change window and an on-call owner in the review comment. Creates and in-place updates are exempt.",
+    "minimum_risk": "medium"
+  },
+  {
+    "policy_id": "POL-10",
+    "title": "Large blast radius requires staged apply",
+    "text": "A single plan that touches more than 25 resources, or deletes more than 5, should be split or applied with -target in stages. This is a medium finding by itself and raises every other finding one level.",
+    "minimum_risk": "medium"
+  }
+]

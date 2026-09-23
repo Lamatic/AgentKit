@@ -1,0 +1,24 @@
+{
+  "why": "A real plan: terraform-aws-modules/vpc 5.x plus a bastion security group, an exports bucket and a log group. 23 creates; the SSH rule and force_destroy are what a reviewer must see.",
+  "planFile": "../../public/samples/real-vpc-plan.json",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_security_group.bastion": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-04"
+        ]
+      },
+      "aws_s3_bucket.exports": {
+        "riskAtLeast": "medium"
+      },
+      "aws_cloudwatch_log_group.orders": {
+        "riskAtMost": "low"
+      }
+    }
+  }
+}

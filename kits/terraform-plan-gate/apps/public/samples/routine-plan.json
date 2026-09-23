@@ -1,0 +1,118 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.5",
+  "planned_values": {},
+  "resource_changes": [
+    {
+      "address": "aws_instance.api[0]",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "api",
+      "index": 0,
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "ami": "ami-0c1a7f89f2a4d5e6b",
+          "instance_type": "t3.medium",
+          "subnet_id": "subnet-0f3e2d1c0b9a8f7e6",
+          "tags": { "environment": "staging", "service": "api" },
+          "tags_all": { "environment": "staging", "service": "api" }
+        },
+        "after": {
+          "ami": "ami-0c1a7f89f2a4d5e6b",
+          "instance_type": "t3.medium",
+          "subnet_id": "subnet-0f3e2d1c0b9a8f7e6",
+          "tags": { "environment": "staging", "service": "api", "cost-center": "eng-platform" },
+          "tags_all": { "environment": "staging", "service": "api", "cost-center": "eng-platform" }
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_s3_bucket.build_artifacts",
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "build_artifacts",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "bucket": "acme-staging-build-artifacts",
+          "force_destroy": false,
+          "tags": { "environment": "staging", "service": "ci" }
+        },
+        "after_unknown": { "id": true, "arn": true, "bucket_domain_name": true, "region": true },
+        "before_sensitive": false,
+        "after_sensitive": { "tags": {} }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_public_access_block.build_artifacts",
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "build_artifacts",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "block_public_acls": true,
+          "block_public_policy": true,
+          "ignore_public_acls": true,
+          "restrict_public_buckets": true
+        },
+        "after_unknown": { "id": true, "bucket": true },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_lambda_function.thumbnailer",
+      "mode": "managed",
+      "type": "aws_lambda_function",
+      "name": "thumbnailer",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "function_name": "thumbnailer",
+          "runtime": "python3.11",
+          "memory_size": 256,
+          "timeout": 30,
+          "environment": [{ "variables": { "MAX_WIDTH": "1024" } }],
+          "tags": { "environment": "staging" }
+        },
+        "after": {
+          "function_name": "thumbnailer",
+          "runtime": "python3.11",
+          "memory_size": 512,
+          "timeout": 30,
+          "environment": [{ "variables": { "MAX_WIDTH": "2048" } }],
+          "tags": { "environment": "staging" }
+        },
+        "after_unknown": {},
+        "before_sensitive": { "environment": [{ "variables": {} }] },
+        "after_sensitive": { "environment": [{ "variables": {} }] }
+      }
+    },
+    {
+      "address": "aws_sns_topic.deploys",
+      "mode": "managed",
+      "type": "aws_sns_topic",
+      "name": "deploys",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["no-op"],
+        "before": { "name": "deploys", "tags": {} },
+        "after": { "name": "deploys", "tags": {} },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}
