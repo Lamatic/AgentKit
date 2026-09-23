@@ -61,6 +61,11 @@
     --border: #1e293b;
     --border-strong: #475569;
 
+    /* Focus rings sit 2px outside the control, so they must clear 3:1 against the
+       dark page and surfaces, and --focus-strong also against the primary button. */
+    --focus: #60a5fa;
+    --focus-strong: #bfdbfe;
+
     --danger: #f87171;
     --warning: #fbbf24;
 
