@@ -1,0 +1,19 @@
+{
+  "name": "flowcell",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Resilient Lamatic flow client: retry, circuit breaker, fallback, runaway-call guard.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "demo": "tsx src/demo.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.9"
+  }
+}
