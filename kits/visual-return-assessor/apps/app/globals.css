@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-black: #000000;
+  --color-brand-white: #ffffff;
+  --color-brand-red: #f33736;
+  --color-brand-gray: #e3e3e3;
+  --color-brand-card: #0a0a0a;
+}
+
+:root {
+  --background: var(--color-brand-black);
+  --foreground: var(--color-brand-white);
+  --border-color: rgba(227, 227, 227, 0.2);
+  --accent-red: var(--color-brand-red);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+/* Scrollbar styles using single-source design system variables */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-red);
+}
