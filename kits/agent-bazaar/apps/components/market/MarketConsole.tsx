@@ -97,6 +97,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
         if (res.uncertain) {
           setError("Auto-market change unconfirmed — toggle again to confirm.");
         } else {
+          // Confirmed failure: revert and allow health sync to re-read the
+          // actual engine state so the UI doesn't get stuck on an invalid value.
+          autoplayToggledRef.current = false;
           setAutoplay(prev);
           setError(res.error);
         }
@@ -106,6 +109,8 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
         setError("Auto-market change unconfirmed — toggle again to confirm.");
         return;
       }
+      // Confirmed failure: revert and allow health sync to re-read.
+      autoplayToggledRef.current = false;
       setAutoplay(prev);
       setError(err instanceof Error ? err.message : "Auto-market toggle failed");
     } finally {

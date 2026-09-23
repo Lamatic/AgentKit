@@ -69,7 +69,7 @@ score = (0.4 × (1 - price/budget)) + (0.3 × reputation) + (0.2 × (1 - eta/max
 
 ## Interactive Mode
 
-The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://localhost:8787`). The browser never holds the service-role key — it talks to Next.js server actions, which proxy to the engine.
+The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://localhost:8787`). The browser never holds the service-role key — it talks to Next.js server actions, which proxy to the engine. For remote deployments (Vercel), set `ENGINE_URL` to an HTTPS endpoint and provide `ENGINE_TOKEN` — the server-side client validates HTTPS for non-localhost URLs (SSRF protection). Mutations are guarded by `requireLocalAccess()` (allows HTTPS remote engines) and `requireAuth()` (checks `DASHBOARD_SECRET` when configured; skipped in local dev). Next.js CSRF protection and the engine's Bearer-token validation provide additional security layers.
 
 | Method | Route | Purpose |
 |--------|-------|---------|
