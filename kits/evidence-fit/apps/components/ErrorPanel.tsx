@@ -10,7 +10,7 @@ export function ErrorPanel({ title, messages }: Props) {
   return (
     <div
       role="alert"
-      className="space-y-1 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100"
+      className="space-y-1 rounded-lg border border-danger-border bg-danger-surface p-4 text-sm text-danger-foreground"
     >
       <p className="font-semibold">{title}</p>
       <ul className="list-disc space-y-0.5 pl-5">

@@ -17,14 +17,14 @@ type Props = {
 };
 
 const inputClass =
-  "mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 " +
+  "mt-1 w-full rounded border border-border-strong bg-field px-2 py-1.5 text-sm text-foreground " +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 " +
-  "focus-visible:outline-blue-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100";
+  "focus-visible:outline-focus";
 
 const smallButtonClass =
-  "rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100 " +
+  "rounded border border-border-strong px-2 py-1 text-xs text-muted-foreground hover:bg-surface-hover " +
   "disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 " +
-  "focus-visible:outline-blue-600 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800";
+  "focus-visible:outline-focus";
 
 /** Ids this component generates itself follow `case-<n>`; used to seed the counter below. */
 const GENERATED_ID_PATTERN = /^case-(\d+)$/;
@@ -122,11 +122,11 @@ export function CaseEditor({ cases, onChange }: Props) {
   }
 
   return (
-    <fieldset className="space-y-4 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
-      <legend className="px-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+    <fieldset className="space-y-4 rounded-lg border border-border p-4">
+      <legend className="px-1 text-sm font-semibold text-foreground">
         Acceptance cases
       </legend>
-      <p className="text-sm text-slate-600 dark:text-slate-400">
+      <p className="text-sm text-muted-foreground">
         Each case is a question and one or more evidence quotes copied verbatim from the document
         above. A required case that loses its evidence to a chunk boundary forces a BLOCK verdict.
       </p>
@@ -139,13 +139,13 @@ export function CaseEditor({ cases, onChange }: Props) {
           return (
             <div
               key={ci}
-              className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900"
+              className="space-y-3 rounded-md border border-border bg-surface-muted p-3"
             >
               <div className="flex flex-wrap items-end gap-3">
                 <div className="min-w-[8rem] flex-1">
                   <label
                     htmlFor={`case-id-${ci}`}
-                    className="block text-xs font-medium text-slate-600 dark:text-slate-400"
+                    className="block text-xs font-medium text-muted-foreground"
                   >
                     Case ID
                   </label>
@@ -163,19 +163,19 @@ export function CaseEditor({ cases, onChange }: Props) {
                     <p
                       id={idErrorMessageId}
                       role="alert"
-                      className="mt-1 text-xs font-medium text-red-700 dark:text-red-400"
+                      className="mt-1 text-xs font-medium text-danger"
                     >
                       This case ID is used by another case. Case IDs must be unique.
                     </p>
                   )}
                 </div>
 
-                <label className="flex items-center gap-1.5 pb-1.5 text-xs text-slate-600 dark:text-slate-400">
+                <label className="flex items-center gap-1.5 pb-1.5 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
                     checked={c.required}
                     onChange={(e) => updateCase(ci, { required: e.target.checked })}
-                    className="h-3.5 w-3.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                    className="h-3.5 w-3.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   />
                   Required for verdict
                 </label>
@@ -193,7 +193,7 @@ export function CaseEditor({ cases, onChange }: Props) {
               <div>
                 <label
                   htmlFor={`case-question-${ci}`}
-                  className="block text-xs font-medium text-slate-600 dark:text-slate-400"
+                  className="block text-xs font-medium text-muted-foreground"
                 >
                   Question
                 </label>
@@ -208,7 +208,7 @@ export function CaseEditor({ cases, onChange }: Props) {
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <p className="text-xs font-medium text-muted-foreground">
                   Evidence quotes (verbatim from the document)
                 </p>
                 {c.evidence.map((ev, ei) => (
@@ -254,7 +254,7 @@ export function CaseEditor({ cases, onChange }: Props) {
         type="button"
         onClick={addCase}
         disabled={cases.length >= LIMITS.maxCases}
-        className="rounded border border-dashed border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+        className="rounded border border-dashed border-border-strong px-3 py-1.5 text-sm text-foreground-secondary hover:bg-surface-hover disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
         + Add case
       </button>

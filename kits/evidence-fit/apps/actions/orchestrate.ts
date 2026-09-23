@@ -77,6 +77,7 @@ import {
 } from "../lib/evidence/core.ts";
 import { validateExperimentInput, type ExperimentInput } from "../lib/validation.ts";
 import { getLamaticClient, isLamaticConfigured, unwrapRecord } from "../lib/lamatic-client.ts";
+import kitConfig from "../../lamatic.config.ts";
 
 export type OrchestrateResult =
   | { ok: false; kind: "validation"; errors: string[] }
@@ -85,6 +86,19 @@ export type OrchestrateResult =
   | { ok: true; mode: "local" | "deployed"; comparison: Comparison };
 
 const STRATEGIES: StrategyName[] = ["fixed-width", "clause-aware"];
+
+/**
+ * Look up a deployed flow's ID through the kit's `lamatic.config.ts` step definitions,
+ * so the config stays the one place that names each flow's environment variable.
+ * A step missing from the config reads as an unconfigured flow rather than throwing.
+ */
+function flowIdFor(stepId: string): { envKey: string; flowId: string | undefined } {
+  const envKey = kitConfig.steps.find((s) => s.id === stepId)?.envKey;
+  if (!envKey) {
+    return { envKey: `the envKey of step "${stepId}" in lamatic.config.ts`, flowId: undefined };
+  }
+  return { envKey, flowId: process.env[envKey] };
+}
 
 /**
  * Runtime boundary check for `runComparison`'s argument. A server action is callable over
@@ -135,7 +149,7 @@ function checkInputShape(input: unknown): string[] | null {
  * against the same engine — so the kit is reviewable without a Lamatic project.
  *
  * Never throws: every failure comes back as a discriminated result
- * (`validation` / `upstream`) so the UI can say which half went wrong.
+ * (`validation` / `engine` / `upstream`) so the UI can say which half went wrong.
  */
 export async function runComparison(input: unknown): Promise<OrchestrateResult> {
   const shapeErrors = checkInputShape(input);
@@ -178,16 +192,18 @@ export async function runComparison(input: unknown): Promise<OrchestrateResult> 
  * unexplained BLOCK. The response is shape-checked before it is trusted.
  */
 async function runDeployed(input: ExperimentInput, topK: number): Promise<OrchestrateResult> {
-  const indexFlowId = process.env.LAMATIC_EVIDENCE_FIT_INDEX_FLOW_ID;
-  const evaluateFlowId = process.env.LAMATIC_EVIDENCE_FIT_EVALUATE_FLOW_ID;
+  const index = flowIdFor("evidence-fit-index");
+  const evaluate = flowIdFor("evidence-fit-evaluate");
+  const indexFlowId = index.flowId;
+  const evaluateFlowId = evaluate.flowId;
   if (!indexFlowId || !evaluateFlowId) {
     return {
       ok: false,
       kind: "upstream",
       message:
         "Deployed flows are not configured. Build the Index and Evaluate flows in Lamatic Studio " +
-        "against the documented contract, then set LAMATIC_EVIDENCE_FIT_INDEX_FLOW_ID and " +
-        "LAMATIC_EVIDENCE_FIT_EVALUATE_FLOW_ID in apps/.env.local.",
+        `against the documented contract, then set ${index.envKey} and ` +
+        `${evaluate.envKey} in apps/.env.local.`,
     };
   }
 

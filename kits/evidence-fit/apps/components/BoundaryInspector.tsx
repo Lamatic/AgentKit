@@ -78,10 +78,10 @@ function SpanView({
   const { winStart, winEnd, segments } = buildSegments(documentText, span, chunks);
 
   return (
-    <div className="rounded border border-slate-200 bg-white p-3 text-slate-800 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-      <p className="mb-2 text-[11px] text-slate-500 dark:text-slate-400">
+    <div className="rounded border border-border bg-background p-3 text-foreground-secondary">
+      <p className="mb-2 text-[11px] text-subtle-foreground">
         Characters {winStart}–{winEnd} of the document. Highlighted text is the required
-        evidence. A <span className="font-semibold text-red-600 dark:text-red-400">red</span> marker
+        evidence. A <span className="font-semibold text-danger">red</span> marker
         is a chunk boundary that cuts through it; a grey marker is a nearby boundary that leaves
         the evidence intact.
       </p>
@@ -100,8 +100,8 @@ function SpanView({
                 className={
                   "mx-0.5 inline-block h-3 w-[3px] align-middle " +
                   (seg.boundarySevers
-                    ? "bg-red-500 dark:bg-red-400"
-                    : "bg-slate-300 dark:bg-slate-600")
+                    ? "bg-danger"
+                    : "bg-border-strong")
                 }
               />
             )}
@@ -132,14 +132,14 @@ export function BoundaryInspector({ documentText, strategy, chunks, cases }: Pro
 
   return (
     <section className="space-y-3">
-      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+      <h3 className="text-sm font-semibold text-foreground">
         Boundary inspection — {strategy === "fixed-width" ? "baseline fixed-width" : "clause-aware"}{" "}
         chunking
       </h3>
       <div className="space-y-4">
         {severedCases.map((c) => (
           <div key={c.caseId} className="space-y-2">
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Case <span className="font-mono">{c.caseId}</span> — {c.question}
             </p>
             {c.severedSpans.map((span, i) => (

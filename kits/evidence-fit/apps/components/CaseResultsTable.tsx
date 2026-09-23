@@ -15,10 +15,10 @@ export function CaseResultsTable({ baseline, candidate }: Props) {
   const candidateById = new Map(candidate.cases.map((c) => [c.caseId, c]));
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+    <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full min-w-[48rem] text-left text-sm">
         <caption className="sr-only">Per-question results for both chunking strategies</caption>
-        <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+        <thead className="bg-surface-muted text-xs uppercase tracking-wide text-subtle-foreground">
           <tr>
             <th scope="col" className="px-3 py-2">
               Case
@@ -47,7 +47,7 @@ export function CaseResultsTable({ baseline, candidate }: Props) {
           {baseline.cases.map((bc) => {
             const cc = candidateById.get(bc.caseId);
             return (
-              <tr key={bc.caseId} className="border-t border-slate-200 dark:border-slate-800">
+              <tr key={bc.caseId} className="border-t border-border">
                 <td className="px-3 py-2 font-mono text-xs">{bc.caseId}</td>
                 <td className="px-3 py-2">{bc.question}</td>
                 <td className="px-3 py-2">{bc.required ? "Yes" : "No"}</td>

@@ -877,9 +877,9 @@ const VERDICT_ORDER: Record<Verdict, number> = { SHIP: 0, TUNE: 1, BLOCK: 2 };
  *
  * The comparison is what this kit exists to produce: per-strategy metrics, a
  * `recommended` strategy, and an overall `SHIP` / `TUNE` / `BLOCK` verdict. The
- * verdict is the worse of the two strategies' verdicts unless one of them is
- * clearly recommendable, and it is computed here in plain code — no model is
- * consulted, and nothing downstream is wired to override it.
+ * overall verdict is the recommended strategy's own verdict (`BLOCK` when both
+ * strategies block and neither is recommended), and it is computed here in plain
+ * code — no model is consulted, and nothing downstream is wired to override it.
  *
  * Returns `ok: false` with the resolver's issues if either strategy could not be
  * evaluated, so a validation failure can never be read as a passing verdict.

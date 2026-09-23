@@ -12,42 +12,42 @@ const TITLE: Record<StrategyName, string> = {
  */
 export function StrategySummaryCard({ result }: { result: StrategyResult }) {
   return (
-    <div className="min-w-[16rem] flex-1 space-y-3 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+    <div className="min-w-[16rem] flex-1 space-y-3 rounded-lg border border-border p-4">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <h3 className="text-sm font-semibold text-foreground">
           {TITLE[result.strategy]}
         </h3>
-        <span className="rounded-full border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 dark:border-slate-600 dark:text-slate-300">
+        <span className="rounded-full border border-border-strong px-2 py-0.5 text-xs font-medium text-foreground-secondary">
           {result.verdict}
         </span>
       </div>
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
         <div>
-          <dt className="text-xs text-slate-500 dark:text-slate-400">Chunks</dt>
-          <dd className="font-medium text-slate-900 dark:text-slate-100">{result.chunkCount}</dd>
+          <dt className="text-xs text-subtle-foreground">Chunks</dt>
+          <dd className="font-medium text-foreground">{result.chunkCount}</dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-500 dark:text-slate-400">Boundary-severed spans</dt>
-          <dd className="font-medium text-slate-900 dark:text-slate-100">
+          <dt className="text-xs text-subtle-foreground">Boundary-severed spans</dt>
+          <dd className="font-medium text-foreground">
             {result.boundarySeveredCount}
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-500 dark:text-slate-400">Span integrity</dt>
-          <dd className="font-medium text-slate-900 dark:text-slate-100">
+          <dt className="text-xs text-subtle-foreground">Span integrity</dt>
+          <dd className="font-medium text-foreground">
             <RateText rate={result.spanIntegrityRate} />
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-500 dark:text-slate-400">Coverage@k</dt>
-          <dd className="font-medium text-slate-900 dark:text-slate-100">
+          <dt className="text-xs text-subtle-foreground">Coverage@k</dt>
+          <dd className="font-medium text-foreground">
             <RateText rate={result.spanCoverageAtK} />
           </dd>
         </div>
         <div className="col-span-2">
-          <dt className="text-xs text-slate-500 dark:text-slate-400">Complete-evidence recall@k</dt>
-          <dd className="font-medium text-slate-900 dark:text-slate-100">
+          <dt className="text-xs text-subtle-foreground">Complete-evidence recall@k</dt>
+          <dd className="font-medium text-foreground">
             <RateText rate={result.completeEvidenceRecallAtK} />
           </dd>
         </div>

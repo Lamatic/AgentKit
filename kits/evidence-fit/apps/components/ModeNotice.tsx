@@ -8,7 +8,7 @@ type Props = { mode: "local" | "deployed" };
 export function ModeNotice({ mode }: Props) {
   if (mode === "local") {
     return (
-      <div className="rounded-md border border-slate-300 bg-slate-50 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+      <div className="rounded-md border border-border-strong bg-surface-muted p-3 text-sm text-foreground-secondary">
         <p className="font-medium">Local deterministic run — Lamatic not configured.</p>
         <p className="mt-1">
           Chunking, span integrity, and the verdict were computed locally in this app. The
@@ -22,7 +22,7 @@ export function ModeNotice({ mode }: Props) {
   }
 
   return (
-    <div className="rounded-md border border-blue-300 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100">
+    <div className="rounded-md border border-info-border bg-info-surface p-3 text-sm text-info-foreground">
       <p className="font-medium">Deployed run — computed by Lamatic flows.</p>
       <p className="mt-1">
         Chunking, retrieval, every metric, and the verdict were computed inside the deployed

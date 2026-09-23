@@ -7,17 +7,17 @@ const STRATEGY_LABEL: Record<StrategyName, string> = {
 
 const VERDICT_COPY: Record<Verdict, { tone: string; description: string }> = {
   SHIP: {
-    tone: "border-emerald-400 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-100",
+    tone: "border-success-border bg-success-surface text-success-foreground",
     description: "This configuration can return complete evidence for every required question.",
   },
   TUNE: {
-    tone: "border-amber-400 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100",
+    tone: "border-warning-border bg-warning-surface text-warning-foreground",
     description:
       "Chunk boundaries are intact, but retrieval is not yet surfacing complete evidence within " +
       "top-k for every required question.",
   },
   BLOCK: {
-    tone: "border-red-400 bg-red-50 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-100",
+    tone: "border-danger-border bg-danger-surface text-danger-foreground",
     description:
       "A chunk boundary severs required evidence, so complete evidence can never be retrieved, " +
       "no matter how good search is.",

@@ -14,9 +14,9 @@ import { CaseResultsTable } from "../components/CaseResultsTable.tsx";
 import { BoundaryInspector } from "../components/BoundaryInspector.tsx";
 
 const inputClass =
-  "mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 " +
+  "mt-1 w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-foreground " +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 " +
-  "focus-visible:outline-blue-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100";
+  "focus-visible:outline-focus";
 
 /**
  * Mint an id for one run. Every run gets a fresh one so its vectors stay isolated
@@ -170,12 +170,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 dark:border-slate-800">
+      <header className="border-b border-border">
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             EvidenceFit
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Compares fixed-width and clause-aware chunking against labelled evidence spans and
             issues a deterministic SHIP / TUNE / BLOCK verdict about whether a RAG retrieval
             config can return complete evidence. This is not an LLM evaluator: every metric and
@@ -189,11 +189,11 @@ export default function Home() {
           <button
             type="button"
             onClick={loadDemo}
-            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-md border border-border-strong bg-surface px-3 py-2 text-sm font-medium text-foreground-secondary hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             Load sample contract experiment
           </button>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-subtle-foreground">
             One-click sample contract and acceptance cases, sized so the baseline configuration
             severs required evidence.
           </p>
@@ -203,7 +203,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="document-id"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              className="block text-sm font-medium text-foreground-secondary"
             >
               Document ID
             </label>
@@ -222,7 +222,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="top-k"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              className="block text-sm font-medium text-foreground-secondary"
             >
               topK (chunks considered per question)
             </label>
@@ -244,7 +244,7 @@ export default function Home() {
         <div>
           <label
             htmlFor="document-text"
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Document text
           </label>
@@ -277,7 +277,7 @@ export default function Home() {
           <p
             role="status"
             aria-live="polite"
-            className="text-sm font-medium text-amber-700 dark:text-amber-400"
+            className="text-sm font-medium text-warning"
           >
             Inputs changed — run the comparison again.
           </p>
@@ -288,7 +288,7 @@ export default function Home() {
             type="button"
             onClick={handleRun}
             disabled={loading}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-strong"
           >
             {loading ? "Comparing…" : "Compare strategies"}
           </button>

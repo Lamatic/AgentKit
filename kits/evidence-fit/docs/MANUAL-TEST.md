@@ -400,7 +400,9 @@ name is prefixed `NEXT_PUBLIC_`. Since that prefix doesn't appear anywhere in `a
 `LAMATIC_API_KEY`, `LAMATIC_PROJECT_ID`, and `LAMATIC_API_URL` — read only in
 `apps/lib/lamatic-client.ts`, only ever imported from the `"use server"` boundary in
 `apps/actions/orchestrate.ts` — structurally cannot end up in a bundle the browser
-downloads.
+downloads. This check covers bundle exposure only; what the browser receives at run time
+is the server action's return value, which is the validated comparison or a typed error,
+never an environment value.
 
 ---
 
