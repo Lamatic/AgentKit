@@ -56,8 +56,11 @@ export default async function EscrowPage() {
   // successful aggregates still overwrite their subset values.
   let lockedTotal = escrows.filter((e) => e.status === "locked").reduce((sum, e) => sum + (e.amount || 0), 0);
   let lockedCount = escrows.filter((e) => e.status === "locked").length;
-  let settledCount = receipts.length;
-  let feesCollected = receipts.reduce((s, r) => s + (r.fee_amount || 0), 0);
+  let settledCount = receipts.filter((r) => {
+    const fee = Number(r.fee_amount ?? 0);
+    return fee > 0;
+  }).length;
+  let feesCollected = receipts.filter((r) => Number(r.fee_amount ?? 0) > 0).reduce((s, r) => s + (r.fee_amount || 0), 0);
   let lockedApproximate = true;
   let settledApproximate = true;
   let feesApproximate = true;
@@ -83,7 +86,7 @@ export default async function EscrowPage() {
         lockedApproximate = false;
       }
     }
-    const { count, error: countError } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true });
+    const { count, error: countError } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true }).gt("fee_amount", 0);
     if (countError) {
       console.error("[escrow] settlement_receipts count failed, using page subset:", countError.message);
     } else if (typeof count === "number") {

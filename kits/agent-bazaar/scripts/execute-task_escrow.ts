@@ -13,9 +13,20 @@ if (!decision.winnerBidId) {
   throw new Error(`CONSTITUTION_VIOLATION: ${decision.reason || 'No valid bid selected'}`);
 }
 
-const winningBid = bids.find(b => b.id === decision.winnerBidId);
+const eligibleBids = bids.filter(b =>
+  b.capability && typeof b.capability === 'string' && b.capability.startsWith('capabilities/')
+);
+if (eligibleBids.length === 0) {
+  throw new Error('CONSTITUTION_VIOLATION: No bids with valid capabilities');
+}
+
+const winningBid = eligibleBids.find(b => b.id === decision.winnerBidId);
 if (!winningBid) {
-  throw new Error('Selected bid not found in provided bids');
+  throw new Error('Selected bid not found in eligible bids');
+}
+
+if (!winningBid.capability || typeof winningBid.capability !== 'string' || !winningBid.capability.startsWith('capabilities/')) {
+  throw new Error('CONSTITUTION_VIOLATION: Winning bid has invalid or missing capability');
 }
 
 if (winningBid.agent_id === bounty.posted_by) {

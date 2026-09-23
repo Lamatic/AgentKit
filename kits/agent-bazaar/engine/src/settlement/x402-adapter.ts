@@ -137,6 +137,11 @@ export class X402Adapter implements SettlementAdapter {
 
     if (!response.ok) {
       const text = await response.text();
+      if (response.status >= 500) {
+        // 5xx: the lock may have executed server-side — preserve the escrow
+        // row for manual reconciliation instead of deleting it.
+        throw new FacilitatorTimeoutError("lock");
+      }
       throw new Error(`x402 lock failed: ${text}`);
     }
 
@@ -222,8 +227,16 @@ export class X402Adapter implements SettlementAdapter {
     }
 
     if (!response.ok) {
-      // Explicit facilitator rejection: confirmed no payout — safe to retry.
       const text = await response.text();
+      if (response.status >= 500) {
+        // 5xx: the payout may have executed — preserve the claim for manual
+        // reconciliation so a retry can never pay twice.
+        console.error(
+          `[x402] settle server error for escrow ${escrowId}: payout uncertain — manual reconciliation required: ${text}`,
+        );
+        throw new FacilitatorTimeoutError("settle");
+      }
+      // Explicit facilitator rejection (4xx): confirmed no payout — safe to retry.
       await releaseClaim(escrowId);
       throw new Error(`x402 settle failed: ${text}`);
     }
@@ -348,6 +361,15 @@ export class X402Adapter implements SettlementAdapter {
 
     if (!response.ok) {
       const text = await response.text();
+      if (response.status >= 500) {
+        // 5xx: the refund may have executed — preserve the claim for manual
+        // reconciliation so a retry can never pay twice.
+        console.error(
+          `[x402] refund server error for escrow ${escrowId}: payout uncertain — manual reconciliation required: ${text}`,
+        );
+        throw new FacilitatorTimeoutError("refund");
+      }
+      // Explicit facilitator rejection (4xx): confirmed no payout — safe to retry.
       await releaseClaim(escrowId);
       throw new Error(`x402 refund failed: ${text}`);
     }

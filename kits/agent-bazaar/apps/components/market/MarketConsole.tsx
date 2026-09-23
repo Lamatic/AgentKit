@@ -30,6 +30,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   const [market, setMarket] = useState<Market | null>(initialMarket);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [autoplay, setAutoplay] = useState(true);
+  const [autoplayPending, setAutoplayPending] = useState(false);
   const [online, setOnline] = useState(initialMarket !== null);
   const [error, setError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -65,16 +66,32 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     };
   }, []);
 
+  // Sync autoplay state from the engine on mount
+  useEffect(() => {
+    const ENGINE_URL = process.env.NEXT_PUBLIC_ENGINE_URL || "http://localhost:8787";
+    fetch(`${ENGINE_URL}/health`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data === "object" && "auto" in data) {
+          const auto = (data as { auto?: { market?: boolean } }).auto;
+          if (auto && typeof auto.market === "boolean") {
+            setAutoplay(auto.market);
+          }
+        }
+      })
+      .catch(() => {
+        // Engine unreachable — keep the default autoplay state.
+      });
+  }, []);
+
   const handleAutoplayToggle = useCallback(async (value: boolean) => {
     const prev = autoplayRef.current;
+    setAutoplayPending(true);
     setAutoplay(value);
     try {
       const res = await setAutoMarket({ run: value, market: value });
       if (!res.ok) {
         if (res.uncertain) {
-          // Outcome unknown: the assignment is idempotent, so keep the
-          // optimistic value and let a retry confirm it — restoring prev
-          // would assert a state nobody verified.
           setError("Auto-market change unconfirmed — toggle again to confirm.");
         } else {
           setAutoplay(prev);
@@ -82,15 +99,14 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
         }
       }
     } catch (err) {
-      // Network/timeout errors leave the outcome uncertain — the mutation may
-      // have executed server-side. Keep the optimistic value and use the
-      // existing unconfirmed error behavior.
       if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
         setError("Auto-market change unconfirmed — toggle again to confirm.");
         return;
       }
       setAutoplay(prev);
       setError(err instanceof Error ? err.message : "Auto-market toggle failed");
+    } finally {
+      setAutoplayPending(false);
     }
   }, []);
 
@@ -567,6 +583,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
           onAutoplayChange={handleAutoplayToggle}
           error={error}
           disabled={postUnconfirmed}
+          autoplayPending={autoplayPending}
         />
 
         <div className="grid grid-cols-12 items-start gap-6">

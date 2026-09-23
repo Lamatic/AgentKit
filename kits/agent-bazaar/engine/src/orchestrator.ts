@@ -746,6 +746,39 @@ async function awardAndDeliver(
 
   const hydrated = await hydrateBids(bids);
 
+  // When no existing escrow was supplied and the status is open or awarded,
+  // check for a prior escrow from a failed attempt BEFORE consuming budget
+  // or running the paid execute-task flow. Adopt it instead of inserting a
+  // duplicate or wasting a reservation.
+  if (!existing && (current.status === "open" || current.status === "awarded")) {
+    const { data: priorEscrow } = await supabase
+      .from("escrows")
+      .select("id,bid_id,lock_ref")
+      .eq("bounty_id", bountyId)
+      .maybeSingle();
+    if (priorEscrow) {
+      // Verify the prior escrow's lock is still valid before adopting.
+      const { data: lockCheck } = await supabase
+        .from("escrows")
+        .select("status")
+        .eq("id", priorEscrow.id)
+        .maybeSingle();
+      if (lockCheck && (lockCheck as Record<string, unknown>).status === "locked") {
+        if (current.status === "open") {
+          const awarded = transition(current, "award", { bidId: priorEscrow.bid_id });
+          await writeStatus(bountyId, awarded);
+          current = awarded;
+        }
+        const locked = transition(current, "lock_escrow", {
+          escrowId: priorEscrow.id,
+          lockRef: priorEscrow.lock_ref,
+        });
+        await writeStatus(bountyId, locked);
+        return; // delivery continues in the next in-escrow round
+      }
+    }
+  }
+
   const reserved = await tryReserve(1);
   if (!reserved) {
     // Degraded mode: budget exhausted. Never stall — fall through and run on
@@ -816,30 +849,6 @@ async function awardAndDeliver(
     ? Math.min(proposal, budgetCap)
     : proposal;
   if (!lockRef) lockRef = `lock-${rawEscrowId}`;
-
-  // When no existing escrow was supplied and the status is open or awarded,
-  // check for a prior escrow from a failed attempt. Adopt it instead of
-  // inserting a duplicate.
-  if (!existing && !existingEscrow && (current.status === "open" || current.status === "awarded")) {
-    const { data: priorEscrow } = await supabase
-      .from("escrows")
-      .select("id,bid_id,lock_ref")
-      .eq("bounty_id", bountyId)
-      .maybeSingle();
-    if (priorEscrow) {
-      if (current.status === "open") {
-        const awarded = transition(current, "award", { bidId: priorEscrow.bid_id });
-        await writeStatus(bountyId, awarded);
-        current = awarded;
-      }
-      const locked = transition(current, "lock_escrow", {
-        escrowId: priorEscrow.id,
-        lockRef: priorEscrow.lock_ref,
-      });
-      await writeStatus(bountyId, locked);
-      return; // delivery continues in the next in-escrow round
-    }
-  }
 
   if (!existingEscrow) {
     const { error } = await supabase.from("escrows").insert({

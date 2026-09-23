@@ -27,6 +27,7 @@ interface TaskComposerProps {
   onAutoplayChange: (value: boolean) => void;
   error: string | null;
   disabled?: boolean;
+  autoplayPending?: boolean;
 }
 
 /** Render the task composer form. */
@@ -36,13 +37,14 @@ export function TaskComposer({
   onAutoplayChange,
   error,
   disabled = false,
+  autoplayPending = false,
 }: TaskComposerProps) {
   const [goal, setGoal] = useState(EXAMPLES[1].goal);
   const [budget, setBudget] = useState(EXAMPLES[1].budget);
   const [submitting, setSubmitting] = useState(false);
 
   const trimmed = goal.trim();
-  const valid = trimmed.length >= 20 && trimmed.length <= 500 && budget > 0;
+  const valid = trimmed.length >= 20 && trimmed.length <= 500 && Number.isInteger(budget) && budget > 0;
 
   /** handleSubmit helper. */
   async function handleSubmit() {
@@ -132,6 +134,7 @@ export function TaskComposer({
           <button
             type="button"
             onClick={() => onAutoplayChange(!autoplay)}
+            disabled={autoplayPending}
             className="flex cursor-pointer items-center gap-2"
           >
             <span

@@ -38,8 +38,8 @@ if (!Number.isFinite(budget) || budget <= 0) {
 }
 
 const price = Number(bid.price);
-if (!Number.isFinite(price) || price <= 0) {
-  throw new Error('Bid price must be a positive number');
+if (!Number.isInteger(price) || price <= 0) {
+  throw new Error('Bid price must be a positive integer');
 }
 
 if (price <= budget * 0.1) {

@@ -16,8 +16,10 @@ function validateEngineUrl(raw: string): string {
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     throw new Error(`[engine-client] ENGINE_URL must be http(s): ${raw}`);
   }
-  if (host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]") {
-    throw new Error(`[engine-client] ENGINE_URL must point at localhost, got: ${raw}`);
+  const isLocalhost = host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+  // Allow localhost over HTTP, non-localhost only over HTTPS (SSRF protection).
+  if (!isLocalhost && parsed.protocol !== "https:") {
+    throw new Error(`[engine-client] Non-localhost ENGINE_URL must use https: ${raw}`);
   }
   return raw.replace(/\/$/, "");
 }

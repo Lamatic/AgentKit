@@ -102,6 +102,15 @@ function acquireLifecycle(): boolean {
   lifecycleInFlight = true;
   return true;
 }
+/** Try to acquire the shared lifecycle mutex with a bounded wait. */
+async function acquireLifecycleWithWait(timeoutMs: number = 500): Promise<boolean> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (acquireLifecycle()) return true;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  return false;
+}
 /** Release the shared lifecycle mutex. */
 function releaseLifecycle(): void {
   lifecycleInFlight = false;
@@ -446,7 +455,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/task") {
       requireAuth(req);
-      if (!acquireLifecycle()) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
+      if (!(await acquireLifecycleWithWait(500))) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
       let result: Record<string, unknown>;
       try {
         result = await withBridgeKey(req, "task", async () => postTask(await readJson(req)));
