@@ -267,6 +267,11 @@ export async function readMarketSafe(): Promise<Market | null> {
   }
 }
 
+/** Fetch the engine health status. */
+export async function readHealth(): Promise<{ auto: { run: boolean; market: boolean } }> {
+  return engineFetch<{ auto: { run: boolean; market: boolean } }>("/health");
+}
+
 /** Validate and post a new bounty task. */
 export async function postTask(input: { goal: string; budget: number }, opts?: { idempotencyKey?: string }): Promise<{ bountyId: string }> {
   const goal = input.goal.trim();

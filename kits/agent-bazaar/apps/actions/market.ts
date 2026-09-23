@@ -4,6 +4,7 @@ import {
   advanceMarket as advanceMarketRequest,
   postTask as postTaskRequest,
   readMarket,
+  readHealth,
   resetMarket as resetMarketRequest,
   setAutoMarket as setAutoMarketRequest,
   ENGINE_URL,
@@ -46,6 +47,15 @@ function requireLocalAccess(): void {
 export async function getMarketState(): Promise<ActionResult<Market>> {
   try {
     return { ok: true, data: await readMarket() };
+  } catch (err) {
+    return toError(err);
+  }
+}
+
+/** Server action: read engine health status. */
+export async function getHealth(): Promise<ActionResult<{ auto: { run: boolean; market: boolean } }>> {
+  try {
+    return { ok: true, data: await readHealth() };
   } catch (err) {
     return toError(err);
   }

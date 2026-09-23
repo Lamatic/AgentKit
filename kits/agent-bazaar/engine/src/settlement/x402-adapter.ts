@@ -140,6 +140,9 @@ export class X402Adapter implements SettlementAdapter {
       if (response.status >= 500) {
         // 5xx: the lock may have executed server-side — preserve the escrow
         // row for manual reconciliation instead of deleting it.
+        console.error(
+          `[x402] lock server error ${response.status} for escrow ${escrowId}: ${text.slice(0, 500)} — manual reconciliation required`,
+        );
         throw new FacilitatorTimeoutError("lock");
       }
       throw new Error(`x402 lock failed: ${text}`);

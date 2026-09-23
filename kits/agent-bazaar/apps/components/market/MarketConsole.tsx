@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getMarketState, postTask, resetMarket, setAutoMarket } from "@/actions/market";
+import { getMarketState, getHealth, postTask, resetMarket, setAutoMarket } from "@/actions/market";
 import type { Market } from "@/lib/engine-client";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { cn, formatInt } from "@/lib/utils";
@@ -51,6 +51,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   // a live → terminal *transition* (auto-advance) vs a deliberate user selection
   // of an already-settled bounty (leave it alone).
   const prevActiveStatusRef = useRef<string | null>(null);
+  // Track whether the operator has toggled autoplay — a late health response
+  // must not overwrite their choice.
+  const autoplayToggledRef = useRef(false);
 
   useEffect(() => {
     marketRef.current = market;
@@ -66,26 +69,26 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     };
   }, []);
 
-  // Sync autoplay state from the engine on mount
+  // Sync autoplay state from the engine on mount via server action
   useEffect(() => {
-    const ENGINE_URL = process.env.NEXT_PUBLIC_ENGINE_URL || "http://localhost:8787";
-    fetch(`${ENGINE_URL}/health`, { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && typeof data === "object" && "auto" in data) {
-          const auto = (data as { auto?: { market?: boolean } }).auto;
-          if (auto && typeof auto.market === "boolean") {
-            setAutoplay(auto.market);
-          }
+    let aborted = false;
+    getHealth().then((res) => {
+      if (aborted || autoplayToggledRef.current) return;
+      if (res.ok && res.data && typeof res.data === "object" && "auto" in res.data) {
+        const auto = (res.data as { auto?: { market?: boolean } }).auto;
+        if (auto && typeof auto.market === "boolean") {
+          setAutoplay(auto.market);
         }
-      })
-      .catch(() => {
-        // Engine unreachable — keep the default autoplay state.
-      });
+      }
+    }).catch(() => {
+      // Engine unreachable — keep the default autoplay state.
+    });
+    return () => { aborted = true; };
   }, []);
 
   const handleAutoplayToggle = useCallback(async (value: boolean) => {
     const prev = autoplayRef.current;
+    autoplayToggledRef.current = true;
     setAutoplayPending(true);
     setAutoplay(value);
     try {

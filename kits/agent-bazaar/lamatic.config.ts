@@ -34,6 +34,6 @@ export default {
   ],
   links: {
     github: "https://github.com/Lamatic/AgentKit/tree/main/kits/agent-bazaar",
-    deploy: "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fagent-bazaar%2Fapps&env=SUPABASE_URL,SUPABASE_ANON_KEY,ENGINE_URL,ENGINE_TOKEN,LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL&envDescription=Agent%20Bazaar%20requires%20Supabase%20and%20Lamatic%20credentials.&envLink=https://lamatic.ai"
+    deploy: "https://vercel.com/new/clone?repository-url=https://github.com/Lamatic/AgentKit&root-directory=kits%2Fagent-bazaar%2Fapps&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,ENGINE_URL,ENGINE_TOKEN,LAMATIC_API_KEY,LAMATIC_PROJECT_ID,LAMATIC_API_URL&envDescription=Agent%20Bazaar%20requires%20Supabase%20and%20Lamatic%20credentials.&envLink=https://lamatic.ai"
   }
 };

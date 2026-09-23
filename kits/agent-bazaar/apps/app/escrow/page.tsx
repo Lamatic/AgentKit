@@ -12,8 +12,8 @@ const MOCK_ESCROWS = [
 ];
 
 const MOCK_RECEIPTS = [
-  { receipt_id: "receipt-001", from_agent: "796ff789-0000-4000-8000-000000000000", to_agent: "1ad7d1aa-0000-4000-8000-000000000000", gross_amount: 1500, fee_amount: 150, net_amount: 1350, adapter: "ledger", tx_hash: null, settled_at: "2026-09-14T02:30:00Z" },
-  { receipt_id: "receipt-002", from_agent: "796ff788-0000-4000-8000-000000000000", to_agent: "1ff47abd-0000-4000-8000-000000000000", gross_amount: 800, fee_amount: 80, net_amount: 720, adapter: "x402", tx_hash: "0xabc123def4567890001", settled_at: "2026-09-14T01:15:00Z" },
+  { receipt_id: "receipt-001", from_agent: "796ff789-0000-4000-8000-000000000000", to_agent: "1ad7d1aa-0000-4000-8000-000000000000", gross_amount: 1500, fee_amount: 150, net_amount: 1350, adapter: "ledger", tx_hash: null, settled_at: "2026-09-14T02:30:00Z", escrow_status: "settled" },
+  { receipt_id: "receipt-002", from_agent: "796ff788-0000-4000-8000-000000000000", to_agent: "1ff47abd-0000-4000-8000-000000000000", gross_amount: 800, fee_amount: 80, net_amount: 720, adapter: "x402", tx_hash: "0xabc123def4567890001", settled_at: "2026-09-14T01:15:00Z", escrow_status: "settled" },
 ];
 
 /** Render the escrow explorer page. */
@@ -25,7 +25,11 @@ export default async function EscrowPage() {
 
   try {
     const { data: db1, error: err1 } = await supabase.from("escrows").select("*, bids(id, agent_id)").order("created_at", { ascending: false }).limit(10);
-    const { data: db2, error: err2 } = await supabase.from("settlement_receipts").select("*").order("created_at", { ascending: false }).limit(10);
+    const { data: db2, error: err2 } = await supabase
+      .from("settlement_receipts")
+      .select("*, escrows!inner(status)")
+      .order("created_at", { ascending: false })
+      .limit(10);
     if (!err1 && db1) escrows = db1.map((e) => ({
       escrow_id: e.id,
       bounty_id: e.bounty_id,
@@ -39,7 +43,14 @@ export default async function EscrowPage() {
       escrowsFailed = true;
       if (err1) console.error("[escrow] escrows read failed, using fixtures:", err1.message);
     }
-    if (!err2 && db2) receipts = db2.map((r) => ({ ...r, receipt_id: r.id, to_agent: r.to_agent, from_agent: r.from_agent, settled_at: r.created_at }));
+    if (!err2 && db2) receipts = db2.map((r) => ({
+      ...r,
+      receipt_id: r.id,
+      to_agent: r.to_agent,
+      from_agent: r.from_agent,
+      settled_at: r.created_at,
+      escrow_status: r.escrows?.status ?? null,
+    }));
     else {
       receiptsFailed = true;
       if (err2) console.error("[escrow] receipts read failed, using fixtures:", err2.message);
@@ -56,11 +67,8 @@ export default async function EscrowPage() {
   // successful aggregates still overwrite their subset values.
   let lockedTotal = escrows.filter((e) => e.status === "locked").reduce((sum, e) => sum + (e.amount || 0), 0);
   let lockedCount = escrows.filter((e) => e.status === "locked").length;
-  let settledCount = receipts.filter((r) => {
-    const fee = Number(r.fee_amount ?? 0);
-    return fee > 0;
-  }).length;
-  let feesCollected = receipts.filter((r) => Number(r.fee_amount ?? 0) > 0).reduce((s, r) => s + (r.fee_amount || 0), 0);
+  let settledCount = receipts.filter((r) => r.escrow_status === "settled").length;
+  let feesCollected = receipts.filter((r) => r.escrow_status === "settled").reduce((s, r) => s + (Number(r.fee_amount) || 0), 0);
   let lockedApproximate = true;
   let settledApproximate = true;
   let feesApproximate = true;
@@ -86,7 +94,10 @@ export default async function EscrowPage() {
         lockedApproximate = false;
       }
     }
-    const { count, error: countError } = await supabase.from("settlement_receipts").select("id", { count: "exact", head: true }).gt("fee_amount", 0);
+    const { count, error: countError } = await supabase
+      .from("settlement_receipts")
+      .select("id, escrows!inner(status)", { count: "exact", head: true })
+      .eq("escrows.status", "settled");
     if (countError) {
       console.error("[escrow] settlement_receipts count failed, using page subset:", countError.message);
     } else if (typeof count === "number") {
@@ -101,7 +112,10 @@ export default async function EscrowPage() {
       feesApproximate = false;
     } else {
       if (feeError) console.error("[escrow] settlement_fee_total failed, using page subset:", feeError.message);
-      const { data: feeRows, error: feeRowsError } = await supabase.from("settlement_receipts").select("fee_amount");
+      const { data: feeRows, error: feeRowsError } = await supabase
+        .from("settlement_receipts")
+        .select("fee_amount, escrows!inner(status)")
+        .eq("escrows.status", "settled");
       if (feeRowsError) {
         console.error("[escrow] fee_amount fallback read failed, using page subset:", feeRowsError.message);
       } else if (feeRows) {

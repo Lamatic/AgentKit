@@ -751,31 +751,24 @@ async function awardAndDeliver(
   // or running the paid execute-task flow. Adopt it instead of inserting a
   // duplicate or wasting a reservation.
   if (!existing && (current.status === "open" || current.status === "awarded")) {
-    const { data: priorEscrow } = await supabase
+    const { data: priorEscrow, error: priorEscrowError } = await supabase
       .from("escrows")
-      .select("id,bid_id,lock_ref")
+      .select("id,bid_id,lock_ref,status")
       .eq("bounty_id", bountyId)
       .maybeSingle();
-    if (priorEscrow) {
-      // Verify the prior escrow's lock is still valid before adopting.
-      const { data: lockCheck } = await supabase
-        .from("escrows")
-        .select("status")
-        .eq("id", priorEscrow.id)
-        .maybeSingle();
-      if (lockCheck && (lockCheck as Record<string, unknown>).status === "locked") {
-        if (current.status === "open") {
-          const awarded = transition(current, "award", { bidId: priorEscrow.bid_id });
-          await writeStatus(bountyId, awarded);
-          current = awarded;
-        }
-        const locked = transition(current, "lock_escrow", {
-          escrowId: priorEscrow.id,
-          lockRef: priorEscrow.lock_ref,
-        });
-        await writeStatus(bountyId, locked);
-        return; // delivery continues in the next in-escrow round
+    if (priorEscrowError) throw new Error(`Prior escrow read failed for bounty ${bountyId}: ${priorEscrowError.message}`);
+    if (priorEscrow && (priorEscrow as Record<string, unknown>).status === "locked") {
+      if (current.status === "open") {
+        const awarded = transition(current, "award", { bidId: (priorEscrow as Record<string, unknown>).bid_id });
+        await writeStatus(bountyId, awarded);
+        current = awarded;
       }
+      const locked = transition(current, "lock_escrow", {
+        escrowId: (priorEscrow as Record<string, unknown>).id as string,
+        lockRef: (priorEscrow as Record<string, unknown>).lock_ref as string,
+      });
+      await writeStatus(bountyId, locked);
+      return; // delivery continues in the next in-escrow round
     }
   }
 
