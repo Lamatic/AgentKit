@@ -55,21 +55,21 @@ function readShifts(raw,rosterText){var ok=[],bad=[],n=0,i;var budget=lineBudget
 /** Record a refused roster line with its reason. */function no(s,r,d){bad.push({
 source_text:s&&s.source_text!=null?String(s.source_text):"",reason:r,detail:d||null})}
 for(i=0;i<(raw||[]).length;i++){var s=raw[i],src=s&&s.source_text!=null?String(s.source_text):""
-;if(!src||rosterText.indexOf(src)===-1){no(s,"SOURCE_TEXT_NOT_FOUND",null);continue}
-var claimKey="#"+src.trim();if(budget[claimKey]!==undefined){if(budget[claimKey]<=0){
+;var claimKey="#"+src.trim();if(!src||budget[claimKey]===undefined){no(s,"SOURCE_TEXT_NOT_FOUND",null)
+;continue}if(budget[claimKey]<=0){
 no(s,"DUPLICATE_SHIFT_CLAIM","every roster line matching this source_text is already claimed");continue}
-budget[claimKey]--}if(TZ.test(src)){no(s,"TIMEZONE_NOT_SUPPORTED","times are evaluated as naive wall-clock")
-;continue}if(!s.person||!s.date||!s.start||!s.end){no(s,"MISSING_FIELD","person/date/start/end required")
-;continue}if(!nameOnLine(s.person,src)){no(s,"PERSON_NOT_IN_SOURCE",String(s.person));continue}
-var d=dayNum(s.date);if(d===null){no(s,"UNPARSEABLE_DATE",String(s.date));continue}
-if(!dateOnLine(isoOf(d),src)){no(s,"DATE_NOT_IN_SOURCE",isoOf(d));continue}var a=mins(s.start),b=mins(s.end)
-;if(a===null||b===null){no(s,"UNPARSEABLE_TIME",String(s.start)+" / "+String(s.end));continue}
+if(TZ.test(src)){no(s,"TIMEZONE_NOT_SUPPORTED","times are evaluated as naive wall-clock");continue}
+if(!s.person||!s.date||!s.start||!s.end){no(s,"MISSING_FIELD","person/date/start/end required");continue}
+if(!nameOnLine(s.person,src)){no(s,"PERSON_NOT_IN_SOURCE",String(s.person));continue}var d=dayNum(s.date)
+;if(d===null){no(s,"UNPARSEABLE_DATE",String(s.date));continue}if(!dateOnLine(isoOf(d),src)){
+no(s,"DATE_NOT_IN_SOURCE",isoOf(d));continue}var a=mins(s.start),b=mins(s.end);if(a===null||b===null){
+no(s,"UNPARSEABLE_TIME",String(s.start)+" / "+String(s.end));continue}
 if(!timeOnLine(hhmm(a),src)||!timeOnLine(hhmm(b),src)){
 no(s,"TIME_NOT_IN_SOURCE",String(s.start)+"/"+String(s.end));continue}var ed=b<=a?d+1:d;if(s.end_date){
 var e2=dayNum(s.end_date);if(e2===null){no(s,"UNPARSEABLE_DATE",String(s.end_date));continue}
 if(e2!==d&&e2!==d+1){no(s,"SHIFT_TOO_LONG","end_date must be the start date or the next day");continue}ed=e2}
 var st=d*DAY+a,en=ed*DAY+b,hrs=(en-st)/60;if(hrs===0){no(s,"ZERO_LENGTH_SHIFT",null);continue}
-if(hrs<0||hrs>24){no(s,"SHIFT_TOO_LONG",hrs+"h");continue}ok.push({id:"S"+ ++n,
+if(hrs<0||hrs>24){no(s,"SHIFT_TOO_LONG",hrs+"h");continue}budget[claimKey]--;ok.push({id:"S"+ ++n,
 person:String(s.person).trim().replace(/\s+/g," "),key:norm(s.person),date:isoOf(d),day:d,start_ts:st,
 end_ts:en,hours:hrs,label:isoOf(d)+" "+hhmm(a)+"-"+hhmm(b),source_text:src})}return{ok:ok,bad:bad}}
 /** How many physical roster lines carry each exact text. Keys are prefixed so a

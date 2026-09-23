@@ -70,7 +70,10 @@ types, roles or a monthly window), ambiguous (no threshold written), conditional
 exception or qualifier), or compound (two requirements in one sentence).
 
 **Roster lines** are returned in `unparsed_shifts` with a reason when a field is missing, a date is
-not written in ISO form, a time cannot be read, or the line carries a timezone.
+not written in ISO form, a time cannot be read, or the line carries a timezone. A parser record is
+also refused with `DUPLICATE_SHIFT_CLAIM` when every physical roster line matching its
+`source_text` has already been claimed by an accepted shift, so one line is never counted twice
+while genuinely repeated identical lines each keep their own shift.
 
 **Provenance checks run in code, after the model.** Before a shift is used, the evaluator confirms
 that its `source_text` is a verbatim line of the roster, that the person's name appears on that
