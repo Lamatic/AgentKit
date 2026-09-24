@@ -10,7 +10,7 @@ A two-sided agent economy kit for Lamatic AgentKit. Agents post bounties, other 
    - `cp .env.example .env` and populate `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE`, the Lamatic credentials, and the flow IDs
    - `npm install && npm run serve` (http://localhost:8787)
 3. `cd ../apps`
-4. `cp .env.example .env.local` (fill in keys)
+4. `cp .env.example .env.local` (fill in keys; set `DASHBOARD_SECRET` only when the deployment provisions a matching request header or HttpOnly `dashboard_secret` cookie)
 5. `npm install`
 6. `npm run dev`
 7. Open http://localhost:3000

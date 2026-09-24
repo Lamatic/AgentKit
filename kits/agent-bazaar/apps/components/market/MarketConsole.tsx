@@ -54,6 +54,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   // Track whether the operator has toggled autoplay — a late health response
   // must not overwrite their choice.
   const autoplayToggledRef = useRef(false);
+  const autoplayHealthSeqRef = useRef(0);
 
   useEffect(() => {
     marketRef.current = market;
@@ -72,8 +73,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   // Sync autoplay state from the engine on mount via server action
   useEffect(() => {
     let aborted = false;
+    const requestId = ++autoplayHealthSeqRef.current;
     getHealth().then((res) => {
-      if (aborted || autoplayToggledRef.current) return;
+      if (aborted || requestId !== autoplayHealthSeqRef.current || autoplayToggledRef.current) return;
       if (res.ok && res.data && typeof res.data === "object" && "auto" in res.data) {
         const auto = (res.data as { auto?: { market?: boolean } }).auto;
         if (auto && typeof auto.market === "boolean") {
@@ -86,8 +88,22 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     return () => { aborted = true; };
   }, []);
 
+  const reconcileAutoplay = useCallback(async (requestId: number): Promise<boolean> => {
+    try {
+      const res = await getHealth();
+      if (requestId !== autoplayHealthSeqRef.current || !res.ok) return false;
+      const nextAutoplay = res.data.auto.market;
+      if (typeof nextAutoplay !== "boolean") return false;
+      setAutoplay(nextAutoplay);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const handleAutoplayToggle = useCallback(async (value: boolean) => {
     const prev = autoplayRef.current;
+    const requestId = ++autoplayHealthSeqRef.current;
     autoplayToggledRef.current = true;
     setAutoplayPending(true);
     setAutoplay(value);
@@ -96,27 +112,26 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       if (!res.ok) {
         if (res.uncertain) {
           setError("Auto-market change unconfirmed — toggle again to confirm.");
+          if (await reconcileAutoplay(requestId)) setError(null);
         } else {
-          // Confirmed failure: revert and allow health sync to re-read the
-          // actual engine state so the UI doesn't get stuck on an invalid value.
-          autoplayToggledRef.current = false;
           setAutoplay(prev);
           setError(res.error);
+          await reconcileAutoplay(requestId);
         }
       }
     } catch (err) {
       if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
         setError("Auto-market change unconfirmed — toggle again to confirm.");
-        return;
+        if (await reconcileAutoplay(requestId)) setError(null);
+      } else {
+        setAutoplay(prev);
+        setError(err instanceof Error ? err.message : "Auto-market toggle failed");
+        await reconcileAutoplay(requestId);
       }
-      // Confirmed failure: revert and allow health sync to re-read.
-      autoplayToggledRef.current = false;
-      setAutoplay(prev);
-      setError(err instanceof Error ? err.message : "Auto-market toggle failed");
     } finally {
       setAutoplayPending(false);
     }
-  }, []);
+  }, [reconcileAutoplay]);
 
   // Monotonic request sequence: refresh() is fired from the watchdog,
   // realtime debounce, catch-up polls, and handlers, so concurrent requests

@@ -1,5 +1,7 @@
 "use server";
 
+import { timingSafeEqual } from "node:crypto";
+import { cookies, headers } from "next/headers";
 import {
   advanceMarket as advanceMarketRequest,
   postTask as postTaskRequest,
@@ -15,12 +17,22 @@ import {
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string; uncertain?: boolean };
 
+class DashboardAuthError extends Error {
+  constructor() {
+    super("Unauthorized");
+    this.name = "DashboardAuthError";
+  }
+}
+
 /** Log server error and return a safe client message. */
 function toError(err: unknown): { ok: false; error: string; uncertain?: boolean } {
   const message = err instanceof Error ? err.message : String(err);
   console.error(`[market action] ${message}`);
   // Uncertain mutations (timeout/network) may already have executed: preserve
   // the flag and say so instead of presenting a safely-retryable error.
+  if (err instanceof DashboardAuthError) {
+    return { ok: false, error: "Unauthorized" };
+  }
   if (err instanceof EngineError && err.uncertain) {
     return { ok: false, error: "Request may have executed — state refreshed; verify before retrying.", uncertain: true };
   }
@@ -44,21 +56,27 @@ function requireLocalAccess(): void {
   }
 }
 
+function credentialsMatch(value: string, expected: string): boolean {
+  const received = Buffer.from(value);
+  const configured = Buffer.from(expected);
+  return received.length === configured.length && timingSafeEqual(received, configured);
+}
+
 /** Verify caller authorization. When DASHBOARD_SECRET is set, require it in
- *  the x-dashboard-secret header; otherwise skip (local development). */
-function requireAuth(): void {
+ *  the x-dashboard-secret header or dashboard_secret cookie; otherwise skip
+ *  (local development). */
+async function requireAuth(): Promise<void> {
   const secret = process.env.DASHBOARD_SECRET;
-  if (!secret) return; // no secret configured — open access (local dev)
-  // Server actions don't receive headers directly; use a module-level
-  // request-scoped token set by the calling middleware or route. Since Next.js
-  // server actions lack a native headers() API, we rely on the engine's own
-  // Bearer-token validation for remote deployments. The DASHBOARD_SECRET check
-  // is a defense-in-depth layer for self-hosted dashboards.
-  //
-  // For now, skip the header check in server actions and rely on:
-  // 1. Next.js CSRF protection (SameSite cookies, origin checks)
-  // 2. ENGINE_TOKEN validation on the engine side
-  // 3. The HTTPS SSRF guard above for remote engines
+  if (!secret) return;
+  const requestHeaders = await headers();
+  const cookieStore = await cookies();
+  const credentials = [
+    requestHeaders.get("x-dashboard-secret"),
+    cookieStore.get("dashboard_secret")?.value,
+  ].filter((value): value is string => typeof value === "string");
+  if (!credentials.some((credential) => credentialsMatch(credential, secret))) {
+    throw new DashboardAuthError();
+  }
 }
 
 /** Server action: read current market state. */
@@ -87,7 +105,7 @@ export async function postTask(input: {
   idempotencyKey?: string;
 }): Promise<ActionResult<{ bountyId: string }>> {
   try {
-    requireAuth();
+    await requireAuth();
     requireLocalAccess();
     return { ok: true, data: await postTaskRequest(input, opts) };
   } catch (err) {
@@ -100,7 +118,7 @@ export async function advanceMarket(
   bountyId: string,
 ): Promise<ActionResult<RoundResult>> {
   try {
-    requireAuth();
+    await requireAuth();
     requireLocalAccess();
     return { ok: true, data: await advanceMarketRequest(bountyId) };
   } catch (err) {
@@ -113,7 +131,7 @@ export async function resetMarket(opts?: {
   idempotencyKey?: string;
 }): Promise<ActionResult<null>> {
   try {
-    requireAuth();
+    await requireAuth();
     requireLocalAccess();
     await resetMarketRequest(opts);
     return { ok: true, data: null };
@@ -127,7 +145,7 @@ export async function setAutoMarket(
   opts: { run?: boolean; market?: boolean },
 ): Promise<ActionResult<{ auto: { run: boolean; market: boolean } }>> {
   try {
-    requireAuth();
+    await requireAuth();
     requireLocalAccess();
     return { ok: true, data: await setAutoMarketRequest(opts) };
   } catch (err) {

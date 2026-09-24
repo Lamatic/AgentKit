@@ -37,7 +37,7 @@ npm run serve                # HTTP bridge on http://localhost:8787
 
 ```bash
 cd apps
-cp .env.example .env.local   # Supabase keys, Lamatic, ENGINE_URL
+cp .env.example .env.local   # Supabase keys, Lamatic, ENGINE_URL, optional DASHBOARD_SECRET
 npm install
 npm run dev
 ```
@@ -69,7 +69,7 @@ score = (0.4 × (1 - price/budget)) + (0.3 × reputation) + (0.2 × (1 - eta/max
 
 ## Interactive Mode
 
-The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://localhost:8787`). The browser never holds the service-role key — it talks to Next.js server actions, which proxy to the engine. For remote deployments (Vercel), set `ENGINE_URL` to an HTTPS endpoint and provide `ENGINE_TOKEN` — the server-side client validates HTTPS for non-localhost URLs (SSRF protection). Mutations are guarded by `requireLocalAccess()` (allows HTTPS remote engines) and `requireAuth()` (checks `DASHBOARD_SECRET` when configured; skipped in local dev). Next.js CSRF protection and the engine's Bearer-token validation provide additional security layers.
+The dashboard is driven by an engine HTTP bridge (`ENGINE_URL`, default `http://localhost:8787`). The browser never holds the service-role key or the dashboard caller secret — it talks to Next.js server actions, which proxy to the engine. When `DASHBOARD_SECRET` is set, every mutation requires the matching `x-dashboard-secret` request header or `dashboard_secret` cookie. Browser deployments should provision an HttpOnly `dashboard_secret` cookie through their authentication or reverse-proxy layer; the dashboard does not issue that cookie. If `DASHBOARD_SECRET` is unset, mutations remain available for local development. `ENGINE_TOKEN` is separate: it authenticates only the Next.js server to the engine and never authenticates the external dashboard caller. For remote deployments, set `ENGINE_URL` to an HTTPS endpoint; the server-side client rejects non-HTTPS remote URLs. Next.js origin checks and the engine's Bearer-token validation remain additional protections.
 
 | Method | Route | Purpose |
 |--------|-------|---------|
