@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-09-10T16:54:52.493467",
+  "scenarios": [
+    {
+      "scenario": "Contradictory Sources",
+      "file": "scenario_1_contradictions.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 1,
+        "blockers": 0,
+        "actions": 2,
+        "confidence": 85.0
+      }
+    },
+    {
+      "scenario": "Outdated Decision",
+      "file": "scenario_2_outdated_decision.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 1,
+        "actions": 1,
+        "confidence": 100.0
+      }
+    },
+    {
+      "scenario": "Insufficient Evidence",
+      "file": "scenario_3_insufficient_evidence.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 1,
+        "confidence": 40.0
+      }
+    },
+    {
+      "scenario": "Multiple Blockers",
+      "file": "scenario_4_multiple_blockers.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 4,
+        "conflicts": 0,
+        "blockers": 3,
+        "actions": 4,
+        "confidence": 55.0
+      }
+    },
+    {
+      "scenario": "Competing Actions",
+      "file": "scenario_5_competing_actions.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 5,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 5,
+        "confidence": 40.0
+      }
+    },
+    {
+      "scenario": "No Clear Action",
+      "file": "scenario_6_no_clear_action.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 1,
+        "confidence": 0.0
+      }
+    },
+    {
+      "scenario": "False Conflict Detection",
+      "file": "scenario_7_false_conflict.json",
+      "status": "PASS",
+      "score": 1.0,
+      "brief_summary": {
+        "states": 1,
+        "conflicts": 0,
+        "blockers": 0,
+        "actions": 0,
+        "confidence": 90.0
+      }
+    }
+  ],
+  "overall_score": 1.0
+}

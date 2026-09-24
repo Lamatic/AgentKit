@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "name": "Insufficient Evidence",
+    "description": "Single TODO, 2 weeks old, no commits or PRs",
+    "tests": [
+      "Evidence collection",
+      "Confidence reduction",
+      "Uncertainty marking"
+    ]
+  },
+  "inputs": {
+    "todos": [
+      {
+        "text": "Add benchmarks",
+        "file": "src/main.py",
+        "line": 42,
+        "timestamp": "2024-08-04T10:00:00Z"
+      }
+    ]
+  },
+  "expected_outputs": {
+    "confidence_level": "LOW",
+    "confidence_max": 50,
+    "state": "PENDING or UNCERTAIN",
+    "sources_count": 1
+  }
+}

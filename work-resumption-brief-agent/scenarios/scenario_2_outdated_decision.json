@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "name": "Outdated Decision",
+    "description": "Decision made 3 weeks ago, reversed 1 week ago, code not updated yet",
+    "tests": [
+      "Temporal ordering",
+      "Decision supersession",
+      "Blocker identification"
+    ]
+  },
+  "inputs": {
+    "issues": [
+      {
+        "timestamp": "2024-07-28T10:00:00Z",
+        "title": "Use PostgreSQL",
+        "body": "Database decision",
+        "issue_number": 10
+      }
+    ],
+    "commits": [
+      {
+        "timestamp": "2024-08-04T10:00:00Z",
+        "message": "Switch to SQLite",
+        "hash": "switch123"
+      }
+    ],
+    "meeting_notes": [
+      {
+        "timestamp": "2024-08-18T10:00:00Z",
+        "text": "Going back to PostgreSQL decision"
+      }
+    ]
+  },
+  "expected_outputs": {
+    "latest_decision": "PostgreSQL",
+    "blocker_identified": true,
+    "blocker_reason": "Code not updated",
+    "action_recommended": "Update database"
+  }
+}
