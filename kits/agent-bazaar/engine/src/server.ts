@@ -455,7 +455,7 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/task") {
       requireAuth(req);
-      if (!(await acquireLifecycleWithWait(500))) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
+      if (!(await acquireLifecycleWithWait(30_000))) throw new HttpError(409, "Engine busy — lifecycle operation in flight; retry");
       let result: Record<string, unknown>;
       try {
         result = await withBridgeKey(req, "task", async () => postTask(await readJson(req)));

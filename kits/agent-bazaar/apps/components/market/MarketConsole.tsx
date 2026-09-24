@@ -41,6 +41,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [autoplay, setAutoplay] = useState(true);
   const [autoplayPending, setAutoplayPending] = useState(false);
+  const [autoplayReady, setAutoplayReady] = useState(false);
   const [autoplayError, setAutoplayError] = useState<string | null>(null);
   const [online, setOnline] = useState(initialMarket !== null);
   const [error, setError] = useState<string | null>(null);
@@ -91,10 +92,17 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       if (aborted || requestId !== autoplayHealthSeqRef.current || autoplayToggledRef.current) return;
       if (res.ok) {
         const auto = readAutoState(res.data);
-        if (auto) setAutoplay(auto.market);
+        if (auto) {
+          setAutoplay(auto.market);
+          setAutoplayReady(true);
+        } else {
+          setAutoplayError("Unable to read the current autoplay state; reload to retry.");
+        }
+      } else {
+        setAutoplayError("Unable to read the current autoplay state; reload to retry.");
       }
     }).catch(() => {
-      // Engine unreachable — keep the default autoplay state.
+      if (!aborted) setAutoplayError("Unable to read the current autoplay state; reload to retry.");
     });
     return () => { aborted = true; };
   }, []);
@@ -136,17 +144,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
         setAutoplay(prev);
         setAutoplayError(res.error);
       }
-    } catch (err) {
-      const uncertain = err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain;
-      if (uncertain) {
-        pendingAutoTargetRef.current = target;
-        setAutoplayError("Auto-market change unconfirmed — click again to retry the same change.");
-      } else if (wasPending) {
-        setAutoplayError(`Auto-market retry failed: ${err instanceof Error ? err.message : "Auto-market toggle failed"}`);
-      } else {
-        setAutoplay(prev);
-        setAutoplayError(err instanceof Error ? err.message : "Auto-market toggle failed");
-      }
+    } catch {
+      pendingAutoTargetRef.current = target;
+      setAutoplayError("Auto-market change unconfirmed — click again to retry the same change.");
     } finally {
       if (requestId === autoplayHealthSeqRef.current) {
         autoplayInFlightRef.current = false;
@@ -354,18 +354,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       let res;
       try {
         res = await postTask({ goal, budget }, { idempotencyKey });
-      } catch (err) {
-        // Network/timeout errors leave the outcome uncertain — the mutation
-        // may have executed server-side. Preserve the idempotency key for
-        // reconciliation instead of clearing it.
-        if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
-          setPostUnconfirmed(true);
-          setError("Task submission unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
-          return false;
-        }
-        postKeyRef.current = null;
-        pendingPostRef.current = null;
-        setError(err instanceof Error ? err.message : "Post task failed");
+      } catch {
+        setPostUnconfirmed(true);
+        setError("Task submission unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
         return false;
       }
       if (!res.ok) {
@@ -485,17 +476,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
       setResetUnconfirmed(false);
       setActiveId(null);
       await refresh();
-    } catch (err) {
-      // Network/timeout errors leave the outcome uncertain — the mutation may
-      // have executed server-side. Preserve the idempotency key for
-      // reconciliation instead of clearing it.
-      if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
-        setResetUnconfirmed(true);
-        setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
-        return;
-      }
-      resetKeyRef.current = null;
-      setError(err instanceof Error ? err.message : "Reset failed");
+    } catch {
+      setResetUnconfirmed(true);
+      setError("Reset unconfirmed — reconciling; retry blocked until confirmed. Refresh to verify state.");
     } finally {
       setResetting(false);
     }
@@ -629,6 +612,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
           error={autoplayError ?? error}
           disabled={postUnconfirmed}
           autoplayPending={autoplayPending}
+          autoplayReady={autoplayReady}
         />
 
         <div className="grid grid-cols-12 items-start gap-6">

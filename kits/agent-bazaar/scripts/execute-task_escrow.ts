@@ -1,6 +1,7 @@
 const llmResponse = {{LLMNode_344.output.generatedResponse}};
 const bounty = {{triggerNode_1.output.bounty}};
 const bids = {{triggerNode_1.output.bids.bids}};
+const requiredCapability = {{triggerNode_1.output.capability}};
 
 let decision;
 try {
@@ -14,7 +15,8 @@ if (!decision.winnerBidId) {
 }
 
 const eligibleBids = bids.filter(b =>
-  b.capability && typeof b.capability === 'string' && b.capability.startsWith('capabilities/')
+  b.capability === requiredCapability &&
+  typeof b.capability === 'string' && b.capability.startsWith('capabilities/')
 );
 if (eligibleBids.length === 0) {
   throw new Error('CONSTITUTION_VIOLATION: No bids with valid capabilities');
@@ -25,8 +27,8 @@ if (!winningBid) {
   throw new Error('Selected bid not found in eligible bids');
 }
 
-if (!winningBid.capability || typeof winningBid.capability !== 'string' || !winningBid.capability.startsWith('capabilities/')) {
-  throw new Error('CONSTITUTION_VIOLATION: Winning bid has invalid or missing capability');
+if (!winningBid.capability || winningBid.capability !== requiredCapability || typeof winningBid.capability !== 'string' || !winningBid.capability.startsWith('capabilities/')) {
+  throw new Error('CONSTITUTION_VIOLATION: Winning bid capability does not match the task requirement');
 }
 
 if (winningBid.agent_id === bounty.posted_by) {

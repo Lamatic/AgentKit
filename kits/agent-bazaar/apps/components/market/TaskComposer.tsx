@@ -28,6 +28,7 @@ interface TaskComposerProps {
   error: string | null;
   disabled?: boolean;
   autoplayPending?: boolean;
+  autoplayReady?: boolean;
 }
 
 /** Render the task composer form. */
@@ -38,6 +39,7 @@ export function TaskComposer({
   error,
   disabled = false,
   autoplayPending = false,
+  autoplayReady = false,
 }: TaskComposerProps) {
   const [goal, setGoal] = useState(EXAMPLES[1].goal);
   const [budget, setBudget] = useState(EXAMPLES[1].budget);
@@ -134,7 +136,7 @@ export function TaskComposer({
           <button
             type="button"
             onClick={() => onAutoplayChange(!autoplay)}
-            disabled={autoplayPending}
+            disabled={autoplayPending || !autoplayReady}
             className="flex cursor-pointer items-center gap-2"
           >
             <span
@@ -144,7 +146,7 @@ export function TaskComposer({
               )}
             />
             <span className="text-[13px] font-medium text-neutral-700">
-              autoplay {autoplay ? "on" : "paused"}
+              autoplay {!autoplayReady ? "loading" : autoplay ? "on" : "paused"}
             </span>
           </button>
         </div>

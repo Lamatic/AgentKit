@@ -14,6 +14,10 @@ import type { RecordedFlowOutput } from "./replay-store.js";
 
 const ESCROW_TIMEOUT_MS = 3600_000;
 
+function isLockConfirmed(lockRef: unknown): boolean {
+  return typeof lockRef === "string" && !lockRef.startsWith("pending-");
+}
+
 // Max consecutive phases one bounty may advance inside a single round, and the
 // pause between chained phases so each stays visible on the dashboard.
 /** Parse chain-step limit: positive integer, else documented default 6. */
@@ -758,6 +762,7 @@ async function awardAndDeliver(
       .maybeSingle();
     if (priorEscrowError) throw new Error(`Prior escrow read failed for bounty ${bountyId}: ${priorEscrowError.message}`);
     if (priorEscrow && (priorEscrow as Record<string, unknown>).status === "locked") {
+      if (!isLockConfirmed((priorEscrow as Record<string, unknown>).lock_ref)) return;
       if (current.status === "open") {
         const awarded = transition(current, "award", { bidId: (priorEscrow as Record<string, unknown>).bid_id });
         await writeStatus(bountyId, awarded);
@@ -796,14 +801,22 @@ async function awardAndDeliver(
     if ((existingEscrow as Record<string, unknown>).bounty_id !== bountyId) {
       throw new Error(`Escrow ${rawEscrowId} belongs to another bounty — refusing to reuse`);
     }
+    if (!isLockConfirmed((existingEscrow as Record<string, unknown>).lock_ref)) {
+      throw new Error(`Escrow ${rawEscrowId} lock is unconfirmed — manual reconciliation required`);
+    }
   }
 
   // Derive capability from the escrow's original bid when available,
   // otherwise from the scoring winner — never from hydrated[0].
   const escrowBidId = existingEscrow ? (existingEscrow as Record<string, unknown>).bid_id as string | undefined : undefined;
-  const earlyWinner = escrowBidId
-    ? hydrated.find((b) => b.id === escrowBidId) ?? resolveWinner(hydrated, undefined)
-    : resolveWinner(hydrated, undefined);
+  if (existingEscrow && !escrowBidId) {
+    throw new Error(`Escrow ${rawEscrowId} has no bid_id — refusing resumed execution`);
+  }
+  const escrowBid = escrowBidId ? hydrated.find((b) => b.id === escrowBidId) : undefined;
+  if (escrowBidId && !escrowBid) {
+    throw new Error(`Escrow bid ${escrowBidId} is missing from hydrated bids`);
+  }
+  const earlyWinner = escrowBid ?? resolveWinner(hydrated, undefined);
   const taskInput = {
     bounty,
     bids: { bids: hydrated },
@@ -828,7 +841,7 @@ async function awardAndDeliver(
     }
   }
 
-  const winner = resolveWinner(hydrated, result.winnerBidId as unknown);
+  const winner = escrowBid ?? resolveWinner(hydrated, result.winnerBidId as unknown);
   // Engine-owned escrow identity: never trust result.escrowId from the flow
   // (LLM output). Only the resume path (existing) may reuse an id, and only
   // after the bounty_id check below.
@@ -841,7 +854,7 @@ async function awardAndDeliver(
   const amount = Number.isFinite(budgetCap) && budgetCap > 0
     ? Math.min(proposal, budgetCap)
     : proposal;
-  if (!lockRef) lockRef = `lock-${rawEscrowId}`;
+  if (!lockRef) lockRef = `pending-${rawEscrowId}`;
 
   if (!existingEscrow) {
     const { error } = await supabase.from("escrows").insert({
@@ -884,21 +897,32 @@ async function awardAndDeliver(
       // execute-task result was produced), so it is preserved for both
       // timeout and confirmed failures — only a pipe failure before a result
       // releases (see above).
+      let lockConfirmed = false;
       try {
         const lock = await adapter.lock(rawEscrowId, BigInt(amount), { bountyId, bidId: winner.id as string });
-
+        if (typeof lock.lockId !== "string" || !lock.lockId) {
+          throw new FacilitatorTimeoutError("lock");
+        }
         if (adapter instanceof LedgerAdapter) {
           await appendLedger(poster, String(-amount), "bid_lock", bountyId);
         }
-
-        void lock;
+        const confirmedLockRef = `confirmed-${lock.lockId}`;
+        const { data: lockedEscrows, error: lockRefError } = await supabase
+          .from("escrows")
+          .update({ lock_ref: confirmedLockRef })
+          .eq("id", rawEscrowId)
+          .eq("status", "locked")
+          .select("id");
+        if (lockRefError || !lockedEscrows?.length) {
+          const message = lockRefError?.message ?? "escrow row disappeared while confirming lock";
+          console.error(`[escrow] lock marker update failed for ${rawEscrowId}: ${message} — manual reconciliation required`);
+          throw new FacilitatorTimeoutError("lock");
+        }
+        lockConfirmed = true;
+        lockRef = confirmedLockRef;
       } catch (err) {
-        // A facilitator timeout means the lock may have executed: the escrow
-        // row is the claim record, so preserve it for manual reconciliation
-        // instead of deleting it. All other failures keep existing cleanup.
-        // Reservation is preserved in both cases (see above).
-        if (err instanceof FacilitatorTimeoutError) {
-          console.error(`[escrow] lock timed out for ${rawEscrowId}: escrow row preserved — manual reconciliation required`);
+        if (lockConfirmed || err instanceof FacilitatorTimeoutError) {
+          console.error(`[escrow] lock outcome uncertain for ${rawEscrowId}: escrow row preserved — manual reconciliation required`);
           throw err;
         }
         const { error: rollbackError } = await supabase.from("escrows").delete().eq("id", rawEscrowId);
