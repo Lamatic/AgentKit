@@ -33,17 +33,27 @@ jobs:
       issues: write
 
     steps:
-      - name: Get PR details (for comment trigger)
+      - name: Resolve PR metadata
         id: pr_info
-        if: github.event_name == 'issue_comment'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_PR_NUMBER: ${{ github.event.issue.number }}
+          WORKFLOW_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          PR_DATA=$(gh api "repos/$REPO/pulls/$PR_NUMBER")
-          HEAD_SHA=$(echo "$PR_DATA" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).head.sha));")
-          BASE_REF=$(echo "$PR_DATA" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).base.ref));")
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "issue_comment" ]; then
+            PR_NUMBER="$ISSUE_PR_NUMBER"
+          else
+            PR_NUMBER=$(gh api "repos/$REPO/pulls?state=open&per_page=100" --jq ".[] | select(.head.sha == \"$WORKFLOW_HEAD_SHA\") | .number" | head -n 1)
+          fi
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No open PR found for workflow head $WORKFLOW_HEAD_SHA" >&2
+            exit 1
+          fi
+          HEAD_SHA=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.head.sha')
+          BASE_REF=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.base.ref')
           echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
           echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
@@ -62,8 +72,10 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
+          ref: ${{ steps.pr_info.outputs.head_sha }}
           fetch-depth: 0
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -73,11 +85,12 @@ jobs:
       - name: Detect changed kits
         id: detect
         env:
-          BASE_REF: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.base_ref || github.event.workflow_run.pull_requests[0].base.ref || 'main' }}
+          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
         run: |
           git fetch origin "$BASE_REF"
           MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD)
           CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRD "$MERGE_BASE"...HEAD || true)
+
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
@@ -105,7 +118,7 @@ jobs:
         id: studio
         env:
           LAMATIC_VALIDATION_ENDPOINT: 'https://studio.lamatic.ai/api/agentkit/validate-pr'
-          HEAD_SHA: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.head_sha || github.event.workflow_run.head_sha }}
+          HEAD_SHA: ${{ steps.pr_info.outputs.head_sha }}
         run: |
           KITS="${{ steps.detect.outputs.kits }}"
           if [ -z "$KITS" ]; then
@@ -119,6 +132,7 @@ jobs:
 
           for KIT_PATH in $KITS; do
             echo "--- Processing $KIT_PATH ---"
+
 
             # Determine type from lamatic.config.ts
             if [ -f "$KIT_PATH/lamatic.config.ts" ]; then
@@ -282,7 +296,7 @@ jobs:
         if: always() && steps.studio.outputs.skipped != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.pr_number || github.event.workflow_run.pull_requests[0].number }}
+          PR_NUMBER: ${{ steps.pr_info.outputs.pr_number }}
           REPO: ${{ github.repository }}
           VALIDATION_FAILED: ${{ steps.studio.outputs.validation_failed }}
         run: |
@@ -296,6 +310,7 @@ jobs:
             printf '%s\n' \
               "## Studio Runtime Validation (Phase 2)" \
               "" \
+
               ":x: **Studio validation failed.** The kit was rejected by Lamatic Studio." \
               "" \
               "### Errors" \
