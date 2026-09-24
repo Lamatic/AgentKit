@@ -25,12 +25,23 @@ const TABLES = [
 
 type RealtimeStatus = "live" | "syncing" | "offline";
 
+function readAutoState(value: unknown): { run: boolean; market: boolean } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const auto = (value as { auto?: unknown }).auto;
+  if (typeof auto !== "object" || auto === null) return null;
+  const state = auto as { run?: unknown; market?: unknown };
+  return typeof state.run === "boolean" && typeof state.market === "boolean"
+    ? { run: state.run, market: state.market }
+    : null;
+}
+
 /** Render the market console dashboard. */
 export function MarketConsole({ initialMarket }: { initialMarket: Market | null }) {
   const [market, setMarket] = useState<Market | null>(initialMarket);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [autoplay, setAutoplay] = useState(true);
   const [autoplayPending, setAutoplayPending] = useState(false);
+  const [autoplayError, setAutoplayError] = useState<string | null>(null);
   const [online, setOnline] = useState(initialMarket !== null);
   const [error, setError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -55,6 +66,8 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
   // must not overwrite their choice.
   const autoplayToggledRef = useRef(false);
   const autoplayHealthSeqRef = useRef(0);
+  const autoplayInFlightRef = useRef(false);
+  const pendingAutoTargetRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     marketRef.current = market;
@@ -76,11 +89,9 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     const requestId = ++autoplayHealthSeqRef.current;
     getHealth().then((res) => {
       if (aborted || requestId !== autoplayHealthSeqRef.current || autoplayToggledRef.current) return;
-      if (res.ok && res.data && typeof res.data === "object" && "auto" in res.data) {
-        const auto = (res.data as { auto?: { market?: boolean } }).auto;
-        if (auto && typeof auto.market === "boolean") {
-          setAutoplay(auto.market);
-        }
+      if (res.ok) {
+        const auto = readAutoState(res.data);
+        if (auto) setAutoplay(auto.market);
       }
     }).catch(() => {
       // Engine unreachable — keep the default autoplay state.
@@ -88,50 +99,61 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
     return () => { aborted = true; };
   }, []);
 
-  const reconcileAutoplay = useCallback(async (requestId: number): Promise<boolean> => {
-    try {
-      const res = await getHealth();
-      if (requestId !== autoplayHealthSeqRef.current || !res.ok) return false;
-      const nextAutoplay = res.data.auto.market;
-      if (typeof nextAutoplay !== "boolean") return false;
-      setAutoplay(nextAutoplay);
-      return true;
-    } catch {
-      return false;
-    }
-  }, []);
-
   const handleAutoplayToggle = useCallback(async (value: boolean) => {
+    if (autoplayInFlightRef.current) return;
+    const pendingTarget = pendingAutoTargetRef.current;
+    const target = pendingTarget ?? value;
+    const wasPending = pendingTarget !== null;
     const prev = autoplayRef.current;
     const requestId = ++autoplayHealthSeqRef.current;
+    autoplayInFlightRef.current = true;
     autoplayToggledRef.current = true;
     setAutoplayPending(true);
-    setAutoplay(value);
+    setAutoplay(target);
+    if (!wasPending) setAutoplayError(null);
     try {
-      const res = await setAutoMarket({ run: value, market: value });
-      if (!res.ok) {
-        if (res.uncertain) {
-          setError("Auto-market change unconfirmed — toggle again to confirm.");
-          if (await reconcileAutoplay(requestId)) setError(null);
+      const res = await setAutoMarket({ run: target, market: target });
+      if (res.ok) {
+        const auto = readAutoState(res.data);
+        if (auto && auto.run === target && auto.market === target) {
+          pendingAutoTargetRef.current = null;
+          setAutoplay(auto.market);
+          setAutoplayError(null);
+        } else if (auto) {
+          pendingAutoTargetRef.current = null;
+          setAutoplay(auto.market);
+          setAutoplayError("Auto-market state did not match the requested setting.");
         } else {
-          setAutoplay(prev);
-          setError(res.error);
-          await reconcileAutoplay(requestId);
+          pendingAutoTargetRef.current = target;
+          setAutoplayError("Auto-market response could not confirm the requested setting; retry the same change.");
         }
-      }
-    } catch (err) {
-      if (err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain) {
-        setError("Auto-market change unconfirmed — toggle again to confirm.");
-        if (await reconcileAutoplay(requestId)) setError(null);
+      } else if (res.uncertain) {
+        pendingAutoTargetRef.current = target;
+        setAutoplayError("Auto-market change unconfirmed — click again to retry the same change.");
+      } else if (wasPending) {
+        setAutoplayError(`Auto-market retry failed: ${res.error}`);
       } else {
         setAutoplay(prev);
-        setError(err instanceof Error ? err.message : "Auto-market toggle failed");
-        await reconcileAutoplay(requestId);
+        setAutoplayError(res.error);
+      }
+    } catch (err) {
+      const uncertain = err && typeof err === "object" && "uncertain" in err && (err as { uncertain: boolean }).uncertain;
+      if (uncertain) {
+        pendingAutoTargetRef.current = target;
+        setAutoplayError("Auto-market change unconfirmed — click again to retry the same change.");
+      } else if (wasPending) {
+        setAutoplayError(`Auto-market retry failed: ${err instanceof Error ? err.message : "Auto-market toggle failed"}`);
+      } else {
+        setAutoplay(prev);
+        setAutoplayError(err instanceof Error ? err.message : "Auto-market toggle failed");
       }
     } finally {
-      setAutoplayPending(false);
+      if (requestId === autoplayHealthSeqRef.current) {
+        autoplayInFlightRef.current = false;
+        setAutoplayPending(false);
+      }
     }
-  }, [reconcileAutoplay]);
+  }, []);
 
   // Monotonic request sequence: refresh() is fired from the watchdog,
   // realtime debounce, catch-up polls, and handlers, so concurrent requests
@@ -604,7 +626,7 @@ export function MarketConsole({ initialMarket }: { initialMarket: Market | null 
           onSubmit={handlePost}
           autoplay={autoplay}
           onAutoplayChange={handleAutoplayToggle}
-          error={error}
+          error={autoplayError ?? error}
           disabled={postUnconfirmed}
           autoplayPending={autoplayPending}
         />

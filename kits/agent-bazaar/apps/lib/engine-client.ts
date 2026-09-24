@@ -207,6 +207,8 @@ export class EngineError extends Error {
  *   then the loopback default + token behavior above is the whole contract.
  */
 async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const uncertain = method !== "GET" && method !== "HEAD";
   let res: Response;
   try {
     res = await fetch(`${ENGINE_URL}${path}`, {
@@ -222,8 +224,6 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     // GET/HEAD failures are deterministic — the request didn't execute.
     // Only non-idempotent methods (POST etc.) have uncertain outcomes.
-    const method = (init?.method ?? "GET").toUpperCase();
-    const uncertain = method !== "GET" && method !== "HEAD";
     throw new EngineError(
       503,
       uncertain
@@ -233,22 +233,41 @@ async function engineFetch<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
 
-  const text = await res.text();
+  let text: string;
+  try {
+    text = await res.text();
+  } catch {
+    throw new EngineError(
+      res.status,
+      uncertain
+        ? "Engine response could not be read; outcome unknown"
+        : `Engine error ${res.status}`,
+      uncertain,
+    );
+  }
   let data: unknown = null;
   if (text) {
     try {
       data = JSON.parse(text) as unknown;
     } catch {
       if (!res.ok) {
-        throw new EngineError(res.status, `Engine error ${res.status}`);
+        throw new EngineError(
+          res.status,
+          `Engine error ${res.status}`,
+          uncertain && res.status >= 500,
+        );
       }
-      throw new EngineError(502, "Invalid engine response: expected JSON");
+      throw new EngineError(
+        502,
+        "Invalid engine response: expected JSON",
+        uncertain,
+      );
     }
   }
   if (!res.ok) {
     const message =
       (data as { error?: string } | null)?.error ?? `Engine error ${res.status}`;
-    throw new EngineError(res.status, message);
+    throw new EngineError(res.status, message, uncertain && res.status >= 500);
   }
   return data as T;
 }
