@@ -1,0 +1,1 @@
+"""DetectiveAI test suite."""

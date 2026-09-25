@@ -1,0 +1,16 @@
+{
+  "culprit_id": "suspect_05",
+  "solution_summary": "Sofia Bennett remotely manipulated access-control systems using Marcus Reed's reflashed temporary admin token to exfiltrate Project ORION security specifications. She executed a packet suppression script to corrupt CCTV feeds between 23:45 and 23:55. When Dr. Adrian Vale caught her attempting to clear access logs in the Archive Reading Room at 23:50, she rendered him unconscious.",
+  "required_evidence_ids": [
+    "evidence_02",
+    "evidence_03",
+    "evidence_05",
+    "evidence_06",
+    "evidence_08"
+  ],
+  "ground_truth_data": {
+    "motive": "Financial compensation from a corporate rival to exfiltrate Project ORION security architecture specs.",
+    "method": "Remote access control manipulation, stolen admin token, CCTV suppression script.",
+    "culprit_name": "Sofia Bennett"
+  }
+}

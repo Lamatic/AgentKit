@@ -1,0 +1,11 @@
+{
+  "culprit_id": "suspect_01",
+  "solution_summary": "Alice Smith poisoned John Doe using digitalis in the study room.",
+  "required_evidence_ids": [
+    "evidence_01"
+  ],
+  "ground_truth_data": {
+    "method": "poisoning",
+    "motive_type": "greed"
+  }
+}

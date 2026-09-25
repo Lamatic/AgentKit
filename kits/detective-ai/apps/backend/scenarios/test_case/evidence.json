@@ -1,0 +1,12 @@
+[
+  {
+    "id": "evidence_01",
+    "name": "Vial of Poison",
+    "description": "An empty glass vial smelling of bitter almonds.",
+    "evidence_type": "physical",
+    "location_id": "location_01",
+    "discovery_metadata": {
+      "hidden": false
+    }
+  }
+]

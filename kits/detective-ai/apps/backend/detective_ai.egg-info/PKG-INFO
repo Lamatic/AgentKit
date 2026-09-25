@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: detective-ai
+Version: 0.1.0
+Summary: Interactive AI-powered detective investigation engine
+Author: DetectiveAI Team
+License: MIT
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.110.0
+Requires-Dist: uvicorn[standard]>=0.28.0
+Requires-Dist: pydantic>=2.6.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: typer>=0.9.0
+Requires-Dist: lamatic>=0.1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: httpx>=0.27.0; extra == "dev"
+Requires-Dist: ruff>=0.3.0; extra == "dev"
