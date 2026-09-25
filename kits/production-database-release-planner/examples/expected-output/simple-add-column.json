@@ -1,0 +1,10 @@
+{
+  "operations": "ADD COLUMN",
+  "target_table": "users",
+  "target_columns": [
+    "email_verified"
+  ],
+  "is_destructive": false,
+  "data_loss_potential": "LOW",
+  "explanation": "Adds the email_verified column to the users table."
+}

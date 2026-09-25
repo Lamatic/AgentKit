@@ -1,0 +1,11 @@
+{
+  "operations": "CREATE TABLE",
+  "target_table": "audit_logs",
+  "target_columns": [
+    "id",
+    "action"
+  ],
+  "is_destructive": false,
+  "data_loss_potential": "LOW",
+  "explanation": "Creates the audit_logs table."
+}
