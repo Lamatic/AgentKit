@@ -1,0 +1,7 @@
+{
+  "why": "The bundled sample; its verdict is what the README promises.",
+  "planFile": "../../public/samples/routine-plan.json",
+  "expect": {
+    "verdict": "allow"
+  }
+}

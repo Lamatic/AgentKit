@@ -1,0 +1,3 @@
+# Markdownlint-cli2 configuration
+ignores:
+  - "prompts/*.md"

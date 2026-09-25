@@ -1,0 +1,10 @@
+.lamatic/
+node_modules/
+.next/
+.env
+.env.local
+
+# The repo root .gitignore has a bare "scripts" rule that unintentionally
+# ignores this kit's own scripts/ directory. Un-ignore it here.
+!scripts/
+!scripts/**

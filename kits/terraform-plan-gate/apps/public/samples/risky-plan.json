@@ -1,0 +1,181 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.5",
+  "planned_values": {},
+  "resource_changes": [
+    {
+      "address": "module.orders_db.aws_db_instance.primary",
+      "module_address": "module.orders_db",
+      "mode": "managed",
+      "type": "aws_db_instance",
+      "name": "primary",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "action_reason": "replace_because_cannot_update",
+      "change": {
+        "actions": ["delete", "create"],
+        "before": {
+          "identifier": "orders-prod",
+          "engine": "postgres",
+          "engine_version": "14.11",
+          "instance_class": "db.r6g.large",
+          "allocated_storage": 200,
+          "multi_az": true,
+          "storage_encrypted": true,
+          "kms_key_id": "arn:aws:kms:eu-west-1:123456789012:key/2f1c0e5a-6d3b-4a1e-9c7a-0b2d4f6e8a10",
+          "deletion_protection": true,
+          "skip_final_snapshot": false,
+          "final_snapshot_identifier": "orders-prod-final",
+          "backup_retention_period": 14,
+          "publicly_accessible": false,
+          "password": "REDACTED-BY-TERRAFORM",
+          "tags": { "environment": "production", "team": "payments" },
+          "tags_all": { "environment": "production", "team": "payments" }
+        },
+        "after": {
+          "identifier": "orders-prod",
+          "engine": "postgres",
+          "engine_version": "16.3",
+          "instance_class": "db.r6g.large",
+          "allocated_storage": 200,
+          "multi_az": true,
+          "storage_encrypted": true,
+          "kms_key_id": "arn:aws:kms:eu-west-1:123456789012:key/2f1c0e5a-6d3b-4a1e-9c7a-0b2d4f6e8a10",
+          "deletion_protection": false,
+          "skip_final_snapshot": true,
+          "final_snapshot_identifier": null,
+          "backup_retention_period": 14,
+          "publicly_accessible": false,
+          "password": "REDACTED-BY-TERRAFORM",
+          "tags": { "environment": "production", "team": "payments" },
+          "tags_all": { "environment": "production", "team": "payments" }
+        },
+        "after_unknown": { "id": true, "arn": true, "endpoint": true },
+        "before_sensitive": { "password": true, "tags": {}, "tags_all": {} },
+        "after_sensitive": { "password": true, "tags": {}, "tags_all": {} },
+        "replace_paths": [["engine_version"]]
+      }
+    },
+    {
+      "address": "aws_security_group_rule.bastion_ssh",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "bastion_ssh",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "type": "ingress",
+          "from_port": 22,
+          "to_port": 22,
+          "protocol": "tcp",
+          "cidr_blocks": ["10.40.0.0/16"],
+          "security_group_id": "sg-0a1b2c3d4e5f60789",
+          "description": "SSH from the office VPN"
+        },
+        "after": {
+          "type": "ingress",
+          "from_port": 22,
+          "to_port": 22,
+          "protocol": "tcp",
+          "cidr_blocks": ["0.0.0.0/0"],
+          "security_group_id": "sg-0a1b2c3d4e5f60789",
+          "description": "SSH from the office VPN"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_s3_bucket_public_access_block.exports",
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "exports",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "bucket": "acme-customer-exports",
+          "block_public_acls": true,
+          "block_public_policy": true,
+          "ignore_public_acls": true,
+          "restrict_public_buckets": true
+        },
+        "after": {
+          "bucket": "acme-customer-exports",
+          "block_public_acls": false,
+          "block_public_policy": false,
+          "ignore_public_acls": true,
+          "restrict_public_buckets": false
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_policy.ci_deploy",
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "ci_deploy",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "ci-deploy",
+          "path": "/",
+          "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}]}",
+          "tags": { "environment": "production" }
+        },
+        "after_unknown": { "id": true, "arn": true, "policy_id": true },
+        "before_sensitive": false,
+        "after_sensitive": { "tags": {} }
+      }
+    },
+    {
+      "address": "aws_lambda_function.export_worker",
+      "mode": "managed",
+      "type": "aws_lambda_function",
+      "name": "export_worker",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "function_name": "export-worker",
+          "runtime": "nodejs18.x",
+          "memory_size": 512,
+          "timeout": 60,
+          "environment": [{ "variables": { "EXPORT_BUCKET": "acme-customer-exports", "LOG_LEVEL": "info" } }],
+          "tags": { "environment": "production" }
+        },
+        "after": {
+          "function_name": "export-worker",
+          "runtime": "nodejs20.x",
+          "memory_size": 512,
+          "timeout": 60,
+          "environment": [{ "variables": { "EXPORT_BUCKET": "acme-customer-exports", "LOG_LEVEL": "info" } }],
+          "tags": { "environment": "production" }
+        },
+        "after_unknown": {},
+        "before_sensitive": { "environment": [{ "variables": {} }] },
+        "after_sensitive": { "environment": [{ "variables": {} }] }
+      }
+    },
+    {
+      "address": "aws_cloudwatch_log_group.export_worker",
+      "mode": "managed",
+      "type": "aws_cloudwatch_log_group",
+      "name": "export_worker",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": { "name": "/aws/lambda/export-worker", "retention_in_days": 14, "tags": { "environment": "production" } },
+        "after": { "name": "/aws/lambda/export-worker", "retention_in_days": 30, "tags": { "environment": "production" } },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

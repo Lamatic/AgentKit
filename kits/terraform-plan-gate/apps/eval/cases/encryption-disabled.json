@@ -1,0 +1,51 @@
+{
+  "why": "Turning encryption off on a volume weakens encryption at rest (POL-08).",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_ebs_volume.data": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-08"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_ebs_volume.data",
+        "mode": "managed",
+        "type": "aws_ebs_volume",
+        "name": "data",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "delete",
+            "create"
+          ],
+          "before": {
+            "size": 100,
+            "encrypted": true,
+            "kms_key_id": "arn:aws:kms:eu-west-1:123456789012:key/abc"
+          },
+          "after": {
+            "size": 100,
+            "encrypted": false,
+            "kms_key_id": null
+          },
+          "after_unknown": {},
+          "before_sensitive": {},
+          "after_sensitive": {}
+        },
+        "action_reason": "replace_because_cannot_update"
+      }
+    ]
+  }
+}

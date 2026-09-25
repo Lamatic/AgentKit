@@ -1,0 +1,56 @@
+{
+  "why": "The same rule on GCP must get the same treatment as on AWS.",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "google_compute_firewall.allow_ssh": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-04"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "google_compute_firewall.allow_ssh",
+        "mode": "managed",
+        "type": "google_compute_firewall",
+        "name": "allow_ssh",
+        "provider_name": "registry.terraform.io/hashicorp/google",
+        "change": {
+          "actions": [
+            "create"
+          ],
+          "before": null,
+          "after": {
+            "name": "allow-ssh",
+            "direction": "INGRESS",
+            "network": "default",
+            "source_ranges": [
+              "0.0.0.0/0"
+            ],
+            "allow": [
+              {
+                "protocol": "tcp",
+                "ports": [
+                  "22"
+                ]
+              }
+            ]
+          },
+          "after_unknown": {},
+          "before_sensitive": false,
+          "after_sensitive": {}
+        }
+      }
+    ]
+  }
+}

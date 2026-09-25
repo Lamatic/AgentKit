@@ -1,0 +1,296 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+type Scene = { scene_number: number; voiceover_text: string; image_url: string | null };
+const DB_NAME = "ai-shorts-generator";
+const STORE_NAME = "projects";
+const PROJECT_KEY = "latest-scenes";
+const topicSchema = z.object({
+  sampleInput: z.string().trim().min(1, "Enter a topic for your video.").max(500, "Keep the topic under 500 characters."),
+});
+type TopicForm = z.infer<typeof topicSchema>;
+
+/** Opens the browser database used to retain the current scene project. */
+function openDatabase(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/** Stores the latest generated scene list in the browser database. */
+async function saveScenes(scenes: Scene[]) {
+  const database = await openDatabase();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).put(scenes, PROJECT_KEY);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  database.close();
+}
+
+/** Removes the previous project before a new video is generated. */
+async function clearSavedProject() {
+  const database = await openDatabase();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).delete(PROJECT_KEY);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  database.close();
+}
+
+/** Loads the saved scene list, if one exists in the browser database. */
+async function loadScenes(): Promise<Scene[] | null> {
+  const database = await openDatabase();
+  const scenes = await new Promise<Scene[] | null>((resolve, reject) => {
+    const request = database.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(PROJECT_KEY);
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result as Scene[] : null);
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+  return scenes;
+}
+
+/** Returns a browser-safe image data URL or an empty value for unsafe input. */
+function imageSource(imageUrl: string): string {
+  const value = imageUrl.trim();
+  return /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value) ? value : "";
+}
+
+/** Loads a validated scene image for canvas rendering. */
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const source = imageSource(url);
+    if (!source) {
+      reject(new Error("This scene image is not in the expected format."));
+      return;
+    }
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("This scene image could not be opened for the video."));
+    image.src = source;
+  });
+}
+
+/** Resolves after a scheduled narration buffer has finished playing. */
+function audioEnded(source: AudioBufferSourceNode): Promise<void> {
+  return new Promise((resolve) => { source.onended = () => resolve(); });
+}
+
+/** Renders the interactive AI shorts generator page. */
+export default function Home() {
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [rendering, setRendering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoUrlRef = useRef<string | null>(null);
+  const { register, handleSubmit, formState: { errors } } = useForm<TopicForm>({
+    resolver: zodResolver(topicSchema),
+    defaultValues: { sampleInput: "" },
+  });
+
+  useEffect(() => {
+    loadScenes().then((saved) => saved && setScenes(saved)).catch(() => undefined);
+    return () => {
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+    };
+  }, []);
+
+  /** Requests scenes for a new topic and replaces the locally saved project. */
+  async function handleGenerate({ sampleInput }: TopicForm) {
+    setLoading(true); setError(null);
+    if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+    videoUrlRef.current = null;
+    setVideoUrl(null);
+    setScenes([]);
+    await clearSavedProject().catch(() => undefined);
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sampleInput }),
+      });
+      const data = await response.json().catch(() => null) as { output?: Scene[]; error?: string } | null;
+      if (!response.ok || !data?.output) throw new Error(data?.error ?? "The server returned an unreadable response. Please try again.");
+      setScenes(data.output);
+      await saveScenes(data.output);
+    } catch (reason) {
+      setError(reason instanceof TypeError && reason.message === "Failed to fetch"
+        ? "Your browser could not reach this app. Check that the development server is still running, then try again."
+        : reason instanceof Error ? reason.message : "We could not generate scenes. Please try again.");
+    } finally { setLoading(false); }
+  }
+
+  /** Splits narration into chunks accepted by the narration endpoint. */
+  function splitNarration(text: string): string[] {
+    const words = text.trim().split(/\s+/);
+    const chunks: string[] = [];
+    let current = "";
+    for (const word of words) {
+      if (current && `${current} ${word}`.length > 180) {
+        chunks.push(current);
+        current = word;
+      } else {
+        current = current ? `${current} ${word}` : word;
+      }
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  }
+
+  /** Fetches and returns narration audio buffers for a complete scene script. */
+  async function fetchTts(text: string): Promise<ArrayBuffer[]> {
+    const chunks = splitNarration(text);
+    return Promise.all(chunks.map(async (chunk) => {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ttsText: chunk }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error ?? "The narration service could not create audio for this scene.");
+      }
+      return response.arrayBuffer();
+    }));
+  }
+
+  /** Draws one scene image on the recording canvas without cropping it. */
+  function drawScene(context: CanvasRenderingContext2D, scene: Scene, image: HTMLImageElement | null) {
+    const { width, height } = context.canvas;
+    context.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#171717";
+    context.fillRect(0, 0, width, height);
+    if (image) {
+      const scale = Math.min(width / image.width, height / image.height);
+      const drawWidth = image.width * scale, drawHeight = image.height * scale;
+      context.drawImage(image, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+    }
+  }
+
+  /** Records preloaded scene images and narration into one synchronized video. */
+  async function createVideo() {
+    const canvas = canvasRef.current;
+    if (!canvas || !scenes.length) return;
+    setRendering(true); setError(null);
+    let context: AudioContext | null = null;
+    let stream: MediaStream | null = null;
+    try {
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+      videoUrlRef.current = null;
+      setVideoUrl(null);
+      const drawingContext = canvas.getContext("2d");
+      if (!drawingContext) throw new Error("Canvas is not supported in this browser.");
+      const AudioContextClass = window.AudioContext || (window as typeof window & {
+        webkitAudioContext?: typeof AudioContext;
+      }).webkitAudioContext;
+      if (!AudioContextClass) throw new Error("Web Audio is not supported in this browser.");
+      context = new AudioContextClass();
+      await context.resume();
+      // Load every asset first. Recording never begins with an empty canvas or missing narration.
+      const preparedScenes: Array<{ scene: Scene; image: HTMLImageElement | null; audioBuffers: AudioBuffer[] }> = [];
+      for (const scene of scenes) {
+        const [audioParts, image] = await Promise.all([
+          fetchTts(scene.voiceover_text),
+          scene.image_url ? loadImage(scene.image_url) : Promise.resolve(null),
+        ]);
+        const audioBuffers = await Promise.all(audioParts.map((part) => context!.decodeAudioData(part.slice(0))));
+        preparedScenes.push({ scene, image, audioBuffers });
+      }
+
+      const audioDestination = context.createMediaStreamDestination();
+      const videoStream = canvas.captureStream(30);
+      stream = new MediaStream([...videoStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks()]);
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus") ? "video/webm;codecs=vp9,opus" : "video/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+      const finished = new Promise<Blob>((resolve) => { recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType })); });
+
+      // Capture the visible canvas and Web Audio destination as one stream for a synchronized video file.
+      recorder.start();
+      for (const { scene, image, audioBuffers } of preparedScenes) {
+        drawScene(drawingContext, scene, image);
+        const videoTrack = videoStream.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack | undefined;
+        videoTrack?.requestFrame?.();
+        for (const audioBuffer of audioBuffers) {
+          const source = context.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(context.destination);
+          source.connect(audioDestination);
+          source.start();
+          // The next image is not drawn until this audio has completely finished.
+          await audioEnded(source);
+        }
+      }
+      recorder.stop();
+      const video = await finished;
+      const nextVideoUrl = URL.createObjectURL(video);
+      videoUrlRef.current = nextVideoUrl;
+      setVideoUrl(nextVideoUrl);
+    } catch (reason) {
+      setError(reason instanceof TypeError && reason.message === "Failed to fetch"
+        ? "We could not reach the narration service. Check your internet connection and try again."
+        : reason instanceof Error ? reason.message : "We could not create the video. Please try again.");
+    } finally {
+      stream?.getTracks().forEach((track) => track.stop());
+      await context?.close();
+      setRendering(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background px-4 py-8 sm:px-6">
+      <section className="mx-auto w-full max-w-6xl">
+        <header className="border-b border-muted pb-6">
+          <p className="text-sm font-medium tracking-widest text-muted-foreground">AI SHORTS</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Create a narrated video</h1>
+        </header>
+        <Card className="mt-6">
+          <CardContent>
+            <form onSubmit={handleSubmit(handleGenerate)}>
+              <label htmlFor="sampleInput" className="mb-2 block text-sm font-medium">Describe your video</label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Input id="sampleInput" {...register("sampleInput")} disabled={loading || rendering} placeholder="For example: explain data types in programming" />
+                <Button type="submit" disabled={loading || rendering}>{loading ? "Generating…" : "Generate"}</Button>
+              </div>
+              {errors.sampleInput && <p role="alert" className="mt-2 text-sm text-destructive">{errors.sampleInput.message}</p>}
+              <p className="mt-3 text-xs text-subtle-foreground">Creating a new video replaces the saved project. Download the current video first.</p>
+            </form>
+          </CardContent>
+        </Card>
+        {error && <p role="alert" className="mt-5 rounded-md border border-[var(--destructive-border)] bg-[var(--destructive-background)] p-4 text-sm text-destructive">{error}</p>}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18.75rem]">
+          <section className="relative aspect-video overflow-hidden rounded-lg border border-muted bg-black">
+            <canvas ref={canvasRef} width={1280} height={720} className={cn("h-full w-full bg-black object-contain", videoUrl && "hidden")} aria-label="Live video preview" />
+            {videoUrl ? <video src={videoUrl} controls className="absolute inset-0 h-full w-full bg-black object-contain" /> : !rendering && <div className="absolute inset-0 grid place-items-center p-8 text-center text-sm text-subtle-foreground">{scenes.length ? "Ready to create preview" : "Your video preview will appear here"}</div>}
+          </section>
+          <Card>
+            <CardContent>
+              <h2 className="text-base font-medium">Scenes</h2>
+              <p className="mt-1 text-sm text-subtle-foreground">{scenes.length ? `${scenes.length} scenes saved locally` : "Generate a video to begin."}</p>
+              <ol className="mt-4 max-h-64 list-none overflow-auto pr-1">
+                {scenes.map((scene) => <li key={scene.scene_number} className="mb-3 flex gap-3 text-sm leading-5"><>{scene.image_url ? <img src={imageSource(scene.image_url)} alt="Generated scene" className="h-12 w-16 shrink-0 rounded bg-black object-contain" /> : <div className="h-12 w-16 shrink-0 rounded bg-muted" />}</><span>{scene.voiceover_text}</span></li>)}
+              </ol>
+              <Button onClick={createVideo} disabled={!scenes.length || rendering} className="mt-5 w-full">{rendering ? "Creating preview…" : "Create preview"}</Button>
+              {videoUrl && <a href={videoUrl} download="ai-short.webm" className={cn(buttonVariants({ variant: "outline" }), "mt-3 w-full")}>Download video</a>}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </main>
+  );
+}

@@ -1,0 +1,9 @@
+.env.local
+.next/
+node_modules/
+coverage/
+*.tsbuildinfo
+apps/AGENTS.md
+apps/CLAUDE.md
+!apps/scripts/
+!apps/scripts/**

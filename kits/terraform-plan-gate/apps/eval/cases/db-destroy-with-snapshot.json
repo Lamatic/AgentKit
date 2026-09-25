@@ -1,0 +1,48 @@
+{
+  "why": "Destroying a database is never routine (POL-01), even with a final snapshot configured.",
+  "expect": {
+    "verdict": [
+      "needs-approval",
+      "block"
+    ],
+    "changes": {
+      "aws_db_instance.reports": {
+        "riskAtLeast": "high",
+        "policyIds": [
+          "POL-01"
+        ]
+      }
+    }
+  },
+  "plan": {
+    "format_version": "1.2",
+    "terraform_version": "1.9.5",
+    "planned_values": {},
+    "resource_changes": [
+      {
+        "address": "aws_db_instance.reports",
+        "mode": "managed",
+        "type": "aws_db_instance",
+        "name": "reports",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "change": {
+          "actions": [
+            "delete"
+          ],
+          "before": {
+            "identifier": "reports",
+            "engine": "postgres",
+            "deletion_protection": false,
+            "skip_final_snapshot": false,
+            "final_snapshot_identifier": "reports-final-2026-09-03",
+            "backup_retention_period": 7
+          },
+          "after": null,
+          "after_unknown": {},
+          "before_sensitive": {},
+          "after_sensitive": false
+        }
+      }
+    ]
+  }
+}
