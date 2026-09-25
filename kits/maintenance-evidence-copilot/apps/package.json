@@ -1,0 +1,33 @@
+{
+  "name": "maintenance-evidence-copilot",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "lamatic": "0.3.2",
+    "next": "15.5.22",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "3.3.6",
+    "@types/node": "22.16.0",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.7",
+    "eslint": "9.39.4",
+    "eslint-config-next": "15.5.22",
+    "tsx": "4.20.5",
+    "typescript": "5.4.5"
+  }
+}
