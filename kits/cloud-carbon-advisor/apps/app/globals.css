@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #071410;
+  --bg-elevated: #0a1a14;
+  --panel: #0c1d17;
+  --panel-2: #102821;
+  --border: #1a3529;
+  --border-strong: #244a3a;
+  --text: #eafaf3;
+  --muted: #8fb3a4;
+  --muted-2: #5f8072;
+
+  --accent: #34d399;
+  --accent-strong: #10b981;
+  --accent-soft: #34d39916;
+  --accent-ink: #04120c;
+  --focus: var(--accent);
+
+  --sev-low: #34d399;
+  --sev-low-soft: #34d39916;
+  --sev-medium: #fbbf24;
+  --sev-medium-soft: #fbbf2416;
+  --sev-high: #fb7185;
+  --sev-high-soft: #fb718516;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-edge: var(--border);
+  --color-edge-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--focus);
+  --color-sev-low: var(--sev-low);
+  --color-sev-low-soft: var(--sev-low-soft);
+  --color-sev-medium: var(--sev-medium);
+  --color-sev-medium-soft: var(--sev-medium-soft);
+  --color-sev-high: var(--sev-high);
+  --color-sev-high-soft: var(--sev-high-soft);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(1100px 620px at 8% -12%, rgba(52, 211, 153, 0.12), transparent 60%),
+    radial-gradient(900px 520px at 100% 0%, rgba(16, 185, 129, 0.07), transparent 55%);
+  background-attachment: fixed;
+}
+
+textarea,
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 1.1s linear infinite;
+}
