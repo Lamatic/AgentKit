@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* Semantic colour tokens. Components use only these (via the utilities mapped in
+   @theme below), so the palette and its dark variant live in this one place. */
+:root {
+  color-scheme: light dark;
+
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --foreground-secondary: #334155;
+  --muted-foreground: #475569;
+  --subtle-foreground: #64748b;
+
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-hover: #f1f5f9;
+  --field: #ffffff;
+
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --focus: #2563eb;
+  --focus-strong: #1e40af;
+
+  --danger: #dc2626;
+  --warning: #b45309;
+
+  --success-surface: #ecfdf5;
+  --success-border: #34d399;
+  --success-foreground: #064e3b;
+  --warning-surface: #fffbeb;
+  --warning-border: #fbbf24;
+  --warning-foreground: #78350f;
+  --danger-surface: #fef2f2;
+  --danger-border: #f87171;
+  --danger-foreground: #7f1d1d;
+  --info-surface: #eff6ff;
+  --info-border: #93c5fd;
+  --info-foreground: #1e3a8a;
+
+  --highlight: #fde68a;
+  --highlight-foreground: #451a03;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020617;
+    --foreground: #f1f5f9;
+    --foreground-secondary: #cbd5e1;
+    --muted-foreground: #94a3b8;
+    --subtle-foreground: #94a3b8;
+
+    --surface: #0f172a;
+    --surface-muted: #0f172a;
+    --surface-hover: #1e293b;
+    --field: #1e293b;
+
+    --border: #1e293b;
+    --border-strong: #475569;
+
+    /* Focus rings sit 2px outside the control, so they must clear 3:1 against the
+       dark page and surfaces, and --focus-strong also against the primary button. */
+    --focus: #60a5fa;
+    --focus-strong: #bfdbfe;
+
+    --danger: #f87171;
+    --warning: #fbbf24;
+
+    --success-surface: #022c22;
+    --success-border: #047857;
+    --success-foreground: #d1fae5;
+    --warning-surface: #451a03;
+    --warning-border: #b45309;
+    --warning-foreground: #fef3c7;
+    --danger-surface: #450a0a;
+    --danger-border: #b91c1c;
+    --danger-foreground: #fee2e2;
+    --info-surface: #172554;
+    --info-border: #1e40af;
+    --info-foreground: #dbeafe;
+
+    --highlight: #92400e;
+    --highlight-foreground: #fef3c7;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+  --color-field: var(--field);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-focus: var(--focus);
+  --color-focus-strong: var(--focus-strong);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-border: var(--danger-border);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
+  --color-info-foreground: var(--info-foreground);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Gold-evidence highlight used by the boundary inspector. Rendered via <mark>,
+   never dangerouslySetInnerHTML, since document text is untrusted input. */
+mark {
+  background-color: var(--highlight);
+  color: var(--highlight-foreground);
+  border-radius: 2px;
+  padding: 0 2px;
+}
