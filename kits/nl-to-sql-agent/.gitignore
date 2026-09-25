@@ -1,0 +1,29 @@
+.lamatic/
+node_modules/
+.next/
+next-env.d.ts
+
+# Ignore all .env files except .env.example
+.env*
+!.env.example
+*.tsbuildinfo
+
+dev.log
+dev.err.log
+dev.out.log
+server.log
+qa-*.mjs
+test-*.js
+list-*.js
+opencode.json
+
+# Local analysis notes (not shipped with the kit)
+PROJECT-ANALYSIS.md
+
+# Test / runtime output artifacts
+dev-out.txt
+pw-out.txt
+*.out.txt
+*.err.txt
+playwright-report/
+test-results/
