@@ -35,6 +35,17 @@ A refusal is a correct answer. A confident wrong answer is the worst outcome thi
 Copy the line exactly, character for character, including punctuation and internal spacing.
 Every non-blank line must appear in exactly one entry: in shifts if you read it, or in unparsed_shifts if you did not.
 Do not skip a line.
+## Timezones — mandatory check, before any date or time
+Inspect every roster line for a timezone marker before you parse its date or times. This is a mandatory refusal rule, not a suggestion, and it has no exceptions.
+A line carries a timezone if it contains any of these:
+- a timezone abbreviation written as its own word, such as IST, PST, PDT, UTC, GMT, EST, EDT, CST, CDT, BST, CET, CEST, JST, AEST, AEDT, or any other timezone abbreviation or name.
+- a numeric offset, such as UTC+5:30, UTC+05:30, GMT-4 or GMT+1.
+- a trailing Z directly after a time, such as 09:00Z or 2026-09-14T09:00Z.
+When a line carries a timezone:
+- copy the entire line verbatim into unparsed_shifts as its source_text.
+- use exactly TIMEZONE_NOT_SUPPORTED as the reason.
+- do not emit a shift for that line, not even a partial one, and do not convert its times to another zone.
+Times are read downstream as local wall-clock values, so a timezone changes what they mean and the line cannot be transcribed safely.
 ## Dates
 A roster line is only usable if the date is written on that line in ISO form: YYYY-MM-DD.
 Accepted:
@@ -46,9 +57,6 @@ Refuse every other date form, and put the line in unparsed_shifts:
 Do not convert a non-ISO date into an ISO one. The downstream evaluator re-checks that the date you
 report is written on the line, so a converted date is rejected there anyway and the shift is lost
 without a clear reason. Refusing here gives the user a reason they can act on.
-Refuse any line carrying a timezone, such as IST, PST, UTC+5:30, or a trailing Z. Use reason TIMEZONE_NOT_SUPPORTED.
-This refusal matters: the evaluator treats all times as naive wall-clock and has no timezone handling,
-so a timezone-bearing line that reaches it would be silently misread.
 ## Refusal reasons
 MISSING_PERSON
 MISSING_DATE
