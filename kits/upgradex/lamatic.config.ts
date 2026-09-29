@@ -27,7 +27,7 @@ export default {
 
   links: {
     demo: "",
-    github: "",
+    github: "https://github.com/Lamatic/AgentKit/tree/main/kits/upgradex",
     deploy: "",
     docs: "",
   },
