@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Migration Understanding Agent Output",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "operations",
+    "target_table",
+    "target_columns",
+    "operation_details",
+    "is_destructive",
+    "data_loss_potential",
+    "explanation"
+  ],
+
+  "properties": {
+    "operations": {
+      "description": "Migration operations extracted from the SQL migration.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+
+    "target_table": {
+      "description": "Primary table affected by each migration operation.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+
+    "target_columns": {
+      "description": "A flat string array when there is exactly one operation, or one column-name array per operation when there are multiple. A flat array with more than one operation is ambiguous and is rejected by the application parser (apps/lib/lamatic.ts) before it reaches this schema.",
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+
+    "operation_details": {
+      "description": "Migration facts explicitly represented in the SQL for each operation (e.g. column, data_type, default, index_name, constraint_name — keys vary per operation type and only include information explicitly present in the SQL). An object for a single operation, or an array of objects (one per operation, same order as `operations`) for multiple.",
+      "oneOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      ]
+    },
+
+    "is_destructive": {
+      "description": "Indicates whether the migration permanently removes schema or data.",
+      "type": "boolean"
+    },
+
+    "data_loss_potential": {
+      "description": "Estimated potential for permanent data loss.",
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+
+    "explanation": {
+      "description": "Natural language summary of what the migration does.",
+      "type": "string"
+    }
+  }
+}
