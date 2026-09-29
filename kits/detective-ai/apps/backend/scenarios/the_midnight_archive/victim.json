@@ -1,0 +1,12 @@
+{
+  "id": "victim_dr_vale",
+  "name": "Dr. Adrian Vale",
+  "description": "Supervisor of the Prometheus Institute Research Archive.",
+  "cause_of_death": "Blunt force trauma resulting in unconsciousness (survived)",
+  "time_of_death": "23:50",
+  "notes": "Discovered unconscious in the Archive Reading Room at 00:15.",
+  "metadata": {
+    "status": "incapacitated",
+    "hospitalized": true
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "suspect_01",
+    "name": "Alice Smith",
+    "description": "The primary suspect.",
+    "alibi": "Claims to have been at home.",
+    "relationship_to_victim": "Business partner",
+    "profile_metadata": {
+      "age": 35
+    },
+    "is_culprit": true,
+    "motive": "Financial gain"
+  },
+  {
+    "id": "suspect_02",
+    "name": "Bob Jones",
+    "description": "A secondary suspect.",
+    "alibi": "Claims to have been at a movie.",
+    "relationship_to_victim": "Neighbor",
+    "profile_metadata": {
+      "age": 42
+    },
+    "is_culprit": false,
+    "motive": "Noise dispute"
+  }
+]

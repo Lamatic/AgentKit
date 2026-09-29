@@ -1,0 +1,67 @@
+[
+  {
+    "id": "suspect_01",
+    "name": "Elena Marlow",
+    "description": "Research Director overseeing Project ORION at the Prometheus Institute.",
+    "alibi": "Claims she was in her executive suite reviewing grant proposals from 22:00 to 01:00.",
+    "relationship_to_victim": "Executive Director and direct supervisor of Dr. Adrian Vale.",
+    "profile_metadata": {
+      "clearance_level": "Executive Admin",
+      "tenure_years": 8
+    },
+    "is_culprit": false,
+    "motive": "Heated argument with Dr. Vale regarding project funding restrictions earlier that evening."
+  },
+  {
+    "id": "suspect_02",
+    "name": "Marcus Reed",
+    "description": "Night-shift security officer responsible for facility access and badge provisioning.",
+    "alibi": "Claims he was conducting exterior perimeter patrols between 23:30 and 00:10.",
+    "relationship_to_victim": "Facility security officer on duty during the incident.",
+    "profile_metadata": {
+      "clearance_level": "Security Lead",
+      "shift": "Night"
+    },
+    "is_culprit": false,
+    "motive": "Temporary admin access token assigned to him was logged during the breach."
+  },
+  {
+    "id": "suspect_03",
+    "name": "Nina Shah",
+    "description": "Junior Research Assistant assigned to digitize Project ORION physical archives.",
+    "alibi": "Claims she departed the facility at 22:00 when her shift concluded.",
+    "relationship_to_victim": "Research subordinate to Dr. Adrian Vale.",
+    "profile_metadata": {
+      "clearance_level": "Level 2 Archive",
+      "department": "Digital Archiving"
+    },
+    "is_culprit": false,
+    "motive": "Frequently complained about strict access limitations and low compensation."
+  },
+  {
+    "id": "suspect_04",
+    "name": "Daniel Cross",
+    "description": "External cybersecurity auditor evaluating institute network infrastructure.",
+    "alibi": "Claims he was working late in the consultant suite analyzing network telemetry logs.",
+    "relationship_to_victim": "Contract auditor reviewing archive security architecture.",
+    "profile_metadata": {
+      "clearance_level": "Temporary Auditor",
+      "company": "Cross Security Solutions"
+    },
+    "is_culprit": false,
+    "motive": "Pushed aggressively for direct source code access to Project ORION earlier in the week."
+  },
+  {
+    "id": "suspect_05",
+    "name": "Sofia Bennett",
+    "description": "Lead Systems Engineer managing server infrastructure, network switches, and CCTV arrays.",
+    "alibi": "Claims she was monitoring remote automated server maintenance on Terminal B3 from 23:00 to 01:00.",
+    "relationship_to_victim": "Infrastructure colleague working closely on server data integrity.",
+    "profile_metadata": {
+      "clearance_level": "System Administrator",
+      "specialization": "Network & CCTV Infrastructure"
+    },
+    "is_culprit": true,
+    "motive": "Secretly contracted by a corporate rival to exfiltrate Project ORION security architecture specifications."
+  }
+]
