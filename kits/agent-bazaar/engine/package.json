@@ -1,0 +1,30 @@
+{
+  "name": "agent-bazaar-engine",
+  "version": "1.0.0",
+  "description": "Orchestration engine for the Agent Bazaar economy",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/scripts/demo.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "serve": "tsx src/server.ts",
+    "seed": "tsx src/scripts/seed.ts",
+    "reset": "tsx src/scripts/reset.ts",
+    "demo": "tsx src/scripts/demo.ts",
+    "watch": "tsx src/scripts/watch.ts",
+    "fund": "tsx src/scripts/fund.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^17.4.2",
+    "lamatic": "^0.1.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.1"
+  }
+}

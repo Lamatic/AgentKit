@@ -1,0 +1,12 @@
+{
+  "name": "agent-bazaar",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names engine,dashboard --prefix-colors blue,green \"cd engine && npm run serve\" \"cd apps && npm run dev -- -p 3111\"",
+    "engine": "cd engine && npm run serve",
+    "dashboard": "cd apps && npm run dev -- -p 3111"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
