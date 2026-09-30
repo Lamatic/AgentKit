@@ -4,8 +4,8 @@ export default {
   "version": "1.0.0",
   "type": "template",
   "author": {
-    "name": "Devansh Zalavadiya",
-    "email": "devzalavadiya@gmail.com"
+    "name": "Manmohan Radhesham Zanwar",
+    "email": "zanwarmanmohan@gmail.com"
   },
   "tags": ["api", "documentation", "openapi", "swagger", "developer-tools"],
   "steps": [
