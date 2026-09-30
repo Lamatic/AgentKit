@@ -10,8 +10,8 @@ python -m evaluation.run_scenarios
 | ------------------------ | ------ | ----: | -----: | --------: | -------: | ------: | ---------: |
 | Contradictory Sources    | PASS   |   1.0 |      1 |         1 |        0 |       2 |       85.0 |
 | Outdated Decision        | PASS   |   1.0 |      1 |         0 |        1 |       1 |      100.0 |
-| Insufficient Evidence    | PASS   |   1.0 |      1 |         0 |        0 |       1 |       40.0 |
-| Multiple Blockers        | PASS   |   1.0 |      4 |         0 |        3 |       4 |       55.0 |
-| Competing Actions        | PASS   |   1.0 |      5 |         0 |        0 |       5 |       40.0 |
+| Insufficient Evidence    | PASS   |   1.0 |      1 |         0 |        0 |       1 |       48.0 |
+| Multiple Blockers        | PASS   |   1.0 |      4 |         0 |        3 |       4 |       61.0 |
+| Competing Actions        | PASS   |   1.0 |      5 |         0 |        0 |       5 |       48.0 |
 | No Clear Action          | PASS   |   1.0 |      1 |         0 |        0 |       1 |        0.0 |
 | False Conflict Detection | PASS   |   1.0 |      1 |         0 |        0 |       0 |       90.0 |

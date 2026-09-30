@@ -64,6 +64,32 @@ def test_no_conflict_for_synonyms(detector):
     assert len(conflicts) == 0
 
 
+def test_blocked_to_unblocked_creates_conflict(detector):
+    """Test that a blocked state followed by an unblocked state creates a conflict."""
+    events = {
+        "parser": [
+            NormalizedEvent(
+                SourceType.COMMIT,
+                "c1",
+                datetime(2024, 8, 18, 9, 0, tzinfo=timezone.utc),
+                None,
+                "Parser blocked"
+            ),
+            NormalizedEvent(
+                SourceType.COMMIT,
+                "c2",
+                datetime(2024, 8, 18, 10, 0, tzinfo=timezone.utc),
+                None,
+                "Parser unblocked"
+            )
+        ]
+    }
+
+    conflicts = detector.detect_conflicts(events)
+
+    assert len(conflicts) == 1
+
+
 def test_newer_claim_is_authoritative(detector):
     """Test that the newer claim becomes the resolution."""
     events = {

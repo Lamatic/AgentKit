@@ -19,7 +19,10 @@ class EvaluationRunner:
         scenario_dir = "scenarios"
 
         if not os.path.exists(scenario_dir):
-            print(f"ERROR: Scenarios directory '{scenario_dir}' does not exist")
+            print(
+                f"ERROR: Scenarios directory "
+                f"'{scenario_dir}' does not exist"
+            )
             return []
 
         scenario_files = sorted(
@@ -29,17 +32,31 @@ class EvaluationRunner:
         )
 
         if not scenario_files:
-            print(f"ERROR: No scenario JSON files found in '{scenario_dir}'")
+            print(
+                f"ERROR: No scenario JSON files found "
+                f"in '{scenario_dir}'"
+            )
             return []
 
         # === Continue with normal execution ===
         for scenario_file in scenario_files:
-            file_path = os.path.join(scenario_dir, scenario_file)
+            file_path = os.path.join(
+                scenario_dir,
+                scenario_file
+            )
 
-            with open(file_path, "r", encoding="utf-8") as file:
+            with open(
+                file_path,
+                "r",
+                encoding="utf-8"
+            ) as file:
                 scenario = json.load(file)
 
-            result = self.run_scenario(scenario, scenario_file)
+            result = self.run_scenario(
+                scenario,
+                scenario_file
+            )
+
             self.results.append(result)
 
         return self.results
@@ -147,6 +164,8 @@ class EvaluationRunner:
             if expected_value == "HIGH":
                 return brief.confidence_overall >= 80
 
+            return False
+
         if key == "confidence_max":
             return (
                 brief.confidence_overall
@@ -196,19 +215,44 @@ class EvaluationRunner:
                 for expected_state in allowed_states
             )
 
-
-
         if key == "recommended_action":
+            expected_options = [
+                option.strip().lower()
+                for option in expected_value.split("or")
+            ]
+
             if not brief.recommended_first_action:
-                return ("none" in expected_value.lower() or "investigation" in expected_value.lower())
+                return "none" in expected_options
 
-            action_text = brief.recommended_first_action.action.lower()
-
-            has_concrete_action = (
-                "none" not in action_text and
-                "investigation" not in action_text
+            action_text = (
+                brief.recommended_first_action.action
+                .strip()
+                .lower()
             )
-            return has_concrete_action
+
+            if "none" in expected_options and not action_text:
+                return True
+
+            if "investigation" in expected_options:
+                investigation_terms = (
+                    "investigate",
+                    "investigation",
+                    "verify",
+                    "check",
+                    "review",
+                )
+
+                if any(
+                    term in action_text
+                    for term in investigation_terms
+                ):
+                    return True
+
+            return any(
+                option not in {"none", "investigation"}
+                and option in action_text
+                for option in expected_options
+            )
 
         if key == "first_action":
             if not brief.recommended_first_action:

@@ -51,18 +51,18 @@ Instead of simply summarizing individual messages, the system processes the info
 
 ## How It Solves the Problem
 
-The agent:
+The implemented system uses an 8-component processing pipeline:
 
-1. Accepts work-related source information.
-2. Normalizes incoming data into a common event representation.
-3. Resolves references to project entities.
-4. Orders events chronologically.
-5. Detects contradictions and conflicts.
-6. Reconstructs the current work state.
-7. Identifies blockers and downstream impact.
-8. Collects and evaluates supporting evidence.
-9. Generates and prioritizes possible actions.
-10. Produces a structured work-resumption brief and API response.
+1. **Parser** — Normalizes supported source types into a common event representation.
+2. **Temporal Ordering** — Establishes chronological ordering with deterministic ordering rules.
+3. **Entity Resolution + Conflict Detection** — Resolves references to the same entities and identifies contradictions.
+4. **Evidence Collection** — Collects supporting evidence and calculates confidence.
+5. **State Reconstruction** — Reconstructs the current state of work.
+6. **Blocker Identification** — Identifies blockers and assesses downstream impact.
+7. **Action Prioritization** — Generates and ranks candidate next actions.
+8. **Brief Generation** — Produces the structured work-resumption brief and API response.
+
+The components operate as a staged pipeline. Some components perform multiple related processing operations, so individual operations such as source normalization, conflict detection, action generation, and confidence calculation are not counted as additional pipeline components.
 
 ## What Makes It Different?
 
@@ -94,13 +94,14 @@ The central principle is:
 - Outdated-decision handling
 - Blocker identification
 - Downstream impact assessment
+- Evidence collection
+- Confidence scoring
 - Action generation
 - Action prioritization
-- Confidence scoring
-- Evidence collection
-- Source extension
+- Structured work-resumption brief generation
 - Structured API response
-- Evaluation framework
+- Scenario-based evaluation
+- Automated unit testing
 - End-to-end testing
 - Evidence-grounded output
 - Explicit handling of insufficient evidence
@@ -165,13 +166,15 @@ The input parser supports the following source types:
 - TODO items
 - Meeting notes
 
-Each source is normalized into a common event representation before downstream processing.
+Each supported source is normalized into a common event representation before downstream processing.
 
 ---
 
 # Architecture
 
-The system uses a staged processing pipeline in which normalized events are progressively transformed into a structured work-resumption brief.
+The system uses a staged processing pipeline in which work events are progressively transformed into a structured work-resumption brief.
+
+The implemented architecture follows the 8-component pipeline described above.
 
 ```text
 +------------------------+
@@ -181,16 +184,7 @@ The system uses a staged processing pipeline in which normalized events are prog
             v
 +------------------------+
 |  Multi-Source Parser   |
-+-----------+------------+
-            |
-            v
-+------------------------+
 |  Source Normalization  |
-+-----------+------------+
-            |
-            v
-+------------------------+
-|   Entity Resolution    |
 +-----------+------------+
             |
             v
@@ -200,7 +194,13 @@ The system uses a staged processing pipeline in which normalized events are prog
             |
             v
 +------------------------+
-|   Conflict Detection   |
+| Entity Resolution +   |
+| Conflict Detection    |
++-----------+------------+
+            |
+            v
++------------------------+
+|  Evidence Collection   |
 +-----------+------------+
             |
             v
@@ -215,21 +215,13 @@ The system uses a staged processing pipeline in which normalized events are prog
             |
             v
 +------------------------+
-|   Evidence Collection  |
+| Action Generation +    |
+| Action Prioritization  |
 +-----------+------------+
             |
             v
 +------------------------+
-|    Action Generation   |
-+-----------+------------+
-            |
-            v
-+------------------------+
-|  Action Prioritization |
-+-----------+------------+
-            |
-            v
-+------------------------+
-|  Structured Brief/API  |
+|   Brief Generation     |
+|   Structured API       |
 |       Response         |
 +------------------------+
