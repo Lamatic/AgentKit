@@ -59,6 +59,8 @@ class MultiSourceInputParser:
                 )
                 continue
 
+        events = self._ensure_unique_source_ids(events)
+
         logger.info(
             "Parsed %d events from mixed sources",
             len(events),
@@ -340,6 +342,78 @@ class MultiSourceInputParser:
                 continue
 
         return events
+
+    def _ensure_unique_source_ids(
+        self,
+        events: List[NormalizedEvent],
+    ) -> List[NormalizedEvent]:
+        """Ensure every parsed event has a unique source ID.
+
+        Existing IDs are preserved whenever possible. When duplicate
+        IDs occur, deterministic numeric suffixes are added. Generated
+        suffixes are checked against every ID already used so that a
+        generated ID cannot collide with another existing ID.
+        """
+
+        used_ids = set()
+        next_suffix: Dict[str, int] = {}
+        unique_events: List[NormalizedEvent] = []
+
+        for event in events:
+            original_id = event.source_id
+
+            if original_id not in used_ids:
+                unique_id = original_id
+                next_suffix.setdefault(original_id, 2)
+            else:
+                suffix = next_suffix.get(original_id, 2)
+                unique_id = f"{original_id}__{suffix}"
+
+                while unique_id in used_ids:
+                    suffix += 1
+                    unique_id = f"{original_id}__{suffix}"
+
+                next_suffix[original_id] = suffix + 1
+
+                logger.warning(
+                    "Duplicate source_id '%s' detected; "
+                    "assigned unique source_id '%s'",
+                    original_id,
+                    unique_id,
+                )
+
+            used_ids.add(unique_id)
+
+            if unique_id != event.source_id:
+                event = self._copy_event_with_source_id(
+                    event,
+                    unique_id,
+                )
+
+            unique_events.append(event)
+
+        return unique_events
+
+    def _copy_event_with_source_id(
+        self,
+        event: NormalizedEvent,
+        source_id: str,
+    ) -> NormalizedEvent:
+        """Create an event with the supplied unique source ID."""
+
+        return NormalizedEvent(
+            source_type=event.source_type,
+            source_id=source_id,
+            timestamp=event.timestamp,
+            author=event.author,
+            content=event.content,
+            entity_candidates=list(
+                event.entity_candidates or []
+            ),
+            metadata=dict(
+                event.metadata or {}
+            ),
+        )
 
     def _parse_timestamp(
         self,

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-10T16:54:52.493467",
+  "timestamp": "2026-09-30T08:28:16.226011+00:00",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
@@ -37,7 +37,7 @@
         "conflicts": 0,
         "blockers": 0,
         "actions": 1,
-        "confidence": 40.0
+        "confidence": 48.0
       }
     },
     {
@@ -50,7 +50,7 @@
         "conflicts": 0,
         "blockers": 3,
         "actions": 4,
-        "confidence": 55.0
+        "confidence": 61.0
       }
     },
     {
@@ -63,7 +63,7 @@
         "conflicts": 0,
         "blockers": 0,
         "actions": 5,
-        "confidence": 40.0
+        "confidence": 48.0
       }
     },
     {

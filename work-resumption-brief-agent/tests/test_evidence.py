@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime, timezone, timedelta
 
 from src.components.evidence_collector import EvidenceCollector
-from src.models import NormalizedEvent, SourceType
+from src.models import NormalizedEvent, SourceType, ConfidenceLevel
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def make_event(source_id, content, hours_ago=0):
         source_id,
         timestamp,
         "alice",
-        content
+        content,
     )
 
 
@@ -30,7 +30,7 @@ def test_no_evidence(collector):
     evidence = collector.collect_evidence(
         "API completed",
         events,
-        []
+        [],
     )
 
     assert evidence.confidence == 0.0
@@ -45,7 +45,7 @@ def test_single_supporting_source(collector):
     evidence = collector.collect_evidence(
         "Parser implemented",
         events,
-        []
+        [],
     )
 
     assert evidence.sources == ["c1"]
@@ -63,7 +63,7 @@ def test_multiple_supporting_sources(collector):
     evidence = collector.collect_evidence(
         "Parser implemented",
         events,
-        []
+        [],
     )
 
     assert len(evidence.sources) == 3
@@ -71,24 +71,62 @@ def test_multiple_supporting_sources(collector):
 
 
 def test_recency_scoring(collector):
-    now = datetime.now(timezone.utc)
+    """Test recency scoring through the production evidence pipeline."""
 
-    assert collector._get_recency_score(
-        now - timedelta(minutes=30)
-    ) == 1.0
+    reference_time = datetime(
+        2024,
+        8,
+        18,
+        12,
+        0,
+        tzinfo=timezone.utc,
+    )
 
-    assert collector._get_recency_score(
-        now - timedelta(hours=12)
-    ) == 0.8
+    recency_cases = [
+        (
+            timedelta(minutes=30),
+            80.0,
+            ConfidenceLevel.HIGH,
+        ),
+        (
+            timedelta(hours=12),
+            72.0,
+            ConfidenceLevel.MEDIUM,
+        ),
+        (
+            timedelta(days=3),
+            64.0,
+            ConfidenceLevel.MEDIUM,
+        ),
+        (
+            timedelta(days=15),
+            56.0,
+            ConfidenceLevel.MEDIUM,
+        ),
+        (
+            timedelta(days=45),
+            48.0,
+            ConfidenceLevel.LOW,
+        ),
+    ]
 
-    assert collector._get_recency_score(
-        now - timedelta(days=3)
-    ) == 0.6
+    for age, expected_confidence, expected_level in recency_cases:
+        event = NormalizedEvent(
+            SourceType.COMMIT,
+            "c1",
+            reference_time - age,
+            None,
+            "Resume parser implemented",
+        )
 
-    assert collector._get_recency_score(
-        now - timedelta(days=15)
-    ) == 0.4
+        evidence = collector.collect_evidence(
+            "Resume parser",
+            [event],
+            [],
+            reference_time=reference_time,
+        )
 
-    assert collector._get_recency_score(
-        now - timedelta(days=45)
-    ) == 0.2
+        assert evidence is not None
+        assert evidence.sources == ["c1"]
+        assert evidence.confidence == expected_confidence
+        assert evidence.confidence_level == expected_level

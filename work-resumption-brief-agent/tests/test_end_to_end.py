@@ -1,6 +1,7 @@
 import pytest
 
 from src.agent import WorkResumptionAgent
+from src.models import StateCategory
 
 
 @pytest.fixture
@@ -10,7 +11,6 @@ def agent():
 
 def test_end_to_end_scenario_1_contradictions(agent):
     """Full pipeline with contradictory sources."""
-
     inputs = {
         "pr_comments": [
             {
@@ -45,15 +45,27 @@ def test_end_to_end_scenario_1_contradictions(agent):
     assert brief.recommended_first_action is not None
     assert brief.confidence_overall > 0
 
+    resume_parser_state = next(
+        (
+            state
+            for state in brief.current_state
+            if state.entity == "Resume parser"
+        ),
+        None,
+    )
+
+    assert resume_parser_state is not None
+    assert resume_parser_state.state is StateCategory.COMPLETE
+
     conflict = brief.conflicts[0]
 
+    assert conflict.entity == "Resume parser"
     assert "incomplete" in conflict.claim_old.lower()
     assert "complete" in conflict.claim_new.lower()
 
 
 def test_end_to_end_scenario_2_no_conflicts(agent):
     """Full pipeline with consistent sources."""
-
     inputs = {
         "commits": [
             {

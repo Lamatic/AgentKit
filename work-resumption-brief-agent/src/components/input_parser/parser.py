@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Dict, Any
-import logging
+from src.logger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("InputParser")
 
 
 def parse_input(file_path: str) -> Dict[str, Any]:

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import List, Optional
 
@@ -37,7 +38,10 @@ class EvidenceCollector:
         supporting_events = [
             event
             for event in events
-            if self._mentions_conclusion(event.content, conclusion)
+            if self._mentions_conclusion(
+                event.content,
+                conclusion,
+            )
         ]
 
         if not supporting_events:
@@ -49,13 +53,29 @@ class EvidenceCollector:
                 reasoning="No supporting evidence found",
             )
 
-        sources = [event.source_id for event in supporting_events]
+        sources = [
+            event.source_id
+            for event in supporting_events
+        ]
 
-        source_support = min(len(supporting_events) / 3.0, 1.0)
+        source_support = min(
+            len(supporting_events) / 3.0,
+            1.0,
+        )
+
+        effective_reference_time = (
+            reference_time
+            if reference_time is not None
+            else getattr(
+                self,
+                "_reference_time",
+                None,
+            )
+        )
 
         recency_score = self._calculate_recency(
             supporting_events,
-            reference_time,
+            effective_reference_time,
         )
 
         consistency_score = self._calculate_consistency(
@@ -69,13 +89,11 @@ class EvidenceCollector:
             + consistency_score * 0.30
         ) * 100
 
-        # A single source is insufficient for a strong conclusion.
-        if len(supporting_events) == 1:
-            confidence = min(confidence, 40.0)
-
         confidence = round(confidence, 2)
 
-        confidence_level = self._get_confidence_level(confidence)
+        confidence_level = self._get_confidence_level(
+            confidence
+        )
 
         reasoning = self._build_reasoning(
             supporting_events=supporting_events,
@@ -92,25 +110,39 @@ class EvidenceCollector:
             reasoning=reasoning,
         )
 
-    def _get_recency_score(self, timestamp: datetime) -> float:
+    def _get_recency_score(
+        self,
+        timestamp: datetime,
+        reference_time: Optional[datetime] = None,
+    ) -> float:
         """Calculate recency score for a single timestamp."""
 
-        now = datetime.now(timestamp.tzinfo)
-        age = now - timestamp
-        age_hours = age.total_seconds() / 3600
+        if reference_time is None:
+            reference_time = getattr(
+                self,
+                "_reference_time",
+                None,
+            )
 
-        if age_hours <= 1:
+        if reference_time is None:
+            reference_time = datetime.now(
+                timestamp.tzinfo
+            )
+
+        age_hours = (
+            reference_time - timestamp
+        ).total_seconds() / 3600
+
+        if age_hours < 1:
             return 1.0
 
-        if age_hours <= 24:
+        if age_hours < 24:
             return 0.8
 
-        # Small tolerance prevents an exact 3-day test timestamp
-        # from crossing the boundary due to execution time.
-        if age_hours <= 73:
+        if age_hours < 24 * 7:
             return 0.6
 
-        if age_hours <= 720:
+        if age_hours < 24 * 30:
             return 0.4
 
         return 0.2
@@ -125,31 +157,15 @@ class EvidenceCollector:
         if not events:
             return 0.0
 
-        if reference_time is None:
-            return 1.0
-
         latest_event = max(
             events,
             key=lambda event: event.timestamp,
         )
 
-        age_days = (
-            reference_time - latest_event.timestamp
-        ).total_seconds() / 86400
-
-        if age_days <= 1:
-            return 1.0
-
-        if age_days <= 7:
-            return 0.8
-
-        if age_days <= 30:
-            return 0.6
-
-        if age_days <= 90:
-            return 0.4
-
-        return 0.2
+        return self._get_recency_score(
+            latest_event.timestamp,
+            reference_time,
+        )
 
     def _calculate_consistency(
         self,
@@ -164,9 +180,16 @@ class EvidenceCollector:
         conclusion_lower = conclusion.lower()
 
         for conflict in conflicts:
-            entity = getattr(conflict, "entity", "")
+            entity = getattr(
+                conflict,
+                "entity",
+                "",
+            )
 
-            if entity and entity.lower() in conclusion_lower:
+            if (
+                entity
+                and entity.lower() in conclusion_lower
+            ):
                 return 0.5
 
         return 1.0
@@ -177,10 +200,10 @@ class EvidenceCollector:
     ) -> ConfidenceLevel:
         """Convert numeric confidence into a confidence level."""
 
-        if confidence > 80:
+        if confidence >= 80:
             return ConfidenceLevel.HIGH
 
-        if confidence > 50:
+        if confidence >= 50:
             return ConfidenceLevel.MEDIUM
 
         return ConfidenceLevel.LOW
@@ -200,9 +223,16 @@ class EvidenceCollector:
             conclusion_lower = conclusion.lower()
 
             for conflict in conflicts:
-                entity = getattr(conflict, "entity", "")
+                entity = getattr(
+                    conflict,
+                    "entity",
+                    "",
+                )
 
-                if entity and entity.lower() in conclusion_lower:
+                if (
+                    entity
+                    and entity.lower() in conclusion_lower
+                ):
                     return (
                         f"Supported by {source_count} source(s), "
                         f"but conflicting evidence exists for {entity}"
@@ -231,25 +261,16 @@ class EvidenceCollector:
 
         entity_keywords = keywords[:2]
 
-        # Preserve the original matching behavior.
         if all(
             keyword in content_lower
             for keyword in entity_keywords
         ):
             return True
 
-        # Canonical entity support.
-        #
-        # The agent may prepend a canonical entity name to the
-        # latest event content when constructing the conclusion.
-        #
-        # Example:
-        #   conclusion = "Database Going back to PostgreSQL decision"
-        #   content    = "Going back to PostgreSQL decision"
-        #
-        # "Database" is the resolved canonical entity and does not
-        # necessarily occur in the original source content.
-        if len(keywords) > 2 and keywords[1] not in content_lower:
+        if (
+            len(keywords) > 2
+            and keywords[1] not in content_lower
+        ):
             supporting_keywords = keywords[1:]
 
             if supporting_keywords and all(
@@ -306,8 +327,6 @@ class EvidenceCollector:
             },
         }
 
-        # Check the first two conclusion keywords using known
-        # linguistic variants.
         if len(entity_keywords) >= 2:
             first = entity_keywords[0]
             second = entity_keywords[1]
@@ -334,18 +353,69 @@ class EvidenceCollector:
             ):
                 return True
 
-        # Check whether the conclusion's meaningful keywords are
-        # represented by their supported variants.
-        for keyword in keywords:
+        # Ignore short/function words in the fallback comparison.
+        # These words are too generic to establish meaningful
+        # evidence for a conclusion.
+        stop_words = {
+            "a",
+            "an",
+            "and",
+            "are",
+            "as",
+            "at",
+            "be",
+            "by",
+            "for",
+            "from",
+            "in",
+            "is",
+            "it",
+            "of",
+            "on",
+            "or",
+            "the",
+            "to",
+            "was",
+            "were",
+            "with",
+        }
+
+        meaningful_keywords = [
+            keyword
+            for keyword in keywords
+            if keyword.strip()
+            and keyword.strip().lower() not in stop_words
+            and len(keyword.strip()) > 2
+        ]
+
+        if not meaningful_keywords:
+            return False
+
+        # Match meaningful keywords using word boundaries.
+        # This prevents short words or phrases from matching
+        # inside unrelated words.
+        for keyword in meaningful_keywords:
             keyword_variants = variants.get(
                 keyword,
                 {keyword},
             )
 
-            if any(
-                variant in content_lower
-                for variant in keyword_variants
-            ):
-                return True
+            for variant in keyword_variants:
+                normalized_variant = variant.strip().lower()
+
+                if not normalized_variant:
+                    continue
+
+                pattern = (
+                    r"\b"
+                    + re.escape(normalized_variant)
+                    + r"\b"
+                )
+
+                if re.search(
+                    pattern,
+                    content_lower,
+                ):
+                    return True
 
         return False

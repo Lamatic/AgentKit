@@ -2,8 +2,6 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import pytest
-
 from src.components.parser import MultiSourceInputParser
 from src.agent import WorkResumptionAgent
 
@@ -30,12 +28,7 @@ def test_parser_malformed_source_does_not_crash():
         ]
     }
 
-    try:
-        result = parser.parse(inputs)
-    except Exception as exc:
-        pytest.fail(
-            f"Parser crashed on malformed source: {exc}"
-        )
+    result = parser.parse(inputs)
 
     assert isinstance(result, list)
 
@@ -71,12 +64,7 @@ def test_parser_valid_source_survives_bad_source():
         ],
     }
 
-    try:
-        result = parser.parse(inputs)
-    except Exception as exc:
-        pytest.fail(
-            f"Parser crashed because of one bad source: {exc}"
-        )
+    result = parser.parse(inputs)
 
     assert isinstance(result, list)
 
@@ -140,14 +128,9 @@ def test_entity_resolution_failure_is_handled():
                 "entity resolution failed"
             ),
         ):
-            try:
-                result = agent.process(
-                    {"commits": ["test"]}
-                )
-            except Exception as exc:
-                pytest.fail(
-                    f"Entity resolver failure crashed the agent: {exc}"
-                )
+            result = agent.process(
+                {"commits": ["test"]}
+            )
 
     assert result is not None
     assert result.confidence_overall == 0.0
@@ -181,14 +164,9 @@ def test_conflict_detection_failure_is_handled():
                     "conflict detection failed"
                 ),
             ):
-                try:
-                    result = agent.process(
-                        {"commits": ["test"]}
-                    )
-                except Exception as exc:
-                    pytest.fail(
-                        f"Conflict detector failure crashed the agent: {exc}"
-                    )
+                result = agent.process(
+                    {"commits": ["test"]}
+                )
 
     assert result is not None
 
@@ -226,13 +204,8 @@ def test_evidence_collection_failure_does_not_kill_pipeline():
                         "evidence collection failed"
                     ),
                 ):
-                    try:
-                        result = agent.process(
-                            {"commits": ["test"]}
-                        )
-                    except Exception as exc:
-                        pytest.fail(
-                            f"Evidence failure crashed the agent: {exc}"
-                        )
+                    result = agent.process(
+                        {"commits": ["test"]}
+                    )
 
     assert result is not None

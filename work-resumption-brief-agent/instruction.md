@@ -7,6 +7,29 @@ This agent automates that reconstruction using temporal reasoning and evidence c
 
 ## Approach
 
+## Approach
+8-component pipeline:
+
+**Component 1:** Parser — Normalize all source types (commits, PRs, issues, TODOs, meeting notes)
+**Component 2:** Temporal Ordering — Establish chronology with deterministic tie-breaking
+**Component 3:** Entity Resolution + Conflict Detection — Match entity mentions, detect contradictions
+**Component 4:** Evidence Collector — Calculate confidence scores (0.30 sources + 0.40 recency + 0.30 consistency)
+**Component 5:** State Reconstructor — Categorize work state (COMPLETE, IN_PROGRESS, BLOCKED, PENDING, UNCERTAIN)
+**Component 6:** Blocker Identifier — Identify obstacles preventing progress
+**Component 7:** Action Prioritizer — Generate and rank next actions (0.50 blocking + 0.30 impact + 0.20 urgency)
+**Component 8:** Brief Generator — Format output as human-readable brief
+
+## Evaluation
+7 scenarios test core functionality and edge cases with honest measured scores (not inflated).
+
+
+
+
+
+
+
+
+
 The Day 1 workflow consists of:
 
 1. API Request

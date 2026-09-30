@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
 
@@ -38,13 +38,24 @@ class ActionPrioritizer:
         "LOW": 5,
     }
 
-    def prioritize(self, actions: List[Any]) -> List[PrioritizedAction]:
-        prioritized = []
+    def prioritize(
+        self,
+        actions: List[Any],
+    ) -> List[PrioritizedAction]:
+        prioritized: List[PrioritizedAction] = []
 
         for item in actions:
             data = self._normalize(item)
 
-            action = data["action"]
+            # Skip malformed items that do not contain a usable action.
+            # This prevents KeyError from aborting prioritization for
+            # otherwise valid actions.
+            action = data.get("action")
+
+            if not isinstance(action, str) or not action.strip():
+                continue
+
+            action = action.strip()
 
             impact = self._level(data.get("impact"))
             urgency = self._level(data.get("urgency"))
@@ -54,7 +65,9 @@ class ActionPrioritizer:
             impact_score = self.IMPACT_SCORES[impact]
             urgency_score = self.URGENCY_SCORES[urgency]
 
-            confidence = self._confidence(data.get("confidence"))
+            confidence = self._confidence(
+                data.get("confidence")
+            )
 
             base_score = (
                 impact_score
@@ -72,15 +85,22 @@ class ActionPrioritizer:
                     (priority_score * 0.6)
                     + (base_score * 0.4),
                 )
+
             else:
                 score = min(100.0, base_score)
 
-                if impact == "CRITICAL" or urgency == "CRITICAL":
+                if (
+                    impact == "CRITICAL"
+                    or urgency == "CRITICAL"
+                ):
                     priority = "CRITICAL"
+
                 elif score >= 70:
                     priority = "HIGH"
+
                 elif score >= 45:
                     priority = "MEDIUM"
+
                 else:
                     priority = "LOW"
 
@@ -124,7 +144,10 @@ class ActionPrioritizer:
     ) -> List[PrioritizedAction]:
         return self.prioritize(actions)
 
-    def _normalize(self, item: Any) -> Dict[str, Any]:
+    def _normalize(
+        self,
+        item: Any,
+    ) -> Dict[str, Any]:
         if isinstance(item, dict):
             return item
 
@@ -135,14 +158,12 @@ class ActionPrioritizer:
                 return value
 
         if hasattr(item, "__dict__"):
-            return vars(item)
+            value = vars(item)
 
-        return {
-            "action": str(item),
-            "impact": "MEDIUM",
-            "urgency": "MEDIUM",
-            "confidence": 0.5,
-        }
+            if isinstance(value, dict):
+                return value
+
+        return {}
 
     def _level(self, value: Any) -> str:
         if value is None:
@@ -192,4 +213,7 @@ def prioritize_actions(
     prioritizer = ActionPrioritizer()
     results = prioritizer.prioritize(actions)
 
-    return [item.to_dict() for item in results]
+    return [
+        item.to_dict()
+        for item in results
+    ]

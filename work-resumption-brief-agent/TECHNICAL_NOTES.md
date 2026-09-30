@@ -1,108 +1,454 @@
 # Technical Notes
 
-## Confidence Scoring
+## Architecture Overview
 
-The agent calculates confidence using three weighted signals:
+The Work Resumption Brief Agent currently uses a deterministic processing
+pipeline to transform mixed development sources into a structured work
+resumption brief.
 
-confidence = 100 x (
-    0.30 x (num_sources / 3) +
-    0.40 x recency_score +
-    0.30 x consistency_score
-)
+The current implementation does not depend on an LLM for the core pipeline.
 
-### Confidence Factors
+The pipeline is designed to be:
 
-- Source count (0.30): Multiple independent sources increase confidence.
-- Recency (0.40): Recent evidence receives the highest weight.
-- Consistency (0.30): Unresolved conflicts reduce confidence.
+- Deterministic
+- Evidence-grounded
+- Reproducible
+- Testable
+- Resilient to invalid individual inputs
+- Independent of paid or external AI API keys
 
-## Why Deterministic Core + LLM Reasoning?
+The current processing flow is:
 
-- Deterministic: Parsing, temporal ordering, entity resolution, and evidence collection are reproducible, fast, and predictable.
-- LLM + Validation: State reasoning can use LLM reasoning while schema validation prevents invalid or fabricated outputs.
-- Result: Combines deterministic processing with reasoning while maintaining evidence-grounded behavior.
+1. Input parsing
+2. Temporal ordering
+3. Entity resolution
+4. Conflict detection
+5. Evidence collection
+6. State reconstruction
+7. Blocker identification
+8. Action prioritization
+9. Brief generation
 
-## Golden Rule Implementation
+Each stage receives structured data from the previous stage and produces
+structured output for the next stage.
 
-> Component failures reduce confidence; never fabricate certainty.
+---
 
-The pipeline follows this principle:
+## Deterministic Core
 
-- Parser fails: Skip the affected source and continue with available evidence.
-- Evidence missing: Confidence is reduced and the state can be marked LOW confidence.
-- Conflict unresolved: State is represented as UNCERTAIN.
-- LLM returns invalid schema: Use the fallback brief rather than accepting invalid output.
+The core components intentionally use deterministic processing.
 
-This prevents the system from presenting uncertain information as fact.
+The current implementation does not contain an LLM-based reasoning stage.
+
+The pipeline uses explicit parsing, ordering, entity matching, evidence
+aggregation, confidence calculations, state classification, blocker
+detection, prioritization, and brief generation.
+
+This makes the core processing reproducible for the same input data.
+
+---
+
+## Input Parsing
+
+The parser normalizes supported source types into `NormalizedEvent`
+objects.
+
+Supported sources include:
+
+- Commits
+- Pull request comments
+- GitHub issues
+- TODOs
+- Meeting notes
+
+Input records are validated during parsing.
+
+Invalid individual records are logged and skipped so that valid records
+from other sources can continue through the pipeline.
+
+The parser therefore prevents a malformed source record from unnecessarily
+stopping processing of otherwise usable evidence.
+
+---
+
+## Temporal Ordering
+
+Events are normalized and ordered chronologically.
+
+Timestamp values are converted into timezone-aware `datetime` values before
+being compared.
+
+The temporal ordering stage also detects significant gaps between
+consecutive events.
+
+These gaps can provide additional context when reconstructing interrupted
+work.
+
+The ordering operation is deterministic: the same valid input timestamps
+produce the same chronological ordering.
+
+---
 
 ## Entity Resolution
 
-Entity resolution uses layered matching:
+Entity resolution associates related events and evidence with the same
+logical work item.
 
-1. Exact matching
-2. Normalized matching
-3. Semantic/synonym matching
-4. Compound entity recognition
+The implementation uses deterministic matching strategies rather than
+LLM-generated entity names.
 
-Examples include resolving variations such as:
+This allows downstream components to operate on stable entity identifiers
+and reduces unsupported entity associations.
 
-- resume parser
-- resume-parser
-- Resume parsing
+Where a canonical entity map is available, downstream state reconstruction
+can use those canonical entity names instead of extracting entity names
+from free-form conclusions.
 
-to the same logical entity where the evidence supports that relationship.
+---
 
-## Temporal Reasoning
+## Conflict Detection
 
-Events from different sources are ordered using their timestamps.
+The conflict detection stage identifies contradictory evidence associated
+with the same entity.
 
-When contradictory claims are found, newer evidence is treated as authoritative for the resolution. The system preserves the conflicting claims and their timestamps rather than silently discarding the earlier evidence.
+Examples include evidence indicating that a task is complete while other
+evidence indicates that the same task remains unresolved.
 
-## Blocker Impact Assessment
+Conflicts are preserved as explicit structured data rather than silently
+discarded.
 
-Blocked work is evaluated for downstream impact.
+Downstream state reconstruction can use these conflicts when determining
+whether the current state should be represented as uncertain.
 
-Known dependency relationships are used to identify affected downstream tasks. High-impact blockers are explicitly represented in the generated brief.
+The system does not resolve contradictory evidence by inventing an
+unsupported conclusion.
 
-## Evaluation
+---
 
-The project includes 7 evaluation scenarios covering:
+## Evidence Collection
 
-- Contradictory sources
-- Outdated decisions
-- Insufficient evidence
-- Multiple blockers
-- Competing actions
-- No clear action
-- False conflict detection
+Evidence collection combines available information for each logical
+entity.
 
-### Actual Evaluation Results
+Evidence remains associated with its originating source identifiers so
+that resulting work states can remain traceable to the original inputs.
 
-The current measured evaluation score is:
+Confidence is calculated using deterministic scoring rules based on the
+available evidence.
 
-100.0% across 7 scenarios
+The evidence collector does not generate unsupported evidence when
+information is missing.
 
-The results are reported from the latest verified evaluation run.
+When evidence is incomplete, the resulting confidence can be reduced
+rather than replaced with fabricated certainty.
 
-See:
+---
 
-- evaluation/evaluation_report.md
-- evaluation/results.json
+## State Reconstruction
 
-for the detailed evaluation results.
+State reconstruction converts collected evidence into `WorkState` objects.
 
-## Testing
+Possible states include:
 
-The project currently has:
+- `COMPLETE`
+- `IN_PROGRESS`
+- `BLOCKED`
+- `UNCERTAIN`
+- `PENDING`
 
-73 automated tests passing.
+The state is determined from available evidence, confidence, and detected
+conflicts.
 
-The test suite covers individual components as well as end-to-end pipeline behavior.
+If evidence contains supported blocking or unresolved conditions, the
+entity can be classified as `BLOCKED`.
 
-## Design Principle
+If conflicting evidence remains unresolved, the entity can be classified
+as `UNCERTAIN`.
 
-The primary design principle is:
+Confidence is calculated from the available evidence rather than from
+assumptions about the work.
 
-> Evidence should determine confidence, and uncertainty should be represented rather than hidden.
+The implementation does not claim certainty when the available evidence
+does not support it.
 
-The system is designed to help developers resume interrupted work without presenting unsupported conclusions as certain facts.
+---
+
+## Blocker Identification
+
+The blocker identification stage analyzes reconstructed states and
+evidence to identify conditions that may prevent progress.
+
+Blockers are derived from the available structured evidence and detected
+state information.
+
+The component does not invent blockers that are not supported by the
+input evidence.
+
+The resulting blockers can be passed to the action prioritization stage
+to help determine the most useful next action.
+
+---
+
+## Action Prioritization
+
+The action prioritizer converts reconstructed work states and identified
+blockers into prioritized next actions.
+
+Priority is determined from the available deterministic signals.
+
+The purpose of prioritization is to identify the most useful next
+concrete task while preserving the relationship between the action and
+the evidence supporting it.
+
+The prioritizer does not require an external AI model or paid API key.
+
+---
+
+## Brief Generation
+
+The brief generator produces the final structured resumption brief.
+
+The brief summarizes information produced by the preceding deterministic
+pipeline.
+
+The output can contain:
+
+- Current work state
+- Open decisions
+- Blockers
+- Prioritized next actions
+- Risks and assumptions
+- Suggested first concrete task
+
+The generated brief is based on structured results produced by the
+pipeline.
+
+The current implementation does not require an LLM to generate or
+validate the core pipeline result.
+
+---
+
+## Error Handling Principle
+
+The project follows the following principle:
+
+> Component failures reduce confidence; they do not justify fabricated
+> certainty.
+
+The pipeline handles failures as follows.
+
+### Parser Failure
+
+An invalid source record is logged and skipped while valid records
+continue to be processed.
+
+### Missing Evidence
+
+Missing evidence does not result in fabricated information.
+
+The resulting state may have reduced confidence or remain pending when
+there is insufficient information to establish a stronger state.
+
+### Conflicting Evidence
+
+Conflicting information is preserved as structured conflict data.
+
+When conflicting evidence remains unresolved, the state can be represented
+as `UNCERTAIN` rather than forcing an unsupported conclusion.
+
+### Empty Input
+
+When there is no usable input, the pipeline can return an appropriate
+empty or fallback result instead of inventing work activity.
+
+---
+
+## Evidence-Grounded Design
+
+The pipeline is designed so that meaningful states, blockers, and
+recommended actions are derived from structured evidence available to the
+system.
+
+The design therefore favors:
+
+- Explicit source identifiers
+- Deterministic transformations
+- Confidence scoring
+- Conflict preservation
+- Conservative state classification
+- Graceful handling of missing data
+
+This approach keeps the output traceable to the information supplied to
+the pipeline.
+
+For the same valid input, deterministic processing should produce
+reproducible results.
+
+---
+
+## Current AI/LLM Scope
+
+The current Work Resumption Brief Agent implementation does not contain an
+LLM-based reasoning component.
+
+The current implementation is a deterministic pipeline.
+
+No current component should be interpreted as performing:
+
+- LLM reasoning
+- LLM-generated entity resolution
+- LLM-based schema validation
+- Model-generated fallback behavior
+- LLM-generated evidence
+- Model-based state reconstruction
+
+The current pipeline does not require a paid AI API key or an external
+LLM service for its core processing.
+
+This documentation intentionally describes only functionality implemented
+in the current system.
+
+---
+
+## Future LLM Integration
+
+LLM-based functionality may be considered as a future enhancement.
+
+A future implementation could use an LLM for tasks such as:
+
+- Higher-level interpretation of evidence
+- More flexible natural-language summarization
+- Improved action wording
+- Semantic reasoning across heterogeneous sources
+- Natural-language explanation of conflicts
+
+If an LLM is introduced in the future, it should operate on top of the
+deterministic evidence pipeline rather than replace evidence traceability.
+
+A future LLM integration should include:
+
+- Explicit input and output schemas
+- Response validation
+- Safe fallback behavior
+- Evidence references
+- Handling of invalid model responses
+- Tests covering malformed model output
+- Clear separation between model-generated interpretation and deterministic
+  source data
+
+These capabilities are future design considerations and are not part of
+the current implementation unless they are explicitly implemented and
+tested.
+
+---
+
+## Design Principles
+
+### 1. Evidence Over Assumptions
+
+The system should prefer available evidence over inferred or fabricated
+information.
+
+### 2. Determinism
+
+Core transformations should produce reproducible results for the same
+inputs.
+
+### 3. Traceability
+
+Important output should remain connected to its originating evidence.
+
+### 4. Graceful Degradation
+
+Failure of one input or component should not unnecessarily discard valid
+information from other sources.
+
+### 5. Conservative Confidence
+
+When evidence is insufficient or contradictory, the system should reduce
+confidence or represent uncertainty rather than claim certainty.
+
+### 6. Explicit Conflicts
+
+Contradictory evidence should be preserved so that downstream processing
+can represent uncertainty instead of silently choosing one unsupported
+interpretation.
+
+### 7. Testability
+
+Each processing stage should be independently testable, with end-to-end
+tests validating the complete pipeline.
+
+### 8. No Fabricated Evidence
+
+The system should not create evidence, activity, blockers, decisions, or
+work states that are not supported by the available input.
+
+---
+
+## Testing Strategy
+
+The project uses unit and integration tests to validate the deterministic
+pipeline.
+
+Tests cover areas including:
+
+- Input parsing
+- Invalid input handling
+- Timestamp processing
+- Temporal ordering
+- Entity resolution
+- Conflict detection
+- Evidence collection
+- State reconstruction
+- Blocker identification
+- Action prioritization
+- Brief generation
+- End-to-end pipeline behavior
+
+The test suite is the source of truth for implemented behavior.
+
+Documentation should not claim functionality that is not implemented and
+tested.
+
+Changes to the deterministic pipeline should be accompanied by appropriate
+tests to verify that existing behavior remains intact.
+
+---
+
+## Current Processing Pipeline
+
+The current implementation can be represented as:
+
+```text
+Input Sources
+     |
+     v
+Input Parsing
+     |
+     v
+Temporal Ordering
+     |
+     v
+Entity Resolution
+     |
+     v
+Conflict Detection
+     |
+     v
+Evidence Collection
+     |
+     v
+State Reconstruction
+     |
+     v
+Blocker Identification
+     |
+     v
+Action Prioritization
+     |
+     v
+Brief Generation
+     |
+     v
+Structured Resumption Brief

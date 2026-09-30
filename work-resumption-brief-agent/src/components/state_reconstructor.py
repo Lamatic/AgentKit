@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List, Optional
 
 from src.logger import setup_logger
@@ -77,7 +78,13 @@ class StateReconstructor:
             )
 
             has_blocker_evidence = any(
-                any(term in conclusion for term in blocker_terms)
+                any(
+                    re.search(
+                        rf"\b{re.escape(term)}\b",
+                        conclusion,
+                    )
+                    for term in blocker_terms
+                )
                 for conclusion in conclusions
             )
 

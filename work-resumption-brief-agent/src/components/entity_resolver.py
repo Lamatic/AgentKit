@@ -1,13 +1,22 @@
+import re
+from typing import Dict, List, Optional
+
 from src.logger import setup_logger
 from src.models import NormalizedEvent
-from typing import Dict, List, Optional
 
 
 logger = setup_logger("EntityResolver")
 
 
 class EntityResolver:
-    """Resolve entity mentions across sources using layered matching."""
+    """Resolve entity mentions across sources using layered matching.
+
+    Layers:
+    1. Exact match (case-sensitive)
+    2. Normalized match (lowercase / underscore)
+    3. Semantic match (synonyms)
+    4. UNCERTAIN (no match → keep original candidate)
+    """
 
     GENERIC_CANDIDATES = {
         "use",
@@ -36,27 +45,85 @@ class EntityResolver:
         "decision",
     }
 
-    def __init__(self):
+    COMPOUND_PHRASES = {
+        "rest api schema": "API schema",
+        "api schema": "API schema",
+        "schema api": "API schema",
+        "resume parser": "Resume parser",
+        "resume parsing": "Resume parser",
+        "database": "Database",
+        "postgresql": "Database",
+        "postgres": "Database",
+        "sqlite": "Database",
+        "mysql": "Database",
+        "mongodb": "Database",
+        "mongo": "Database",
+        "schema": "Schema",
+        "tests": "Tests",
+        "testing": "Tests",
+        "feature x": "Feature X",
+        "performance": "Performance",
+    }
+
+    def __init__(self) -> None:
+        """Initialize synonym map and known compound entities."""
+
         self.synonym_map = {
             "parser": [
                 "resume parser",
                 "parsing engine",
                 "parse",
+                "extraction",
+                "parser component",
             ],
             "api": [
                 "rest api",
                 "endpoint",
                 "service",
+                "interface",
+                "backend",
             ],
             "schema": [
                 "data structure",
                 "format",
                 "model",
+                "design",
+                "schema",
             ],
             "test": [
                 "testing",
                 "unit test",
                 "integration test",
+                "qa",
+                "test suite",
+            ],
+            "implementation": [
+                "implement",
+                "build",
+                "create",
+                "add",
+                "development",
+            ],
+            "validation": [
+                "validate",
+                "validation",
+                "check",
+                "verify",
+                "verification",
+            ],
+            "database": [
+                "db",
+                "database",
+                "postgres",
+                "sql",
+                "storage",
+            ],
+            "authentication": [
+                "auth",
+                "login",
+                "security",
+                "token",
+                "jwt",
             ],
         }
 
@@ -72,20 +139,23 @@ class EntityResolver:
         self,
         events: List[NormalizedEvent],
     ) -> Dict[str, List[str]]:
-        """Resolve entities across normalized events."""
+        """Map entity mentions to canonical entities across events.
 
-        entity_map = {}
+        Args:
+            events: List of normalized events containing entity candidates.
+
+        Returns:
+            Dictionary mapping canonical entity names to lists of source IDs.
+
+        Raises:
+            ValueError: If events list is empty or contains invalid items.
+        """
+        entity_map: Dict[str, List[str]] = {}
 
         for event in events:
             content = event.content or ""
             candidates = event.entity_candidates or []
 
-            # Recover a meaningful work entity when the parser
-            # extracted only a generic action word.
-            #
-            # Example:
-            #   "Add benchmarks" -> parser extracts ["Add"]
-            #   "benchmarks" is the actual work entity.
             if (
                 len(candidates) == 1
                 and self._is_generic_candidate(candidates[0])
@@ -234,8 +304,14 @@ class EntityResolver:
         return entity_map
 
     def _normalize(self, text: str) -> str:
-        """Normalize entity text for comparison."""
+        """Normalize entity text for comparison.
 
+        Args:
+            text: Raw entity string.
+
+        Returns:
+            Lowercased, underscore-normalized string.
+        """
         return (
             text.strip()
             .lower()
@@ -247,8 +323,14 @@ class EntityResolver:
         self,
         candidate: str,
     ) -> bool:
-        """Check whether a candidate is a generic action/connector word."""
+        """Check whether a candidate is a generic action/connector word.
 
+        Args:
+            candidate: Entity candidate string.
+
+        Returns:
+            True if the candidate is considered generic noise.
+        """
         normalized = (
             candidate.strip()
             .lower()
@@ -262,8 +344,14 @@ class EntityResolver:
         self,
         candidate: str,
     ) -> Optional[str]:
-        """Map known technology/entity variants to logical entities."""
+        """Map known technology/entity variants to logical entities.
 
+        Args:
+            candidate: Entity candidate string.
+
+        Returns:
+            Canonical entity name, or None if no mapping exists.
+        """
         normalized = (
             candidate.strip()
             .lower()
@@ -290,8 +378,14 @@ class EntityResolver:
         self,
         candidate: str,
     ) -> Optional[str]:
-        """Return the canonical form of a compound entity."""
+        """Return the canonical form of a compound entity.
 
+        Args:
+            candidate: Entity candidate string.
+
+        Returns:
+            Canonical compound name, or None.
+        """
         normalized = self._normalize(candidate)
 
         return self.compound_entities.get(normalized)
@@ -300,8 +394,14 @@ class EntityResolver:
         self,
         text: str,
     ) -> Optional[str]:
-        """Find known logical entities directly in source text."""
+        """Find known logical entities directly in source text.
 
+        Args:
+            text: Raw event content.
+
+        Returns:
+            Detected compound entity name, or None.
+        """
         normalized_text = (
             text.strip()
             .lower()
@@ -309,56 +409,23 @@ class EntityResolver:
             .replace("-", " ")
         )
 
-        if "rest api schema" in normalized_text:
-            return "API schema"
+        normalized_text = re.sub(
+            r"\s+",
+            " ",
+            normalized_text,
+        )
 
-        if "api schema" in normalized_text:
-            return "API schema"
+        aliases = sorted(
+            self.COMPOUND_PHRASES.items(),
+            key=lambda item: len(item[0]),
+            reverse=True,
+        )
 
-        if "schema api" in normalized_text:
-            return "API schema"
+        for phrase, canonical_entity in aliases:
+            pattern = rf"\b{re.escape(phrase)}\b"
 
-        if "resume parser" in normalized_text:
-            return "Resume parser"
-
-        if "resume parsing" in normalized_text:
-            return "Resume parser"
-
-        if "database" in normalized_text:
-            return "Database"
-
-        if "postgresql" in normalized_text:
-            return "Database"
-
-        if "postgres" in normalized_text:
-            return "Database"
-
-        if "sqlite" in normalized_text:
-            return "Database"
-
-        if "mysql" in normalized_text:
-            return "Database"
-
-        if "mongodb" in normalized_text:
-            return "Database"
-
-        if "mongo" in normalized_text:
-            return "Database"
-
-        if "schema" in normalized_text:
-            return "Schema"
-
-        if "tests" in normalized_text:
-            return "Tests"
-
-        if "testing" in normalized_text:
-            return "Tests"
-
-        if "feature x" in normalized_text:
-            return "Feature X"
-
-        if "performance" in normalized_text:
-            return "Performance"
+            if re.search(pattern, normalized_text):
+                return canonical_entity
 
         return None
 
@@ -366,8 +433,14 @@ class EntityResolver:
         self,
         candidates: List[str],
     ) -> Optional[str]:
-        """Find compound entities among extracted candidates."""
+        """Find compound entities among extracted candidates.
 
+        Args:
+            candidates: List of entity candidate strings.
+
+        Returns:
+            Detected compound entity name, or None.
+        """
         normalized_candidates = {
             self._normalize(candidate)
             for candidate in candidates
@@ -394,8 +467,14 @@ class EntityResolver:
         self,
         candidate: str,
     ) -> Optional[str]:
-        """Resolve known synonyms to canonical entities."""
+        """Resolve known synonyms to canonical entities.
 
+        Args:
+            candidate: Entity candidate string.
+
+        Returns:
+            Canonical entity name from synonym map, or None.
+        """
         candidate_lower = candidate.strip().lower()
 
         for key, synonyms in self.synonym_map.items():
@@ -412,8 +491,11 @@ class EntityResolver:
         self,
         entity_map: Dict[str, List[str]],
     ) -> None:
-        """Merge separate API and schema entities."""
+        """Merge separate API and schema entities into a single compound.
 
+        Args:
+            entity_map: Mutable dictionary of entity → source IDs.
+        """
         api_key = None
         schema_key = None
         compound_key = None

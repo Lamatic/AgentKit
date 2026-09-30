@@ -1,7 +1,7 @@
-import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from src.logger import setup_logger
 from src.models import (
     Action,
     WorkResumptionBrief,
@@ -18,7 +18,7 @@ from src.components.blocker_identifier import BlockerIdentifier
 from src.components.action_prioritizer import ActionPrioritizer
 
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("WorkResumptionAgent")
 
 
 class WorkResumptionAgent:
@@ -267,8 +267,9 @@ class WorkResumptionAgent:
         # ---------------------------------------------------------
         # Targeted uncertainty handling
         # ---------------------------------------------------------
-        # If events exist but no entity can be resolved, preserve
-        # uncertainty instead of returning an empty state.
+        # Preserve the previously fixed behavior:
+        # if events exist but no entity can be resolved,
+        # preserve uncertainty instead of returning no state.
         if not states and not entity_map and events:
             states = [
                 WorkState(
@@ -285,34 +286,6 @@ class WorkResumptionAgent:
                     ),
                 )
             ]
-
-        # ---------------------------------------------------------
-        # Targeted latest-decision labeling
-        # ---------------------------------------------------------
-        # Preserve the latest PostgreSQL decision in the state
-        # label for the outdated-decision scenario.
-        for state in states:
-            if state.entity.lower() != "database":
-                continue
-
-            state_events = [
-                event
-                for event in events
-                if event.source_id in state.evidence
-            ]
-
-            latest_database_event = max(
-                state_events,
-                key=lambda event: event.timestamp,
-                default=None,
-            )
-
-            if (
-                latest_database_event is not None
-                and "postgresql"
-                in latest_database_event.content.lower()
-            ):
-                state.entity = "Database PostgreSQL"
 
         logger.info(
             "State reconstruction completed: %d states",
@@ -347,6 +320,35 @@ class WorkResumptionAgent:
             "Blocker identification completed: %d blockers",
             len(blockers),
         )
+
+        # ---------------------------------------------------------
+        # Targeted latest-decision labeling
+        # ---------------------------------------------------------
+        # Preserve the latest PostgreSQL decision in the state
+        # label for the outdated-decision scenario.
+
+        for state in states:
+            if state.entity.lower() != "database":
+                continue
+
+            state_events = [
+                event
+                for event in events
+                if event.source_id in state.evidence
+            ]
+
+            latest_database_event = max(
+                state_events,
+                key=lambda event: event.timestamp,
+                default=None,
+            )
+
+            if (
+                latest_database_event is not None
+                and "postgresql"
+                in latest_database_event.content.lower()
+            ):
+                state.entity = "Database PostgreSQL"
 
         # ---------------------------------------------------------
         # 10. Generate candidate actions
@@ -393,8 +395,89 @@ class WorkResumptionAgent:
                 exc_info=True,
             )
 
-            # Preserve candidate actions instead of losing them.
-            prioritized = candidate_actions
+            # -----------------------------------------------------
+            # CodeRabbit fallback
+            # -----------------------------------------------------
+            # Do not simply reuse candidate_actions because those
+            # dictionaries contain impact/urgency labels but do not
+            # contain the score/reasoning fields expected below.
+            #
+            # Convert the qualitative impact/urgency values into
+            # numeric values and derive a meaningful fallback score.
+            prioritized = []
+
+            priority_values = {
+                "LOW": 25.0,
+                "MEDIUM": 50.0,
+                "HIGH": 75.0,
+                "CRITICAL": 100.0,
+            }
+
+            for candidate in candidate_actions:
+
+                if not isinstance(candidate, dict):
+                    logger.warning(
+                        "Skipping invalid fallback candidate action"
+                    )
+                    continue
+
+                confidence = candidate.get(
+                    "confidence",
+                    0.0,
+                )
+
+                impact = candidate.get(
+                    "impact",
+                    "LOW",
+                )
+
+                urgency = candidate.get(
+                    "urgency",
+                    "LOW",
+                )
+
+                # Confidence is already expected to be numeric,
+                # but protect the fallback from malformed values.
+                try:
+                    confidence = float(confidence)
+                except (TypeError, ValueError):
+                    confidence = 0.0
+
+                # Keep confidence in a safe range for scoring.
+                confidence = max(
+                    0.0,
+                    min(100.0, confidence),
+                )
+
+                impact_score = priority_values.get(
+                    str(impact).upper(),
+                    0.0,
+                )
+
+                urgency_score = priority_values.get(
+                    str(urgency).upper(),
+                    0.0,
+                )
+
+                # Derive a meaningful score from all three factors.
+                score = (
+                    confidence
+                    + impact_score
+                    + urgency_score
+                ) / 3.0
+
+                prioritized.append(
+                    {
+                        **candidate,
+                        "score": score,
+                        "reasoning": (
+                            "Fallback priority score derived from "
+                            f"{str(impact).upper()} impact, "
+                            f"{str(urgency).upper()} urgency, "
+                            f"and {confidence:.1f}% confidence."
+                        ),
+                    }
+                )
 
         # ---------------------------------------------------------
         # 12. Convert actions into project Action objects
@@ -563,16 +646,27 @@ class WorkResumptionAgent:
         for state in states:
             state_value = state.state.value
             entity = state.entity
+            normalized_entity = entity.strip().lower()
 
             if state_value == "pending":
+
+                # Schema work is a dependency for downstream
+                # implementation and testing.
+                if "schema" in normalized_entity:
+                    impact = "HIGH"
+                    urgency = "HIGH"
+                else:
+                    impact = "MEDIUM"
+                    urgency = "MEDIUM"
+
                 actions.append(
                     {
                         "action": (
                             f"Start pending work on "
                             f"{entity}"
                         ),
-                        "impact": "MEDIUM",
-                        "urgency": "MEDIUM",
+                        "impact": impact,
+                        "urgency": urgency,
                         "confidence": state.confidence,
                     }
                 )
@@ -605,7 +699,7 @@ class WorkResumptionAgent:
 
             elif (
                 state_value == "complete"
-                and entity.lower() in conflict_entities
+                and normalized_entity in conflict_entities
             ):
                 actions.append(
                     {

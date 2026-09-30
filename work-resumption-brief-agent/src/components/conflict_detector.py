@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 from src.logger import setup_logger
@@ -54,13 +55,13 @@ class ConflictDetector:
 
             ordered_events = sorted(
                 events,
-                key=lambda event: event.timestamp
+                key=lambda event: event.timestamp,
             )
 
             claims = [
                 (
                     event,
-                    self._extract_state(event.content)
+                    self._extract_state(event.content),
                 )
                 for event in ordered_events
             ]
@@ -79,38 +80,37 @@ class ConflictDetector:
                         older_state,
                         newer_state,
                     ):
-                        contradictory_events.append(
-                            newer_event
-                        )
+                        contradictory_events.append(newer_event)
 
                 if not contradictory_events:
                     continue
 
                 latest_event = max(
                     contradictory_events,
-                    key=lambda event: event.timestamp
+                    key=lambda event: event.timestamp,
                 )
 
-                conflict = Conflict(
-                    entity=entity,
-                    claim_old=older_event.content,
-                    claim_new=latest_event.content,
-                    timestamp_old=older_event.timestamp,
-                    timestamp_new=latest_event.timestamp,
-                    resolution=(
-                        f"Newer claim ({latest_event.timestamp}) "
-                        "overrides older claim "
-                        f"({older_event.timestamp})"
-                    ),
-                    confidence=0.9,
+                conflicts.append(
+                    Conflict(
+                        entity=entity,
+                        claim_old=older_event.content,
+                        claim_new=latest_event.content,
+                        timestamp_old=older_event.timestamp,
+                        timestamp_new=latest_event.timestamp,
+                        resolution=(
+                            f"Newer claim ({latest_event.timestamp}) "
+                            "overrides older claim "
+                            f"({older_event.timestamp})"
+                        ),
+                        confidence=0.9,
+                    )
                 )
-
-                conflicts.append(conflict)
 
                 break
 
         logger.info(
-            f"Detected {len(conflicts)} conflicts"
+            "Detected %d conflicts",
+            len(conflicts),
         )
 
         return conflicts
@@ -119,32 +119,37 @@ class ConflictDetector:
         self,
         text: str,
     ) -> str:
-        """Extract the state claim from text."""
+        """Extract the state claim using word-boundary matching."""
 
         text_lower = text.lower()
+
+        def matches_phrase(phrase: str) -> bool:
+            """Return True when the complete phrase is present."""
+            pattern = rf"\b{re.escape(phrase.lower())}\b"
+            return re.search(pattern, text_lower) is not None
 
         # Check negative states first so phrases such as
         # "not implemented" are not classified as implemented.
         if any(
-            phrase in text_lower
+            matches_phrase(phrase)
             for phrase in self.SYNONYMS["not_implemented"]
         ):
             return "not_implemented"
 
         if any(
-            phrase in text_lower
+            matches_phrase(phrase)
             for phrase in self.SYNONYMS["blocked"]
         ):
             return "blocked"
 
         if any(
-            phrase in text_lower
+            matches_phrase(phrase)
             for phrase in self.SYNONYMS["not_blocked"]
         ):
             return "not_blocked"
 
         if any(
-            phrase in text_lower
+            matches_phrase(phrase)
             for phrase in self.SYNONYMS["implemented"]
         ):
             return "implemented"

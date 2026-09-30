@@ -1,6 +1,7 @@
-from src.logger import setup_logger
-from src.models import Blocker, WorkState, SourceType
 from typing import Dict, List, Optional
+
+from src.logger import setup_logger
+from src.models import Blocker, WorkState
 
 
 logger = setup_logger("BlockerIdentifier")
@@ -16,9 +17,8 @@ class BlockerIdentifier:
     ) -> List[Blocker]:
         """Find blocked work and detect stale implementations."""
 
-        blockers = []
+        blockers: List[Blocker] = []
 
-        # Preserve the existing blocked-state behavior.
         for state in states:
             if state.state.value != "blocked":
                 continue
@@ -27,7 +27,7 @@ class BlockerIdentifier:
 
             impact = self._assess_impact(
                 state.entity,
-                states
+                states,
             )
 
             blockers.append(
@@ -36,17 +36,15 @@ class BlockerIdentifier:
                     affected_work=state.entity,
                     impact=impact,
                     evidence=state.evidence,
-                    confidence=0.85
+                    confidence=0.85,
                 )
             )
 
-        # Detect a decision that was reverted after code was changed
-        # to an incompatible implementation.
         if events_by_entity:
             for entity, events in events_by_entity.items():
                 stale_blocker = self._detect_stale_decision(
                     entity,
-                    events
+                    events,
                 )
 
                 if stale_blocker is None:
@@ -72,7 +70,7 @@ class BlockerIdentifier:
 
         ordered_events = sorted(
             events,
-            key=lambda event: event.timestamp
+            key=lambda event: event.timestamp,
         )
 
         decisions = []
@@ -109,6 +107,7 @@ class BlockerIdentifier:
                     latest_event.source_id,
                 ],
                 confidence=0.90,
+                entity=entity,
             )
 
         return None
@@ -116,9 +115,9 @@ class BlockerIdentifier:
     def _assess_impact(
         self,
         entity: str,
-        states: List[WorkState]
+        states: List[WorkState],
     ) -> str:
-        """Assess how many incomplete tasks depend on the blocked entity."""
+        """Assess the severity based on incomplete dependent work."""
 
         canonical_entity = self._canonical_entity(entity)
 
@@ -162,7 +161,7 @@ class BlockerIdentifier:
 
         dependent_entities = dependency_map.get(
             canonical_entity,
-            set()
+            set(),
         )
 
         dependents = []
@@ -181,11 +180,10 @@ class BlockerIdentifier:
         if len(dependents) >= 2:
             return "HIGH"
 
-
         if len(dependents) == 1:
-            return "Blocks 1 downstream task"
+            return "MEDIUM"
 
-        return "No direct dependents identified"
+        return "LOW"
 
     def _canonical_entity(self, entity: str) -> str:
         """Normalize entity names for dependency matching."""

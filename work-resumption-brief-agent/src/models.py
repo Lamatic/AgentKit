@@ -201,6 +201,7 @@ class Blocker:
     impact: str
     evidence: List[str] = field(default_factory=list)
     confidence: float = 0.0
+    entity: Optional[str] = None
 
     def __post_init__(self):
         """Validate blocker data."""
@@ -217,6 +218,14 @@ class Blocker:
         if not isinstance(self.impact, str) or not self.impact.strip():
             raise ValueError("Impact cannot be empty")
 
+        # ADD THIS HERE
+        if self.entity is None:
+            self.entity = self.affected_work
+
+        if self.entity is not None:
+            if not isinstance(self.entity, str) or not self.entity.strip():
+                raise ValueError("Entity cannot be empty")
+
         if not isinstance(self.confidence, (int, float)):
             raise ValueError("Confidence must be a number")
 
@@ -225,8 +234,6 @@ class Blocker:
 
         if not 0 <= self.confidence <= 1:
             raise ValueError("Confidence must be between 0 and 1")
-
-
 @dataclass
 class Action:
     """Represents a recommended action."""
