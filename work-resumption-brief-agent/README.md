@@ -54,12 +54,19 @@ Instead of simply summarizing individual messages, the system processes the info
 The implemented system uses an 8-component processing pipeline:
 
 1. **Parser** — Normalizes supported source types into a common event representation.
+
 2. **Temporal Ordering** — Establishes chronological ordering with deterministic ordering rules.
+
 3. **Entity Resolution + Conflict Detection** — Resolves references to the same entities and identifies contradictions.
+
 4. **Evidence Collection** — Collects supporting evidence and calculates confidence.
+
 5. **State Reconstruction** — Reconstructs the current state of work.
+
 6. **Blocker Identification** — Identifies blockers and assesses downstream impact.
+
 7. **Action Prioritization** — Generates and ranks candidate next actions.
+
 8. **Brief Generation** — Produces the structured work-resumption brief and API response.
 
 The components operate as a staged pipeline. Some components perform multiple related processing operations, so individual operations such as source normalization, conflict detection, action generation, and confidence calculation are not counted as additional pipeline components.
@@ -194,8 +201,8 @@ The implemented architecture follows the 8-component pipeline described above.
             |
             v
 +------------------------+
-| Entity Resolution +   |
-| Conflict Detection    |
+| Entity Resolution +    |
+| Conflict Detection     |
 +-----------+------------+
             |
             v
@@ -225,3 +232,4 @@ The implemented architecture follows the 8-component pipeline described above.
 |   Structured API       |
 |       Response         |
 +------------------------+
+```
