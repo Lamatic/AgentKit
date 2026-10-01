@@ -11,6 +11,7 @@ class PrioritizedAction:
     urgency: str
     reason: str
     source: Optional[str] = None
+    blocking: str = "MEDIUM"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -24,18 +25,25 @@ class ActionPrioritizer:
         "LOW": 40,
     }
 
+    BLOCKING_SCORES = {
+        "CRITICAL": 100,
+        "HIGH": 80,
+        "MEDIUM": 60,
+        "LOW": 40,
+    }
+
     IMPACT_SCORES = {
-        "CRITICAL": 40,
-        "HIGH": 30,
-        "MEDIUM": 20,
-        "LOW": 10,
+        "CRITICAL": 100,
+        "HIGH": 80,
+        "MEDIUM": 60,
+        "LOW": 40,
     }
 
     URGENCY_SCORES = {
-        "CRITICAL": 30,
-        "HIGH": 25,
-        "MEDIUM": 15,
-        "LOW": 5,
+        "CRITICAL": 100,
+        "HIGH": 80,
+        "MEDIUM": 60,
+        "LOW": 40,
     }
 
     def prioritize(
@@ -47,9 +55,6 @@ class ActionPrioritizer:
         for item in actions:
             data = self._normalize(item)
 
-            # Skip malformed items that do not contain a usable action.
-            # This prevents KeyError from aborting prioritization for
-            # otherwise valid actions.
             action = data.get("action")
 
             if not isinstance(action, str) or not action.strip():
@@ -57,57 +62,47 @@ class ActionPrioritizer:
 
             action = action.strip()
 
-            impact = self._level(data.get("impact"))
-            urgency = self._level(data.get("urgency"))
+            # The blocking field is the primary source for blocker
+            # precedence. For backward compatibility with existing
+            # action data, priority is its documented fallback encoding.
+            blocking_value = data.get("blocking")
 
-            explicit_priority = data.get("priority")
+            if blocking_value is None:
+                blocking_value = data.get("priority")
 
+            blocking = self._level(blocking_value)
+
+            impact = self._level(
+                data.get("impact")
+            )
+
+            urgency = self._level(
+                data.get("urgency")
+            )
+
+            blocking_score = self.BLOCKING_SCORES[blocking]
             impact_score = self.IMPACT_SCORES[impact]
             urgency_score = self.URGENCY_SCORES[urgency]
 
-            confidence = self._confidence(
-                data.get("confidence")
+            # Required prioritization formula:
+            # 50% blocking + 30% impact + 20% urgency.
+            score = (
+                (blocking_score * 0.50)
+                + (impact_score * 0.30)
+                + (urgency_score * 0.20)
             )
 
-            base_score = (
-                impact_score
-                + urgency_score
-                + (confidence * 30)
+            score = min(100.0, score)
+
+            priority = self._priority_from_score(
+                score=score,
+                blocking=blocking,
             )
-
-            if explicit_priority is not None:
-                priority = self._level(explicit_priority)
-
-                priority_score = self.PRIORITY_SCORES[priority]
-
-                score = min(
-                    100.0,
-                    (priority_score * 0.6)
-                    + (base_score * 0.4),
-                )
-
-            else:
-                score = min(100.0, base_score)
-
-                if (
-                    impact == "CRITICAL"
-                    or urgency == "CRITICAL"
-                ):
-                    priority = "CRITICAL"
-
-                elif score >= 70:
-                    priority = "HIGH"
-
-                elif score >= 45:
-                    priority = "MEDIUM"
-
-                else:
-                    priority = "LOW"
 
             reason = self._build_reason(
+                blocking=blocking,
                 impact=impact,
                 urgency=urgency,
-                confidence=confidence,
             )
 
             prioritized.append(
@@ -119,6 +114,7 @@ class ActionPrioritizer:
                     urgency=urgency,
                     reason=reason,
                     source=data.get("source"),
+                    blocking=blocking,
                 )
             )
 
@@ -165,45 +161,69 @@ class ActionPrioritizer:
 
         return {}
 
-    def _level(self, value: Any) -> str:
+    def _level(
+        self,
+        value: Any,
+    ) -> str:
         if value is None:
             return "MEDIUM"
+
+        if isinstance(value, bool):
+            return "CRITICAL" if value else "LOW"
 
         value = str(value).upper().strip()
 
         aliases = {
             "CRITICAL": "CRITICAL",
             "SEVERE": "CRITICAL",
+
             "HIGH": "HIGH",
             "IMPORTANT": "HIGH",
+
             "MEDIUM": "MEDIUM",
             "MODERATE": "MEDIUM",
+
             "LOW": "LOW",
             "MINOR": "LOW",
+
+            "TRUE": "CRITICAL",
+            "FALSE": "LOW",
+
+            "BLOCKED": "CRITICAL",
+            "BLOCKING": "CRITICAL",
+            "NOT_BLOCKING": "LOW",
+            "UNBLOCKED": "LOW",
         }
 
         return aliases.get(value, "MEDIUM")
 
-    def _confidence(self, value: Any) -> float:
-        try:
-            confidence = float(value)
-        except (TypeError, ValueError):
-            return 0.5
+    def _priority_from_score(
+        self,
+        score: float,
+        blocking: str,
+    ) -> str:
+        # Critical blocking work always retains critical precedence.
+        if blocking == "CRITICAL":
+            return "CRITICAL"
 
-        if confidence > 1:
-            confidence = confidence / 100
+        if score >= 70:
+            return "HIGH"
 
-        return max(0.0, min(1.0, confidence))
+        if score >= 45:
+            return "MEDIUM"
+
+        return "LOW"
 
     def _build_reason(
         self,
+        blocking: str,
         impact: str,
         urgency: str,
-        confidence: float,
     ) -> str:
         return (
-            f"{impact} impact, {urgency} urgency, "
-            f"{round(confidence * 100)}% confidence"
+            f"{blocking} blocking, "
+            f"{impact} impact, "
+            f"{urgency} urgency"
         )
 
 
@@ -211,6 +231,7 @@ def prioritize_actions(
     actions: List[Any],
 ) -> List[Dict[str, Any]]:
     prioritizer = ActionPrioritizer()
+
     results = prioritizer.prioritize(actions)
 
     return [
