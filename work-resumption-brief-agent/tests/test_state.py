@@ -22,7 +22,7 @@ def test_complete_state_high_confidence(reconstructor):
             ["c1", "p1"],
             85.0,
             ConfidenceLevel.HIGH,
-            "Multiple recent sources",
+            "Implementation corrected and verified",
         )
     ]
 

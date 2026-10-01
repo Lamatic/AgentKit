@@ -15,7 +15,6 @@ class EvaluationRunner:
     def run_all_scenarios(self):
         """Run all scenario JSON files."""
 
-        # === FIX 21: Validate scenarios directory exists ===
         scenario_dir = "scenarios"
 
         if not os.path.exists(scenario_dir):
@@ -38,19 +37,56 @@ class EvaluationRunner:
             )
             return []
 
-        # === Continue with normal execution ===
         for scenario_file in scenario_files:
             file_path = os.path.join(
                 scenario_dir,
                 scenario_file
             )
 
-            with open(
-                file_path,
-                "r",
-                encoding="utf-8"
-            ) as file:
-                scenario = json.load(file)
+            try:
+                with open(
+                    file_path,
+                    "r",
+                    encoding="utf-8"
+                ) as file:
+                    scenario = json.load(file)
+            except json.JSONDecodeError as error:
+                result = {
+                    "scenario": scenario_file,
+                    "file": scenario_file,
+                    "status": "FAIL",
+                    "error": (
+                        f"Invalid JSON in scenario file: {error}"
+                    ),
+                    "score": 0.0
+                }
+
+                self.results.append(result)
+
+                print(
+                    f"ERROR: Invalid JSON in "
+                    f"'{scenario_file}': {error}"
+                )
+                continue
+
+            except OSError as error:
+                result = {
+                    "scenario": scenario_file,
+                    "file": scenario_file,
+                    "status": "FAIL",
+                    "error": (
+                        f"Unable to read scenario file: {error}"
+                    ),
+                    "score": 0.0
+                }
+
+                self.results.append(result)
+
+                print(
+                    f"ERROR: Unable to read "
+                    f"'{scenario_file}': {error}"
+                )
+                continue
 
             result = self.run_scenario(
                 scenario,
@@ -159,7 +195,11 @@ class EvaluationRunner:
                 return brief.confidence_overall < 50
 
             if expected_value == "MEDIUM":
-                return 50 <= brief.confidence_overall < 80
+                return (
+                    50
+                    <= brief.confidence_overall
+                    < 80
+                )
 
             if expected_value == "HIGH":
                 return brief.confidence_overall >= 80
@@ -230,7 +270,10 @@ class EvaluationRunner:
                 .lower()
             )
 
-            if "none" in expected_options and not action_text:
+            if (
+                "none" in expected_options
+                and not action_text
+            ):
                 return True
 
             if "investigation" in expected_options:
@@ -249,7 +292,10 @@ class EvaluationRunner:
                     return True
 
             return any(
-                option not in {"none", "investigation"}
+                option not in {
+                    "none",
+                    "investigation"
+                }
                 and option in action_text
                 for option in expected_options
             )
@@ -307,7 +353,11 @@ class EvaluationRunner:
 
         if key == "high_impact_identified":
             return any(
-                getattr(blocker, "impact", "").upper()
+                getattr(
+                    blocker,
+                    "impact",
+                    ""
+                ).upper()
                 in {"HIGH", "CRITICAL"}
                 for blocker in brief.blockers
             )
@@ -322,7 +372,10 @@ class EvaluationRunner:
             )
 
         if key == "ranking_correct":
-            return len(brief.actions) >= 2
+            return self._check_action_ranking(
+                brief,
+                expected_value
+            )
 
         if key == "entity_resolution_correct":
             return len(brief.current_state) > 0
@@ -331,6 +384,107 @@ class EvaluationRunner:
             return brief.confidence_overall >= 80
 
         return False
+
+    def _check_action_ranking(
+        self,
+        brief,
+        expected_value
+    ):
+        """Validate that generated actions follow the expected ranking."""
+
+        if len(brief.actions) < 2:
+            return False
+
+        if expected_value is True:
+            return self._is_ranked_by_priority(brief.actions)
+
+        if expected_value is False:
+            return not self._is_ranked_by_priority(
+                brief.actions
+            )
+
+        expected_actions = [
+            action.strip().lower()
+            for action in str(expected_value).split(">")
+        ]
+
+        actual_actions = [
+            action.action.strip().lower()
+            for action in brief.actions
+        ]
+
+        if len(expected_actions) != len(actual_actions):
+            return False
+
+        return all(
+            expected in actual
+            for expected, actual
+            in zip(
+                expected_actions,
+                actual_actions
+            )
+        )
+
+    @staticmethod
+    def _is_ranked_by_priority(actions):
+        """Verify that actions are ordered from highest to lowest priority."""
+
+        priority_values = []
+
+        for action in actions:
+            priority = getattr(
+                action,
+                "priority",
+                None
+            )
+
+            if priority is None:
+                priority = getattr(
+                    action,
+                    "priority_score",
+                    None
+                )
+
+            if priority is None:
+                priority = getattr(
+                    action,
+                    "score",
+                    None
+                )
+
+            if priority is None:
+                return False
+
+            if isinstance(priority, str):
+                normalized = priority.strip().upper()
+
+                priority_map = {
+                    "CRITICAL": 4,
+                    "HIGH": 3,
+                    "MEDIUM": 2,
+                    "LOW": 1
+                }
+
+                if normalized not in priority_map:
+                    try:
+                        priority = float(priority)
+                    except ValueError:
+                        return False
+                else:
+                    priority = priority_map[normalized]
+
+            try:
+                priority_values.append(float(priority))
+            except (TypeError, ValueError):
+                return False
+
+        return all(
+            current >= following
+            for current, following in zip(
+                priority_values,
+                priority_values[1:]
+            )
+        )
 
     def _summarize_brief(self, brief):
         """Create a compact summary of the generated brief."""
@@ -391,7 +545,11 @@ if __name__ == "__main__":
     ) as file:
         json.dump(
             {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": (
+                    datetime.now(
+                        timezone.utc
+                    ).isoformat()
+                ),
                 "scenarios": results,
                 "overall_score": average_score
             },

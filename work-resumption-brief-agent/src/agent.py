@@ -42,16 +42,23 @@ class WorkResumptionAgent:
         """
         Process all available sources into a work-resumption brief.
 
-        Recoverable component failures are logged and the pipeline
-        continues with safe fallback values.
+        Component-level failures that can be safely recovered from are
+        logged and handled with fallback values.
 
-        Critical input or pipeline failures are raised.
+        Critical input or parser failures are raised.
         """
 
         logger.info("Starting work resumption pipeline")
 
+        # One reference time is created for the entire pipeline.
+        # Every entity uses this same reference time during evidence
+        # collection.
+        reference_time = datetime.now(timezone.utc)
+
+        conflict_detection_failed = False
+
         # ---------------------------------------------------------
-        # 1. Validate core input structure
+        # 1. Validate input
         # ---------------------------------------------------------
         if inputs is None:
             raise ValueError("Inputs cannot be None")
@@ -70,16 +77,15 @@ class WorkResumptionAgent:
         # ---------------------------------------------------------
         if not inputs or not any(inputs.values()):
             logger.warning("No input events provided")
-            return self._fallback_brief()
+            return self._fallback_brief(reference_time)
 
         # ---------------------------------------------------------
-        # 3. Parse all input sources
+        # 3. Parse input sources
         # ---------------------------------------------------------
         logger.info("Parsing input sources")
 
         try:
             events = self.parser.parse(inputs)
-
         except Exception as exc:
             logger.error(
                 "Parser failure: %s",
@@ -90,7 +96,7 @@ class WorkResumptionAgent:
 
         if not events:
             logger.warning("Parser returned no valid events")
-            return self._fallback_brief()
+            return self._fallback_brief(reference_time)
 
         logger.info(
             "Parsing completed successfully: %d events",
@@ -103,9 +109,7 @@ class WorkResumptionAgent:
         logger.info("Resolving entities")
 
         try:
-            entity_map = self.entity_resolver.resolve_entities(
-                events
-            )
+            entity_map = self.entity_resolver.resolve_entities(events)
 
             if not entity_map:
                 logger.warning(
@@ -168,7 +172,9 @@ class WorkResumptionAgent:
                 exc,
                 exc_info=True,
             )
+
             conflicts = []
+            conflict_detection_failed = True
 
         logger.info(
             "Conflict detection completed: %d conflicts",
@@ -201,16 +207,6 @@ class WorkResumptionAgent:
                     f"{entity} {latest_event.content}"
                 )
 
-                # Use the latest event in this entity's evidence
-                # group as the reference point for recency.
-                reference_time = None
-
-                if len(entity_events) > 1:
-                    reference_time = max(
-                        event.timestamp
-                        for event in entity_events
-                    )
-
                 evidence = (
                     self.evidence_collector.collect_evidence(
                         conclusion=conclusion,
@@ -231,9 +227,6 @@ class WorkResumptionAgent:
                     exc_info=True,
                 )
 
-                # One entity failure should not stop the pipeline.
-                continue
-
         logger.info(
             "Evidence collection completed: %d evidence items",
             len(evidence_list),
@@ -245,12 +238,10 @@ class WorkResumptionAgent:
         logger.info("Reconstructing work state")
 
         try:
-            states = (
-                self.state_reconstructor.reconstruct_state(
-                    evidence_list,
-                    conflicts,
-                    entity_map,
-                )
+            states = self.state_reconstructor.reconstruct_state(
+                evidence_list,
+                conflicts,
+                entity_map,
             )
 
             if states is None:
@@ -265,11 +256,23 @@ class WorkResumptionAgent:
             states = []
 
         # ---------------------------------------------------------
-        # Targeted uncertainty handling
+        # IMPORTANT:
+        # Preserve uncertainty when conflict detection itself fails.
+        #
+        # A failed conflict detector must never be interpreted as
+        # "there are no conflicts".
+        #
+        # Do not modify the StateReconstructor's completion logic
+        # here. It remains responsible for deciding COMPLETE only
+        # when its completion-evidence requirements are satisfied.
         # ---------------------------------------------------------
-        # Preserve the previously fixed behavior:
-        # if events exist but no entity can be resolved,
-        # preserve uncertainty instead of returning no state.
+        if conflict_detection_failed:
+            for state in states:
+                state.state = StateCategory.UNCERTAIN
+
+        # ---------------------------------------------------------
+        # 9. Fallback when entity resolution produced nothing
+        # ---------------------------------------------------------
         if not states and not entity_map and events:
             states = [
                 WorkState(
@@ -293,7 +296,7 @@ class WorkResumptionAgent:
         )
 
         # ---------------------------------------------------------
-        # 9. Identify blockers
+        # 10. Identify blockers
         # ---------------------------------------------------------
         logger.info("Identifying blockers")
 
@@ -322,12 +325,10 @@ class WorkResumptionAgent:
         )
 
         # ---------------------------------------------------------
-        # Targeted latest-decision labeling
+        # Preserve latest database decision labeling.
         # ---------------------------------------------------------
-        # Preserve the latest PostgreSQL decision in the state
-        # label for the outdated-decision scenario.
-
         for state in states:
+
             if state.entity.lower() != "database":
                 continue
 
@@ -351,7 +352,7 @@ class WorkResumptionAgent:
                 state.entity = "Database PostgreSQL"
 
         # ---------------------------------------------------------
-        # 10. Generate candidate actions
+        # 11. Generate candidate actions
         # ---------------------------------------------------------
         logger.info("Generating candidate actions")
 
@@ -376,7 +377,7 @@ class WorkResumptionAgent:
         )
 
         # ---------------------------------------------------------
-        # 11. Prioritize actions
+        # 12. Prioritize actions
         # ---------------------------------------------------------
         logger.info("Prioritizing actions")
 
@@ -395,15 +396,6 @@ class WorkResumptionAgent:
                 exc_info=True,
             )
 
-            # -----------------------------------------------------
-            # CodeRabbit fallback
-            # -----------------------------------------------------
-            # Do not simply reuse candidate_actions because those
-            # dictionaries contain impact/urgency labels but do not
-            # contain the score/reasoning fields expected below.
-            #
-            # Convert the qualitative impact/urgency values into
-            # numeric values and derive a meaningful fallback score.
             prioritized = []
 
             priority_values = {
@@ -436,14 +428,11 @@ class WorkResumptionAgent:
                     "LOW",
                 )
 
-                # Confidence is already expected to be numeric,
-                # but protect the fallback from malformed values.
                 try:
                     confidence = float(confidence)
                 except (TypeError, ValueError):
                     confidence = 0.0
 
-                # Keep confidence in a safe range for scoring.
                 confidence = max(
                     0.0,
                     min(100.0, confidence),
@@ -459,7 +448,6 @@ class WorkResumptionAgent:
                     0.0,
                 )
 
-                # Derive a meaningful score from all three factors.
                 score = (
                     confidence
                     + impact_score
@@ -480,7 +468,7 @@ class WorkResumptionAgent:
                 )
 
         # ---------------------------------------------------------
-        # 12. Convert actions into project Action objects
+        # 13. Convert actions into Action objects
         # ---------------------------------------------------------
         actions: List[Action] = []
 
@@ -556,7 +544,7 @@ class WorkResumptionAgent:
         )
 
         # ---------------------------------------------------------
-        # 13. Calculate overall confidence
+        # 14. Calculate overall confidence
         # ---------------------------------------------------------
         if evidence_list:
             confidence_overall = (
@@ -566,12 +554,11 @@ class WorkResumptionAgent:
                 )
                 / len(evidence_list)
             )
-
         else:
             confidence_overall = 0.0
 
         # ---------------------------------------------------------
-        # 14. Construct final brief
+        # 15. Construct final brief
         # ---------------------------------------------------------
         try:
             brief = WorkResumptionBrief(
@@ -584,7 +571,7 @@ class WorkResumptionAgent:
                     recommended_first_action
                 ),
                 confidence_overall=confidence_overall,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=reference_time,
             )
 
         except Exception as exc:
@@ -613,10 +600,21 @@ class WorkResumptionAgent:
 
         actions: List[Dict[str, Any]] = []
 
+        def canonical_entity(entity: Any) -> str:
+            """Return the canonical entity name used for matching."""
+
+            normalized = str(entity).strip().lower()
+
+            if normalized == "database postgresql":
+                return "database"
+
+            return normalized
+
         # ---------------------------------------------------------
         # Blocker actions
         # ---------------------------------------------------------
         for blocker in blockers:
+
             actions.append(
                 {
                     "action": (
@@ -631,27 +629,24 @@ class WorkResumptionAgent:
             )
 
         # ---------------------------------------------------------
-        # Collect conflict entities
+        # Conflict entities
         # ---------------------------------------------------------
-        conflict_entities = set()
-
-        for conflict in conflicts:
-            conflict_entities.add(
-                conflict.entity.lower()
-            )
+        conflict_entities = {
+            canonical_entity(conflict.entity)
+            for conflict in conflicts
+        }
 
         # ---------------------------------------------------------
         # State-based actions
         # ---------------------------------------------------------
         for state in states:
+
             state_value = state.state.value
             entity = state.entity
-            normalized_entity = entity.strip().lower()
+            normalized_entity = canonical_entity(entity)
 
             if state_value == "pending":
 
-                # Schema work is a dependency for downstream
-                # implementation and testing.
                 if "schema" in normalized_entity:
                     impact = "HIGH"
                     urgency = "HIGH"
@@ -662,8 +657,7 @@ class WorkResumptionAgent:
                 actions.append(
                     {
                         "action": (
-                            f"Start pending work on "
-                            f"{entity}"
+                            f"Start pending work on {entity}"
                         ),
                         "impact": impact,
                         "urgency": urgency,
@@ -672,11 +666,11 @@ class WorkResumptionAgent:
                 )
 
             elif state_value == "in_progress":
+
                 actions.append(
                     {
                         "action": (
-                            f"Continue work on "
-                            f"{entity}"
+                            f"Continue work on {entity}"
                         ),
                         "impact": "MEDIUM",
                         "urgency": "HIGH",
@@ -685,11 +679,11 @@ class WorkResumptionAgent:
                 )
 
             elif state_value == "uncertain":
+
                 actions.append(
                     {
                         "action": (
-                            f"Verify current status of "
-                            f"{entity}"
+                            f"Verify current status of {entity}"
                         ),
                         "impact": "HIGH",
                         "urgency": "HIGH",
@@ -701,6 +695,7 @@ class WorkResumptionAgent:
                 state_value == "complete"
                 and normalized_entity in conflict_entities
             ):
+
                 actions.append(
                     {
                         "action": (
@@ -717,13 +712,12 @@ class WorkResumptionAgent:
         # Conflict review actions
         # ---------------------------------------------------------
         for conflict in conflicts:
-            conflict_entity = conflict.entity
 
             actions.append(
                 {
                     "action": (
                         f"Review conflicting information for "
-                        f"{conflict_entity}"
+                        f"{conflict.entity}"
                     ),
                     "impact": "HIGH",
                     "urgency": "HIGH",
@@ -733,7 +727,10 @@ class WorkResumptionAgent:
 
         return actions
 
-    def _fallback_brief(self) -> WorkResumptionBrief:
+    def _fallback_brief(
+        self,
+        reference_time: datetime,
+    ) -> WorkResumptionBrief:
         """
         Return a safe low-confidence brief when there is
         insufficient information to reconstruct work state.
@@ -751,5 +748,5 @@ class WorkResumptionAgent:
             actions=[],
             recommended_first_action=None,
             confidence_overall=0.0,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=reference_time,
         )
