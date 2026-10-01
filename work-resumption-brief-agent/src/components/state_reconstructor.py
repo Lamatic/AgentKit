@@ -91,12 +91,20 @@ class StateReconstructor:
             # Blocker detection
             # -----------------------------------------------------
             blocker_terms = (
-                "blocked",
-                "unresolved",
-                "not finalized",
-                "failing",
-                "missing",
-                "incomplete",
+                 "blocked",
+                 "unresolved",
+                 "not finalized",
+                 "not implemented",
+                 "not complete",
+                 "not completed",
+                 "not finished",
+                 "not resolved",
+                 "not fixed",
+                 "not verified",
+                 "not validated",
+                 "failing",
+                 "missing",
+                 "incomplete",
             )
 
             has_blocker_evidence = any(

@@ -242,7 +242,7 @@ class EvaluationRunner:
         if key == "state":
             allowed_states = [
                 state.strip().lower()
-                for state in expected_value.split("or")
+                for state in expected_value.split(" or ")
             ]
 
             actual_states = [
@@ -258,7 +258,7 @@ class EvaluationRunner:
         if key == "recommended_action":
             expected_options = [
                 option.strip().lower()
-                for option in expected_value.split("or")
+                for option in expected_value.split(" or ")
             ]
 
             if not brief.recommended_first_action:
