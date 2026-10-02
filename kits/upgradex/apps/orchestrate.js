@@ -50,7 +50,7 @@ export const config={
         "workflowId": process.env.AGENTIC_REASONING_FINAL,
         "description": "Takes query and research results and generates the final markdown answer",
         "mode": "sync",
-        "dependsOn": ["step2A", "step2B", "step2C"],
+        "dependsOn": ["step2A", "step2B"],
         "expectedOutput": "answer",
         "inputSchema": {
             "query": "string",

@@ -54,7 +54,6 @@ export async function orchestratePipelineStep(
     }
 
     console.log(`[v0] Executing ${step}: ${flow.name}`)
-    console.log(`[v0] previousResults for ${step}:`, JSON.stringify(previousResults, null, 2))
 
     const inputs: Record<string, any> = {}
 
@@ -102,7 +101,6 @@ export async function orchestratePipelineStep(
       }
     }
 
-    console.log(`[v0] ${step} final inputs:`, JSON.stringify(inputs, null, 2))
 
     const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
 
@@ -111,7 +109,6 @@ export async function orchestratePipelineStep(
     } else {
       console.log(`[v0] ${step} raw API response structure:`, "response.result is null or not an object")
     }
-    console.log(`[v0] ${step} raw API response data:`, JSON.stringify(resData.result, null, 2))
 
     const output: Record<string, any> = {}
 
@@ -136,7 +133,6 @@ export async function orchestratePipelineStep(
       output.steps = resData.result.steps
     }
 
-    console.log(`[v0] ${step} final output:`, JSON.stringify(output, null, 2))
 
     return {
       success: true,
