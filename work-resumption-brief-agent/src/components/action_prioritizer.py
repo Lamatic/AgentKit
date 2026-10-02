@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -50,7 +50,9 @@ class ActionPrioritizer:
         self,
         actions: List[Any],
     ) -> List[PrioritizedAction]:
-        prioritized: List[PrioritizedAction] = []
+        prioritized: List[
+            Tuple[PrioritizedAction, int, bool]
+        ] = []
 
         for item in actions:
             data = self._normalize(item)
@@ -62,15 +64,9 @@ class ActionPrioritizer:
 
             action = action.strip()
 
-            # The blocking field is the primary source for blocker
-            # precedence. For backward compatibility with existing
-            # action data, priority is its documented fallback encoding.
-            blocking_value = data.get("blocking")
-
-            if blocking_value is None:
-                blocking_value = data.get("priority")
-
-            blocking = self._level(blocking_value)
+            blocking = self._level(
+                data.get("blocking")
+            )
 
             impact = self._level(
                 data.get("impact")
@@ -84,8 +80,6 @@ class ActionPrioritizer:
             impact_score = self.IMPACT_SCORES[impact]
             urgency_score = self.URGENCY_SCORES[urgency]
 
-            # Required prioritization formula:
-            # 50% blocking + 30% impact + 20% urgency.
             score = (
                 (blocking_score * 0.50)
                 + (impact_score * 0.30)
@@ -94,10 +88,35 @@ class ActionPrioritizer:
 
             score = min(100.0, score)
 
-            priority = self._priority_from_score(
-                score=score,
-                blocking=blocking,
-            )
+            explicit_priority = data.get("priority")
+
+            if explicit_priority is not None:
+                requested_priority = self._level(
+                    explicit_priority
+                )
+
+                if blocking == "CRITICAL":
+                    priority = "CRITICAL"
+                else:
+                    priority = requested_priority
+
+                priority_rank = self.PRIORITY_SCORES[
+                    requested_priority
+                ]
+
+                has_explicit_priority = True
+
+            else:
+                priority = self._priority_from_score(
+                    score=score,
+                    blocking=blocking,
+                )
+
+                priority_rank = self.PRIORITY_SCORES[
+                    priority
+                ]
+
+                has_explicit_priority = False
 
             reason = self._build_reason(
                 blocking=blocking,
@@ -106,27 +125,35 @@ class ActionPrioritizer:
             )
 
             prioritized.append(
-                PrioritizedAction(
-                    action=action,
-                    priority=priority,
-                    score=round(score, 2),
-                    impact=impact,
-                    urgency=urgency,
-                    reason=reason,
-                    source=data.get("source"),
-                    blocking=blocking,
+                (
+                    PrioritizedAction(
+                        action=action,
+                        priority=priority,
+                        score=round(score, 2),
+                        impact=impact,
+                        urgency=urgency,
+                        reason=reason,
+                        source=data.get("source"),
+                        blocking=blocking,
+                    ),
+                    priority_rank,
+                    has_explicit_priority,
                 )
             )
 
         prioritized.sort(
             key=lambda item: (
-                self.PRIORITY_SCORES[item.priority],
-                item.score,
+                self.BLOCKING_SCORES[item[0].blocking],
+                item[1] if item[2] else 0,
+                item[0].score,
             ),
             reverse=True,
         )
 
-        return prioritized
+        return [
+            item[0]
+            for item in prioritized
+        ]
 
     def rank_actions(
         self,
@@ -176,19 +203,14 @@ class ActionPrioritizer:
         aliases = {
             "CRITICAL": "CRITICAL",
             "SEVERE": "CRITICAL",
-
             "HIGH": "HIGH",
             "IMPORTANT": "HIGH",
-
             "MEDIUM": "MEDIUM",
             "MODERATE": "MEDIUM",
-
             "LOW": "LOW",
             "MINOR": "LOW",
-
             "TRUE": "CRITICAL",
             "FALSE": "LOW",
-
             "BLOCKED": "CRITICAL",
             "BLOCKING": "CRITICAL",
             "NOT_BLOCKING": "LOW",
@@ -202,7 +224,6 @@ class ActionPrioritizer:
         score: float,
         blocking: str,
     ) -> str:
-        # Critical blocking work always retains critical precedence.
         if blocking == "CRITICAL":
             return "CRITICAL"
 

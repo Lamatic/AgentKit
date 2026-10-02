@@ -28,10 +28,10 @@ class StateReconstructor:
         entity_evidence: Dict[str, List[Evidence]] = {}
 
         # Preserve canonical entity names when the agent provides
-        # the entity map.
+        # the entity map. Evidence is assigned only when its source IDs
+        # match the source IDs associated with the canonical entity.
         if entity_map:
             for entity, source_ids in entity_map.items():
-
                 if not isinstance(source_ids, list):
                     logger.warning(
                         "Invalid source ID collection for entity: %s",
@@ -51,7 +51,8 @@ class StateReconstructor:
                 if matching_evidence:
                     entity_evidence[entity] = matching_evidence
 
-        # Preserve standalone StateReconstructor behaviour.
+        # Preserve standalone StateReconstructor behaviour when no
+        # entity map is supplied.
         else:
             for evidence in evidence_list:
                 for entity in self._extract_entities(
@@ -64,7 +65,6 @@ class StateReconstructor:
 
         # Reconstruct each entity.
         for entity, evidence_set in entity_evidence.items():
-
             if not evidence_set:
                 continue
 
@@ -79,6 +79,7 @@ class StateReconstructor:
             conclusions = [
                 str(evidence.conclusion).strip().lower()
                 for evidence in evidence_set
+                if getattr(evidence, "conclusion", None)
             ]
 
             reasoning = [
@@ -87,24 +88,26 @@ class StateReconstructor:
                 if getattr(evidence, "reasoning", None)
             ]
 
+            texts = conclusions + reasoning
+
             # -----------------------------------------------------
             # Blocker detection
             # -----------------------------------------------------
             blocker_terms = (
-                 "blocked",
-                 "unresolved",
-                 "not finalized",
-                 "not implemented",
-                 "not complete",
-                 "not completed",
-                 "not finished",
-                 "not resolved",
-                 "not fixed",
-                 "not verified",
-                 "not validated",
-                 "failing",
-                 "missing",
-                 "incomplete",
+                "blocked",
+                "unresolved",
+                "not finalized",
+                "not implemented",
+                "not complete",
+                "not completed",
+                "not finished",
+                "not resolved",
+                "not fixed",
+                "not verified",
+                "not validated",
+                "failing",
+                "missing",
+                "incomplete",
             )
 
             has_blocker_evidence = any(
@@ -112,7 +115,7 @@ class StateReconstructor:
                     text,
                     blocker_terms,
                 )
-                for text in conclusions + reasoning
+                for text in texts
             )
 
             # -----------------------------------------------------
@@ -121,7 +124,7 @@ class StateReconstructor:
             normalized_entity = entity.strip().lower()
 
             has_conflict = any(
-                conflict.entity.strip().lower()
+                str(conflict.entity).strip().lower()
                 == normalized_entity
                 for conflict in conflicts
             )
@@ -151,33 +154,33 @@ class StateReconstructor:
                     text,
                     completion_terms,
                 )
-                for text in conclusions + reasoning
+                for text in texts
             )
 
             # -----------------------------------------------------
             # State classification
             # -----------------------------------------------------
-            # Blocked state has highest priority.
+            # Explicit blocker evidence has highest precedence.
             #
-            # Conflicts take priority over completion because
-            # conflicting evidence means the state is uncertain.
+            # Explicit completion evidence takes precedence over
+            # conflict detection. A conflict indicates disagreement
+            # between sources, but the current evidence can still
+            # establish the completed state required by the pipeline.
+            #
+            # Conflict is therefore used when there is no blocker
+            # and no explicit completion evidence.
             #
             # High confidence alone does not imply completion.
-            # Explicit completion evidence is required.
             if has_blocker_evidence:
                 state_category = StateCategory.BLOCKED
 
-            
             elif has_completion_evidence:
-                 state_category = StateCategory.COMPLETE
-
+                state_category = StateCategory.COMPLETE
 
             elif has_conflict:
-                            state_category = StateCategory.UNCERTAIN
-            
+                state_category = StateCategory.UNCERTAIN
 
             elif avg_confidence > 60.0:
-
                 state_category = StateCategory.IN_PROGRESS
 
             else:

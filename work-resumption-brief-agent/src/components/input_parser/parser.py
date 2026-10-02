@@ -1,6 +1,8 @@
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 from src.logger import setup_logger
+
 
 logger = setup_logger("InputParser")
 
@@ -37,22 +39,25 @@ def parse_input(file_path: str) -> Dict[str, Any]:
         }
 
     except FileNotFoundError:
-        logger.error("Input file not found: %s", file_path)
+        logger.error(
+            "Input file not found: %s",
+            file_path,
+        )
         raise
 
     except UnicodeDecodeError:
         logger.error(
             "Unable to decode input file as UTF-8: %s",
-            file_path
+            file_path,
         )
         raise ValueError(
             f"Input file is not valid UTF-8: {file_path}"
         )
 
-    except Exception as e:
+    except Exception as exc:
         logger.exception(
             "Failed to parse input file %s: %s",
             file_path,
-            e
+            exc,
         )
         raise
