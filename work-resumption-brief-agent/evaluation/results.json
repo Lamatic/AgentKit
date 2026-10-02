@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-10-01T02:57:43.161089+00:00",
+  "timestamp": "2026-10-02T18:26:27.315666+00:00",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
       "file": "scenario_1_contradictions.json",
-      "status": "PASS",
-      "score": 1.0,
+      "status": "PARTIAL",
+      "score": 0.75,
       "brief_summary": {
         "states": 1,
         "conflicts": 1,
         "blockers": 0,
         "actions": 2,
-        "confidence": 85.0
+        "confidence": 53.0
       }
     },
     {
@@ -23,8 +23,8 @@
         "states": 1,
         "conflicts": 0,
         "blockers": 1,
-        "actions": 1,
-        "confidence": 90.0
+        "actions": 2,
+        "confidence": 58.0
       }
     },
     {
@@ -50,7 +50,7 @@
         "conflicts": 0,
         "blockers": 3,
         "actions": 4,
-        "confidence": 61.0
+        "confidence": 53.0
       }
     },
     {
@@ -82,16 +82,16 @@
     {
       "scenario": "False Conflict Detection",
       "file": "scenario_7_false_conflict.json",
-      "status": "PASS",
-      "score": 1.0,
+      "status": "PARTIAL",
+      "score": 0.6666666666666666,
       "brief_summary": {
         "states": 1,
         "conflicts": 0,
         "blockers": 0,
         "actions": 0,
-        "confidence": 90.0
+        "confidence": 58.0
       }
     }
   ],
-  "overall_score": 1.0
+  "overall_score": 0.9166666666666667
 }

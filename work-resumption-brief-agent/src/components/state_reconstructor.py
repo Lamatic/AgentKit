@@ -27,11 +27,9 @@ class StateReconstructor:
         states: List[WorkState] = []
         entity_evidence: Dict[str, List[Evidence]] = {}
 
-        # Preserve canonical entity names when the agent provides
-        # the entity map. Evidence is assigned only when its source IDs
-        # match the source IDs associated with the canonical entity.
         if entity_map:
             for entity, source_ids in entity_map.items():
+
                 if not isinstance(source_ids, list):
                     logger.warning(
                         "Invalid source ID collection for entity: %s",
@@ -51,8 +49,6 @@ class StateReconstructor:
                 if matching_evidence:
                     entity_evidence[entity] = matching_evidence
 
-        # Preserve standalone StateReconstructor behaviour when no
-        # entity map is supplied.
         else:
             for evidence in evidence_list:
                 for entity in self._extract_entities(
@@ -63,8 +59,8 @@ class StateReconstructor:
                         [],
                     ).append(evidence)
 
-        # Reconstruct each entity.
         for entity, evidence_set in entity_evidence.items():
+
             if not evidence_set:
                 continue
 
@@ -79,7 +75,6 @@ class StateReconstructor:
             conclusions = [
                 str(evidence.conclusion).strip().lower()
                 for evidence in evidence_set
-                if getattr(evidence, "conclusion", None)
             ]
 
             reasoning = [
@@ -88,11 +83,6 @@ class StateReconstructor:
                 if getattr(evidence, "reasoning", None)
             ]
 
-            texts = conclusions + reasoning
-
-            # -----------------------------------------------------
-            # Blocker detection
-            # -----------------------------------------------------
             blocker_terms = (
                 "blocked",
                 "unresolved",
@@ -110,28 +100,24 @@ class StateReconstructor:
                 "incomplete",
             )
 
+            texts = conclusions + reasoning
+
             has_blocker_evidence = any(
-                self._contains_term(
+                self._contains_non_negated_blocker(
                     text,
                     blocker_terms,
                 )
                 for text in texts
             )
 
-            # -----------------------------------------------------
-            # Conflict detection
-            # -----------------------------------------------------
             normalized_entity = entity.strip().lower()
 
             has_conflict = any(
-                str(conflict.entity).strip().lower()
+                conflict.entity.strip().lower()
                 == normalized_entity
                 for conflict in conflicts
             )
 
-            # -----------------------------------------------------
-            # Completion detection
-            # -----------------------------------------------------
             completion_terms = (
                 "completed",
                 "complete",
@@ -157,20 +143,6 @@ class StateReconstructor:
                 for text in texts
             )
 
-            # -----------------------------------------------------
-            # State classification
-            # -----------------------------------------------------
-            # Explicit blocker evidence has highest precedence.
-            #
-            # Explicit completion evidence takes precedence over
-            # conflict detection. A conflict indicates disagreement
-            # between sources, but the current evidence can still
-            # establish the completed state required by the pipeline.
-            #
-            # Conflict is therefore used when there is no blocker
-            # and no explicit completion evidence.
-            #
-            # High confidence alone does not imply completion.
             if has_blocker_evidence:
                 state_category = StateCategory.BLOCKED
 
@@ -186,9 +158,6 @@ class StateReconstructor:
             else:
                 state_category = StateCategory.PENDING
 
-            # -----------------------------------------------------
-            # Collect source IDs without duplicates
-            # -----------------------------------------------------
             all_sources: List[str] = []
 
             for evidence in evidence_set:
@@ -215,6 +184,28 @@ class StateReconstructor:
 
         return states
 
+    @classmethod
+    def _contains_non_negated_blocker(
+        cls,
+        text: str,
+        terms: Tuple[str, ...],
+    ) -> bool:
+        """Return True when text contains a blocker not negated by context."""
+
+        normalized_text = str(text).lower()
+
+        cleaned_text = re.sub(
+            r"\b(?:not|no longer|nothing|never)\s+"
+            r"(?:missing|failing|incomplete|blocked|unresolved)\b",
+            " ",
+            normalized_text,
+        )
+
+        return cls._contains_term(
+            cleaned_text,
+            terms,
+        )
+
     @staticmethod
     def _contains_term(
         text: str,
@@ -240,7 +231,6 @@ class StateReconstructor:
 
         words = conclusion.split()
 
-        # Preserve compound API schema entity names.
         if (
             len(words) >= 2
             and words[0].lower() == "api"

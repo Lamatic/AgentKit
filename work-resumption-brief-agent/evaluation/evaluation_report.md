@@ -1,4 +1,4 @@
-# Work Resumption Brief Agent — Evaluation Report
+# Work Resumption Brief Agent - Evaluation Report
 
 ## Evaluation Summary
 
@@ -15,4 +15,3 @@ python -m evaluation.run_scenarios
 | Competing Actions        | PASS   |   1.0 |      5 |         0 |        0 |       5 |       48.0 |
 | No Clear Action          | PASS   |   1.0 |      1 |         0 |        0 |       1 |        0.0 |
 | False Conflict Detection | PASS   |   1.0 |      1 |         0 |        0 |       0 |       90.0 |
-```
