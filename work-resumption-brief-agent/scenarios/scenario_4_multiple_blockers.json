@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "name": "Multiple Blockers",
+    "description": "4 different blockers with different impacts",
+    "tests": [
+      "Blocker identification",
+      "Impact assessment",
+      "Prioritization"
+    ]
+  },
+  "inputs": {
+    "issues": [
+      {
+        "timestamp": "2024-08-18T09:00:00Z",
+        "title": "API schema unresolved",
+        "body": "Schema not finalized",
+        "issue_number": 31
+      },
+      {
+        "timestamp": "2024-08-18T10:00:00Z",
+        "title": "Tests failing",
+        "body": "Tests fail on old schema",
+        "issue_number": 32
+      },
+      {
+        "timestamp": "2024-08-18T11:00:00Z",
+        "title": "Documentation missing",
+        "body": "API docs incomplete",
+        "issue_number": 45
+      }
+    ],
+    "meeting_notes": [
+      {
+        "timestamp": "2024-08-18T14:00:00Z",
+        "text": "Performance benchmarks critical for release"
+      }
+    ]
+  },
+  "expected_outputs": {
+    "blockers_count_min": 3,
+    "top_blocker": "API schema",
+    "high_impact_identified": true
+  }
+}

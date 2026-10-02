@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "name": "False Conflict Detection",
+    "description": "Similar wording but same meaning (not conflict)",
+    "tests": [
+      "Synonym handling",
+      "Avoiding false positives"
+    ]
+  },
+  "inputs": {
+    "commits": [
+      {
+        "timestamp": "2024-08-18T09:00:00Z",
+        "message": "Resume parser added",
+        "hash": "add123"
+      },
+      {
+        "timestamp": "2024-08-18T10:00:00Z",
+        "message": "Resume parser implemented",
+        "hash": "impl123"
+      }
+    ]
+  },
+  "expected_outputs": {
+    "conflicts_detected": 0,
+    "entity_resolution_correct": true,
+    "confidence_high": true
+  }
+}
