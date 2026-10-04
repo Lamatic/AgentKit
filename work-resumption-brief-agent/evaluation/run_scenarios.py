@@ -179,10 +179,11 @@ class EvaluationRunner:
             )
 
         if key == "state_complete":
-            return any(
+            actual_value = any(
                 state.state.value == "complete"
                 for state in brief.current_state
             )
+            return actual_value == bool(expected_value)
 
         if key == "parser_confidence_min":
             return (

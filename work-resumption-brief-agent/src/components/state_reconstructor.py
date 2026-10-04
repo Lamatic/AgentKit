@@ -29,7 +29,6 @@ class StateReconstructor:
 
         if entity_map:
             for entity, source_ids in entity_map.items():
-
                 if not isinstance(source_ids, list):
                     logger.warning(
                         "Invalid source ID collection for entity: %s",
@@ -60,7 +59,6 @@ class StateReconstructor:
                     ).append(evidence)
 
         for entity, evidence_set in entity_evidence.items():
-
             if not evidence_set:
                 continue
 
@@ -83,6 +81,8 @@ class StateReconstructor:
                 if getattr(evidence, "reasoning", None)
             ]
 
+            texts = conclusions + reasoning
+
             blocker_terms = (
                 "blocked",
                 "unresolved",
@@ -100,8 +100,6 @@ class StateReconstructor:
                 "incomplete",
             )
 
-            texts = conclusions + reasoning
-
             has_blocker_evidence = any(
                 self._contains_non_negated_blocker(
                     text,
@@ -112,11 +110,12 @@ class StateReconstructor:
 
             normalized_entity = entity.strip().lower()
 
-            has_conflict = any(
-                conflict.entity.strip().lower()
-                == normalized_entity
+            matching_conflicts = [
+                conflict
                 for conflict in conflicts
-            )
+                if conflict.entity.strip().lower()
+                == normalized_entity
+            ]
 
             completion_terms = (
                 "completed",
@@ -143,14 +142,34 @@ class StateReconstructor:
                 for text in texts
             )
 
+            latest_conflict = None
+
+            if matching_conflicts:
+                latest_conflict = max(
+                    matching_conflicts,
+                    key=lambda conflict: conflict.timestamp_new,
+                )
+
+            conflict_resolved_by_completion = (
+                latest_conflict is not None
+                and has_completion_evidence
+                and latest_conflict.timestamp_new
+                > latest_conflict.timestamp_old
+            )
+
+            has_unresolved_conflict = (
+                bool(matching_conflicts)
+                and not conflict_resolved_by_completion
+            )
+
             if has_blocker_evidence:
                 state_category = StateCategory.BLOCKED
 
+            elif has_unresolved_conflict:
+                state_category = StateCategory.UNCERTAIN
+
             elif has_completion_evidence:
                 state_category = StateCategory.COMPLETE
-
-            elif has_conflict:
-                state_category = StateCategory.UNCERTAIN
 
             elif avg_confidence > 60.0:
                 state_category = StateCategory.IN_PROGRESS
