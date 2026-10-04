@@ -45,14 +45,14 @@ def parse_input(file_path: str) -> Dict[str, Any]:
         )
         raise
 
-    except UnicodeDecodeError:
+    except UnicodeDecodeError as exc:
         logger.error(
             "Unable to decode input file as UTF-8: %s",
             file_path,
         )
         raise ValueError(
             f"Input file is not valid UTF-8: {file_path}"
-        )
+        ) from exc
 
     except Exception as exc:
         logger.exception(

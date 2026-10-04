@@ -218,7 +218,7 @@ class Blocker:
         if not isinstance(self.impact, str) or not self.impact.strip():
             raise ValueError("Impact cannot be empty")
 
-        # ADD THIS HERE
+
         if self.entity is None:
             self.entity = self.affected_work
 
