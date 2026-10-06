@@ -16,7 +16,7 @@ export default {
     }
   ],
   "links": {
-    "deploy": "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fapi-integration-assistant%2Fapps&env=LAMATIC_API_KEY,LAMATIC_FLOW_ID,LAMATIC_PROJECT_ID&root-directory=kits/api-integration-assistant/apps",
+    "deploy": "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLamatic%2FAgentKit%2Ftree%2Fmain%2Fkits%2Fapi-integration-assistant%2Fapps&env=LAMATIC_API_KEY,LAMATIC_API_URL,LAMATIC_FLOW_ID,LAMATIC_PROJECT_ID&root-directory=kits/api-integration-assistant/apps",
     "github": "https://github.com/Lamatic/AgentKit/tree/main/kits/api-integration-assistant"
   }
 };
