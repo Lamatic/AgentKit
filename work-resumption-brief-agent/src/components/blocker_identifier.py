@@ -88,12 +88,20 @@ class BlockerIdentifier:
             return None
 
         first_decision, first_event = decisions[0]
-        implementation, implementation_event = decisions[1]
         latest_decision, latest_event = decisions[-1]
+
+        implementation_event = next(
+            (
+                event
+                for decision, event in decisions[1:-1]
+                if decision == "sqlite"
+            ),
+            None,
+        )
 
         if (
             first_decision == "postgresql"
-            and implementation == "sqlite"
+            and implementation_event is not None
             and latest_decision == "postgresql"
             and implementation_event.timestamp < latest_event.timestamp
         ):

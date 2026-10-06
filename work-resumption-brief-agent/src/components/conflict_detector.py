@@ -102,7 +102,7 @@ class ConflictDetector:
                             "overrides older claim "
                             f"({older_event.timestamp})"
                         ),
-                        confidence=0.9,
+                        confidence=90.0,
                     )
                 )
 

@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-10-04T17:18:43.105800+00:00",
+  "timestamp": "2026-10-06T10:22:05.233801+00:00",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
       "file": "scenario_1_contradictions.json",
       "status": "PARTIAL",
-      "score": 0.75,
+      "score": 0.5,
       "brief_summary": {
         "states": 1,
         "conflicts": 1,
@@ -93,5 +93,5 @@
       }
     }
   ],
-  "overall_score": 0.9166666666666667
+  "overall_score": 0.880952380952381
 }

@@ -36,12 +36,18 @@ class StateReconstructor:
                     )
                     continue
 
+                normalized_entity = entity.strip().lower()
+
                 matching_evidence = [
                     evidence
                     for evidence in evidence_list
                     if any(
                         source_id in evidence.sources
                         for source_id in source_ids
+                    )
+                    and self._evidence_belongs_to_entity(
+                        evidence,
+                        normalized_entity,
                     )
                 ]
 
@@ -202,6 +208,32 @@ class StateReconstructor:
         )
 
         return states
+
+    @staticmethod
+    def _evidence_belongs_to_entity(
+        evidence: Evidence,
+        normalized_entity: str,
+    ) -> bool:
+        """Return True when the evidence conclusion belongs to the entity."""
+
+        conclusion = str(
+            getattr(evidence, "conclusion", "")
+        ).strip().lower()
+
+        if not conclusion or not normalized_entity:
+            return False
+
+        if conclusion == normalized_entity:
+            return True
+
+        entity_pattern = re.escape(normalized_entity)
+
+        return bool(
+            re.match(
+                rf"^{entity_pattern}(?:\s|[:\-–—,.;!?])",
+                conclusion,
+            )
+        )
 
     @classmethod
     def _contains_non_negated_blocker(

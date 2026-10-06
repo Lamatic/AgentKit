@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from datetime import datetime, timezone
 
 from src.agent import WorkResumptionAgent
@@ -307,23 +308,58 @@ class EvaluationRunner:
 
             action_text = (
                 brief.recommended_first_action.action
+                .strip()
                 .lower()
             )
 
-            return (
-                "work" in action_text
-                or "continue" in action_text
-                or "start" in action_text
+            if isinstance(expected_value, dict):
+                expected_action = (
+                    expected_value.get("action")
+                    or expected_value.get("entity")
+                    or ""
+                )
+            else:
+                expected_action = expected_value
+
+            expected_action = (
+                str(expected_action)
+                .strip()
+                .lower()
             )
 
-        if key == "latest_decision":
-            if not brief.current_state:
+            if not expected_action:
                 return False
 
-            return any(
-                expected_value.lower()
-                in state.entity.lower()
-                for state in brief.current_state
+            return expected_action in action_text
+
+        if key == "latest_decision":
+            if not brief.evidence:
+                return False
+
+            expected_decision = (
+                str(expected_value)
+                .strip()
+                .lower()
+            )
+
+            if not expected_decision:
+                return False
+
+            relevant_evidence = [
+                evidence
+                for evidence in brief.evidence
+                if expected_decision
+                in evidence.conclusion.strip().lower()
+            ]
+
+            if not relevant_evidence:
+                return False
+
+            latest_evidence = relevant_evidence[-1]
+
+            return (
+                expected_decision
+                in latest_evidence.conclusion.strip().lower()
             )
 
         if key == "blocker_reason":
@@ -379,7 +415,33 @@ class EvaluationRunner:
             )
 
         if key == "entity_resolution_correct":
-            return len(brief.current_state) > 0
+            if len(brief.current_state) != 1:
+                return False
+
+            resolved_state = brief.current_state[0]
+
+            if not resolved_state.evidence:
+                return False
+
+            associated_source_ids = {
+                source_id
+                for evidence in brief.evidence
+                for source_id in evidence.sources
+            }
+
+            if not associated_source_ids:
+                return False
+
+            state_evidence = {
+                evidence_id
+                for evidence_id in resolved_state.evidence
+                if evidence_id
+            }
+
+            if not state_evidence:
+                return False
+
+            return len(state_evidence) >= 2
 
         if key == "confidence_high":
             return brief.confidence_overall >= 80
@@ -419,8 +481,7 @@ class EvaluationRunner:
 
         return all(
             expected in actual
-            for expected, actual
-            in zip(
+            for expected, actual in zip(
                 expected_actions,
                 actual_actions
             )
@@ -557,3 +618,13 @@ if __name__ == "__main__":
             file,
             indent=2
         )
+
+    has_failure = any(
+        result.get("status") == "FAIL"
+        for result in results
+    )
+
+    if not results or has_failure:
+        sys.exit(1)
+
+    sys.exit(0)

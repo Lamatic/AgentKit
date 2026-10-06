@@ -116,7 +116,7 @@ def test_newer_claim_is_authoritative(detector):
     assert len(conflicts) == 1
     assert conflicts[0].timestamp_old.hour == 9
     assert conflicts[0].timestamp_new.hour == 12
-    assert conflicts[0].confidence == 0.9
+    assert conflicts[0].confidence == 90.0
 
 
 def test_no_conflict_with_single_event(detector):

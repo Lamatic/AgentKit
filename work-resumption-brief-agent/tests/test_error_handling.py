@@ -57,9 +57,9 @@ def test_parser_valid_source_survives_bad_source():
         ],
         "commits": [
             {
-                "id": "commit-1",
+                "hash": "commit-1",
                 "message": "Implement Day 11 validation",
-                "timestamp": datetime.now(timezone.utc),
+                "timestamp": "2024-08-18T10:00:00Z",
             }
         ],
     }
@@ -67,6 +67,8 @@ def test_parser_valid_source_survives_bad_source():
     result = parser.parse(inputs)
 
     assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0].source_id == "commit-1"
 
 
 def test_agent_empty_input_returns_fallback():
