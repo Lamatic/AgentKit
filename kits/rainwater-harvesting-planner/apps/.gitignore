@@ -4,8 +4,8 @@
 /build
 npm-debug.log*
 .env
-.env.local
-.env*.local
+.env.*
+!.env.example
 .vercel
 *.tsbuildinfo
 next-env.d.ts
