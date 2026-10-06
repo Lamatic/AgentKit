@@ -99,7 +99,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": ""
+        "advance_schema": "{\n  \"message\": \"string\"\n}"
       },
       "trigger": true
     }
