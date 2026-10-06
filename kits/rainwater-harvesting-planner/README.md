@@ -93,7 +93,7 @@ npm run dev
 
 Open http://localhost:3000.
 
-Run the unit tests — 19 tests for the maths and the plan check (Node 22.6+):
+Run the unit tests — 20 tests for the maths and the plan check (Node 22.6+):
 
 ```bash
 npm test
