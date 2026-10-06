@@ -93,41 +93,15 @@ export const nodes = [
       "y": 0
     },
     "data": {
-      "nodeId": "chatTriggerNode",
-      "trigger": true,
+      "modes": {},
+      "nodeId": "graphqlNode",
       "values": {
-        "chat": "",
-        "domains": [
-          "*"
-        ],
-        "nodeName": "Chat Widget",
-        "chatConfig": {
-          "botName": "Lamatic Bot",
-          "imageUrl": "https://img.freepik.com/premium-vector/robot-android-super-hero_111928-7.jpg?w=826",
-          "position": "right",
-          "policyUrl": "https://lamatic.ai/docs/legal/privacy-policy",
-          "displayMode": "popup",
-          "placeholder": "Compose your message",
-          "suggestions": [
-            "What is lamatic?",
-            "How do I add data to my chatbot?",
-            "Explain this product to me"
-          ],
-          "errorMessage": "Oops! Something went wrong. Please try again.",
-          "hideBranding": false,
-          "primaryColor": "#ef4444",
-          "headerBgColor": "#000000",
-          "greetingMessage": "Hi, I am Lamatic Bot. Ask me anything about Lamatic",
-          "headerTextColor": "#FFFFFF",
-          "showEmojiButton": true,
-          "suggestionBgColor": "#f1f5f9",
-          "userMessageBgColor": "#FEF2F2",
-          "agentMessageBgColor": "#f1f5f9",
-          "suggestionTextColor": "#334155",
-          "userMessageTextColor": "#d12323",
-          "agentMessageTextColor": "#334155"
-        }
-      }
+        "id": "triggerNode_1",
+        "nodeName": "API Request",
+        "responeType": "realtime",
+        "advance_schema": ""
+      },
+      "trigger": true
     }
   },
   {
@@ -154,7 +128,7 @@ export const nodes = [
           "quickstart"
         ],
         "certainty": "0.64",
-        "queryField": "{{triggerNode_1.output.chatMessage}}",
+        "queryField": "{{triggerNode_1.output.message}}",
         "embeddingModelName": "@model-configs/api-integration-assistant_ragnode-157_embedding-model-name.ts",
         "generativeModelName": "@model-configs/api-integration-assistant_ragnode-157_generative-model-name.ts"
       }
@@ -168,13 +142,15 @@ export const nodes = [
       "y": 0
     },
     "data": {
-      "nodeId": "chatResponseNode",
+      "nodeId": "graphqlResponseNode",
       "values": {
-        "content": "{{RAGNode_157.output.modelResponse}}",
-        "nodeName": "Chat Response",
-        "references": "",
+        "id": "responseNode_triggerNode_1",
+        "headers": "{}",
+        "retries": "0",
+        "nodeName": "API Response",
         "webhookUrl": "",
-        "webhookHeaders": ""
+        "retry_delay": "0",
+        "outputMapping": "{\n  \"answer\": \"{{RAGNode_157.output.modelResponse}}\"\n}"
       }
     }
   }

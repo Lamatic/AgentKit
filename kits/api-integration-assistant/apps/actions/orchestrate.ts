@@ -1,7 +1,6 @@
 "use server"
 
 import { lamaticClient } from "@/lib/lamatic-client"
-import {config} from "../orchestrate.js"
 
 type InputType = "text" | "image" | "json"
 
@@ -16,42 +15,22 @@ export async function generateContent(
   try {
     console.log("[v0] Generating content with:", { inputType, instructions })
 
-    // Get the first workflow from the config
-    const flows = config.flows
-    const firstFlowKey = Object.keys(flows)[0]
-
-    if (!firstFlowKey) {
-      throw new Error("No workflows found in configuration")
+    const flowId = process.env.LAMATIC_FLOW_ID
+    if (!flowId) {
+      throw new Error("LAMATIC_FLOW_ID is not configured")
     }
 
-    // Fix: Add index signature to make TypeScript happy about accessing flows[firstFlowKey]
-    const flow = flows[firstFlowKey as keyof typeof flows] as (typeof flows)[keyof typeof flows];
-    console.log("[v0] Using workflow:", flow.name, flow.workflowId);
-
-    // Prepare inputs based on the flow's input schema
+    // Prepare inputs based on the API trigger schema
     const inputs: Record<string, any> = {
-      mode: inputType,
-      instructions,
-    }
-
-    // Map to schema if needed
-    for (const inputKey of Object.keys(flow.inputSchema || {})) {
-      if (inputKey === "inputType" || inputKey === "type") {
-        inputs[inputKey] = inputType
-      } else if (inputKey === "instructions" || inputKey === "query") {
-        inputs[inputKey] = instructions
-      }
+      message: instructions,
     }
 
     console.log("[v0] Sending inputs:", inputs)
 
-    if(!flow.workflowId){
-      throw Error("Workflow not found in config.")
-    }
-    const resData = await lamaticClient.executeFlow(flow.workflowId, inputs)
+    const resData = await lamaticClient.executeFlow(flowId, inputs)
     console.log("[v0] Raw response:", resData)
 
-    // Parse the answer from resData?.output.answer
+    // Parse the answer from resData
     const answer = resData?.result?.answer
 
     if (!answer) {
