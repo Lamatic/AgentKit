@@ -620,7 +620,7 @@ if __name__ == "__main__":
         )
 
     has_failure = any(
-        result.get("status") == "FAIL"
+        result.get("status") in {"FAIL", "PARTIAL"}
         for result in results
     )
 
