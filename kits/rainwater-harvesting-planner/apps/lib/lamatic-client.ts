@@ -59,7 +59,11 @@ export async function executeFlow<TResult = Record<string, unknown>>(
       body: JSON.stringify({ query, variables: { workflowId, ...payload } }),
       signal: controller.signal,
     });
-    if (!res.ok) throw new Error(`Lamatic HTTP ${res.status}: ${await res.text()}`);
+    if (!res.ok) {
+      // Log the upstream body on the server only; never forward it to the browser.
+      console.error(`Lamatic HTTP ${res.status}:`, await res.text().catch(() => ""));
+      throw new Error(`Lamatic request failed (HTTP ${res.status}).`);
+    }
 
     const json = (await res.json()) as ExecuteResponse<TResult>;
     if (json.errors?.length) throw new Error(`Lamatic error: ${json.errors[0].message}`);

@@ -33,10 +33,11 @@ export function extractLitres(text: string): number[] {
 export function checkPlan(plan: PlanForCheck, calc: CalcForCheck): PlanCheck {
   const issues: string[] = [];
 
-  // 1. Any tank capacity the model states must be the computed one (other sizes may be
-  //    mentioned as alternatives, so only flag if the recommended size never appears).
+  // 1. The tank advice must state the computed capacity. Other sizes may be mentioned as
+  //    alternatives, so only flag when the recommended size never appears (including when
+  //    the advice is empty or has no litre figure at all).
   const tankFigures = extractLitres(plan.tank_advice);
-  if (tankFigures.length > 0 && !tankFigures.includes(calc.recommendedTankL)) {
+  if (!tankFigures.includes(calc.recommendedTankL)) {
     issues.push(
       `The written tank advice does not mention the computed ${calc.recommendedTankL.toLocaleString("en-IN")} L tank. Use the computed size.`,
     );

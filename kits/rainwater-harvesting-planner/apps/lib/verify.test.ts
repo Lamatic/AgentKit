@@ -33,3 +33,8 @@ test("flags missing recharge guidance and inverted cost range", () => {
   );
   assert.equal(r.issues.length, 2);
 });
+
+test("flags tank advice that omits the computed size", () => {
+  assert.equal(checkPlan({ ...base, tank_advice: "" }, calc).passed, false);
+  assert.equal(checkPlan({ ...base, tank_advice: "Choose a medium tank." }, calc).passed, false);
+});
