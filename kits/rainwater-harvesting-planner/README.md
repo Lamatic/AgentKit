@@ -64,7 +64,7 @@ If the AI step fails, the numbers are still shown — the plan is an addition, n
 
 | Tool | Version |
 |---|---|
-| Node.js | 18+ (22+ to run the unit tests) |
+| Node.js | 20.9+ to run the app (Next.js 16); 22.6+ to run the unit tests (`--experimental-strip-types`) |
 | npm | 9+ |
 | A [Lamatic](https://lamatic.ai) account | free |
 | An LLM provider key added in Lamatic Studio | e.g. Gemini, OpenAI |
@@ -93,7 +93,7 @@ npm run dev
 
 Open http://localhost:3000.
 
-Run the unit tests — 18 tests for the maths and the plan check (Node 22+):
+Run the unit tests — 19 tests for the maths and the plan check (Node 22.6+):
 
 ```bash
 npm test
