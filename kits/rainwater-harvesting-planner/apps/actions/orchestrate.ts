@@ -130,8 +130,9 @@ export async function planRainwaterSystem(input: PlannerInput): Promise<PlannerR
         maintenance: records(raw.maintenance, ["task", "frequency"] as const),
         cost_estimate: costObj
           ? {
-              low_inr: Number(costObj.low_inr) || 0,
-              high_inr: Number(costObj.high_inr) || 0,
+              // Keep the raw (possibly invalid) numbers so checkPlan can flag them.
+              low_inr: Number(costObj.low_inr),
+              high_inr: Number(costObj.high_inr),
               notes: str(costObj.notes),
             }
           : { low_inr: 0, high_inr: 0, notes: "" },
