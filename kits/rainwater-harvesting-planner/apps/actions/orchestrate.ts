@@ -110,22 +110,33 @@ export async function planRainwaterSystem(input: PlannerInput): Promise<PlannerR
         const a = unwrap<unknown>(v);
         return Array.isArray(a) ? (a as T[]) : [];
       };
-      const cost = unwrap<Partial<Plan["cost_estimate"]> | string>(raw.cost_estimate);
+      const str = (v: unknown) => (typeof v === "string" ? v : "");
+      const strings = (v: unknown) => list<unknown>(v).map(str).filter(Boolean);
+      const records = <K extends string>(v: unknown, keys: readonly K[]) =>
+        list<unknown>(v)
+          .filter((x): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x))
+          .map((x) => Object.fromEntries(keys.map((k) => [k, str(x[k])])) as Record<K, string>)
+          .filter((x) => str(x[keys[0]]).length > 0);
+      const cost = unwrap<unknown>(raw.cost_estimate);
+      const costObj = cost && typeof cost === "object" ? (cost as Record<string, unknown>) : null;
 
       const plan: Plan = {
         summary: text(raw.summary),
         system_type: text(raw.system_type),
         tank_advice: text(raw.tank_advice),
         recharge_advice: text(raw.recharge_advice),
-        components: list<Plan["components"][number]>(raw.components),
-        installation_steps: list<string>(raw.installation_steps),
-        maintenance: list<Plan["maintenance"][number]>(raw.maintenance),
-        cost_estimate:
-          cost && typeof cost === "object"
-            ? { low_inr: Number(cost.low_inr) || 0, high_inr: Number(cost.high_inr) || 0, notes: cost.notes ?? "" }
-            : { low_inr: 0, high_inr: 0, notes: "" },
+        components: records(raw.components, ["name", "purpose"] as const),
+        installation_steps: strings(raw.installation_steps),
+        maintenance: records(raw.maintenance, ["task", "frequency"] as const),
+        cost_estimate: costObj
+          ? {
+              low_inr: Number(costObj.low_inr) || 0,
+              high_inr: Number(costObj.high_inr) || 0,
+              notes: str(costObj.notes),
+            }
+          : { low_inr: 0, high_inr: 0, notes: "" },
         water_quality: text(raw.water_quality),
-        warnings: list<string>(raw.warnings),
+        warnings: strings(raw.warnings),
       };
       // Guardrail: verify the written plan did not drift from the computed numbers.
       const planCheck = checkPlan(plan, calc);
