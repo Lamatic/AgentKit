@@ -48,10 +48,16 @@ export function checkPlan(plan: PlanForCheck, calc: CalcForCheck): PlanCheck {
     issues.push("A recharge pit is needed for the overflow, but the plan gives little recharge guidance.");
   }
 
-  // 3. Cost range must be a sane, ordered range.
+  // 3. Cost range must be finite, non-negative and ordered (low <= high).
   const { low_inr, high_inr } = plan.cost_estimate;
-  if (high_inr > 0 && (low_inr < 0 || low_inr > high_inr)) {
-    issues.push("The cost range is inconsistent (low is above high). Treat the cost as unreliable.");
+  if (
+    !Number.isFinite(low_inr) ||
+    !Number.isFinite(high_inr) ||
+    low_inr < 0 ||
+    high_inr < 0 ||
+    low_inr > high_inr
+  ) {
+    issues.push("The cost range is invalid (negative, missing or low above high). Treat the cost as unreliable.");
   }
 
   return { passed: issues.length === 0, issues };

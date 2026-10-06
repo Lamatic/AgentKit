@@ -38,3 +38,8 @@ test("flags tank advice that omits the computed size", () => {
   assert.equal(checkPlan({ ...base, tank_advice: "" }, calc).passed, false);
   assert.equal(checkPlan({ ...base, tank_advice: "Choose a medium tank." }, calc).passed, false);
 });
+
+test("flags negative or non-finite cost amounts", () => {
+  assert.equal(checkPlan({ ...base, tank_advice: "A 7,500 L tank.", cost_estimate: { low_inr: 1000, high_inr: -500 } }, calc).passed, false);
+  assert.equal(checkPlan({ ...base, tank_advice: "A 7,500 L tank.", cost_estimate: { low_inr: Number.NaN, high_inr: 5000 } }, calc).passed, false);
+});
