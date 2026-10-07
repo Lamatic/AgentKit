@@ -1,0 +1,10 @@
+# Never commit real credentials — every .env* is ignored except the template.
+.env
+.env.*
+!.env.example
+
+# dependencies pulled in by the app
+apps/node_modules
+apps/.next
+
+.DS_Store

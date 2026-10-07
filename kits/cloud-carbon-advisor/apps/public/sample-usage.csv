@@ -1,0 +1,16 @@
+ProviderName,ServiceName,ServiceCategory,RegionId,SubAccountId,SkuId,ResourceType,ChargePeriodStart,ChargePeriodEnd,PricingUnit,PricingQuantity,BilledCost,BillingCurrency
+AWS,Amazon EC2,Compute,ap-south-1,prod-mumbai,m5.4xlarge,Instance,2026-07-01,2026-07-31,vCPU-Hours,620000,41200,USD
+AWS,Amazon EC2,Compute,us-east-1,prod-primary,m6i.2xlarge,Instance,2026-07-01,2026-07-31,vCPU-Hours,410000,27800,USD
+AWS,Amazon EC2,Compute,us-east-1,prod-primary,c7g.2xlarge,Instance,2026-07-01,2026-07-31,vCPU-Hours,180000,7900,USD
+AWS,Amazon S3,Storage,us-east-1,data-lake,StandardStorage,Bucket,2026-07-01,2026-07-31,GB-Month,900000,20700,USD
+AWS,Amazon S3 Glacier,Storage,us-east-1,data-lake,GlacierArchiveStorage,Bucket,2026-07-01,2026-07-31,GB-Month,1200000,4800,USD
+AWS,Amazon CloudFront,Networking,us-east-1,cdn,DataTransfer-Out-Bytes,Distribution,2026-07-01,2026-07-31,GB,850000,11900,USD
+AWS,Amazon RDS,Database,eu-central-1,prod-eu,db.r6g.xlarge,DBInstance,2026-07-01,2026-07-31,vCPU-Hours,95000,9100,USD
+AWS,Amazon EC2,Compute,us-west-2,batch,m5.large,Instance,2026-07-01,2026-07-31,vCPU-Hours,150000,6050,USD
+AWS,AWS Lambda,Compute,us-east-1,api,Lambda-Function,Function,2026-07-01,2026-07-31,vCPU-Hours,32000,2100,USD
+GCP,Compute Engine,Compute,us-central1,analytics,n2-standard-8,Instance,2026-07-01,2026-07-31,vCPU-Hours,240000,13900,USD
+GCP,Cloud Storage,Storage,us-central1,analytics,StandardStorage,Bucket,2026-07-01,2026-07-31,GB-Month,420000,7800,USD
+Azure,Virtual Machines,Compute,westeurope,prod-azure,Standard_D8s_v5,VM,2026-07-01,2026-07-31,vCPU-Hours,200000,15100,USD
+Azure,Blob Storage,Storage,northeurope,backups,Hot-LRS,Blob,2026-07-01,2026-07-31,GB-Month,300000,4900,USD
+AWS,Amazon EC2,Compute,ap-southeast-2,prod-sydney,r6i.xlarge,Instance,2026-07-01,2026-07-31,vCPU-Hours,110000,8600,USD
+AWS,AWS Support,Other,us-east-1,billing,BusinessSupport,Subscription,2026-07-01,2026-07-31,Requests,1000,900,USD
