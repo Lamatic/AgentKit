@@ -17,3 +17,6 @@ python -m evaluation.run_scenarios
 | Competing Actions        | PASS    |                 1.0 |      5 |         0 |        0 |       5 |       48.0 |
 | No Clear Action          | PASS    |                 1.0 |      1 |         0 |        0 |       1 |        0.0 |
 | False Conflict Detection | PARTIAL | 0.6666666666666666 |      1 |         0 |        0 |       0 |       58.0 |
+### Overall Score
+
+**0.880952380952381 (88.10%)**

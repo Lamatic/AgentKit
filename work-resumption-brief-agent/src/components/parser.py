@@ -78,31 +78,27 @@ class MultiSourceInputParser:
         When the same generated ID occurs more than once, a deterministic
         numeric suffix is added to later occurrences.
         """
-        seen_ids: Dict[str, int] = {}
+        reserved = {event.source_id for event in events}
+        used: set = set()
+        counters: Dict[str, int] = {}
 
         for event in events:
             source_id = event.source_id
 
-            if source_id not in seen_ids:
-                seen_ids[source_id] = 1
+            if source_id not in used:
+                used.add(source_id)
                 continue
 
-            seen_ids[source_id] += 1
-            occurrence = seen_ids[source_id]
+            occurrence = counters.get(source_id, 1)
+            candidate = source_id
 
-            unique_source_id = (
-                f"{source_id}_{occurrence}"
-            )
-
-            while unique_source_id in seen_ids:
+            while candidate in used or candidate in reserved:
                 occurrence += 1
-                seen_ids[source_id] = occurrence
-                unique_source_id = (
-                    f"{source_id}_{occurrence}"
-                )
+                candidate = f"{source_id}_{occurrence}"
 
-            event.source_id = unique_source_id
-            seen_ids[unique_source_id] = 1
+            counters[source_id] = occurrence
+            event.source_id = candidate
+            used.add(candidate)
 
     def _parse_commits(
         self,

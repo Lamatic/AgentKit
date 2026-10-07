@@ -99,3 +99,26 @@ def test_blocker_keeps_existing_zero_to_one_confidence_scale():
     )
 
     assert blocker.confidence == 0.8
+
+
+@pytest.mark.parametrize("confidence", [0, 1])
+def test_blocker_accepts_confidence_boundaries(confidence):
+    blocker = Blocker(
+        blocker="Missing dependency",
+        affected_work="Parser",
+        impact="Blocks execution",
+        confidence=confidence,
+    )
+
+    assert blocker.confidence == confidence
+
+
+@pytest.mark.parametrize("confidence", [-0.1, 1.1, "invalid"])
+def test_blocker_rejects_invalid_confidence_values(confidence):
+    with pytest.raises(ValueError):
+        Blocker(
+            blocker="Missing dependency",
+            affected_work="Parser",
+            impact="Blocks execution",
+            confidence=confidence,
+        )

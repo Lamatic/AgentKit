@@ -62,6 +62,8 @@ class NormalizedEvent:
 
         if not isinstance(self.source_id, str) or not self.source_id.strip():
             raise ValueError("Source ID cannot be empty")
+        if not isinstance(self.source_type, SourceType):
+            raise ValueError("Source type must be a SourceType")
 
 
 @dataclass
