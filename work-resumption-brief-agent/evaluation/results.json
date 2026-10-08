@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-06T10:22:05.233801+00:00",
+  "timestamp": "2026-10-08T08:32:45.399392+00:00",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
@@ -11,7 +11,7 @@
         "conflicts": 1,
         "blockers": 0,
         "actions": 2,
-        "confidence": 53.0
+        "confidence": 61.0
       }
     },
     {
@@ -24,7 +24,7 @@
         "conflicts": 0,
         "blockers": 1,
         "actions": 2,
-        "confidence": 58.0
+        "confidence": 66.0
       }
     },
     {
@@ -50,7 +50,7 @@
         "conflicts": 0,
         "blockers": 3,
         "actions": 4,
-        "confidence": 53.0
+        "confidence": 61.0
       }
     },
     {
@@ -63,7 +63,7 @@
         "conflicts": 0,
         "blockers": 0,
         "actions": 5,
-        "confidence": 48.0
+        "confidence": 56.0
       }
     },
     {
@@ -89,7 +89,7 @@
         "conflicts": 0,
         "blockers": 0,
         "actions": 0,
-        "confidence": 58.0
+        "confidence": 66.0
       }
     }
   ],

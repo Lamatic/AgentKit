@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+
 from typing import Any, Dict, List
 
 from src.logger import setup_logger
+
 from src.models import (
     Action,
     WorkResumptionBrief,
@@ -38,6 +40,7 @@ class WorkResumptionAgent:
     def process(
         self,
         inputs: Dict[str, List[Any]],
+        reference_time: datetime = None,
     ) -> WorkResumptionBrief:
         """
         Process all available sources into a work-resumption brief.
@@ -53,7 +56,8 @@ class WorkResumptionAgent:
         # One reference time is created for the entire pipeline.
         # Every entity uses this same reference time during evidence
         # collection.
-        reference_time = datetime.now(timezone.utc)
+        if reference_time is None:
+            reference_time = datetime.now(timezone.utc)
 
         conflict_detection_failed = False
 
@@ -66,7 +70,18 @@ class WorkResumptionAgent:
         if not isinstance(inputs, dict):
             raise ValueError("Inputs must be a dictionary")
 
+        known_sources = {
+            "commits",
+            "pr_comments",
+            "issues",
+            "todos",
+            "meeting_notes",
+        }
+
         for source_type, items in inputs.items():
+            if source_type not in known_sources or items is None:
+                continue
+
             if not isinstance(items, list):
                 raise ValueError(
                     f"Input for source type '{source_type}' must be a list"
@@ -510,8 +525,15 @@ class WorkResumptionAgent:
                     action_text = item.action
                     score = item.score
                     reasoning = item.reason
-                    evidence = []
-                    source = "ActionPrioritizer"
+
+                    evidence = list(
+                        getattr(item, "evidence", []) or []
+                    )
+
+                    source = (
+                        getattr(item, "source", None)
+                        or "ActionPrioritizer"
+                    )
 
                 if not action_text:
                     logger.warning(
@@ -624,7 +646,15 @@ class WorkResumptionAgent:
                     ),
                     "impact": "HIGH",
                     "urgency": "HIGH",
-                    "confidence": blocker.confidence,
+                    "confidence": blocker.confidence * 100.0,
+                    "evidence": list(
+                        getattr(blocker, "evidence", []) or []
+                    ),
+                    "source": getattr(
+                        blocker,
+                        "source",
+                        "BlockerIdentifier",
+                    ),
                 }
             )
 
@@ -662,6 +692,14 @@ class WorkResumptionAgent:
                         "impact": impact,
                         "urgency": urgency,
                         "confidence": state.confidence,
+                        "evidence": list(
+                            getattr(state, "evidence", []) or []
+                        ),
+                        "source": getattr(
+                            state,
+                            "source",
+                            "StateReconstructor",
+                        ),
                     }
                 )
 
@@ -675,6 +713,14 @@ class WorkResumptionAgent:
                         "impact": "MEDIUM",
                         "urgency": "HIGH",
                         "confidence": state.confidence,
+                        "evidence": list(
+                            getattr(state, "evidence", []) or []
+                        ),
+                        "source": getattr(
+                            state,
+                            "source",
+                            "StateReconstructor",
+                        ),
                     }
                 )
 
@@ -688,6 +734,14 @@ class WorkResumptionAgent:
                         "impact": "HIGH",
                         "urgency": "HIGH",
                         "confidence": state.confidence,
+                        "evidence": list(
+                            getattr(state, "evidence", []) or []
+                        ),
+                        "source": getattr(
+                            state,
+                            "source",
+                            "StateReconstructor",
+                        ),
                     }
                 )
 
@@ -705,6 +759,14 @@ class WorkResumptionAgent:
                         "impact": "CRITICAL",
                         "urgency": "HIGH",
                         "confidence": state.confidence,
+                        "evidence": list(
+                            getattr(state, "evidence", []) or []
+                        ),
+                        "source": getattr(
+                            state,
+                            "source",
+                            "StateReconstructor",
+                        ),
                     }
                 )
 
@@ -722,6 +784,14 @@ class WorkResumptionAgent:
                     "impact": "HIGH",
                     "urgency": "HIGH",
                     "confidence": conflict.confidence,
+                    "evidence": list(
+                        getattr(conflict, "evidence", []) or []
+                    ),
+                    "source": getattr(
+                        conflict,
+                        "source",
+                        "ConflictDetector",
+                    ),
                 }
             )
 

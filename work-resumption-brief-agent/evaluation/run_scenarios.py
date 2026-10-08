@@ -6,6 +6,14 @@ from datetime import datetime, timezone
 from src.agent import WorkResumptionAgent
 
 
+EVALUATION_REFERENCE_TIME = datetime(
+    2024,
+    9,
+    4,
+    tzinfo=timezone.utc,
+)
+
+
 class EvaluationRunner:
     """Run all evaluation scenarios and measure results."""
 
@@ -111,7 +119,8 @@ class EvaluationRunner:
 
         try:
             brief = self.agent.process(
-                scenario["inputs"]
+                scenario["inputs"],
+                reference_time=EVALUATION_REFERENCE_TIME,
             )
 
             expected = scenario.get(
@@ -129,7 +138,7 @@ class EvaluationRunner:
                 "file": filename,
                 "status": (
                     "PASS"
-                    if score >= 0.80
+                    if score == 1.0
                     else "PARTIAL"
                 ),
                 "score": score,
@@ -186,7 +195,7 @@ class EvaluationRunner:
             )
             return actual_value == bool(expected_value)
 
-        if key == "parser_confidence_min":
+        if key == "confidence_overall_min":
             return (
                 brief.confidence_overall
                 >= expected_value

@@ -233,3 +233,57 @@ The implemented architecture follows the 8-component pipeline described above.
 |       Response         |
 +------------------------+
 ```
+
+---
+
+# Quick Start
+
+## Setup
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+On Windows:
+
+```powershell
+.venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run the Demo
+
+```bash
+python demo.py
+```
+
+## Run Tests
+
+```bash
+pytest -q
+```
+
+## Run Evaluation
+
+```bash
+python -m evaluation.run_scenarios
+```
+
+The evaluation uses a fixed reference time for historical scenarios to keep results reproducible.
+
+`PASS` means all expected criteria are satisfied. `PARTIAL` means one or more criteria are not satisfied. `FAIL` means the scenario could not be executed.
+
+The evaluation command exits with a non-zero status when any scenario is `PARTIAL` or `FAIL`. This is intentional and allows the command to be used for validation.
+
+## Repository Validation
+
+```bash
+git diff --check
+```
