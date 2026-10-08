@@ -1,0 +1,30 @@
+{
+  "operations": [
+    "CREATE TABLE",
+    "ADD COLUMN",
+    "CREATE INDEX",
+    "DROP TABLE"
+  ],
+  "target_table": [
+    "audit_logs",
+    "users",
+    "users",
+    "temp_users"
+  ],
+  "target_columns": [
+    [
+      "id",
+      "action"
+    ],
+    [
+      "email_verified"
+    ],
+    [
+      "email_verified"
+    ],
+    []
+  ],
+  "is_destructive": true,
+  "data_loss_potential": "HIGH",
+  "explanation": "Creates the audit_logs table, adds the email_verified column to the users table, creates an index on the email_verified column, and drops the temp_users table."
+}

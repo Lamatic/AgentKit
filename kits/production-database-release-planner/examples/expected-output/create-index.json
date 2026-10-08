@@ -1,0 +1,10 @@
+{
+  "operations": "CREATE INDEX",
+  "target_table": "users",
+  "target_columns": [
+    "email"
+  ],
+  "is_destructive": false,
+  "data_loss_potential": "LOW",
+  "explanation": "Creates an index on the email column of the users table."
+}
