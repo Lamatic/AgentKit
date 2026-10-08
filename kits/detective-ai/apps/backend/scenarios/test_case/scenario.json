@@ -1,0 +1,6 @@
+{
+  "scenario_id": "test_case",
+  "name": "The Test Case",
+  "description": "A minimal fixture scenario for testing.",
+  "version": "1.0.0"
+}

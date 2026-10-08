@@ -1,0 +1,58 @@
+[
+  {
+    "id": "timeline_01",
+    "event_order": 1,
+    "description": "Research Assistant Nina Shah completes her archiving shift and departs through the main lobby security gate.",
+    "timestamp_str": "22:00",
+    "location_id": "location_01",
+    "suspect_id": "suspect_03",
+    "evidence_id": "evidence_01",
+    "is_secret": false
+  },
+  {
+    "id": "timeline_02",
+    "event_order": 2,
+    "description": "Dr. Adrian Vale drafts an urgent email to Director Marlow regarding unauthorized system parameter modifications.",
+    "timestamp_str": "23:30",
+    "location_id": "location_05",
+    "evidence_id": "evidence_07",
+    "is_secret": false
+  },
+  {
+    "id": "timeline_03",
+    "event_order": 3,
+    "description": "Sofia Bennett executes a CCTV video suppression script targeting Cameras 3 and 4 from Systems Engineering Hub B3.",
+    "timestamp_str": "23:45",
+    "location_id": "location_04",
+    "suspect_id": "suspect_05",
+    "evidence_id": "evidence_03",
+    "is_secret": true
+  },
+  {
+    "id": "timeline_04",
+    "event_order": 4,
+    "description": "Automated security alert flags unauthorized Project ORION databank access using a temporary admin token.",
+    "timestamp_str": "23:47",
+    "location_id": "location_06",
+    "evidence_id": "evidence_02",
+    "is_secret": false
+  },
+  {
+    "id": "timeline_05",
+    "event_order": 5,
+    "description": "Dr. Vale discovers Sofia attempting to clear access logs in the Archive Reading Room; Sofia incapacitates him.",
+    "timestamp_str": "23:50",
+    "location_id": "location_02",
+    "suspect_id": "suspect_05",
+    "is_secret": true
+  },
+  {
+    "id": "timeline_06",
+    "event_order": 6,
+    "description": "Security officer Marcus Reed and medical personnel locate Dr. Adrian Vale unconscious in the Archive Reading Room.",
+    "timestamp_str": "00:15",
+    "location_id": "location_02",
+    "suspect_id": "suspect_02",
+    "is_secret": false
+  }
+]

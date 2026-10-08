@@ -1,0 +1,16 @@
+.env
+.env.local
+.env.*.local
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.oxlintrc.json
+logs/
+*.db
+*.db-journal
+dist/
+build/
+.DS_Store
