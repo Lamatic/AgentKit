@@ -234,19 +234,23 @@ The implemented architecture follows the 8-component pipeline described above.
 +------------------------+
 ```
 
----
-
 # Quick Start
 
 ## Setup
 
-Create and activate a virtual environment:
+Create a virtual environment:
 
 ```bash
 python -m venv .venv
 ```
 
-On Windows:
+On Linux/macOS, activate it with:
+
+```bash
+source .venv/bin/activate
+```
+
+On Windows, activate it with:
 
 ```powershell
 .venv\Scripts\activate

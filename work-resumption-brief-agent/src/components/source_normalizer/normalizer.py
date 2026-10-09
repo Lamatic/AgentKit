@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 
-def _text(value, default=""):
+def _text(value: Any, default: str = "") -> str:
     return default if value is None else str(value)
 
 

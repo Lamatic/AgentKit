@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass,field
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -12,6 +12,7 @@ class PrioritizedAction:
     reason: str
     source: Optional[str] = None
     blocking: str = "MEDIUM"
+    evidence: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -135,6 +136,7 @@ class ActionPrioritizer:
                         reason=reason,
                         source=data.get("source"),
                         blocking=blocking,
+                        evidence=list(data.get("evidence") or []),
                     ),
                     priority_rank,
                     has_explicit_priority,
