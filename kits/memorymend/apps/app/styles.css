@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root { --ink:#e7edf4; --muted:#94a3b8; --line:#263446; --panel:#111c2b; --canvas:#09111d; --accent:#3dd6a2; --danger:#ff8b8b; --warn:#ffbf69; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--canvas); color:var(--ink); font-family:Arial, Helvetica, sans-serif; }
+main { margin:0 auto; }
+header { max-width:900px; margin-bottom:36px; }
+.eyebrow { color:var(--accent); font-size:12px; font-weight:700; letter-spacing:.12em; }
+h1 { font-size:clamp(2.5rem,6vw,4.8rem); line-height:.95; margin:12px 0 18px; letter-spacing:-.065em; }
+h2,h3 { margin:0; }
+header p,.muted { color:var(--muted); line-height:1.6; }
+.layout { display:grid; grid-template-columns:minmax(300px,.85fr) minmax(400px,1.15fr); align-items:start; gap:22px; }
+.card,.empty { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px; }
+.snapshot { position:sticky; top:18px; }
+.memory { border-top:1px solid var(--line); padding:16px 0; }
+.memory:first-of-type { margin-top:18px; }
+.memory-meta { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:12px; }
+.memory-content { margin-top:8px; line-height:1.55; }
+.findings { display:grid; gap:14px; }
+.finding { border:1px solid var(--line); border-radius:12px; padding:18px; background:#0b1522; }
+.finding.critical { border-color:#71343b; }
+.finding.high { border-color:#6a5130; }
+.badge { font-size:11px; font-weight:800; letter-spacing:.08em; }
+.critical .badge { color:var(--danger); }.high .badge { color:var(--warn); }
+.finding h3 { margin-top:7px; font-size:20px; }
+.finding p { color:var(--muted); line-height:1.6; }
+.action { margin-top:14px; padding:12px; border:1px solid var(--line); border-radius:8px; font-size:12px; }
+button { border:0; background:var(--accent); color:#04251c; border-radius:8px; padding:11px 14px; font-weight:800; cursor:pointer; }
+button:disabled { opacity:.55; cursor:not-allowed; }
+button.secondary { background:transparent; color:var(--ink); border:1px solid var(--line); }
+.pipeline { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-top:20px; }
+.step { padding:14px 8px; border:1px solid var(--line); border-radius:8px; text-align:center; font-size:12px; color:var(--muted); }
+.score { border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:20px; text-align:center; }
+.score-value { font-size:46px; font-weight:800; margin:4px 0; }
+@media (max-width:850px) { .layout { grid-template-columns:1fr; }.snapshot { position:static; }.pipeline { grid-template-columns:repeat(2,1fr); } }
