@@ -10,7 +10,7 @@ Rules:
 - If the job description is too short or is not a job description, return {"error": "Please paste a full job description."}
 - Be respectful and practical, not preachy.
 Return ONLY valid JSON. Your reply must start with { and end with }. No extra words and no code fences.
-Use exactly this shape:
+For a valid job description, use exactly this shape:
 {
   "role_title": "",
   "overall_score": 0,
