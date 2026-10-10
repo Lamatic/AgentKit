@@ -56,7 +56,7 @@ export const nodes = [
         "id": "triggerNode_1",
         "nodeName": "API Request",
         "responeType": "realtime",
-        "advance_schema": "{\n  \"job_description\": \"string\",\n  \"company_name\": \"string\"\n}"
+        "advance_schema": "{\n  \"job_description\": \"string\",\n  \"company_name?\": \"string\"\n}"
       }
     }
   },
