@@ -416,6 +416,9 @@ class EvidenceCollector:
                     pattern,
                     content_lower,
                 ):
-                    return True
+                    break
+                else:
 
-        return False
+                    return False
+
+        return True

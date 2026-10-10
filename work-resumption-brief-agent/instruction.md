@@ -59,7 +59,6 @@ The evaluation scenarios include:
 The parser supports work-related information from multiple source types, including:
 
 - Commits
-- Pull requests
 - Pull request comments
 - Issues
 - TODOs

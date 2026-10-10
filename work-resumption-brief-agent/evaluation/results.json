@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-09T10:29:15.792682+00:00",
+  "timestamp": "2026-10-10T16:32:03.022578+00:00",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
@@ -43,8 +43,8 @@
     {
       "scenario": "Multiple Blockers",
       "file": "scenario_4_multiple_blockers.json",
-      "status": "PASS",
-      "score": 1.0,
+      "status": "PARTIAL",
+      "score": 0.6666666666666666,
       "brief_summary": {
         "states": 4,
         "conflicts": 0,
@@ -93,5 +93,5 @@
       }
     }
   ],
-  "overall_score": 0.880952380952381
+  "overall_score": 0.8333333333333333
 }

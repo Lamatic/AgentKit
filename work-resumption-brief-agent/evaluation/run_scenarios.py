@@ -24,6 +24,7 @@ class EvaluationRunner:
     def run_all_scenarios(self):
         """Run all scenario JSON files."""
 
+        self.results = []
         scenario_dir = "scenarios"
 
         if not os.path.exists(scenario_dir):
@@ -49,16 +50,17 @@ class EvaluationRunner:
         for scenario_file in scenario_files:
             file_path = os.path.join(
                 scenario_dir,
-                scenario_file
+                scenario_file,
             )
 
             try:
                 with open(
                     file_path,
                     "r",
-                    encoding="utf-8"
+                    encoding="utf-8",
                 ) as file:
                     scenario = json.load(file)
+
             except json.JSONDecodeError as error:
                 result = {
                     "scenario": scenario_file,
@@ -67,9 +69,8 @@ class EvaluationRunner:
                     "error": (
                         f"Invalid JSON in scenario file: {error}"
                     ),
-                    "score": 0.0
+                    "score": 0.0,
                 }
-
                 self.results.append(result)
 
                 print(
@@ -86,9 +87,8 @@ class EvaluationRunner:
                     "error": (
                         f"Unable to read scenario file: {error}"
                     ),
-                    "score": 0.0
+                    "score": 0.0,
                 }
-
                 self.results.append(result)
 
                 print(
@@ -99,9 +99,8 @@ class EvaluationRunner:
 
             result = self.run_scenario(
                 scenario,
-                scenario_file
+                scenario_file,
             )
-
             self.results.append(result)
 
         return self.results
@@ -109,28 +108,33 @@ class EvaluationRunner:
     def run_scenario(self, scenario, filename):
         """Run one scenario and calculate its score."""
 
-        scenario_name = scenario.get(
-            "metadata",
-            {}
-        ).get(
-            "name",
-            filename
-        )
+        scenario_name = filename
 
         try:
+            if not isinstance(scenario, dict):
+                raise ValueError(
+                    "Scenario content must be a JSON object"
+                )
+
+            metadata = scenario.get("metadata") or {}
+
+            if not isinstance(metadata, dict):
+                raise ValueError(
+                    "Scenario metadata must be a dictionary"
+                )
+
+            scenario_name = metadata.get("name", filename)
+
             brief = self.agent.process(
                 scenario["inputs"],
                 reference_time=EVALUATION_REFERENCE_TIME,
             )
 
-            expected = scenario.get(
-                "expected_outputs",
-                {}
-            )
+            expected = scenario.get("expected_outputs", {})
 
             score = self._calculate_score(
                 brief,
-                expected
+                expected,
             )
 
             return {
@@ -144,7 +148,7 @@ class EvaluationRunner:
                 "score": score,
                 "brief_summary": self._summarize_brief(
                     brief
-                )
+                ),
             }
 
         except Exception as error:
@@ -153,7 +157,7 @@ class EvaluationRunner:
                 "file": filename,
                 "status": "FAIL",
                 "error": str(error),
-                "score": 0.0
+                "score": 0.0,
             }
 
     def _calculate_score(self, brief, expected):
@@ -162,13 +166,16 @@ class EvaluationRunner:
         if not expected:
             return 0.0
 
+        if not isinstance(expected, dict):
+            return 0.0
+
         correct = 0
 
         for key, expected_value in expected.items():
             if self._check_criterion(
                 brief,
                 key,
-                expected_value
+                expected_value,
             ):
                 correct += 1
 
@@ -178,15 +185,12 @@ class EvaluationRunner:
         self,
         brief,
         key,
-        expected_value
+        expected_value,
     ):
         """Check one expected criterion."""
 
         if key == "conflicts_detected":
-            return (
-                len(brief.conflicts)
-                == expected_value
-            )
+            return len(brief.conflicts) == expected_value
 
         if key == "state_complete":
             actual_value = any(
@@ -197,8 +201,7 @@ class EvaluationRunner:
 
         if key == "confidence_overall_min":
             return (
-                brief.confidence_overall
-                >= expected_value
+                brief.confidence_overall >= expected_value
             )
 
         if key == "confidence_level":
@@ -218,37 +221,23 @@ class EvaluationRunner:
             return False
 
         if key == "confidence_max":
-            return (
-                brief.confidence_overall
-                <= expected_value
-            )
+            return brief.confidence_overall <= expected_value
 
         if key == "confidence_overall_max":
-            return (
-                brief.confidence_overall
-                <= expected_value
-            )
+            return brief.confidence_overall <= expected_value
 
         if key == "blocker_identified":
-            return len(brief.blockers) > 0
+            actual_value = len(brief.blockers) > 0
+            return actual_value == bool(expected_value)
 
         if key == "blockers_count_min":
-            return (
-                len(brief.blockers)
-                >= expected_value
-            )
+            return len(brief.blockers) >= expected_value
 
         if key == "actions_generated_min":
-            return (
-                len(brief.actions)
-                >= expected_value
-            )
+            return len(brief.actions) >= expected_value
 
         if key == "sources_count":
-            return (
-                len(brief.evidence)
-                == expected_value
-            )
+            return len(brief.evidence) == expected_value
 
         if key == "state":
             allowed_states = [
@@ -281,10 +270,7 @@ class EvaluationRunner:
                 .lower()
             )
 
-            if (
-                "none" in expected_options
-                and not action_text
-            ):
+            if "none" in expected_options and not action_text:
                 return True
 
             if "investigation" in expected_options:
@@ -303,10 +289,7 @@ class EvaluationRunner:
                     return True
 
             return any(
-                option not in {
-                    "none",
-                    "investigation"
-                }
+                option not in {"none", "investigation"}
                 and option in action_text
                 for option in expected_options
             )
@@ -331,9 +314,7 @@ class EvaluationRunner:
                 expected_action = expected_value
 
             expected_action = (
-                str(expected_action)
-                .strip()
-                .lower()
+                str(expected_action).strip().lower()
             )
 
             if not expected_action:
@@ -346,9 +327,7 @@ class EvaluationRunner:
                 return False
 
             expected_decision = (
-                str(expected_value)
-                .strip()
-                .lower()
+                str(expected_value).strip().lower()
             )
 
             if not expected_decision:
@@ -372,19 +351,20 @@ class EvaluationRunner:
             )
 
         if key == "blocker_reason":
+            expected_text = str(expected_value).lower()
             return any(
-                expected_value.lower()
-                in str(blocker).lower()
+                expected_text in str(blocker).lower()
                 for blocker in brief.blockers
             )
 
         if key == "action_recommended":
+            expected_text = str(expected_value).lower()
+
             if not brief.actions:
                 return False
 
             return any(
-                expected_value.lower()
-                in action.action.lower()
+                expected_text in action.action.lower()
                 for action in brief.actions
             )
 
@@ -393,64 +373,59 @@ class EvaluationRunner:
                 return False
 
             return (
-                expected_value.lower()
+                str(expected_value).lower()
                 in str(brief.blockers[0]).lower()
             )
 
         if key == "high_impact_identified":
-            return any(
-                getattr(
-                    blocker,
-                    "impact",
-                    ""
-                ).upper()
+            actual_value = any(
+                getattr(blocker, "impact", "").upper()
                 in {"HIGH", "CRITICAL"}
                 for blocker in brief.blockers
             )
+            return actual_value == bool(expected_value)
 
         if key == "top_action":
             if not brief.actions:
                 return False
 
             return (
-                expected_value.lower()
+                str(expected_value).lower()
                 in brief.actions[0].action.lower()
             )
 
         if key == "ranking_correct":
             return self._check_action_ranking(
                 brief,
-                expected_value
+                expected_value,
             )
 
         if key == "entity_resolution_correct":
-            if len(brief.current_state) != 1:
-                return False
+            actual_value = False
 
-            resolved_state = brief.current_state[0]
+            if len(brief.current_state) == 1:
+                resolved_state = brief.current_state[0]
 
-            if not resolved_state.evidence:
-                return False
+                state_evidence = {
+                    evidence_id
+                    for evidence_id in resolved_state.evidence
+                    if evidence_id
+                }
 
-            associated_source_ids = {
-                source_id
-                for evidence in brief.evidence
-                for source_id in evidence.sources
-            }
+                associated_source_ids = {
+                    source_id
+                    for evidence in brief.evidence
+                    for source_id in evidence.sources
+                    if source_id
+                }
 
-            if not associated_source_ids:
-                return False
+                actual_value = (
+                    bool(state_evidence)
+                    and bool(associated_source_ids)
+                    and len(state_evidence) >= 2
+                )
 
-            state_evidence = {
-                evidence_id
-                for evidence_id in resolved_state.evidence
-                if evidence_id
-            }
-
-            if not state_evidence:
-                return False
-
-            return len(state_evidence) >= 2
+            return actual_value == bool(expected_value)
 
         if key == "confidence_high":
             return brief.confidence_overall >= 80
@@ -460,7 +435,7 @@ class EvaluationRunner:
     def _check_action_ranking(
         self,
         brief,
-        expected_value
+        expected_value,
     ):
         """Validate that generated actions follow the expected ranking."""
 
@@ -492,7 +467,7 @@ class EvaluationRunner:
             expected in actual
             for expected, actual in zip(
                 expected_actions,
-                actual_actions
+                actual_actions,
             )
         )
 
@@ -506,21 +481,21 @@ class EvaluationRunner:
             priority = getattr(
                 action,
                 "priority",
-                None
+                None,
             )
 
             if priority is None:
                 priority = getattr(
                     action,
                     "priority_score",
-                    None
+                    None,
                 )
 
             if priority is None:
                 priority = getattr(
                     action,
                     "score",
-                    None
+                    None,
                 )
 
             if priority is None:
@@ -533,7 +508,7 @@ class EvaluationRunner:
                     "CRITICAL": 4,
                     "HIGH": 3,
                     "MEDIUM": 2,
-                    "LOW": 1
+                    "LOW": 1,
                 }
 
                 if normalized not in priority_map:
@@ -553,7 +528,7 @@ class EvaluationRunner:
             current >= following
             for current, following in zip(
                 priority_values,
-                priority_values[1:]
+                priority_values[1:],
             )
         )
 
@@ -565,13 +540,12 @@ class EvaluationRunner:
             "conflicts": len(brief.conflicts),
             "blockers": len(brief.blockers),
             "actions": len(brief.actions),
-            "confidence": brief.confidence_overall
+            "confidence": brief.confidence_overall,
         }
 
 
 if __name__ == "__main__":
     runner = EvaluationRunner()
-
     results = runner.run_all_scenarios()
 
     print("\n" + "=" * 70)
@@ -591,41 +565,31 @@ if __name__ == "__main__":
         total_score += result["score"]
 
     if results:
-        average_score = (
-            total_score / len(results)
-        )
+        average_score = total_score / len(results)
     else:
         average_score = 0.0
 
     print("\n" + "=" * 70)
-    print(
-        f"OVERALL SCORE: "
-        f"{average_score:.1%}"
-    )
+    print(f"OVERALL SCORE: {average_score:.1%}")
     print("=" * 70 + "\n")
 
-    os.makedirs(
-        "evaluation",
-        exist_ok=True
-    )
+    os.makedirs("evaluation", exist_ok=True)
 
     with open(
         "evaluation/results.json",
         "w",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as file:
         json.dump(
             {
-                "timestamp": (
-                    datetime.now(
-                        timezone.utc
-                    ).isoformat()
-                ),
+                "timestamp": datetime.now(
+                    timezone.utc
+                ).isoformat(),
                 "scenarios": results,
-                "overall_score": average_score
+                "overall_score": average_score,
             },
             file,
-            indent=2
+            indent=2,
         )
 
     has_failure = any(

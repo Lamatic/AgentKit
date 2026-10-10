@@ -37,7 +37,7 @@
     ]
   },
   "expected_outputs": {
-    "blockers_count_min": 3,
+    "blockers_count_min": 4,
     "top_blocker": "API schema",
     "high_impact_identified": true
   }
