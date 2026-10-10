@@ -1,0 +1,39 @@
+{
+  "findings": [
+    {
+      "id": "c1",
+      "key": "request_timeout",
+      "severity": "Medium",
+      "summary": "The request timeout value is inconsistent between the API documentation and the SDK documentation.",
+      "authoritative_source": "docs/api.md",
+      "authority_basis": "newer last_updated date",
+      "authority_overridden": false,
+      "reasoning": "Both documents define the request timeout, but they specify different values.",
+      "evidence": {
+        "docA": { "path": "docs/api.md", "date": "2026-01-15", "line": 5, "heading": "API limits", "text": "The request timeout = 30s." },
+        "docB": { "path": "docs/sdk.md", "date": "2024-05-10", "line": 5, "heading": "SDK defaults", "text": "The default request timeout is 60 seconds." }
+      },
+      "patch": { "file_to_update": "docs/sdk.md", "current_text": "The default request timeout is 60 seconds.", "replacement_text": "The default request timeout is 30s." },
+      "patch_note": ""
+    },
+    {
+      "id": "c2",
+      "key": "max_retries",
+      "severity": "Medium",
+      "summary": "The max_retries setting differs between the API documentation and the SDK documentation.",
+      "authoritative_source": "docs/api.md",
+      "authority_basis": "newer last_updated date",
+      "authority_overridden": false,
+      "reasoning": "The two documents specify different values for the same configuration setting.",
+      "evidence": {
+        "docA": { "path": "docs/api.md", "date": "2026-01-15", "line": 7, "heading": "API limits", "text": "max_retries = 3" },
+        "docB": { "path": "docs/sdk.md", "date": "2024-05-10", "line": 7, "heading": "SDK defaults", "text": "max_retries = 5" }
+      },
+      "patch": { "file_to_update": "docs/sdk.md", "current_text": "max_retries = 5", "replacement_text": "max_retries = 3" },
+      "patch_note": ""
+    }
+  ],
+  "stats": { "candidates": 2, "judged": 2, "confirmed": 2, "dismissed": 0, "discarded_unknown": 0, "authority_overridden": 0, "patches_withheld": 0 },
+  "candidate_count": 2,
+  "docs_scanned": 3
+}
