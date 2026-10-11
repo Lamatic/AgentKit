@@ -326,30 +326,14 @@ class EvaluationRunner:
             if not brief.evidence:
                 return False
 
-            expected_decision = (
-                str(expected_value).strip().lower()
-            )
+            expected_decision = str(expected_value).strip().lower()
 
             if not expected_decision:
                 return False
 
-            relevant_evidence = [
-                evidence
-                for evidence in brief.evidence
-                if expected_decision
-                in evidence.conclusion.strip().lower()
-            ]
+            latest_evidence = brief.evidence[-1]
 
-            if not relevant_evidence:
-                return False
-
-            latest_evidence = relevant_evidence[-1]
-
-            return (
-                expected_decision
-                in latest_evidence.conclusion.strip().lower()
-            )
-
+            return expected_decision in latest_evidence.conclusion.strip().lower()
         if key == "blocker_reason":
             expected_text = str(expected_value).lower()
             return any(
@@ -428,7 +412,8 @@ class EvaluationRunner:
             return actual_value == bool(expected_value)
 
         if key == "confidence_high":
-            return brief.confidence_overall >= 80
+            actual_value = brief.confidence_overall >= 80
+            return actual_value == bool(expected_value)
 
         return False
 

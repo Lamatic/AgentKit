@@ -40,6 +40,6 @@
     "conflicts_detected": 1,
     "state_complete": true,
     "parser_confidence_min": 80,
-    "first_action": "related to next work"
+    "first_action": "Continue with next work after resolving Resume parser conflict"
   }
 }

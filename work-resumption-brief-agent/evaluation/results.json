@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-10-10T16:32:03.022578+00:00",
+  "timestamp": "2026-10-11T16:14:57.041379+00:00",
   "scenarios": [
     {
       "scenario": "Contradictory Sources",
       "file": "scenario_1_contradictions.json",
       "status": "PARTIAL",
-      "score": 0.5,
+      "score": 0.75,
       "brief_summary": {
         "states": 1,
         "conflicts": 1,
@@ -20,11 +20,11 @@
       "status": "PASS",
       "score": 1.0,
       "brief_summary": {
-        "states": 1,
+        "states": 0,
         "conflicts": 0,
         "blockers": 1,
-        "actions": 2,
-        "confidence": 66.0
+        "actions": 1,
+        "confidence": 0.0
       }
     },
     {
@@ -50,7 +50,7 @@
         "conflicts": 0,
         "blockers": 3,
         "actions": 4,
-        "confidence": 61.0
+        "confidence": 56.0
       }
     },
     {
@@ -93,5 +93,5 @@
       }
     }
   ],
-  "overall_score": 0.8333333333333333
+  "overall_score": 0.869047619047619
 }

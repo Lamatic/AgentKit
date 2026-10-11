@@ -224,8 +224,7 @@ class Blocker:
         if self.entity is None:
             self.entity = self.affected_work
 
-        if self.entity is not None:
-            if not isinstance(self.entity, str) or not self.entity.strip():
+        if not isinstance(self.entity, str) or not self.entity.strip():
                 raise ValueError("Entity cannot be empty")
 
         if not isinstance(self.confidence, (int, float)):
