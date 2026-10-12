@@ -12,7 +12,7 @@ The License Compliance Auditor is an automated assistant that reviews a project'
 
 ## Flow Architecture
 
-1. **Input Payload:** Receives `dependency_licenses` (a JSON array of dependency objects) and an optional `allow_list`. Each dependency needs a `name`/`Name`, `version`/`Version`, and `license`/`License` field — both casings are accepted, so `pip-licenses --format=json`'s native capitalized output (`Name`/`Version`/`License`) and a lowercase `{name, version, license}` shape (e.g. hand-built from `license-checker --json`) both work without pre-transforming field names.
+1. **Input Payload:** Receives `dependency_licenses` (a JSON-encoded string containing an array of dependency objects — the trigger schema types it as `string`) and an optional `allow_list`. Each dependency needs a `name`/`Name`, `version`/`Version`, and `license`/`License` field — both casings are accepted, so `pip-licenses --format=json`'s native capitalized output (`Name`/`Version`/`License`) and a lowercase `{name, version, license}` shape (e.g. hand-built from `license-checker --json`) both work without pre-transforming field names.
 2. **Code Node:** Parses the input, classifies every dependency deterministically, and outputs a structured JSON findings report.
 3. **LLM Node:** Consumes the findings securely and writes a markdown compliance report.
 

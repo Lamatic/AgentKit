@@ -118,7 +118,9 @@ function parseDeps(val) {
 
 function parseAllowList(val) {
   if (!val || typeof val !== 'string' || val.trim() === '') return [];
-  return val.split(',').map(s => s.trim()).filter(Boolean);
+  // Escaped like the dependency fields: these entries are echoed back in
+  // allow_list_used, which also lands inside <compliance_data>.
+  return val.split(',').map(s => escapeAngles(s.trim())).filter(Boolean);
 }
 
 // Classify a single SPDX license id (no OR/AND) against the effective
