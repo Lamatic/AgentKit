@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f9fb;
+  --foreground: #13232f;
+  --muted: #5b6b78;
+  --card: #ffffff;
+  --border: #dbe4ea;
+  --primary: #0b6e99;
+  --primary-soft: #e3f1f8;
+  --accent: #2f9e6f;
+  --warn: #b45309;
+  --warn-soft: #fef3e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e171e;
+    --foreground: #e6eef3;
+    --muted: #9fb0bc;
+    --card: #15222c;
+    --border: #26363f;
+    --primary: #4fb3e0;
+    --primary-soft: #16303f;
+    --accent: #4cc390;
+    --warn: #f0a94b;
+    --warn-soft: #33260f;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-border bg-card p-5 shadow-sm;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium;
+  }
+  .input {
+    @apply w-full rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30;
+  }
+}
