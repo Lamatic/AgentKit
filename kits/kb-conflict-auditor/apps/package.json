@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "benchmark": "node benchmark/run.mjs",
+    "benchmark:live": "node benchmark/run.mjs --live"
   },
   "dependencies": {
     "lamatic": "^0.3.2",
