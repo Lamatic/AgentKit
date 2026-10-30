@@ -1,0 +1,32 @@
+{
+  "mustFind": [
+    { "key": "request_timeout", "note": "30s vs 60 seconds vs 45s across api-limits, sdk-guide and cli" },
+    { "key": "max_retries", "note": "3 vs 5 vs 7, including the document that contains a prompt-injection line" },
+    { "key": "log_retention", "note": "30 days (config, newer) vs 90 days (ops, older)" }
+  ],
+  "mustFindPairs": [
+    { "key": "request_timeout", "pair": ["docs/api-limits.md", "docs/sdk-guide.md"] }
+  ],
+  "mustNotFlag": [
+    { "key": "cache_ttl", "note": "10 min and 600s are the same duration" },
+    { "key": "rate_limit", "note": "same value, different wording" },
+    { "key": "max_upload_size", "note": "50 MB and 50MB are the same size" },
+    { "key": "page_size", "note": "same value in two documents" },
+    { "key": "timeout_for_mobile", "note": "a different setting that happens to share words with request_timeout" },
+    { "key": "timeout", "note": "5000 (unitless, in a code sample) must not be compared with 30 seconds" }
+  ],
+  "knownMisses": [
+    "Upload size: \"Max upload size: 50 MB\" (api-limits) vs \"Upload limit raised to 100 MB\" (changelog). The two sentences use different key words, so no shared key is found.",
+    "Pool size: \"connection pool = 10\" (config) vs \"The pool size is 20.\" (ops). Different key words again."
+  ],
+  "liveChecks": {
+    "authority": { "key": "request_timeout", "pair": ["docs/api-limits.md", "docs/sdk-guide.md"], "expectedAuthority": "docs/api-limits.md" },
+    "datedPairAuthority": {
+      "key": "request_timeout",
+      "pair": ["docs/cli.md", "docs/sdk-guide.md"],
+      "expectedAuthority": "docs/cli.md"
+    },
+    "injectionDocument": "docs/injected.md",
+    "mobileDocument": "docs/mobile.md"
+  }
+}

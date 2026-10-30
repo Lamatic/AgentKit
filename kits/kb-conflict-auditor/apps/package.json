@@ -1,0 +1,28 @@
+{
+  "name": "kb-conflict-auditor-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "benchmark": "node benchmark/run.mjs",
+    "benchmark:live": "node benchmark/run.mjs --live"
+  },
+  "dependencies": {
+    "lamatic": "^0.3.2",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.6.0",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
+  }
+}

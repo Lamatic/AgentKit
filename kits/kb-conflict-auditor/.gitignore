@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.env
+.env.local
+.lamatic/
+*.log
+next-env.d.ts
+*.tsbuildinfo
