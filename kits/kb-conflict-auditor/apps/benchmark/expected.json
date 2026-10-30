@@ -21,7 +21,11 @@
   ],
   "liveChecks": {
     "authority": { "key": "request_timeout", "pair": ["docs/api-limits.md", "docs/sdk-guide.md"], "expectedAuthority": "docs/api-limits.md" },
-    "undatedPairShouldBeUnclear": { "key": "request_timeout", "withFile": "docs/cli.md" },
+    "datedPairAuthority": {
+      "key": "request_timeout",
+      "pair": ["docs/cli.md", "docs/sdk-guide.md"],
+      "expectedAuthority": "docs/cli.md"
+    },
     "injectionDocument": "docs/injected.md",
     "mobileDocument": "docs/mobile.md"
   }

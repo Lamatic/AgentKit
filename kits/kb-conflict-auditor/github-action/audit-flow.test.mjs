@@ -66,6 +66,13 @@ test('candidate extraction rejects impossible dates and prioritizes matching sec
     { path: 'docs/b.md', content: '---\ndate: 2025-01-01\n---\nrequest timeout = 60s' },
   ]);
   assert.equal(JSON.parse(proseDate.candidates_json)[0].docA.date, '');
+
+  const frontMatterDates = extract([
+    { path: 'docs/a.md', content: '\uFEFF---\ndate: 2026-99-99\nlast_updated: 2026-02-03\n---\nrequest timeout = 30s' },
+    { path: 'docs/b.md', content: '---\ndate: 2025-01-01\n---\nrequest timeout = 60s' },
+  ]);
+  const dateCandidates = JSON.parse(frontMatterDates.candidates_json);
+  assert.equal(dateCandidates[0].docA.date, '2026-02-03');
 });
 
 test('verification deduplicates candidate IDs and only accepts a patch quote from its conflicting line', () => {

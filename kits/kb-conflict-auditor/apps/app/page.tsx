@@ -103,6 +103,7 @@ export default function KbConflictAuditorPage() {
   const canSubmit = mode === 'repo' ? repoUrl.trim().length > 0 : documentsJson.trim().length > 0;
 
   const changeMode = (nextMode: InputMode) => {
+    if (isLoading || nextMode === mode) return;
     setMode(nextMode);
     setError('');
     setResult(null);
@@ -143,7 +144,7 @@ export default function KbConflictAuditorPage() {
     result && (result.source.truncated || (result.source.skipped && result.source.skipped.length > 0)),
   );
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    if (isLoading || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
     event.preventDefault();
     const nextMode = mode === 'repo' ? 'json' : 'repo';
     changeMode(nextMode);
@@ -172,7 +173,9 @@ export default function KbConflictAuditorPage() {
             className="mode-tab"
             ref={repoTabRef}
             onKeyDown={handleTabKeyDown}
-            onClick={() => changeMode('repo')}
+            onClick={() => {
+              if (mode !== 'repo') changeMode('repo');
+            }}
           >
             GitHub Repo URL
           </button>
@@ -186,7 +189,9 @@ export default function KbConflictAuditorPage() {
             className="mode-tab"
             ref={jsonTabRef}
             onKeyDown={handleTabKeyDown}
-            onClick={() => changeMode('json')}
+            onClick={() => {
+              if (mode !== 'json') changeMode('json');
+            }}
           >
             Paste JSON
           </button>

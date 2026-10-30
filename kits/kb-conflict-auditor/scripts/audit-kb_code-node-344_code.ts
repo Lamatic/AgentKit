@@ -20,7 +20,7 @@ const UNITS = {
 const STOP = new Set(['the', 'a', 'an', 'default', 'is', 'are', 'of', 'set', 'to', 'value', 'be', 'currently', 'now']);
 const SKIP_KEYS = new Set(['date', 'last_updated', 'updated', 'updated_at', 'version', 'step', 'page', 'line', 'year', 'chapter', 'section']);
 const FACT = /([A-Za-z][A-Za-z0-9_\-. ]{1,40}?)\s*(?::|=|\bis\b|\bto\b)\s*`?(\d+(?:\.\d+)?)\s*(seconds?|secs?|msec|ms|minutes?|mins?|hours?|hrs?|kb|mb|gb|%|px|h|s)?(?![A-Za-z0-9]|[-./]\d)/gi;
-const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
+const FRONT_MATTER = /^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 const DATE = /^(?:last[_ -]?updated|updated(?:_at)?|date)\s*:\s*["']?(\d{4}-\d{2}-\d{2})/im;
 
 function isRealDate(value) {
@@ -30,8 +30,12 @@ function isRealDate(value) {
 
 function extractDate(content) {
   const frontMatter = FRONT_MATTER.exec(content)?.[1];
-  const match = frontMatter && DATE.exec(frontMatter);
-  return match && isRealDate(match[1]) ? match[1] : '';
+  if (!frontMatter) return '';
+  for (const line of frontMatter.split(/\r?\n/)) {
+    const match = DATE.exec(line);
+    if (match && isRealDate(match[1])) return match[1];
+  }
+  return '';
 }
 
 function normalizeKey(text) {

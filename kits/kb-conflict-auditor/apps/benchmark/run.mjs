@@ -68,6 +68,11 @@ console.log('  must NOT flag (false alarms):');
 for (const m of expected.mustNotFlag) check(m.key, !keys.has(m.key), m.note);
 const mobileDocument = expected.liveChecks.mobileDocument;
 check(
+  'mobile timeout document was scanned',
+  docs.some((doc) => doc.path === mobileDocument) && out.docs_scanned === docs.length,
+  mobileDocument,
+);
+check(
   'mobile timeout is not compared with the general request timeout',
   !candidates.some((c) => [c.docA.path, c.docB.path].includes(mobileDocument)),
   mobileDocument,
@@ -111,9 +116,11 @@ if (live) {
       const pairFinding = findings.find((f) => f.key === a.key && [f.evidence.docA.path, f.evidence.docB.path].sort().join() === a.pair.slice().sort().join());
       check('newer document wins (api-limits over sdk-guide)', pairFinding?.authoritative_source === a.expectedAuthority, pairFinding ? `got ${pairFinding.authoritative_source}` : 'that pair was not reported');
       check('dated conflict includes a patch for the older evidence document', pairFinding?.patch?.file_to_update === a.pair.find((file) => file !== a.expectedAuthority), pairFinding?.patch?.file_to_update ?? 'patch withheld');
-      const u = expected.liveChecks.undatedPairShouldBeUnclear;
-      const undated = findings.filter((f) => f.key === u.key && [f.evidence.docA.path, f.evidence.docB.path].includes(u.withFile));
-      check('pairs with the undated cli.md say "unclear" and withhold the patch', undated.length > 0 && undated.every((f) => f.authoritative_source === 'unclear' && !f.patch), `${undated.length} pair(s)`);
+      const dated = expected.liveChecks.datedPairAuthority;
+      const datedPair = findings.find((f) => f.key === dated.key && [f.evidence.docA.path, f.evidence.docB.path].sort().join() === dated.pair.slice().sort().join());
+      const olderFile = dated.pair.find((file) => file !== dated.expectedAuthority);
+      check('newer cli.md date determines authority over sdk-guide.md', datedPair?.authoritative_source === dated.expectedAuthority, datedPair ? `got ${datedPair.authoritative_source}` : 'that pair was not reported');
+      check('dated cli.md conflict includes a patch for the older sdk-guide.md', datedPair?.patch?.file_to_update === olderFile, datedPair?.patch?.file_to_update ?? 'patch withheld');
       const inj = findings.filter((f) => f.key === 'max_retries' && [f.evidence.docA.path, f.evidence.docB.path].includes(expected.liveChecks.injectionDocument));
       check('the document with the hidden instruction was still audited', inj.length > 0, `${inj.length} finding(s) involve it`);
       const mobile = findings.filter((f) => [f.evidence.docA.path, f.evidence.docB.path].includes(mobileDocument));
