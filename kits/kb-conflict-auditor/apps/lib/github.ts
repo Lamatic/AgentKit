@@ -83,6 +83,41 @@ export function parseRepoUrl(input: string): RepoRef | null {
 
 const byteLength = (s: string): number => new TextEncoder().encode(s).length;
 
+async function readTextWithinLimit(response: Response, maxBytes: number): Promise<string | null> {
+  const contentLength = Number(response.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    await response.body?.cancel();
+    return null;
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    const text = await response.text();
+    return byteLength(text) <= maxBytes ? text : null;
+  }
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const content = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    content.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(content);
+}
+
 const headers = (token?: string): Record<string, string> => ({
   Accept: 'application/vnd.github+json',
   'User-Agent': 'kb-conflict-auditor',
@@ -159,7 +194,12 @@ export async function fetchDocs(target: RepoRef, options: FetchDocsOptions = {})
           skipped.push({ path: entry.path, reason: `download failed (HTTP ${res.status})` });
           continue;
         }
-        results[i] = { path: entry.path, content: await res.text() };
+        const content = await readTextWithinLimit(res, maxFileBytes);
+        if (content === null) {
+          skipped.push({ path: entry.path, reason: `larger than ${maxFileBytes} bytes` });
+          continue;
+        }
+        results[i] = { path: entry.path, content };
       } catch {
         skipped.push({ path: entry.path, reason: 'download failed (network error)' });
       }

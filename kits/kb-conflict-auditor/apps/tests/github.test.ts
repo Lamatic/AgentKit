@@ -105,6 +105,17 @@ describe('fetchDocs', () => {
     expect(r.truncated).toBe(true);
   });
 
+  it('enforces maxFileBytes against the downloaded response body', async () => {
+    const f = fakeFetch({
+      [INFO]: { json: { default_branch: 'main' } },
+      [TREE]: tree([{ path: 'docs/large.md' }]),
+      [raw('docs/large.md')]: { text: 'é'.repeat(60) },
+    });
+    const r = await fetchDocs(target, { fetchImpl: f, maxFileBytes: 100 });
+    expect(r.documents).toHaveLength(0);
+    expect(r.skipped).toEqual([{ path: 'docs/large.md', reason: 'larger than 100 bytes' }]);
+  });
+
   it('reports a failed download as skipped, not as a crash', async () => {
     const f = fakeFetch({
       [INFO]: { json: { default_branch: 'main' } },

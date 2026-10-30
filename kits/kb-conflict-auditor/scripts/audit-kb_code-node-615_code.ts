@@ -41,7 +41,7 @@ function verify(llmRaw, candidatesRaw, documentsRaw) {
     if (!c) { stats.discarded_unknown++; continue; }
     if (seen.has(c.id)) continue;
     seen.add(c.id);
-    if (!r.is_real_conflict) { stats.dismissed++; continue; }
+    if (r.is_real_conflict !== true) { stats.dismissed++; continue; }
 
     const dated = c.docA.date && c.docB.date && c.docA.date !== c.docB.date;
     const authority = dated ? (c.docA.date > c.docB.date ? c.docA.path : c.docB.path) : 'unclear';

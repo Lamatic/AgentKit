@@ -19,7 +19,9 @@ const { verify } = loadNode('audit-kb_code-node-615_code.ts', ['verify']);
 
 test('candidate extraction rejects impossible dates and prioritizes matching sections within the pair cap', () => {
   const first = [
+    '---',
     'last_updated: 2026-99-99',
+    '---',
     '# Production',
     'request timeout = 30s',
     'max retries = 3',
@@ -32,7 +34,9 @@ test('candidate extraction rejects impossible dates and prioritizes matching sec
     'connection limit = 25',
   ].join('\n');
   const second = [
+    '---',
     'last_updated: 2025-01-01',
+    '---',
     '# Production',
     'request timeout = 45s',
     'max retries = 4',
@@ -56,6 +60,12 @@ test('candidate extraction rejects impossible dates and prioritizes matching sec
   assert.equal(result.truncated, true);
   assert.equal(candidates.some((c) => c.docA.date), false);
   assert.ok(candidates.slice(0, 8).every((c) => c.docA.heading === c.docB.heading));
+
+  const proseDate = extract([
+    { path: 'docs/a.md', content: '# A\nupdated_at: 2026-01-01\nrequest timeout = 30s' },
+    { path: 'docs/b.md', content: '---\ndate: 2025-01-01\n---\nrequest timeout = 60s' },
+  ]);
+  assert.equal(JSON.parse(proseDate.candidates_json)[0].docA.date, '');
 });
 
 test('verification deduplicates candidate IDs and only accepts a patch quote from its conflicting line', () => {
@@ -106,4 +116,19 @@ test('verification deduplicates candidate IDs and only accepts a patch quote fro
   )));
   assert.equal(nonVerbatimQuote.findings[0].patch, null);
   assert.match(nonVerbatimQuote.findings[0].patch_note, /exact quoted text/i);
+
+  const stringFalse = JSON.parse(JSON.stringify(verify(
+    { results: [{ ...base, is_real_conflict: 'false' }] },
+    [candidate],
+    documents,
+  )));
+  assert.equal(stringFalse.findings.length, 0);
+  assert.equal(stringFalse.stats.dismissed, 1);
+
+  const validPatch = JSON.parse(JSON.stringify(verify(
+    { results: [{ ...base, suggested_patch: { file_to_update: 'docs/old.md', current_text: 'request timeout = 60s', replacement_text: 'request timeout = 30s' } }] },
+    [candidate],
+    documents,
+  )));
+  assert.equal(validPatch.findings[0].patch.file_to_update, 'docs/old.md');
 });

@@ -4,6 +4,9 @@
     { "key": "max_retries", "note": "3 vs 5 vs 7, including the document that contains a prompt-injection line" },
     { "key": "log_retention", "note": "30 days (config, newer) vs 90 days (ops, older)" }
   ],
+  "mustFindPairs": [
+    { "key": "request_timeout", "pair": ["docs/api-limits.md", "docs/sdk-guide.md"] }
+  ],
   "mustNotFlag": [
     { "key": "cache_ttl", "note": "10 min and 600s are the same duration" },
     { "key": "rate_limit", "note": "same value, different wording" },
@@ -19,6 +22,7 @@
   "liveChecks": {
     "authority": { "key": "request_timeout", "pair": ["docs/api-limits.md", "docs/sdk-guide.md"], "expectedAuthority": "docs/api-limits.md" },
     "undatedPairShouldBeUnclear": { "key": "request_timeout", "withFile": "docs/cli.md" },
-    "injectionDocument": "docs/injected.md"
+    "injectionDocument": "docs/injected.md",
+    "mobileDocument": "docs/mobile.md"
   }
 }

@@ -35,6 +35,7 @@ jobs:
         run: git diff --name-only -z "origin/$BASE_REF...HEAD" -- docs > "$RUNNER_TEMP/changed.txt"
 
       - name: Install the Lamatic SDK
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: npm install --prefix trusted --no-save lamatic
 
       - name: Audit docs

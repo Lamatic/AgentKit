@@ -60,8 +60,18 @@ for (const c of candidates) console.log(`    ${c.id} ${c.key}: ${c.docA.path} ("
 const keys = new Set(candidates.map((c) => c.key));
 console.log('  must find:');
 for (const m of expected.mustFind) check(m.key, keys.has(m.key), m.note);
+for (const m of expected.mustFindPairs ?? []) {
+  const pair = m.pair.slice().sort().join();
+  check(`${m.key} expected document pair`, candidates.some((c) => c.key === m.key && [c.docA.path, c.docB.path].sort().join() === pair), pair);
+}
 console.log('  must NOT flag (false alarms):');
 for (const m of expected.mustNotFlag) check(m.key, !keys.has(m.key), m.note);
+const mobileDocument = expected.liveChecks.mobileDocument;
+check(
+  'mobile timeout is not compared with the general request timeout',
+  !candidates.some((c) => [c.docA.path, c.docB.path].includes(mobileDocument)),
+  mobileDocument,
+);
 const recall = expected.mustFind.filter((m) => keys.has(m.key)).length / expected.mustFind.length;
 const falseAlarms = expected.mustNotFlag.filter((m) => keys.has(m.key)).length;
 console.log(`  recall on seeded conflicts: ${(recall * 100).toFixed(0)}%   false alarms: ${falseAlarms}`);
@@ -100,12 +110,21 @@ if (live) {
       const a = expected.liveChecks.authority;
       const pairFinding = findings.find((f) => f.key === a.key && [f.evidence.docA.path, f.evidence.docB.path].sort().join() === a.pair.slice().sort().join());
       check('newer document wins (api-limits over sdk-guide)', pairFinding?.authoritative_source === a.expectedAuthority, pairFinding ? `got ${pairFinding.authoritative_source}` : 'that pair was not reported');
+      check('dated conflict includes a patch for the older evidence document', pairFinding?.patch?.file_to_update === a.pair.find((file) => file !== a.expectedAuthority), pairFinding?.patch?.file_to_update ?? 'patch withheld');
       const u = expected.liveChecks.undatedPairShouldBeUnclear;
       const undated = findings.filter((f) => f.key === u.key && [f.evidence.docA.path, f.evidence.docB.path].includes(u.withFile));
       check('pairs with the undated cli.md say "unclear" and withhold the patch', undated.length > 0 && undated.every((f) => f.authoritative_source === 'unclear' && !f.patch), `${undated.length} pair(s)`);
       const inj = findings.filter((f) => f.key === 'max_retries' && [f.evidence.docA.path, f.evidence.docB.path].includes(expected.liveChecks.injectionDocument));
       check('the document with the hidden instruction was still audited', inj.length > 0, `${inj.length} finding(s) involve it`);
-      check('every kept patch targets the older file', findings.filter((f) => f.patch).every((f) => f.patch.file_to_update !== f.authoritative_source));
+      const mobile = findings.filter((f) => [f.evidence.docA.path, f.evidence.docB.path].includes(mobileDocument));
+      check('no finding is attributed to the mobile timeout document', mobile.length === 0, `${mobile.length} finding(s) involve it`);
+      check('every kept patch targets the older evidence file', findings.filter((f) => f.patch).every((f) => {
+        const { docA, docB } = f.evidence;
+        if (!docA.date || !docB.date || docA.date === docB.date) return false;
+        const olderPath = docA.date < docB.date ? docA.path : docB.path;
+        const newerPath = olderPath === docA.path ? docB.path : docA.path;
+        return f.patch.file_to_update === olderPath && f.authoritative_source === newerPath;
+      }));
     }
   }
 }
