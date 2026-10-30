@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { type AuditDocsResult, auditDocs } from '../actions/orchestrate';
 import type { DocEvidence, Finding, Severity } from '../lib/result';
 
@@ -97,6 +97,8 @@ export default function KbConflictAuditorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<AuditDocsResult | null>(null);
+  const repoTabRef = useRef<HTMLButtonElement>(null);
+  const jsonTabRef = useRef<HTMLButtonElement>(null);
 
   const canSubmit = mode === 'repo' ? repoUrl.trim().length > 0 : documentsJson.trim().length > 0;
 
@@ -135,6 +137,14 @@ export default function KbConflictAuditorPage() {
   const hasSkippedOrTruncated = Boolean(
     result && (result.source.truncated || (result.source.skipped && result.source.skipped.length > 0)),
   );
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const nextMode = mode === 'repo' ? 'json' : 'repo';
+    setMode(nextMode);
+    setError('');
+    (nextMode === 'repo' ? repoTabRef : jsonTabRef).current?.focus();
+  };
 
   return (
     <main className="page-shell">
@@ -142,7 +152,7 @@ export default function KbConflictAuditorPage() {
         <h1 className="page-title">KB Conflict Auditor</h1>
         <p className="page-subtitle">
           Extract numeric facts across documentation files, judge candidate conflicts with an AI model, and verify
-          authority and patches by code.
+          authority and patch targets by code. Suggested replacement text still needs human review.
         </p>
       </header>
 
@@ -154,7 +164,10 @@ export default function KbConflictAuditorPage() {
             id="tab-repo"
             aria-controls="panel-repo"
             aria-selected={mode === 'repo'}
+            tabIndex={mode === 'repo' ? 0 : -1}
             className="mode-tab"
+            ref={repoTabRef}
+            onKeyDown={handleTabKeyDown}
             onClick={() => {
               setMode('repo');
               setError('');
@@ -168,7 +181,10 @@ export default function KbConflictAuditorPage() {
             id="tab-json"
             aria-controls="panel-json"
             aria-selected={mode === 'json'}
+            tabIndex={mode === 'json' ? 0 : -1}
             className="mode-tab"
+            ref={jsonTabRef}
+            onKeyDown={handleTabKeyDown}
             onClick={() => {
               setMode('json');
               setError('');
@@ -281,6 +297,13 @@ export default function KbConflictAuditorPage() {
                   </ul>
                 </details>
               ) : null}
+            </div>
+          ) : null}
+
+          {result.truncated ? (
+            <div className="banner banner-notice" role="status">
+              Candidate limit reached: <strong>{result.candidate_count}</strong> of{' '}
+              <strong>{result.total_found}</strong> candidate pairs were sent for review (maximum 10).
             </div>
           ) : null}
 

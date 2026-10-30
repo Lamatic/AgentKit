@@ -37,7 +37,20 @@ function run(dir, env) {
   // Start from the real environment (Windows needs SystemRoot etc.) but drop anything that could change the result.
   const base = { ...process.env };
   for (const k of Object.keys(base)) if (/^(LAMATIC_|KB_AUDIT_|DOCS_DIR|FAIL_ON|CHANGED_FILES_FILE|REPORT_FILE|GITHUB_STEP_SUMMARY)/.test(k)) delete base[k];
+  delete base.GITHUB_EVENT_NAME;
+  delete base.GITHUB_EVENT_PATH;
   return spawnSync(process.execPath, [SCRIPT], { cwd: dir, env: { ...base, ...env }, encoding: 'utf8' });
+}
+
+function pullRequestEvent(dir, headRepo, baseRepo) {
+  const file = path.join(dir, 'event.json');
+  fs.writeFileSync(file, JSON.stringify({
+    pull_request: {
+      head: { repo: { full_name: headRepo } },
+      base: { repo: { full_name: baseRepo } },
+    },
+  }));
+  return file;
 }
 
 test('collectDocs reads md/mdx/txt, skips hidden and node_modules, uses repo-relative paths', () => {
@@ -52,6 +65,22 @@ test('collectDocs caps document count and size', () => {
   assert.equal(documents.length, 2);
   assert.equal(skipped, 1);
   assert.equal(documents[0].content.length, 5);
+  assert.deepEqual(
+    collectDocs(path.join(dir, 'docs'), { root: dir, maxChars: 5 }).truncatedDocuments,
+    ['docs/api.md', 'docs/sdk.md'],
+  );
+});
+
+test('collectDocs prioritizes changed paths before applying the document limit', () => {
+  const dir = workspace();
+  const changedPath = path.join(dir, 'docs', 'z-last.md');
+  fs.writeFileSync(changedPath, 'changed');
+  const { documents } = collectDocs(path.join(dir, 'docs'), {
+    root: dir,
+    maxDocs: 2,
+    prioritizePaths: new Set(['docs/z-last.md']),
+  });
+  assert.ok(documents.some((d) => d.path === 'docs/z-last.md'));
 });
 
 test('extractResult handles plain, nested and stringified responses', () => {
@@ -60,6 +89,8 @@ test('extractResult handles plain, nested and stringified responses', () => {
   assert.equal(extractResult({ status: 'success', result: plain }).findings.length, 1);
   assert.equal(extractResult({ data: { executeWorkflow: { result: JSON.stringify(plain) } } }).candidate_count, 1);
   assert.deepEqual(extractResult({ findings: '', stats: '', candidate_count: 0, docs_scanned: 3 }).findings, []);
+  assert.equal(extractResult({ findings: { severity: 'Critical' }, candidate_count: 1 }), null);
+  assert.equal(extractResult({ findings: 'broken-json', candidate_count: 1 }), null);
   assert.equal(extractResult({ unrelated: true }), null);
   assert.equal(extractResult(null), null);
 });
@@ -93,6 +124,22 @@ test('renderMarkdown includes the marker, evidence and a diff, and handles the e
   assert.ok(!noPatch.includes('```diff'));
   const empty = renderMarkdown({ findings: [], docsScanned: 3, candidateCount: 0 });
   assert.ok(empty.includes('No conflicting facts found'));
+  const many = Array.from({ length: 30 }, (_, i) => finding({
+    id: `c${i}`,
+    severity: 'Low',
+    summary: `${i}: ${'long '.repeat(400)}`,
+  }));
+  many.push(finding({ id: 'critical-last', severity: 'Critical', summary: 'Failure-critical finding retained.' }));
+  const truncated = renderMarkdown({
+    findings: many,
+    docsScanned: 2,
+    candidateCount: 11,
+    totalFound: 14,
+    truncated: true,
+  });
+  assert.ok(truncated.includes('Failure-critical finding retained.'));
+  assert.ok(truncated.includes('11** of **14'));
+  assert.ok(truncated.includes('non-failing finding(s) omitted'));
 });
 
 test('main: a High finding fails the check and writes the report', () => {
@@ -118,13 +165,30 @@ test('main: changed-files filter hides unrelated findings', () => {
   const mock = path.join(dir, 'resp.json');
   fs.writeFileSync(mock, JSON.stringify({ findings: [finding()], stats: {}, candidate_count: 1, docs_scanned: 3 }));
   const changed = path.join(dir, 'changed.txt');
-  fs.writeFileSync(changed, 'docs/unrelated.md\n');
+  fs.writeFileSync(changed, 'docs/unrelated.md\0');
   const r = run(dir, { KB_AUDIT_MOCK_RESPONSE: mock, CHANGED_FILES_FILE: changed });
   assert.equal(r.status, 0);
   assert.ok(r.stdout.includes('hidden'));
 });
 
-test('main: clean docs response reports no conflicts and passes', () => {
+test('main: changed-file filtering preserves non-ASCII paths from a NUL-delimited list', () => {
+  const dir = workspace();
+  const file = path.join(dir, 'docs', 'café.md');
+  fs.writeFileSync(file, 'changed');
+  const mock = path.join(dir, 'resp.json');
+  fs.writeFileSync(mock, JSON.stringify({
+    findings: [finding({ evidence: { docA: { path: 'docs/café.md' }, docB: { path: 'docs/sdk.md' } } })],
+    stats: {},
+    candidate_count: 1,
+  }));
+  const changed = path.join(dir, 'changed.txt');
+  fs.writeFileSync(changed, 'docs/café.md\0');
+  const r = run(dir, { KB_AUDIT_MOCK_RESPONSE: mock, CHANGED_FILES_FILE: changed });
+  assert.equal(r.status, 1);
+  assert.ok(fs.readFileSync(path.join(dir, 'kb-audit-report.md'), 'utf8').includes('Timeout differs.'));
+});
+
+test('main: an empty result reports no conflicts and passes', () => {
   const dir = workspace();
   const mock = path.join(dir, 'resp.json');
   fs.writeFileSync(mock, JSON.stringify({ findings: '', stats: '', candidate_count: 0, docs_scanned: 3 }));
@@ -135,10 +199,64 @@ test('main: clean docs response reports no conflicts and passes', () => {
 
 test('main: missing secrets (fork PRs) skip quietly with exit 0 and no report', () => {
   const dir = workspace();
-  const r = run(dir, {});
+  const eventPath = pullRequestEvent(dir, 'someone/AgentKit', 'owner/AgentKit');
+  const r = run(dir, { GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: eventPath });
   assert.equal(r.status, 0);
-  assert.ok(r.stdout.includes('::notice::'));
+  assert.ok(r.stdout.includes('fork pull request'));
   assert.equal(fs.existsSync(path.join(dir, 'kb-audit-report.md')), false);
+});
+
+test('main: missing secrets fail for same-repository pulls and non-PR runs', () => {
+  const sameRepo = workspace();
+  const sameRepoEvent = pullRequestEvent(sameRepo, 'owner/AgentKit', 'owner/AgentKit');
+  const sameRepoRun = run(sameRepo, { GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: sameRepoEvent });
+  assert.equal(sameRepoRun.status, 1);
+  assert.ok(sameRepoRun.stdout.includes('::error::Lamatic secrets are missing'));
+  assert.equal(run(workspace(), {}).status, 1);
+});
+
+test('main: skipped or truncated documents make the report explicitly incomplete and fail', () => {
+  const dir = workspace();
+  for (let i = 0; i < 198; i++) fs.writeFileSync(path.join(dir, 'docs', `extra-${i}.md`), 'extra');
+  fs.writeFileSync(path.join(dir, 'docs', 'zz-last.md'), 'changed document');
+  const mock = path.join(dir, 'resp.json');
+  fs.writeFileSync(mock, JSON.stringify({
+    findings: [finding({
+      severity: 'Low',
+      summary: 'Changed final document was included.',
+      evidence: {
+        docA: { path: 'docs/zz-last.md', line: 1, text: 'changed document' },
+        docB: { path: 'docs/api.md', line: 1, text: 'other document' },
+      },
+    })],
+    stats: {},
+    candidate_count: 1,
+    docs_scanned: 200,
+  }));
+  const changed = path.join(dir, 'changed.txt');
+  fs.writeFileSync(changed, 'docs/zz-last.md\0');
+  const result = run(dir, { KB_AUDIT_MOCK_RESPONSE: mock, CHANGED_FILES_FILE: changed });
+  assert.equal(result.status, 1);
+  assert.ok(result.stdout.includes('Changed final document was included.'));
+  assert.ok(fs.readFileSync(path.join(dir, 'kb-audit-report.md'), 'utf8').includes('Incomplete audit'));
+
+  const longDoc = workspace();
+  fs.writeFileSync(path.join(longDoc, 'docs', 'api.md'), 'x'.repeat(200_001));
+  const longMock = path.join(longDoc, 'resp.json');
+  fs.writeFileSync(longMock, JSON.stringify({ findings: [], stats: {}, candidate_count: 0 }));
+  const longResult = run(longDoc, { KB_AUDIT_MOCK_RESPONSE: longMock });
+  assert.equal(longResult.status, 1);
+  assert.ok(fs.readFileSync(path.join(longDoc, 'kb-audit-report.md'), 'utf8').includes('truncated at 200,000 characters'));
+});
+
+test('main: a missing changed-file list fails instead of auditing an unknown scope', () => {
+  const dir = workspace();
+  const r = run(dir, {
+    KB_AUDIT_MOCK_RESPONSE: path.join(dir, 'unused.json'),
+    CHANGED_FILES_FILE: path.join(dir, 'missing.txt'),
+  });
+  assert.equal(r.status, 1);
+  assert.ok(r.stdout.includes('Changed-file list'));
 });
 
 test('main: missing docs folder or too few docs skip with exit 0', () => {
@@ -149,11 +267,11 @@ test('main: missing docs folder or too few docs skip with exit 0', () => {
   assert.equal(run(empty, {}).status, 0);
 });
 
-test('main: an unexpected response shape warns and exits 0', () => {
+test('main: an unexpected response shape fails instead of passing', () => {
   const dir = workspace();
   const mock = path.join(dir, 'resp.json');
   fs.writeFileSync(mock, JSON.stringify({ hello: 'world' }));
   const r = run(dir, { KB_AUDIT_MOCK_RESPONSE: mock });
-  assert.equal(r.status, 0);
-  assert.ok(r.stdout.includes('::warning::'));
+  assert.equal(r.status, 1);
+  assert.ok(r.stdout.includes('::error::'));
 });

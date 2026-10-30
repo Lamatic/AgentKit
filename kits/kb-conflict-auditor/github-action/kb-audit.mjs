@@ -16,7 +16,13 @@ export const MARKER = '<!-- kb-conflict-auditor -->';
 const SEVERITIES = ['Critical', 'High', 'Medium', 'Low'];
 const ICONS = { Critical: '🔴', High: '🟠', Medium: '🟡', Low: '⚪' };
 
-export function collectDocs(dir, { root = process.cwd(), extensions = ['.md', '.mdx', '.txt'], maxDocs = 200, maxChars = 200000 } = {}) {
+export function collectDocs(dir, {
+  root = process.cwd(),
+  extensions = ['.md', '.mdx', '.txt'],
+  maxDocs = 200,
+  maxChars = 200000,
+  prioritizePaths = new Set(),
+} = {}) {
   const found = [];
   const walk = (d) => {
     for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
@@ -27,12 +33,24 @@ export function collectDocs(dir, { root = process.cwd(), extensions = ['.md', '.
     }
   };
   walk(dir);
-  found.sort();
-  const documents = found.slice(0, maxDocs).map((full) => ({
-    path: path.relative(root, full).split(path.sep).join('/'),
-    content: fs.readFileSync(full, 'utf8').slice(0, maxChars),
-  }));
-  return { documents, skipped: Math.max(0, found.length - maxDocs) };
+  const relativePath = (full) => path.relative(root, full).split(path.sep).join('/');
+  found.sort((a, b) => {
+    const changedFirst = Number(prioritizePaths.has(relativePath(b))) - Number(prioritizePaths.has(relativePath(a)));
+    return changedFirst || relativePath(a).localeCompare(relativePath(b));
+  });
+  const selected = found.slice(0, maxDocs);
+  const truncatedDocuments = [];
+  const documents = selected.map((full) => {
+    const content = fs.readFileSync(full, 'utf8');
+    const docPath = relativePath(full);
+    if (content.length > maxChars) truncatedDocuments.push(docPath);
+    return { path: docPath, content: content.slice(0, maxChars) };
+  });
+  return {
+    documents,
+    skipped: Math.max(0, found.length - maxDocs),
+    truncatedDocuments,
+  };
 }
 
 function findResult(v, depth = 0) {
@@ -53,13 +71,19 @@ export function extractResult(response) {
   const r = findResult(response);
   if (!r) return null;
   let findings = r.findings;
-  if (typeof findings === 'string' && findings.trim()) {
-    try { findings = JSON.parse(findings); } catch { findings = []; }
+  if (typeof findings === 'string') {
+    if (!findings.trim()) findings = [];
+    else {
+      try { findings = JSON.parse(findings); } catch { return null; }
+    }
   }
+  if (!Array.isArray(findings)) return null;
   return {
-    findings: Array.isArray(findings) ? findings : [],
+    findings,
     stats: r.stats && typeof r.stats === 'object' ? r.stats : {},
     candidate_count: Number(r.candidate_count ?? 0),
+    total_found: Number(r.total_found ?? r.candidate_count ?? 0),
+    truncated: r.truncated === true || r.truncated === 'true',
     docs_scanned: Number(r.docs_scanned ?? 0),
   };
 }
@@ -80,29 +104,64 @@ export function shouldFail(findings, failOn = 'High') {
 
 const cell = (s) => String(s ?? '').replace(/`/g, "'").replace(/\s+/g, ' ').trim();
 
-export function renderMarkdown({ findings, docsScanned, candidateCount, changedOnly, hiddenCount = 0 }) {
+function renderFinding(f) {
+  const a = f.evidence?.docA ?? {};
+  const b = f.evidence?.docB ?? {};
+  const lines = [`### ${ICONS[f.severity] ?? '⚪'} ${f.severity ?? 'Medium'} - \`${cell(f.key)}\``, '', cell(f.summary), ''];
+  lines.push(`- **${a.path}** (line ${a.line}${a.date ? `, updated ${a.date}` : ''}): \`${cell(a.text)}\``);
+  lines.push(`- **${b.path}** (line ${b.line}${b.date ? `, updated ${b.date}` : ''}): \`${cell(b.text)}\``);
+  lines.push(`- **Authoritative:** ${f.authoritative_source}${f.authority_basis && f.authority_basis !== 'undetermined' ? ` (${f.authority_basis})` : ''}`, '');
+  if (f.patch) {
+    lines.push('```diff', `--- ${f.patch.file_to_update}`, `- ${cell(f.patch.current_text)}`, `+ ${cell(f.patch.replacement_text)}`, '```', '');
+  } else if (f.patch_note) {
+    lines.push(`> ${cell(f.patch_note)}`, '');
+  }
+  return lines.join('\n') + '\n';
+}
+
+export function renderMarkdown({
+  findings,
+  docsScanned,
+  candidateCount,
+  totalFound = candidateCount,
+  truncated = false,
+  changedOnly,
+  hiddenCount = 0,
+  incomplete = [],
+  failOn = 'High',
+}) {
   const lines = [MARKER, '## KB Conflict Auditor', ''];
   lines.push(`Scanned **${docsScanned}** docs, found **${candidateCount}** candidate conflicts, confirmed **${findings.length}**${changedOnly ? ' touching files changed in this PR' : ''}.`, '');
-  if (findings.length === 0) {
+  if (truncated || totalFound > candidateCount) {
+    lines.push(`⚠️ Candidate limit reached: **${candidateCount}** of **${totalFound}** candidate pairs were sent for review (maximum 10).`, '');
+  }
+  for (const message of incomplete) lines.push(`⚠️ **Incomplete audit:** ${message}`, '');
+  if (findings.length === 0 && (incomplete.length > 0 || truncated || totalFound > candidateCount)) {
+    lines.push('⚠️ No confirmed conflicts were returned for the candidate pairs that were reviewed.', '');
+  } else if (findings.length === 0) {
     lines.push('✅ No conflicting facts found.', '', '_This check only sees numbers with units (timeouts, sizes, limits, counts) written as "name: value", "name = value" or "name is value". It cannot judge prose._');
   }
-  for (const f of findings) {
-    const a = f.evidence?.docA ?? {};
-    const b = f.evidence?.docB ?? {};
-    lines.push(`### ${ICONS[f.severity] ?? '⚪'} ${f.severity ?? 'Medium'} - \`${cell(f.key)}\``, '', cell(f.summary), '');
-    lines.push(`- **${a.path}** (line ${a.line}${a.date ? `, updated ${a.date}` : ''}): \`${cell(a.text)}\``);
-    lines.push(`- **${b.path}** (line ${b.line}${b.date ? `, updated ${b.date}` : ''}): \`${cell(b.text)}\``);
-    lines.push(`- **Authoritative:** ${f.authoritative_source}${f.authority_basis && f.authority_basis !== 'undetermined' ? ` (${f.authority_basis})` : ''}`, '');
-    if (f.patch) {
-      lines.push('```diff', `--- ${f.patch.file_to_update}`, `- ${cell(f.patch.current_text)}`, `+ ${cell(f.patch.replacement_text)}`, '```', '');
-    } else if (f.patch_note) {
-      lines.push(`> ${cell(f.patch_note)}`, '');
-    }
-  }
   if (hiddenCount > 0) lines.push(`_${hiddenCount} more finding(s) involve files this PR did not change and are hidden._`, '');
-  lines.push('<sub>Facts are extracted by code; an AI model judges each pair; code re-checks authority and patches before anything is reported.</sub>');
-  const text = lines.join('\n');
-  return text.length > 60000 ? text.slice(0, 60000) + '\n\n_Report truncated._' : text;
+  const prefix = lines.join('\n') + '\n\n';
+  const footer = '<sub>Facts are extracted by code and judged by an AI model. Code verifies authority and that the exact quoted text appears in both the raw file and conflicting line; replacement text remains a suggestion for human review.</sub>';
+  const sections = findings.map(renderFinding);
+  const failing = findings.map((f) => shouldFail([f], failOn));
+  const failureReserve = sections.reduce((total, section, i) => total + (failing[i] ? section.length : 0), 0);
+  const truncationNotice = '\n_Report truncated; all findings meeting the configured failure threshold are retained._\n\n';
+  let available = Math.max(0, 60000 - prefix.length - footer.length - failureReserve - truncationNotice.length - 512);
+  let omitted = 0;
+  const included = sections.map((section, i) => {
+    if (failing[i]) return true;
+    if (section.length <= available) {
+      available -= section.length;
+      return true;
+    }
+    omitted++;
+    return false;
+  });
+  const body = sections.filter((_, i) => included[i]).join('');
+  const noticeText = omitted ? `\n_${omitted} non-failing finding(s) omitted to keep the report within 60,000 characters._\n\n` : '';
+  return `${prefix}${body}${noticeText}${omitted ? truncationNotice : '\n'}${footer}`;
 }
 
 function notice(msg) { console.log(`::notice::${msg}`); }
@@ -114,9 +173,18 @@ export async function main(env = process.env) {
   const failOn = env.FAIL_ON || 'High';
 
   if (!fs.existsSync(docsDir)) { notice(`Docs folder "${env.DOCS_DIR || 'docs'}" not found; nothing to audit.`); return 0; }
-  const { documents, skipped } = collectDocs(docsDir, { root });
+  let changed = null;
+  if (env.CHANGED_FILES_FILE) {
+    if (!fs.existsSync(env.CHANGED_FILES_FILE)) {
+      console.log(`::error::Changed-file list "${env.CHANGED_FILES_FILE}" is missing; the audit cannot determine its scope.`);
+      return 1;
+    }
+    changed = new Set(fs.readFileSync(env.CHANGED_FILES_FILE, 'utf8').split('\0').filter(Boolean));
+  }
+  const { documents, skipped, truncatedDocuments } = collectDocs(docsDir, { root, prioritizePaths: changed ?? new Set() });
   if (documents.length < 2) { notice('Fewer than two documents; nothing to compare.'); return 0; }
   if (skipped) notice(`${skipped} document(s) were skipped (limit of 200 per audit).`);
+  if (truncatedDocuments.length) notice(`${truncatedDocuments.length} document(s) exceeded the 200,000-character limit and were truncated.`);
 
   let response;
   if (env.KB_AUDIT_MOCK_RESPONSE) {
@@ -125,8 +193,12 @@ export async function main(env = process.env) {
     const endpoint = env.LAMATIC_API_URL || env.LAMATIC_PROJECT_ENDPOINT;
     const { LAMATIC_PROJECT_ID: projectId, LAMATIC_API_KEY: apiKey, LAMATIC_FLOW_ID: flowId } = env;
     if (!endpoint || !projectId || !apiKey || !flowId) {
-      notice('Lamatic secrets are not available (this is normal for pull requests from forks); skipping the audit.');
-      return 0;
+      if (isForkPullRequest(env)) {
+        notice('Lamatic secrets are not available for this fork pull request; skipping the audit.');
+        return 0;
+      }
+      console.log('::error::Lamatic secrets are missing for this audit. Configure the required credentials or run this check only for fork pull requests without secrets.');
+      return 1;
     }
     try {
       const { Lamatic } = await import('lamatic');
@@ -140,33 +212,49 @@ export async function main(env = process.env) {
 
   const result = extractResult(response);
   if (!result) {
-    console.log('::warning::The audit response had an unexpected shape; the check was skipped.');
+    console.log('::error::The audit response had an unexpected shape or malformed findings; the check cannot report a clean audit.');
     console.log(`Response (first 1500 characters): ${JSON.stringify(response)?.slice(0, 1500)}`);
-    return 0;
+    return 1;
   }
 
-  let changed = null;
-  if (env.CHANGED_FILES_FILE && fs.existsSync(env.CHANGED_FILES_FILE)) {
-    const names = fs.readFileSync(env.CHANGED_FILES_FILE, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
-    changed = new Set(names);
-  }
   const visible = filterByChanged(result.findings, changed);
+  const incomplete = [];
+  if (skipped) incomplete.push(`${skipped} eligible document(s) were skipped because the 200-document limit was reached.`);
+  if (truncatedDocuments.length) incomplete.push(`${truncatedDocuments.length} document(s) were truncated at 200,000 characters.`);
   const markdown = renderMarkdown({
     findings: visible,
     docsScanned: result.docs_scanned || documents.length,
     candidateCount: result.candidate_count,
+    totalFound: result.total_found,
+    truncated: result.truncated,
     changedOnly: Boolean(changed && changed.size),
     hiddenCount: result.findings.length - visible.length,
+    incomplete,
+    failOn,
   });
   fs.writeFileSync(reportFile, markdown);
   if (env.GITHUB_STEP_SUMMARY) fs.appendFileSync(env.GITHUB_STEP_SUMMARY, markdown + '\n');
   console.log(markdown);
 
-  if (shouldFail(visible, failOn)) {
-    console.log(`::error::Conflicting documentation found at or above severity "${failOn}".`);
+  if (skipped || truncatedDocuments.length || shouldFail(visible, failOn)) {
+    console.log(`::error::The audit is incomplete or found conflicts at or above severity "${failOn}".`);
     return 1;
   }
   return 0;
+}
+
+function isForkPullRequest(env) {
+  if (env.GITHUB_EVENT_NAME !== 'pull_request' || !env.GITHUB_EVENT_PATH || !fs.existsSync(env.GITHUB_EVENT_PATH)) {
+    return false;
+  }
+  try {
+    const event = JSON.parse(fs.readFileSync(env.GITHUB_EVENT_PATH, 'utf8'));
+    const headRepo = event.pull_request?.head?.repo?.full_name;
+    const baseRepo = event.pull_request?.base?.repo?.full_name;
+    return typeof headRepo === 'string' && typeof baseRepo === 'string' && headRepo !== baseRepo;
+  } catch {
+    return false;
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

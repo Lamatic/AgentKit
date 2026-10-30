@@ -72,9 +72,13 @@ export function parseRepoUrl(input: string): RepoRef | null {
 
   if (parts.length === 2) return { owner, repo, path: '' };
   if (parts[2] === 'tree' && parts.length >= 4) {
-    return { owner, repo, ref: decodeURIComponent(parts[3]), path: parts.slice(4).map(decodeURIComponent).join('/') };
+    try {
+      return { owner, repo, ref: decodeURIComponent(parts[3]), path: parts.slice(4).map(decodeURIComponent).join('/') };
+    } catch {
+      return null;
+    }
   }
-  return { owner, repo, path: '' };
+  return null;
 }
 
 const byteLength = (s: string): number => new TextEncoder().encode(s).length;

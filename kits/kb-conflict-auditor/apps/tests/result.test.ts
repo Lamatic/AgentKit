@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import sampleResponse from '../../github-action/sample-response.json';
 import { auditDocs } from '../actions/orchestrate';
 import { extractResult, type Finding, validateDocumentsJson } from '../lib/result';
@@ -30,6 +30,8 @@ describe('extractResult', () => {
       findings: [makeFinding()],
       stats: { confirmed: 1 },
       candidate_count: 1,
+      total_found: 1,
+      truncated: false,
       docs_scanned: 2,
     };
     const res = extractResult(plain);
@@ -56,6 +58,8 @@ describe('extractResult', () => {
       findings: [makeFinding()],
       stats: { confirmed: 1, candidates: 1 },
       candidate_count: 1,
+      total_found: 1,
+      truncated: false,
       docs_scanned: 4,
     });
 
@@ -82,6 +86,8 @@ describe('extractResult', () => {
       findings: [],
       stats: {},
       candidate_count: 0,
+      total_found: 0,
+      truncated: false,
       docs_scanned: 3,
     });
   });
@@ -91,6 +97,12 @@ describe('extractResult', () => {
     expect(extractResult(undefined)).toBeNull();
     expect(extractResult('not json')).toBeNull();
     expect(extractResult({ unrelated: true })).toBeNull();
+  });
+
+  it('rejects malformed findings instead of normalizing them to an empty result', () => {
+    expect(extractResult({ findings: { severity: 'Critical' }, candidate_count: 1 })).toBeNull();
+    expect(extractResult({ findings: '[not json]', candidate_count: 1 })).toBeNull();
+    expect(extractResult({ candidate_count: 0 })).toBeNull();
   });
 });
 
@@ -114,9 +126,40 @@ describe('validateDocumentsJson', () => {
     expect('error' in validateDocumentsJson('[{"path":"","content":"hi"}]')).toBe(true);
     expect('error' in validateDocumentsJson('[{"path":"docs/a.md"}]')).toBe(true);
   });
+
+  it('rejects duplicate normalized paths, too many documents, and oversized content', () => {
+    expect('error' in validateDocumentsJson(JSON.stringify([
+      { path: 'docs/a.md', content: 'first' },
+      { path: ' docs/a.md ', content: 'second' },
+    ]))).toBe(true);
+    expect('error' in validateDocumentsJson(JSON.stringify(
+      Array.from({ length: 201 }, (_, i) => ({ path: `docs/${i}.md`, content: '' })),
+    ))).toBe(true);
+    expect('error' in validateDocumentsJson(JSON.stringify([
+      { path: 'docs/large.md', content: 'x'.repeat(200_001) },
+    ]))).toBe(true);
+  });
 });
 
 describe('auditDocs server action', () => {
+  const liveEnvKeys = ['LAMATIC_API_URL', 'LAMATIC_PROJECT_ID', 'LAMATIC_API_KEY', 'AUDIT_KB_FLOW_ID'];
+  const savedEnv: Record<string, string | undefined> = {};
+
+  beforeEach(() => {
+    for (const key of liveEnvKeys) {
+      savedEnv[key] = process.env[key];
+      delete process.env[key];
+    }
+  });
+
+  afterEach(() => {
+    for (const key of liveEnvKeys) {
+      const previous = savedEnv[key];
+      if (previous === undefined) delete process.env[key];
+      else process.env[key] = previous;
+    }
+  });
+
   it('returns sample-response.json with demo: true when LAMATIC_* env vars are missing', async () => {
     const docs = JSON.stringify([
       { path: 'docs/api.md', content: 'timeout = 30s' },

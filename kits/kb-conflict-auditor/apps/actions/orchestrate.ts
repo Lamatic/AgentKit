@@ -22,6 +22,8 @@ export interface AuditDocsResult {
   findings: Finding[];
   stats: AuditStats;
   candidate_count: number;
+  total_found: number;
+  truncated: boolean;
   docs_scanned: number;
   source: AuditSource;
   demo: boolean;
@@ -88,6 +90,8 @@ function failResult(error: string, source: AuditSource = EMPTY_SOURCE): AuditDoc
     findings: [],
     stats: {},
     candidate_count: 0,
+    total_found: 0,
+    truncated: false,
     docs_scanned: 0,
     source,
     demo: false,
@@ -159,6 +163,8 @@ export async function auditDocs(input: AuditDocsInput): Promise<AuditDocsResult>
       findings: sample.findings,
       stats: sample.stats,
       candidate_count: sample.candidate_count,
+      total_found: sample.total_found,
+      truncated: sample.truncated,
       docs_scanned: sample.docs_scanned,
       source,
       demo: true,
@@ -199,6 +205,8 @@ export async function auditDocs(input: AuditDocsInput): Promise<AuditDocsResult>
       findings: normalized.findings,
       stats: normalized.stats,
       candidate_count: normalized.candidate_count,
+      total_found: normalized.total_found,
+      truncated: normalized.truncated,
       docs_scanned: normalized.docs_scanned,
       source,
       demo: false,

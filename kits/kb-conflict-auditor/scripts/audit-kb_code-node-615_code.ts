@@ -31,13 +31,16 @@ function verify(llmRaw, candidatesRaw, documentsRaw) {
   const results = toResults(llmRaw);
 
   const byId = new Map(candidates.map((c) => [c.id, c]));
-  const content = new Map(docs.map((d) => [d.path, norm(d.content)]));
+  const content = new Map(docs.map((d) => [d.path, String(d.content || '')]));
   const stats = { candidates: candidates.length, judged: results.length, confirmed: 0, dismissed: 0, discarded_unknown: 0, authority_overridden: 0, patches_withheld: 0 };
   const findings = [];
+  const seen = new Set();
 
   for (const r of results) {
     const c = byId.get(r && r.candidate_id);
     if (!c) { stats.discarded_unknown++; continue; }
+    if (seen.has(c.id)) continue;
+    seen.add(c.id);
     if (!r.is_real_conflict) { stats.dismissed++; continue; }
 
     const dated = c.docA.date && c.docB.date && c.docA.date !== c.docB.date;
@@ -51,7 +54,13 @@ function verify(llmRaw, candidatesRaw, documentsRaw) {
     let patchNote = '';
     if (authority === 'unclear') patchNote = 'No patch: dates do not settle which document is right. A human must decide.';
     else if (p.file_to_update !== stale) patchNote = 'Patch withheld: it did not target the outdated file.';
-    else if (!p.current_text || !content.get(stale) || !content.get(stale).includes(norm(p.current_text))) patchNote = 'Patch withheld: the quoted text was not found in the file.';
+    else if (
+      typeof p.current_text !== 'string' ||
+      !p.current_text.trim() ||
+      !content.get(stale)?.includes(p.current_text) ||
+      !String(stale === c.docA.path ? c.docA.text : c.docB.text).includes(p.current_text)
+    ) patchNote = 'Patch withheld: the exact quoted text was not found on the conflicting line in the file.';
+    else if (typeof p.replacement_text !== 'string' || !p.replacement_text.trim()) patchNote = 'Patch withheld: no replacement text was suggested.';
     else patch = { file_to_update: stale, current_text: p.current_text, replacement_text: p.replacement_text };
     if (!patch) stats.patches_withheld++;
 

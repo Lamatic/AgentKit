@@ -33,7 +33,7 @@ One flow, `audit-kb`.
 
 - The model never decides which document is authoritative. Dates do. Missing or equal dates give `unclear` and no patch.
 - A patch is returned only when it targets the outdated file and quotes text that exists in that file.
-- Document text is untrusted. The model receives only the matched line of each document, as data, and is told to ignore instructions inside it. Code re-checks its output either way.
+- Document text is untrusted. The model receives only the matched line of each document, as data, and is told to ignore instructions inside it. Code verifies the authority, patch target, and exact quote against both the raw file and conflicting line; suggested replacement text remains advisory and needs human review.
 - The tool states its limits: it sees numeric settings only, and a conflict is found only when both files use the same setting name.
 
 ## Integrations

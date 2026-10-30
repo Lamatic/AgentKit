@@ -22,6 +22,11 @@ const SKIP_KEYS = new Set(['date', 'last_updated', 'updated', 'updated_at', 'ver
 const FACT = /([A-Za-z][A-Za-z0-9_\-. ]{1,40}?)\s*(?::|=|\bis\b|\bto\b)\s*`?(\d+(?:\.\d+)?)\s*(seconds?|secs?|msec|ms|minutes?|mins?|hours?|hrs?|kb|mb|gb|%|px|h|s)?(?![A-Za-z0-9]|[-./]\d)/gi;
 const DATE = /^(?:last[_ -]?updated|updated(?:_at)?|date)\s*:\s*["']?(\d{4}-\d{2}-\d{2})/im;
 
+function isRealDate(value) {
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 function normalizeKey(text) {
   const tokens = text.toLowerCase().replace(/[`*|>#"'()\[\]]/g, ' ').split(/[\s\-.]+/)
     .filter((t) => t && !STOP.has(t));
@@ -64,7 +69,7 @@ function extract(documentsJson) {
     .map((d) => {
       const content = d.content.slice(0, MAX_DOC_CHARS);
       const dm = DATE.exec(content);
-      return { path: d.path, date: dm ? dm[1] : '', facts: extractFacts(content) };
+      return { path: d.path, date: dm && isRealDate(dm[1]) ? dm[1] : '', facts: extractFacts(content) };
     });
 
   const found = [];
@@ -72,23 +77,22 @@ function extract(documentsJson) {
     for (let j = i + 1; j < clean.length; j++) {
       const A = clean[i];
       const B = clean[j];
-      const seen = new Set();
       for (const a of A.facts) {
-        if (seen.has(a.key)) continue;
-        const b = B.facts.find((f) => f.key === a.key && f.dim === a.dim && Math.abs(f.value - a.value) > 1e-9 * Math.max(1, Math.abs(a.value)));
-        if (!b) continue;
-        seen.add(a.key);
-        const bothDated = A.date && B.date && A.date !== B.date;
-        found.push({
-          score: (bothDated ? 2 : 0) + (a.key.includes('_') ? 1 : 0),
-          key: a.key,
-          docA: { path: A.path, date: A.date, line: a.line, heading: a.heading, text: a.context },
-          docB: { path: B.path, date: B.date, line: b.line, heading: b.heading, text: b.context },
-        });
+        for (const b of B.facts) {
+          if (a.key !== b.key || a.dim !== b.dim || Math.abs(a.value - b.value) <= 1e-9 * Math.max(1, Math.abs(a.value))) continue;
+          const bothDated = A.date && B.date && A.date !== B.date;
+          const sameContext = a.heading && a.heading === b.heading;
+          found.push({
+            score: (bothDated ? 2 : 0) + (sameContext ? 1 : 0) + (a.key.includes('_') ? 1 : 0),
+            key: a.key,
+            docA: { path: A.path, date: A.date, line: a.line, heading: a.heading, text: a.context },
+            docB: { path: B.path, date: B.date, line: b.line, heading: b.heading, text: b.context },
+          });
+        }
       }
     }
   }
-  found.sort((x, y) => y.score - x.score);
+  found.sort((x, y) => y.score - x.score || x.docA.path.localeCompare(y.docA.path) || x.docA.line - y.docA.line || x.docB.path.localeCompare(y.docB.path) || x.docB.line - y.docB.line);
   const candidates = found.slice(0, MAX_PAIRS).map((c, n) => ({ id: 'c' + (n + 1), key: c.key, docA: c.docA, docB: c.docB }));
   return {
     docs_scanned: clean.length,

@@ -48,6 +48,8 @@ export interface NormalizedAuditResult {
   findings: Finding[];
   stats: AuditStats;
   candidate_count: number;
+  total_found: number;
+  truncated: boolean;
   docs_scanned: number;
 }
 
@@ -87,10 +89,11 @@ export function extractResult(response: unknown): NormalizedAuditResult | null {
       try {
         findings = JSON.parse(trimmed);
       } catch {
-        findings = [];
+        return null;
       }
     }
   }
+  if (!Array.isArray(findings)) return null;
 
   let stats: unknown = r.stats;
   if (typeof stats === 'string') {
@@ -107,9 +110,11 @@ export function extractResult(response: unknown): NormalizedAuditResult | null {
   }
 
   return {
-    findings: Array.isArray(findings) ? (findings as Finding[]) : [],
+    findings: findings as Finding[],
     stats: stats && typeof stats === 'object' && !Array.isArray(stats) ? (stats as AuditStats) : {},
     candidate_count: Number(r.candidate_count ?? 0) || 0,
+    total_found: Number(r.total_found ?? r.candidate_count ?? 0) || 0,
+    truncated: r.truncated === true || r.truncated === 'true',
     docs_scanned: Number(r.docs_scanned ?? 0) || 0,
   };
 }
@@ -132,8 +137,12 @@ export function validateDocumentsJson(raw: string): { documents: DocFile[] } | {
   if (!Array.isArray(parsed) || parsed.length === 0) {
     return { error: 'Documents JSON must be a non-empty array of { path, content } objects.' };
   }
+  if (parsed.length > 200) {
+    return { error: 'Documents JSON can contain at most 200 documents.' };
+  }
 
   const documents: DocFile[] = [];
+  const seenPaths = new Set<string>();
   for (let i = 0; i < parsed.length; i++) {
     const item = parsed[i];
     if (
@@ -148,9 +157,18 @@ export function validateDocumentsJson(raw: string): { documents: DocFile[] } | {
         error: `Invalid document at index ${i}: each item must be an object with a non-empty string "path" and string "content".`,
       };
     }
+    const path = (item as { path: string }).path.trim();
+    const content = (item as { content: string }).content;
+    if (seenPaths.has(path)) {
+      return { error: `Duplicate path at index ${i}: "${path}" must appear only once.` };
+    }
+    if (content.length > 200_000) {
+      return { error: `Document at index ${i} exceeds the 200,000-character limit.` };
+    }
+    seenPaths.add(path);
     documents.push({
-      path: (item as { path: string }).path.trim(),
-      content: (item as { content: string }).content,
+      path,
+      content,
     });
   }
 

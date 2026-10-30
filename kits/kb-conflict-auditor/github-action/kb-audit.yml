@@ -19,6 +19,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check out the trusted audit script
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -26,10 +32,10 @@ jobs:
       - name: List docs changed in this PR
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: git diff --name-only "origin/$BASE_REF...HEAD" -- docs > "$RUNNER_TEMP/changed.txt" || true
+        run: git diff --name-only -z "origin/$BASE_REF...HEAD" -- docs > "$RUNNER_TEMP/changed.txt"
 
       - name: Install the Lamatic SDK
-        run: npm install --no-save lamatic
+        run: npm install --prefix trusted --no-save lamatic
 
       - name: Audit docs
         env:
@@ -40,21 +46,25 @@ jobs:
           CHANGED_FILES_FILE: ${{ runner.temp }}/changed.txt
           DOCS_DIR: docs
           FAIL_ON: High
-        run: node .github/kb-audit/kb-audit.mjs
+        run: node trusted/.github/kb-audit/kb-audit.mjs
 
       - name: Post the report on the PR
-        if: always() && hashFiles('kb-audit-report.md') != ''
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync('kb-audit-report.md', 'utf8');
             const marker = '<!-- kb-conflict-auditor -->';
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
             try {
               const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
               const existing = comments.find((c) => c.body && c.body.includes(marker));
+              if (!fs.existsSync('kb-audit-report.md')) {
+                if (existing) await github.rest.issues.deleteComment({ owner, repo, comment_id: existing.id });
+                return;
+              }
+              const body = fs.readFileSync('kb-audit-report.md', 'utf8');
               if (existing) {
                 await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
               } else {

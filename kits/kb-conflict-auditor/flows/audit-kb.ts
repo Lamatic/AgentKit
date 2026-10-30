@@ -195,7 +195,7 @@ export const nodes = [
         "nodeName": "API Response",
         "webhookUrl": "",
         "retry_delay": "0",
-        "outputMapping": "{\n  \"findings\": \"{{codeNode_615.output.findings}}\",\n  \"stats\": \"{{codeNode_615.output.stats}}\",\n  \"candidate_count\": \"{{codeNode_344.output.candidate_count}}\",\n  \"docs_scanned\": \"{{codeNode_344.output.docs_scanned}}\"\n}"
+        "outputMapping": "{\n  \"findings\": \"{{codeNode_615.output.findings}}\",\n  \"stats\": \"{{codeNode_615.output.stats}}\",\n  \"candidate_count\": \"{{codeNode_344.output.candidate_count}}\",\n  \"total_found\": \"{{codeNode_344.output.total_found}}\",\n  \"truncated\": \"{{codeNode_344.output.truncated}}\",\n  \"docs_scanned\": \"{{codeNode_344.output.docs_scanned}}\"\n}"
       }
     }
   }

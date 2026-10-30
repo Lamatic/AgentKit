@@ -31,6 +31,8 @@ describe('parseRepoUrl', () => {
   });
   it('rejects other hosts and junk', () => {
     expect(parseRepoUrl('https://gitlab.com/acme/widgets')).toBeNull();
+    expect(parseRepoUrl('https://github.com/acme/widgets/blob/main/docs/api.md')).toBeNull();
+    expect(parseRepoUrl('https://github.com/acme/widgets/tree/%E0%A4%A/docs')).toBeNull();
     expect(parseRepoUrl('widgets')).toBeNull();
     expect(parseRepoUrl('acme/wid gets')).toBeNull();
   });
